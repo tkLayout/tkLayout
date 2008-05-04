@@ -664,6 +664,7 @@ void Module::computeStripArea() {
   double maxTheta, minTheta, maxPhi, minPhi, aPhi;
   maxTheta = getMaxTheta();
   minTheta = getMinTheta();
+  //  std::cerr << "theta:\t" << minTheta << "\t" << maxTheta << std::endl;
   
   Module* anotherModule = new Module(*this);
   anotherModule->rotatePhi(-1*meanPhi);
@@ -674,17 +675,21 @@ void Module::computeStripArea() {
     if (aPhi>maxPhi) maxPhi=aPhi;
     if (aPhi<minPhi) minPhi=aPhi;
   }
+
+  // std::cerr << "phi:\t" << minPhi << "\t" << maxPhi << std::endl;
   
   double phiWidth, etaWidth;
   phiWidth = maxPhi-minPhi;
-  etaWidth = log(tan(minTheta/2.))-1*log(tan(maxTheta/2.));
+  etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
+  //  std::cerr << "widths: theta:\t" << etaWidth << " phi:\t" << phiWidth << std::endl;
 
   stripArea_ = phiWidth * etaWidth / double(nChannels_);
+  //  std::cerr << "area:\t" << stripArea_ << std::endl;
 }
 
 double Module::getOccupancyPerEvent() {
   XYZVector meanPoint = getMeanPoint();
-  double meanEta = meanPoint.eta();
+  double meanEta = abs(meanPoint.eta());
 
   computeStripArea();
   double spOcc;
@@ -699,6 +704,8 @@ double Module::getOccupancyPerEvent() {
   // per l'area della strip espressa in unità di (phi, eta).
   // Il risultato deve essere in seguito moltiplicato per il numero di eventi di minimum bias per evento.
   // (5, 24 o 400, per bassa, alta e super luminosità). 
+
+  //  std::cerr << "occupancy: " << spOcc*stripArea_ << std::endl;
 
   return spOcc*stripArea_;
 }

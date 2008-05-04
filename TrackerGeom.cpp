@@ -296,6 +296,9 @@ int main (int argc, char* argv[]) {
   }
   myTracker->createGeometry(true);
 
+  // Optical transmission
+  myTracker->computeBandwidth();
+
   // Analysis
   myTracker->analyze(2000, Layer::YZSection);
 

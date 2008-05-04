@@ -65,6 +65,9 @@ private:
   TCanvas* geomLiteYZ_;
   TCanvas* geomLiteEC_;
   TCanvas* etaProfileCanvas_;
+  TCanvas* bandWidthCanvas_;
+
+  TH1F* bandWidthDist_;
 
   std::vector<TObject* > savingV_;
 
@@ -164,6 +167,8 @@ public:
   // Module adjustments
   void changeRingModules(std::string diskName, int ringN, std::string newtype, Color_t newColor);
 
+  // Data transmission
+  void computeBandwidth();
 
 };
 

@@ -217,17 +217,20 @@ void Tracker::buildBarrel(int nLayer,
     tag << "L" << i+1 ;
     sampleModule->setTag(tag.str());
     if ((i==0)||(i==1)) {
-      sampleModule->setNChannels(768*4);
+      //      sampleModule->setNChannels(768*4);
+      sampleModule->setNChannels(768*2);
       sampleModule->setType("phiphi");
       sampleModule->setColor(kRed);
     }
     if ((i==2)||(i==3)) {
-      sampleModule->setNChannels(512*4);
+      //      sampleModule->setNChannels(512*4);
+      sampleModule->setNChannels(512);
       sampleModule->setType("rphi");
       sampleModule->setColor(kBlue);
     }
     if ((i==(nLayer-2))||(i==(nLayer-1))) {
-      sampleModule->setNChannels(768*2);
+      //      sampleModule->setNChannels(768*2);
+      sampleModule->setNChannels(512);
       sampleModule->setType("phiphi_ex");
       sampleModule->setColor(kGreen);
     }
@@ -317,17 +320,20 @@ void Tracker::buildBarrel(int nLayer,
     tag << "L" << i+1 ;
     sampleModule->setTag(tag.str());
     if ((i==0)||(i==1)) {
-      sampleModule->setNChannels(768*4);
+      //sampleModule->setNChannels(768*4);
+      sampleModule->setNChannels(768*2);
       sampleModule->setType("phiphi");
       sampleModule->setColor(kRed);
     }
     if ((i==2)||(i==3)) {
-      sampleModule->setNChannels(512*4);
+      //sampleModule->setNChannels(512*4);
+      sampleModule->setNChannels(512);
       sampleModule->setType("rphi");
       sampleModule->setColor(kBlue);
     }
     if ((i==(nLayer-2))||(i==(nLayer-1))) {
-      sampleModule->setNChannels(768*2);
+      //sampleModule->setNChannels(768*2);
+      sampleModule->setNChannels(512);
       sampleModule->setType("phiphi_ex");
       sampleModule->setColor(kGreen);
     }
@@ -820,11 +826,14 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   // Formatting parameters
   int coordPrecision = 0;
   int areaPrecision = 1;
+  int occupancyPrecision = 1;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
   std::map<std::string, int> typeMapCount;
   std::map<std::string, long> typeMapCountChan;
+  std::map<std::string, double> typeMapMaxOccupancy;
+  std::map<std::string, double> typeMapAveOccupancy;
   std::map<std::string, Module*>::iterator typeMapIt;
   std::map<std::string, Module*> ringTypeMap;
   std::string aSensorTag;
@@ -902,6 +911,11 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
       aSensorTag=(*modIt)->getSensorTag();
       typeMapCount[aSensorTag]++;
       typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
+      // TODO: implement a smarter way to introduce the multiplicity
+      if (((*modIt)->getOccupancyPerEvent()*400)>typeMapMaxOccupancy[aSensorTag]) {
+	typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*400;
+      }
+      typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*400;
       totArea+=(*modIt)->getArea();
       totCount++;
       totChannels+=(*modIt)->getNChannels();
@@ -955,12 +969,16 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> tags;
   std::vector<std::string> types;
   std::vector<std::string> areas;
+  std::vector<std::string> occupancies;
+  std::vector<std::string> nstrips;
   std::vector<std::string> numbers;
   std::vector<std::string> channels;
   std::ostringstream aName;
   std::ostringstream aTag;
   std::ostringstream aType;
   std::ostringstream anArea;
+  std::ostringstream anOccupancy;
+  std::ostringstream anNstrips;
   std::ostringstream aNumber;
   std::ostringstream aChannel;
   int barrelCount=0;
@@ -972,6 +990,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   tags.push_back("Tag");
   types.push_back("Type");
   areas.push_back("Area (mm"+superStart+"2"+superEnd+")");
+  occupancies.push_back("Perc. Occup (max/av)");
+  nstrips.push_back("N Strips");
   numbers.push_back("Num.");
   channels.push_back("Chan.");
 
@@ -995,6 +1015,12 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     // Area
     anArea.str("");
     anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+    // Occupancy
+    anOccupancy.str("");
+    anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+    // Nstrips
+    anNstrips.str("");
+    anNstrips << std::dec <<  int(typeMapCountChan[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first]);
     // Number
     aNumber.str("");
     aNumber << std::dec << typeMapCount[(*typeMapIt).first];
@@ -1006,6 +1032,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     tags.push_back(aTag.str());
     types.push_back(aType.str());
     areas.push_back(anArea.str());
+    occupancies.push_back(anOccupancy.str());
+    nstrips.push_back(anNstrips.str());
     numbers.push_back(aNumber.str());
     channels.push_back(aChannel.str());
   }
@@ -1017,6 +1045,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totArea/1e6
 	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
   areas.push_back(anArea.str());
+  occupancies.push_back("--");
+  nstrips.push_back("--");
   aNumber.str("");
   aNumber << emphStart << totCount << emphEnd;
   numbers.push_back(aNumber.str());
@@ -1052,6 +1082,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, tags);
     printHtmlTableRow(&myfile, types);
     printHtmlTableRow(&myfile, areas);
+    printHtmlTableRow(&myfile, occupancies);    
+    printHtmlTableRow(&myfile, nstrips);    
     printHtmlTableRow(&myfile, numbers);
     printHtmlTableRow(&myfile, channels);
     myfile << "</table>"<<std::endl;
@@ -1059,6 +1091,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
     myfile << "<img src=\"summaryPlots_nhitplot.png\" />" << std::endl;
     myfile << "<img src=\"summaryPlotsYZ.png\" />" << std::endl;
+    myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
     myfile << "</body></html>" << std::endl;    
   }  
   myfile.close();
@@ -1470,8 +1503,40 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
     summaryCanvas->Modified();
     summaryCanvas->SaveAs(pngFileName.c_str());
   }
-  
+
+
+  if (bandWidthCanvas_) {
+    pngFileName = fileName+"_bandwidth.png";
+    bandWidthCanvas_->DrawClonePad();
+    bandWidthCanvas_->SaveAs(pngFileName.c_str());
+  }
 
   //summaryCanvas->SaveAs(epsFileName.c_str());
   //summaryCanvas->SaveAs(gifFileName.c_str());
+}
+
+
+void Tracker::computeBandwidth() { 
+  LayerVector::iterator layIt;
+  ModuleVector::iterator modIt;
+  ModuleVector* aLay;
+  double hitChannels;
+  
+
+  bandWidthCanvas_ = new TCanvas("ModuleBandwidthC","Modules needed bandwidthC",800, 800);
+  bandWidthCanvas_->cd();
+
+  bandWidthDist_ = new TH1F("NHitChannels","Number of hit channels", 100, 0., 400);
+  
+  for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      // TODO: remove explicit "400" here
+      hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannels());
+      bandWidthDist_->Fill(hitChannels);
+    }
+  }
+  bandWidthDist_->Draw();
+  savingV_.push_back(bandWidthCanvas_);
+  savingV_.push_back(bandWidthDist_);
 }
