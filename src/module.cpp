@@ -48,7 +48,7 @@ void Module::setDefaultParameters() {
   thisVolume_ = NULL;
   color_      = defaultColor_;
   inSection_  = 0;
-  nChannels_  = 0;
+  nChannels_  = 1;
 }
 
 void Module::print() {
@@ -655,6 +655,54 @@ XYZVector Module::getMeanPoint() {
 
   return meanPoint;
 }
+
+void Module::computeStripArea() {
+  XYZVector meanPoint = getMeanPoint();
+  double meanEta = meanPoint.eta();
+  double meanPhi = meanPoint.phi();
+
+  double maxTheta, minTheta, maxPhi, minPhi, aPhi;
+  maxTheta = getMaxTheta();
+  minTheta = getMinTheta();
+  
+  Module* anotherModule = new Module(*this);
+  anotherModule->rotatePhi(-1*meanPhi);
+  maxPhi=0;
+  minPhi=0;
+  for (int i=0; i<4 ; i++) {
+    aPhi=anotherModule->corner_[i].phi();
+    if (aPhi>maxPhi) maxPhi=aPhi;
+    if (aPhi<minPhi) minPhi=aPhi;
+  }
+  
+  double phiWidth, etaWidth;
+  phiWidth = maxPhi-minPhi;
+  etaWidth = log(tan(minTheta/2.))-1*log(tan(maxTheta/2.));
+
+  stripArea_ = phiWidth * etaWidth / double(nChannels_);
+}
+
+double Module::getOccupancyPerEvent() {
+  XYZVector meanPoint = getMeanPoint();
+  double meanEta = meanPoint.eta();
+
+  computeStripArea();
+  double spOcc;
+
+  if (meanEta<1) {
+    spOcc = 3.7 * (1+meanEta);
+  } else {
+    spOcc = 3.7 * 2;
+  }
+
+  // Per ottenere l'occupanza vera basta moltiplicare spOcc
+  // per l'area della strip espressa in unità di (phi, eta).
+  // Il risultato deve essere in seguito moltiplicato per il numero di eventi di minimum bias per evento.
+  // (5, 24 o 400, per bassa, alta e super luminosità). 
+
+  return spOcc*stripArea_;
+}
+
 
 /******************/
 /*                */

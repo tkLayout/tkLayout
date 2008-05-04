@@ -29,6 +29,7 @@ class Module {
   double height_;
   double thickness_;
   double area_;
+  double stripArea_;
   int nChannels_;
 
   int inSection_;
@@ -61,6 +62,8 @@ class Module {
   TGeoVolume* thisVolume_;
 
   edge getEdgeRho(int direction);
+
+  void computeStripArea();
 
  private:
   void setDefaultParameters();
@@ -128,6 +131,7 @@ class Module {
   int getNChannels() { return nChannels_ ;};
   void setNChannels(const int& newN) { nChannels_ = newN;};
 
+  double getOccupancyPerEvent();
 };
 
 
