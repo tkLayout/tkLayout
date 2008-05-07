@@ -16,6 +16,7 @@
 #include "TPolyLine3D.h"
 #include "TText.h"
 #include "TFrame.h"
+#include "TLegend.h"
 
 // Stuff to create directories
 #include <sys/stat.h>
@@ -1521,22 +1522,46 @@ void Tracker::computeBandwidth() {
   ModuleVector::iterator modIt;
   ModuleVector* aLay;
   double hitChannels;
+  TLegend* myLegend;
   
 
-  bandWidthCanvas_ = new TCanvas("ModuleBandwidthC","Modules needed bandwidthC",800, 800);
-  bandWidthCanvas_->cd();
+  bandWidthCanvas_ = new TCanvas("ModuleBandwidthC","Modules needed bandwidthC",1000, 600);
+  bandWidthCanvas_->Divide(2);
 
-  bandWidthDist_ = new TH1F("NHitChannels","Number of hit channels", 100, 0., 400);
+  chanHitDist_     = new TH1F("NHitChannels",
+			    "Number of hit channels;Hit Channels", 100, 0., 400);
+  bandWidthDist_   = new TH1F("BandWidthDist",
+			    "Module Needed Bandwidth;Bandwidth (bps)", 100, 0., 2E+8);
+  bandWidthDistSp_ = new TH1F("BandWidthDistSp",
+			      "Module Needed Bandwidth (sparsified);Bandwidth (bps)", 100, 0., 2E+8);
+  bandWidthDistSp_->SetLineColor(kRed);
   
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       // TODO: remove explicit "400" here
       hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannels());
-      bandWidthDist_->Fill(hitChannels);
+      chanHitDist_->Fill(hitChannels);
+      // TODO: place the computing model choice here
+      // Binary unsparsified (bps)
+      bandWidthDist_->Fill((16+(*modIt)->getNChannels())*100E3);
+      // Binary sparsified
+      bandWidthDistSp_->Fill((23+hitChannels*9)*100E3);
     }
   }
+
+  bandWidthCanvas_->cd(1);
   bandWidthDist_->Draw();
+  bandWidthDistSp_->Draw("same");
+  myLegend = new TLegend(0.75, 0.5, 1,.75);
+  myLegend->AddEntry(bandWidthDist_, "Unsparsified", "l");
+  myLegend->AddEntry(bandWidthDistSp_, "Sparsified", "l");
+  myLegend->Draw();
+  bandWidthCanvas_->cd(2);
+  chanHitDist_->Draw();
+
   savingV_.push_back(bandWidthCanvas_);
+  savingV_.push_back(chanHitDist_);
   savingV_.push_back(bandWidthDist_);
+  savingV_.push_back(bandWidthDistSp_);
 }

@@ -68,6 +68,8 @@ private:
   TCanvas* bandWidthCanvas_;
 
   TH1F* bandWidthDist_;
+  TH1F* bandWidthDistSp_;
+  TH1F* chanHitDist_;
 
   std::vector<TObject* > savingV_;
 
