@@ -1006,6 +1006,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   numbers.push_back("Num.");
   channels.push_back("Chan.");
 
+  int loPitch;
+  int hiPitch;
+
   // Summary cycle: prepares the rows cell by cell
   for (typeMapIt=typeMap.begin(); typeMapIt!=typeMap.end(); typeMapIt++) {
     // Name
@@ -1031,8 +1034,13 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
     // Pitches
     aPitchPair.str("");
-    aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << (*typeMapIt).second->getLowPitch() *1e3
-	       << "/" <<  (*typeMapIt).second->getHighPitch()*1e3;
+    loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
+    hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
+    if (loPitch==hiPitch) {
+      aPitchPair << std::dec << loPitch;
+    } else {
+      aPitchPair << std::dec << loPitch << "/" << hiPitch;
+    }
     // Nstrips
     anNstrips.str("");
     anNstrips << std::dec <<  int(typeMapCountChan[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first]);
