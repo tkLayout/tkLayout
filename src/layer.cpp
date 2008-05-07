@@ -1167,17 +1167,20 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     sampleModule->setTag(tag.str());
     if (nRing<=3) {
       //      sampleModule->setNChannels(768*4);
-      sampleModule->setNChannels(768*2);
+      sampleModule->setNStripAcross(768);
+      sampleModule->setNSegments(2);
       sprintf(typeName, "phiphi");
       sampleModule->setColor(kRed);
     } else if ((nRing>3)&&(nRing<=6)) {
       //      sampleModule->setNChannels(512*4); 
-      sampleModule->setNChannels(768);   
+      sampleModule->setNStripAcross(768);   
+      sampleModule->setNSegments(1);
       sprintf(typeName, "rphi");
       sampleModule->setColor(kBlue);
     } else {
       //      sampleModule->setNChannels(768*2);
-      sampleModule->setNChannels(512);
+      sampleModule->setNStripAcross(512);
+      sampleModule->setNSegments(1);
       sprintf(typeName, "phiphi_ex");
       sampleModule->setColor(kGreen);
     }

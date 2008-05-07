@@ -37,18 +37,20 @@ Module::Module(double waferDiameter) {
 }
 
 void Module::setDefaultParameters() {
-  height_     = 0;
+  height_       = 0;
   //  width_      = 0;
-  nHits_      = defaultNHits_;
-  thickness_  = defaultThickness_;
-  area_       = 0;
-  id_         = "NoId";
-  tag_        = "";
-  type_       = "NoType";
-  thisVolume_ = NULL;
-  color_      = defaultColor_;
-  inSection_  = 0;
-  nChannels_  = 1;
+  nHits_        = defaultNHits_;
+  thickness_    = defaultThickness_;
+  area_         = 0;
+  id_           = "NoId";
+  tag_          = "";
+  type_         = "NoType";
+  thisVolume_   = NULL;
+  color_        = defaultColor_;
+  inSection_    = 0;
+  nChannels_    = 1;
+  nSegments_    = 1;
+  nStripAcross_ = 1;
 }
 
 void Module::print() {
@@ -711,6 +713,17 @@ double Module::getOccupancyPerEvent() {
 }
 
 
+double Module::getLowPitch() {
+  XYZVector acrossV = corner_[0] - corner_[3];
+  return (acrossV.R()/nStripAcross_);
+}
+
+double Module::getHighPitch() {
+  XYZVector acrossV = corner_[2] - corner_[1];
+  return (acrossV.R()/nStripAcross_);
+}
+
+
 /******************/
 /*                */
 /* Barrel module  */
@@ -952,6 +965,8 @@ int BarrelModule::setEdgePhi(double newPhi, int direction) {
 
   return 1;
 }
+
+
 
 
 /******************/

@@ -31,6 +31,8 @@ class Module {
   double area_;
   double stripArea_;
   int nChannels_;
+  int nSegments_;
+  int nStripAcross_;
 
   int inSection_;
   
@@ -128,8 +130,17 @@ class Module {
   int getSection() { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };
 
-  int getNChannels() { return nChannels_ ;};
-  void setNChannels(const int& newN) { nChannels_ = newN;};
+  int getNChannels()    { return nChannels_ ;};
+  int getNStripAcross() { return nStripAcross_ ;};
+  int getNSegments()    { return nSegments_ ;};
+
+  //  void setNChannels(const int& newN) { nChannels_ = newN;};
+  void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannels_=nStripAcross_*nSegments_;  };
+  void setNSegments(const int& newN) { nSegments_=newN; nChannels_=nStripAcross_*nSegments_;  };
+
+
+  double getLowPitch();
+  double getHighPitch();
 
   double getOccupancyPerEvent();
 };

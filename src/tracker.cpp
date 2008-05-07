@@ -219,19 +219,22 @@ void Tracker::buildBarrel(int nLayer,
     sampleModule->setTag(tag.str());
     if ((i==0)||(i==1)) {
       //      sampleModule->setNChannels(768*4);
-      sampleModule->setNChannels(768*2);
+      sampleModule->setNStripAcross(768);      
+      sampleModule->setNSegments(2);
       sampleModule->setType("phiphi");
       sampleModule->setColor(kRed);
     }
     if ((i==2)||(i==3)) {
       //      sampleModule->setNChannels(512*4);
-      sampleModule->setNChannels(512);
+      sampleModule->setNStripAcross(512);
+      sampleModule->setNSegments(1);
       sampleModule->setType("rphi");
       sampleModule->setColor(kBlue);
     }
     if ((i==(nLayer-2))||(i==(nLayer-1))) {
       //      sampleModule->setNChannels(768*2);
-      sampleModule->setNChannels(512);
+      sampleModule->setNStripAcross(512);
+      sampleModule->setNSegments(1);
       sampleModule->setType("phiphi_ex");
       sampleModule->setColor(kGreen);
     }
@@ -322,19 +325,22 @@ void Tracker::buildBarrel(int nLayer,
     sampleModule->setTag(tag.str());
     if ((i==0)||(i==1)) {
       //sampleModule->setNChannels(768*4);
-      sampleModule->setNChannels(768*2);
+      sampleModule->setNStripAcross(768);      
+      sampleModule->setNSegments(2);
       sampleModule->setType("phiphi");
       sampleModule->setColor(kRed);
     }
     if ((i==2)||(i==3)) {
       //sampleModule->setNChannels(512*4);
-      sampleModule->setNChannels(512);
+      sampleModule->setNStripAcross(512);      
+      sampleModule->setNSegments(1);
       sampleModule->setType("rphi");
       sampleModule->setColor(kBlue);
     }
     if ((i==(nLayer-2))||(i==(nLayer-1))) {
       //sampleModule->setNChannels(768*2);
-      sampleModule->setNChannels(512);
+      sampleModule->setNStripAcross(512);      
+      sampleModule->setNSegments(1);
       sampleModule->setType("phiphi_ex");
       sampleModule->setColor(kGreen);
     }
@@ -828,6 +834,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   int coordPrecision = 0;
   int areaPrecision = 1;
   int occupancyPrecision = 1;
+  int pitchPrecision = 0;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
@@ -971,6 +978,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> types;
   std::vector<std::string> areas;
   std::vector<std::string> occupancies;
+  std::vector<std::string> pitchpairs;  
   std::vector<std::string> nstrips;
   std::vector<std::string> numbers;
   std::vector<std::string> channels;
@@ -979,6 +987,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::ostringstream aType;
   std::ostringstream anArea;
   std::ostringstream anOccupancy;
+  std::ostringstream aPitchPair;
   std::ostringstream anNstrips;
   std::ostringstream aNumber;
   std::ostringstream aChannel;
@@ -992,6 +1001,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   types.push_back("Type");
   areas.push_back("Area (mm"+superStart+"2"+superEnd+")");
   occupancies.push_back("Perc. Occup (max/av)");
+  pitchpairs.push_back("Pitch (min/max)");
   nstrips.push_back("N Strips");
   numbers.push_back("Num.");
   channels.push_back("Chan.");
@@ -1019,6 +1029,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     // Occupancy
     anOccupancy.str("");
     anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+    // Pitches
+    aPitchPair.str("");
+    aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << (*typeMapIt).second->getLowPitch() *1e3
+	       << "/" <<  (*typeMapIt).second->getHighPitch()*1e3;
     // Nstrips
     anNstrips.str("");
     anNstrips << std::dec <<  int(typeMapCountChan[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first]);
@@ -1034,6 +1048,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     types.push_back(aType.str());
     areas.push_back(anArea.str());
     occupancies.push_back(anOccupancy.str());
+    pitchpairs.push_back(aPitchPair.str());
     nstrips.push_back(anNstrips.str());
     numbers.push_back(aNumber.str());
     channels.push_back(aChannel.str());
@@ -1047,6 +1062,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
 	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
   areas.push_back(anArea.str());
   occupancies.push_back("--");
+  pitchpairs.push_back("--");
   nstrips.push_back("--");
   aNumber.str("");
   aNumber << emphStart << totCount << emphEnd;
@@ -1083,7 +1099,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, tags);
     printHtmlTableRow(&myfile, types);
     printHtmlTableRow(&myfile, areas);
-    printHtmlTableRow(&myfile, occupancies);    
+    printHtmlTableRow(&myfile, occupancies);
+    printHtmlTableRow(&myfile, pitchpairs);
     printHtmlTableRow(&myfile, nstrips);    
     printHtmlTableRow(&myfile, numbers);
     printHtmlTableRow(&myfile, channels);
