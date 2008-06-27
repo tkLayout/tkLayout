@@ -16,6 +16,9 @@
 
 #define RANDOM_SEED 0xcaffe
 
+
+// TODO: add slanted gap between barrel and end-cap
+
 using namespace ROOT::Math;
 
 typedef std::vector<Layer*> LayerVector;

@@ -16,6 +16,10 @@
 /*                           */
 /*****************************/
 
+// TODO: add the power consumption estimate
+// constant (digital: per module) + 
+// scaling (analogue? : per strip / strip size..?) - Mark Raymond
+
 using namespace ROOT::Math;
 
 typedef std::pair<double, int> edge;
