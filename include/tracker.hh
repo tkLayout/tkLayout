@@ -114,7 +114,7 @@ public:
   Tracker(std::string trackerName);
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   double maxZ, BarrelModule* sampleModule, int section = Layer::NoSection,
-		   bool compressed = false );
+		   bool compressed = false ) { std::cout << "DEPRECATED" << std::endl; } ;
 
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
@@ -134,6 +134,7 @@ public:
   void setLayerDirectives(const std::map<int, double> newDirectives ) { layerDirectives_=newDirectives; };
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
+
   double getZError() { return zError_; };
   double getBigDelta() { return bigDelta_; };
   double getSmallDelta() { return smallDelta_; };
@@ -171,6 +172,8 @@ public:
 
   // Module adjustments
   void changeRingModules(std::string diskName, int ringN, std::string newtype, Color_t newColor);
+  void setModuleTypesDemo1();
+  void setModuleTypes();
 
   // Data transmission
   void computeBandwidth();

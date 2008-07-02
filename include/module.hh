@@ -34,9 +34,10 @@ class Module {
   double thickness_;
   double area_;
   double stripArea_;
-  int nChannels_;
+  int nChannelsPerFace_;
   int nSegments_;
   int nStripAcross_;
+  int nFaces_;
 
   int inSection_;
   
@@ -50,7 +51,7 @@ class Module {
   // Default variables
   static const double  defaultWaferDiameter_ = 131.; // Wafer diameter 131 mm
   static const double  defaultThickness_ = 0.3; // Wafer thickness: 300 um
-  static const Color_t defaultColor_ = kRed;
+  static const Color_t defaultColor_ = kBlack;
   static const int     defaultNHits_ = 0;
   
   std::string id_;   // Ids of the module
@@ -134,14 +135,16 @@ class Module {
   int getSection() { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };
 
-  int getNChannels()    { return nChannels_ ;};
-  int getNStripAcross() { return nStripAcross_ ;};
-  int getNSegments()    { return nSegments_ ;};
+  int getNChannels()        { return nChannelsPerFace_ * nFaces_ ;};
+  int getNChannelsPerFace() { return nChannelsPerFace_ ;};
+  int getNPerFace()         { return nChannelsPerFace_ ;};
+  int getNStripAcross()     { return nStripAcross_ ;};
+  int getNSegments()        { return nSegments_ ;};
+  int getNFaces()           { return nFaces_ ;};
 
-  //  void setNChannels(const int& newN) { nChannels_ = newN;};
-  void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannels_=nStripAcross_*nSegments_;  };
-  void setNSegments(const int& newN) { nSegments_=newN; nChannels_=nStripAcross_*nSegments_;  };
-
+  void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
+  void setNSegments(const int& newN) { nSegments_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
+  void setNFaces(const int& newN) { nFaces_=newN; };
 
   double getLowPitch();
   double getHighPitch();
@@ -159,6 +162,7 @@ class BarrelModule : public Module {
   edge getEdgeZ(int direction, double margin = 0);
   edge getEdgePhi(int direction, double margin = 0);
   double width_;
+  int layer_;
   
  public:
   ~BarrelModule();
@@ -176,12 +180,17 @@ class BarrelModule : public Module {
   double getWidth() {return width_;};
 
   std::string getSensorTag();
+
+  int getLayer() {return layer_;};
+  void setLayer(const int& newLayer) {layer_ = newLayer;};
+
 };
 
 
 class EndcapModule : public Module {
 
 private:
+  // Remember to update the copyconstructor when adding member variables
   double phiWidth_;
   double widthLo_;
   double widthHi_;
@@ -189,7 +198,8 @@ private:
   bool cut_;
   double lost_; // lost millimeters in height because of cut
   void setSensorGeometry(double alpha, double d, double maxRho = -1);
-  
+  int ring_;  
+  int disk_;  
 
 public:
   ~EndcapModule();
@@ -198,12 +208,19 @@ public:
   // d: the dstance of the module's base from the z axis
   EndcapModule(double alpha, double d, double maxRho = -1);
   EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho = -1);
+  EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho = -1);
+  EndcapModule(const Module& aModule);
 
   std::string getSensorTag();
 
   bool wasCut() {return cut_ ; };
   double getLost(){if (cut_) return lost_; return 0;};
   double getDist(){return dist_;};
+
+  int getRing() {return ring_;};
+  void setRing(const int& newRing) {ring_ = newRing;};
+  int getDisk() {return disk_;};
+  void setDisk(const int& newDisk) {disk_ = newDisk;};
 };
 
 

@@ -37,20 +37,20 @@ Module::Module(double waferDiameter) {
 }
 
 void Module::setDefaultParameters() {
-  height_       = 0;
-  //  width_      = 0;
-  nHits_        = defaultNHits_;
-  thickness_    = defaultThickness_;
-  area_         = 0;
-  id_           = "NoId";
-  tag_          = "";
-  type_         = "NoType";
-  thisVolume_   = NULL;
-  color_        = defaultColor_;
-  inSection_    = 0;
-  nChannels_    = 1;
-  nSegments_    = 1;
-  nStripAcross_ = 1;
+  height_           = 0;
+  nHits_            = defaultNHits_;
+  thickness_        = defaultThickness_;
+  area_             = 0;
+  id_               = "NoId";
+  tag_              = "";
+  type_             = "NoType";
+  thisVolume_       = NULL;
+  color_            = defaultColor_;
+  inSection_        = 0;
+  nChannelsPerFace_ = 1;
+  nSegments_        = 1;
+  nStripAcross_     = 1;
+  nFaces_           = 1;
 }
 
 void Module::print() {
@@ -685,7 +685,7 @@ void Module::computeStripArea() {
   etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
   //  std::cerr << "widths: theta:\t" << etaWidth << " phi:\t" << phiWidth << std::endl;
 
-  stripArea_ = phiWidth * etaWidth / double(nChannels_);
+  stripArea_ = phiWidth * etaWidth / double(nChannelsPerFace_);
   //  std::cerr << "area:\t" << stripArea_ << std::endl;
 }
 
@@ -978,7 +978,31 @@ int BarrelModule::setEdgePhi(double newPhi, int direction) {
 EndcapModule::~EndcapModule() {
 }
 
+// Just to make an endcapmodule out of a module, without touching the geometry
+EndcapModule::EndcapModule(const Module& aModule) : Module(aModule) {
+  cut_ = false;
+
+  phiWidth_ = 0;
+  widthLo_  = 0;
+  widthHi_  = 0;
+  dist_     = 0;
+}
+
 EndcapModule::EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule) {
+  setSensorGeometry(alpha, d, maxRho);
+}
+
+EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule){
+  
+  phiWidth_ = sampleModule.phiWidth_;
+  widthLo_ = sampleModule.widthLo_;
+  widthHi_ = sampleModule.widthHi_;
+  dist_ = sampleModule.dist_;
+  cut_ = sampleModule.cut_;
+  lost_ = sampleModule.lost_;
+  ring_ = sampleModule.ring_;  
+  disk_ = sampleModule.disk_;
+  
   setSensorGeometry(alpha, d, maxRho);
 }
 

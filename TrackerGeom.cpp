@@ -256,7 +256,6 @@ int main (int argc, char* argv[]) {
 	    << std::endl;
 
 
-
   // The same old sample module
   Module* sampleModule = new Module();
   myTracker->buildEndcaps(nEndcapDisks,     // nDisks (per side)
@@ -266,6 +265,11 @@ int main (int argc, char* argv[]) {
 			  endcapRhoOut,
 			  sampleModule,
 			  mySection );
+
+
+  // Color modules, set nStrips, segments, ecc ecc
+  myTracker->setModuleTypes();
+
 
   
   // A first simple analysis
@@ -282,10 +286,7 @@ int main (int argc, char* argv[]) {
 
 
   if (doPlaceOnly) {
-
     myTracker->changeRingModules("Disk4", 4, "ciao", kRed);
-
-
     std::cout << "Modules placed: now I exit, as you asked" << std::endl;
     return 0;
   }

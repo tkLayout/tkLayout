@@ -125,7 +125,7 @@ public:
 		   int base,
 		   bool stringSameParity,
 		   BarrelModule* sampleModule,
-		   int sectioned=NoSection);
+		   int sectioned=NoSection) { std::cout << "DEPRECATED" << std::endl; } ;
 
   void buildLayer (double averageRadius,
 		   double smallDelta, 
@@ -167,7 +167,7 @@ public:
   EndcapLayer(const Module& mySample, double alpha, double d);
   EndcapLayer(double alpha, double d);
   EndcapLayer(const EndcapModule& mySample);
-  EndcapLayer(EndcapModule* mySample);
+  EndcapLayer(const EndcapModule& mySample, double alpha, double d);
 
   void translateZ(const double& zShift);
 
@@ -179,7 +179,7 @@ public:
 		       double overlap, 
 		       double zError,
 		       int base, 
-		       Module* sampleModule, 
+		       EndcapModule* sampleModule, 
 		       std::map<int, int> ringDirectives, 
 		       int diskParity = -1,
 		       int sectioned = NoSection);
@@ -191,7 +191,7 @@ public:
 		   double overlap, 
 		   int base,
 		   int nearDirection, 
-		   Module* sampleModule,
+		   EndcapModule* sampleModule,
 		   double maxRadius = -1,
 		   int addModules = 0,
 		   int sectioned = NoSection);

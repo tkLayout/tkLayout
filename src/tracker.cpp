@@ -196,111 +196,6 @@ void Tracker::placeModuleLite(Module* aModule) {
 void Tracker::buildBarrel(int nLayer,
 			  double minRadius,
 			  double maxRadius,
-			  double maxZ,
-			  BarrelModule* sampleModule, 
-			  int section /* = NoSection */, 
-			  bool compressed /* = false */) {
-
-  maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
-  maxL_=(maxZ>maxL_)?maxZ:maxL_;
-
-  
-  int push;
-  std::map<int, double>::iterator aDirective;
-  LayerVector thisBarrelLayerSet;
-
-  std::ostringstream tag;
-  BarrelLayer* aBarrelLayer;
-  for (int i=0; i<nLayer; i++) {
-    double radius = minRadius + (maxRadius-minRadius)/double(nLayer-1)*i;
-    
-    tag.str("");
-    tag << "L" << i+1 ;
-    sampleModule->setTag(tag.str());
-    if ((i==0)||(i==1)) {
-      //      sampleModule->setNChannels(768*4);
-      sampleModule->setNStripAcross(768);      
-      sampleModule->setNSegments(2);
-      sampleModule->setType("phiphi");
-      sampleModule->setColor(kRed);
-    }
-    if ((i==2)||(i==3)) {
-      //      sampleModule->setNChannels(512*4);
-      sampleModule->setNStripAcross(512);
-      sampleModule->setNSegments(1);
-      sampleModule->setType("rphi");
-      sampleModule->setColor(kBlue);
-    }
-    if ((i==(nLayer-2))||(i==(nLayer-1))) {
-      //      sampleModule->setNChannels(768*2);
-      sampleModule->setNStripAcross(512);
-      sampleModule->setNSegments(1);
-      sampleModule->setType("phiphi_ex");
-      sampleModule->setColor(kGreen);
-    }
-
-    if ((i==0)||(i==(nLayer-1))) {
-      push = Layer::FIXED;
-    } else {
-      push = Layer::AUTO;
-    }
-    aDirective = layerDirectives_.find(i+1);
-    if (aDirective!=layerDirectives_.end()) {
-      if  ((i==0)||(i==(nLayer-1))) {
-	std::cout << "*******************************" << std::endl;
-	std::cout << "*                             *" << std::endl;
-	std::cout << "* WARNING:              /\\    *" << std::endl;
-	std::cout << "*                      /!!\\   *" << std::endl;
-	std::cout << "* We just read a      / !! \\  *" << std::endl;
-	std::cout << "* directive for the   ^^^^^^  *" << std::endl;
-	std::cout << "* first or last layer...      *" << std::endl;
-	std::cout << "*                             *" << std::endl;
-	std::cout << "*******************************" << std::endl;
-      }
-      std::cout << "Found a directive: " << layerDirectives_[i+1] << std::endl;
-      if (layerDirectives_[i+1]>0) {
-	radius = layerDirectives_[i+1];
-	push   = Layer::FIXED;
-	std::cout << "Fixing radius of layer " << i+1 << " to " << radius << std::endl;
-      } else {
-	push = int(layerDirectives_[i+1]);
-      }
-    } else {
-      std::cout << "Found no directive: auto adjusting layer" << std::endl;
-    }
-
-    aBarrelLayer = new BarrelLayer(sampleModule);
-
-    tag.str("");
-    tag << "Layer" << i+1 ;
-    aBarrelLayer->setName(tag.str());   
-
-    std::cout << "Desired radius: " << radius << std::endl;
-    aBarrelLayer->buildLayer (radius,       // averageRadius
-			      smallDelta_ , 
-			      bigDelta_,
-			      overlap_,     // overlap
-			      zError_,      // safetyOrigin
-			      maxZ,         // maxZ
-			      push,
-			      4,            // modules multiple of ...
-			      false,        // false = Strings with opposite parity
-			      sampleModule, section);
-
-    addLayer(aBarrelLayer, TypeBarrel);
-    thisBarrelLayerSet.push_back(aBarrelLayer);
-  }
-
-  if (compressed) {
-    compressBarrelLayers(thisBarrelLayerSet);
-  }
-
-}
-
-// All the measures in mm as usual!
-void Tracker::buildBarrel(int nLayer,
-			  double minRadius,
-			  double maxRadius,
 			  int nModules,
 			  BarrelModule* sampleModule, 
 			  int section /* = NoSection */, 
@@ -315,35 +210,12 @@ void Tracker::buildBarrel(int nLayer,
   std::map<int, double>::iterator aDirective;
 
   LayerVector thisBarrelLayerSet;
-  std::ostringstream tag;
+  std::ostringstream layerName;
   BarrelLayer* aBarrelLayer;
   for (int i=0; i<nLayer; i++) {
     double radius = minRadius + (maxRadius-minRadius)/double(nLayer-1)*i;
     
-    tag.str("");
-    tag << "L" << i+1 ;
-    sampleModule->setTag(tag.str());
-    if ((i==0)||(i==1)) {
-      //sampleModule->setNChannels(768*4);
-      sampleModule->setNStripAcross(768);      
-      sampleModule->setNSegments(2);
-      sampleModule->setType("phiphi");
-      sampleModule->setColor(kRed);
-    }
-    if ((i==2)||(i==3)) {
-      //sampleModule->setNChannels(512*4);
-      sampleModule->setNStripAcross(512);      
-      sampleModule->setNSegments(1);
-      sampleModule->setType("rphi");
-      sampleModule->setColor(kBlue);
-    }
-    if ((i==(nLayer-2))||(i==(nLayer-1))) {
-      //sampleModule->setNChannels(768*2);
-      sampleModule->setNStripAcross(512);      
-      sampleModule->setNSegments(1);
-      sampleModule->setType("phiphi_ex");
-      sampleModule->setColor(kGreen);
-    }
+    sampleModule->setLayer(i+1);
 
     if ((i==0)||(i==(nLayer-1))) {
       push = Layer::FIXED;
@@ -383,10 +255,10 @@ void Tracker::buildBarrel(int nLayer,
     }
 
     aBarrelLayer = new BarrelLayer(sampleModule);
+    layerName.str("");
+    layerName << "L" << std::dec << i+1;
+    aBarrelLayer->setName(layerName.str());
 
-    tag.str("");
-    tag << "Layer" << i+1 ;
-    aBarrelLayer->setName(tag.str());
 
     std::cout << "Desired radius: " << radius << std::endl;
     aBarrelLayer->buildLayer (radius,       // averageRadius
@@ -492,8 +364,10 @@ double Tracker::getMaxBarrelZ(int direction) {
     
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-			   Module* sampleModule, int sectioned /* = Layer::NoSection */ ) {
+			   Module* genericSampleModule, int sectioned /* = Layer::NoSection */ ) {
   
+  EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
+
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
 
@@ -505,7 +379,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
 
   EndcapLayer* defaultDisk = new EndcapLayer();
   EndcapLayer* anotherDisk;
-  
+
   defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_, 
 				bigDelta_, (minZ+maxZ)/2, overlap_, 
 				zError_+(maxZ-minZ)/2,
@@ -514,20 +388,32 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
 				ringDirectives_,
 				+1, // diskParity
 				sectioned );
+
   
-  std::ostringstream tag;
+  std::ostringstream layerName;
+  EndcapModule* anEndcapModule;
 
   for (int iDisk=0; iDisk<nDisks; iDisk++) {
+    // Set the disk number in all the modules
+    for (ModuleVector::iterator modIt = defaultDisk->getModuleVector()->begin();
+	 modIt!=defaultDisk->getModuleVector()->end();
+	 modIt++) {
+      if (anEndcapModule=static_cast<EndcapModule*>(*modIt)) {
+	anEndcapModule->setDisk(iDisk+1);
+      } else {
+	std::cerr << "ERROR IN Tracker::buildEndcaps this shoundn't happen!" << std::endl;
+      }
+    }
+
+    layerName.str("");
+    layerName << "D" << std::dec << iDisk+1;
     thisZ = pow(alpha,iDisk) * minZ;
     deltaZ=-1*(minZ+maxZ)/2+thisZ;
-    tag.str("");
-    tag<<"Disk"<<iDisk+1;
     anotherDisk = new EndcapLayer(*defaultDisk);
-    anotherDisk->setName(tag.str());
+    anotherDisk->setName(layerName.str());
     anotherDisk->translateZ(deltaZ);
     addLayer(anotherDisk, TypeEndcap);
     anotherDisk = new EndcapLayer(*anotherDisk);
-    anotherDisk->setName(tag.str());
     anotherDisk->rotateY_PI();
     addLayer(anotherDisk, TypeEndcap);
   }
@@ -752,7 +638,9 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
   std::pair <XYZVector, double> aLine;
   ModuleVector hitMods;
   std::cout << "Shooting tracks: ";
+  int nTrackHits; // mersi mod
   for (int i=0; i<nTracks; i++) {
+    nTrackHits=0; // mersi mod
     if (i%100==0) std::cout << "." << std::endl;
     if (section==Layer::YZSection) {
       aLine=shootDirectionFixedPhi(randomBase, randomSpan);
@@ -760,16 +648,17 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
       aLine=shootDirection(randomBase, randomSpan);
     }
     hitMods = trackHit( XYZVector(0,0,myDice_.Gaus(0, zError_)), aLine.first, &properModules);
-    total2D->Fill(fabs(aLine.second), hitMods.size());
     resetTypeCounter(modTypes);
     for (ModuleVector::iterator it = hitMods.begin();
 	 it!=hitMods.end(); it++) {
-      modTypes[(*it)->getType()]++;
+      modTypes[(*it)->getType()]+=(*it)->getNFaces(); // mersi mod
+      nTrackHits+=(*it)->getNFaces(); // mersi mod
     }
     for (std::map <std::string, int>::iterator it = modTypes.begin();
 	 it!=modTypes.end(); it++) {
       etaType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
     }
+    total2D->Fill(fabs(aLine.second), nTrackHits); // mersi mod : was using hitMods.size() in place of nTrackHits
   }
   std::cout << " done!";
 
@@ -835,6 +724,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   int areaPrecision = 1;
   int occupancyPrecision = 1;
   int pitchPrecision = 0;
+  int stripLengthPrecision = 1;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
@@ -843,13 +733,14 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::map<std::string, double> typeMapMaxOccupancy;
   std::map<std::string, double> typeMapAveOccupancy;
   std::map<std::string, Module*>::iterator typeMapIt;
-  std::map<std::string, Module*> ringTypeMap;
+  std::map<int, Module*> ringTypeMap;
   std::string aSensorTag;
   LayerVector::iterator layIt;
   ModuleVector::iterator modIt;
   ModuleVector* aLay;
   double totArea=0;
-  int totCount=0;
+  int totCountMod=0;
+  int totCountSens=0;
   long totChannels=0;
 
   // Generic (non format-dependent) tags for
@@ -925,7 +816,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
       }
       typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*400;
       totArea+=(*modIt)->getArea();
-      totCount++;
+      totCountMod++;
+      totCountSens+=(*modIt)->getNFaces();
       totChannels+=(*modIt)->getNChannels();
       if (typeMap.find(aSensorTag)==typeMap.end()){
 	// We have a new sensor geometry
@@ -933,23 +825,35 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
       }
     }
   }
+
+  EndcapModule* anEC;
+  int aRing;
   // Look into the endcap sample in order to indentyfy and measure rings
   for (ModuleVector::iterator moduleIt=endcapSample_.begin(); moduleIt!=endcapSample_.end(); moduleIt++) {
-    aSensorTag=(*moduleIt)->getSensorTag();
-    if (ringTypeMap.find(aSensorTag)==ringTypeMap.end()){
-      // We have a new sensor geometry
-      ringTypeMap[aSensorTag]=(*moduleIt);
+    if (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) {
+      aRing=anEC->getRing();
+      if (ringTypeMap.find(aRing)==ringTypeMap.end()){
+	// We have a new sensor geometry
+	ringTypeMap[aRing]=(*moduleIt);
+      }
+    } else {
+      std::cout << "ERROR: found a non-Endcap module in the map of ring types" << std::endl;
     }
   }
-  EndcapModule* anEC;
-  for (std::map<std::string, Module*>::iterator typeIt = ringTypeMap.begin();
+  
+  std::ostringstream myName;
+  for (std::map<int, Module*>::iterator typeIt = ringTypeMap.begin();
        typeIt!=ringTypeMap.end(); typeIt++) {
     if (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) {
-      ringNames.push_back(anEC->getTag());
+      myName.str("");
+      myName << "Ring " << std::dec << (*typeIt).first;
+      ringNames.push_back(myName.str());
       aRingRho = anEC->getDist();
       ringRho1.push_back(aRingRho);
       aRingRho = anEC->getDist()+anEC->getHeight();
       ringRho2.push_back(aRingRho);
+    } else {
+      std::cout << "ERROR: found a non-Endcap module in the map of ring types (twice...)" << std::endl;
     }
   }
 
@@ -978,9 +882,11 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> types;
   std::vector<std::string> areas;
   std::vector<std::string> occupancies;
-  std::vector<std::string> pitchpairs;  
+  std::vector<std::string> pitchpairs;
+  std::vector<std::string> striplengths;
   std::vector<std::string> nstrips;
-  std::vector<std::string> numbers;
+  std::vector<std::string> numbermods;
+  std::vector<std::string> numbersens;
   std::vector<std::string> channels;
   std::ostringstream aName;
   std::ostringstream aTag;
@@ -988,8 +894,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::ostringstream anArea;
   std::ostringstream anOccupancy;
   std::ostringstream aPitchPair;
+  std::ostringstream aStripLength;
   std::ostringstream anNstrips;
-  std::ostringstream aNumber;
+  std::ostringstream aNumberMod;
+  std::ostringstream aNumberSens;
   std::ostringstream aChannel;
   int barrelCount=0;
   int endcapCount=0;
@@ -1002,8 +910,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   areas.push_back("Area (mm"+superStart+"2"+superEnd+")");
   occupancies.push_back("Perc. Occup (max/av)");
   pitchpairs.push_back("Pitch (min/max)");
-  nstrips.push_back("N Strips");
-  numbers.push_back("Num.");
+  striplengths.push_back("Strip length");
+  nstrips.push_back("N Strips / face");
+  numbermods.push_back("N. mod");
+  numbersens.push_back("N. sens");
   channels.push_back("Chan.");
 
   int loPitch;
@@ -1041,12 +951,19 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     } else {
       aPitchPair << std::dec << loPitch << "/" << hiPitch;
     }
+    // Strip Lengths:
+    aStripLength.str("");
+    aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+		 << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
     // Nstrips
     anNstrips.str("");
-    anNstrips << std::dec <<  int(typeMapCountChan[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first]);
-    // Number
-    aNumber.str("");
-    aNumber << std::dec << typeMapCount[(*typeMapIt).first];
+    anNstrips << std::dec <<  (*typeMapIt).second->getNChannelsPerFace();
+    // Number Mod
+    aNumberMod.str("");
+    aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
+    // Number Sensor
+    aNumberSens.str("");
+    aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
     // Channels
     aChannel.str("");
     aChannel << std::dec << typeMapCountChan[(*typeMapIt).first];
@@ -1057,8 +974,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     areas.push_back(anArea.str());
     occupancies.push_back(anOccupancy.str());
     pitchpairs.push_back(aPitchPair.str());
+    striplengths.push_back(aStripLength.str());
     nstrips.push_back(anNstrips.str());
-    numbers.push_back(aNumber.str());
+    numbermods.push_back(aNumberMod.str());
+    numbersens.push_back(aNumberSens.str());
     channels.push_back(aChannel.str());
   }
 
@@ -1071,10 +990,14 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   areas.push_back(anArea.str());
   occupancies.push_back("--");
   pitchpairs.push_back("--");
+  striplengths.push_back("--");
   nstrips.push_back("--");
-  aNumber.str("");
-  aNumber << emphStart << totCount << emphEnd;
-  numbers.push_back(aNumber.str());
+  aNumberMod.str("");
+  aNumberMod << emphStart << totCountMod << emphEnd;
+  aNumberSens.str("");
+  aNumberSens << emphStart << totCountSens << emphEnd;
+  numbermods.push_back(aNumberMod.str());
+  numbersens.push_back(aNumberSens.str());
   aChannel.str("");
   aChannel << emphStart << totChannels << emphEnd;
   channels.push_back(aChannel.str());
@@ -1109,8 +1032,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, areas);
     printHtmlTableRow(&myfile, occupancies);
     printHtmlTableRow(&myfile, pitchpairs);
+    printHtmlTableRow(&myfile, striplengths);
     printHtmlTableRow(&myfile, nstrips);    
-    printHtmlTableRow(&myfile, numbers);
+    printHtmlTableRow(&myfile, numbermods);
+    printHtmlTableRow(&myfile, numbersens);
     printHtmlTableRow(&myfile, channels);
     myfile << "</table>"<<std::endl;
     myfile << "<h3>Plots</h3>" << std::endl;
@@ -1320,7 +1245,7 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
 
   if (noAxis==1) {
     double etaStep=.2;
-    double etaMax = 2.5;
+    double etaMax = 2.1;
     // Add the eta ticks
     double theta;
     double tickLength = 2 * spacing;
@@ -1362,6 +1287,33 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
       aLine->SetLineColor(gridColor_hard);
       aLine->Draw("same");
     }
+    aLine = new TPolyLine3D(2);
+    theta = 2 * atan(exp(-2.5));
+    startTick = XYZVector(0,sin(theta), cos(theta));
+    startTick *= startR/startTick.Rho();
+    endTick = startTick / startTick.Rho() * endR;
+    if (startTick.Z()>startL) {
+      startTick *= startL/startTick.Z();
+      endTick *=  endL/endTick.Z();
+    } 
+    pw[0]=0.;
+    pw[1]=endTick.Y();
+    pw[2]=endTick.Z();
+    myView->WCtoNDC(pw, pn);
+    sprintf(labelChar, "%.01f", 2.5);
+    aLabel = new TText(pn[0], pn[1], labelChar);
+    aLabel->SetTextSize(aLabel->GetTextSize()*.8);
+    aLabel->SetTextAlign(21);
+    aLabel->Draw(theOption.c_str());
+    theOption="same";
+    endTick = (endTick+startTick)/2.;
+    aLine->SetPoint(0, 0., 0., 0.);
+    aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+    aLine->SetLineStyle(gridStyle_solid);
+    aLine->SetLineColor(gridColor_hard);
+    aLine->Draw("same"); 
+    
+    
 
     for (double z=0; z<=maxL ; z+=(4*spacing)) {
       aLine = new TPolyLine3D(2);
@@ -1403,6 +1355,211 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
       aLine->SetLineStyle(gridStyle_solid);
       aLine->SetLineColor(gridColor_hard);
       aLine->Draw("same");
+    }
+  }
+}
+
+// This function is the place where we set the module types
+// Basically the only place that is to be edited, before we
+// put all the stuff in user interface
+void Tracker::setModuleTypesDemo1() {
+  LayerVector::iterator layIt;
+  ModuleVector::iterator modIt;
+  ModuleVector* aLay;
+  Module* aModule;
+  BarrelModule* aBarrelModule;
+  EndcapModule* anEndcapModule;
+
+  for (layIt=barrelLayerSet_.begin(); layIt!=barrelLayerSet_.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      aModule=(*modIt);
+      if (aBarrelModule=static_cast<BarrelModule*>(aModule)) {
+	aBarrelModule->setColor(aBarrelModule->getLayer());
+      } else {
+	// This shouldnt happen
+	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		  <<"I found a !BarrelModule in the barrel" << std::endl;
+      }
+    }
+  }
+
+  for (layIt=endcapLayerSet_.begin(); layIt!=endcapLayerSet_.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      aModule=(*modIt);
+      if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+	anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
+      } else {
+	// This shouldnt happen
+	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		  << "I found a !EndcapModule in the end-caps" << std::endl;
+      }
+    }
+  }
+
+  for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
+    aModule=(*modIt);
+    if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+      anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
+    } else {
+      // This shouldnt happen
+      std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		<< "I found a !EndcapModule in the end cap sample" << std::endl;
+    }
+  }
+}
+
+
+// The real method used here
+// You must set:
+//       sampleModule->setNStripAcross(512);
+//       sampleModule->setNSegments(1);
+//       sampleModule->setNFaces(2);
+//       sampleModule->setType("stereo");
+//       sampleModule->setTag("L2"); 
+//       sampleModule->setColor(kBlue);
+void Tracker::setModuleTypes() {
+  LayerVector::iterator layIt;
+  ModuleVector::iterator modIt;
+  ModuleVector* aLay;
+  Module* aModule;
+  BarrelModule* aBarrelModule;
+  EndcapModule* anEndcapModule;
+
+  int nStripAcross;
+  int nSegments;
+  int nFaces;
+  std::ostringstream myTag;;
+  std::string myType;
+  Color_t myColor;
+
+  for (layIt=barrelLayerSet_.begin(); layIt!=barrelLayerSet_.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      aModule=(*modIt);
+      if (aBarrelModule=static_cast<BarrelModule*>(aModule)) {
+
+	nFaces = 1;
+	switch (aBarrelModule->getLayer()) {
+	case 1:
+	  nStripAcross = 9*128;
+	  nSegments = 20;
+	  myType = "trigger";
+	  nFaces = 2;
+	  myColor = kBlue;
+	  break;
+	case 2:
+	  nStripAcross = 9*128;
+	  nSegments = 2;
+	  myType = "rphi";
+	  myColor = kRed;
+	  break;
+	case 3:
+	case 4:
+	  nStripAcross = 6*128;
+	  nSegments = 1;
+	  myType = "stereo";
+	  nFaces = 2;
+	  myColor = kGreen;
+	  break;
+	case 5:
+	case 6:
+	  nStripAcross = 4*128;
+	  nSegments = 1;
+	  myType = "rphi";
+	  myColor = kRed;
+	  break;
+	default:
+	  nStripAcross = 1;
+	  nSegments = 1;
+	  myType = "none";
+	  myColor = kBlack;	  
+	  break;
+	}
+	myTag.str("");
+	myTag << "L" << std::dec << aBarrelModule->getLayer();
+	aBarrelModule->setNStripAcross(nStripAcross);
+	aBarrelModule->setNSegments(nSegments);
+	aBarrelModule->setNFaces(nFaces);
+	aBarrelModule->setType(myType);
+	aBarrelModule->setTag(myTag.str());
+	aBarrelModule->setColor(myColor);
+      } else {
+	// This shouldnt happen
+	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		  <<"I found a !BarrelModule in the barrel" << std::endl;
+      }
+    }
+  }
+
+
+
+  ModuleVector allEndcapModules;
+  for (layIt=endcapLayerSet_.begin(); layIt!=endcapLayerSet_.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      allEndcapModules.push_back(*modIt);
+    }
+  }
+  for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
+    allEndcapModules.push_back(*modIt);
+  }
+  
+
+  for (modIt=allEndcapModules.begin(); modIt!=allEndcapModules.end(); modIt++) {
+    aModule=(*modIt);
+    if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+      
+      nFaces = 1;
+      switch (anEndcapModule->getRing()) {
+      case 1:
+	nStripAcross = 9*128;
+	nSegments = 3;
+	myType = "rphi";
+	myColor = kRed;
+	break;
+      case 2:
+	nStripAcross = 6*128;
+	nSegments = 2;
+	myType = "rphi";
+	myColor = kRed;
+	break;
+      case 3:
+      case 4:
+	nStripAcross = 9*128;
+	nSegments = 1;
+	myType = "rphi";
+	myColor = kRed;
+	break;
+      case 5:
+      case 6:
+	nStripAcross = 6*128;
+	nSegments = 1;
+	myType = "stereo";
+	nFaces = 2;
+	myColor = kGreen;
+	break;
+      default:
+	nStripAcross = 4*128;
+	nSegments = 1;
+	myType = "rphi";
+	myColor = kRed;
+	break;
+      }
+      myTag.str("");
+      myTag << "R" << std::dec << anEndcapModule->getRing();
+      anEndcapModule->setNStripAcross(nStripAcross);
+      anEndcapModule->setNSegments(nSegments);
+      anEndcapModule->setNFaces(nFaces);
+      anEndcapModule->setType(myType);
+      anEndcapModule->setTag(myTag.str());
+      anEndcapModule->setColor(myColor);
+	
+    } else {
+      // This shouldnt happen
+      std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		<< "I found a !EndcapModule in the end-caps" << std::endl;
     }
   }
 }
@@ -1561,17 +1718,23 @@ void Tracker::computeBandwidth() {
 			      "Module Needed Bandwidth (sparsified);Bandwidth (bps)", 100, 0., 2E+8);
   bandWidthDistSp_->SetLineColor(kRed);
   
+  int nChips;
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       // TODO: remove explicit "400" here
-      hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannels());
+      hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannelsPerFace());
       chanHitDist_->Fill(hitChannels);
-      // TODO: place the computing model choice here
-      // Binary unsparsified (bps)
-      bandWidthDist_->Fill((16+(*modIt)->getNChannels())*100E3);
-      // Binary sparsified
-      bandWidthDistSp_->Fill((23+hitChannels*9)*100E3);
+
+      for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
+	nChips=ceil((*modIt)->getNChannelsPerFace()/128.);
+
+	// TODO: place the computing model choice here
+	// Binary unsparsified (bps)
+	bandWidthDist_->Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
+	// Binary sparsified
+	bandWidthDistSp_->Fill((23*nChips+hitChannels*9)*100E3);
+      }
     }
   }
 

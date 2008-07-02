@@ -552,144 +552,6 @@ std::pair<double, int> BarrelLayer::layerPhi(double avRad,          // Desired l
 }
 
 
-
-void BarrelLayer::buildLayer (double averageRadius,
-			      double smallDelta, 
-			      double bigDelta, 
-			      double overlap, 
-			      double safetyOrigin, 
-			      double maxZ, 
-			      int pushDirection,      // Direction where the average
-			                              // radius is pushed to optimize module usage
-			                              // +1: towards outside, 0 no optimize, -1 towards inside
-			      int base,               // Modules base number
-			      bool stringSameParity,  // Wether the strings should have
-			                              // the same or opposite module parity (in/out)
-			      BarrelModule* sampleModule,
-			      int sectioned // = NoSection  (deprecated)
-			      )
-{
-  
-  int stringParity;      // Parity of string in the shell (inner, outer)
-  int stringSmallParity; // Parity of module in the string
-  std::pair <double, int> optimalBarrel;
-  double goodRadius;
-  int nStrings;
-
-  optimalBarrel = layerPhi(averageRadius   , // tentativeX
-			   smallDelta, 
-			   bigDelta,
-			   overlap,
-			   sampleModule->getWidth()/2. , // Module half width
-			   pushDirection, // wether to shrink or enlarge (>0 means enlarge)
-			   base,
-			   stringSameParity
-			   );
-  
-  goodRadius = optimalBarrel.first;
-  nStrings = optimalBarrel.second;
-  averageRadius_ = goodRadius;
-
-  std::cout << "goodRadius: " << goodRadius << std::endl;
-  std::cout << "nStrings:   " << nStrings << std::endl;
-
-
-  if (nStrings%2!=0) {
-    std::cerr << "WARNING: you just asked for a layer "
-	      << "with a number of strings not multiple of 2" << std::endl;
-  }
-
-  double stringPhiShift = 2*M_PI/double(nStrings);
-  double rightAngle;
-  std::vector<Module*>::iterator itMod;
-
-  for (int i=0; i<nStrings; i++) {
-    stringParity = (i%2)*2-1;
-    if (stringSameParity) {
-      stringSmallParity = 1;
-    } else {
-      stringSmallParity = -1 * stringParity;
-    }
-    // std::cout << "Building a string" << std::endl;
-
-    std::vector<Module*> aString;
-    buildStringPair(aString, 
-		    goodRadius+stringParity*bigDelta,
-		    stringSmallParity*smallDelta, 
-		    overlap,
-		    safetyOrigin,
-		    maxZ,
-		    sampleModule);
-    
-
-    if (i==0) {
-      //std::cerr << "Computing min edge: ";
-      edge phiEdge;
-      for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
-	phiEdge=((BarrelModule*)(*itMod))->getEdgePhiSide(-1);
-	if (itMod==aString.begin()) {
-	  rightAngle=phiEdge.first;
-	  //std::cerr << "first angle is " << rightAngle << " and then: "; 
-	} else {
-	  //std::cerr << phiEdge.first << " ";
-	  if (phiEdge.first<rightAngle) rightAngle=phiEdge.first;
-	}
-      }
-      //std::cerr << "done. The best is: " << rightAngle << std::endl;
-    }
-
-    bool firstOnes;
-    int aSection;
-    std::vector<Module* >::iterator secondMod;
-    secondMod=aString.begin()++;
-
-    for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
-      aSection=NoSection;
-      if ((itMod==aString.begin())||(itMod==secondMod)) {
-	firstOnes=true;
-      } else {
-	firstOnes=false;
-      }
-      
-      // TODO: find a way to conjugate the need for a simple geometry
-      // for a fast simulation (first string up) and a real geometry with modules
-      // not crossing the XZ plane
-      //(*itMod)->rotatePhi(i*stringPhiShift-rightAngle);
-      (*itMod)->rotatePhi(i*stringPhiShift);
-      
-      if (i==0) {
-	aSection |= YZSection;
-      }
-      if (firstOnes) {
-	aSection |= XYSection;
-	// 	std::cout << "it's one of the first: it belongs to section" << XYSection << std::endl;
-      }
-
-      switch (sectioned) {
-      case NoSection:
-	moduleSet_.push_back(*itMod);
-	break;
-      case XYSection:
-	if (firstOnes) {
-	  moduleSet_.push_back(*itMod);
-	}
-	break;
-      case YZSection:
-	if (i==0) {
-	  //(*itMod)->rotatePhi(rightAngle);
-	  moduleSet_.push_back(*itMod);
-	}
-	break;
-      }
-
-      (*itMod)->setSection(aSection);
-      //  if (firstOnes)
-      // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl;
-    }
-  }
-  
-}
-
 void BarrelLayer::buildLayer (double averageRadius,
 			      double smallDelta, 
 			      double bigDelta, 
@@ -762,14 +624,20 @@ void BarrelLayer::buildLayer (double averageRadius,
     if (i==0) {
       //std::cerr << "Computing min edge: ";
       edge phiEdge;
+      BarrelModule* stdBarrelMod;
       for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
-	phiEdge=((BarrelModule*)(*itMod))->getEdgePhiSide(-1);
-	if (itMod==aString.begin()) {
-	  rightAngle=phiEdge.first;
-	  //std::cerr << "first angle is " << rightAngle << " and then: "; 
+	if (stdBarrelMod=static_cast<BarrelModule*>(*itMod)) {
+	  phiEdge=((BarrelModule*)(*itMod))->getEdgePhiSide(-1);
+	  if (itMod==aString.begin()) {
+	    rightAngle=phiEdge.first;
+	    //std::cerr << "first angle is " << rightAngle << " and then: "; 
+	  } else {
+	    //std::cerr << phiEdge.first << " ";
+	    if (phiEdge.first<rightAngle) rightAngle=phiEdge.first;
+	  }
 	} else {
-	  //std::cerr << phiEdge.first << " ";
-	  if (phiEdge.first<rightAngle) rightAngle=phiEdge.first;
+	  // This should never happen
+	  std::cerr << "ERROR in build string: found a non-barrel module" << std::endl;
 	}
       }
       //std::cerr << "done. The best is: " << rightAngle << std::endl;
@@ -820,6 +688,7 @@ void BarrelLayer::buildLayer (double averageRadius,
       }
 
       (*itMod)->setSection(aSection);
+
       //  if (firstOnes)
       // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl;
     }
@@ -1037,17 +906,22 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
   ModuleVector::iterator modIt;
   ModuleVector inputModuleV = inputLayer.moduleSet_;
   EndcapModule* aModule;
+  EndcapModule* stdModule;
 
   averageZ_=inputLayer.averageZ_;
 
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
-    aModule = new EndcapModule(*(EndcapModule*)(*modIt));
-    moduleSet_.push_back(aModule);
+    if (stdModule=static_cast<EndcapModule*>(*modIt)) {
+      aModule = new EndcapModule(*stdModule);
+      moduleSet_.push_back(aModule);
+    } else {
+      std::cerr << "ERROR: in EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) I found a non-endcap module in the source" << std::endl;
+    }
   }
 }
 
 
-EndcapLayer::EndcapLayer(const Module& sample, double alpha, double d) {
+EndcapLayer::EndcapLayer(const EndcapModule& sample, double alpha, double d) {
   sampleModule_ = new EndcapModule(sample, alpha, d);
 }
 
@@ -1057,10 +931,6 @@ EndcapLayer::EndcapLayer(double alpha, double d) {
 
 EndcapLayer::EndcapLayer(const EndcapModule& mySample) {
   sampleModule_ = new EndcapModule(mySample);
-}
-
-EndcapLayer::EndcapLayer(EndcapModule* mySample) {
-  sampleModule_ = new EndcapModule(*mySample);
 }
 
 //   void rotateY(double alpha);
@@ -1128,7 +998,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 				  double overlap, 
 				  double zError,
 				  int base, 
-				  Module* sampleModule, 
+				  EndcapModule* sampleModule, 
 				  std::map<int, int> ringDirectives, 
 				  int diskParity, /*=-1*/
 				  int sectioned /*=NoSection*/) {
@@ -1158,35 +1028,9 @@ void EndcapLayer::buildSingleDisk(double minRadius,
   std::ostringstream tag;
 
   for (nRing=1; lastRho<maxRadius; nRing++) {
-    //       sprintf(typeName, "ring%d", nRing);
-    //       sampleModule->setType(typeName);
-    //       sampleModule->setColor(nRing);
-
-    tag.str("");
-    tag << "R" << nRing ;
-    sampleModule->setTag(tag.str());
-    if (nRing<=3) {
-      //      sampleModule->setNChannels(768*4);
-      sampleModule->setNStripAcross(768);
-      sampleModule->setNSegments(2);
-      sprintf(typeName, "phiphi");
-      sampleModule->setColor(kRed);
-    } else if ((nRing>3)&&(nRing<=6)) {
-      //      sampleModule->setNChannels(512*4); 
-      sampleModule->setNStripAcross(768);   
-      sampleModule->setNSegments(1);
-      sprintf(typeName, "rphi");
-      sampleModule->setColor(kBlue);
-    } else {
-      //      sampleModule->setNChannels(768*2);
-      sampleModule->setNStripAcross(512);
-      sampleModule->setNSegments(1);
-      sprintf(typeName, "phiphi_ex");
-      sampleModule->setColor(kGreen);
-    }
-    sampleModule->setType(typeName);
-    
     ringParity = diskParity*(((nRing%2)*2)-1);
+
+    sampleModule->setRing(nRing);
 
     // Debug
     std::cout << "Looking for directives of ring " << nRing << std::endl;
@@ -1216,6 +1060,8 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     std::cout << "maxRadius: " << maxRadius << std::endl;
     std::cout << "lastrho: " << lastRho << std::endl;
     aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho);
+    aRingModule->setRing(nRing);
+
 
     // Place the mock-up module so as to simulate the worst position for this ring
     shiftThis = XYZVector(0,
@@ -1254,7 +1100,6 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       }
 
     }
-
 
     minSafetyEdge = trialModule[0]->getEdgeRhoSide(-1);
     minSafetyEdge.second = 0;
@@ -1297,7 +1142,7 @@ double EndcapLayer::buildRing(double minRadius,
 			      double overlap, 
 			      int base,
 			      int nearDirection, 
-			      Module* sampleModule,
+			      EndcapModule* sampleModule,
 			      double maxRadius /* = -1 */,
 			      int addModules, /* = 0 */
 			      int sectioned /* = NoSection */) {
