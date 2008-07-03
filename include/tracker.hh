@@ -32,6 +32,9 @@ protected:
   LayerVector endcapLayerSet_;
   ModuleVector endcapSample_;
 
+  std::map<int, double> mapTypeToCost_;
+  std::map<int, double> mapTypeToPower_;  
+
   double maxL_;
   double maxR_;
 
@@ -106,8 +109,6 @@ private:
   void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same");
   void drawSummary(double maxZ, double maxRho, std::string fileName);
 
-
-
 public:
   ~Tracker();
   Tracker();
@@ -135,10 +136,19 @@ public:
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
 
+  // Summary parameters
+  double getCost(const int& type) { return(mapTypeToCost_[type]); };
+  double getPower(const int& type) { return(mapTypeToPower_[type]); };
+  void setCost(const int& type, const double& newCost) { mapTypeToCost_[type]=newCost; };
+  void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; };
+
+  // Overlaps / error
   double getZError() { return zError_; };
   double getBigDelta() { return bigDelta_; };
   double getSmallDelta() { return smallDelta_; };
   double getOverlap() { return overlap_; };
+
+  // Other
   std::string getStoreDirectory() { return storeDirectory_; };
   std::string getSummaryDirectory() { return summaryDirectory_; };
   std::string getTrackerName() { return trackerName_; };

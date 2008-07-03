@@ -41,6 +41,11 @@ double endcapRhoOut;
 double endcapMaxZ;
 int endcapDiskParity;
 
+double summaryPtCost;
+double summaryPtPower;
+double summaryStripCost;
+double summaryStripPower;
+
 bool fullGeo;
 
 bool parseValues(int argc, char** argv)
@@ -110,6 +115,16 @@ bool parseValues(int argc, char** argv)
     SwitchArg fullSwitch("f","fullGeometry","Saves also the solid geometry", false);
     cmd.add( fullSwitch );
 
+    // Summary Parameters
+    ValueArg<double> summaryPtCostArg("", "ptCost", "Cost of pt silicon strip detector in CHF/cm^2", false, 200., "double");
+    ValueArg<double> summaryStripCostArg("", "stripCost", "Cost of silicon strip detector in CHF/cm^2", false, 40., "double");
+    ValueArg<double> summaryPtPowerArg("", "ptPower", "Power consumption of pt silicon strip detector in mW/Channel", false, 0.3, "double");
+    ValueArg<double> summaryStripPowerArg("", "stripPower", "Power consumption of silicon strip detector in mW/Channel", false, 0.7, "double");
+    cmd.add ( summaryPtCostArg );
+    cmd.add ( summaryStripCostArg );
+    cmd.add ( summaryPtPowerArg );
+    cmd.add ( summaryStripPowerArg );
+
     // Parse the args.
     cmd.parse( argc, argv );
 
@@ -135,6 +150,13 @@ bool parseValues(int argc, char** argv)
     endcapRhoOut     = endcapRhoOutArg.getValue();
     endcapMaxZ       = endcapMaxZArg.getValue();
     endcapDiskParity = ( endcapDiskParityArg.getValue() > 0 ) ? +1 : -1 ;
+
+    // Summary parameters
+    summaryPtCost     = summaryPtCostArg.getValue();;
+    summaryPtPower    = summaryPtPowerArg.getValue();;
+    summaryStripCost  = summaryStripCostArg.getValue();;
+    summaryStripPower = summaryStripPowerArg.getValue();;
+
 
     std::ostringstream aNamePart;
 
@@ -206,6 +228,7 @@ bool parseValues(int argc, char** argv)
     fullGeo = fullSwitch.getValue();
 
     std::cout << "Tracker name is: " << tkName << std::endl;
+
     
     
   } catch (ArgException &e)  // catch any exceptions
@@ -243,6 +266,11 @@ int main (int argc, char* argv[]) {
   myTracker->setRingDirectives(ringDirective);
   myTracker->setLayerDirectives(layerDirective);
   
+  // Give the summary parameters
+  myTracker->setCost(Module::Pt, summaryPtCost);
+  myTracker->setCost(Module::Strip, summaryStripCost);
+  myTracker->setPower(Module::Pt, summaryPtPower*1e-3);
+  myTracker->setPower(Module::Strip, summaryStripPower*1e-3);
 
   // Build the barrel with square modules
   BarrelModule* sampleBarrelModule = new BarrelModule(1.);   // Square modules of kind rphi

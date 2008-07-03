@@ -154,7 +154,7 @@ class Module {
 
   double getOccupancyPerEvent();
 
-  enum { Strip, Pixel };
+  enum { Strip, Pixel, Pt };
 };
 
 

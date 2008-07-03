@@ -726,6 +726,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   int pitchPrecision = 0;
   int stripLengthPrecision = 1;
   int millionChannelPrecision = 2;
+  int powerPrecision = 1;
+  int costPrecision  = 1;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
@@ -739,12 +741,12 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   LayerVector::iterator layIt;
   ModuleVector::iterator modIt;
   ModuleVector* aLay;
-  double totAreaPixels=0;
+  double totAreaPts=0;
   double totAreaStrips=0;
   int totCountMod=0;
   int totCountSens=0;
   long totChannelStrips=0;
-  long totChannelPixels=0;
+  long totChannelPts=0;
 
   // Generic (non format-dependent) tags for
   // text formatting
@@ -824,9 +826,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
 	totChannelStrips+=(*modIt)->getNChannels();
 	totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
       }
-      if ((*modIt)->getReadoutType()==Module::Pixel) {
-	totChannelPixels+=(*modIt)->getNChannels();
-	totAreaPixels+=(*modIt)->getArea()*(*modIt)->getNFaces();
+      if ((*modIt)->getReadoutType()==Module::Pt) {
+	totChannelPts+=(*modIt)->getNChannels();
+	totAreaPts+=(*modIt)->getArea()*(*modIt)->getNFaces();
       }
       if (typeMap.find(aSensorTag)==typeMap.end()){
 	// We have a new sensor geometry
@@ -890,7 +892,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> tags;
   std::vector<std::string> types;
   std::vector<std::string> areastrips;
-  std::vector<std::string> areapixels;
+  std::vector<std::string> areapts;
   std::vector<std::string> occupancies;
   std::vector<std::string> pitchpairs;
   std::vector<std::string> striplengths;
@@ -899,7 +901,13 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> numbermods;
   std::vector<std::string> numbersens;
   std::vector<std::string> channelstrips;
-  std::vector<std::string> channelpixels;
+  std::vector<std::string> channelpts;
+  std::vector<std::string> powers;
+  std::vector<std::string> costs;
+
+  double totalPower=0;
+  double totalCost=0;
+
   std::ostringstream aName;
   std::ostringstream aTag;
   std::ostringstream aType;
@@ -912,6 +920,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::ostringstream aNumberMod;
   std::ostringstream aNumberSens;
   std::ostringstream aChannel;
+  std::ostringstream aPower;
+  std::ostringstream aCost;
   int barrelCount=0;
   int endcapCount=0;
   Module* aModule;
@@ -921,7 +931,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   tags.push_back("Tag");
   types.push_back("Type");
   areastrips.push_back("Area (mm"+superStart+"2"+superEnd+")");
-  areapixels.push_back("Area (mm"+superStart+"2"+superEnd+")");
+  areapts.push_back("Area (mm"+superStart+"2"+superEnd+")");
   occupancies.push_back("Occup (max/av)");
   pitchpairs.push_back("Pitch (min/max)");
   striplengths.push_back("Strip length");
@@ -930,7 +940,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   numbermods.push_back("N. mod");
   numbersens.push_back("N. sens");
   channelstrips.push_back("Channels (M)");
-  channelpixels.push_back("Channels (M)");
+  channelpts.push_back("Channels (M)");
+  powers.push_back("Power (kW)");
+  costs.push_back("Cost (MCHF)");
 
   int loPitch;
   int hiPitch;
@@ -988,6 +1000,22 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     aChannel.str("");
     aChannel << std::fixed << std::setprecision(millionChannelPrecision)
 	     << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
+    // Power and cost
+    aPower.str("");
+    aCost.str("");
+    aPower << std::fixed << std::setprecision(powerPrecision) <<
+      typeMapCountChan[(*typeMapIt).first] *           // number of channels in type
+      1e-3 *                                           // conversion from W to kW
+      getPower((*typeMapIt).second->getReadoutType()); // power consumption in W/channel
+    totalPower += typeMapCountChan[(*typeMapIt).first] * 1e-3 * getPower((*typeMapIt).second->getReadoutType());
+    aCost  << std::fixed << std::setprecision(costPrecision) <<
+      (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
+      (*typeMapIt).second->getNFaces() *               // number of faces
+      getCost((*typeMapIt).second->getReadoutType()) * // price in CHF*cm^-2
+      1e-6 *                                           // conversion CHF-> MCHF
+      typeMapCount[(*typeMapIt).first];                // Number of modules
+    totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
+
 
     names.push_back(aName.str());
     tags.push_back(aTag.str());
@@ -999,17 +1027,19 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     nstrips.push_back(anNstrips.str());
     numbermods.push_back(aNumberMod.str());
     numbersens.push_back(aNumberSens.str());
+    powers.push_back(aPower.str());
+    costs.push_back(aCost.str());
 
     if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
       channelstrips.push_back(aChannel.str());
       areastrips.push_back(anArea.str());
-      channelpixels.push_back("--");
-      areapixels.push_back("--");
+      channelpts.push_back("--");
+      areapts.push_back("--");
     } else {
       channelstrips.push_back("--");
       areastrips.push_back("--");
-      channelpixels.push_back(aChannel.str());
-      areapixels.push_back(anArea.str());
+      channelpts.push_back(aChannel.str());
+      areapts.push_back(anArea.str());
     }
 
 
@@ -1019,9 +1049,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   names.push_back("Total");
   types.push_back("--");
   anArea.str("");
-  anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPixels/1e6
+  anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
 	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-  areapixels.push_back(anArea.str());
+  areapts.push_back(anArea.str());
   anArea.str("");
   anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
 	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
@@ -1037,6 +1067,12 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   aNumberSens << emphStart << totCountSens << emphEnd;
   numbermods.push_back(aNumberMod.str());
   numbersens.push_back(aNumberSens.str());
+  aPower.str("");
+  aCost.str("");
+  aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
+  aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
+  powers.push_back(aPower.str());
+  costs.push_back(aCost.str());
   aChannel.str("");
   aChannel << emphStart << std::fixed
 	   << std::setprecision(millionChannelPrecision)
@@ -1045,8 +1081,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   aChannel.str("");
   aChannel << emphStart << std::fixed
 	   << std::setprecision(millionChannelPrecision)
-	   << totChannelPixels / 1e6 << emphEnd;
-  channelpixels.push_back(aChannel.str());
+	   << totChannelPts / 1e6 << emphEnd;
+  
+  channelpts.push_back(aChannel.str());
 
 
   // Write everything into a file in the summary dir
@@ -1075,7 +1112,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, names);
     printHtmlTableRow(&myfile, tags);
     printHtmlTableRow(&myfile, types);
-    printHtmlTableRow(&myfile, areapixels);
+    printHtmlTableRow(&myfile, areapts);
     printHtmlTableRow(&myfile, areastrips);
     printHtmlTableRow(&myfile, occupancies);
     printHtmlTableRow(&myfile, pitchpairs);
@@ -1085,7 +1122,9 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, numbermods);
     printHtmlTableRow(&myfile, numbersens);
     printHtmlTableRow(&myfile, channelstrips);
-    printHtmlTableRow(&myfile, channelpixels);
+    printHtmlTableRow(&myfile, channelpts);
+    printHtmlTableRow(&myfile, powers);
+    printHtmlTableRow(&myfile, costs);
     myfile << "</table>"<<std::endl;
     myfile << "<h3>Plots</h3>" << std::endl;
     myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
@@ -1498,14 +1537,14 @@ void Tracker::setModuleTypes() {
 	  nSegments = 20;
 	  myType = "pt";
 	  nFaces = 2;
-	  myColor = kBlue;
-	  readoutType = Module::Pixel;
+	  myColor = kRed;
+	  readoutType = Module::Pt;
 	  break;
 	case 2:
 	  nStripAcross = 8*128;
 	  nSegments = 2;
 	  myType = "rphi";
-	  myColor = kRed;
+	  myColor = kGreen;
 	  break;
 	case 3:
 	case 4:
@@ -1513,7 +1552,7 @@ void Tracker::setModuleTypes() {
 	  nSegments = 1;
 	  myType = "stereo";
 	  nFaces = 2;
-	  myColor = kGreen;
+	  myColor = kBlue;
 	  break;
 	case 5:
 	case 6:
@@ -1570,20 +1609,20 @@ void Tracker::setModuleTypes() {
 	nStripAcross = 6*128;
 	nSegments = 6;
 	myType = "rphi";
-	myColor = kRed;
+	myColor = kGreen;
 	break;
       case 2:
 	nStripAcross = 6*128;
 	nSegments = 4;
 	myType = "rphi";
-	myColor = kRed;
+	myColor = kGreen;
 	break;
       case 3:
       case 4:
 	nStripAcross = 6*128;
 	nSegments = 2;
 	myType = "rphi";
-	myColor = kRed;
+	myColor = kGreen;
 	break;
       case 5:
       case 6:
@@ -1591,13 +1630,13 @@ void Tracker::setModuleTypes() {
 	nSegments = 1;
 	myType = "stereo";
 	nFaces = 2;
-	myColor = kGreen;
+	myColor = kBlue;
 	break;
       default:
 	nStripAcross = 6*128;
 	nSegments = 1;
 	myType = "rphi";
-	myColor = kRed;
+	myColor = kGreen;
 	break;
       }
       myTag.str("");
