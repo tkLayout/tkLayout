@@ -39,6 +39,7 @@ int nEndcapDisks;
 double endcapRhoIn;
 double endcapRhoOut;
 double endcapMaxZ;
+int endcapDiskParity;
 
 bool fullGeo;
 
@@ -88,6 +89,8 @@ bool parseValues(int argc, char** argv)
     ValueArg<double> endcapRhoOutArg("","endcapOuterRadius","Outer radius of disks",false,1095.,"double");
     cmd.add( endcapRhoOutArg );
     ValueArg<double> endcapMaxZArg("", "endcapMaxZ", "Highest Z available for the endcaps", false, 2650., "double");
+    ValueArg<int> endcapDiskParityArg("", "endcapDiskParity", "Endcap disk parity (if the inner ring is next or far from the interaction point). +1 and -1 accepted", false, +1, "int");
+    cmd.add( endcapDiskParityArg );
 //     ValueArg<int> endcapModulus("","endcapModulus","Modules in a disk will be multiple of this",false,4,"int");
 //     cmd.add( endcapModulus );
 
@@ -127,16 +130,17 @@ bool parseValues(int argc, char** argv)
 
     
     // Parameters of endcap
-    nEndcapDisks = nEndcapArg.getValue();
-    endcapRhoIn  = endcapRhoInArg.getValue();
-    endcapRhoOut = endcapRhoOutArg.getValue();
-    endcapMaxZ   = endcapMaxZArg.getValue();
+    nEndcapDisks     = nEndcapArg.getValue();
+    endcapRhoIn      = endcapRhoInArg.getValue();
+    endcapRhoOut     = endcapRhoOutArg.getValue();
+    endcapMaxZ       = endcapMaxZArg.getValue();
+    endcapDiskParity = ( endcapDiskParityArg.getValue() > 0 ) ? +1 : -1 ;
 
     std::ostringstream aNamePart;
 
     aNamePart.str("");
     aNamePart << "_" << nBarrelLayers << "L" << nBarrelModules;
-    aNamePart << "_" << nEndcapDisks << "D";
+    aNamePart << "_" << nEndcapDisks << "D" << ( (endcapDiskParity > 0) ? "+" : "-" );
 
     tkName += aNamePart.str();
 
@@ -264,6 +268,7 @@ int main (int argc, char* argv[]) {
 			  endcapRhoIn,
 			  endcapRhoOut,
 			  sampleModule,
+			  endcapDiskParity, 
 			  mySection );
 
 

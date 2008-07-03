@@ -38,6 +38,7 @@ class Module {
   int nSegments_;
   int nStripAcross_;
   int nFaces_;
+  int readoutType_;
 
   int inSection_;
   
@@ -141,15 +142,19 @@ class Module {
   int getNStripAcross()     { return nStripAcross_ ;};
   int getNSegments()        { return nSegments_ ;};
   int getNFaces()           { return nFaces_ ;};
+  int getReadoutType()      { return readoutType_ ;};
 
   void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
   void setNSegments(const int& newN) { nSegments_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
   void setNFaces(const int& newN) { nFaces_=newN; };
+  void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
 
   double getLowPitch();
   double getHighPitch();
 
   double getOccupancyPerEvent();
+
+  enum { Strip, Pixel };
 };
 
 

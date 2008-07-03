@@ -121,7 +121,7 @@ public:
 		   bool compressed = false );
 
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-		    Module* sampleModule, int sectioned = Layer::NoSection );
+		    Module* sampleModule, int diskParity, int sectioned = Layer::NoSection );
 
   // Access to parameters
   void setZError(const double& newError) { zError_ = newError; };

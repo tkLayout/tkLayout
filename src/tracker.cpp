@@ -364,7 +364,7 @@ double Tracker::getMaxBarrelZ(int direction) {
     
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-			   Module* genericSampleModule, int sectioned /* = Layer::NoSection */ ) {
+			   Module* genericSampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
   
   EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
 
@@ -386,7 +386,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
 				4, // Base
 				sampleModule, 
 				ringDirectives_,
-				+1, // diskParity
+				diskParity, 
 				sectioned );
 
   
@@ -651,14 +651,14 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     resetTypeCounter(modTypes);
     for (ModuleVector::iterator it = hitMods.begin();
 	 it!=hitMods.end(); it++) {
-      modTypes[(*it)->getType()]+=(*it)->getNFaces(); // mersi mod
-      nTrackHits+=(*it)->getNFaces(); // mersi mod
+      modTypes[(*it)->getType()]++; // mersi mod
+      nTrackHits++; // mersi mod
     }
     for (std::map <std::string, int>::iterator it = modTypes.begin();
 	 it!=modTypes.end(); it++) {
       etaType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
     }
-    total2D->Fill(fabs(aLine.second), nTrackHits); // mersi mod : was using hitMods.size() in place of nTrackHits
+    total2D->Fill(fabs(aLine.second), hitMods.size()); // mersi mod : was using hitMods.size() in place of nTrackHits
   }
   std::cout << " done!";
 
@@ -725,6 +725,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   int occupancyPrecision = 1;
   int pitchPrecision = 0;
   int stripLengthPrecision = 1;
+  int millionChannelPrecision = 2;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
@@ -738,10 +739,12 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   LayerVector::iterator layIt;
   ModuleVector::iterator modIt;
   ModuleVector* aLay;
-  double totArea=0;
+  double totAreaPixels=0;
+  double totAreaStrips=0;
   int totCountMod=0;
   int totCountSens=0;
-  long totChannels=0;
+  long totChannelStrips=0;
+  long totChannelPixels=0;
 
   // Generic (non format-dependent) tags for
   // text formatting
@@ -815,10 +818,16 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
 	typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*400;
       }
       typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*400;
-      totArea+=(*modIt)->getArea();
       totCountMod++;
       totCountSens+=(*modIt)->getNFaces();
-      totChannels+=(*modIt)->getNChannels();
+      if ((*modIt)->getReadoutType()==Module::Strip) {
+	totChannelStrips+=(*modIt)->getNChannels();
+	totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
+      }
+      if ((*modIt)->getReadoutType()==Module::Pixel) {
+	totChannelPixels+=(*modIt)->getNChannels();
+	totAreaPixels+=(*modIt)->getArea()*(*modIt)->getNFaces();
+      }
       if (typeMap.find(aSensorTag)==typeMap.end()){
 	// We have a new sensor geometry
 	typeMap[aSensorTag]=(*modIt);
@@ -880,14 +889,17 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::vector<std::string> names;
   std::vector<std::string> tags;
   std::vector<std::string> types;
-  std::vector<std::string> areas;
+  std::vector<std::string> areastrips;
+  std::vector<std::string> areapixels;
   std::vector<std::string> occupancies;
   std::vector<std::string> pitchpairs;
   std::vector<std::string> striplengths;
+  std::vector<std::string> segments;
   std::vector<std::string> nstrips;
   std::vector<std::string> numbermods;
   std::vector<std::string> numbersens;
-  std::vector<std::string> channels;
+  std::vector<std::string> channelstrips;
+  std::vector<std::string> channelpixels;
   std::ostringstream aName;
   std::ostringstream aTag;
   std::ostringstream aType;
@@ -895,6 +907,7 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   std::ostringstream anOccupancy;
   std::ostringstream aPitchPair;
   std::ostringstream aStripLength;
+  std::ostringstream aSegment;
   std::ostringstream anNstrips;
   std::ostringstream aNumberMod;
   std::ostringstream aNumberSens;
@@ -907,14 +920,17 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   names.push_back("");
   tags.push_back("Tag");
   types.push_back("Type");
-  areas.push_back("Area (mm"+superStart+"2"+superEnd+")");
-  occupancies.push_back("Perc. Occup (max/av)");
+  areastrips.push_back("Area (mm"+superStart+"2"+superEnd+")");
+  areapixels.push_back("Area (mm"+superStart+"2"+superEnd+")");
+  occupancies.push_back("Occup (max/av)");
   pitchpairs.push_back("Pitch (min/max)");
   striplengths.push_back("Strip length");
-  nstrips.push_back("N Strips / face");
+  segments.push_back("Segments x Chips");
+  nstrips.push_back("Chan/Sensor");
   numbermods.push_back("N. mod");
   numbersens.push_back("N. sens");
-  channels.push_back("Chan.");
+  channelstrips.push_back("Channels (M)");
+  channelpixels.push_back("Channels (M)");
 
   int loPitch;
   int hiPitch;
@@ -951,13 +967,17 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     } else {
       aPitchPair << std::dec << loPitch << "/" << hiPitch;
     }
-    // Strip Lengths:
+    // Strip Lengths
     aStripLength.str("");
     aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
 		 << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
+    // Segments
+    aSegment.str("");
+    aSegment << std::dec << (*typeMapIt).second->getNSegments()
+	     << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
     // Nstrips
     anNstrips.str("");
-    anNstrips << std::dec <<  (*typeMapIt).second->getNChannelsPerFace();
+    anNstrips << std::dec << (*typeMapIt).second->getNChannelsPerFace();
     // Number Mod
     aNumberMod.str("");
     aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
@@ -966,31 +986,50 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
     // Channels
     aChannel.str("");
-    aChannel << std::dec << typeMapCountChan[(*typeMapIt).first];
+    aChannel << std::fixed << std::setprecision(millionChannelPrecision)
+	     << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
 
     names.push_back(aName.str());
     tags.push_back(aTag.str());
     types.push_back(aType.str());
-    areas.push_back(anArea.str());
     occupancies.push_back(anOccupancy.str());
     pitchpairs.push_back(aPitchPair.str());
     striplengths.push_back(aStripLength.str());
+    segments.push_back(aSegment.str());
     nstrips.push_back(anNstrips.str());
     numbermods.push_back(aNumberMod.str());
     numbersens.push_back(aNumberSens.str());
-    channels.push_back(aChannel.str());
+
+    if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
+      channelstrips.push_back(aChannel.str());
+      areastrips.push_back(anArea.str());
+      channelpixels.push_back("--");
+      areapixels.push_back("--");
+    } else {
+      channelstrips.push_back("--");
+      areastrips.push_back("--");
+      channelpixels.push_back(aChannel.str());
+      areapixels.push_back(anArea.str());
+    }
+
+
   }
 
   // Score totals
   names.push_back("Total");
   types.push_back("--");
   anArea.str("");
-  anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totArea/1e6
+  anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPixels/1e6
 	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-  areas.push_back(anArea.str());
+  areapixels.push_back(anArea.str());
+  anArea.str("");
+  anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
+	 << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+  areastrips.push_back(anArea.str());
   occupancies.push_back("--");
   pitchpairs.push_back("--");
   striplengths.push_back("--");
+  segments.push_back("--");
   nstrips.push_back("--");
   aNumberMod.str("");
   aNumberMod << emphStart << totCountMod << emphEnd;
@@ -999,8 +1038,15 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   numbermods.push_back(aNumberMod.str());
   numbersens.push_back(aNumberSens.str());
   aChannel.str("");
-  aChannel << emphStart << totChannels << emphEnd;
-  channels.push_back(aChannel.str());
+  aChannel << emphStart << std::fixed
+	   << std::setprecision(millionChannelPrecision)
+	   << totChannelStrips / 1e6 << emphEnd;
+  channelstrips.push_back(aChannel.str());
+  aChannel.str("");
+  aChannel << emphStart << std::fixed
+	   << std::setprecision(millionChannelPrecision)
+	   << totChannelPixels / 1e6 << emphEnd;
+  channelpixels.push_back(aChannel.str());
 
 
   // Write everything into a file in the summary dir
@@ -1029,14 +1075,17 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, names);
     printHtmlTableRow(&myfile, tags);
     printHtmlTableRow(&myfile, types);
-    printHtmlTableRow(&myfile, areas);
+    printHtmlTableRow(&myfile, areapixels);
+    printHtmlTableRow(&myfile, areastrips);
     printHtmlTableRow(&myfile, occupancies);
     printHtmlTableRow(&myfile, pitchpairs);
+    printHtmlTableRow(&myfile, segments);
     printHtmlTableRow(&myfile, striplengths);
     printHtmlTableRow(&myfile, nstrips);    
     printHtmlTableRow(&myfile, numbermods);
     printHtmlTableRow(&myfile, numbersens);
-    printHtmlTableRow(&myfile, channels);
+    printHtmlTableRow(&myfile, channelstrips);
+    printHtmlTableRow(&myfile, channelpixels);
     myfile << "</table>"<<std::endl;
     myfile << "<h3>Plots</h3>" << std::endl;
     myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
@@ -1433,6 +1482,7 @@ void Tracker::setModuleTypes() {
   std::ostringstream myTag;;
   std::string myType;
   Color_t myColor;
+  int readoutType;
 
   for (layIt=barrelLayerSet_.begin(); layIt!=barrelLayerSet_.end(); layIt++) {
     aLay = (*layIt)->getModuleVector();
@@ -1441,16 +1491,18 @@ void Tracker::setModuleTypes() {
       if (aBarrelModule=static_cast<BarrelModule*>(aModule)) {
 
 	nFaces = 1;
+	readoutType = Module::Strip;
 	switch (aBarrelModule->getLayer()) {
 	case 1:
 	  nStripAcross = 9*128;
 	  nSegments = 20;
-	  myType = "trigger";
+	  myType = "pt";
 	  nFaces = 2;
 	  myColor = kBlue;
+	  readoutType = Module::Pixel;
 	  break;
 	case 2:
-	  nStripAcross = 9*128;
+	  nStripAcross = 8*128;
 	  nSegments = 2;
 	  myType = "rphi";
 	  myColor = kRed;
@@ -1465,7 +1517,7 @@ void Tracker::setModuleTypes() {
 	  break;
 	case 5:
 	case 6:
-	  nStripAcross = 4*128;
+	  nStripAcross = 6*128;
 	  nSegments = 1;
 	  myType = "rphi";
 	  myColor = kRed;
@@ -1485,6 +1537,7 @@ void Tracker::setModuleTypes() {
 	aBarrelModule->setType(myType);
 	aBarrelModule->setTag(myTag.str());
 	aBarrelModule->setColor(myColor);
+	aBarrelModule->setReadoutType(readoutType);
       } else {
 	// This shouldnt happen
 	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
@@ -1514,21 +1567,21 @@ void Tracker::setModuleTypes() {
       nFaces = 1;
       switch (anEndcapModule->getRing()) {
       case 1:
-	nStripAcross = 9*128;
-	nSegments = 3;
+	nStripAcross = 6*128;
+	nSegments = 6;
 	myType = "rphi";
 	myColor = kRed;
 	break;
       case 2:
 	nStripAcross = 6*128;
-	nSegments = 2;
+	nSegments = 4;
 	myType = "rphi";
 	myColor = kRed;
 	break;
       case 3:
       case 4:
-	nStripAcross = 9*128;
-	nSegments = 1;
+	nStripAcross = 6*128;
+	nSegments = 2;
 	myType = "rphi";
 	myColor = kRed;
 	break;
@@ -1541,7 +1594,7 @@ void Tracker::setModuleTypes() {
 	myColor = kGreen;
 	break;
       default:
-	nStripAcross = 4*128;
+	nStripAcross = 6*128;
 	nSegments = 1;
 	myType = "rphi";
 	myColor = kRed;
@@ -1722,18 +1775,20 @@ void Tracker::computeBandwidth() {
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-      // TODO: remove explicit "400" here
-      hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannelsPerFace());
-      chanHitDist_->Fill(hitChannels);
-
-      for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
-	nChips=ceil((*modIt)->getNChannelsPerFace()/128.);
-
-	// TODO: place the computing model choice here
-	// Binary unsparsified (bps)
-	bandWidthDist_->Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
-	// Binary sparsified
-	bandWidthDistSp_->Fill((23*nChips+hitChannels*9)*100E3);
+      if ((*modIt)->getReadoutType()==Module::Strip) {
+	// TODO: remove explicit "400" here
+	hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannelsPerFace());
+	chanHitDist_->Fill(hitChannels);
+	
+	for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
+	  nChips=ceil((*modIt)->getNChannelsPerFace()/128.);
+	  
+	  // TODO: place the computing model choice here
+	  // Binary unsparsified (bps)
+	  bandWidthDist_->Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
+	  // Binary sparsified
+	  bandWidthDistSp_->Fill((23*nChips+hitChannels*9)*100E3);
+	}
       }
     }
   }

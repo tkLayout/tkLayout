@@ -51,6 +51,7 @@ void Module::setDefaultParameters() {
   nSegments_        = 1;
   nStripAcross_     = 1;
   nFaces_           = 1;
+  readoutType_      = Strip;
 }
 
 void Module::print() {
