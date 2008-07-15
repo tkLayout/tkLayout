@@ -1559,7 +1559,7 @@ void Tracker::setModuleTypes() {
 	  nStripAcross = 6*128;
 	  nSegments = 1;
 	  myType = "rphi";
-	  myColor = kRed;
+	  myColor = kGreen;
 	  break;
 	default:
 	  nStripAcross = 1;
@@ -1799,15 +1799,17 @@ void Tracker::computeBandwidth() {
   TLegend* myLegend;
   
 
-  bandWidthCanvas_ = new TCanvas("ModuleBandwidthC","Modules needed bandwidthC",1000, 600);
-  bandWidthCanvas_->Divide(2);
+  bandWidthCanvas_ = new TCanvas("ModuleBandwidthC","Modules needed bandwidthC",2000, 1200);
+  bandWidthCanvas_->Divide(2,2);
+  bandWidthCanvas_->GetPad(1)->SetLogy(1);
+
 
   chanHitDist_     = new TH1F("NHitChannels",
-			    "Number of hit channels;Hit Channels", 100, 0., 400);
+			    "Number of hit channels;Hit Channels;Modules", 200, 0., 400);
   bandWidthDist_   = new TH1F("BandWidthDist",
-			    "Module Needed Bandwidth;Bandwidth (bps)", 100, 0., 2E+8);
+			    "Module Needed Bandwidth;Bandwidth (bps);Modules", 200, 0., 6E+8);
   bandWidthDistSp_ = new TH1F("BandWidthDistSp",
-			      "Module Needed Bandwidth (sparsified);Bandwidth (bps)", 100, 0., 2E+8);
+			      "Module Needed Bandwidth (sparsified);Bandwidth (bps);Modules", 100, 0., 6E+8);
   bandWidthDistSp_->SetLineColor(kRed);
   
   int nChips;
