@@ -728,6 +728,8 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   int millionChannelPrecision = 2;
   int powerPrecision = 1;
   int costPrecision  = 1;
+  int powerPerUnitPrecision = 2;
+  int costPerUnitPrecision  = 1;
 
   // A bunch of indexes
   std::map<std::string, Module*> typeMap;
@@ -1126,10 +1128,30 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     printHtmlTableRow(&myfile, powers);
     printHtmlTableRow(&myfile, costs);
     myfile << "</table>"<<std::endl;
+    // TODO: make an object that handles this properly:
+    myfile << "<h5>Cost estimates:</h5>" << std::endl;
+    myfile << "<p>Pt modules: "
+	   << std::fixed << std::setprecision(costPerUnitPrecision)
+	   << getCost(Module::Pt) << " CFH/cm2 - Strip modules: "
+	   << std::fixed << std::setprecision(costPerUnitPrecision)
+	   << getCost(Module::Strip) << " CHF/cm2</p>" << std::endl;
+    myfile << "<h5>Power estimates:</h5>" << std::endl;
+    myfile << "<p>Pt modules: " 
+	   << std::fixed << std::setprecision(powerPerUnitPrecision) 
+	   << getPower(Module::Pt)*1e3 << " mW/chan - Strip modules: "
+	   << std::fixed << std::setprecision(powerPerUnitPrecision) 
+	   << getPower(Module::Strip)*1e3 << " mW/chan</p>" << std::endl;
+
     myfile << "<h3>Plots</h3>" << std::endl;
     myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
     myfile << "<img src=\"summaryPlots_nhitplot.png\" />" << std::endl;
     myfile << "<img src=\"summaryPlotsYZ.png\" />" << std::endl;
+    // TODO: make an object that handles this properly:
+    myfile << "<h5>Bandwidth useage estimate:</h5>" << std::endl;
+    myfile << "<p>(Pt modules: ignored)</p>" << std::endl
+	   << "<p>Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit</p>" << std::endl
+	   << "<p>Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel</p>" << std::endl
+	   << "<p>100 kHz trigger, 400 minimum bias events assumed</p>" << std::endl;
     myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
     myfile << "</body></html>" << std::endl;    
   }  
@@ -1825,6 +1847,10 @@ void Tracker::computeBandwidth() {
 	  nChips=ceil((*modIt)->getNChannelsPerFace()/128.);
 	  
 	  // TODO: place the computing model choice here
+
+	  // ACHTUNG!!!! whenever you change the numbers here, you have to change
+	  // also the numbers in the summary
+
 	  // Binary unsparsified (bps)
 	  bandWidthDist_->Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
 	  // Binary sparsified
