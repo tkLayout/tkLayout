@@ -132,23 +132,10 @@ typedef struct paramaggreg {
  * (The constructor itself is private and auto-generated.)
  * It initialises some of the widgets programmatically, reads the information about the available geometries from the
  * resource directory and caches it in the global table vectors <i>geometryTable , parameterTable</i> and <i>widgetCache</i>.
+ * If a resource directory is found to contain nonsensical parameter files it is skipped.
  */
 void MainDialog::init()
 {
-    /// Create a default parameter configuration in case of missing files or data
-    paramaggreg defaultDummy;
-    defaultDummy.trackerName = cDefaultTrackerName;
-    defaultDummy.nlayers = 1;
-    defaultDummy.nrings = 1;
-    defaultDummy.nchipsperside.push_back(cDefaultChipsPerSide);
-    defaultDummy.nsegmentsperring.push_back(cDefaultSegsPerRing);
-    defaultDummy.mtypeslayers.push_back(ss);
-    defaultDummy.mtypesrings.push_back(ss);
-    defaultDummy.costpersqcm = 0;
-    defaultDummy.ptcostpersqcm = 0;
-    defaultDummy.powerperchannel = 0;
-    defaultDummy.ptpowerperchannel = 0;
-
     /// Add the menu items to the settings popup menu and connect the widget to the main form
     settingsPopup = new QPopupMenu(settingsButton, "Settings");
     settingsPopup->insertItem("Default Values", 0, 0);
@@ -208,7 +195,7 @@ void MainDialog::init()
     workingDir.setPath(basePath + resExtension);
     geometryPicker->setColumnLayout(1, Qt::Vertical);
 
-    /// Work your way through the contents of the resource directory (set to only include subfolders)
+    /// Work your way through the contents of the resource directory (set to only include subfolders); ignore nonsensical entries
     QStringList::const_iterator iter;
     for (iter = workingDir.entryList().constBegin(); iter != workingDir.entryList().constEnd(); iter++) {
 	geominfo geomrow;
@@ -234,8 +221,7 @@ void MainDialog::init()
 	    geomrow.cmdLineParams = instream.readLine();
 	    workingFile.close();
 	}
-	else geomrow.cmdLineParams = " ";
-	geometryTable.push_back(geomrow);
+	else continue;
 
 	/// Read the cusomisable parameters from their settings file and add them to <i>parameterTable</i> and <i>widgetCache</i>
 	paramaggreg paramrow;
@@ -248,9 +234,10 @@ void MainDialog::init()
 		std::cout << re.what() << std::endl;
 	    }
 	}
-	else {
-	    paramrow = defaultDummy;
-	}
+	else continue;
+	
+	/// Add the assembled info structs to their vector containers
+	geometryTable.push_back(geomrow);
 	parameterTable.push_back(paramrow);
 	widgetCache.push_back(paramrow);
 
