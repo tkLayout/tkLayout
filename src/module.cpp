@@ -37,20 +37,21 @@ Module::Module(double waferDiameter) {
 }
 
 void Module::setDefaultParameters() {
-  height_           = 0;
+  // See the header file for the values of these
+  height_           = defaultHeight_;
   nHits_            = defaultNHits_;
   thickness_        = defaultThickness_;
-  area_             = 0;
+  area_             = defaultArea_;
   id_               = "NoId";
   tag_              = "";
   type_             = "NoType";
   thisVolume_       = NULL;
   color_            = defaultColor_;
-  inSection_        = 0;
-  nChannelsPerFace_ = 1;
-  nSegments_        = 1;
-  nStripAcross_     = 1;
-  nFaces_           = 1;
+  inSection_        = defaultInSection_;
+  nChannelsPerFace_ = defaultChannelsPerFace_;
+  nSegments_        = defaultSegments_;
+  nStripAcross_     = defaultStripAcross_;
+  nFaces_           = defaultFaces_;
   readoutType_      = Strip;
 }
 

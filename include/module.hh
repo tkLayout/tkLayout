@@ -54,6 +54,13 @@ class Module {
   static const double  defaultThickness_ = 0.3; // Wafer thickness: 300 um
   static const Color_t defaultColor_ = kBlack;
   static const int     defaultNHits_ = 0;
+  static const int     defaultHeight_ = 0;
+  static const int     defaultArea_ = 0;
+  static const int     defaultInSection_ = 0;
+  static const int     defaultChannelsPerFace_ = 1;
+  static const int     defaultSegments_ = 1;
+  static const int     defaultStripAcross_ = 1;
+  static const int     defaultFaces_ = 1;
   
   std::string id_;   // Ids of the module
   std::string tag_;  // Tags the module
