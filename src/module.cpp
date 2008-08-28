@@ -112,13 +112,9 @@ XYZVector* Module::marginBorderSide(double margin, int side){
     return NULL;
   };
 
-  int otherSideIndex = side+2;
-  if (otherSideIndex>3) otherSideIndex-=4;
-  int nextPoint=side+1;
-
-  if (nextPoint==4) nextPoint=0;
-  int otherNextPoint=otherSideIndex+1;
-  if (otherNextPoint==4) otherNextPoint=0;
+  int otherSideIndex = (side+2) % 4;
+  int nextPoint=(side+1) % 4;
+  int otherNextPoint=(otherSideIndex+1) % 4;
 
   XYZVector thisSide=(corner_[side]+corner_[nextPoint])/2.;
   XYZVector otherSide=(corner_[otherSideIndex]+corner_[otherNextPoint])/2.;
@@ -177,7 +173,7 @@ XYZVector* Module::marginBorder(double widthMargin, double lengthMargin, int cor
 
 int Module::projectSideZ(int side, double destZ, double displaceZ /*=0*/ ) {
   if ((side<0)||(side>3)) {
-    std::cerr << "Module::placeSideZ was invoked with a nonsense side index" << std::endl;
+    std::cerr << "Module::projectSideZ was invoked with a nonsense side index" << std::endl;
     return -1;
   }
 
@@ -193,8 +189,7 @@ int Module::projectSideZ(int side, double destZ, double displaceZ /*=0*/ ) {
 
 
   int firstPoint=side;
-  int secondPoint=side+1;
-  if (secondPoint==4) secondPoint=0;
+  int secondPoint=(side+1) % 4;
 
 //   std::cerr << "Refpoints:" << firstPoint << " " << secondPoint << std::endl;
 
@@ -249,8 +244,7 @@ int Module::projectSideRho(int side, double destRho, double displaceZ /*=0*/ ) {
   }
 
   int firstPoint=side;
-  int secondPoint=side+1;
-  if (secondPoint==4) secondPoint=0;
+  int secondPoint=(side+1) % 4;
 
 //   std::cerr << "Refpoints: " << firstPoint << "," << secondPoint << std::endl;
 //   std::cerr << firstPoint << "= "
@@ -517,8 +511,7 @@ edge Module::getEdgeRhoSide(int direction) {
   
   int nextIndex;
   for (int i=0; i<4; i++) {
-    nextIndex=i+1;
-    if (nextIndex==4) nextIndex=0;
+    nextIndex=(i+1) % 4;
     marginBorder = marginBorderSide(0, i);
     fakeModule.corner_[i]=(*marginBorder);
     delete marginBorder;
@@ -773,8 +766,7 @@ edge BarrelModule::getEdgeZSide(int direction, double margin /*= 0*/) {
 
   int nextIndex;
   for (int i=0; i<4; i++) {
-    nextIndex=i+1;
-    if (nextIndex==4) nextIndex=0;
+    nextIndex=(i+1) % 4;
     marginBorder = marginBorderSide(margin, i);
     fakeModule.corner_[i]=(*marginBorder);
     delete marginBorder;
