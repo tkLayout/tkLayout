@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 //#include "tracker.hh"
 
@@ -11,7 +12,8 @@ public:
   ~configParser();
   bool parseFile(string fileName);
 private:
-  ifstream configFile_;
+  ifstream rawConfigFile_;
+  stringstream configFile_;
   bool parseType(string myType);
 
   string getTill(istream &inStream, char delimiter, bool singleWord, bool allowNothing /* = false */);

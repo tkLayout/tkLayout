@@ -7,7 +7,13 @@ INCLUDEFLAGS=-Iinclude
 
 COMP=g++ $(INCLUDEFLAGS)
 
-all: TrackerGeom test
+all: TrackerGeom testObj testConfig
+
+configparser.o:	src/configparser.cpp include/configparser.hh
+	$(COMP) $(ROOTFLAGS) -c -o configparser.o src/configparser.cpp
+
+testConfig: configparser.o testConfig.cpp
+	$(COMP) configparser.o testConfig.cpp -o testConfig
 
 module.o: src/module.cpp include/module.hh
 	$(COMP) $(ROOTFLAGS) -c -o module.o src/module.cpp 
@@ -21,8 +27,8 @@ tracker.o: src/tracker.cpp include/tracker.hh
 TrackerGeom: TrackerGeom.cpp module.o layer.o tracker.o
 	$(COMP) $(ROOTFLAGS) module.o layer.o tracker.o TrackerGeom.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o TrackerGeom
 
-test: testObjects.cpp module.o
-	$(COMP) $(ROOTFLAGS) module.o layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o test
+testObj: testObjects.cpp module.o
+	$(COMP) $(ROOTFLAGS) module.o layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
 clean:
-	rm -f include/*~ *~ module.o layer.o tracker.o TrackerGeom tkGeometry.root test cmsTest
+	rm -f include/*~ *~ module.o layer.o tracker.o configparser.o TrackerGeom tkGeometry.root testConfig testObj cmsTest

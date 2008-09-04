@@ -82,8 +82,19 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 bool configParser::parseType(string myType) {
   string str;
   string typeConfig;
-
-  if (myType=="Barrel") {
+  
+  if (myType=="Tracker") {
+    cout << "Reading tracker main parameters and name: ";
+    str=getTill(configFile_, '{', true);
+    if (str!="") { 
+      cout << str << endl;
+      typeConfig=getTill(configFile_, '}', false);
+      //if (typeConfig!="") {
+      //	istringstream typeStream(typeConfig);
+      //	parseBarrel(str, typeStream);
+      //}
+    }
+  } else if (myType=="Barrel") {
     cout << "CREATING BARREL:\t";
     str=getTill(configFile_, '{', true);
     if (str!="") { 
@@ -116,17 +127,37 @@ bool configParser::parseType(string myType) {
 bool configParser::parseFile(string configFileName) {
   string str;
 
-  if (configFile_.is_open()) {
+  if (rawConfigFile_.is_open()) {
     cerr << "config file is already open" << endl;
     return false;
   }
 
-  configFile_.open(configFileName.c_str());
-  if (configFile_.is_open()) {
+  rawConfigFile_.open(configFileName.c_str());
+  if (rawConfigFile_.is_open()) {
+
+    // Reset the configFile_ object
+    configFile_.~stringstream();                      
+    new ( (void*) &configFile_) std::stringstream();
+
+    // Skim comments delimited by // or # and put the skimmed file into configFile_
+    string::size_type locComm1; // Location of commenting substring 1
+    string::size_type locComm2; // Location of commenting substring 2
+
+    while (getline(rawConfigFile_,str)) {
+      locComm1=str.find("//", 0);
+      locComm2=str.find("#", 0);
+      if ((locComm1==string::npos)&&(locComm2==string::npos)) {
+	configFile_ << str << endl;
+      } else {
+	configFile_ << str.substr(0, (locComm1<locComm2 ? locComm1 : locComm2)) << endl;
+      }
+    }
+    
+    
     while(configFile_ >> str) {
       if (!parseType(str)) break;
     }
-    configFile_.close();
+    rawConfigFile_.close();
   } else {
     cerr << "Error: could not open config file " << configFileName << endl;
     return false;

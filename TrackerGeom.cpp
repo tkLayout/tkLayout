@@ -283,7 +283,7 @@ int main (int argc, char* argv[]) {
   delete sampleBarrelModule; // Dispose of the sample module
 
 
-  std::cout << "Tracker stays int the z range "
+  std::cout << "Tracker stays in the z range "
 	    << myTracker->getMaxBarrelZ(-1) << ".." <<  myTracker->getMaxBarrelZ(+1)
 	    << std::endl;
 
