@@ -326,7 +326,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
   // And compact everything to it
   for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
     if (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) {
-      std::cerr << "It's a Barrel Layer: Compacting layer" << std::endl;
+      // std::cerr << "It's a Barrel Layer: Compacting layer" << std::endl; // debug
       aBarrelLayer->compressToZ(minZt);
     } else {
       std::cerr << "ERROR: trying to compact a non-barrel layer" ;

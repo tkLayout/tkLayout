@@ -16,7 +16,6 @@
 
 #define RANDOM_SEED 0xcaffe
 
-
 // TODO: add slanted gap between barrel and end-cap
 
 using namespace ROOT::Math;
@@ -83,6 +82,7 @@ private:
   double smallDelta_;
   double bigDelta_;
   double overlap_;
+  double etaCut_;
 
   std::string summaryDirectory_;
   std::string storeDirectory_;
@@ -129,6 +129,8 @@ public:
   void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; };
   void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; };
   void setOverlap(const double& newOverlap) { overlap_ = newOverlap; };
+  void setEtaCut(const double& newEta) { etaCut_ = newEta; };
+
   void setStoreDirectory(const std::string newDir) { storeDirectory_ = newDir; };
   void setSummaryDirectory(const std::string newDir) { summaryDirectory_ = newDir; };
   void setTrackerName(const std::string newName) { trackerName_ = newName; };
@@ -147,6 +149,7 @@ public:
   double getBigDelta() { return bigDelta_; };
   double getSmallDelta() { return smallDelta_; };
   double getOverlap() { return overlap_; };
+  double getEtaCut() { return etaCut_; };
 
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };

@@ -12,9 +12,6 @@ all: TrackerGeom testObj testConfig
 configparser.o:	src/configparser.cpp include/configparser.hh
 	$(COMP) $(ROOTFLAGS) -c -o configparser.o src/configparser.cpp
 
-testConfig: configparser.o testConfig.cpp
-	$(COMP) configparser.o testConfig.cpp -o testConfig
-
 module.o: src/module.cpp include/module.hh
 	$(COMP) $(ROOTFLAGS) -c -o module.o src/module.cpp 
 
@@ -29,6 +26,10 @@ TrackerGeom: TrackerGeom.cpp module.o layer.o tracker.o
 
 testObj: testObjects.cpp module.o
 	$(COMP) $(ROOTFLAGS) module.o layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
+
+testConfig: testConfig.cpp module.o layer.o tracker.o configparser.o
+	$(COMP) $(ROOTFLAGS) module.o layer.o tracker.o configparser.o testConfig.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testConfig
+
 
 clean:
 	rm -f include/*~ *~ module.o layer.o tracker.o configparser.o TrackerGeom tkGeometry.root testConfig testObj cmsTest
