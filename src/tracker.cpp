@@ -41,7 +41,7 @@ Tracker::Tracker() {
 
 Tracker::Tracker(std::string trackerName) {
   setDefaultParameters();
-  setTrackerName(trackerName);
+  setName(trackerName);
 }
 
 void Tracker::setDefaultParameters() {
@@ -1160,6 +1160,13 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
   // TODO: create a TString summary
 }
 
+void Tracker::createPackageLayout(std::string dirName) {
+
+  std::string layoutFile = dirName + "/layout.png";
+  drawLayout(maxL_, maxR_, layoutFile);
+
+}
+
 void Tracker::printHtmlTableRow(ofstream *output, std::vector<std::string> myRow) {
   std::vector<std::string>::iterator strIt;
   (*output) << "<tr>" << std::endl;
@@ -1810,6 +1817,33 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
 
   //summaryCanvas->SaveAs(epsFileName.c_str());
   //summaryCanvas->SaveAs(gifFileName.c_str());
+}
+
+void Tracker::drawLayout(double maxZ, double maxRho, std::string fileName) {
+  TCanvas* layoutCanvas;
+  Int_t irep;
+  int i=0;
+
+
+  layoutCanvas = new TCanvas("layoutCanvas", "Layout Canvas",400, 400);
+  layoutCanvas->SetFillColor(kWhite);
+  layoutCanvas->SetWindowSize(400, 400);
+
+  // YZView only is our layout canvas
+  layoutCanvas->cd();
+  if (geomLiteYZ_) {
+    drawGrid(maxZ, maxRho, ViewSectionYZ);
+    geomLiteYZ_->DrawClonePad();
+    layoutCanvas->GetView()->SetParallel();
+    layoutCanvas->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+    layoutCanvas->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+    drawTicks(layoutCanvas->GetView(), maxZ, maxRho, ViewSectionYZ);
+  }
+
+  layoutCanvas->SetBorderMode(0);
+  layoutCanvas->Modified();
+
+  layoutCanvas->SaveAs(fileName.c_str());
 }
 
 

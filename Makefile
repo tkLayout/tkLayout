@@ -2,6 +2,7 @@
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
+BOOSTLIBFLAGS=-lboost_filesystem
 GEOMLIBFLAG=-lGeom
 INCLUDEFLAGS=-Iinclude
 
@@ -28,7 +29,7 @@ testObj: testObjects.cpp module.o
 	$(COMP) $(ROOTFLAGS) module.o layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
 testConfig: testConfig.cpp module.o layer.o tracker.o configparser.o
-	$(COMP) $(ROOTFLAGS) module.o layer.o tracker.o configparser.o testConfig.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testConfig
+	$(COMP) $(ROOTFLAGS) module.o layer.o tracker.o configparser.o testConfig.cpp $(BOOSTLIBFLAGS) $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testConfig
 
 
 clean:

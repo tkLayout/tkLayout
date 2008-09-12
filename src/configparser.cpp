@@ -14,6 +14,7 @@ configParser::configParser() {
 }
 
 configParser::~configParser() {
+
 }
 
 string configParser::getTill(istream &inStream, char delimiter, bool singleWord,bool allowNothing=false) {
@@ -40,6 +41,7 @@ string configParser::getTill(istream &inStream, char delimiter, bool singleWord,
   return result;
 }
 
+// Parse a single parameter of the config file, dividing what's before the '=' to what's after
 bool configParser::parseParameter(string &parameterName, string &parameterValue, istream& inStream) {
   string str;
   string myLine;
@@ -64,6 +66,7 @@ bool configParser::parseParameter(string &parameterName, string &parameterValue,
   return false;
 }
 
+// Parses the parameter of the Tracker type in the config file.
 bool configParser::parseTracker(string myName, istream& inStream) {
   string parameterName;
   string parameterValue;
@@ -331,6 +334,10 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
   }
 }
 
+
+// Takes the type and the name of the object, creates a strstream of
+// everything between '{' and '}' and passes it to the parser corresponding
+// to the declared Type. (parseTracker, parseBarrel, parseEndcap)
 bool configParser::parseType(string myType) {
   string str;
   string typeConfig;
@@ -376,6 +383,13 @@ bool configParser::parseType(string myType) {
   return true;
 }
 
+
+// Main config parser function. It opens the file, if possible
+// then it skims the comments away, creating the readable stringstream
+// and passes this to the type parser (parseType).
+// When this function is ofer a full tracker object should be there
+// unless an exception was raised during the parsing (in which case
+// the user will be informed about details through the stderr)
 bool configParser::parseFile(string configFileName) {
   string str;
 
@@ -411,6 +425,8 @@ bool configParser::parseFile(string configFileName) {
       }
     } catch (exception& e) {
       cerr << e.what() << endl;
+      rawConfigFile_.close();
+      return false;
     }
     
     rawConfigFile_.close();

@@ -59,6 +59,8 @@ private:
 
   int iModule_;
 
+  std::string comment_;
+
   TRandom3 myDice_;
 
   TGeoVolume* myVolume_;
@@ -108,6 +110,7 @@ private:
   void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same");
   void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same");
   void drawSummary(double maxZ, double maxRho, std::string fileName);
+  void drawLayout(double maxZ, double maxRho, std::string fileName);
 
 public:
   ~Tracker();
@@ -133,10 +136,12 @@ public:
 
   void setStoreDirectory(const std::string newDir) { storeDirectory_ = newDir; };
   void setSummaryDirectory(const std::string newDir) { summaryDirectory_ = newDir; };
-  void setTrackerName(const std::string newName) { trackerName_ = newName; };
+  void setTrackerName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
+  void setName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
   void setLayerDirectives(const std::map<int, double> newDirectives ) { layerDirectives_=newDirectives; };
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
+  void setComment(const std::string &newComment) {comment_=newComment;};
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); };
@@ -154,8 +159,10 @@ public:
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };
   std::string getSummaryDirectory() { return summaryDirectory_; };
-  std::string getTrackerName() { return trackerName_; };
+  std::string getTrackerName() { return trackerName_; }; // deprecated (TODO: remove it)
+  std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
+  std::string getComment() {return comment_;};
 
   void addLayer(Layer* aLayer, int type = TypeBarrel ) {
     layerSet_.push_back(aLayer);
@@ -172,6 +179,7 @@ public:
 
   // Summary output
   void writeSummary(std::string fileType = "html");
+  void createPackageLayout(std::string dirName);
 
   // Save everything
   void save();
