@@ -123,6 +123,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
   // All the tracker parameters are set now
 }
 
+
+// Parses the part of config files between '{' and '}', creating a Barrel
 bool configParser::parseBarrel(string myName, istream& inStream) {
   string parameterName;
   string parameterValue;
@@ -144,8 +146,6 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     throw parsingException();
   }
 
-
-  // TODO: place the object name in a meaningful place
 
   while (!inStream.eof()) {
     while (parseParameter(parameterName, parameterValue, inStream)) {
@@ -217,18 +217,22 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     myTracker_->setLayerDirectives(layerDirective);
 
     myTracker_->buildBarrel(nBarrelLayers,
-			   barrelRhoIn,
-			   barrelRhoOut,
-			   nBarrelModules,
-			   sampleBarrelModule, Layer::NoSection, true); // Actually build a compressed barrel
+			    barrelRhoIn,
+			    barrelRhoOut,
+			    nBarrelModules,
+			    sampleBarrelModule,
+			    myName,
+			    Layer::NoSection, true); // Actually build a compressed barrel
     delete sampleBarrelModule; // Dispose of the sample module
   } else {
     cout << "Missing mandatory parameter for barrel " << myName << endl;
     throw parsingException();
   }
 
+  return true;
 }
 
+// Parses the part of config files between '{' and '}', creating an Endcap
 bool configParser::parseEndcap(string myName, istream &inStream) {
   string parameterName;
   string parameterValue;
@@ -239,6 +243,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
   double maxZ = 0;            // maximum z
   double rhoIn = 0;
   double rhoOut = 0;
+  double innerEta = 0;
   int diskParity = 0; 
 
   Module* sampleModule = NULL;
@@ -253,12 +258,12 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     throw parsingException();
   }
 
-  // TODO: place the object name in a meaningful place
-
   while (!inStream.eof()) {
     while (parseParameter(parameterName, parameterValue, inStream)) {
       if (parameterName=="nDisks") {
 	nDisks=atoi(parameterValue.c_str());
+      } else if (parameterName=="innerEta") {
+	innerEta=atof(parameterValue.c_str());
       } else if (parameterName=="innerRadius") {
 	rhoIn=atof(parameterValue.c_str());
       } else if (parameterName=="outerRadius") {
@@ -294,6 +299,14 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
   }
 
   // Chose the proper endcap minimum Z according to the parsed parameters
+  if ((innerEta!=0)&&(rhoIn!=0)) {
+    cout << "Parsing endcap " << myName << endl
+	 << " I got both innerEta = " << innerEta << " and innerRadius = " << rhoIn << endl
+	 << "This is inconsistent: please choose one of the two methods to place the endcap" << endl;
+    throw parsingException();
+  }
+
+  // Chose the proper endcap minimum Z according to the parsed parameters
   if ((minZ!=0)&&(barrelToEndcap!=0)) {
     cout << "Parsing endcap " << myName << endl
 	 << " I got both minimumZ = " << minZ << " and barrelGap = " << barrelToEndcap << endl
@@ -307,7 +320,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 
   // Actually creating the endcap if all the mandatory parameters were set
   if ( (nDisks != 0) &&
-       (rhoIn != 0) &&
+       ((rhoIn != 0)||(innerEta!=0)) &&
        (rhoOut != 0) &&
        (minZ != 0) &&
        (maxZ != 0) &&
@@ -318,27 +331,121 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     // possible previous directives coming from a different endcap
     myTracker_->setRingDirectives(ringDirective);
 
-    myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
-			    minZ,  // minZ
-			    maxZ,
-			    rhoIn,
-			    rhoOut,
-			    sampleModule,
-			    diskParity, 
-			    Layer::NoSection);
+    if (rhoIn!=0) {
+      myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
+			       minZ,  // minZ
+			       maxZ,
+			       rhoIn,
+			       rhoOut,
+			       sampleModule,
+			       myName,
+			       diskParity, 
+			       Layer::NoSection);
+    } else {
+      myTracker_->buildEndcapsAtEta(nDisks,     // nDisks (per side)
+				    minZ,  // minZ
+				    maxZ,
+				    innerEta,
+				    rhoOut,
+				    sampleModule,
+				    myName,
+				    diskParity, 
+				    Layer::NoSection);
+    }
 
     delete sampleModule; // Dispose of the sample module
   } else {
     cout << "Missing mandatory parameter for endcap " << myName << endl;
     throw parsingException();
   }
+
+  return true;
 }
+
+bool configParser::breakParameterName(string& parameterName, int& parameterIndex) {
+  bool result = false;
+  string tempParamStr;
+  string tempParamInd;
+  string dummy;
+  istringstream parameterStream(parameterName);
+
+  getline(parameterStream, tempParamStr, '[');
+  getline(parameterStream, tempParamInd, ']');
+  getline(parameterStream, dummy);  
+
+  // We check that we found parameter[index] and nothing else
+  if ((tempParamStr!="")&&(tempParamInd!="")&&(dummy=="")&&(parameterStream.eof())) {
+    result=true;
+    parameterName=tempParamStr;
+    parameterIndex=atoi(tempParamInd.c_str());
+  }
+  
+  return result;
+}
+
+// The following two functions are temporary: by now we have no difference in syntax
+// between the barrel and the endcap
+bool configParser::parseBarrelType(string myName, istream& inStream) {
+  return parseAnyType(myName, inStream);
+}
+
+bool configParser::parseEndcapType(string myName, istream& inStream) {
+  return parseAnyType(myName, inStream);
+}
+
+// TODO: put the code into parseBarrelType and parseEndcapType when they will actually
+// contain different parameters
+bool configParser::parseAnyType(string myName, istream& inStream) {
+  string parameterName;
+  string parameterValue;
+  int index;
+
+  map<int, int> nStripsAcross;
+  map<int, int> nSides;
+  map<int, int> nSegments;
+  map<int, string> type;
+
+  // Tracker should be already there
+  if (!myTracker_) {
+    cout << "Error: tracker is NULL when trying to assign types to a barrel " << myName << endl;
+    return false;
+  }
+
+  // TODO: decide whether to use nStripAcross or nStripsAcross
+  while (!inStream.eof()) {
+    while (parseParameter(parameterName, parameterValue, inStream)) {
+      if (!breakParameterName(parameterName, index)) {
+	cerr << "Error: parameter name " << parameterName << " must have the following structure: "
+	     << "parameter[index] e.g. nModules[2]" << endl;
+	throw parsingException();
+      } else { 
+	if (parameterName=="nStripsAcross") {
+	  nStripsAcross[index]=atoi(parameterValue.c_str());
+	} else if (parameterName=="nStripAcross") {
+	  nStripsAcross[index]=atoi(parameterValue.c_str());
+	} else if (parameterName=="nSides") {
+	  nSides[index]=atoi(parameterValue.c_str());
+	} else if (parameterName=="nSegments") {
+	  nSegments[index]=atoi(parameterValue.c_str());
+	} else if (parameterName=="type") {
+	  type[index]=parameterValue.c_str();
+	}
+	cout << "\t" << parameterName << "[" << index << "] = " << parameterValue << ";" << endl; // debug
+      }
+    }
+  }
+
+
+  myTracker_->setModuleTypes(myName, nStripsAcross, nSides, nSegments, type);
+
+}
+
 
 
 // Takes the type and the name of the object, creates a strstream of
 // everything between '{' and '}' and passes it to the parser corresponding
 // to the declared Type. (parseTracker, parseBarrel, parseEndcap)
-bool configParser::parseType(string myType) {
+bool configParser::parseObjectType(string myType) {
   string str;
   string typeConfig;
   
@@ -383,19 +490,57 @@ bool configParser::parseType(string myType) {
   return true;
 }
 
+// Takes the type and the name of the object to be dressed, creates a strstream of
+// everything between '{' and '}' and passes it to the parser corresponding
+// to the declared Type. (parseBarrelType, parseEndcapType)
+bool configParser::parseDressType(string myType) {
+  string str;
+  string typeConfig;
+  
+  if (myType=="BarrelType") {
+    cout << "ASSIGNING MODULE TYPES TO BARREL:\t";
+    str=getTill(configFile_, '{', true);
+    if (str!="") { 
+      cout << str << endl;
+      typeConfig=getTill(configFile_, '}', false);
+      if (typeConfig!="") {
+	istringstream typeStream(typeConfig);
+	parseBarrelType(str, typeStream);
+      }
+    }
+  } else if (myType=="EndcapType") {
+    cout << "ASSIGNING MODULE TYPES TO ENDCAP:\t";
+    str=getTill(configFile_, '{', true);
+    if (str!="") { 
+      cout << str << endl;
+      typeConfig=getTill(configFile_, '}', false);
+      if (typeConfig!="") {
+	istringstream typeStream(typeConfig);
+	parseEndcapType(str, typeStream);
+      }
+    }
+  } else {
+    cerr << "Error: unknown module type assignment keyword: " << myType;
+    return false;
+  }
+
+  return true;
+}
+
 
 // Main config parser function. It opens the file, if possible
 // then it skims the comments away, creating the readable stringstream
-// and passes this to the type parser (parseType).
-// When this function is ofer a full tracker object should be there
+// and passes this to the type parser (parseObjectType).
+// When this function is over a full tracker object should be there
 // unless an exception was raised during the parsing (in which case
 // the user will be informed about details through the stderr)
-bool configParser::parseFile(string configFileName) {
+Tracker* configParser::parseFile(string configFileName) {
   string str;
+  Tracker* result = NULL;
 
   if (rawConfigFile_.is_open()) {
-    cerr << "config file is already open" << endl;
-    return false;
+    cerr << "Tracker config file is already open" << endl;
+    return result;
   }
 
   rawConfigFile_.open(configFileName.c_str());
@@ -421,18 +566,20 @@ bool configParser::parseFile(string configFileName) {
     
     try {
       while(configFile_ >> str) {
-	if (!parseType(str)) break;
+	if (!parseObjectType(str)) break;
       }
     } catch (exception& e) {
       cerr << e.what() << endl;
       rawConfigFile_.close();
-      return false;
+      if (myTracker_) delete myTracker_; myTracker_ = NULL;
+      return NULL;
     }
     
     rawConfigFile_.close();
   } else {
-    cerr << "Error: could not open config file " << configFileName << endl;
-    return false;
+    cerr << "Error: could not open tracker config file " << configFileName << endl;
+    if (myTracker_) delete myTracker_; myTracker_ = NULL;
+    return NULL;
   }
 
   // Eta cut and other post-operations
@@ -448,6 +595,63 @@ bool configParser::parseFile(string configFileName) {
 	    << "etaMin: " << minMaxEta.first << std::endl
 	    << "etaMax: " << minMaxEta.second << std::endl;
 
-  
-  return true;
+  result = myTracker_;
+  myTracker_ = NULL;
+  return result;
+}
+
+// "Dressing" config parser function. It opens the file, if possible
+// then it skims the comments away, creating the readable stringstream
+// and passes this to the dressing type parser (parseDressType).
+// This function takes a tracker pointer, works on it according to the 
+// config file by "dressing" it. Returns a boolean value depending whether there
+// were errors
+// The user will be informed about details through the stderr
+bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
+  string str;
+  myTracker_=aTracker;
+
+  if (rawConfigFile_.is_open()) {
+    cerr << "Module type config file is already open" << endl;
+    myTracker_=NULL; return false;
+  }
+
+  rawConfigFile_.open(configFileName.c_str());
+  if (rawConfigFile_.is_open()) {
+
+    // Reset the configFile_ object
+    configFile_.~stringstream();                      
+    new ( (void*) &configFile_) std::stringstream();
+
+    // Skim comments delimited by // or # and put the skimmed file into configFile_
+    string::size_type locComm1; // Location of commenting substring 1
+    string::size_type locComm2; // Location of commenting substring 2
+
+    while (getline(rawConfigFile_,str)) {
+      locComm1=str.find("//", 0);
+      locComm2=str.find("#", 0);
+      if ((locComm1==string::npos)&&(locComm2==string::npos)) {
+	configFile_ << str << endl;
+      } else {
+	configFile_ << str.substr(0, (locComm1<locComm2 ? locComm1 : locComm2)) << endl;
+      }
+    }
+    
+    try {
+      while(configFile_ >> str) {
+	if (!parseDressType(str)) break;
+      }
+    } catch (exception& e) {
+      cerr << e.what() << endl;
+      rawConfigFile_.close();
+      myTracker_=NULL; return false;
+    }
+    
+    rawConfigFile_.close();
+  } else {
+    cerr << "Error: could not open module type config file " << configFileName << endl;
+    myTracker_=NULL; return false;
+  }
+
+  myTracker_=NULL; return true;
 }

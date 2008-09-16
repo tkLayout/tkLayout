@@ -16,11 +16,16 @@
 
 #define RANDOM_SEED 0xcaffe
 
+#define DEFAULTBARRELNAME "defaultBarrel"
+#define DEFAULTENDCAPNAME "defaultEndcap"
+#define STARTCOLOR kBlack
+
 // TODO: add slanted gap between barrel and end-cap
 
 using namespace ROOT::Math;
 
 typedef std::vector<Layer*> LayerVector;
+typedef std::map<std::string, LayerVector> SectionMap;
 
 class Tracker {
 public:
@@ -30,6 +35,8 @@ protected:
   LayerVector barrelLayerSet_;
   LayerVector endcapLayerSet_;
   ModuleVector endcapSample_;
+  SectionMap sectionMap_;
+  
 
   std::map<int, double> mapTypeToCost_;
   std::map<int, double> mapTypeToPower_;  
@@ -56,6 +63,10 @@ private:
 
   void placeModule(Module* aModule);
   void placeModuleLite(Module* aModule);
+
+  // Color picking according to type
+  std::map<std::string, Color_t> colorPickMap_;
+  Color_t lastPickedColor_;
 
   int iModule_;
 
@@ -93,6 +104,9 @@ private:
   std::map<int, int> ringDirectives_;
   std::map<int,double> layerDirectives_;
 
+  // Color picking
+  Color_t colorPicker(std::string);
+
   // Geometry validation functions
   ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
   void resetTypeCounter(std::map <std::string, int> &modTypes);
@@ -116,16 +130,26 @@ public:
   ~Tracker();
   Tracker();
   Tracker(std::string trackerName);
-  void buildBarrel(int nLayer, double minRadius, double maxRadius,
-		   double maxZ, BarrelModule* sampleModule, int section = Layer::NoSection,
-		   bool compressed = false ) { std::cout << "DEPRECATED" << std::endl; } ;
 
+  // Standard barrel builder
+  void buildBarrel(int nLayer, double minRadius, double maxRadius,
+		   int nModules, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
+		   bool compressed = false );
+  // Barrel builder for backwards compatibility with the command-line version
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
-		   bool compressed = false );
+		   bool compressed = false ); 
 
+  // Standard endcap builder
+  void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
+		    Module* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+  // Gets the minimum radius from eta and minimum Z
+  void buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
+		    Module* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+  // Endcap builder for backwards compatibility with the command-line version
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
 		    Module* sampleModule, int diskParity, int sectioned = Layer::NoSection );
+
 
   // Access to parameters
   void setZError(const double& newError) { zError_ = newError; };
@@ -164,7 +188,7 @@ public:
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
 
-  void addLayer(Layer* aLayer, int type = TypeBarrel ) {
+  void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {
     layerSet_.push_back(aLayer);
     if (type==TypeBarrel) {
       barrelLayerSet_.push_back(aLayer);
@@ -172,6 +196,8 @@ public:
     if (type==TypeEndcap) {
       endcapLayerSet_.push_back(aLayer);
     }
+
+    sectionMap_[sectionName].push_back(aLayer);
   };
   
   // 3D geometry output preparation
@@ -189,17 +215,24 @@ public:
   void analyze(int nTracks = 1000, int section = Layer::NoSection);
   int cutOverEta(double etaCut);
   double getMaxBarrelZ(int direction);
-  void compressBarrelLayers();
+  //  void compressBarrelLayers();
 
   // Module adjustments
   void changeRingModules(std::string diskName, int ringN, std::string newtype, Color_t newColor);
   void setModuleTypesDemo1();
   void setModuleTypes();
+  void setModuleTypes(std::string sectionName,
+		      std::map<int, int> nStripsAcross,
+		      std::map<int, int> nFaces,
+		      std::map<int, int> nSegments,
+		      std::map<int, std::string> myType);
+
 
   // Data transmission
   void computeBandwidth();
 
 };
+
 
 #endif
 

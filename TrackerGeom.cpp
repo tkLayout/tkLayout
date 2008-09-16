@@ -278,8 +278,8 @@ int main (int argc, char* argv[]) {
 			 barrelRhoIn,
 			 barrelRhoOut,
 			 nBarrelModules,
-			 sampleBarrelModule, mySection); // Actually build
-  myTracker->compressBarrelLayers(); // Compress to a definite length
+			 sampleBarrelModule, mySection, true); // Actually build compressed layer
+
   delete sampleBarrelModule; // Dispose of the sample module
 
 

@@ -147,11 +147,13 @@ class Module {
   int getNChannelsPerFace() { return nChannelsPerFace_ ;};
   int getNPerFace()         { return nChannelsPerFace_ ;};
   int getNStripAcross()     { return nStripAcross_ ;};
+  int getNStripsAcross()     { return nStripAcross_ ;};
   int getNSegments()        { return nSegments_ ;};
   int getNFaces()           { return nFaces_ ;};
   int getReadoutType()      { return readoutType_ ;};
 
   void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
+  void setNStripsAcross(const int& newN) { setNStripAcross(newN); }
   void setNSegments(const int& newN) { nSegments_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
   void setNFaces(const int& newN) { nFaces_=newN; };
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
@@ -161,7 +163,7 @@ class Module {
 
   double getOccupancyPerEvent();
 
-  enum { Strip, Pixel, Pt };
+  enum { Strip, Pixel, Pt, Undefined };
 };
 
 

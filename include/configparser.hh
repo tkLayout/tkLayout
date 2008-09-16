@@ -7,34 +7,49 @@
 #include <exception>
 #include "tracker.hh"
 
+#define NMAXCHARS 100 // Max number of characters for parameterName[index]
 
 using namespace std;
 
 class configParser {
 public:
+  // Constructor and destructor
   configParser();
   ~configParser();
-  bool parseFile(string fileName);
-  Tracker* getTracker() { return myTracker_;};
+
+  // Parse the geometry config file and creates a Tracker object
+  Tracker* parseFile(string fileName);
+
+  // Parse the module type config file and "dresses" a Tracker object
+  bool dressTracker(Tracker* aTracker, string fileName);
 
 private:
+
+  // Temporary streams and objects
   ifstream rawConfigFile_;
   stringstream configFile_;
-  bool parseType(string myType);
+  Tracker* myTracker_;
 
+  // Generic parsing functions
   string getTill(istream &inStream, char delimiter, bool singleWord, bool allowNothing /* = false */);
+  bool parseParameter(string& name, string& value, istream &inStream);
   
+  // Parsing functions for the tracker building
   bool parseTracker(string myName, istream &inStream);
   bool parseBarrel(string myName, istream &inStream);
   bool parseEndcap(string myName, istream &inStream);
-  bool parseParameter(string& name, string& value, istream &inStream);
+  bool parseObjectType(string myType);
 
-  // Tracker objects
-  Tracker* myTracker_;
+  // Parsing functions for the tracker dressing
+  bool parseDressType(string myType);
+  bool breakParameterName(string& parameterName, int& parameterIndex);
+  bool parseBarrelType(string myName, istream &inStream);
+  bool parseEndcapType(string myName, istream &inStream);
+  bool parseAnyType(string myName, istream &inStream);
 
 };
 
-
+// Definition of the parsing exception
 class parsingException: public exception
 {
   virtual const char* what() const throw()

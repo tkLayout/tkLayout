@@ -55,6 +55,7 @@ void Tracker::setDefaultParameters() {
   arguments_= "";
   maxL_ = 0;
   maxR_ = 0;
+  lastPickedColor_ = STARTCOLOR;
 }
 
 void Tracker::shapeVolume() {
@@ -192,7 +193,6 @@ void Tracker::placeModuleLite(Module* aModule) {
 
 }
 
-// All the measures in mm as usual!
 void Tracker::buildBarrel(int nLayer,
 			  double minRadius,
 			  double maxRadius,
@@ -201,10 +201,22 @@ void Tracker::buildBarrel(int nLayer,
 			  int section /* = NoSection */, 
 			  bool compressed /* = false */) {
 
+  buildBarrel(nLayer, minRadius, maxRadius, nModules, sampleModule, DEFAULTBARRELNAME, section, compressed);
+
+}
+
+
+// All the measures in mm as usual!
+void Tracker::buildBarrel(int nLayer,
+			  double minRadius,
+			  double maxRadius,
+			  int nModules,
+			  BarrelModule* sampleModule, 
+			  std::string barrelName,
+			  int section /* = NoSection */, 
+			  bool compressed /* = false */) {
+
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
-  // maxL_=(maxZ>maxL_)?maxZ:maxL_;
-  // TODO: update this correctly (will not work for a barrel without an endcap)
-  // TODO: update this value when compacting the barrel section
   
   int push;
   std::map<int, double>::iterator aDirective;
@@ -272,7 +284,7 @@ void Tracker::buildBarrel(int nLayer,
 			      false,        // false = Strings with opposite parity
 			      sampleModule, section);
 
-    addLayer(aBarrelLayer, TypeBarrel);
+    addLayer(aBarrelLayer, barrelName, TypeBarrel);
     thisBarrelLayerSet.push_back(aBarrelLayer);
   }
 
@@ -280,11 +292,15 @@ void Tracker::buildBarrel(int nLayer,
     compressBarrelLayers(thisBarrelLayerSet);
   }
 
+  double maxZ=getMaxBarrelZ(+1);
+  maxL_=(maxZ>maxL_)?maxZ:maxL_;
+  // TODO: update this value if you want an independent compacting of the barrel section
+
 }
 
-void Tracker::compressBarrelLayers() {
-  compressBarrelLayers(barrelLayerSet_);
-}
+//void Tracker::compressBarrelLayers() {
+//  compressBarrelLayers(barrelLayerSet_);
+//}
 
 
 // Barrel "compactification"
@@ -326,7 +342,6 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
   // And compact everything to it
   for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
     if (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) {
-      // std::cerr << "It's a Barrel Layer: Compacting layer" << std::endl; // debug
       aBarrelLayer->compressToZ(minZt);
     } else {
       std::cerr << "ERROR: trying to compact a non-barrel layer" ;
@@ -340,8 +355,9 @@ double Tracker::getMaxBarrelZ(int direction) {
   LayerVector::iterator layIt;
   BarrelLayer* aBarrelLayer;
 
-  if (direction!=0) {
-    std::cerr << "Tracker::getMaxBarrelZ was called with zero direction" << std::endl;
+  if (direction==0) {
+    std::cerr << "Tracker::getMaxBarrelZ was called with zero direction. Assuming +1" << std::endl;
+    direction=+1;
   }
   direction/=abs(direction);
 
@@ -361,10 +377,28 @@ double Tracker::getMaxBarrelZ(int direction) {
 
   return maxZ;
 }
-    
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
 			   Module* genericSampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
+  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, genericSampleModule, DEFAULTENDCAPNAME, diskParity,  sectioned);
+}    
+
+void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
+				Module* genericSampleModule, std::string endcapName, int diskParity,
+				int sectioned /* = Layer::NoSection */ ) {
+  
+  double minTheta = 2*atan(exp(-1*maxEta));
+  double minRadius = minZ * tan(minTheta);
+
+  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
+	       genericSampleModule, endcapName, diskParity, sectioned );
+
+}
+
+
+void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
+			   Module* genericSampleModule, std::string endcapName, int diskParity,
+			   int sectioned /* = Layer::NoSection */ ) {
   
   EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
 
@@ -412,10 +446,10 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
     anotherDisk = new EndcapLayer(*defaultDisk);
     anotherDisk->setName(layerName.str());
     anotherDisk->translateZ(deltaZ);
-    addLayer(anotherDisk, TypeEndcap);
+    addLayer(anotherDisk, endcapName, TypeEndcap);
     anotherDisk = new EndcapLayer(*anotherDisk);
     anotherDisk->rotateY_PI();
-    addLayer(anotherDisk, TypeEndcap);
+    addLayer(anotherDisk, endcapName, TypeEndcap);
   }
   
   for (ModuleVector::iterator modIt = defaultDisk->getModuleVector()->begin();
@@ -682,24 +716,20 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
   total->SetTitle("Number of hit modules");
   if (total->GetMaximum()<9) total->SetMaximum(9.);
   total->Draw();
-  plotCount=1;
   std::string profileName;
   for (std::map <std::string, TH2D*>::iterator it = etaType.begin();
        it!=etaType.end(); it++) {
+    plotCount++;
     myProf=(*it).second->ProfileX();
     savingV_.push_back(myProf);
     std::cout << plotCount << ": " << myProf->GetMaximum() << std::endl;
     myProf->SetMarkerStyle(8);
-    myProf->SetMarkerColor(++plotCount);
+    myProf->SetMarkerColor(colorPicker((*it).first)); 
     myProf->SetMarkerSize(1);
     myProf->SetName((*it).first.c_str());
     profileName = "etaProfile-"+(*it).first;
     myProf->SetTitle((*it).first.c_str());
-    if (plotCount==1) {
-      myProf->Draw();
-    } else {
-      myProf->Draw("same");
-    }
+    myProf->Draw("same");
   }
 
   // Record the fraction of hits per module
@@ -1491,7 +1521,7 @@ void Tracker::setModuleTypesDemo1() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (aBarrelModule=static_cast<BarrelModule*>(aModule)) {
+      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
 	aBarrelModule->setColor(aBarrelModule->getLayer());
       } else {
 	// This shouldnt happen
@@ -1505,7 +1535,7 @@ void Tracker::setModuleTypesDemo1() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+      if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
 	anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
       } else {
 	// This shouldnt happen
@@ -1517,7 +1547,7 @@ void Tracker::setModuleTypesDemo1() {
 
   for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
     aModule=(*modIt);
-    if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+    if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
       anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
     } else {
       // This shouldnt happen
@@ -1529,7 +1559,7 @@ void Tracker::setModuleTypesDemo1() {
 
 
 // The real method used here
-// You must set:
+// Paramter set here (example)
 //       sampleModule->setNStripAcross(512);
 //       sampleModule->setNSegments(1);
 //       sampleModule->setNFaces(2);
@@ -1556,7 +1586,7 @@ void Tracker::setModuleTypes() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (aBarrelModule=static_cast<BarrelModule*>(aModule)) {
+      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
 
 	nFaces = 1;
 	readoutType = Module::Strip;
@@ -1630,7 +1660,7 @@ void Tracker::setModuleTypes() {
 
   for (modIt=allEndcapModules.begin(); modIt!=allEndcapModules.end(); modIt++) {
     aModule=(*modIt);
-    if (anEndcapModule=static_cast<EndcapModule*>(aModule)) {
+    if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
       
       nFaces = 1;
       switch (anEndcapModule->getRing()) {
@@ -1683,6 +1713,123 @@ void Tracker::setModuleTypes() {
 		<< "I found a !EndcapModule in the end-caps" << std::endl;
     }
   }
+}
+
+Color_t Tracker::colorPicker(std::string type) {
+  //  std::cerr << "PICKING a color for type " << type << ": " << std::endl; // debug
+  if (colorPickMap_[type]==0) {
+    //std::cerr << "New type! I'll pick a new color: "; // debug
+    colorPickMap_[type]=++lastPickedColor_;
+  }
+  //  std::cerr << colorPickMap_[type] << std::endl; //debug
+  
+  return colorPickMap_[type];
+}
+
+// Method used to assign the module types via config file
+// Paramter set here (example)
+//   sampleModule->setNStripAcross(512);
+//   sampleModule->setNFaces(2);
+//   sampleModule->setNSegments(1);
+//   sampleModule->setType("stereo");
+//   sampleModule->setTag("TIBL2"); 
+//   sampleModule->setColor(kBlue);
+//   sampleModule->setReadoutType(Module::Pt);
+
+void Tracker::setModuleTypes(std::string sectionName,
+			     std::map<int, int> nStripsAcross,
+			     std::map<int, int> nFaces,
+			     std::map<int, int> nSegments,
+			     std::map<int, std::string> myType) {
+
+  LayerVector::iterator layIt;
+  ModuleVector::iterator modIt;
+  ModuleVector* aLay;
+  Module* aModule;
+  BarrelModule* aBarrelModule;
+  EndcapModule* anEndcapModule;
+
+  std::map<int, bool> warningStrips;
+  std::map<int, bool> warningFaces;
+  std::map<int, bool> warningSegments;
+  std::map<int, bool> warningType;
+
+  std::ostringstream myTag; // This must be set according to the sectionName and index
+  int myReadoutType; // (this must be set according to the delcared "type" )
+  int myIndex; // This must be set according to the module layer (barrel) or disk (endcap)
+
+  // Take the vector of layers in the section
+  LayerVector myLayers = sectionMap_[sectionName];
+
+  for (layIt=myLayers.begin(); layIt!=myLayers.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      aModule=(*modIt);
+
+      // Tag definition and index picking definition
+      myTag.str("");
+      myTag << sectionName << std::dec ;
+      myIndex = -1;
+      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
+	myTag << "L" << aBarrelModule->getLayer();
+	myIndex = aBarrelModule->getLayer();
+      } else if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+	myTag << "R" << anEndcapModule->getRing();
+	myIndex = anEndcapModule->getRing();
+      } else {
+	// This shouldnt happen
+	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
+		  << "I found a module which is not Barrel nor Endcap module. What's this?!?" << std::endl;
+      }
+
+      // Readout type definition, according to the module type
+      if (myType[myIndex] == "pt") {
+	myReadoutType = Module::Pt;
+      } else if (myType[myIndex] == "rphi") {
+	myReadoutType = Module::Strip;
+      } else if (myType[myIndex] == "stereo") {
+	myReadoutType = Module::Strip;
+      } else if (myType[myIndex] == "pixel") {
+	myReadoutType = Module::Pixel;
+      } else {
+	myReadoutType = Module::Undefined;
+      }
+
+      aModule->setNStripAcross(nStripsAcross[myIndex]);
+      aModule->setNFaces(nFaces[myIndex]);
+      aModule->setNSegments(nSegments[myIndex]);
+      aModule->setType(myType[myIndex]);
+      aModule->setTag(myTag.str());
+      aModule->setColor(colorPicker(myType[myIndex]));
+      aModule->setReadoutType(myReadoutType);
+
+
+      // TODO: decide whether to use nStripAcross or nStripsAcross
+      // Check if a given module type was not assigned
+      if ((nStripsAcross[myIndex]==0)&&(!warningStrips[myIndex])) {
+	std::cerr << "WARNING: undefined or zero nStripsAcross: \"" << nStripsAcross[myIndex] << "\" "
+		  << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+	warningStrips[myIndex]=true;
+      }
+      if ((nFaces[myIndex]==0)&&(!warningFaces[myIndex])) {
+	std::cerr << "WARNING: undefined or zero nFaces: \"" << nFaces[myIndex] << "\" "
+		  << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+	warningFaces[myIndex]=true;
+      }
+      if ((nSegments[myIndex]==0)&&(!warningSegments[myIndex])) {
+	std::cerr << "WARNING: undefined or zero nSegments: \"" << nSegments[myIndex] << "\" "
+		  << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+	warningSegments[myIndex]=true;
+      }
+      if ((myReadoutType==Module::Undefined)&&(!warningType[myIndex])) {
+	std::cerr << "WARNING: undefined or void module type: \"" << myType[myIndex] << "\" "
+		  << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+	warningType[myIndex]=true;
+      }
+
+    }
+  }
+  
 }
 
 
@@ -1795,12 +1942,12 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
     summaryCanvas->cd();
     pngFileName = fileName+"_nhitplot.png";
     etaProfileCanvas_->DrawClonePad();
-//     TFrame* myFrame = summaryCanvas->GetFrame();
-//     if (myFrame) {
-//       myFrame->SetFillColor(kYellow-10);
-//     } else {
-//       std::cerr << "myFrame is NULL" << std::endl;
-//     }
+    //     TFrame* myFrame = summaryCanvas->GetFrame();
+    //     if (myFrame) {
+    //       myFrame->SetFillColor(kYellow-10);
+    //     } else {
+    //       std::cerr << "myFrame is NULL" << std::endl;
+    //     }
     summaryCanvas->SetFillColor(kGray);
     summaryCanvas->SetBorderMode(0);
     summaryCanvas->SetBorderSize(0);
@@ -1861,9 +2008,9 @@ void Tracker::computeBandwidth() {
 
 
   chanHitDist_     = new TH1F("NHitChannels",
-			    "Number of hit channels;Hit Channels;Modules", 200, 0., 400);
+			      "Number of hit channels;Hit Channels;Modules", 200, 0., 400);
   bandWidthDist_   = new TH1F("BandWidthDist",
-			    "Module Needed Bandwidth;Bandwidth (bps);Modules", 200, 0., 6E+8);
+			      "Module Needed Bandwidth;Bandwidth (bps);Modules", 200, 0., 6E+8);
   bandWidthDistSp_ = new TH1F("BandWidthDistSp",
 			      "Module Needed Bandwidth (sparsified);Bandwidth (bps);Modules", 100, 0., 6E+8);
   bandWidthDistSp_->SetLineColor(kRed);
