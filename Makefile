@@ -10,7 +10,7 @@ LIBDIR=lib
 
 COMP=g++ $(INCLUDEFLAGS)
 
-all: TrackerGeom testObj testConfig
+all: TrackerGeom TrackerGeom2 testObj testConfig
 
 $(LIBDIR)/configparser.o:	src/configparser.cpp include/configparser.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/configparser.o src/configparser.cpp
@@ -27,12 +27,14 @@ $(LIBDIR)/tracker.o: src/tracker.cpp include/tracker.hh
 TrackerGeom: TrackerGeom.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o TrackerGeom.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o TrackerGeom
 
+TrackerGeom2: TrackerGeom2.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o TrackerGeom2.cpp $(BOOSTLIBFLAGS) $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o TrackerGeom2
+
 testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
 testConfig: testConfig.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o testConfig.cpp $(BOOSTLIBFLAGS) $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testConfig
 
-
 clean:
-	rm -f include/*~ *~ $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o TrackerGeom tkGeometry.root testConfig testObj cmsTest
+	rm -f include/*~ *~ $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o TrackerGeom TrackerGeom2 tkGeometry.root testConfig testObj cmsTest

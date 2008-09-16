@@ -362,12 +362,14 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
   return true;
 }
 
-bool configParser::breakParameterName(string& parameterName, int& parameterIndex) {
+bool configParser::breakParameterName(string& parameterName, int& ringIndex, int& diskIndex) {
   bool result = false;
   string tempParamStr;
   string tempParamInd;
   string dummy;
+  int nIndexes;
   istringstream parameterStream(parameterName);
+  diskIndex=0;
 
   getline(parameterStream, tempParamStr, '[');
   getline(parameterStream, tempParamInd, ']');
@@ -375,9 +377,14 @@ bool configParser::breakParameterName(string& parameterName, int& parameterIndex
 
   // We check that we found parameter[index] and nothing else
   if ((tempParamStr!="")&&(tempParamInd!="")&&(dummy=="")&&(parameterStream.eof())) {
-    result=true;
+    nIndexes=sscanf(tempParamInd.c_str(), "%d,%d", &ringIndex, &diskIndex);
+    if (nIndexes==2) {
+      result=true;
+    } else if (nIndexes==1) {
+      result=true;
+      diskIndex=0;
+    }
     parameterName=tempParamStr;
-    parameterIndex=atoi(tempParamInd.c_str());
   }
   
   return result;
@@ -398,12 +405,21 @@ bool configParser::parseEndcapType(string myName, istream& inStream) {
 bool configParser::parseAnyType(string myName, istream& inStream) {
   string parameterName;
   string parameterValue;
-  int index;
+  int mainIndex; // Used for the ring and layer
+  int secondaryIndex; // Used for the disk
 
   map<int, int> nStripsAcross;
   map<int, int> nSides;
   map<int, int> nSegments;
   map<int, string> type;
+
+  pair<int, int> specialIndex; // used to indicate ring,disk
+
+  map<pair<int, int>, int> nStripsAcrossSecond;
+  map<pair<int, int>, int> nSidesSecond;
+  map<pair<int, int>, int> nSegmentsSecond;
+  map<pair<int, int>, string> typeSecond;
+  map<pair<int, int>, bool> specialSecond;
 
   // Tracker should be already there
   if (!myTracker_) {
@@ -414,29 +430,71 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   // TODO: decide whether to use nStripAcross or nStripsAcross
   while (!inStream.eof()) {
     while (parseParameter(parameterName, parameterValue, inStream)) {
-      if (!breakParameterName(parameterName, index)) {
+      if (!breakParameterName(parameterName, mainIndex, secondaryIndex)) {
 	cerr << "Error: parameter name " << parameterName << " must have the following structure: "
-	     << "parameter[index] e.g. nModules[2]" << endl;
+	     << "parameter[ring] or parameter[layer] or parameter[ring,disk] e.g. nModules[2]" << endl;
 	throw parsingException();
       } else { 
-	if (parameterName=="nStripsAcross") {
-	  nStripsAcross[index]=atoi(parameterValue.c_str());
-	} else if (parameterName=="nStripAcross") {
-	  nStripsAcross[index]=atoi(parameterValue.c_str());
-	} else if (parameterName=="nSides") {
-	  nSides[index]=atoi(parameterValue.c_str());
-	} else if (parameterName=="nSegments") {
-	  nSegments[index]=atoi(parameterValue.c_str());
-	} else if (parameterName=="type") {
-	  type[index]=parameterValue.c_str();
+	if (secondaryIndex==0) { // Standard assignment per ring or per layer
+	  if (parameterName=="nStripsAcross") {
+	    nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
+	  } else if (parameterName=="nStripAcross") {
+	    nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
+	  } else if (parameterName=="nSides") {
+	    nSides[mainIndex]=atoi(parameterValue.c_str());
+	  } else if (parameterName=="nSegments") {
+	    nSegments[mainIndex]=atoi(parameterValue.c_str());
+	  } else if (parameterName=="type") {
+	    type[mainIndex]=parameterValue.c_str();
+	  }
+	  cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
+	} else { // Special assignment per disk/ring
+	  specialIndex.first = mainIndex;
+	  specialIndex.second = secondaryIndex;
+	  bool isSpecial = false;
+	  if (parameterName=="nStripsAcross") {
+	    if (nStripsAcrossSecond[specialIndex]!=nStripsAcross[mainIndex]) {
+	      nStripsAcrossSecond[specialIndex]=atoi(parameterValue.c_str());
+	      // It is "special" only if it differs from the default values
+	      specialSecond[specialIndex]=true;
+	      isSpecial = true;
+	    }
+	  } else if (parameterName=="nSides") {
+	    if (nSidesSecond[specialIndex]!=nSides[mainIndex]) {
+	      nSidesSecond[specialIndex]=atoi(parameterValue.c_str());
+	      specialSecond[specialIndex]=true;
+	      isSpecial = true;
+	    }
+	  } else if (parameterName=="nSegments") {
+	    if (nSegmentsSecond[specialIndex]!=nSegments[mainIndex]) {
+	      nSegmentsSecond[specialIndex]=atoi(parameterValue.c_str());
+	      specialSecond[specialIndex]=true;
+	      isSpecial = true;
+	    }
+	  } else if (parameterName=="type") {
+	    if (typeSecond[specialIndex]!=type[mainIndex]) {
+	      typeSecond[specialIndex]=parameterValue.c_str();
+	      specialSecond[specialIndex]=true;
+	      isSpecial = true;
+	    }
+	  }
+	  if (!isSpecial) {
+	    cerr << "WARNING: the special parameter " 
+		 << parameterName << "[" << mainIndex << "," << secondaryIndex << "] is setting the same "
+		 << "values as the default parameter "
+		 << parameterName << "[" << mainIndex << "]. Ignoring it." << endl;
+	  } else {
+	    cout << "\t" << parameterName << "[" << mainIndex << ","<<secondaryIndex<<"] = " << parameterValue << ";" << endl; // debug
+	  }
 	}
-	cout << "\t" << parameterName << "[" << index << "] = " << parameterValue << ";" << endl; // debug
       }
     }
   }
 
 
-  myTracker_->setModuleTypes(myName, nStripsAcross, nSides, nSegments, type);
+  myTracker_->setModuleTypes(myName,
+			     nStripsAcross, nSides, nSegments, type,
+			     nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond, specialSecond);
 
 }
 

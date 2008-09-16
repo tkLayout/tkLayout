@@ -100,6 +100,7 @@ private:
   std::string summaryDirectory_;
   std::string storeDirectory_;
   std::string trackerName_;
+  std::string activeDirectory_;
 
   std::map<int, int> ringDirectives_;
   std::map<int,double> layerDirectives_;
@@ -183,6 +184,7 @@ public:
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };
   std::string getSummaryDirectory() { return summaryDirectory_; };
+  std::string getActiveDirectory() { return activeDirectory_; };
   std::string getTrackerName() { return trackerName_; }; // deprecated (TODO: remove it)
   std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
@@ -204,6 +206,7 @@ public:
   void createGeometry(bool lite = false);
 
   // Summary output
+  void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html");
   void writeSummary(std::string fileType = "html");
   void createPackageLayout(std::string dirName);
 
@@ -225,7 +228,12 @@ public:
 		      std::map<int, int> nStripsAcross,
 		      std::map<int, int> nFaces,
 		      std::map<int, int> nSegments,
-		      std::map<int, std::string> myType);
+		      std::map<int, std::string> myType, 
+		      std::map<std::pair<int, int>, int> nStripsAcrossSecond,
+		      std::map<std::pair<int, int>, int> nFacesSecond,
+		      std::map<std::pair<int, int>, int> nSegmentsSecond,
+		      std::map<std::pair<int, int>, std::string> myTypeSecond,
+		      std::map<std::pair<int, int>, bool> specialSecond);
 
 
   // Data transmission

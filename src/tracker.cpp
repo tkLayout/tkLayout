@@ -745,7 +745,14 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
 }
 
 void Tracker::writeSummary(std::string fileType /* = "html" */) {
+  std::string nullString("");
+  writeSummary(false, nullString, nullString, fileType);
+}
 
+void Tracker::writeSummary(bool configFiles,
+			   std::string configFile,
+			   std::string dressFile, std::string fileType /*= "html"*/) {
+  
   // Just to start with
   createDirectories();
 
@@ -1128,7 +1135,14 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
     myfile << "<html><title>"<<trackerName_<<"</title><body>" << std::endl;
     myfile << "<a href=\"../\">Summaries</a>" << std::endl;
     myfile << "<h1><a href=\"../../"<< storeDirectory_ << "/" << trackerName_ << ".root\">"<<trackerName_<<"</a></h1>" << std::endl;
-    myfile << clearStart << emphStart << "Options: " << emphEnd << getArguments() << clearEnd << std::endl;
+    if (configFiles) {
+      myfile << clearStart << emphStart << "Geometry configuration file:" << emphEnd
+	     << " <a href=\".//" << configFile << "\">" << configFile << "</a>" << clearEnd << "<br/>" << std::endl;
+      myfile << clearStart << emphStart << "Module types configuration file:" << emphEnd
+	     << " <a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << std::endl;
+    } else {
+      myfile << clearStart << emphStart << "Options: " << emphEnd << getArguments() << clearEnd << std::endl;
+    }
     myfile << "<h3>Layers and disks</h3>" << std::endl;
     myfile << "<table>" << std::endl;
     printHtmlTableRow(&myfile, layerNames);
@@ -1225,6 +1239,7 @@ void Tracker::createDirectories() {
   dirName = summaryDirectory_;
   mkdir (dirName.c_str(), 0755);
   dirName = summaryDirectory_ + "/" + trackerName_;
+  activeDirectory_=dirName;
   mkdir (dirName.c_str(), 0755);
   dirName = storeDirectory_;
   mkdir (dirName.c_str(), 0755);
@@ -1740,7 +1755,12 @@ void Tracker::setModuleTypes(std::string sectionName,
 			     std::map<int, int> nStripsAcross,
 			     std::map<int, int> nFaces,
 			     std::map<int, int> nSegments,
-			     std::map<int, std::string> myType) {
+			     std::map<int, std::string> myType, 
+			     std::map<std::pair<int, int>, int> nStripsAcrossSecond,
+			     std::map<std::pair<int, int>, int> nFacesSecond,
+			     std::map<std::pair<int, int>, int> nSegmentsSecond,
+			     std::map<std::pair<int, int>, std::string> myTypeSecond, 
+			     std::map<std::pair<int, int>, bool> specialSecond) {
 
   LayerVector::iterator layIt;
   ModuleVector::iterator modIt;
@@ -1753,6 +1773,13 @@ void Tracker::setModuleTypes(std::string sectionName,
   std::map<int, bool> warningFaces;
   std::map<int, bool> warningSegments;
   std::map<int, bool> warningType;
+
+  int aStripsAcross;
+  int aFaces;
+  int aSegments;
+  std::string aType;
+
+  std::pair<int, int> mySpecialIndex;
 
   std::ostringstream myTag; // This must be set according to the sectionName and index
   int myReadoutType; // (this must be set according to the delcared "type" )
@@ -1773,17 +1800,47 @@ void Tracker::setModuleTypes(std::string sectionName,
       if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
 	myTag << "L" << aBarrelModule->getLayer();
 	myIndex = aBarrelModule->getLayer();
+	mySpecialIndex.first= myIndex;
+	mySpecialIndex.second = -1;
       } else if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
 	myTag << "R" << anEndcapModule->getRing();
 	myIndex = anEndcapModule->getRing();
+	// If special rules are applied here, we add the disk id to the tag
+	mySpecialIndex.first = myIndex;
+	mySpecialIndex.second = anEndcapModule->getDisk();
+	if (specialSecond[mySpecialIndex]) {
+	  myTag << "D" << anEndcapModule->getDisk();
+	}
       } else {
 	// This shouldnt happen
 	std::cerr << "ERROR! in function Tracker::setModuleTypes() "
 		  << "I found a module which is not Barrel nor Endcap module. What's this?!?" << std::endl;
+	mySpecialIndex.first= -1;
+	mySpecialIndex.second = -1;
+      }
+
+      aStripsAcross = nStripsAcross[myIndex];
+      aFaces = nFaces[myIndex];
+      aSegments = nSegments[myIndex];
+      aType = myType[myIndex];
+
+      if (specialSecond[mySpecialIndex]) {
+	if (nStripsAcrossSecond[mySpecialIndex]!=0) {
+	  aStripsAcross = nStripsAcrossSecond[mySpecialIndex];
+	}
+	if (nFacesSecond[mySpecialIndex]!=0) {
+	  aFaces = nFacesSecond[mySpecialIndex];
+	}
+	if (nSegmentsSecond[mySpecialIndex]!=0) {
+	  aSegments = nSegmentsSecond[mySpecialIndex];
+	}
+	if (myTypeSecond[mySpecialIndex]!="") {
+	  aType = myTypeSecond[mySpecialIndex];
+	}
       }
 
       // Readout type definition, according to the module type
-      if (myType[myIndex] == "pt") {
+      if (aType == "pt") {
 	myReadoutType = Module::Pt;
       } else if (myType[myIndex] == "rphi") {
 	myReadoutType = Module::Strip;
@@ -1794,18 +1851,20 @@ void Tracker::setModuleTypes(std::string sectionName,
       } else {
 	myReadoutType = Module::Undefined;
       }
-
-      aModule->setNStripAcross(nStripsAcross[myIndex]);
-      aModule->setNFaces(nFaces[myIndex]);
-      aModule->setNSegments(nSegments[myIndex]);
-      aModule->setType(myType[myIndex]);
+      
+      aModule->setNStripAcross(aStripsAcross);
+      aModule->setNFaces(aFaces);
+      aModule->setNSegments(aSegments);
+      aModule->setType(aType);
       aModule->setTag(myTag.str());
-      aModule->setColor(colorPicker(myType[myIndex]));
+      aModule->setColor(colorPicker(aType));
       aModule->setReadoutType(myReadoutType);
-
-
-      // TODO: decide whether to use nStripAcross or nStripsAcross
-      // Check if a given module type was not assigned
+      
+      
+      // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
+      
+      // Check if a given module type was not assigned fr a group
+      // We do not check the case for special assignment (optional)
       if ((nStripsAcross[myIndex]==0)&&(!warningStrips[myIndex])) {
 	std::cerr << "WARNING: undefined or zero nStripsAcross: \"" << nStripsAcross[myIndex] << "\" "
 		  << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
