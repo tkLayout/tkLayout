@@ -601,6 +601,9 @@ Tracker* configParser::parseFile(string configFileName) {
     return result;
   }
 
+  rawConfigFile_.~ifstream();
+  new ( (void*) &rawConfigFile_) std::ifstream();
+
   rawConfigFile_.open(configFileName.c_str());
   if (rawConfigFile_.is_open()) {
 
@@ -673,6 +676,9 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
     cerr << "Module type config file is already open" << endl;
     myTracker_=NULL; return false;
   }
+
+  rawConfigFile_.~ifstream();
+  new ( (void*) &rawConfigFile_) std::ifstream();
 
   rawConfigFile_.open(configFileName.c_str());
   if (rawConfigFile_.is_open()) {
