@@ -1019,7 +1019,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
   int nRing;
   int addModules;
 
-  double lastRho;
+  double lastRho = 0;
   double nextRho = minRadius;
   double destZ;
   XYZVector shiftThis;
