@@ -134,24 +134,19 @@ void MainDialog::init()
 
 	/// Set the location of the initial configuration file
 	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cConfigFileName);
-	if (workingFile.exists()) {
-	    geomrow.configFile = workingFile.name();
-	}
+	if (workingFile.exists()) geomrow.configFile = workingFile.name();
 	else continue;
 
 	/// Read the cusomisable parameters from the config file
 	paramaggreg paramrow;
-	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultSettings);
 	try {
-	    if (workingFile.exists()) {
-		fh->readParametersFromFile(workingFile, paramrow);
-		QFileInfo fi1(geomrow.configFile);
-		QFileInfo fi2(workingFile);
-		if (fi1.size() == fi2.size()) {
-		    fh->writeParametersToFile(workingFile, paramrow, summaryExtension + outDirExtension);
-		}
-	    }
+	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultConfig);
+	    if (workingFile.exists()) fh->readConfigurationFromFile(workingFile, paramrow);
 	    else continue;
+	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cSettingsBackup);
+	    if (!workingFile.exists()) fh->writeSettingsToFile(workingFile, paramrow, "");
+	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultSettings);
+	    if (workingFile.exists()) fh->dressGeometry(workingFile, paramrow);
 	}
 	catch (std::runtime_error re) {
 	    std::cout << re.what() << std::endl;
@@ -180,6 +175,7 @@ void MainDialog::destroy()
     if (settingsPopup) delete settingsPopup;
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
     fh->removeTmpConfigFile(tmpConfig.name());
+    fh->removeTmpConfigFile(tmpSettings.name());
     delete fh;
 }
 
@@ -190,9 +186,12 @@ void MainDialog::destroy()
  */
 void MainDialog::settingsToGeometry()
 {
+    barrelSelection->clear();
+    endcapSelection->clear();
     layerSelection->clear();
     ringSelection->clear();
     fh->removeTmpConfigFile(tmpConfig.name());
+    fh->removeTmpConfigFile(tmpSettings.name());
     backOnePage();
 }
 
@@ -206,6 +205,7 @@ void MainDialog::resultsToSettings()
 {
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
     fh->removeTmpConfigFile(tmpConfig.name());
+    fh->removeTmpConfigFile(tmpSettings.name());
     backOnePage();
 }
 
@@ -227,9 +227,10 @@ void MainDialog::nextPage()
     statusBar->clear();
     try {
 	tmpConfig.setName(basePath + "/" + cTempConfig);
+	tmpSettings.setName(basePath + "/" + cTempSettings);
 	QString configpath = basePath + resExtension + "/" + geometryPicker->selected()->text();
 	configpath = configpath + settingsExtension + "/";
-	QFile config(configpath + cDefaultSettings);
+	QFile config(configpath + cDefaultConfig);
 	fh->copyTextFile(config, tmpConfig);
 	for (uint i = 0; i < parameterTable.at(geometryPicker->selectedId()).barrelnames.size(); i++) {
 	    barrelSelection->insertItem(parameterTable.at(geometryPicker->selectedId()).barrelnames.at(i), i);
@@ -261,9 +262,12 @@ void MainDialog::nextPage()
 void MainDialog::backToStart()
 {
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    barrelSelection->clear();
+    endcapSelection->clear();
     layerSelection->clear();
     ringSelection->clear();
     fh->removeTmpConfigFile(tmpConfig.name());
+    fh->removeTmpConfigFile(tmpSettings.name());
     clearParameters();
     mainWidgetStack->raiseWidget(0);
 }
@@ -273,9 +277,10 @@ void MainDialog::go()
 {
     if (validateInput()) {
 	QString command = basePath + cCommand + " ";
-	fh->writeParametersToFile(tmpConfig, parameterTable.at(geometryPicker->selectedId()),
+	fh->configureTracker(tmpConfig, parameterTable.at(geometryPicker->selectedId()));
+	fh->writeSettingsToFile(tmpSettings, parameterTable.at(geometryPicker->selectedId()),
 				  summaryExtension + outDirExtension);
-	cmdLineStub = tmpConfig.name();
+	cmdLineStub = tmpConfig.name() + " " + tmpSettings.name();
 	command += cmdLineStub;
 	try  {
 	    int simulstatus;	
@@ -372,20 +377,29 @@ void MainDialog::loadSettingsDialog()
 {
     QString settingsPath;
     settingsPath = buildSettingsPath(settingsPath);
-    QString fromFile = QFileDialog::getOpenFileName(settingsPath, QString::null, this, "load settings",
-						    QString("Load Settings from File"));
-    if (!fromFile.isEmpty()) {
-	try {
-	    QFile workingFile(fromFile);
-	    fh->readParametersFromFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
+    QString fromConfigFile = QFileDialog::getOpenFileName(settingsPath, QString::null, this, "load geometry file",
+							  QString("Load Geometry from File"));
+    if (!fromConfigFile.isEmpty()) {
+	QString fromSettingsFile = QFileDialog::getOpenFileName(settingsPath, QString::null, this, "load settings file",
+								QString("Load Module Settings from File"));
+	if (!fromSettingsFile.isEmpty()) {
+	    try {
+		QFile workingFile(fromConfigFile);
+		fh->readConfigurationFromFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
+		workingFile.setName(fromSettingsFile);
+		fh->dressGeometry(workingFile, parameterTable.at(geometryPicker->selectedId()));
+	    }
+	    catch (std::runtime_error re) {
+		statusBar->setText(re.what());
+	    }
+	    catch (std::out_of_range oor) {
+		QString statustext(msgErrParamTableAccess);
+		statustext += oor.what();
+		statusBar->setText(statustext);
+	    }
 	}
-	catch (std::runtime_error re) {
-	    statusBar->setText(re.what());
-	}
-	catch (std::out_of_range oor) {
-	    QString statustext(msgErrParamTableAccess);
-	    statustext += oor.what();
-	    statusBar->setText(statustext);
+	else {
+	    
 	}
     }
 }
@@ -399,22 +413,27 @@ void MainDialog::saveSettingsDialog()
     if (validateInput()) {
 	QString settingsPath;
 	settingsPath = buildSettingsPath(settingsPath);
-	QString toFile = QFileDialog::getSaveFileName(settingsPath, QString::null, this, "save settings",
-						      QString("Save Settings to File"));
-	if (!toFile.isEmpty()) {
-	    try {
-		QFile workingFile(toFile);
-		fh->writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()),
-					  summaryExtension + outDirExtension);
-		statusBar->setText(msgParamsWritten);
-	    }
-	    catch (std::runtime_error re) {
-		statusBar->setText(re.what());
-	    }
-	    catch (std::out_of_range oor) {
-		QString statustext(msgErrParamTableAccess);
-		statustext += oor.what();
-		statusBar->setText(statustext);
+	QString toConfigFile = QFileDialog::getSaveFileName(settingsPath, QString::null, this, "save geometry settings",
+							    QString("Save Geometry Settings to File"));
+	if (!toConfigFile.isEmpty()) {
+	    QString toSettingsFile = QFileDialog::getSaveFileName(settingsPath, QString::null, this, "save module dressings",
+								  QString("Save Module Options to File"));
+	    if (!toSettingsFile.isEmpty()) {
+		try {
+		    QFile workingFile(toConfigFile);
+		    fh->configureTracker(workingFile, parameterTable.at(geometryPicker->selectedId()));
+		    workingFile.setName(toSettingsFile);
+		    fh->writeSettingsToFile(workingFile, parameterTable.at(geometryPicker->selectedId()), "");
+		    statusBar->setText(msgParamsWritten);
+		}
+		catch (std::runtime_error re) {
+		    statusBar->setText(re.what());
+		}
+		catch (std::out_of_range oor) {
+		    QString statustext(msgErrParamTableAccess);
+		    statustext += oor.what();
+		    statusBar->setText(statustext);
+		}
 	    }
 	}
     }
@@ -432,16 +451,12 @@ void MainDialog::overwriteDefaultSettings()
 	    QString settingsPath;
 	    settingsPath = buildSettingsPath(settingsPath);
 	    QDir settingsDir(settingsPath);
-	    QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultSettings);
-	    QFile backupFile(settingsDir.canonicalPath() + "/." + cDefaultSettings);
+	    QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultConfig);
+	    fh->configureTracker(workingFile, parameterTable.at(geometryPicker->selectedId()));
+	    workingFile.setName(settingsDir.canonicalPath() + "/" + cDefaultSettings);
+	    fh->writeSettingsToFile(workingFile, parameterTable.at(geometryPicker->selectedId()), "");
 	    defaultsToCache(parameterTable.at(geometryPicker->selectedId()), geometryPicker->selectedId());
-	    fh->writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()),
-				      summaryExtension + outDirExtension);
-	    statusBar->setText(msgParamsWritten);
-	    if (!settingsDir.exists("." + cDefaultSettings, FALSE)) {
-		fh->copyTextFile(workingFile, backupFile);
-		statusBar->setText(msgDefaultOverride);
-	    }
+	    statusBar->setText(msgDefaultOverride);
 	}
 	catch (std::runtime_error re) {
 	    statusBar->setText(re.what());
@@ -465,16 +480,17 @@ void MainDialog::restoreDefaultSettings()
 	QString settingsPath;
 	settingsPath = buildSettingsPath(settingsPath);
 	QDir settingsDir(settingsPath);
-	if (settingsDir.exists("." + cDefaultSettings, FALSE)) {
-	    QFile backupFile(settingsDir.canonicalPath() + "/." + cDefaultSettings);
-	    QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultSettings);
-	    fh->copyTextFile(backupFile, workingFile);
-	    statusBar->setText(msgSettingsRestored);
-	}
-	else throw std::runtime_error(msgErrSettingsRestore);
+	QFile backupFile(settingsDir.canonicalPath() + "/../" + cConfigFileName);
+	QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultConfig);
+	fh->copyTextFile(backupFile, workingFile);
+	backupFile.setName(settingsDir.canonicalPath() + "/../" + cSettingsBackup);
+	workingFile.setName(settingsDir.canonicalPath() + "/" + cDefaultSettings);
+	if (backupFile.exists()) fh->copyTextFile(backupFile, workingFile);
+	else if (workingFile.exists()) workingFile.remove();
+	statusBar->setText(msgSettingsRestored);
     }
     catch (std::runtime_error re) {
-	statusBar->setText(re.what());
+	statusBar->setText(msgErrSettingsRestore + ": " + re.what());
     }
 }
 
@@ -652,7 +668,6 @@ void MainDialog::layerSelected( int index)
     try {
 	QString total = QString::number(parameterTable.at(geometryPicker->selectedId())
 					.nchipslayer.at(barrelSelection->currentItem()).at(index));
-	std::cout << "Chips in selected layer: " << total << std::endl;
 	layerChipsSpinner->setValue(total.toInt() / cLayerChipModulus);
 	total = "<b>" + total + "</b>";
 	layerTotalChipsLabel->setText(total);
@@ -669,7 +684,6 @@ void MainDialog::layerSelected( int index)
 	    break;
 	default : idx = -1;
               }
-	std::cout << "idx in selected layer: " << idx << std::endl;
 	layerTypeListBox->setCurrentItem(idx);
 	layerTypeSelected(idx);
     }
@@ -703,7 +717,7 @@ void MainDialog::ringSelected( int index)
 	    break;
 	case pt : idx = 2;
 	    break;
-	default : idx = 0;
+	default : idx = -1;
 	}
 	ringTypeListBox->setCurrentItem(idx);
 	ringTypeSelected(idx);
@@ -717,14 +731,12 @@ void MainDialog::ringSelected( int index)
 
 void MainDialog::barrelSelected(int index)
 {
-    std::cout << "barrelSelected(" << index << ")" << std::endl;
     try {
 	layerSelection->clear();
 	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nlayers.at(index); i++) {
 	    layerSelection->insertItem(QString::number(i + 1), i);
 	}
 	layerSelection->setCurrentItem(0);
-	std::cout << "layerSelected(0)" << std::endl;
 	layerSelected(0);
     }
     catch (std::out_of_range oor) {
@@ -751,6 +763,7 @@ void MainDialog::endcapSelected(int index)
 	else {
 	    ringChipsSpinner->setEnabled(FALSE);
 	    ringSegmentsSpinner->setEnabled(FALSE);
+	    ringTypeListBox->clearSelection();
 	    ringTypeListBox->setEnabled(FALSE);
 	}
     }
@@ -765,18 +778,26 @@ void MainDialog::addRing()
 {
     ringSelection->insertItem(QString::number(ringSelection->count() + 1), ringSelection->count());
     parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
+    if ((int)parameterTable.at(geometryPicker->selectedId()).nchipsring.size() < parameterTable
+	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).nchipsring.resize(
+		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
+    }
     parameterTable.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
 	    .push_back(cRingChipModulus);
+    if ((int)parameterTable.at(geometryPicker->selectedId()).nsegmentsring.size() < parameterTable
+	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).nsegmentsring.resize(
+		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
+    }
     parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
 	    .push_back(ringSegmentsSpinner->minValue());
+     if ((int)parameterTable.at(geometryPicker->selectedId()).mtypesrings.size() < parameterTable
+	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).mtypesrings.resize(
+		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
+    }
     parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
-	    .push_back(rphi);
-    widgetCache.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
-    widgetCache.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
-	    .push_back(cRingChipModulus);
-    widgetCache.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
-	    .push_back(ringSegmentsSpinner->minValue());
-    widgetCache.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
 	    .push_back(rphi);
     if (ringSelection->count() == 1) {
 	ringChipsSpinner->setEnabled(TRUE);
@@ -785,7 +806,7 @@ void MainDialog::addRing()
     }
     ringSelection->setCurrentItem(ringSelection->count() - 1);
     ringSelected(ringSelection->currentItem());
-}
+}    
 
 void MainDialog::removeRing()
 {
@@ -798,19 +819,12 @@ void MainDialog::removeRing()
 		.at(endcapSelection->currentItem()).pop_back();
 	parameterTable.at(geometryPicker->selectedId()).mtypesrings
 		.at(endcapSelection->currentItem()).pop_back();
-	widgetCache.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())--;
-	widgetCache.at(geometryPicker->selectedId()).nchipsring
-		.at(endcapSelection->currentItem()).pop_back();
-	widgetCache.at(geometryPicker->selectedId()).nsegmentsring
-		.at(endcapSelection->currentItem()).pop_back();
-	widgetCache.at(geometryPicker->selectedId()).mtypesrings
-		.at(endcapSelection->currentItem()).pop_back();
 	if (ringSelection->count() < 1) {
 	    ringChipsSpinner->setValue(ringChipsSpinner->minValue());
 	    ringChipsSpinner->setEnabled(FALSE);
 	    ringSegmentsSpinner->setValue(ringSegmentsSpinner->minValue());
 	    ringSegmentsSpinner->setEnabled(FALSE);
-	    ringTypeListBox->setCurrentItem(none);
+	    ringTypeListBox->clearSelection();
 	    ringTypeListBox->setEnabled(FALSE);
 	}
 	else {

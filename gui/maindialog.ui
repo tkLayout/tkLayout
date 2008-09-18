@@ -1472,18 +1472,19 @@
     <forward>typedef struct paramaggreg;</forward>
 </forwards>
 <variables>
-    <variable>std::vector&lt;paramaggreg&gt; widgetCache;</variable>
-    <variable>QPopupMenu *settingsPopup;</variable>
-    <variable>QString guiExtension;</variable>
-    <variable>QString summaryExtension;</variable>
-    <variable>QString resExtension;</variable>
-    <variable>QString cmdLineStub;</variable>
-    <variable>QString outDirExtension;</variable>
-    <variable>QString basePath;</variable>
-    <variable>std::vector&lt;geominfo&gt; geometryTable;</variable>
-    <variable>std::vector&lt;paramaggreg&gt; parameterTable;</variable>
-    <variable>QString settingsExtension;</variable>
+    <variable>QFile tmpSettings;</variable>
     <variable>QFile tmpConfig;</variable>
+    <variable>QString settingsExtension;</variable>
+    <variable>std::vector&lt;paramaggreg&gt; parameterTable;</variable>
+    <variable>std::vector&lt;geominfo&gt; geometryTable;</variable>
+    <variable>QString basePath;</variable>
+    <variable>QString outDirExtension;</variable>
+    <variable>QString cmdLineStub;</variable>
+    <variable>QString resExtension;</variable>
+    <variable>QString summaryExtension;</variable>
+    <variable>QString guiExtension;</variable>
+    <variable>QPopupMenu *settingsPopup;</variable>
+    <variable>std::vector&lt;paramaggreg&gt; widgetCache;</variable>
     <variable>FileHandler* fh;</variable>
 </variables>
 <slots>
@@ -1495,6 +1496,10 @@
     <slot>go()</slot>
     <slot>geometryPicked( int radiobuttonid )</slot>
     <slot>settingsDialog()</slot>
+    <slot>loadSettingsDialog()</slot>
+    <slot>saveSettingsDialog()</slot>
+    <slot>overwriteDefaultSettings()</slot>
+    <slot>restoreDefaultSettings()</slot>
     <slot>settingsChanged( int button )</slot>
     <slot>ringTypeSelected( int index )</slot>
     <slot>layerTypeSelected( int index )</slot>
@@ -1514,10 +1519,6 @@
     <function access="private" specifier="non virtual">destroy()</function>
     <function access="protected" returnType="int">simulate( const QString &amp; command )</function>
     <function access="protected">clearParameters()</function>
-    <function access="protected">loadSettingsDialog()</function>
-    <function access="protected">saveSettingsDialog()</function>
-    <function access="protected">overwriteDefaultSettings()</function>
-    <function access="protected">restoreDefaultSettings()</function>
     <function access="protected" returnType="QString &amp;">buildSettingsPath( QString &amp; sPath )</function>
     <function access="protected">defaultsFromCache( paramaggreg &amp; paramrow, int pos )</function>
     <function access="protected">defaultsToCache( const paramaggreg &amp; paramrow, int pos )</function>
