@@ -238,8 +238,6 @@ void MainDialog::nextPage()
 	    endcapSelection->insertItem(parameterTable.at(geometryPicker->selectedId()).endcapnames.at(i), i);
 	}
 	valuesToWidgets(parameterTable.at(geometryPicker->selectedId()));
-	barrelSelected(0);
-	endcapSelected(0);
     }
     catch (std::out_of_range oor) {
 	QString statusText(msgErrValueLoad);
@@ -265,7 +263,7 @@ void MainDialog::backToStart()
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
     layerSelection->clear();
     ringSelection->clear();
-    removeTmpConfigFile(tmpConfig.name());
+    fh->removeTmpConfigFile(tmpConfig.name());
     clearParameters();
     mainWidgetStack->raiseWidget(0);
 }
@@ -604,6 +602,9 @@ void MainDialog::ringTypeSelected(int index)
 	case 2 : parameterTable.at(geometryPicker->selectedId())
 		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = pt;
 	    break;
+	default: parameterTable.at(geometryPicker->selectedId())
+		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = none;
+	    ringTypeListBox->clearSelection();
 	}
     }
     catch (std::out_of_range oor) {
@@ -630,6 +631,9 @@ void MainDialog::layerTypeSelected(int index)
 	case 2 : parameterTable.at(geometryPicker->selectedId())
 	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = pt;
 	    break;
+	default: parameterTable.at(geometryPicker->selectedId())
+	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = none;
+	    layerTypeListBox->clearSelection();
 	}
     }
     catch (std::out_of_range oor) {
@@ -648,6 +652,7 @@ void MainDialog::layerSelected( int index)
     try {
 	QString total = QString::number(parameterTable.at(geometryPicker->selectedId())
 					.nchipslayer.at(barrelSelection->currentItem()).at(index));
+	std::cout << "Chips in selected layer: " << total << std::endl;
 	layerChipsSpinner->setValue(total.toInt() / cLayerChipModulus);
 	total = "<b>" + total + "</b>";
 	layerTotalChipsLabel->setText(total);
@@ -664,7 +669,9 @@ void MainDialog::layerSelected( int index)
 	    break;
 	default : idx = -1;
               }
+	std::cout << "idx in selected layer: " << idx << std::endl;
 	layerTypeListBox->setCurrentItem(idx);
+	layerTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
 	QString statustext(msgErrParamTableAccess);
@@ -699,6 +706,7 @@ void MainDialog::ringSelected( int index)
 	default : idx = 0;
 	}
 	ringTypeListBox->setCurrentItem(idx);
+	ringTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
 	QString statustext(msgErrParamTableAccess);
@@ -709,12 +717,14 @@ void MainDialog::ringSelected( int index)
 
 void MainDialog::barrelSelected(int index)
 {
+    std::cout << "barrelSelected(" << index << ")" << std::endl;
     try {
 	layerSelection->clear();
 	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nlayers.at(index); i++) {
 	    layerSelection->insertItem(QString::number(i + 1), i);
 	}
 	layerSelection->setCurrentItem(0);
+	std::cout << "layerSelected(0)" << std::endl;
 	layerSelected(0);
     }
     catch (std::out_of_range oor) {
@@ -732,6 +742,9 @@ void MainDialog::endcapSelected(int index)
 	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings.at(index); i++) {
 		ringSelection->insertItem(QString::number(i + 1), i);
 	    }
+	    ringChipsSpinner->setEnabled(TRUE);
+	    ringSegmentsSpinner->setEnabled(TRUE);
+	    ringTypeListBox->setEnabled(TRUE);
 	    ringSelection->setCurrentItem(0);
 	    ringSelected(0);
 	}
