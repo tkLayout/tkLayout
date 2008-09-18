@@ -32,102 +32,6 @@
  */
 
 /**
- * Messages that may pop up inside the status bar or on stdout
- */
-static const QString msgErrValueLoad ="Error loading values: ";
-static const QString msgErrSysCall = "Error during system() call.";
-static const QString msgTemplateError = "Error choosing geometry template: ";
-static const QString msgParamReset = "Parameters reset.";
-static const QString msgErrParamTableAccess = "Unable to access parameter table: ";
-static const QString msgErrParamCacheAccess = "Unable to access parameter backup table: ";
-static const QString msgDefaultOverride ="Default settings saved." ;
-static const QString msgSettingsRestored = "Settings file restored.";
-static const QString msgErrSettingsRestore = "No file to restore from found.";
-static const QString msgParamsRead = "Parameters read from file.";
-static const QString msgParamsWritten = "Parameters written to file.";
-static const QString msgErrReadFile = "Error opening read file.";
-static const QString msgErrWriteFile = "Error opening write file.";
-static const QString msgErrInputFileParse = "Error parsing input file.";
-static const QString msgValidationError = "Validation error: check cost and power consumption input fields.";
-static const QString msgSpinValidationError = "Error: values typed into the spinners must be integers.";
-static const QString msgSpinValidationFuzzy = "Error: integer typed into spinner must be in range.";
-static const QString msgErrValidationStrange = "A strange validation error happened...";
-
-/**
- * String constants used throughout the GUI
- */
-static const QString cAlphanumStartFilter = "[a-zA-Z0-9]*";
-static const QString cGuiExtension = "/gui";
-static const QString cResExtension = "/res";
-static const QString cSettingsExtension = "/settings";
-static const QString cSummaryExtension = "/summaries";
-static const QString cCommand = "/TrackerGeom ";
-static const QString cRadioButtonBase = "radioButton";
-static const QString cDescriptionName = "desc.txt";
-static const QString cImageName = "layout.png";
-static const QString cCmdLineName = "cmdline";
-static const QString cDefaultSettings = "defaultsettings";
-static const QString cSummaryIndex = "index.html";
-static const QString cDefaultTrackerName = "aTracker";
-
-/**
- * Integer constants used throughout the GUI
- */
-static const int cDefaultChipsPerSide = 128;
-static const int cDefaultSegsPerRing = 128;
-static const int cChipModulus = 2;
-static const int cDecimals = 15;
-static const int cNonnegativeNumbers = 0;
-static const int cPositiveNumbers = 1;
-
-/**
- * Enumeration of the available module types: single sided, double sided and pt
- */
-enum moduletype { ss, ds, pt };
-
-/**
- * Encapsulating struct for information about a pre-packaged geometry.
- * @param layoutName A string value giving the name that the geometry should be listed as
- * @param layoutDescription A short text description of the geometry; read from a file containing plaintext or simple HTML
- * @param layoutImage A diagram showing a cross-section of the detector geometry; read from a .png file
- * @param cmdLineParams Those parameters not exposed to the user, aggregated in a single string value
- */
-typedef struct geominfo {
-    QString layoutName;
-    QString layoutDescription;
-    QPixmap layoutImage;
-    QString cmdLineParams;
-};
-
-/**
- * Encapsulating struct for parameteres in a pre-packaged geometry that may be modified by the user
- * @param trackerName A name for the optimisation experiment...
- * @param nlayers The number of layers in the selected geometry; displayed only, not customisable by the user
- * @param nrings The number of rings in the selected geometry; displayed only, not customisable by the user
- * @param nchipsperside The number of chips on a module in each layer (per side, not in total), listed in a vector
- * @param nsegmentsperring The number of segments on a module in each ring, listed in a vector
- * @param mtypeslayers The module type (single sided, double sided or pt) of each layer, listed in a vector
- * @param mtypesrings The module type (single sided, double sided or pt) of each ring, listed in a vector
- * @param costpersqcm What it costs, per square cm, to produce one single sided module; currency is left deliberately vague...
- * @param ptcostpersqcm What it cost, per square cm, to produce one pt module; see above for currency...
- * @param powerperchannel The current required by a single sided channel to function; in mA
- * @param ptpowerperchannel The current required by a pt channel to function; in mA
- */
-typedef struct paramaggreg {
-    QString trackerName;
-    int nlayers;
-    int nrings;
-    std::vector<int> nchipsperside;
-    std::vector<int> nsegmentsperring;
-    std::vector<moduletype> mtypeslayers;
-    std::vector<moduletype> mtypesrings;
-    double costpersqcm;
-    double ptcostpersqcm;
-    double powerperchannel;
-    double ptpowerperchannel;
-};
-
-/**
  * This is the initialisation function that serves as a programmer-defined addition to the constructor.
  * (The constructor itself is private and auto-generated.)
  * It initialises some of the widgets programmatically, reads the information about the available geometries from the
@@ -136,6 +40,9 @@ typedef struct paramaggreg {
  */
 void MainDialog::init()
 {
+    /// Instantiate the file handler helper class
+    fh = new FileHandler();
+    
     /// Add the menu items to the settings popup menu and connect the widget to the main form
     settingsPopup = new QPopupMenu(settingsButton, "Settings");
     settingsPopup->insertItem("Default Values", 0, 0);
@@ -147,13 +54,23 @@ void MainDialog::init()
     settingsButton->setPopup(settingsPopup);
 
     /// Add validators to the spinners and those text input fields that only accept numbers
-    QIntValidator *intval = new QIntValidator(chipsPerSideSpinner);
+    QIntValidator *intval = new QIntValidator(layerChipsSpinner);
     intval->setBottom(cPositiveNumbers);
-    chipsPerSideSpinner->setValidator(intval);
+    intval->setTop(cMaxChipsInSpinner);
+    layerChipsSpinner->setValidator(intval);
     
-    intval = new QIntValidator(segmentsPerRingSpinner);
+    intval = new QIntValidator(layerSegmentsSpinner);
     intval->setBottom(cPositiveNumbers);
-    segmentsPerRingSpinner->setValidator(intval);
+    layerSegmentsSpinner->setValidator(intval);
+    
+    intval = new QIntValidator(ringChipsSpinner);
+    intval->setBottom(cPositiveNumbers);
+    intval->setTop(cMaxChipsInSpinner);
+    ringChipsSpinner->setValidator(intval);
+    
+    intval = new QIntValidator(ringSegmentsSpinner);
+    intval->setBottom(cPositiveNumbers);
+    ringSegmentsSpinner->setValidator(intval);
     
     QDoubleValidator *doubleval = new QDoubleValidator(costPerSqCmEdit);
     doubleval->setBottom(cNonnegativeNumbers);
@@ -180,6 +97,7 @@ void MainDialog::init()
     resExtension = cResExtension;
     settingsExtension = cSettingsExtension;
     summaryExtension = cSummaryExtension;
+    outDirExtension = cTmpDir;
 
     /// Create directory access to read the geometry resources
     QDir workingDir;
@@ -214,27 +132,31 @@ void MainDialog::init()
 	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cImageName);
 	if (!geomrow.layoutImage.load(workingFile.name())) geomrow.layoutImage.resize(1,1);
 
-	/// Read the immutable command line parameters from file, then add the collected information to <i>geometryTable</i>
-	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cCmdLineName);
-	if (workingFile.exists() && workingFile.open(IO_ReadOnly)) {
-	    QTextStream instream(&workingFile);
-	    geomrow.cmdLineParams = instream.readLine();
-	    workingFile.close();
+	/// Set the location of the initial configuration file
+	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cConfigFileName);
+	if (workingFile.exists()) {
+	    geomrow.configFile = workingFile.name();
 	}
 	else continue;
 
-	/// Read the cusomisable parameters from their settings file and add them to <i>parameterTable</i> and <i>widgetCache</i>
+	/// Read the cusomisable parameters from the config file
 	paramaggreg paramrow;
-	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + settingsExtension + "/" + cDefaultSettings);
-	if (workingFile.exists()) {
-	    try {
-		readParametersFromFile(workingFile, paramrow);
+	workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultSettings);
+	try {
+	    if (workingFile.exists()) {
+		fh->readParametersFromFile(workingFile, paramrow);
+		QFileInfo fi1(geomrow.configFile);
+		QFileInfo fi2(workingFile);
+		if (fi1.size() == fi2.size()) {
+		    fh->writeParametersToFile(workingFile, paramrow, summaryExtension + outDirExtension);
+		}
 	    }
-	    catch (std::runtime_error re) {
-		std::cout << re.what() << std::endl;
-	    }
+	    else continue;
 	}
-	else continue;
+	catch (std::runtime_error re) {
+	    std::cout << re.what() << std::endl;
+	    continue;
+	}
 	
 	/// Add the assembled info structs to their vector containers
 	geometryTable.push_back(geomrow);
@@ -256,42 +178,9 @@ void MainDialog::init()
 void MainDialog::destroy()
 {
     if (settingsPopup) delete settingsPopup;
-    removeOutputDir();
-}
-
-/**
- * Removal of the directory that contains the HTML summary happens in here.
- * If the directory is not empty, the files it contains are deleted first.
- */
-void MainDialog::removeOutputDir()
-{
-    QDir resultdir(basePath + summaryExtension + outDirExtension);
-    if (resultdir.exists()) {
-	if (cleanOutDirectory(resultdir)) resultdir.rmdir(basePath + summaryExtension + outDirExtension);
-	else std::cout << "Cleanup: could not remove directory contents." << std::endl;
-    }
-    else std::cout << "Cleanup: requested result directory doesn't exist." << std::endl;
-}
-
-/**
- * This function removes every file - but nothing else - from the given directory.
- * Note that it does not recurse through subfolders;
- * this is adequate for the summaries as they are now but may have to be adapted later.
- * @param workingDir The directory that is to be emptied
- * @return A boolean value indicating success or failure
- */
-bool MainDialog::cleanOutDirectory(QDir& workingDir)
-{
-    bool success = TRUE;
-    QStringList contents = workingDir.entryList("*", QDir::Files | QDir::Hidden);
-    while (!contents.empty()) {
-	if (!workingDir.remove(contents.first())) {
-	    success = FALSE;
-	    break;
-	}
-	contents.pop_front();
-    }
-    return success;
+    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    fh->removeTmpConfigFile(tmpConfig.name());
+    delete fh;
 }
 
 /**
@@ -303,6 +192,7 @@ void MainDialog::settingsToGeometry()
 {
     layerSelection->clear();
     ringSelection->clear();
+    fh->removeTmpConfigFile(tmpConfig.name());
     backOnePage();
 }
 
@@ -314,7 +204,8 @@ void MainDialog::settingsToGeometry()
  */
 void MainDialog::resultsToSettings()
 {
-    removeOutputDir();
+    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    fh->removeTmpConfigFile(tmpConfig.name());
     backOnePage();
 }
 
@@ -335,18 +226,30 @@ void MainDialog::nextPage()
 {
     statusBar->clear();
     try {
-	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nlayers; i++ ) {
-	    layerSelection->insertItem(QString::number(i + 1), i);
+	tmpConfig.setName(basePath + "/" + cTempConfig);
+	QString configpath = basePath + resExtension + "/" + geometryPicker->selected()->text();
+	configpath = configpath + settingsExtension + "/";
+	QFile config(configpath + cDefaultSettings);
+	fh->copyTextFile(config, tmpConfig);
+	for (uint i = 0; i < parameterTable.at(geometryPicker->selectedId()).barrelnames.size(); i++) {
+	    barrelSelection->insertItem(parameterTable.at(geometryPicker->selectedId()).barrelnames.at(i), i);
 	}
-	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings; i++) {
-	    ringSelection->insertItem(QString::number(i + 1), i);
+	for (uint i = 0; i < parameterTable.at(geometryPicker->selectedId()).endcapnames.size(); i++) {
+	    endcapSelection->insertItem(parameterTable.at(geometryPicker->selectedId()).endcapnames.at(i), i);
 	}
 	valuesToWidgets(parameterTable.at(geometryPicker->selectedId()));
+	barrelSelected(0);
+	endcapSelected(0);
     }
     catch (std::out_of_range oor) {
 	QString statusText(msgErrValueLoad);
 	statusText += oor.what();
 	statusBar->setText(statusText);
+    }
+    catch (std::runtime_error re) {
+	std::cout << re.what() << std::endl;
+	std::cout << msgCriticalErrorConfigFile << std::endl;
+	exit(-1);
     }
     mainWidgetStack->raiseWidget(mainWidgetStack->id(mainWidgetStack->visibleWidget()) + 1);
 }
@@ -359,30 +262,27 @@ void MainDialog::nextPage()
  */
 void MainDialog::backToStart()
 {
-    removeOutputDir();
+    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
     layerSelection->clear();
     ringSelection->clear();
+    removeTmpConfigFile(tmpConfig.name());
     clearParameters();
     mainWidgetStack->raiseWidget(0);
 }
 
 
-// TODO: finish this
 void MainDialog::go()
 {
     if (validateInput()) {
 	QString command = basePath + cCommand + " ";
-	// collect parameters from parameterTable, appending to cmdLineStub
-	// set outDirExtension
-	outDirExtension = "/testdir"; // temporary hack...
-	// if save folder exists, confirm overwrite
-	// complete command line string
+	fh->writeParametersToFile(tmpConfig, parameterTable.at(geometryPicker->selectedId()),
+				  summaryExtension + outDirExtension);
+	cmdLineStub = tmpConfig.name();
 	command += cmdLineStub;
 	try  {
 	    int simulstatus;	
 	    simulstatus = simulate(command);
-	    // write evaluation of simulstatus to stdout?
-	    // update summaryPage in background: read index file in basePath + summaryExtension + outDirExtension + "/index.html"
+	    std::cout << msgSimulationExit << simulstatus << "." << std::endl;
 	    summaryTextEdit->mimeSourceFactory()->setFilePath(basePath + summaryExtension + outDirExtension);
 	    QFile workingFile(basePath + summaryExtension + outDirExtension + "/" + cSummaryIndex);
 	    if (workingFile.exists() && workingFile.open(IO_ReadOnly)) {
@@ -393,12 +293,10 @@ void MainDialog::go()
 	    mainWidgetStack->raiseWidget(mainWidgetStack->id(mainWidgetStack->visibleWidget()) + 1);
 	}
 	catch (std::runtime_error re) {
-	    // evaluate exception "something went wrong during simulation"
-	    // statusBar->setText(/*error message*/);
+	    statusBar->setText(re.what());
 	}
     }
 }
-// End of TODO
 
 /**
  * Control is transferred to the <i>TrackerGeom</i> background application in here.
@@ -425,7 +323,6 @@ void MainDialog::geometryPicked( int radiobuttonid )
     try {
 	geometryLayoutBox->setPixmap(geometryTable.at(radiobuttonid).layoutImage);
 	geometryInfoBox->setText(geometryTable.at(radiobuttonid).layoutDescription);
-	cmdLineStub = geometryTable.at(radiobuttonid).cmdLineParams;
 	nextButton->setEnabled(TRUE);
     }
     catch (std::out_of_range oor) {
@@ -452,7 +349,7 @@ void MainDialog::clearParameters()
     try {
 	geometryLayoutBox->setPixmap(geometryTable.at(geometryPicker->selectedId()).layoutImage);
 	geometryInfoBox->setText(geometryTable.at(geometryPicker->selectedId()).layoutDescription);
-	cmdLineStub = geometryTable.at(geometryPicker->selectedId()).cmdLineParams;
+	cmdLineStub = "";
 	defaultsFromCache(parameterTable.at(geometryPicker->selectedId()), geometryPicker->selectedId());
 	statusBar->setText(msgParamReset);
     }
@@ -482,7 +379,7 @@ void MainDialog::loadSettingsDialog()
     if (!fromFile.isEmpty()) {
 	try {
 	    QFile workingFile(fromFile);
-	    readParametersFromFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
+	    fh->readParametersFromFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
 	}
 	catch (std::runtime_error re) {
 	    statusBar->setText(re.what());
@@ -509,7 +406,9 @@ void MainDialog::saveSettingsDialog()
 	if (!toFile.isEmpty()) {
 	    try {
 		QFile workingFile(toFile);
-		writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
+		fh->writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()),
+					  summaryExtension + outDirExtension);
+		statusBar->setText(msgParamsWritten);
 	    }
 	    catch (std::runtime_error re) {
 		statusBar->setText(re.what());
@@ -538,9 +437,12 @@ void MainDialog::overwriteDefaultSettings()
 	    QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultSettings);
 	    QFile backupFile(settingsDir.canonicalPath() + "/." + cDefaultSettings);
 	    defaultsToCache(parameterTable.at(geometryPicker->selectedId()), geometryPicker->selectedId());
-	    writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
+	    fh->writeParametersToFile(workingFile, parameterTable.at(geometryPicker->selectedId()),
+				      summaryExtension + outDirExtension);
+	    statusBar->setText(msgParamsWritten);
 	    if (!settingsDir.exists("." + cDefaultSettings, FALSE)) {
-		copyTextFile(workingFile, backupFile, QString(msgDefaultOverride));
+		fh->copyTextFile(workingFile, backupFile);
+		statusBar->setText(msgDefaultOverride);
 	    }
 	}
 	catch (std::runtime_error re) {
@@ -568,40 +470,14 @@ void MainDialog::restoreDefaultSettings()
 	if (settingsDir.exists("." + cDefaultSettings, FALSE)) {
 	    QFile backupFile(settingsDir.canonicalPath() + "/." + cDefaultSettings);
 	    QFile workingFile(settingsDir.canonicalPath() + "/" + cDefaultSettings);
-	    copyTextFile(backupFile, workingFile, msgSettingsRestored);
+	    fh->copyTextFile(backupFile, workingFile);
+	    statusBar->setText(msgSettingsRestored);
 	}
 	else throw std::runtime_error(msgErrSettingsRestore);
     }
     catch (std::runtime_error re) {
 	statusBar->setText(re.what());
     }
-}
-
-/**
- * The process of copying the contents of one file to another (which is overwritten) is bundled here for convenience.
- * The function also displays a message in the status bar confirming the process.
- * If there are errors opening either file, a runtime exception is thrown.
- * @param inFile
- * @param outFile
- * @param msg
- */
-void MainDialog::copyTextFile(QFile& inFile, QFile& outFile, QString msg)
-{
-    if (inFile.open(IO_ReadOnly)) {
-	if (outFile.open(IO_WriteOnly)) {
-	    QTextStream fromStream(&inFile);
-	    QTextStream toStream(&outFile);
-	    toStream << fromStream.read();
-	    outFile.close();
-	    inFile.close();
-	    statusBar->setText(msg);
-	}
-	else {
-	    inFile.close();
-	    throw std::runtime_error(msgErrWriteFile);
-	}
-    }
-    else throw std::runtime_error(msgErrReadFile);
 }
 
 /**
@@ -639,112 +515,6 @@ QString& MainDialog::buildSettingsPath(QString& sPath)
 }
 
 /**
- * This function attempts to read a set of parameters for the parameter page from a file.
- * It will throw a runtime exception if it cannot read the file
- * @param readFile A reference to the input file
- * @param paramrow The destination struct that absorbs the information found in the file
- */
-void MainDialog::readParametersFromFile(QFile& readFile, paramaggreg& paramrow)
-{
-    if (readFile.open(IO_ReadOnly)) {
-	QTextStream instream(&readFile);
-	QString contents = instream.read();
-	if (contents && !contents.isEmpty()) {
-	    contents = contents.stripWhiteSpace().simplifyWhiteSpace();
-	    QStringList contentlist = QStringList::split(" ", contents);
-	    QStringList::const_iterator iter = contentlist.begin();
-	    paramrow.trackerName = *iter;
-	    iter++;
-	    if (iter != contentlist.end()) { paramrow.nlayers = (*iter).toInt(); iter++; }
-	    int i = 0;
-	    while (i < paramrow.nlayers && iter != contentlist.end()) {
-		paramrow.nchipsperside.push_back((*iter).toInt());
-		iter++;
-		i++;
-	    }
-	    i = 0;
-	    while (i < paramrow.nlayers && iter != contentlist.end()) {
-		switch ((*iter).toInt()) {
-		case 0 : paramrow.mtypeslayers.push_back(ss);
-		    break;
-		case 1 : paramrow.mtypeslayers.push_back(ds);
-		    break;
-		case 2 : paramrow.mtypeslayers.push_back(pt);
-		    break;
-		default: paramrow.mtypeslayers.push_back(ss);
-		}
-		iter++;
-		i++;
-	    }
-	    if (iter != contentlist.end()) { paramrow.nrings = (*iter).toInt(); iter++; }
-	    i = 0;
-	    while (i < paramrow.nrings && iter != contentlist.end()) {
-		paramrow.nsegmentsperring.push_back((*iter).toInt());
-		iter++;
-		i++;
-	    }
-	    i = 0;
-	    while (i < paramrow.nrings && iter != contentlist.end()) {
-		switch ((*iter).toInt()) {
-		case 0 : paramrow.mtypesrings.push_back(ss);
-		    break;
-		case 1 : paramrow.mtypesrings.push_back(ds);
-		    break;
-		case 2 : paramrow.mtypesrings.push_back(pt);
-		    break;
-		default: paramrow.mtypesrings.push_back(ss);
-		}
-		iter++;
-		i++;
-	    }
-	    if (iter != contentlist.end()) { paramrow.costpersqcm = (*iter).toDouble(); iter++; }
-	    if (iter != contentlist.end()) { paramrow.ptcostpersqcm = (*iter).toDouble(); iter++; }
-	    if (iter != contentlist.end()) { paramrow.powerperchannel = (*iter).toDouble(); iter++; }
-	    if (iter != contentlist.end()) paramrow.ptpowerperchannel = (*iter).toDouble();
-	    statusBar->setText(msgParamsRead);
-	}
-	else statusBar->setText(msgErrInputFileParse);
-	readFile.close();
-    }
-    else throw std::runtime_error(msgErrReadFile);
-}
-
-/**
- * This function attempts to write the contents of the parameter page to a file (which is overwritten).
- * If an error occurs while opening or creating the output file, it throws a runtime exception.
- * @param writeFile A reference to the destination file
- * @param paramrow The struct containing the information about the selected geometry's current parameter values
- */
-void MainDialog::writeParametersToFile(QFile& writeFile, const paramaggreg& paramrow)
-{
-    if (writeFile.open(IO_WriteOnly)) {
-	QString contents = paramrow.trackerName + " " + QString::number(paramrow.nlayers);
-	for (int i = 0; i < paramrow.nlayers; i++) {
-	    contents = contents + " " + QString::number(paramrow.nchipsperside.at(i));
-	}
-	for (int i = 0; i < paramrow.nlayers; i++) {
-	     contents = contents + " " + QString::number(paramrow.mtypeslayers.at(i));
-	}
-	contents = contents + " " + QString::number(paramrow.nrings);
-	for (int i = 0; i < paramrow.nrings; i++) {
-	    contents = contents + " " + QString::number(paramrow.nsegmentsperring.at(i));
-	}
-	for (int i = 0; i < paramrow.nrings; i++) {
-	    contents = contents + " " + QString::number(paramrow.mtypesrings.at(i));
-	}
-	contents = contents + " " + QString::number(paramrow.costpersqcm);
-		   contents = contents + " " + QString::number(paramrow.ptcostpersqcm);
-		   contents = contents + " " + QString::number(paramrow.powerperchannel);
-		   contents = contents + " " + QString::number(paramrow.ptpowerperchannel);
-	QTextStream outstream(&writeFile);
-	outstream << contents;
-	writeFile.close();
-	statusBar->setText(msgParamsWritten);
-    }
-    else throw std::runtime_error(msgErrWriteFile);
-}
-
-/**
  * Copying the parameter cache entry at a given position to an instance of <i>paramaggreg</i> is bundled here for convenience.
  * @param paramrow A reference to the destination object
  * @param pos The index pointing to the entry in <i>widgetCache</i> that contains the requested information
@@ -755,8 +525,12 @@ void MainDialog::defaultsFromCache(paramaggreg& paramrow, int pos)
 	paramrow.trackerName = widgetCache.at(pos).trackerName;
 	paramrow.nlayers = widgetCache.at(pos).nlayers;
 	paramrow.nrings = widgetCache.at(pos).nrings;
-	paramrow.nchipsperside = widgetCache.at(pos).nchipsperside;
-	paramrow.nsegmentsperring = widgetCache.at(pos).nsegmentsperring;
+	paramrow.barrelnames = widgetCache.at(pos).barrelnames;
+	paramrow.endcapnames = widgetCache.at(pos).endcapnames;
+	paramrow.nchipslayer = widgetCache.at(pos).nchipslayer;
+	paramrow.nchipsring = widgetCache.at(pos).nchipsring;
+	paramrow.nsegmentslayer = widgetCache.at(pos).nsegmentslayer;
+	paramrow.nsegmentsring = widgetCache.at(pos).nsegmentsring;
 	paramrow.mtypeslayers = widgetCache.at(pos).mtypeslayers;
 	paramrow.mtypesrings = widgetCache.at(pos).mtypesrings;
 	paramrow.costpersqcm = widgetCache.at(pos).costpersqcm;
@@ -780,8 +554,12 @@ void MainDialog::defaultsToCache(const paramaggreg& paramrow, int pos)
 	widgetCache.at(pos).trackerName = paramrow.trackerName;
 	widgetCache.at(pos).nlayers = paramrow.nlayers;
 	widgetCache.at(pos).nrings = paramrow.nrings;
-	widgetCache.at(pos).nchipsperside = paramrow.nchipsperside;
-	widgetCache.at(pos).nsegmentsperring = paramrow.nsegmentsperring;
+	widgetCache.at(pos).barrelnames = paramrow.barrelnames;
+	widgetCache.at(pos).endcapnames = paramrow.endcapnames;
+	widgetCache.at(pos).nchipslayer = paramrow.nchipslayer;
+	widgetCache.at(pos).nchipsring = paramrow.nchipsring;
+	widgetCache.at(pos).nsegmentslayer = paramrow.nsegmentslayer;
+	widgetCache.at(pos).nsegmentsring = paramrow.nsegmentsring;
 	widgetCache.at(pos).mtypeslayers = paramrow.mtypeslayers;
 	widgetCache.at(pos).mtypesrings = paramrow.mtypesrings;
 	widgetCache.at(pos).costpersqcm = paramrow.costpersqcm;
@@ -801,14 +579,8 @@ void MainDialog::defaultsToCache(const paramaggreg& paramrow, int pos)
 void MainDialog::valuesToWidgets(const paramaggreg& paramrow)
 {
     trackerNameLineEdit->setText(paramrow.trackerName);
-    QString layersrings = QString::number(paramrow.nlayers);
-    layersrings = "<b>" + layersrings + "</b>";
-    mLabel->setText(layersrings);
-    layersrings = QString::number(paramrow.nrings);
-    layersrings = "<b>" + layersrings + "</b>";
-    nLabel->setText(layersrings);
-    if (layerSelection->count() > 0) layerSelected(0);
-    if (ringSelection->count() > 0) ringSelected(0);
+    if (barrelSelection->count() > 0) barrelSelected(0);
+    if (endcapSelection->count() > 0) endcapSelected(0);
     costPerSqCmEdit->setText(QString::number(paramrow.costpersqcm));
     costPtPerSqCmEdit->setText(QString::number(paramrow.ptcostpersqcm));
     powerEdit->setText(QString::number(paramrow.powerperchannel));
@@ -824,13 +596,13 @@ void MainDialog::ringTypeSelected(int index)
     try {
 	switch (index) {
 	case 0 : parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(ringSelection->currentItem()) = ss;
+		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = rphi;
 	    break;
 	case 1 : parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(ringSelection->currentItem()) = ds;
+		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = stereo;
 	    break;
 	case 2 : parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(ringSelection->currentItem()) = pt;
+		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = pt;
 	    break;
 	}
     }
@@ -850,13 +622,13 @@ void MainDialog::layerTypeSelected(int index)
     try {
 	switch (index) {
 	case 0 : parameterTable.at(geometryPicker->selectedId())
-		    .mtypeslayers.at(layerSelection->currentItem()) = ss;
+		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = rphi;
 	    break;
 	case 1 : parameterTable.at(geometryPicker->selectedId())
-	    .mtypeslayers.at(layerSelection->currentItem()) = ds;
+	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = stereo;
 	    break;
 	case 2 : parameterTable.at(geometryPicker->selectedId())
-	    .mtypeslayers.at(layerSelection->currentItem()) = pt;
+	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = pt;
 	    break;
 	}
     }
@@ -874,21 +646,24 @@ void MainDialog::layerTypeSelected(int index)
 void MainDialog::layerSelected( int index)
 {
     try {
-	QString totalchips = QString::number(parameterTable.at(geometryPicker->selectedId())
-					     .nchipsperside.at(index));
-	chipsPerSideSpinner->setValue(totalchips.toInt() / cChipModulus);
-	totalchips = "<b>" + totalchips + "</b>";
-	totalChipsLabel->setText(totalchips);
+	QString total = QString::number(parameterTable.at(geometryPicker->selectedId())
+					.nchipslayer.at(barrelSelection->currentItem()).at(index));
+	layerChipsSpinner->setValue(total.toInt() / cLayerChipModulus);
+	total = "<b>" + total + "</b>";
+	layerTotalChipsLabel->setText(total);
+	layerSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId())
+				     .nsegmentslayer.at(barrelSelection->currentItem()).at(index));
 	int idx;
-	switch (parameterTable.at(geometryPicker->selectedId()).mtypeslayers.at(index)) {
-	case ss : idx = 0;
+	switch (parameterTable.at(geometryPicker->selectedId())
+		.mtypeslayers.at(barrelSelection->currentItem()).at(index)) {
+	case rphi : idx = 0;
 	    break;
-	case ds : idx = 1;
+	case stereo : idx = 1;
 	    break;
 	case pt : idx = 2;
 	    break;
-	default : idx = 0;
-	}
+	default : idx = -1;
+              }
 	layerTypeListBox->setCurrentItem(idx);
     }
     catch (std::out_of_range oor) {
@@ -905,13 +680,19 @@ void MainDialog::layerSelected( int index)
 void MainDialog::ringSelected( int index)
 {
     try {
-	segmentsPerRingSpinner->setValue(
-		parameterTable.at(geometryPicker->selectedId()).nsegmentsperring.at(index));
+	QString total = QString::number(parameterTable.at(geometryPicker->selectedId())
+					.nchipsring.at(endcapSelection->currentItem()).at(index));
+	ringChipsSpinner->setValue(total.toInt() / cRingChipModulus);
+	total = "<b>" + total + "</b>";
+	ringTotalChipsLabel->setText(total);
+	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId())
+				      .nsegmentsring.at(endcapSelection->currentItem()).at(index));
 	int idx;
-	switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(index)) {
-	case ss : idx = 0;
+	switch (parameterTable.at(geometryPicker->selectedId())
+		.mtypesrings.at(endcapSelection->currentItem()).at(index)) {
+	case rphi : idx = 0;
 	    break;
-	case ds : idx = 1;
+	case stereo : idx = 1;
 	    break;
 	case pt : idx = 2;
 	    break;
@@ -926,24 +707,126 @@ void MainDialog::ringSelected( int index)
     }    
 }
 
+void MainDialog::barrelSelected(int index)
+{
+    try {
+	layerSelection->clear();
+	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nlayers.at(index); i++) {
+	    layerSelection->insertItem(QString::number(i + 1), i);
+	}
+	layerSelection->setCurrentItem(0);
+	layerSelected(0);
+    }
+    catch (std::out_of_range oor) {
+	QString statustext(msgErrParamTableAccess);
+	statustext += oor.what();
+	statusBar->setText(statustext);
+    }
+}
+
+void MainDialog::endcapSelected(int index)
+{
+    try {
+	ringSelection->clear();
+	if (parameterTable.at(geometryPicker->selectedId()).nrings.at(index) > 0) {
+	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings.at(index); i++) {
+		ringSelection->insertItem(QString::number(i + 1), i);
+	    }
+	    ringSelection->setCurrentItem(0);
+	    ringSelected(0);
+	}
+	else {
+	    ringChipsSpinner->setEnabled(FALSE);
+	    ringSegmentsSpinner->setEnabled(FALSE);
+	    ringTypeListBox->setEnabled(FALSE);
+	}
+    }
+    catch (std::out_of_range oor) {
+	QString statustext(msgErrParamTableAccess);
+	statustext += oor.what();
+	statusBar->setText(statustext);
+    }
+}
+
+void MainDialog::addRing()
+{
+    ringSelection->insertItem(QString::number(ringSelection->count() + 1), ringSelection->count());
+    parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
+    parameterTable.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
+	    .push_back(cRingChipModulus);
+    parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
+	    .push_back(ringSegmentsSpinner->minValue());
+    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+	    .push_back(rphi);
+    widgetCache.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
+    widgetCache.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
+	    .push_back(cRingChipModulus);
+    widgetCache.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
+	    .push_back(ringSegmentsSpinner->minValue());
+    widgetCache.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+	    .push_back(rphi);
+    if (ringSelection->count() == 1) {
+	ringChipsSpinner->setEnabled(TRUE);
+	ringSegmentsSpinner->setEnabled(TRUE);
+	ringTypeListBox->setEnabled(TRUE);
+    }
+    ringSelection->setCurrentItem(ringSelection->count() - 1);
+    ringSelected(ringSelection->currentItem());
+}
+
+void MainDialog::removeRing()
+{
+    if (ringSelection->count() > 0) {
+	ringSelection->removeItem(ringSelection->count() - 1);
+	parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())--;
+	parameterTable.at(geometryPicker->selectedId()).nchipsring
+		.at(endcapSelection->currentItem()).pop_back();
+	parameterTable.at(geometryPicker->selectedId()).nsegmentsring
+		.at(endcapSelection->currentItem()).pop_back();
+	parameterTable.at(geometryPicker->selectedId()).mtypesrings
+		.at(endcapSelection->currentItem()).pop_back();
+	widgetCache.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())--;
+	widgetCache.at(geometryPicker->selectedId()).nchipsring
+		.at(endcapSelection->currentItem()).pop_back();
+	widgetCache.at(geometryPicker->selectedId()).nsegmentsring
+		.at(endcapSelection->currentItem()).pop_back();
+	widgetCache.at(geometryPicker->selectedId()).mtypesrings
+		.at(endcapSelection->currentItem()).pop_back();
+	if (ringSelection->count() < 1) {
+	    ringChipsSpinner->setValue(ringChipsSpinner->minValue());
+	    ringChipsSpinner->setEnabled(FALSE);
+	    ringSegmentsSpinner->setValue(ringSegmentsSpinner->minValue());
+	    ringSegmentsSpinner->setEnabled(FALSE);
+	    ringTypeListBox->setCurrentItem(none);
+	    ringTypeListBox->setEnabled(FALSE);
+	}
+	else {
+	    ringSelection->setCurrentItem(ringSelection->count() -1);
+	    ringSelected(ringSelection->currentItem());
+	}
+    }
+}
+
 /**
  * This is the event handler that validates the input when the value of the <i>chips per side</i> spinner changes.
  * It also updates the value of the label that displays the final number of chips per side, and the entry in <i>parameterTable</i>.
  * @param value The new value that was entered into the spinner
  */
-void MainDialog::chipsPerSideChanged(int value)
+void MainDialog::layerChipsAcrossChanged(int value)
 {
     try {
 	int pos = 0;
-	QString inttostring = chipsPerSideSpinner->text();
-	switch (chipsPerSideSpinner->validator()->validate(inttostring, pos)) {
+	QString inttostring = layerChipsSpinner->text();
+	switch (layerChipsSpinner->validator()->validate(inttostring, pos)) {
 	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId())
-		    .nchipsperside.at(layerSelection->currentItem()) = value * cChipModulus;
+		    .nchipslayer.at(barrelSelection->currentItem())
+		    .at(layerSelection->currentItem()) = value * cLayerChipModulus;
 	    {
 		QString totalchips = QString::number(parameterTable.at(geometryPicker->selectedId())
-						     .nchipsperside.at(layerSelection->currentItem()));
+						     .nchipslayer.at(barrelSelection->currentItem())
+						     .at(layerSelection->currentItem()));
 		totalchips = "<b>" + totalchips + "</b>";
-		totalChipsLabel->setText(totalchips);
+		layerTotalChipsLabel->setText(totalchips);
 	    }
 	    break;
 	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
@@ -957,22 +840,17 @@ void MainDialog::chipsPerSideChanged(int value)
 	QString statustext(msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
-    }   
+    }
 }
 
-/**
- * This is the event handler that validates the input when the value of the <i>segments per ring</i> spinner changes.
- * It also updates the corresponding entry in <i>parameterTable</i>.
- * @param value The new value that was entered into the spinner
- */
-void MainDialog::segmentsPerRingChanged(int value)
+void MainDialog::layerSegmentsAlongChanged(int value)
 {
     try {
 	int pos = 0;
-	QString inttostring = segmentsPerRingSpinner->text();
-	switch (segmentsPerRingSpinner->validator()->validate(inttostring, pos)) {
-	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId())
-		    .nsegmentsperring.at(layerSelection->currentItem()) = value;
+	QString inttostring = layerSegmentsSpinner->text();
+	switch (layerSegmentsSpinner->validator()->validate(inttostring, pos)) {
+	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nsegmentslayer
+		    .at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = value;
 	    break;
 	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
 	    break;
@@ -985,7 +863,66 @@ void MainDialog::segmentsPerRingChanged(int value)
 	QString statustext(msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
-    }      
+    }
+}
+
+void MainDialog::ringChipsAcrossChanged(int value)
+{
+    try {
+	int pos = 0;
+	QString inttostring = ringChipsSpinner->text();
+	switch (ringChipsSpinner->validator()->validate(inttostring, pos)) {
+	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId())
+		    .nchipsring.at(endcapSelection->currentItem())
+		    .at(ringSelection->currentItem()) = value * cRingChipModulus;
+	    {
+		QString totalchips = QString::number(parameterTable.at(geometryPicker->selectedId())
+						     .nchipsring.at(endcapSelection->currentItem())
+						     .at(ringSelection->currentItem()));
+		totalchips = "<b>" + totalchips + "</b>";
+		ringTotalChipsLabel->setText(totalchips);
+	    }
+	    break;
+	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    break;
+	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    break;
+	default : statusBar->setText(msgErrValidationStrange);
+    }
+    }
+    catch (std::out_of_range oor) {
+	QString statustext(msgErrParamTableAccess);
+	statustext += oor.what();
+	statusBar->setText(statustext);
+    }
+}
+
+/**
+ * This is the event handler that validates the input when the value of the <i>segments per ring</i> spinner changes.
+ * It also updates the corresponding entry in <i>parameterTable</i>.
+ * @param value The new value that was entered into the spinner
+ */
+void MainDialog::ringSegmentsAlongChanged(int value)
+{
+    try {
+	int pos = 0;
+	QString inttostring = ringSegmentsSpinner->text();
+	switch (ringSegmentsSpinner->validator()->validate(inttostring, pos)) {
+	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nsegmentsring
+		    .at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = value;
+	    break;
+	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    break;
+	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    break;
+	default : statusBar->setText(msgErrValidationStrange);
+              }
+    }
+    catch (std::out_of_range oor) {
+	QString statustext(msgErrParamTableAccess);
+	statustext += oor.what();
+	statusBar->setText(statustext);
+    }
 }
 
 /**
@@ -997,8 +934,8 @@ bool MainDialog::validateInput()
 {
     try {
 	int pos = 0;
-	QString inttostring = chipsPerSideSpinner->text();
-	switch (chipsPerSideSpinner->validator()->validate(inttostring, pos)) {
+	QString inttostring = layerChipsSpinner->text();
+	switch (layerChipsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
 	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
 		return FALSE;
@@ -1007,8 +944,28 @@ bool MainDialog::validateInput()
 	    default : statusBar->setText(msgErrValidationStrange);
 		return FALSE;
 	}
-	inttostring = segmentsPerRingSpinner->text();
-	switch (segmentsPerRingSpinner->validator()->validate(inttostring, pos)) {
+	inttostring = layerSegmentsSpinner->text();
+	switch (layerSegmentsSpinner->validator()->validate(inttostring, pos)) {
+	    case QValidator::Acceptable : break;
+	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+		return FALSE;
+	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+		return FALSE;
+	    default : statusBar->setText(msgErrValidationStrange);
+		return FALSE;
+	}
+	 inttostring = ringChipsSpinner->text();
+	switch (ringChipsSpinner->validator()->validate(inttostring, pos)) {
+	    case QValidator::Acceptable : break;
+	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+		return FALSE;
+	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+		return FALSE;
+	    default : statusBar->setText(msgErrValidationStrange);
+		return FALSE;
+	}
+	inttostring = ringSegmentsSpinner->text();
+	switch (ringSegmentsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
 	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
 		return FALSE;
@@ -1032,6 +989,9 @@ bool MainDialog::validateInput()
 	if (!ptPowerEdit->hasAcceptableInput()) {
 	    statusBar->setText(msgValidationError);
 	    return FALSE;
+	}
+	if (trackerNameLineEdit->text().length() == 0) {
+	    trackerNameLineEdit->setText(cDefaultTrackerName);
 	}
 	return TRUE;
     }

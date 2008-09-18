@@ -3,7 +3,11 @@ LANGUAGE	= C++
 
 CONFIG	+= qt warn_on release
 
-SOURCES	+= tkgeomgui.cpp
+HEADERS	+= gui_constants.h \
+	filehandler.h
+
+SOURCES	+= tkgeomgui.cpp \
+	FileHandler.cc
 
 FORMS	= maindialog.ui
 
