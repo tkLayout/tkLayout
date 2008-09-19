@@ -46,6 +46,7 @@ private:
   bool parseBarrelType(string myName, istream &inStream);
   bool parseEndcapType(string myName, istream &inStream);
   bool parseAnyType(string myName, istream &inStream);
+  bool parseOutput(istream &inStream);
 
 };
 

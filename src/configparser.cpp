@@ -246,6 +246,9 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
   double innerEta = 0;
   int diskParity = 0; 
 
+  map<pair<int,int>, bool> mapDiskRingRemoveToOuter;
+  map<pair<int,int>, bool>::iterator mapDiskRingRemoveToOuterIt;
+
   Module* sampleModule = NULL;
 
   // Directives (this are communicated to the Tracker object)
@@ -288,8 +291,31 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	  throw parsingException();	  
 	}
       } else if (parameterName=="removeRings") {
-	// TODO: add this
-	cout << "WARNING: removeRings not implemented" << endl;
+	// Example of the syntax "D1R4+"
+	int diskNum, ringNum;
+	char plusMinus;
+	bool parseError=false;
+	pair <int, int> diskRing;
+	if (sscanf(parameterValue.c_str(),"D%dR%d%c", &diskNum, &ringNum, &plusMinus)==3) {
+	  if ((plusMinus=='+')||(plusMinus=='-')) {
+	    diskRing.first=diskNum;
+	    diskRing.second=ringNum;
+	    bool outer;
+	    outer=(plusMinus=='+');
+	    mapDiskRingRemoveToOuter[diskRing]=outer;
+	  } else {
+	    parseError=true;
+	  }
+	} else {
+	  parseError=true;
+	}
+	 
+	if (parseError) {
+	  cout << "Parsing endcap " << myName << endl
+	       << "Wrong syntax for a ring directive: \"" << parameterValue
+	       << "\" should be like D1R4+ (to remove rings 4 or more from disk 1)" << endl;
+	  throw parsingException();
+	}
       } else {
 	cout << "Unknown parameter \"" << parameterName << "\"" << endl;
 	throw parsingException();
@@ -354,6 +380,20 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     }
 
     delete sampleModule; // Dispose of the sample module
+
+    // Remove the deleted rings
+	       
+    for (mapDiskRingRemoveToOuterIt=mapDiskRingRemoveToOuter.begin();
+	 mapDiskRingRemoveToOuterIt!=mapDiskRingRemoveToOuter.end();
+	 mapDiskRingRemoveToOuterIt++) {
+      int iDisk = ((*mapDiskRingRemoveToOuterIt).first).first;
+      int iRing = ((*mapDiskRingRemoveToOuterIt).first).second;
+      bool directionOuter = (*mapDiskRingRemoveToOuterIt).second;
+
+      cout << "myTracker_->removeDiskRings("<<myName<<","<<iDisk<<", "<<iRing<<", "<<directionOuter<<");" << endl; // debug
+      myTracker_->removeDiskRings(myName, iDisk, iRing, directionOuter);
+    }
+
   } else {
     cout << "Missing mandatory parameter for endcap " << myName << endl;
     throw parsingException();
@@ -498,6 +538,36 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
 
 }
 
+// Output stuff
+bool configParser::parseOutput(istream& inStream) {
+  string parameterName;
+  string parameterValue;
+
+  string outPath="";
+
+  // Tracker should be already there
+  if (!myTracker_) {
+    cout << "Error: tracker is NULL when trying to assign output options" << endl;
+    return false;
+  }
+
+  // TODO: decide whether to use nStripAcross or nStripsAcross
+  while (!inStream.eof()) {
+    while (parseParameter(parameterName, parameterValue, inStream)) {
+      if (parameterName=="Path") {
+	outPath=parameterValue;
+      } else {
+	cerr << "While parting output parameters, I got an unrecognized parameter: " << parameterName << endl;
+	throw parsingException();
+      }
+    }
+  }
+  
+  if (outPath!="") myTracker_->setActiveDirectory(outPath);
+
+  return true;
+
+}
 
 
 // Takes the type and the name of the object, creates a strstream of
@@ -576,6 +646,13 @@ bool configParser::parseDressType(string myType) {
 	istringstream typeStream(typeConfig);
 	parseEndcapType(str, typeStream);
       }
+    }
+  } else if (myType=="Output") {
+    getTill(configFile_, '{', false, true);
+    typeConfig = getTill(configFile_, '}', false, true);
+    if (typeConfig!="") {
+      istringstream typeStream(typeConfig);
+      parseOutput(typeStream);
     }
   } else {
     cerr << "Error: unknown module type assignment keyword: " << myType;

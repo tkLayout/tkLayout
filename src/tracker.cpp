@@ -463,6 +463,54 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
 
 }
 
+// Function used to remove some endcaps rings
+// sectionName: name of the endcap to operate onto
+// iDisk: number of the disk onto which operate
+// iRing: number of the first ring to remove
+// directionOuter: if it's true we must remove all the rings outer than iRing
+// while if it's false we remove all the rings inner that iRing
+void Tracker::removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter) {
+  LayerVector::iterator layIt;
+  ModuleVector::iterator modIt;
+  ModuleVector::iterator anotherModIt;
+  ModuleVector* aLay;
+  Module* aModule;
+  EndcapModule* anEndcapModule;
+  
+  // Take the vector of layers in the section
+  LayerVector myLayers = sectionMap_[sectionName];
+  
+  for (layIt=myLayers.begin(); layIt!=myLayers.end(); layIt++) {
+    aLay = (*layIt)->getModuleVector();
+    for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+      aModule=(*modIt);
+      
+      if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+	if (directionOuter) {
+	  if ((anEndcapModule->getDisk()==iDisk)
+	      && (anEndcapModule->getRing()>=iRing)) {
+	    delete aModule;
+	    anotherModIt=modIt-1;
+	    aLay->erase(modIt);
+	    modIt=anotherModIt;
+	  }
+	} else {
+	  if ((anEndcapModule->getDisk()==iDisk)
+	      && (anEndcapModule->getRing()<=iRing)) {
+	    delete aModule;
+	    anotherModIt=modIt-1;
+	    aLay->erase(modIt);
+	    modIt=anotherModIt;
+	  }
+	}
+      } else if (dynamic_cast<BarrelModule*>(aModule)) {
+	// ERROR: this should not happen
+	std::cerr << "ERROR: a barrel module was found in section " << sectionName
+		  << " while we are trying to remove rings from there. It should be an endcap module!" << std::endl;
+      }
+    }
+  }
+}
 
 // *******************************
 // *                             *
@@ -1126,10 +1174,10 @@ void Tracker::writeSummary(bool configFiles,
 
 
   // Write everything into a file in the summary dir
-  std::string fileName = summaryDirectory_+"/"+trackerName_+"/index."+fileType;
+  std::string fileName = activeDirectory_+"/index."+fileType;
   std::cout << "$BROWSER " << fileName << std::endl;
   std::ofstream myfile;
-  drawSummary(maxL_, maxR_, summaryDirectory_+"/"+trackerName_+"/summaryPlots");
+  drawSummary(maxL_, maxR_, activeDirectory_+"/summaryPlots");
   myfile.open(fileName.c_str());
   if (fileType=="html") {
     myfile << "<html><title>"<<trackerName_<<"</title><body>" << std::endl;
@@ -1234,15 +1282,16 @@ void Tracker::printHtmlTableRow(ofstream *output, std::vector<double> myRow, int
 // TODO: use the boost library to handle directories
 // (see http://boost.org/libs/filesystem/doc/index.htm )
 void Tracker::createDirectories() {
-  std::string dirName;
 
-  dirName = summaryDirectory_;
-  mkdir (dirName.c_str(), 0755);
-  dirName = summaryDirectory_ + "/" + trackerName_;
-  activeDirectory_=dirName;
-  mkdir (dirName.c_str(), 0755);
-  dirName = storeDirectory_;
-  mkdir (dirName.c_str(), 0755);
+  if (activeDirectory_=="") {
+    activeDirectory_ = summaryDirectory_ + "/" + trackerName_;
+    mkdir (summaryDirectory_.c_str(), 0755);
+    mkdir (activeDirectory_.c_str(), 0755);
+    mkdir (storeDirectory_.c_str(), 0755);
+  } else {
+    mkdir (activeDirectory_.c_str(), 0755);
+    mkdir (storeDirectory_.c_str(), 0755);
+  }   
 
 }
 

@@ -35,8 +35,7 @@ protected:
   LayerVector barrelLayerSet_;
   LayerVector endcapLayerSet_;
   ModuleVector endcapSample_;
-  SectionMap sectionMap_;
-  
+  SectionMap sectionMap_;  
 
   std::map<int, double> mapTypeToCost_;
   std::map<int, double> mapTypeToPower_;  
@@ -151,6 +150,9 @@ public:
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
 		    Module* sampleModule, int diskParity, int sectioned = Layer::NoSection );
 
+  // Endcap ring remover
+  void removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter);
+
 
   // Access to parameters
   void setZError(const double& newError) { zError_ = newError; };
@@ -161,6 +163,7 @@ public:
 
   void setStoreDirectory(const std::string newDir) { storeDirectory_ = newDir; };
   void setSummaryDirectory(const std::string newDir) { summaryDirectory_ = newDir; };
+  void setActiveDirectory(const std::string newDir) { activeDirectory_ = newDir; };
   void setTrackerName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
   void setName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
   void setLayerDirectives(const std::map<int, double> newDirectives ) { layerDirectives_=newDirectives; };
