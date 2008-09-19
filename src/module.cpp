@@ -686,7 +686,7 @@ void Module::computeStripArea() {
 
 double Module::getOccupancyPerEvent() {
   XYZVector meanPoint = getMeanPoint();
-  double meanEta = abs(meanPoint.eta());
+  double meanEta = fabs(meanPoint.eta());
 
   computeStripArea();
   double spOcc;
