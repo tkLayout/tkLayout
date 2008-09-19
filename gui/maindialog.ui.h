@@ -45,11 +45,11 @@ void MainDialog::init()
     
     /// Add the menu items to the settings popup menu and connect the widget to the main form
     settingsPopup = new QPopupMenu(settingsButton, "Settings");
-    settingsPopup->insertItem("Default Values", 0, 0);
+    settingsPopup->insertItem("Initial Defaults", 0, 0);
     settingsPopup->insertItem("Load Settings...", 1, 1);
     settingsPopup->insertItem("Save Settings...", 2, 2);
     settingsPopup->insertItem("Save As Default", 3, 3);
-    settingsPopup->insertItem("Restore Defaults", 4, 4);
+    settingsPopup->insertItem("Restore Default Files", 4, 4);
     connect(settingsPopup, SIGNAL(activated(int)), this, SLOT(settingsChanged(int)));
     settingsButton->setPopup(settingsPopup);
 
@@ -276,16 +276,16 @@ void MainDialog::backToStart()
 void MainDialog::go()
 {
     if (validateInput()) {
-	QString command = basePath + cCommand + " ";
+	QString command = basePath + "/" + cCommand + " ";
 	fh->configureTracker(tmpConfig, parameterTable.at(geometryPicker->selectedId()));
 	fh->writeSettingsToFile(tmpSettings, parameterTable.at(geometryPicker->selectedId()),
-				  summaryExtension + outDirExtension);
+				  summaryExtension.remove(0,1) + outDirExtension);
 	cmdLineStub = tmpConfig.name() + " " + tmpSettings.name();
 	command += cmdLineStub;
 	try  {
 	    int simulstatus;	
 	    simulstatus = simulate(command);
-	    std::cout << msgSimulationExit << simulstatus << "." << std::endl;
+	    std::cout << cCommand << msgSimulationExit << simulstatus << "." << std::endl;
 	    summaryTextEdit->mimeSourceFactory()->setFilePath(basePath + summaryExtension + outDirExtension);
 	    QFile workingFile(basePath + summaryExtension + outDirExtension + "/" + cSummaryIndex);
 	    if (workingFile.exists() && workingFile.open(IO_ReadOnly)) {
@@ -387,7 +387,10 @@ void MainDialog::loadSettingsDialog()
 		QFile workingFile(fromConfigFile);
 		fh->readConfigurationFromFile(workingFile, parameterTable.at(geometryPicker->selectedId()));
 		workingFile.setName(fromSettingsFile);
-		fh->dressGeometry(workingFile, parameterTable.at(geometryPicker->selectedId()));
+		if (workingFile.exists()) {
+		    fh->dressGeometry(workingFile, parameterTable.at(geometryPicker->selectedId()));
+		}
+		valuesToWidgets(parameterTable.at(geometryPicker->selectedId()));
 	    }
 	    catch (std::runtime_error re) {
 		statusBar->setText(re.what());
@@ -420,7 +423,9 @@ void MainDialog::saveSettingsDialog()
 								  QString("Save Module Options to File"));
 	    if (!toSettingsFile.isEmpty()) {
 		try {
+		    QFile sourceFile(settingsPath + "/" + cDefaultConfig);
 		    QFile workingFile(toConfigFile);
+		    fh->copyTextFile(sourceFile, workingFile);
 		    fh->configureTracker(workingFile, parameterTable.at(geometryPicker->selectedId()));
 		    workingFile.setName(toSettingsFile);
 		    fh->writeSettingsToFile(workingFile, parameterTable.at(geometryPicker->selectedId()), "");
@@ -490,7 +495,7 @@ void MainDialog::restoreDefaultSettings()
 	statusBar->setText(msgSettingsRestored);
     }
     catch (std::runtime_error re) {
-	statusBar->setText(msgErrSettingsRestore + ": " + re.what());
+	statusBar->setText(msgErrSettingsRestore + " " + re.what());
     }
 }
 
@@ -503,6 +508,7 @@ void MainDialog::settingsChanged(int button)
     statusBar->clear();
     switch (button) {
     case 0 : clearParameters();
+	valuesToWidgets(parameterTable.at(geometryPicker->selectedId()));
 	break;
     case 1 : loadSettingsDialog();
 	break;
@@ -522,9 +528,7 @@ void MainDialog::settingsChanged(int button)
  */
 QString& MainDialog::buildSettingsPath(QString& sPath)
 {
-    sPath = basePath + resExtension +"/";
-    sPath += QString::number(geometryPicker->selectedId() + 1);
-    sPath += settingsExtension;
+    sPath = basePath + resExtension +"/" + geometryPicker->selected()->text() + settingsExtension;
     return sPath;
 }
 
@@ -609,13 +613,16 @@ void MainDialog::ringTypeSelected(int index)
 {
     try {
 	switch (index) {
-	case 0 : parameterTable.at(geometryPicker->selectedId())
+	case 0 : ringTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = rphi;
 	    break;
-	case 1 : parameterTable.at(geometryPicker->selectedId())
+	case 1 : ringTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = stereo;
 	    break;
-	case 2 : parameterTable.at(geometryPicker->selectedId())
+	case 2 : ringTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = pt;
 	    break;
 	default: parameterTable.at(geometryPicker->selectedId())
@@ -638,17 +645,20 @@ void MainDialog::layerTypeSelected(int index)
 {
     try {
 	switch (index) {
-	case 0 : parameterTable.at(geometryPicker->selectedId())
+	case 0 : layerTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = rphi;
 	    break;
-	case 1 : parameterTable.at(geometryPicker->selectedId())
-	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = stereo;
+	case 1 : layerTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
+		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = stereo;
 	    break;
-	case 2 : parameterTable.at(geometryPicker->selectedId())
-	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = pt;
+	case 2 : layerTypeListBox->setCurrentItem(index);
+	    parameterTable.at(geometryPicker->selectedId())
+		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = pt;
 	    break;
 	default: parameterTable.at(geometryPicker->selectedId())
-	    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = none;
+		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = none;
 	    layerTypeListBox->clearSelection();
 	}
     }
@@ -806,6 +816,7 @@ void MainDialog::addRing()
     }
     ringSelection->setCurrentItem(ringSelection->count() - 1);
     ringSelected(ringSelection->currentItem());
+    ringTypeSelected(-1);
 }    
 
 void MainDialog::removeRing()
