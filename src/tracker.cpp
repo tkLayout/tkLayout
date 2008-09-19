@@ -2133,7 +2133,7 @@ void Tracker::computeBandwidth() {
 	chanHitDist_->Fill(hitChannels);
 	
 	for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
-	  nChips=ceil((*modIt)->getNChannelsPerFace()/128.);
+	  nChips=int(ceil((*modIt)->getNChannelsPerFace()/128.));
 	  
 	  // TODO: place the computing model choice here
 
