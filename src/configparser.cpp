@@ -96,7 +96,6 @@ bool configParser::parseTracker(string myName, istream& inStream) {
       } else if (parameterName=="overlap") {
 	doubleValue=atof(parameterValue.c_str());
 	myTracker_->setOverlap(doubleValue);
-
       } else if (parameterName=="etaCut") {
 	doubleValue=atof(parameterValue.c_str());
 	myTracker_->setEtaCut(doubleValue);
@@ -121,6 +120,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
   }
 
   // All the tracker parameters are set now
+  return true;
+
 }
 
 
@@ -248,8 +249,6 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 
   map<pair<int,int>, bool> mapDiskRingRemoveToOuter;
   map<pair<int,int>, bool>::iterator mapDiskRingRemoveToOuterIt;
-
-  Module* sampleModule = NULL;
 
   // Directives (this are communicated to the Tracker object)
   std::map<int,int> ringDirective;
@@ -535,6 +534,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   myTracker_->setModuleTypes(myName,
 			     nStripsAcross, nSides, nSegments, type,
 			     nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond, specialSecond);
+
+  return true;
 
 }
 

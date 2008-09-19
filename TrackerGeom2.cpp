@@ -12,7 +12,6 @@ using namespace std;
 // is done here.
 Tracker* createGeometry(string configFileName) {
   configParser myParser;
-  Tracker* myTracker=NULL;
 
   return myParser.parseFile(configFileName);
 
@@ -25,7 +24,7 @@ Tracker* createDressedGeometry(string configFileName, string dressFileName) {
   configParser myParser;
   Tracker* myTracker;
 
-  if (myTracker=myParser.parseFile(configFileName)) {
+  if ( (myTracker=myParser.parseFile(configFileName)) ) {
     myParser.dressTracker(myTracker, dressFileName);
   } 
 

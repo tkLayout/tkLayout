@@ -232,9 +232,13 @@ bool parseValues(int argc, char** argv)
     
     
   } catch (ArgException &e)  // catch any exceptions
-    { cerr << "error: " << e.error() << " for arg " << e.argId() << endl; }
-
-
+    {
+      cerr << "error: " << e.error() << " for arg " << e.argId() << endl; 
+      return false;
+    }
+  
+  return true;
+  
 }
 
 

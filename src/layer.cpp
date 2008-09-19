@@ -626,7 +626,7 @@ void BarrelLayer::buildLayer (double averageRadius,
       edge phiEdge;
       BarrelModule* stdBarrelMod;
       for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
-	if (stdBarrelMod=static_cast<BarrelModule*>(*itMod)) {
+	if ( (stdBarrelMod=dynamic_cast<BarrelModule*>(*itMod)) ) {
 	  phiEdge=((BarrelModule*)(*itMod))->getEdgePhiSide(-1);
 	  if (itMod==aString.begin()) {
 	    rightAngle=phiEdge.first;
@@ -799,7 +799,7 @@ double BarrelLayer::getMaxZ(int direction) {
   direction/=abs(direction);
 
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
-    if (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) {
+    if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
       aZ = aBarrelModule->getEdgeZSide(direction).first;
       if (direction*aZ>direction*maxZ) {
 	maxZ=aZ;
@@ -824,7 +824,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
   minZ=0;
 
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
-    if (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) {
+    if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
       aZ = aBarrelModule->getEdgeZSide(+1).first;
       if (aZ>maxZ) {
 	maxBarrelModule = aBarrelModule;
@@ -867,7 +867,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
       ;
     
     for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
-      if (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) {
+      if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
 	myMeanZ = (aBarrelModule->getMeanPoint()).Z();
       if (myMeanZ>0) {
 	modShift=XYZVector(0, 0, deltap*myMeanZ);
@@ -911,7 +911,7 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
   averageZ_=inputLayer.averageZ_;
 
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
-    if (stdModule=static_cast<EndcapModule*>(*modIt)) {
+    if ( (stdModule=dynamic_cast<EndcapModule*>(*modIt)) ) {
       aModule = new EndcapModule(*stdModule);
       moduleSet_.push_back(aModule);
     } else {
@@ -1009,8 +1009,6 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 
   EndcapModule* trialModule[3];
   
-  char typeName[100];
-
   std::map<int, int>::iterator aDirective;
 
 

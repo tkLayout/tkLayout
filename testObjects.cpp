@@ -54,7 +54,7 @@ void initializeGeometry() {
   TGeoMaterial *matVacuum = new TGeoMaterial("Vacuum", 0,0,0);
   TGeoMaterial *matSi = new TGeoMaterial("Si", 26.98,13,2.7);
   TGeoMedium *Vacuum = new TGeoMedium("Vacuum", 1, matVacuum);
-  TGeoMedium *Si = new TGeoMedium("Si", 2, matSi);
+  /* TGeoMedium *Si = */ new TGeoMedium("Si", 2, matSi);
   // Define and set the top volume
   top = tkGeom->MakeBox("TOP", Vacuum, 270., 270., 120.);
   tkGeom->SetTopVolume(top);
@@ -163,7 +163,7 @@ void test3(std::vector<Module*> &trialLayer)
 
   edge myEdge = myModule->getEdgeZSide(+1, 2);
   
-  XYZVector* pippo = myModule->marginBorderSide(10,myEdge.second);
+  /* XYZVector* pippo = */ myModule->marginBorderSide(10,myEdge.second);
   
   BarrelModule* anotherModule = new BarrelModule(*myModule);
   anotherModule->setEdgeZ(myEdge.first, +1);

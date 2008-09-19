@@ -84,7 +84,7 @@ class Module {
   void setDefaultParameters();
     
  public:
-  ~Module();
+  virtual ~Module();
   Module();
   Module(double waferDiameter);
   
@@ -138,7 +138,7 @@ class Module {
   double getMeanTheta();
   XYZVector getMeanPoint();
 
-  virtual std::string getSensorTag() {};
+  virtual std::string getSensorTag() {  return std::string("");  };
 
   int getSection() { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };

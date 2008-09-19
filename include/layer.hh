@@ -20,7 +20,7 @@ private:
   virtual void setDefaultParameters();
   
 public:
-  ~Layer();
+  virtual ~Layer();
   Layer();
   void translate(XYZVector Delta);
   void rotatePhi(double phi) {/*TODO*/};

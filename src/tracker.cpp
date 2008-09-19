@@ -70,7 +70,6 @@ void Tracker::shapeLayerVolumes() {
 
 
 void Tracker::createGeometry(bool lite /*= false*/ ) {
-  char realFileName[300];
 
   if (!lite) {
     
@@ -131,7 +130,6 @@ void Tracker::shapeModuleVolumesEndcapSample(bool lite /* = false */) {
   // TODO:
   // Will build all the modules volumes / contours
   ModuleVector::iterator modIt;
-  bool placeThis;
 
   for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
     if (!lite) {
@@ -315,7 +313,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
 
   // Take the shortest barrel
   for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
-    if (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) {
+    if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
       aZp = aBarrelLayer->getMaxZ(+1);
       aZm = aBarrelLayer->getMaxZ(-1);
       //       std::cout << "it's a barrel layer in the range " << aZm << ".." << aZp;
@@ -341,7 +339,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
 
   // And compact everything to it
   for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
-    if (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) {
+    if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
       aBarrelLayer->compressToZ(minZt);
     } else {
       std::cerr << "ERROR: trying to compact a non-barrel layer" ;
@@ -363,7 +361,7 @@ double Tracker::getMaxBarrelZ(int direction) {
 
   // Take the shortest barrel
   for (layIt = barrelLayerSet_.begin(); layIt!= barrelLayerSet_.end(); layIt++) {
-    if (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) {
+    if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
       aZ = aBarrelLayer->getMaxZ(direction);
       if (layIt==barrelLayerSet_.begin()) {
 	maxZ=aZ;
@@ -432,7 +430,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
     for (ModuleVector::iterator modIt = defaultDisk->getModuleVector()->begin();
 	 modIt!=defaultDisk->getModuleVector()->end();
 	 modIt++) {
-      if (anEndcapModule=static_cast<EndcapModule*>(*modIt)) {
+      if ( (anEndcapModule=dynamic_cast<EndcapModule*>(*modIt)) ) {
 	anEndcapModule->setDisk(iDisk+1);
       } else {
 	std::cerr << "ERROR IN Tracker::buildEndcaps this shoundn't happen!" << std::endl;
@@ -485,7 +483,7 @@ void Tracker::removeDiskRings(std::string sectionName, int iDisk, int iRing, boo
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
       
-      if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+      if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
 	if (directionOuter) {
 	  if ((anEndcapModule->getDisk()==iDisk)
 	      && (anEndcapModule->getRing()>=iRing)) {
@@ -547,11 +545,7 @@ std::pair<double, double> Tracker::getEtaMinMax() {
 int Tracker::cutOverEta(double etaCut) {
   int nCut = 0;
   LayerVector::iterator layIt;
-  ModuleVector* moduleV;
   ModuleVector::iterator modIt;
-
-  double theta;
-  double eta;
 
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     nCut += (*layIt)->cutOverEta(etaCut);
@@ -750,7 +744,7 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
   etaProfileCanvas_->cd();
   savingV_.push_back(etaProfileCanvas_);
   int plotCount=0;
-  double maxHeight=0;
+
   for (std::map <std::string, TH2D*>::iterator it = etaType.begin();
        it!=etaType.end(); it++) {
     (*it).second->Clone();
@@ -887,11 +881,11 @@ void Tracker::writeSummary(bool configFiles,
   ringRho2.push_back(2);
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     aLayer = (*layIt);
-    if (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) {
+    if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
       layerNames.push_back(aBarrelLayer->getName());
       layerRho.push_back(aBarrelLayer->getAverageRadius());
     }
-    if (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) {
+    if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
       if (anEndcapDisk->getAverageZ()>0) {
 	diskNames.push_back(anEndcapDisk->getName());
 	diskZ.push_back(anEndcapDisk->getAverageZ());
@@ -928,7 +922,7 @@ void Tracker::writeSummary(bool configFiles,
   int aRing;
   // Look into the endcap sample in order to indentyfy and measure rings
   for (ModuleVector::iterator moduleIt=endcapSample_.begin(); moduleIt!=endcapSample_.end(); moduleIt++) {
-    if (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) {
+    if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
       aRing=anEC->getRing();
       if (ringTypeMap.find(aRing)==ringTypeMap.end()){
 	// We have a new sensor geometry
@@ -942,7 +936,7 @@ void Tracker::writeSummary(bool configFiles,
   std::ostringstream myName;
   for (std::map<int, Module*>::iterator typeIt = ringTypeMap.begin();
        typeIt!=ringTypeMap.end(); typeIt++) {
-    if (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) {
+    if ( (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) ) {
       myName.str("");
       myName << "Ring " << std::dec << (*typeIt).first;
       ringNames.push_back(myName.str());
@@ -956,19 +950,19 @@ void Tracker::writeSummary(bool configFiles,
   }
 
   // Adjust sizes
-  int maxSize=0;
+  unsigned int maxSize=0;
   maxSize = (maxSize > diskNames.size()) ? maxSize : diskNames.size();
   maxSize = (maxSize > layerNames.size()) ? maxSize : layerNames.size();
   maxSize = (maxSize > ringNames.size()) ? maxSize : ringNames.size();
-  for (int i=diskNames.size(); i<=maxSize; i++) {
+  for (unsigned int i=diskNames.size(); i<=maxSize; i++) {
     diskNames.push_back("");
     diskZ.push_back(0);
   }
-  for (int i=layerNames.size(); i<=maxSize; i++) {
+  for (unsigned int i=layerNames.size(); i<=maxSize; i++) {
     layerNames.push_back("");
     layerRho.push_back(0);
   }
-  for (int i=ringNames.size(); i<=maxSize; i++) {
+  for (unsigned int i=ringNames.size(); i<=maxSize; i++) {
     ringNames.push_back("");
     ringRho1.push_back(0);
     ringRho2.push_back(0);
@@ -1062,9 +1056,10 @@ void Tracker::writeSummary(bool configFiles,
     loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
     hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
     if (loPitch==hiPitch) {
-      aPitchPair << std::dec << loPitch;
+      aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
     } else {
-      aPitchPair << std::dec << loPitch << "/" << hiPitch;
+      aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
+		 << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
     }
     // Strip Lengths
     aStripLength.str("");
@@ -1316,8 +1311,6 @@ void Tracker::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacin
   TPolyLine3D* aLine;
   Color_t gridColor = kGreen-10;
   Color_t gridColor_hard = kGray;
-  Color_t gridColor_solid = kBlack;
-  int gridStyle_solid = 1;
   Color_t thisLineColor;
 
   std::string theOption(option);
@@ -1408,11 +1401,8 @@ void Tracker::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacin
 // (if x=1, y=2, z=3)
 void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
   TPolyLine3D* aLine;
-  Color_t gridColor = kGreen-10;
   Color_t gridColor_hard = kGray;
-  Color_t gridColor_solid = kBlack;
   int gridStyle_solid = 1;
-  Color_t thisLineColor;
 
   std::string theOption(option);
     
@@ -1426,8 +1416,6 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
   double aValue[3];
   double minValue[3];
   double maxValue[3];
-  double runValue;
-  int thisLineStyle;
 
   i=(noAxis)%3;
   j=(noAxis+1)%3;
@@ -1585,7 +1573,7 @@ void Tracker::setModuleTypesDemo1() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
+      if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
 	aBarrelModule->setColor(aBarrelModule->getLayer());
       } else {
 	// This shouldnt happen
@@ -1599,7 +1587,7 @@ void Tracker::setModuleTypesDemo1() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+      if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
 	anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
       } else {
 	// This shouldnt happen
@@ -1611,7 +1599,7 @@ void Tracker::setModuleTypesDemo1() {
 
   for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
     aModule=(*modIt);
-    if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+    if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
       anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
     } else {
       // This shouldnt happen
@@ -1650,7 +1638,7 @@ void Tracker::setModuleTypes() {
     aLay = (*layIt)->getModuleVector();
     for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
       aModule=(*modIt);
-      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
+      if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
 
 	nFaces = 1;
 	readoutType = Module::Strip;
@@ -1724,7 +1712,7 @@ void Tracker::setModuleTypes() {
 
   for (modIt=allEndcapModules.begin(); modIt!=allEndcapModules.end(); modIt++) {
     aModule=(*modIt);
-    if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+    if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
       
       nFaces = 1;
       switch (anEndcapModule->getRing()) {
@@ -1846,12 +1834,12 @@ void Tracker::setModuleTypes(std::string sectionName,
       myTag.str("");
       myTag << sectionName << std::dec ;
       myIndex = -1;
-      if (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) {
+      if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
 	myTag << "L" << aBarrelModule->getLayer();
 	myIndex = aBarrelModule->getLayer();
 	mySpecialIndex.first= myIndex;
 	mySpecialIndex.second = -1;
-      } else if (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) {
+      } else if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
 	myTag << "R" << anEndcapModule->getRing();
 	myIndex = anEndcapModule->getRing();
 	// If special rules are applied here, we add the disk id to the tag
@@ -2077,8 +2065,6 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
 void Tracker::drawLayout(double maxZ, double maxRho, std::string fileName) {
   TCanvas* layoutCanvas;
   Int_t irep;
-  int i=0;
-
 
   layoutCanvas = new TCanvas("layoutCanvas", "Layout Canvas",400, 400);
   layoutCanvas->SetFillColor(kWhite);

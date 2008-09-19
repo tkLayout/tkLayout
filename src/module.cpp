@@ -169,6 +169,8 @@ XYZVector* Module::marginBorder(double widthMargin, double lengthMargin, int cor
   deltaLength*=(lengthMargin/deltaLength.R());
 
   result=new XYZVector((*thisCorner)+deltaWidth+deltaLength);
+
+  return result;
 }
 
 
@@ -628,7 +630,6 @@ double Module::getMaxTheta() {
 }
 
 double Module::getMeanTheta() {
-  double result, aTheta;
 
   XYZVector meanPoint(0,0,0);
 
@@ -641,7 +642,6 @@ double Module::getMeanTheta() {
 }
 
 XYZVector Module::getMeanPoint() {
-  double result, aTheta;
 
   XYZVector meanPoint(0,0,0);
 
@@ -655,7 +655,7 @@ XYZVector Module::getMeanPoint() {
 
 void Module::computeStripArea() {
   XYZVector meanPoint = getMeanPoint();
-  double meanEta = meanPoint.eta();
+  // double meanEta = meanPoint.eta(); // TODO: remove this line
   double meanPhi = meanPoint.phi();
 
   double maxTheta, minTheta, maxPhi, minPhi, aPhi;
