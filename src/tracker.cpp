@@ -1309,8 +1309,8 @@ void Tracker::save() {
 // (if x=1, y=2, z=3)
 void Tracker::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
   TPolyLine3D* aLine;
-  Color_t gridColor = kGreen-10;
-  Color_t gridColor_hard = kGray;
+  Color_t gridColor = COLOR_GRID;
+  Color_t gridColor_hard = COLOR_HARD_GRID;
   Color_t thisLineColor;
 
   std::string theOption(option);
@@ -1401,7 +1401,7 @@ void Tracker::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacin
 // (if x=1, y=2, z=3)
 void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
   TPolyLine3D* aLine;
-  Color_t gridColor_hard = kGray;
+  Color_t gridColor_hard = COLOR_HARD_GRID;
   int gridStyle_solid = 1;
 
   std::string theOption(option);
@@ -1769,6 +1769,9 @@ void Tracker::setModuleTypes() {
 
 Color_t Tracker::colorPicker(std::string type) {
   //  std::cerr << "PICKING a color for type " << type << ": " << std::endl; // debug
+
+  if (type=="") return COLOR_INVALID_MODULE;
+
   if (colorPickMap_[type]==0) {
     //std::cerr << "New type! I'll pick a new color: "; // debug
     colorPickMap_[type]=++lastPickedColor_;
@@ -1959,7 +1962,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
 
   TCanvas* YZCanvas = new TCanvas("YZCanvas","YZView Canvas", 800, 800 );
   summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas",800, 800);
-  summaryCanvas->SetFillColor(kGray);
+  summaryCanvas->SetFillColor(COLOR_BACKGROUND);
   summaryCanvas->Divide(2,2);
   summaryCanvas->SetWindowSize(800, 800);
 
@@ -1968,6 +1971,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
   // First pad
   // YZView
   myPad = summaryCanvas->GetPad(1);
+  myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
   myPad->cd();
   if (geomLiteYZ_) {
     drawGrid(maxZ, maxRho, ViewSectionYZ);
@@ -1980,6 +1984,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
 
     YZCanvas->cd();
     myPad = YZCanvas->GetPad(0);
+    myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
     drawGrid(maxZ, maxRho, ViewSectionYZ);
     geomLiteYZ_->DrawClonePad();
     myPad->GetView()->SetParallel();
@@ -1992,6 +1997,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
   // XYView (barrel)
   myPad = summaryCanvas->GetPad(2);
   myPad->cd();
+  myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
   if (geomLiteXY_) {
     drawGrid(maxZ, maxRho, ViewSectionXY);
     geomLiteXY_->DrawClonePad();
@@ -2004,6 +2010,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
   // Plots
   myPad = summaryCanvas->GetPad(3);
   myPad->cd();
+  myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
   if (etaProfileCanvas_) {
     etaProfileCanvas_->DrawClonePad();
   }
@@ -2012,6 +2019,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
   // XYView (EndCap)
   myPad = summaryCanvas->GetPad(4);
   myPad->cd();
+  myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
   if (geomLiteEC_) {
     drawGrid(maxZ, maxRho, ViewSectionXY);
     geomLiteEC_->DrawClonePad();
@@ -2038,13 +2046,14 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
     summaryCanvas->cd();
     pngFileName = fileName+"_nhitplot.png";
     etaProfileCanvas_->DrawClonePad();
+    etaProfileCanvas_->SetFillColor(COLOR_PLOT_BACKGROUND);
     //     TFrame* myFrame = summaryCanvas->GetFrame();
     //     if (myFrame) {
     //       myFrame->SetFillColor(kYellow-10);
     //     } else {
     //       std::cerr << "myFrame is NULL" << std::endl;
     //     }
-    summaryCanvas->SetFillColor(kGray);
+    summaryCanvas->SetFillColor(COLOR_BACKGROUND);
     summaryCanvas->SetBorderMode(0);
     summaryCanvas->SetBorderSize(0);
     summaryCanvas->Modified();

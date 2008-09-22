@@ -19,6 +19,12 @@
 #define DEFAULTBARRELNAME "defaultBarrel"
 #define DEFAULTENDCAPNAME "defaultEndcap"
 #define STARTCOLOR kBlack
+#define COLOR_PLOT_BACKGROUND kWhite
+#define COLOR_BACKGROUND kGray
+#define COLOR_GRID kGreen-10
+#define COLOR_HARD_GRID kGray
+
+#define COLOR_INVALID_MODULE kGray+1
 
 // TODO: add slanted gap between barrel and end-cap
 
