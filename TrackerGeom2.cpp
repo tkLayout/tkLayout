@@ -1,3 +1,6 @@
+#include "TStyle.h"
+#include "stylePlot.h"
+
 #include "configparser.hh"
 #include "tracker.hh"
 #include <string>
