@@ -211,8 +211,6 @@ void MainDialog::settingsToGeometry()
 void MainDialog::resultsToSettings()
 {
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
-    fh->removeTmpConfigFile(tmpConfig.name());
-    fh->removeTmpConfigFile(tmpSettings.name());
     backOnePage();
 }
 
