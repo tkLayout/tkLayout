@@ -89,10 +89,14 @@ typedef struct geominfo {
  * @param trackerName A name for the optimisation experiment...
  * @param nlayers The number of layers in the selected geometry; displayed only, not customisable by the user
  * @param nrings The number of rings in the selected geometry; displayed only, not customisable by the user
- * @param nchipsperside The number of chips on a module in each layer (per side, not in total), listed in a vector
- * @param nsegmentsperring The number of segments on a module in each ring, listed in a vector
- * @param mtypeslayers The module type (single sided, double sided or pt) of each layer, listed in a vector
- * @param mtypesrings The module type (single sided, double sided or pt) of each ring, listed in a vector
+ * @param barrelnames A list of unique names to identify each barrel
+ * @param endcapnames A list of unique names to identify each endcap
+ * @param nchipslayer The number of chips across a module in each layer, listed in one vector per barrel
+ * @param nchipsring The number of chips across a module in each ring, listed in one vector per endcap
+ * @param nsegmentslayer The number of segments along a module in each layer, listed in one vector per barrel
+ * @param nsegmentsring The number of segments along a module in each ring, listed in one vector per endcap
+ * @param mtypeslayers The module type (rphi, stereo, pt or none) of each layer, listed in one vector per barrel
+ * @param mtypesrings The module type (rphi, stereo, pt or none) of each ring, listed in one vector per endcap
  * @param costpersqcm What it costs, per square cm, to produce one single sided module; currency is left deliberately vague...
  * @param ptcostpersqcm What it costs, per square cm, to produce one pt module; see above for currency...
  * @param powerperchannel The current required by a single sided channel to function; in mA

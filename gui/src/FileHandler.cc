@@ -1,7 +1,13 @@
+/**
+  * @file filehandler.cc
+  * @author Nicoletta De Maio
+  * @brief This is the implementation of the FileHandler helper class.
+  */
+
 #include "inc/filehandler.h"
 
 /**
- * This function attempts to read a set of parameters for the parameter page from a file.
+ * This function attempts to read a set of parameters for the parameter page from a geometry configuration file.
  * It will throw a runtime exception if it cannot open the file.
  * @param readFile A reference to the input file
  * @param paramrow The destination struct that absorbs the information found in the file
@@ -29,6 +35,12 @@ void FileHandler::readConfigurationFromFile(QFile& readFile, paramaggreg& paramr
     else throw std::runtime_error(msgErrReadFile);
 }
 
+/**
+ * This function attempts to read a set of module options for the parameter page from a settings file.
+ * It will throw a runtime exception if it cannot open the file.
+ * @param readFile A reference to the input file
+ * @param paramrow The destination struct that absorbs the information found in the file
+ */
 void FileHandler::dressGeometry(QFile& readFile, paramaggreg& paramrow)
 {
     if (readFile.open(IO_ReadOnly)) {
@@ -52,6 +64,12 @@ void FileHandler::dressGeometry(QFile& readFile, paramaggreg& paramrow)
     else throw std::runtime_error(msgErrReadFile);
 }
 
+/**
+ * This function attempts to write the geometry-related contents of the parameter page to a file (which is modified).
+ * If an error occurs while opening or creating the output file, it throws a runtime exception.
+ * @param writeFile A reference to the destination file
+ * @param paramrow The struct containing the information about the selected geometry
+ */
 void FileHandler::configureTracker(QFile& geometryFile, const paramaggreg& paramrow)
 {
     QString contents;
@@ -81,10 +99,10 @@ void FileHandler::configureTracker(QFile& geometryFile, const paramaggreg& param
 }
 
 /**
- * This function attempts to write the contents of the parameter page to a file (which is overwritten).
+ * This function attempts to write module options from the parameter page to a file (which is overwritten).
  * If an error occurs while opening or creating the output file, it throws a runtime exception.
  * @param writeFile A reference to the destination file
- * @param paramrow The struct containing the information about the selected geometry's current parameter values
+ * @param paramrow The struct containing the information about the selected geometry
  */
 void FileHandler::writeSettingsToFile(QFile& writeFile, const paramaggreg& paramrow, const QString& outputPath)
 {
@@ -100,7 +118,6 @@ void FileHandler::writeSettingsToFile(QFile& writeFile, const paramaggreg& param
 
 /**
  * The process of copying the contents of one file to another (which is overwritten) is bundled here for convenience.
- * The function also displays a message in the status bar confirming the process.
  * If there are errors opening either file, a runtime exception is thrown.
  * @param inFile The data source
  * @param outFile The data destination
@@ -125,7 +142,7 @@ void FileHandler::copyTextFile(QFile& inFile, QFile& outFile)
 }
 
 /**
- * Removal of the directory that contains the HTML summary happens in here.
+ * Removal of the temporary directory that contains the HTML summary happens in here.
  * If the directory is not empty, the files it contains are deleted first.
  */
 void FileHandler::removeOutputDir(const QString outDir)
@@ -138,6 +155,9 @@ void FileHandler::removeOutputDir(const QString outDir)
     else std::cout << msgCleanupNoDir << std::endl;
 }
 
+/**
+ * If the file with the name <i>fileName</i> exists, it is removed in here.
+ */
 void FileHandler::removeTmpConfigFile(const QString& fileName)
 {
     QFile tmpFile(fileName);
@@ -167,6 +187,12 @@ bool FileHandler::cleanOutDirectory(QDir& workingDir)
     return success;
 }
 
+/**
+ * This function looks for the block headers in the geometry configuration file and calls the appropriate parser for the block.
+ * Unless a tracker and at least one barrel and one endcap definition are found, it throws an exception.
+ * @param lineList The contents of the config file, broken up into individual lines
+ * @param paramrow The destination data struct
+ */
 void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& paramrow)
 {
     bool tb = FALSE, bb = FALSE, eb = FALSE;
@@ -195,6 +221,12 @@ void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& para
     if (!eb) throw std::runtime_error(msgErrConfigFileParse + msgNoEndcap);
 }
 
+/**
+ * This function looks for the block headers in a configuration file that dresses existng modules.
+*  If it finds one, it calls the appropriate parser for the block.
+ * @param lineList The contents of the config file, broken up into individual lines
+ * @param paramrow The destination data struct
+ */
 void FileHandler::parseSettingsFile(const QStringList& lineList, paramaggreg& paramrow)
 {
     QStringList::const_iterator iter = lineList.begin();
@@ -212,6 +244,13 @@ void FileHandler::parseSettingsFile(const QStringList& lineList, paramaggreg& pa
     }
 }
 
+/**
+ * The information on how to dress the modules is read from the data struct and assembled here.
+ * The output directory where the simulation results are going to be stored is appended last in a separate block.
+ * @param paramrow The data source for the module configurations
+ * @param relativeOutputPath The path to the designated output directory, relative to where the application is running from
+ * @return The contents of the settings file in one long QString
+ */
 QString FileHandler::assembleSettingsFile(const paramaggreg& paramrow, const QString& relativeOutputPath)
 {
     QStringList fileContents;
@@ -221,6 +260,16 @@ QString FileHandler::assembleSettingsFile(const paramaggreg& paramrow, const QSt
     return fileContents.join("\n");
 }
 
+/**
+ * This parser function reads parameters of interest from a tracker block into a <i>paramaggreg</i> data struct.
+ * In case of missing data, it uses semi-sensible default values.
+ * If the beginning of the tracker block is found to be malformed or the iteration encounters an unexpected end of file,
+ * an exception is thrown.
+ * @param iter An iterator to the current line in the configuration file
+ * @param end The iterator pointing to the end of the list of lines
+ * @param paramrow The destination data struct
+ * @return An iterator pointing to the line starting with the closing brace of the tracker block
+ */
 QStringList::const_iterator FileHandler::parseTrackerBlock(QStringList::const_iterator& iter,
 							   const QStringList::const_iterator& end,paramaggreg& paramrow)
 {
@@ -232,7 +281,7 @@ QStringList::const_iterator FileHandler::parseTrackerBlock(QStringList::const_it
     if ((*(++words.begin())).startsWith(sob)) paramrow.trackerName = cDefaultTrackerName;
     else paramrow.trackerName = *(++words.begin());
     itrator++;
-    while (*itrator != eob) {
+    while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(scost)) {
@@ -272,8 +321,18 @@ QStringList::const_iterator FileHandler::parseTrackerBlock(QStringList::const_it
     return itrator;
 }
 
+/**
+ * This parser function reads parameters of interest from a barrel block into a <i>paramaggreg</i> data struct.
+ * In case of missing data, it uses semi-sensible default values.
+ * If the beginning of the block is found to be malformed or the iteration encounters an unexpected end of file,
+ * an exception is thrown. The same thing happens if it cannot find any information about the number of layers.
+ * @param iter An iterator to the current line in the configuration file
+ * @param end The iterator pointing to the end of the list of lines
+ * @param paramrow The destination data struct
+ * @return An iterator pointing to the line starting with the closing brace of the barrel block
+ */
 QStringList::const_iterator FileHandler::parseBarrelBlock(QStringList::const_iterator& iter,
-							  const QStringList::const_iterator& end,paramaggreg& paramrow)
+							  const QStringList::const_iterator& end, paramaggreg& paramrow)
 {
     bool nl = FALSE;
     QStringList::const_iterator itrator = iter;
@@ -283,7 +342,7 @@ QStringList::const_iterator FileHandler::parseBarrelBlock(QStringList::const_ite
 	throw std::runtime_error(msgErrConfigFileParse + msgErrBarrelBlock);
     paramrow.barrelnames.push_back(*(++words.begin()));
     itrator++;
-    while (*itrator != eob) {
+    while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(layers)) {
@@ -311,6 +370,15 @@ QStringList::const_iterator FileHandler::parseBarrelBlock(QStringList::const_ite
     return itrator;
 }
 
+/**
+ * This parser function reads the endcap name from the first line of an edcap block into a <i>paramaggreg</i> data struct.
+ * It also initialises the corresponding vector entry for the number of rings, but none of the other vectors (the GUI handles those).
+ * If the beginning of the block is found to be malformed or the iteration encounters an unexpected end of file,
+ * an exception is thrown.
+ * @param iter An iterator to the current line in the configuration file
+ * @param paramrow The destination data struct
+ * @return An iterator pointing to the line after the one starting with the endcap block definition
+ */
 QStringList::const_iterator FileHandler::parseEndcapBlock(QStringList::const_iterator& iter, paramaggreg& paramrow)
 {
     QStringList::const_iterator itrator = iter;
@@ -324,6 +392,15 @@ QStringList::const_iterator FileHandler::parseEndcapBlock(QStringList::const_ite
     return itrator;
 }
 
+/**
+ * This parser function reads parameters of interest from a block containing module options per layer.
+ * The extracted information is added to a <i>paramaggreg</i> data struct.
+ * If the iteration encounters an unexpected end of file, an exception is thrown.
+ * @param iter An iterator to the current line in the configuration file
+ * @param end The iterator pointing to the end of the list of lines
+ * @param paramrow The destination data struct
+ * @return An iterator pointing to the line starting with the closing brace of the block
+ */
 QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const_iterator& iter,
 							      const QStringList::const_iterator& end,paramaggreg& paramrow)
 {
@@ -337,7 +414,7 @@ QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const
 	index++;
     }
     itrator++;
-    while (*itrator != eob) {
+    while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(chips)) {
@@ -370,6 +447,15 @@ QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const
     return itrator;
 }
 
+/**
+ * This parser function reads parameters of interest from a block containing module options per ring.
+ * The extracted information is added to a <i>paramaggreg</i> data struct, resizing the vectors as necessary.
+ * If the iteration encounters an unexpected end of file, an exception is thrown.
+ * @param iter An iterator to the current line in the configuration file
+ * @param end The iterator pointing to the end of the list of lines
+ * @param paramrow The destination data struct
+ * @return An iterator pointing to the line starting with the closing brace of the block
+ */
 QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const_iterator& iter,
 							      const QStringList::const_iterator& end,paramaggreg& paramrow)
 {
@@ -386,7 +472,7 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
     if (index >= paramrow.nsegmentsring.size()) paramrow.nsegmentsring.resize(index + 1);
     if (index >= paramrow.mtypesrings.size()) paramrow.mtypesrings.resize(index + 1);
     itrator++;
-    while (*itrator != eob) {
+    while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(chips)) {
@@ -394,7 +480,7 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
 	    pos = line.find(sep) + 1;
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
-	    if (idx >= paramrow.nchipsring.at(index).size())  paramrow.nchipsring.at(index).resize(idx + 1, cRingChipModulus);
+	    if (idx >= paramrow.nchipsring.at(index).size()) paramrow.nchipsring.at(index).resize(idx + 1, cRingChipModulus);
 	    if (idx >= (uint)paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx + 1;
 	    paramrow.nchipsring.at(index).at(idx) = toconvert.stripWhiteSpace().toInt();
 	}
@@ -403,7 +489,7 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
 	    pos = line.find(sep) + 1;
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
-	    if (idx >= paramrow.nsegmentsring.at(index).size())  paramrow.nsegmentsring.at(index).resize(idx + 1, 1);
+	    if (idx >= paramrow.nsegmentsring.at(index).size()) paramrow.nsegmentsring.at(index).resize(idx + 1, 1);
 	    if (idx > (uint)paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx;
 	    paramrow.nsegmentsring.at(index).at(idx) = toconvert.stripWhiteSpace().toInt();
 	}
@@ -413,15 +499,28 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
 	    toconvert = toconvert.stripWhiteSpace();
-	    if (idx >= paramrow.mtypesrings.at(index).size())  paramrow.mtypesrings.at(index).resize(idx + 1, none);
+	    if (idx >= paramrow.mtypesrings.at(index).size()) paramrow.mtypesrings.at(index).resize(idx + 1, none);
 	    if (idx > (uint)paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx;
 	    paramrow.mtypesrings.at(index).at(idx) = assignModuleType(toconvert);
 	}
 	itrator++;
     }
+    if ((uint)paramrow.nrings.at(index) >= paramrow.nchipsring.at(index).size())
+	    paramrow.nchipsring.at(index).resize(paramrow.nrings.at(index), cRingChipModulus);
+    if ((uint)paramrow.nrings.at(index) >= paramrow.nsegmentsring.at(index).size())
+	    paramrow.nsegmentsring.at(index).resize(paramrow.nrings.at(index), 1);
+    if ((uint)paramrow.nrings.at(index) >= paramrow.mtypesrings.at(index).size())
+	    paramrow.mtypesrings.at(index).resize(paramrow.nrings.at(index), none);
     return itrator;
 }
 
+/**
+ * This function replaces name, cost parameters and power parameters in an existing tracker block with
+ * the information given by the user in a <i>paramaggreg</i> data struct.
+ * @param iter An iterator to the current line in the configuration file
+ * @param paramrow The source data struct
+ * @return An iterator pointing to the line starting with the closing brace of the block
+ */
 QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& iter, const paramaggreg& paramrow)
 {
     int pos, len;
@@ -434,7 +533,7 @@ QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& i
     line.replace(pos, len, value);
     *itrator = line;
     itrator ++;
-    while (*itrator != eob) {
+    while (!(*itrator).startsWith(eob)) {
 	line = (*itrator).simplifyWhiteSpace();
 	if (line.startsWith(scost)) {
 	    pos = (*itrator).find(sep) + sep.length();
@@ -465,6 +564,11 @@ QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& i
     return itrator;
 }
 
+/**
+ * This function appends a barrel type block to a module settings file.
+ * @param fileContents The list of config file lines that the block is to be appended to
+ * @param paramrow The source data struct
+ */
 void FileHandler::appendBarrelTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow)
 {
     uint index;
@@ -501,6 +605,11 @@ void FileHandler::appendBarrelTypeBlocks(QStringList& fileContents, const parama
     }
 }
 
+/**
+ * This function appends an endcap type block to a module settings file.
+ * @param fileContents The list of config file lines that the block is to be appended to
+ * @param paramrow The source data struct
+ */
 void FileHandler::appendEndcapTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow)
 {
     uint index;
@@ -539,6 +648,11 @@ void FileHandler::appendEndcapTypeBlocks(QStringList& fileContents, const parama
     }
 }
 
+/**
+ * This function appends an output block to a module settings file.
+ * @param fileContents The list of config file lines that the block is to be appended to
+ * @param paramrow The destination path, relative to where the application is running from, in QString form
+ */
 void FileHandler::appendOutputBlock(QStringList& fileContents, const QString& relativeOutputPath)
 {
     if (relativeOutputPath != "") {
@@ -551,6 +665,11 @@ void FileHandler::appendOutputBlock(QStringList& fileContents, const QString& re
     }
 }
 
+/**
+ * Parsing of a layer or ring index from an indexed line in a module dressing block is bundled in here.
+ * @param line The line within the config file containing the parameter of interest
+ * @return The index as it will be used by the internal data structures (i.e. the converted number - 1)
+ */
 int FileHandler::parseIndex(QString line)
 {
     int idx, start, stop;	    
@@ -561,6 +680,11 @@ int FileHandler::parseIndex(QString line)
     return idx - 1;
 }
 
+/**
+ * This little convenience function matches a string from an appropriate line in the config file to its module type.
+ * @param toconvert The string value from the config file
+ * @return One of the values listed in <i>enum moduletype</i>
+ */
 moduletype FileHandler::assignModuleType(QString toconvert)
 {
     if (toconvert == trphi) {

@@ -1,3 +1,9 @@
+/**
+  * @file filehandler.h
+  * @author Nicoletta De Maio
+  * @brief This is the header file for the FileHandler helper class.
+  */
+
 #include <stdexcept>
 #include <iostream>
 #include <qtextstream.h>
@@ -5,6 +11,9 @@
 #include <qdir.h>
 #include "gui_constants.h"
 
+/**
+ * Messages related to file handling that may show up on the command line, the status bar, or in exceptions
+ */
 static const QString msgNoTracker = " No tracker definition found.";
 static const QString msgNoBarrel = " No barrel definition found.";
 static const QString msgNoEndcap = " No endcap definition found.";
@@ -16,6 +25,9 @@ static const QString msgErrUnexpectedEndOfInput = " Unexpected end of input file
 static const QString msgCleanupDirContents = "Cleanup: could not remove directory contents.";
 static const QString msgCleanupNoDir = "Cleanup: requested result directory doesn't exist.";
 
+/**
+ * String constants used as block titles in the configuration files
+ */
 static const QString trackerblock = "Tracker";
 static const QString barrelblock = "Barrel";
 static const QString endcapblock = "Endcap";
@@ -23,6 +35,9 @@ static const QString barreltypeblock = "BarrelType";
 static const QString endcaptypeblock = "EndcapType";
 static const QString outputblock = "Output";
 
+/**
+ * String constants used as line identifiers in the configuration files
+ */
 static const QString scost = "stripCost";
 static const QString pcost = "ptCost";
 static const QString spow = "stripPower";
@@ -34,10 +49,16 @@ static const QString sides = "nSides";
 static const QString type = "type";
 static const QString outpath = "Path";
 
+/**
+ * String constants for the encoded module types
+ */
 static const QString trphi = "rphi";
 static const QString tstereo = "stereo";
 static const QString tpt = "pt";
 
+/**
+ * Separators, start and end symbols
+ */
 static const QString sob = "{";
 static const QString eob = "}";
 static const QString sep = "=";
