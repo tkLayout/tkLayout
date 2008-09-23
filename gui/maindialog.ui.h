@@ -180,6 +180,9 @@ void MainDialog::destroy()
 {
     if (settingsPopup) delete settingsPopup;
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    QString rootfile = basePath + cRootDirExtension + "/";
+    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
+    fh->removeTmpConfigFile(rootfile);
     fh->removeTmpConfigFile(tmpConfig.name());
     fh->removeTmpConfigFile(tmpSettings.name());
     delete fh;
@@ -211,6 +214,9 @@ void MainDialog::settingsToGeometry()
 void MainDialog::resultsToSettings()
 {
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    QString rootfile = basePath + cRootDirExtension + "/";
+    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
+    fh->removeTmpConfigFile(rootfile);
     backOnePage();
 }
 
@@ -268,6 +274,9 @@ void MainDialog::nextPage()
 void MainDialog::backToStart()
 {
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+    QString rootfile = basePath + cRootDirExtension + "/";
+    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
+    fh->removeTmpConfigFile(rootfile);
     barrelSelection->clear();
     endcapSelection->clear();
     layerSelection->clear();
