@@ -5,6 +5,7 @@
   */
 
 #include <vector>
+#include <utility>
 #include <qstring.h>
 #include <qpixmap.h>
 
@@ -27,6 +28,7 @@ static const QString msgParamsWritten = "Parameters written to file.";
 static const QString msgErrReadFile = "Error opening read file.";
 static const QString msgErrWriteFile = "Error opening write file.";
 static const QString msgErrConfigFileParse = "Error parsing configuration file.";
+static const QString msgResultsSaved = "Results saved.";
 static const QString msgDirNotFound = "Error: directory does not exist.";
 static const QString msgValidationError = "Validation error: check cost and power consumption input fields.";
 static const QString msgSpinValidationError = "Error: values typed into the spinners must be integers.";
@@ -74,13 +76,11 @@ enum moduletype { none = -1, rphi = 0, stereo = 1, pt = 2 };
 
 /**
  * Encapsulating struct for information about a pre-packaged geometry.
- * @param layoutName A string value giving the name that the geometry should be listed as
  * @param layoutDescription A short text description of the geometry; read from a file containing plaintext or simple HTML
  * @param layoutImage A diagram showing a cross-section of the detector geometry; read from a .png file
  * @param configFile The name of the original config file that comes with the geometry
  */
 typedef struct geominfo {
-    QString layoutName;
     QString layoutDescription;
     QPixmap layoutImage;
     QString configFile;
@@ -89,7 +89,8 @@ typedef struct geominfo {
 /**
  * Encapsulating struct for parameteres in a pre-packaged geometry that may be modified by the user
  * @param trackerName A name for the optimisation experiment...
- * @param nlayers The number of layers in the selected geometry; displayed only, not customisable by the user
+ * @param nlayers The number of layers, listed per barrel; displayed only, not customisable by the user
+ * @param ndiscs The number of discs, listed per endcap; displayed only, not customisable by the user
  * @param nrings The number of rings in the selected geometry; displayed only, not customisable by the user
  * @param barrelnames A list of unique names to identify each barrel
  * @param endcapnames A list of unique names to identify each endcap
@@ -107,15 +108,16 @@ typedef struct geominfo {
 typedef struct paramaggreg {
     QString trackerName;
     std::vector<int> nlayers;
+    std::vector<int> ndiscs;
     std::vector<int> nrings;
     std::vector<QString> barrelnames;
     std::vector<QString> endcapnames;
     std::vector<std::vector<int> > nchipslayer;
-    std::vector<std::vector<int> > nchipsring;
+    std::vector<std::vector<std::vector<int> > > nchipsring;
     std::vector<std::vector<int> > nsegmentslayer;
-    std::vector<std::vector<int> > nsegmentsring;
+    std::vector<std::vector<std::vector<int> > > nsegmentsring;
     std::vector<std::vector<moduletype> > mtypeslayers;
-    std::vector<std::vector<moduletype> > mtypesrings;
+    std::vector<std::vector<std::vector<moduletype> > > mtypesrings;
     double costpersqcm;
     double ptcostpersqcm;
     double powerperchannel;

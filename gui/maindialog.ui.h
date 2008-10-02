@@ -121,7 +121,6 @@ void MainDialog::init()
     QStringList::const_iterator iter;
     for (iter = workingDir.entryList().constBegin(); iter != workingDir.entryList().constEnd(); iter++) {
 	geominfo geomrow;
-	geomrow.layoutName = *iter;
 
 	/// Read the text description of the geometry from file
 	QFile workingFile(workingDir.canonicalPath() + "/" + *iter + "/" + cDescriptionName);
@@ -142,16 +141,21 @@ void MainDialog::init()
 	else continue;
 
 	/// Read the customisable parameters from the geometry config file.
-        /// If a file with module options exists, use that to dress the geometry.
+              /// If a file with module options exists, use that to dress the geometry.
 	paramaggreg paramrow;
 	try {
+	    QString tmpstring(workingDir.canonicalPath() + "/" + *iter + "/" + cSettingsExtension);
+	    QDir settingsdir(tmpstring);
+	    if (!settingsdir.exists()) settingsdir.mkdir(tmpstring);
 	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultConfig);
-	    if (workingFile.exists()) fh->readConfigurationFromFile(workingFile, paramrow);
-	    else continue;
+	    if (!workingFile.exists()) fh->copyTextFile(geomrow.configFile, workingFile);
+	    fh->readConfigurationFromFile(workingFile, paramrow);
 	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + "/" + cSettingsBackup);
 	    if (!workingFile.exists()) fh->writeSettingsToFile(workingFile, paramrow, "");
 	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultSettings);
+	    tmpstring = workingDir.canonicalPath() + "/" + *iter + "/" + cSettingsBackup;
 	    if (workingFile.exists()) fh->dressGeometry(workingFile, paramrow);
+	    else fh->copyTextFile(tmpstring, workingFile);
 	}
 	catch (std::runtime_error re) {
 	    std::cout << re.what() << std::endl;
@@ -167,8 +171,13 @@ void MainDialog::init()
 	QString name = cRadioButtonBase + "_";
 	name += *iter;
 	QRadioButton *geometrySelection = new QRadioButton(*iter, geometryPicker, name.ascii());
-	geometryPicker->insert(geometrySelection, workingDir.entryList().findIndex(*iter));
+	geometryPicker->insert(geometrySelection);
     }
+    
+    /// Initialise the results popup
+    resultsPopup = new ResultsPopup();
+    connect(doneButton, SIGNAL(clicked()), resultsPopup, SLOT(accept()));
+    resultsPopup->setBasePath(basePath);
 }
 
 /**
@@ -179,6 +188,8 @@ void MainDialog::init()
 void MainDialog::destroy()
 {
     if (settingsPopup) delete settingsPopup;
+    if (resultsPopup) delete resultsPopup;
+    std::cout << "destroy(): directory to remove is " << basePath << summaryExtension << outdirExtension << std::endl;
     fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
     QString rootfile = basePath + cRootDirExtension + "/";
     rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
@@ -197,26 +208,12 @@ void MainDialog::destroy()
 void MainDialog::settingsToGeometry()
 {
     barrelSelection->clear();
-    endcapSelection->clear();
     layerSelection->clear();
+    endcapSelection->clear();
+    discSelection->clear();
     ringSelection->clear();
     fh->removeTmpConfigFile(tmpConfig.name());
     fh->removeTmpConfigFile(tmpSettings.name());
-    backOnePage();
-}
-
-/**
- * This is the navigation function that moves focus from the results page back to the parameter page.
- * It is connected to the <i>Back</i> button on the results page.
- * It eliminates the config and output files from the previous simulation since they are no longer needed.
- * (The simulation will have to be re-run in order to get back to the results page.)
- */
-void MainDialog::resultsToSettings()
-{
-    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
-    QString rootfile = basePath + cRootDirExtension + "/";
-    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
-    fh->removeTmpConfigFile(rootfile);
     backOnePage();
 }
 
@@ -265,30 +262,7 @@ void MainDialog::nextPage()
 }
 
 /**
- * This is the navigation function that moves focus from the results page back to the geometry selection page.
- * It is connected to the <i>New</i> button on the results page.
- * It resets the contents of the combo boxes and of some of the list boxes to none.
- * It also removes the temporary config and summary files in preparation of a new simulation run.
- * Then it raises the first widget on the stack.
- */
-void MainDialog::backToStart()
-{
-    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
-    QString rootfile = basePath + cRootDirExtension + "/";
-    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
-    fh->removeTmpConfigFile(rootfile);
-    barrelSelection->clear();
-    endcapSelection->clear();
-    layerSelection->clear();
-    ringSelection->clear();
-    fh->removeTmpConfigFile(tmpConfig.name());
-    fh->removeTmpConfigFile(tmpSettings.name());
-    clearParameters();
-    mainWidgetStack->raiseWidget(0);
-}
-
-/**
- * The actualy work is done by this function.
+ * The actual work is done by this function.
  * Or rather, it is delegated to the simulation executable with the appropriate config files in tow.
  * (Who said management was pointless? <i>*evil_grin*</i>) It then prepares the summary page and displays it.
  */
@@ -301,18 +275,21 @@ void MainDialog::go()
 				  summaryExtension.right(summaryExtension.length() - 1) + outDirExtension);
 	cmdLineStub = tmpConfig.name() + " " + tmpSettings.name();
 	command += cmdLineStub;
+	resultsPopup->summaryTextEdit->clear();
 	try  {
 	    int simulstatus;	
 	    simulstatus = simulate(command);
 	    std::cout << cCommand << msgSimulationExit << simulstatus << "." << std::endl;
-	    summaryTextEdit->mimeSourceFactory()->setFilePath(basePath + summaryExtension + outDirExtension);
+	    resultsPopup->setResultsPath(basePath + summaryExtension + outDirExtension);
+	    resultsPopup->summaryTextEdit->mimeSourceFactory()->setFilePath(resultsPopup->getResultsPath());
+	    resultsPopup->setTrackerName(parameterTable.at(geometryPicker->selectedId()).trackerName);
 	    QFile workingFile(basePath + summaryExtension + outDirExtension + "/" + cSummaryIndex);
 	    if (workingFile.exists() && workingFile.open(IO_ReadOnly)) {
 		QTextStream instream(&workingFile);
-		summaryTextEdit->setText(instream.read());
+		resultsPopup->summaryTextEdit->setText(instream.read());
 	    }
-	    else summaryTextEdit->clear();
-	    mainWidgetStack->raiseWidget(mainWidgetStack->id(mainWidgetStack->visibleWidget()) + 1);
+	    resultsPopup->statusBar->clear();
+	    resultsPopup->show();
 	}
 	catch (std::runtime_error re) {
 	    statusBar->setText(re.what());
@@ -565,6 +542,7 @@ void MainDialog::defaultsFromCache(paramaggreg& paramrow, int pos)
     try {
 	paramrow.trackerName = widgetCache.at(pos).trackerName;
 	paramrow.nlayers = widgetCache.at(pos).nlayers;
+	paramrow.ndiscs = widgetCache.at(pos).ndiscs;
 	paramrow.nrings = widgetCache.at(pos).nrings;
 	paramrow.barrelnames = widgetCache.at(pos).barrelnames;
 	paramrow.endcapnames = widgetCache.at(pos).endcapnames;
@@ -594,6 +572,7 @@ void MainDialog::defaultsToCache(const paramaggreg& paramrow, int pos)
     try {
 	widgetCache.at(pos).trackerName = paramrow.trackerName;
 	widgetCache.at(pos).nlayers = paramrow.nlayers;
+	widgetCache.at(pos).ndiscs = paramrow.ndiscs;
 	widgetCache.at(pos).nrings = paramrow.nrings;
 	widgetCache.at(pos).barrelnames = paramrow.barrelnames;
 	widgetCache.at(pos).endcapnames = paramrow.endcapnames;
@@ -637,19 +616,19 @@ void MainDialog::ringTypeSelected(int index)
     try {
 	switch (index) {
 	case 0 : ringTypeListBox->setCurrentItem(index);
-	    parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = rphi;
+	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = rphi;
 	    break;
 	case 1 : ringTypeListBox->setCurrentItem(index);
-	    parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = stereo;
+	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = stereo;
 	    break;
 	case 2 : ringTypeListBox->setCurrentItem(index);
-	    parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = pt;
+	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = pt;
 	    break;
-	default: parameterTable.at(geometryPicker->selectedId())
-		    .mtypesrings.at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = none;
+	default: parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
+		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = none;
 	    ringTypeListBox->clearSelection();
 	}
     }
@@ -734,16 +713,16 @@ void MainDialog::layerSelected( int index)
 void MainDialog::ringSelected( int index)
 {
     try {
-	QString total = QString::number(parameterTable.at(geometryPicker->selectedId())
-					.nchipsring.at(endcapSelection->currentItem()).at(index));
+	QString total = QString::number(parameterTable.at(geometryPicker->selectedId()).nchipsring
+					.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
 	ringChipsSpinner->setValue(total.toInt() / cRingChipModulus);
 	total = "<b>" + total + "</b>";
 	ringTotalChipsLabel->setText(total);
-	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId())
-				      .nsegmentsring.at(endcapSelection->currentItem()).at(index));
+	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId()).nsegmentsring
+				      .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
 	int idx;
-	switch (parameterTable.at(geometryPicker->selectedId())
-		.mtypesrings.at(endcapSelection->currentItem()).at(index)) {
+	switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings
+		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index)) {
 	case rphi : idx = 0;
 	    break;
 	case stereo : idx = 1;
@@ -760,6 +739,34 @@ void MainDialog::ringSelected( int index)
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }    
+}
+
+void MainDialog::discSelected(int index)
+{
+    try {
+	ringSelection->clear();
+	if (parameterTable.at(geometryPicker->selectedId()).nrings.at(index) > 0) {
+	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings.at(index); i++) {
+		ringSelection->insertItem(QString::number(i + 1), i);
+	    }
+	    ringChipsSpinner->setEnabled(TRUE);
+	    ringSegmentsSpinner->setEnabled(TRUE);
+	    ringTypeListBox->setEnabled(TRUE);
+	    ringSelection->setCurrentItem(0);
+	    ringSelected(0);
+	}
+	else {
+	    ringChipsSpinner->setEnabled(FALSE);
+	    ringSegmentsSpinner->setEnabled(FALSE);
+	    ringTypeListBox->clearSelection();
+	    ringTypeListBox->setEnabled(FALSE);
+	}
+    }
+    catch (std::out_of_range oor) {
+	QString statustext(msgErrParamTableAccess);
+	statustext += oor.what();
+	statusBar->setText(statustext);
+    }
 }
 
 /**
@@ -790,23 +797,12 @@ void MainDialog::barrelSelected(int index)
 void MainDialog::endcapSelected(int index)
 {
     try {
-	ringSelection->clear();
-	if (parameterTable.at(geometryPicker->selectedId()).nrings.at(index) > 0) {
-	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings.at(index); i++) {
-		ringSelection->insertItem(QString::number(i + 1), i);
+	discSelection->clear();
+	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).ndiscs.at(index); i++) {
+		discSelection->insertItem(QString::number(i + 1), i);
 	    }
-	    ringChipsSpinner->setEnabled(TRUE);
-	    ringSegmentsSpinner->setEnabled(TRUE);
-	    ringTypeListBox->setEnabled(TRUE);
-	    ringSelection->setCurrentItem(0);
-	    ringSelected(0);
-	}
-	else {
-	    ringChipsSpinner->setEnabled(FALSE);
-	    ringSegmentsSpinner->setEnabled(FALSE);
-	    ringTypeListBox->clearSelection();
-	    ringTypeListBox->setEnabled(FALSE);
-	}
+	    discSelection->setCurrentItem(0);
+	    discSelected(0);
     }
     catch (std::out_of_range oor) {
 	QString statustext(msgErrParamTableAccess);
@@ -823,27 +819,27 @@ void MainDialog::addRing()
 {
     ringSelection->insertItem(QString::number(ringSelection->count() + 1), ringSelection->count());
     parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
-    if ((int)parameterTable.at(geometryPicker->selectedId()).nchipsring.size() < parameterTable
-	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).nchipsring.resize(
+    if ((int)parameterTable.at(geometryPicker->selectedId()).nchipsring.at(discSelection->currentItem()).size() <
+		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).nchipsring.at(discSelection->currentItem()).resize(
 		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
     }
     parameterTable.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
-	    .push_back(cRingChipModulus);
-    if ((int)parameterTable.at(geometryPicker->selectedId()).nsegmentsring.size() < parameterTable
-	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).nsegmentsring.resize(
+	    .at(discSelection->currentItem()).push_back(cRingChipModulus);
+    if ((int)parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(discSelection->currentItem()).size() <
+		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(discSelection->currentItem()).resize(
 		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
     }
     parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
-	    .push_back(ringSegmentsSpinner->minValue());
-     if ((int)parameterTable.at(geometryPicker->selectedId()).mtypesrings.size() < parameterTable
-	.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).mtypesrings.resize(
+	    .at(discSelection->currentItem()).push_back(ringSegmentsSpinner->minValue());
+     if ((int)parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(discSelection->currentItem()).size()  <
+		 parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
+	parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(discSelection->currentItem()).resize(
 		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
     }
     parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
-	    .push_back(rphi);
+	    .at(discSelection->currentItem()).push_back(none);
     if (ringSelection->count() == 1) {
 	ringChipsSpinner->setEnabled(TRUE);
 	ringSegmentsSpinner->setEnabled(TRUE);
@@ -864,11 +860,11 @@ void MainDialog::removeRing()
 	ringSelection->removeItem(ringSelection->count() - 1);
 	parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())--;
 	parameterTable.at(geometryPicker->selectedId()).nchipsring
-		.at(endcapSelection->currentItem()).pop_back();
+		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
 	parameterTable.at(geometryPicker->selectedId()).nsegmentsring
-		.at(endcapSelection->currentItem()).pop_back();
+		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
 	parameterTable.at(geometryPicker->selectedId()).mtypesrings
-		.at(endcapSelection->currentItem()).pop_back();
+		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
 	if (ringSelection->count() < 1) {
 	    ringChipsSpinner->setValue(ringChipsSpinner->minValue());
 	    ringChipsSpinner->setEnabled(FALSE);
@@ -878,7 +874,7 @@ void MainDialog::removeRing()
 	    ringTypeListBox->setEnabled(FALSE);
 	}
 	else {
-	    ringSelection->setCurrentItem(ringSelection->count() -1);
+	    ringSelection->setCurrentItem(ringSelection->count() - 1);
 	    ringSelected(ringSelection->currentItem());
 	}
     }
@@ -959,12 +955,11 @@ void MainDialog::ringChipsAcrossChanged(int value)
 	int pos = 0;
 	QString inttostring = ringChipsSpinner->text();
 	switch (ringChipsSpinner->validator()->validate(inttostring, pos)) {
-	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId())
-		    .nchipsring.at(endcapSelection->currentItem())
-		    .at(ringSelection->currentItem()) = value * cRingChipModulus;
+	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
+		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = value * cRingChipModulus;
 	    {
-		QString totalchips = QString::number(parameterTable.at(geometryPicker->selectedId())
-						     .nchipsring.at(endcapSelection->currentItem())
+		QString totalchips = QString::number(parameterTable.at(geometryPicker->selectedId()).nchipsring
+						     .at(endcapSelection->currentItem()).at(discSelection->currentItem())
 						     .at(ringSelection->currentItem()));
 		totalchips = "<b>" + totalchips + "</b>";
 		ringTotalChipsLabel->setText(totalchips);
@@ -996,7 +991,7 @@ void MainDialog::ringSegmentsAlongChanged(int value)
 	QString inttostring = ringSegmentsSpinner->text();
 	switch (ringSegmentsSpinner->validator()->validate(inttostring, pos)) {
 	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nsegmentsring
-		    .at(endcapSelection->currentItem()).at(ringSelection->currentItem()) = value;
+		    .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(ringSelection->currentItem()) = value;
 	    break;
 	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
 	    break;

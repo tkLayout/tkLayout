@@ -9,7 +9,8 @@ HEADERS	+= inc/filehandler.h \
 SOURCES	+= tkgeomgui.cpp \
 	src/FileHandler.cc
 
-FORMS	= maindialog.ui
+FORMS	= maindialog.ui \
+	resultspopup.ui
 
 unix {
   UI_DIR = .ui
