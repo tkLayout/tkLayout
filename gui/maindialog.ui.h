@@ -189,13 +189,14 @@ void MainDialog::destroy()
 {
     if (settingsPopup) delete settingsPopup;
     if (resultsPopup) delete resultsPopup;
-    std::cout << "destroy(): directory to remove is " << basePath << summaryExtension << outdirExtension << std::endl;
-    fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
-    QString rootfile = basePath + cRootDirExtension + "/";
-    rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
-    fh->removeTmpConfigFile(rootfile);
-    fh->removeTmpConfigFile(tmpConfig.name());
-    fh->removeTmpConfigFile(tmpSettings.name());
+    if (geometryPicker->selectedId() >= 0) {
+	fh->removeOutputDir(basePath + summaryExtension + outDirExtension);
+	QString rootfile = basePath + cRootDirExtension + "/";
+	rootfile = rootfile + parameterTable.at(geometryPicker->selectedId()).trackerName + cRootFileExt;
+	fh->removeTmpConfigFile(rootfile);
+	fh->removeTmpConfigFile(tmpConfig.name());
+	fh->removeTmpConfigFile(tmpSettings.name());
+    }
     delete fh;
 }
 
@@ -614,6 +615,7 @@ void MainDialog::valuesToWidgets(const paramaggreg& paramrow)
 void MainDialog::ringTypeSelected(int index)
 {
     try {
+	statusBar->clear();
 	switch (index) {
 	case 0 : ringTypeListBox->setCurrentItem(index);
 	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
@@ -646,6 +648,7 @@ void MainDialog::ringTypeSelected(int index)
 void MainDialog::layerTypeSelected(int index)
 {
     try {
+	statusBar->clear();
 	switch (index) {
 	case 0 : layerTypeListBox->setCurrentItem(index);
 	    parameterTable.at(geometryPicker->selectedId())
@@ -721,6 +724,8 @@ void MainDialog::ringSelected( int index)
 	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId()).nsegmentsring
 				      .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
 	int idx;
+	std::cout << "Type is " << parameterTable.at(geometryPicker->selectedId()).mtypesrings
+		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index) << std::endl;
 	switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings
 		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index)) {
 	case rphi : idx = 0;
@@ -731,7 +736,8 @@ void MainDialog::ringSelected( int index)
 	    break;
 	default : idx = -1;
 	}
-	ringTypeListBox->setCurrentItem(idx);
+	if (idx >= 0) ringTypeListBox->setCurrentItem(idx);
+	else ringTypeListBox->clearSelection();
 	ringTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
@@ -744,9 +750,11 @@ void MainDialog::ringSelected( int index)
 void MainDialog::discSelected(int index)
 {
     try {
+	statusBar->clear();
 	ringSelection->clear();
-	if (parameterTable.at(geometryPicker->selectedId()).nrings.at(index) > 0) {
-	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings.at(index); i++) {
+	if (parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()) > 0) {
+	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nrings
+		 .at(endcapSelection->currentItem()); i++) {
 		ringSelection->insertItem(QString::number(i + 1), i);
 	    }
 	    ringChipsSpinner->setEnabled(TRUE);
@@ -798,11 +806,11 @@ void MainDialog::endcapSelected(int index)
 {
     try {
 	discSelection->clear();
-	    for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).ndiscs.at(index); i++) {
-		discSelection->insertItem(QString::number(i + 1), i);
-	    }
-	    discSelection->setCurrentItem(0);
-	    discSelected(0);
+	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).ndiscs.at(index); i++) {
+	    discSelection->insertItem(QString::number(i + 1), i);
+	}
+	discSelection->setCurrentItem(0);
+	discSelected(0);
     }
     catch (std::out_of_range oor) {
 	QString statustext(msgErrParamTableAccess);
@@ -817,29 +825,32 @@ void MainDialog::endcapSelected(int index)
  */
 void MainDialog::addRing()
 {
+    int geo, ec;
+    geo = geometryPicker->selectedId();
+    ec = endcapSelection->currentItem();
     ringSelection->insertItem(QString::number(ringSelection->count() + 1), ringSelection->count());
-    parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())++;
-    if ((int)parameterTable.at(geometryPicker->selectedId()).nchipsring.at(discSelection->currentItem()).size() <
-		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).nchipsring.at(discSelection->currentItem()).resize(
-		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
+    parameterTable.at(geo).nrings.at(ec)++;
+    std::cout << "addRing(): nrings.at(" << ec << ") (endcap) is " << parameterTable.at(geo).nrings.at(ec) << std::endl;
+    for (int disc = 0; disc < parameterTable.at(geo).ndiscs.at(ec); disc++) {
+	if ((int)parameterTable.at(geo).nchipsring.at(ec).at(disc).size() < parameterTable.at(geo).nrings.at(ec)) {
+	    std::cout << "Vector nchipsring needs to be resized." << std::endl;
+	    parameterTable.at(geo).nchipsring.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
+	}
+	std::cout << "Endif nchipsring." << std::endl;
+	parameterTable.at(geo).nchipsring.at(ec).at(disc).push_back(cRingChipModulus);
+	if ((int)parameterTable.at(geo).nsegmentsring.at(ec).at(disc).size() < parameterTable.at(geo).nrings.at(ec)) {
+	    std::cout << "Vector nsegmentsring needs to be resized." << std::endl;
+	    parameterTable.at(geo).nsegmentsring.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
+	}
+	std::cout << "Endif nsegmentsring." << std::endl;
+	parameterTable.at(geo).nsegmentsring.at(ec).at(disc).push_back(ringSegmentsSpinner->minValue());
+	if ((int)parameterTable.at(geo).mtypesrings.at(ec).at(disc).size()  < parameterTable.at(geo).nrings.at(ec)) {
+	    std::cout << "Vector mtypesrings needs to be resized." << std::endl;
+	    parameterTable.at(geo).mtypesrings.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
+	}
+	std::cout << "Endif mtypesrings." << std::endl;
+	parameterTable.at(geo).mtypesrings.at(ec).at(disc).push_back(none);
     }
-    parameterTable.at(geometryPicker->selectedId()).nchipsring.at(endcapSelection->currentItem())
-	    .at(discSelection->currentItem()).push_back(cRingChipModulus);
-    if ((int)parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(discSelection->currentItem()).size() <
-		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(discSelection->currentItem()).resize(
-		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
-    }
-    parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(endcapSelection->currentItem())
-	    .at(discSelection->currentItem()).push_back(ringSegmentsSpinner->minValue());
-     if ((int)parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(discSelection->currentItem()).size()  <
-		 parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())) {
-	parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(discSelection->currentItem()).resize(
-		parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem()));
-    }
-    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
-	    .at(discSelection->currentItem()).push_back(none);
     if (ringSelection->count() == 1) {
 	ringChipsSpinner->setEnabled(TRUE);
 	ringSegmentsSpinner->setEnabled(TRUE);
@@ -847,7 +858,6 @@ void MainDialog::addRing()
     }
     ringSelection->setCurrentItem(ringSelection->count() - 1);
     ringSelected(ringSelection->currentItem());
-    ringTypeSelected(-1);
 }    
 
 /**
@@ -857,14 +867,16 @@ void MainDialog::addRing()
 void MainDialog::removeRing()
 {
     if (ringSelection->count() > 0) {
+	int geo, ec;
+	geo = geometryPicker->selectedId();
+	ec = endcapSelection->currentItem();
 	ringSelection->removeItem(ringSelection->count() - 1);
-	parameterTable.at(geometryPicker->selectedId()).nrings.at(endcapSelection->currentItem())--;
-	parameterTable.at(geometryPicker->selectedId()).nchipsring
-		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
-	parameterTable.at(geometryPicker->selectedId()).nsegmentsring
-		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
-	parameterTable.at(geometryPicker->selectedId()).mtypesrings
-		.at(discSelection->currentItem()).at(endcapSelection->currentItem()).pop_back();
+	parameterTable.at(geo).nrings.at(ec)--;
+	for (int disc = 0; disc < parameterTable.at(geo).ndiscs.at(ec); disc++) {
+	    parameterTable.at(geo).nchipsring.at(ec).at(disc).pop_back();
+	    parameterTable.at(geometryPicker->selectedId()).nsegmentsring.at(ec).at(disc).pop_back();
+	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(ec).at(disc).pop_back();
+	}
 	if (ringSelection->count() < 1) {
 	    ringChipsSpinner->setValue(ringChipsSpinner->minValue());
 	    ringChipsSpinner->setEnabled(FALSE);

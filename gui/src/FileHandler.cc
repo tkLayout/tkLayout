@@ -178,10 +178,12 @@ void FileHandler::copyDataFile(QFile& inFile, QFile& outFile)
  */
 void FileHandler::removeOutputDir(const QString outDir)
 {
-    QDir resultdir(outDir);
-    if (resultdir.exists()) {
-	if (cleanOutDirectory(resultdir)) resultdir.rmdir(resultdir.canonicalPath());
-	else std::cout << msgCleanupDirContents << std::endl;
+    if (outDir) {
+	QDir resultdir(outDir);
+	if (resultdir.exists()) {
+	    if (cleanOutDirectory(resultdir)) resultdir.rmdir(resultdir.canonicalPath());
+	    else std::cout << msgCleanupDirContents << std::endl;
+	}
     }
 }
 
@@ -429,20 +431,21 @@ QStringList::const_iterator FileHandler::parseEndcapBlock(QStringList::const_ite
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
 	    paramrow.ndiscs.push_back(toconvert.stripWhiteSpace().toInt());
-	    std::vector<std::vector<int> > ringschips;
-	    std::vector<std::vector<int> > ringssegs;
-	    std::vector<std::vector<moduletype> > ringstypes;
-	    for (int i = 0; i < paramrow.ndiscs.back(); i++) {
-		paramrow.nchipsring.push_back(ringschips);
-		paramrow.nsegmentsring.push_back(ringssegs);
-		paramrow.mtypesrings.push_back(ringstypes);
-	    }
+	    std::vector<std::vector<int> > discinttmp;
+	    std::vector<std::vector<moduletype> > discmttmp;
+	    std::vector<int> inttmp;
+	    std::vector<moduletype> mttmp;
+	    discinttmp.resize(paramrow.ndiscs.back(), inttmp);
+	    discmttmp.resize(paramrow.ndiscs.back(), mttmp);
+	    paramrow.nchipsring.push_back(discinttmp);
+	    paramrow.nsegmentsring.push_back(discinttmp);
+	    paramrow.mtypesrings.push_back(discmttmp);
 	    nl = TRUE;
 	    break;
 	}
 	itrator++;
     }
-    if (!nl) throw std::runtime_error(msgErrConfigFileParse + msgErrBarrelBlock);
+    if (!nl) throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapBlock);
     return itrator;
 }
 
@@ -572,11 +575,11 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
 	itrator++;
     }
     for (int i = 0; i < paramrow.ndiscs.at(index); i++) {
-	if ((uint)paramrow.nrings.at(index) >= paramrow.nchipsring.at(i).at(index).size())
+	if ((uint)paramrow.nrings.at(index) >= paramrow.nchipsring.at(index).at(i).size())
 	    paramrow.nchipsring.at(index).at(i).resize(paramrow.nrings.at(index), cRingChipModulus);
-	if ((uint)paramrow.nrings.at(index) >= paramrow.nsegmentsring.at(i).at(index).size())
+	if ((uint)paramrow.nrings.at(index) >= paramrow.nsegmentsring.at(index).at(i).size())
 	    paramrow.nsegmentsring.at(index).at(i).resize(paramrow.nrings.at(index), 1);
-	if ((uint)paramrow.nrings.at(index) >= paramrow.mtypesrings.at(i).at(index).size())
+	if ((uint)paramrow.nrings.at(index) >= paramrow.mtypesrings.at(index).at(i).size())
 	    paramrow.mtypesrings.at(index).at(i).resize(paramrow.nrings.at(index), none);
     }
     return itrator;
@@ -696,8 +699,8 @@ void FileHandler::appendEndcapTypeBlocks(QStringList& fileContents, const parama
 		    if (paramrow.mtypesrings.at(index).at(id).at(idx) == stereo ||
 			paramrow.mtypesrings.at(index).at(id).at(idx) == pt) line = "2" + eol;
 		    if (line.length() > 0) {
-			line = pad + sides + soi + QString::number(idx + 1) + "," + QString::number(id + 1);
-			line = line + eoi + " " + sep + " " + line;
+			line = "," + QString::number(id + 1) + eoi + " " + sep + " " + line;
+			line = pad + sides + soi + QString::number(idx + 1) + line;
 			fileContents.append(line);
 		    }
 		    line = pad + segs + soi + QString::number(idx + 1) + "," + QString::number(id + 1) + eoi + " ";
@@ -708,8 +711,8 @@ void FileHandler::appendEndcapTypeBlocks(QStringList& fileContents, const parama
 		    if (paramrow.mtypesrings.at(index).at(id).at(idx) == stereo) line = tstereo + eol;
 		    if (paramrow.mtypesrings.at(index).at(id).at(idx) == pt) line = tpt + eol;
 		    if (line.length() != 0) {
-			line = pad + type + soi + QString::number(idx + 1) + "," + QString::number(id + 1);
-			line = line + eoi + " " + sep + " " + line;
+			line = "," + QString::number(id + 1) + eoi + " " + sep + " " + line;
+			line = pad + type + soi + QString::number(idx + 1) + line;
 			fileContents.append(line);
 		    }
 		}
