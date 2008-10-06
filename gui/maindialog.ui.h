@@ -903,7 +903,7 @@ void MainDialog::addRing()
     ringSelection->setCurrentItem(ringSelection->count() - 1);
     ringTypeListBox->clearSelection();
     std::cout << "addRing(): ";
-    printCurrentParams();
+    //printCurrentParams();
 }    
 
 /**
@@ -936,7 +936,7 @@ void MainDialog::removeRing()
 	    ringSelected(ringSelection->currentItem());
 	}
 	std::cout << "removeRing(): ";
-	printCurrentParams();
+	//printCurrentParams();
     }
 }
 
