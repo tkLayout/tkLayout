@@ -28,11 +28,11 @@ void FileHandler::readConfigurationFromFile(QFile& readFile, paramaggreg& paramr
 	}
 	else {
 	    readFile.close();
-	    throw std::runtime_error(msgErrConfigFileParse);
+	    throw std::runtime_error("readConfigurationFromFile(): " + msgErrConfigFileParse);
 	}
 	readFile.close();
     }
-    else throw std::runtime_error(msgErrReadFile);
+    else throw std::runtime_error("readConfigurationFromFile(): " + msgErrReadFile);
 }
 
 /**
@@ -57,11 +57,11 @@ void FileHandler::dressGeometry(QFile& readFile, paramaggreg& paramrow)
 	}
 	else {
 	    readFile.close();
-	    throw std::runtime_error(msgErrConfigFileParse);
+	    throw std::runtime_error("dressGeometry(): " + msgErrConfigFileParse);
 	}
 	readFile.close();
     }
-    else throw std::runtime_error(msgErrReadFile);
+    else throw std::runtime_error("dressGeometry(): " + msgErrReadFile);
 }
 
 /**
@@ -89,13 +89,13 @@ void FileHandler::configureTracker(QFile& geometryFile, const paramaggreg& param
 	contents = fileContents.join("\n");
 	geometryFile.close();
     }
-    else throw std::runtime_error(msgErrReadFile);
+    else throw std::runtime_error("configureTracker(): " + msgErrReadFile);
     if (geometryFile.open(IO_WriteOnly)) {
 	QTextStream outstream(&geometryFile);
 	outstream << contents;
 	geometryFile.close();
     }
-    else throw std::runtime_error(msgErrWriteFile);
+    else throw std::runtime_error("configureTracker(): " + msgErrWriteFile);
 }
 
 /**
@@ -113,7 +113,7 @@ void FileHandler::writeSettingsToFile(QFile& writeFile, const paramaggreg& param
 	outstream << contents;
 	writeFile.close();
     }
-    else throw std::runtime_error(msgErrWriteFile);
+    else throw std::runtime_error("writeSettingsToFile(): " + msgErrWriteFile);
 }
 
 /**
@@ -134,10 +134,10 @@ void FileHandler::copyTextFile(QFile& inFile, QFile& outFile)
 	}
 	else {
 	    inFile.close();
-	    throw std::runtime_error(msgErrWriteFile);
+	    throw std::runtime_error("copyTextFile(): " + msgErrWriteFile);
 	}
     }
-    else throw std::runtime_error(msgErrReadFile);
+    else throw std::runtime_error("copyTextFile(): " + msgErrReadFile);
 }
 
 /**
@@ -166,10 +166,10 @@ void FileHandler::copyDataFile(QFile& inFile, QFile& outFile)
 	}
 	else {
 	    inFile.close();
-	    throw std::runtime_error(msgErrWriteFile);
+	    throw std::runtime_error("copyDataFile(): " + msgErrWriteFile);
 	}
     }
-    else throw std::runtime_error(msgErrReadFile);
+    else throw std::runtime_error("copyDataFile(): " + msgErrReadFile);
 }
 
 /**
@@ -182,7 +182,7 @@ void FileHandler::removeOutputDir(const QString outDir)
 	QDir resultdir(outDir);
 	if (resultdir.exists()) {
 	    if (cleanOutDirectory(resultdir)) resultdir.rmdir(resultdir.canonicalPath());
-	    else std::cout << msgCleanupDirContents << std::endl;
+	    else std::cout << "removeOutputDir(): " << msgCleanupDirContents << std::endl;
 	}
     }
 }
@@ -248,9 +248,9 @@ void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& para
 	}
 	if (!lineofinterest) iter++;
     }
-    if (!tb) throw std::runtime_error(msgErrConfigFileParse + msgNoTracker);
-    if (!bb) throw std::runtime_error(msgErrConfigFileParse + msgNoBarrel);
-    if (!eb) throw std::runtime_error(msgErrConfigFileParse + msgNoEndcap);
+    if (!tb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoTracker);
+    if (!bb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoBarrel);
+    if (!eb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoEndcap);
 }
 
 /**
@@ -309,12 +309,14 @@ QStringList::const_iterator FileHandler::parseTrackerBlock(QStringList::const_it
     QStringList::const_iterator itrator = iter;
     QString line = *itrator;
     QStringList words = QStringList::split(" ", line);
-    if ((++words.begin()) == words.end()) throw std::runtime_error(msgErrConfigFileParse + msgErrTrackerBlock);
+    if ((++words.begin()) == words.end()) throw std::runtime_error("parseTrackerBlock(): "
+								   + msgErrConfigFileParse + msgErrTrackerBlock);
     if ((*(++words.begin())).startsWith(sob)) paramrow.trackerName = cDefaultTrackerName;
     else paramrow.trackerName = *(++words.begin());
     itrator++;
     while (!(*itrator).startsWith(eob)) {
-	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
+	if (itrator == end) throw std::runtime_error("parseTrackerBlock(): "
+						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(scost)) {
 	    int pos = line.find(sep) + sep.length();
@@ -371,11 +373,12 @@ QStringList::const_iterator FileHandler::parseBarrelBlock(QStringList::const_ite
     QString line = *itrator;
     QStringList words = QStringList::split(" ", line);
     if ((++words.begin()) == words.end() || (*(++words.begin())).startsWith(sob))
-	throw std::runtime_error(msgErrConfigFileParse + msgErrBarrelBlock);
+	throw std::runtime_error("parseBarrelBlock(): " + msgErrConfigFileParse + msgErrBarrelBlock);
     paramrow.barrelnames.push_back(*(++words.begin()));
     itrator++;
     while (!(*itrator).startsWith(eob)) {
-	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
+	if (itrator == end) throw std::runtime_error("parseBarrelBlock(): "
+						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(layers)) {
 	    int pos = line.find(sep) + sep.length();
@@ -398,7 +401,7 @@ QStringList::const_iterator FileHandler::parseBarrelBlock(QStringList::const_ite
 	}
 	itrator++;
     }
-    if (!nl) throw std::runtime_error(msgErrConfigFileParse + msgErrBarrelBlock);
+    if (!nl) throw std::runtime_error("parseBarrelBlock(): " + msgErrConfigFileParse + msgErrBarrelBlock);
     return itrator;
 }
 
@@ -419,12 +422,13 @@ QStringList::const_iterator FileHandler::parseEndcapBlock(QStringList::const_ite
     QString line = *itrator;
     QStringList words = QStringList::split(" ", line);
     if ((++words.begin()) == words.end() || (*(++words.begin())).startsWith(sob))
-	throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapBlock);
+	throw std::runtime_error("parseEndcapBlock(): " + msgErrConfigFileParse + msgErrEndcapBlock);
     paramrow.endcapnames.push_back(*(++words.begin()));
     paramrow.nrings.push_back(0);
     itrator++;
     while (!(*itrator).startsWith(eob)) {
-	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
+	if (itrator == end) throw std::runtime_error("parseEndcapBlock(): "
+						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(discs)) {
 	    int pos = line.find(sep) + sep.length();
@@ -445,7 +449,7 @@ QStringList::const_iterator FileHandler::parseEndcapBlock(QStringList::const_ite
 	}
 	itrator++;
     }
-    if (!nl) throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapBlock);
+    if (!nl) throw std::runtime_error("parseEndcapBlock(): " + msgErrConfigFileParse + msgErrEndcapBlock);
     return itrator;
 }
 
@@ -472,7 +476,8 @@ QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const
     }
     itrator++;
     while (!(*itrator).startsWith(eob)) {
-	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
+	if (itrator == end) throw std::runtime_error("parseBarrelTypeBlock(): "
+						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(chips)) {
 	    idx = parse1DIndex(*itrator);
@@ -533,44 +538,108 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
     }
     itrator++;
     while (!(*itrator).startsWith(eob)) {
-	if (itrator == end) throw std::runtime_error(msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
+	if (itrator == end) throw std::runtime_error("parseEndcapTypeBlock() "
+						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
 	line = *itrator;
 	if (line.startsWith(chips)) {
-	    idx = parse2DIndex(*itrator);
+	    bool oneD = indexIs1D(*itrator);
+	    if (oneD) {
+		idx.first = parse1DIndex(*itrator);
+	    }
+	    else {
+		idx = parse2DIndex(*itrator);
+	    }
 	    pos = line.find(sep) + 1;
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
-	    if ((uint)idx.second >= paramrow.nchipsring.at(index).size())
-		throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapTypeBlock);
-	    if ((uint)idx.first >= paramrow.nchipsring.at(index).at(idx.second).size())
-		paramrow.nchipsring.at(index).at(idx.second).resize(idx.first + 1, cRingChipModulus);
+	    if (oneD) {
+		for (uint id = 0; id < paramrow.nchipsring.at(index).size(); id++) {
+		    if ((uint)idx.first >= paramrow.nchipsring.at(index).at(id).size())
+			paramrow.nchipsring.at(index).at(id).resize(idx.first + 1, cRingChipModulus);
+		}
+	    }
+	    else {
+		if ((uint)idx.second >= paramrow.nchipsring.at(index).size())
+		    throw std::runtime_error("parseEndcapTypeBlock(): " + msgErrConfigFileParse + msgErrEndcapTypeBlock);
+		if ((uint)idx.first >= paramrow.nchipsring.at(index).at(idx.second).size())
+		    paramrow.nchipsring.at(index).at(idx.second).resize(idx.first + 1, cRingChipModulus);
+	    }
 	    if (idx.first >= paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx.first + 1;
-	    paramrow.nchipsring.at(index).at(idx.second).at(idx.first) = toconvert.stripWhiteSpace().toInt();
+	    if (oneD) {
+		for (uint id = 0; id < paramrow.nchipsring.at(index).size(); id++) {
+		    paramrow.nchipsring.at(index).at(id).at(idx.first) = toconvert.stripWhiteSpace().toInt();
+		}
+	    }
+	    else {
+		paramrow.nchipsring.at(index).at(idx.second).at(idx.first) = toconvert.stripWhiteSpace().toInt();
+	    }
 	}
 	if (line.startsWith(segs)) {
-	    idx = parse2DIndex(*itrator);
+	    bool oneD = indexIs1D(*itrator);
+	    if (oneD) {
+		idx.first = parse1DIndex(*itrator);
+	    }
+	    else {
+		idx = parse2DIndex(*itrator);
+	}
 	    pos = line.find(sep) + 1;
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
+	     if (oneD) {
+		for (uint id = 0; id < paramrow.nsegmentsring.at(index).size(); id++) {
+		    if ((uint)idx.first >= paramrow.nsegmentsring.at(index).at(id).size())
+			paramrow.nsegmentsring.at(index).at(id).resize(idx.first + 1, 1);
+		}
+	    }
+	    else {
 	    if ((uint)idx.second >= paramrow.nsegmentsring.at(index).size())
-		throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapTypeBlock);
+		throw std::runtime_error("parseEndcapTypeBlock(): " + msgErrConfigFileParse + msgErrEndcapTypeBlock);
 	    if ((uint)idx.first >= paramrow.nsegmentsring.at(index).at(idx.second).size())
 		paramrow.nsegmentsring.at(index).at(idx.second).resize(idx.first + 1, 1);
+	}
 	    if (idx.first >= paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx.first + 1;
+	     if (oneD) {
+		for (uint id = 0; id < paramrow.nsegmentsring.at(index).size(); id++) {
+		    paramrow.nsegmentsring.at(index).at(id).at(idx.first) = toconvert.stripWhiteSpace().toInt();
+		}
+	    }
+	    else {
 	    paramrow.nsegmentsring.at(index).at(idx.second).at(idx.first) = toconvert.stripWhiteSpace().toInt();
 	}
+	}
 	if (line.startsWith(type)) {
+	     bool oneD = indexIs1D(*itrator);
+	    if (oneD) {
+		idx.first = parse1DIndex(*itrator);
+	    }
+	    else {
 	    idx = parse2DIndex(*itrator);
+	}
 	    pos = line.find(sep) + 1;
 	    QString toconvert = line.remove(0, pos);
 	    toconvert.truncate(toconvert.find(eol));
 	    toconvert = toconvert.stripWhiteSpace();
+	     if (oneD) {
+		for (uint id = 0; id < paramrow.mtypesrings.at(index).size(); id++) {
+		    if ((uint)idx.first >= paramrow.mtypesrings.at(index).at(id).size())
+			paramrow.mtypesrings.at(index).at(id).resize(idx.first + 1, none);
+		}
+	    }
+	    else {
 	    if ((uint)idx.second >= paramrow.mtypesrings.at(index).size())
-		throw std::runtime_error(msgErrConfigFileParse + msgErrEndcapTypeBlock);
+		throw std::runtime_error("parseEndcapTypeBlock(): " + msgErrConfigFileParse + msgErrEndcapTypeBlock);
 	    if ((uint)idx.first >= paramrow.mtypesrings.at(index).at(idx.second).size())
 		paramrow.mtypesrings.at(index).at(idx.second).resize(idx.first + 1, none);
+	}
 	    if (idx.first >= paramrow.nrings.at(index)) paramrow.nrings.at(index) = idx.first + 1;
+	     if (oneD) {
+		for (uint id = 0; id < paramrow.mtypesrings.at(index).size(); id++) {
+		    paramrow.mtypesrings.at(index).at(id).at(idx.first) = assignModuleType(toconvert);
+		}
+	    }
+	    else {
 	    paramrow.mtypesrings.at(index).at(idx.second).at(idx.first) = assignModuleType(toconvert);
+	}
 	}
 	itrator++;
     }
@@ -740,6 +809,16 @@ void FileHandler::appendOutputBlock(QStringList& fileContents, const QString& re
     }
 }
 
+bool FileHandler::indexIs1D(QString line)
+{
+    int start, stop, comma;
+    start = line.find(soi);
+    stop = line.find(eoi);
+    if (start > stop) throw std::runtime_error("indexIs1D(): " + msgErrConfigFileParse + msgErrModuleDressing);
+    comma = line.find(",");
+    return !(comma > start && comma < stop);
+}
+
 /**
  * Parsing of a layer or ring index from an indexed line in a module dressing block is bundled in here.
  * @param line The line within the config file containing the parameter of interest
@@ -750,7 +829,7 @@ int FileHandler::parse1DIndex(QString line)
     int idx, start, stop;	    
     start = line.find(soi);
     stop = line.find(eoi);
-    if (start > stop) throw std::runtime_error(msgErrConfigFileParse + msgErrModuleDressing);
+    if (start > stop) throw std::runtime_error("parse1DIndex(): " + msgErrConfigFileParse + msgErrModuleDressing);
     idx = line.mid(start + 1, stop - start - 1).toInt();
     return idx - 1;
 }
@@ -760,13 +839,13 @@ std::pair<int,int> FileHandler::parse2DIndex(QString line)
     int start, stop;
     std::pair<int,int> rd;
     start = line.find(soi);
-    if (start < 0) throw std::runtime_error(msgErrConfigFileParse + msgErrModuleDressing);
+    if (start < 0) throw std::runtime_error("parse2DIndex(): " + msgErrConfigFileParse + msgErrModuleDressing);
     stop = line.find(",", start);
-    if (stop < 0) throw std::runtime_error(msgErrConfigFileParse + msgErrModuleDressing);
+    if (stop < 0) throw std::runtime_error("parse2DIndex(): " + msgErrConfigFileParse + msgErrModuleDressing);
     rd.first = line.mid(start + 1, stop - start - 1).toInt() - 1;
     start = stop;
     stop = line.find(eoi, start);
-    if (stop < 0) throw std::runtime_error(msgErrConfigFileParse + msgErrModuleDressing);
+    if (stop < 0) throw std::runtime_error("parse2DIndex(): " + msgErrConfigFileParse + msgErrModuleDressing);
     rd.second = line.mid(start + 1, stop - start - 1).toInt() - 1;
     return rd;
 }

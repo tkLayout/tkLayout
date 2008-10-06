@@ -99,6 +99,7 @@ private:
     void appendBarrelTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow);
     void appendEndcapTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow);
     void appendOutputBlock(QStringList& fileContents, const QString& outputPath);
+    bool indexIs1D(QString line);
     int parse1DIndex(QString line);
     std::pair<int,int> parse2DIndex(QString line);
     moduletype assignModuleType(QString toconvert);
