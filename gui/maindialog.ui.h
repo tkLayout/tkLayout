@@ -154,8 +154,8 @@ void MainDialog::init()
 	    if (!workingFile.exists()) fh->writeSettingsToFile(workingFile, paramrow, "");
 	    workingFile.setName(workingDir.canonicalPath() + "/" + *iter + cSettingsExtension + "/" + cDefaultSettings);
 	    tmpstring = workingDir.canonicalPath() + "/" + *iter + "/" + cSettingsBackup;
-	    if (workingFile.exists()) fh->dressGeometry(workingFile, paramrow);
-	    else fh->copyTextFile(tmpstring, workingFile);
+	    if (!workingFile.exists()) fh->copyTextFile(tmpstring, workingFile);
+	     fh->dressGeometry(workingFile, paramrow);
 	}
 	catch (std::runtime_error re) {
 	    std::cout << re.what() << std::endl;
@@ -250,13 +250,13 @@ void MainDialog::nextPage()
 	valuesToWidgets(parameterTable.at(geometryPicker->selectedId()));
     }
     catch (std::out_of_range oor) {
-	QString statusText(msgErrValueLoad);
+	QString statusText("nextPage(): " + msgErrValueLoad);
 	statusText += oor.what();
 	statusBar->setText(statusText);
     }
     catch (std::runtime_error re) {
 	std::cout << re.what() << std::endl;
-	std::cout << msgCriticalErrorConfigFile << std::endl;
+	std::cout << "nextPage(): " << msgCriticalErrorConfigFile << std::endl;
 	exit(-1);
     }
     mainWidgetStack->raiseWidget(mainWidgetStack->id(mainWidgetStack->visibleWidget()) + 1);
@@ -308,7 +308,7 @@ void MainDialog::go()
 int MainDialog::simulate( const QString& command)
 {
     int ret = system(command.ascii());
-    if (ret < 0) throw std::runtime_error(msgErrSysCall);
+    if (ret < 0) throw std::runtime_error("simulate(): " + msgErrSysCall);
     return ret;
 }
 
@@ -326,7 +326,7 @@ void MainDialog::geometryPicked( int radiobuttonid )
 	nextButton->setEnabled(TRUE);
     }
     catch (std::out_of_range oor) {
-	std::cout << msgTemplateError << oor.what() << std::endl;
+	std::cout << "geometryPicked(): " << msgTemplateError << oor.what() << std::endl;
     }
 }
 
@@ -395,7 +395,7 @@ void MainDialog::loadSettingsDialog()
 		statusBar->setText(re.what());
 	    }
 	    catch (std::out_of_range oor) {
-		QString statustext(msgErrParamTableAccess);
+		QString statustext("loadSettingsDialog(): " + msgErrParamTableAccess);
 		statustext += oor.what();
 		statusBar->setText(statustext);
 	    }
@@ -435,7 +435,7 @@ void MainDialog::saveSettingsDialog()
 		    statusBar->setText(re.what());
 		}
 		catch (std::out_of_range oor) {
-		    QString statustext(msgErrParamTableAccess);
+		    QString statustext("saveSettingsDialog(): " + msgErrParamTableAccess);
 		    statustext += oor.what();
 		    statusBar->setText(statustext);
 		}
@@ -467,7 +467,7 @@ void MainDialog::overwriteDefaultSettings()
 	    statusBar->setText(re.what());
 	}
 	catch (std::out_of_range oor) {
-	    QString statustext(msgErrParamTableAccess);
+	    QString statustext("overwriteDefaultSettings(): " + msgErrParamTableAccess);
 	    statustext += oor.what();
 	    statusBar->setText(statustext);
 	}
@@ -559,7 +559,7 @@ void MainDialog::defaultsFromCache(paramaggreg& paramrow, int pos)
 	paramrow.ptpowerperchannel = widgetCache.at(pos).ptpowerperchannel;
     }
     catch (std::out_of_range oor) {
-	std::cout << msgErrParamCacheAccess << oor.what() << std::endl;
+	std::cout << "defaultsFromCache(): " << msgErrParamCacheAccess << oor.what() << std::endl;
     }
 }
 
@@ -589,7 +589,7 @@ void MainDialog::defaultsToCache(const paramaggreg& paramrow, int pos)
 	widgetCache.at(pos).ptpowerperchannel = paramrow.ptpowerperchannel;
     }
     catch (std::out_of_range oor) {
-	std::cout << msgErrParamCacheAccess << oor.what() << std::endl;
+	std::cout << "defaultsToCache(): " << msgErrParamCacheAccess << oor.what() << std::endl;
     }
 }
 
@@ -635,7 +635,7 @@ void MainDialog::ringTypeSelected(int index)
 	}
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("ringTypeSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -668,7 +668,7 @@ void MainDialog::layerTypeSelected(int index)
 	}
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("layerTypeSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -703,7 +703,7 @@ void MainDialog::layerSelected( int index)
 	layerTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("layerSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -724,8 +724,6 @@ void MainDialog::ringSelected( int index)
 	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId()).nsegmentsring
 				      .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
 	int idx;
-	std::cout << "Type is " << parameterTable.at(geometryPicker->selectedId()).mtypesrings
-		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index) << std::endl;
 	switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings
 		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index)) {
 	case rphi : idx = 0;
@@ -741,7 +739,7 @@ void MainDialog::ringSelected( int index)
 	ringTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("ringSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }    
@@ -761,7 +759,6 @@ void MainDialog::discSelected(int index)
 	    ringSegmentsSpinner->setEnabled(TRUE);
 	    ringTypeListBox->setEnabled(TRUE);
 	    ringSelection->setCurrentItem(0);
-	    ringSelected(0);
 	}
 	else {
 	    ringChipsSpinner->setEnabled(FALSE);
@@ -771,7 +768,7 @@ void MainDialog::discSelected(int index)
 	}
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("discSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -792,7 +789,7 @@ void MainDialog::barrelSelected(int index)
 	layerSelected(0);
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("barrelSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -813,10 +810,64 @@ void MainDialog::endcapSelected(int index)
 	discSelected(0);
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("endcapSelected(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
+}
+
+void MainDialog::printCurrentParams()
+{
+    int geo = geometryPicker->selectedId();
+    std::cout << std::endl << "tracker " << parameterTable.at(geo).trackerName << std::endl;
+    for (uint i = 0; i < parameterTable.at(geo).barrelnames.size(); i++) {
+	std::cout << "barrel " << parameterTable.at(geo).barrelnames.at(i) << std::endl;
+	std::cout << "number of layers: " << parameterTable.at(geo).nlayers.at(i) << std::endl;
+	std::cout << "chips across per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).nchipslayer.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).nchipslayer.at(i).at(j) + " ";
+	}
+	std::cout << std::endl << "segments along per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).nsegmentslayer.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).nsegmentslayer.at(i).at(j) + " ";
+	}
+	std::cout << std::endl << "types per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).mtypeslayers.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).mtypeslayers.at(i).at(j) + " ";
+	}
+	std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    for (uint i = 0; i < parameterTable.at(geo).endcapnames.size(); i++) {
+	std::cout << "endcap " << parameterTable.at(geo).endcapnames.at(i) << std::endl;
+	std::cout << "number of discs: " << parameterTable.at(geo).ndiscs.at(i) << std::endl;
+	std::cout << "number of rings: " << parameterTable.at(geo).nrings.at(i) << std::endl;
+	std::cout << "chips across per disc and ring:" << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).nchipsring.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).nchipsring.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).nchipsring.at(i).at(j).at(k) << " ";
+	    }
+	    std::cout << std::endl;
+	}
+	std::cout << "segments along per disc and ring:" << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).nsegmentsring.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).nsegmentsring.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).nsegmentsring.at(i).at(j).at(k) << " ";
+	    }
+	    std::cout << std::endl;
+	}
+	std::cout << "types per disc and ring:" << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).mtypesrings.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).mtypesrings.at(i).at(j).size(); j++) {
+		std::cout << parameterTable.at(geo).mtypesrings.at(i).at(j).at(k);
+	    }
+	    std::cout << std::endl;
+	}
+    }
+    std::cout << std::endl;
 }
 
 /**
@@ -830,26 +881,19 @@ void MainDialog::addRing()
     ec = endcapSelection->currentItem();
     ringSelection->insertItem(QString::number(ringSelection->count() + 1), ringSelection->count());
     parameterTable.at(geo).nrings.at(ec)++;
-    std::cout << "addRing(): nrings.at(" << ec << ") (endcap) is " << parameterTable.at(geo).nrings.at(ec) << std::endl;
     for (int disc = 0; disc < parameterTable.at(geo).ndiscs.at(ec); disc++) {
 	if ((int)parameterTable.at(geo).nchipsring.at(ec).at(disc).size() < parameterTable.at(geo).nrings.at(ec)) {
-	    std::cout << "Vector nchipsring needs to be resized." << std::endl;
 	    parameterTable.at(geo).nchipsring.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
 	}
-	std::cout << "Endif nchipsring." << std::endl;
-	parameterTable.at(geo).nchipsring.at(ec).at(disc).push_back(cRingChipModulus);
+	parameterTable.at(geo).nchipsring.at(ec).at(disc).back() = cRingChipModulus;
 	if ((int)parameterTable.at(geo).nsegmentsring.at(ec).at(disc).size() < parameterTable.at(geo).nrings.at(ec)) {
-	    std::cout << "Vector nsegmentsring needs to be resized." << std::endl;
 	    parameterTable.at(geo).nsegmentsring.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
 	}
-	std::cout << "Endif nsegmentsring." << std::endl;
-	parameterTable.at(geo).nsegmentsring.at(ec).at(disc).push_back(ringSegmentsSpinner->minValue());
+	parameterTable.at(geo).nsegmentsring.at(ec).at(disc).back() = ringSegmentsSpinner->minValue();
 	if ((int)parameterTable.at(geo).mtypesrings.at(ec).at(disc).size()  < parameterTable.at(geo).nrings.at(ec)) {
-	    std::cout << "Vector mtypesrings needs to be resized." << std::endl;
 	    parameterTable.at(geo).mtypesrings.at(ec).at(disc).resize(parameterTable.at(geo).nrings.at(ec));
 	}
-	std::cout << "Endif mtypesrings." << std::endl;
-	parameterTable.at(geo).mtypesrings.at(ec).at(disc).push_back(none);
+	parameterTable.at(geo).mtypesrings.at(ec).at(disc).back() = none;
     }
     if (ringSelection->count() == 1) {
 	ringChipsSpinner->setEnabled(TRUE);
@@ -857,7 +901,9 @@ void MainDialog::addRing()
 	ringTypeListBox->setEnabled(TRUE);
     }
     ringSelection->setCurrentItem(ringSelection->count() - 1);
-    ringSelected(ringSelection->currentItem());
+    ringTypeListBox->clearSelection();
+    std::cout << "addRing(): ";
+    printCurrentParams();
 }    
 
 /**
@@ -889,6 +935,8 @@ void MainDialog::removeRing()
 	    ringSelection->setCurrentItem(ringSelection->count() - 1);
 	    ringSelected(ringSelection->currentItem());
 	}
+	std::cout << "removeRing(): ";
+	printCurrentParams();
     }
 }
 
@@ -914,15 +962,15 @@ void MainDialog::layerChipsAcrossChanged(int value)
 		layerTotalChipsLabel->setText(totalchips);
 	    }
 	    break;
-	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	case QValidator::Intermediate : statusBar->setText("layerChipsSpinner: " + msgSpinValidationFuzzy);
 	    break;
-	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	case QValidator::Invalid : statusBar->setText("layerChipsSpinner: " + msgSpinValidationError);
 	    break;
-	default : statusBar->setText(msgErrValidationStrange);
+	default : statusBar->setText("layerChipsSpinner: " + msgErrValidationStrange);
     }
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("layerChipsAcrossChanged(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -942,15 +990,15 @@ void MainDialog::layerSegmentsAlongChanged(int value)
 	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nsegmentslayer
 		    .at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = value;
 	    break;
-	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	case QValidator::Intermediate : statusBar->setText("layerSegmentsSpinner: " + msgSpinValidationFuzzy);
 	    break;
-	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	case QValidator::Invalid : statusBar->setText("layerSegmentsSpinner: " + msgSpinValidationError);
 	    break;
-	default : statusBar->setText(msgErrValidationStrange);
+	default : statusBar->setText("layerSegmentsSpinner: " + msgErrValidationStrange);
               }
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("layerSegmentsAlongChanged(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -977,15 +1025,15 @@ void MainDialog::ringChipsAcrossChanged(int value)
 		ringTotalChipsLabel->setText(totalchips);
 	    }
 	    break;
-	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	case QValidator::Intermediate : statusBar->setText("ringChipsSpinner: " + msgSpinValidationFuzzy);
 	    break;
-	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	case QValidator::Invalid : statusBar->setText("ringChipsSpinner: " + msgSpinValidationError);
 	    break;
-	default : statusBar->setText(msgErrValidationStrange);
+	default : statusBar->setText("ringChipsSpinner: " + msgErrValidationStrange);
     }
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("ringChipsAcrossChanged(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -1005,15 +1053,15 @@ void MainDialog::ringSegmentsAlongChanged(int value)
 	case QValidator::Acceptable : parameterTable.at(geometryPicker->selectedId()).nsegmentsring
 		    .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(ringSelection->currentItem()) = value;
 	    break;
-	case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	case QValidator::Intermediate : statusBar->setText("ringSegmentsSpinner: " + msgSpinValidationFuzzy);
 	    break;
-	case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	case QValidator::Invalid : statusBar->setText("ringSegmentsSpinner: " + msgSpinValidationError);
 	    break;
-	default : statusBar->setText(msgErrValidationStrange);
+	default : statusBar->setText("ringSegmentsSpinner: " + msgErrValidationStrange);
               }
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("ringSegmentsAlongChanged(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
     }
@@ -1031,57 +1079,57 @@ bool MainDialog::validateInput()
 	QString inttostring = layerChipsSpinner->text();
 	switch (layerChipsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
-	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    case QValidator::Intermediate : statusBar->setText("layerChipsSpinner: " + msgSpinValidationFuzzy);
 		return FALSE;
-	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    case QValidator::Invalid : statusBar->setText("layerChipsSpinner: " + msgSpinValidationError);
 		return FALSE;
-	    default : statusBar->setText(msgErrValidationStrange);
+	    default : statusBar->setText("layerChipsSpinner: " + msgErrValidationStrange);
 		return FALSE;
 	}
 	inttostring = layerSegmentsSpinner->text();
 	switch (layerSegmentsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
-	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    case QValidator::Intermediate : statusBar->setText("layerSegmentsSpinner: " + msgSpinValidationFuzzy);
 		return FALSE;
-	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    case QValidator::Invalid : statusBar->setText("layerSegmentsSpinner: " + msgSpinValidationError);
 		return FALSE;
-	    default : statusBar->setText(msgErrValidationStrange);
+	    default : statusBar->setText("layerSegmentsSpinner: " + msgErrValidationStrange);
 		return FALSE;
 	}
 	 inttostring = ringChipsSpinner->text();
 	switch (ringChipsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
-	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    case QValidator::Intermediate : statusBar->setText("ringChipsSpinner: " + msgSpinValidationFuzzy);
 		return FALSE;
-	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    case QValidator::Invalid : statusBar->setText("ringChipsSpinner: " + msgSpinValidationError);
 		return FALSE;
-	    default : statusBar->setText(msgErrValidationStrange);
+	    default : statusBar->setText("ringChipsSpinner: " + msgErrValidationStrange);
 		return FALSE;
 	}
 	inttostring = ringSegmentsSpinner->text();
 	switch (ringSegmentsSpinner->validator()->validate(inttostring, pos)) {
 	    case QValidator::Acceptable : break;
-	    case QValidator::Intermediate : statusBar->setText(msgSpinValidationFuzzy);
+	    case QValidator::Intermediate : statusBar->setText("ringSegmentsSpinner: " + msgSpinValidationFuzzy);
 		return FALSE;
-	    case QValidator::Invalid : statusBar->setText(msgSpinValidationError);
+	    case QValidator::Invalid : statusBar->setText("ringSegmentsSpinner: " + msgSpinValidationError);
 		return FALSE;
-	    default : statusBar->setText(msgErrValidationStrange);
+	    default : statusBar->setText("ringSegmentsSpinner: " + msgErrValidationStrange);
 		return FALSE;
 	}
 	if (!costPerSqCmEdit->hasAcceptableInput()) {
-	    statusBar->setText(msgValidationError);
+	    statusBar->setText("costPerSqCmEdit: " + msgValidationError);
 	    return FALSE;
 	}
 	if (!costPtPerSqCmEdit->hasAcceptableInput()) {
-	    statusBar->setText(msgValidationError);
+	    statusBar->setText("costPtPerSqCmEdit: " + msgValidationError);
 	    return FALSE;
 	}
 	if (!powerEdit->hasAcceptableInput()) {
-	    statusBar->setText(msgValidationError);
+	    statusBar->setText("powerEdit: " + msgValidationError);
 	    return FALSE;
 	}
 	if (!ptPowerEdit->hasAcceptableInput()) {
-	    statusBar->setText(msgValidationError);
+	    statusBar->setText("ptPowerEdit: " + msgValidationError);
 	    return FALSE;
 	}
 	if (trackerNameLineEdit->text().length() == 0) {
@@ -1090,7 +1138,7 @@ bool MainDialog::validateInput()
 	return TRUE;
     }
     catch (std::out_of_range oor) {
-	QString statustext(msgErrParamTableAccess);
+	QString statustext("validateInput(): " + msgErrParamTableAccess);
 	statustext += oor.what();
 	statusBar->setText(statustext);
 	return FALSE;
