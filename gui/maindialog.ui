@@ -469,7 +469,7 @@
                                                                                     <cstring>layerTotalChipsLabel</cstring>
                                                                                 </property>
                                                                                 <property name="text">
-                                                                                    <string>&lt;b&gt;Z&lt;/b&gt;</string>
+                                                                                    <string>&lt;b&gt;256&lt;/b&gt;</string>
                                                                                 </property>
                                                                                 <property name="textFormat">
                                                                                     <enum>RichText</enum>
@@ -825,7 +825,7 @@
                                                                                     <cstring>ringTotalChipsLabel</cstring>
                                                                                 </property>
                                                                                 <property name="text">
-                                                                                    <string>&lt;b&gt;Z&lt;/b&gt;</string>
+                                                                                    <string>&lt;b&gt;256&lt;/b&gt;</string>
                                                                                 </property>
                                                                             </widget>
                                                                         </hbox>

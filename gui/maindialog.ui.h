@@ -716,27 +716,34 @@ void MainDialog::layerSelected( int index)
 void MainDialog::ringSelected( int index)
 {
     try {
-	QString total = QString::number(parameterTable.at(geometryPicker->selectedId()).nchipsring
-					.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
-	ringChipsSpinner->setValue(total.toInt() / cRingChipModulus);
-	total = "<b>" + total + "</b>";
-	ringTotalChipsLabel->setText(total);
-	ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId()).nsegmentsring
-				      .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
-	int idx;
-	switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings
-		.at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index)) {
-	case rphi : idx = 0;
-	    break;
-	case stereo : idx = 1;
-	    break;
-	case pt : idx = 2;
-	    break;
-	default : idx = -1;
+	if (index < 0) {
+	    ringChipsSpinner->setValue(ringChipsSpinner->minValue());
+	    ringSegmentsSpinner->setValue(ringSegmentsSpinner->minValue());
+	    ringTotalChipsLabel->setText("<b>" + QString::number(ringChipsSpinner->minValue() * cRingChipModulus) + "</b>");
 	}
-	if (idx >= 0) ringTypeListBox->setCurrentItem(idx);
-	else ringTypeListBox->clearSelection();
-	ringTypeSelected(idx);
+	else {
+	    QString total = QString::number(parameterTable.at(geometryPicker->selectedId()).nchipsring
+					    .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
+	    ringChipsSpinner->setValue(total.toInt() / cRingChipModulus);
+	    total = "<b>" + total + "</b>";
+	    ringTotalChipsLabel->setText(total);
+	    ringSegmentsSpinner->setValue(parameterTable.at(geometryPicker->selectedId()).nsegmentsring
+					  .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index));
+	    int idx;
+	    switch (parameterTable.at(geometryPicker->selectedId()).mtypesrings
+		    .at(endcapSelection->currentItem()).at(discSelection->currentItem()).at(index)) {
+	    case rphi : idx = 0;
+		break;
+	    case stereo : idx = 1;
+		break;
+	    case pt : idx = 2;
+		break;
+	    default : idx = -1;
+	}
+	    if (idx >= 0) ringTypeListBox->setCurrentItem(idx);
+	    else ringTypeListBox->clearSelection();
+	    ringTypeSelected(idx);
+	}
     }
     catch (std::out_of_range oor) {
 	QString statustext("ringSelected(): " + msgErrParamTableAccess);
@@ -825,15 +832,15 @@ void MainDialog::printCurrentParams()
 	std::cout << "number of layers: " << parameterTable.at(geo).nlayers.at(i) << std::endl;
 	std::cout << "chips across per layer: ";
 	for (uint j = 0; j < parameterTable.at(geo).nchipslayer.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).nchipslayer.at(i).at(j) + " ";
+	    std::cout << parameterTable.at(geo).nchipslayer.at(i).at(j) << " ";
 	}
 	std::cout << std::endl << "segments along per layer: ";
 	for (uint j = 0; j < parameterTable.at(geo).nsegmentslayer.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).nsegmentslayer.at(i).at(j) + " ";
+	    std::cout << parameterTable.at(geo).nsegmentslayer.at(i).at(j) << " ";
 	}
 	std::cout << std::endl << "types per layer: ";
 	for (uint j = 0; j < parameterTable.at(geo).mtypeslayers.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).mtypeslayers.at(i).at(j) + " ";
+	    std::cout << parameterTable.at(geo).mtypeslayers.at(i).at(j) << " ";
 	}
 	std::cout << std::endl;
     }
@@ -858,11 +865,11 @@ void MainDialog::printCurrentParams()
 	    }
 	    std::cout << std::endl;
 	}
-	std::cout << "types per disc and ring:" << std::endl;
+	std::cout << "types per disc and ring: " << std::endl;
 	for (uint j = 0; j < parameterTable.at(geo).mtypesrings.at(i).size(); j++) {
 	    std::cout << "disc " << j << ": ";
-	    for (uint k = 0; k < parameterTable.at(geo).mtypesrings.at(i).at(j).size(); j++) {
-		std::cout << parameterTable.at(geo).mtypesrings.at(i).at(j).at(k);
+	    for (uint k = 0; k < parameterTable.at(geo).mtypesrings.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).mtypesrings.at(i).at(j).at(k) << " ";
 	    }
 	    std::cout << std::endl;
 	}
@@ -902,8 +909,6 @@ void MainDialog::addRing()
     }
     ringSelection->setCurrentItem(ringSelection->count() - 1);
     ringTypeListBox->clearSelection();
-    std::cout << "addRing(): ";
-    //printCurrentParams();
 }    
 
 /**
@@ -935,8 +940,6 @@ void MainDialog::removeRing()
 	    ringSelection->setCurrentItem(ringSelection->count() - 1);
 	    ringSelected(ringSelection->currentItem());
 	}
-	std::cout << "removeRing(): ";
-	//printCurrentParams();
     }
 }
 
