@@ -58,10 +58,19 @@ Tracker* createGeometryPackage(string configFileName) {
       myfile << myTracker->getComment() << std::endl;
       myfile.close();
     }
-    destConfigFileName =  dirName+"/default.cfg";
+    destConfigFileName =  dirName+"/geometry.cfg";
     std::cout << "Copying " << configFileName <<" into " << destConfigFileName <<endl;
     remove(destConfigFileName);
     copy_file(configFileName, destConfigFileName);
+
+    std::string settingsFile = dirName + "/settings.cfg";
+    if (!exists(settingsFile)) {
+      std::ofstream myfile;
+      myfile.open(settingsFile.c_str());
+      myfile << std::endl;
+      myfile.close();
+    }
+    
   }
 
   return myTracker;
