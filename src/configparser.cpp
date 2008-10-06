@@ -492,26 +492,26 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
 	  specialIndex.second = secondaryIndex;
 	  bool isSpecial = false;
 	  if (parameterName=="nStripsAcross") {
-	    if (nStripsAcrossSecond[specialIndex]!=nStripsAcross[mainIndex]) {
+	    if (atoi(parameterValue.c_str())!=nStripsAcross[mainIndex]) {
 	      nStripsAcrossSecond[specialIndex]=atoi(parameterValue.c_str());
 	      // It is "special" only if it differs from the default values
 	      specialSecond[specialIndex]=true;
 	      isSpecial = true;
 	    }
 	  } else if (parameterName=="nSides") {
-	    if (nSidesSecond[specialIndex]!=nSides[mainIndex]) {
+	    if (atoi(parameterValue.c_str())!=nSides[mainIndex]) {
 	      nSidesSecond[specialIndex]=atoi(parameterValue.c_str());
 	      specialSecond[specialIndex]=true;
 	      isSpecial = true;
 	    }
 	  } else if (parameterName=="nSegments") {
-	    if (nSegmentsSecond[specialIndex]!=nSegments[mainIndex]) {
+	    if (atoi(parameterValue.c_str())!=nSegments[mainIndex]) {
 	      nSegmentsSecond[specialIndex]=atoi(parameterValue.c_str());
 	      specialSecond[specialIndex]=true;
 	      isSpecial = true;
 	    }
 	  } else if (parameterName=="type") {
-	    if (typeSecond[specialIndex]!=type[mainIndex]) {
+	    if (parameterValue!=type[mainIndex]) {
 	      typeSecond[specialIndex]=parameterValue.c_str();
 	      specialSecond[specialIndex]=true;
 	      isSpecial = true;
