@@ -1414,6 +1414,7 @@
     <slot>discSelected( int index )</slot>
     <slot>barrelSelected( int index )</slot>
     <slot>endcapSelected( int index )</slot>
+    <slot>printCurrentParams()</slot>
     <slot>addRing()</slot>
     <slot>removeRing()</slot>
     <slot>layerChipsAcrossChanged( int value )</slot>
