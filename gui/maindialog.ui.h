@@ -617,15 +617,15 @@ void MainDialog::ringTypeSelected(int index)
     try {
 	statusBar->clear();
 	switch (index) {
-	case 0 : ringTypeListBox->setCurrentItem(index);
+	case 0 : ringTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
 		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = rphi;
 	    break;
-	case 1 : ringTypeListBox->setCurrentItem(index);
+	case 1 : ringTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
 		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = stereo;
 	    break;
-	case 2 : ringTypeListBox->setCurrentItem(index);
+	case 2 : ringTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId()).mtypesrings.at(endcapSelection->currentItem())
 		    .at(discSelection->currentItem()).at(ringSelection->currentItem()) = pt;
 	    break;
@@ -650,15 +650,15 @@ void MainDialog::layerTypeSelected(int index)
     try {
 	statusBar->clear();
 	switch (index) {
-	case 0 : layerTypeListBox->setCurrentItem(index);
+	case 0 : layerTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = rphi;
 	    break;
-	case 1 : layerTypeListBox->setCurrentItem(index);
+	case 1 : layerTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = stereo;
 	    break;
-	case 2 : layerTypeListBox->setCurrentItem(index);
+	case 2 : layerTypeListBox->setSelected(index, TRUE);
 	    parameterTable.at(geometryPicker->selectedId())
 		    .mtypeslayers.at(barrelSelection->currentItem()).at(layerSelection->currentItem()) = pt;
 	    break;
@@ -699,7 +699,6 @@ void MainDialog::layerSelected( int index)
 	    break;
 	default : idx = -1;
               }
-	layerTypeListBox->setCurrentItem(idx);
 	layerTypeSelected(idx);
     }
     catch (std::out_of_range oor) {
@@ -739,9 +738,7 @@ void MainDialog::ringSelected( int index)
 	    case pt : idx = 2;
 		break;
 	    default : idx = -1;
-	}
-	    if (idx >= 0) ringTypeListBox->setCurrentItem(idx);
-	    else ringTypeListBox->clearSelection();
+	    }
 	    ringTypeSelected(idx);
 	}
     }
@@ -765,7 +762,8 @@ void MainDialog::discSelected(int index)
 	    ringChipsSpinner->setEnabled(TRUE);
 	    ringSegmentsSpinner->setEnabled(TRUE);
 	    ringTypeListBox->setEnabled(TRUE);
-	    ringSelection->setCurrentItem(0);
+	    ringSelection->setSelected(0, TRUE);
+	    ringSelected(0);
 	}
 	else {
 	    ringChipsSpinner->setEnabled(FALSE);
@@ -792,7 +790,7 @@ void MainDialog::barrelSelected(int index)
 	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).nlayers.at(index); i++) {
 	    layerSelection->insertItem(QString::number(i + 1), i);
 	}
-	layerSelection->setCurrentItem(0);
+	layerSelection->setSelected(0, TRUE);
 	layerSelected(0);
     }
     catch (std::out_of_range oor) {
@@ -813,7 +811,6 @@ void MainDialog::endcapSelected(int index)
 	for (int i = 0; i < parameterTable.at(geometryPicker->selectedId()).ndiscs.at(index); i++) {
 	    discSelection->insertItem(QString::number(i + 1), i);
 	}
-	discSelection->setCurrentItem(0);
 	discSelected(0);
     }
     catch (std::out_of_range oor) {
@@ -907,8 +904,7 @@ void MainDialog::addRing()
 	ringSegmentsSpinner->setEnabled(TRUE);
 	ringTypeListBox->setEnabled(TRUE);
     }
-    ringSelection->setCurrentItem(ringSelection->count() - 1);
-    ringTypeListBox->clearSelection();
+    ringSelection->setSelected(ringSelection->count() - 1, TRUE);
 }    
 
 /**
@@ -937,7 +933,7 @@ void MainDialog::removeRing()
 	    ringTypeListBox->setEnabled(FALSE);
 	}
 	else {
-	    ringSelection->setCurrentItem(ringSelection->count() - 1);
+	    ringSelection->setSelected(ringSelection->count() - 1, TRUE);
 	    ringSelected(ringSelection->currentItem());
 	}
     }
