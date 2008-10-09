@@ -89,17 +89,17 @@ typedef struct geominfo {
 /**
  * Encapsulating struct for parameteres in a pre-packaged geometry that may be modified by the user
  * @param trackerName A name for the optimisation experiment...
- * @param nlayers The number of layers, listed per barrel; displayed only, not customisable by the user
- * @param ndiscs The number of discs, listed per endcap; displayed only, not customisable by the user
- * @param nrings The number of rings in the selected geometry; displayed only, not customisable by the user
+ * @param nlayers The number of layers, listed per barrel; not customisable by the user
+ * @param ndiscs The number of discs, listed per endcap; not customisable by the user
+ * @param nrings The number of rings in the selected geometry; not customisable by the user
  * @param barrelnames A list of unique names to identify each barrel
  * @param endcapnames A list of unique names to identify each endcap
- * @param nchipslayer The number of chips across a module in each layer, listed in one vector per barrel
- * @param nchipsring The number of chips across a module in each ring, listed in one vector per endcap
- * @param nsegmentslayer The number of segments along a module in each layer, listed in one vector per barrel
- * @param nsegmentsring The number of segments along a module in each ring, listed in one vector per endcap
- * @param mtypeslayers The module type (rphi, stereo, pt or none) of each layer, listed in one vector per barrel
- * @param mtypesrings The module type (rphi, stereo, pt or none) of each ring, listed in one vector per endcap
+ * @param nchipslayer The number of chips across a module, per barrel and layer
+ * @param nchipsring The number of chips across a module, per endcap, disc and ring
+ * @param nsegmentslayer The number of segments along a module, per barrel and layer
+ * @param nsegmentsring The number of segments along a module, per endcap, disc and ring
+ * @param mtypeslayers The module type (rphi, stereo, pt or none), per barrel and layer
+ * @param mtypesrings The module type (rphi, stereo, pt or none), per endcap, disc and ring
  * @param costpersqcm What it costs, per square cm, to produce one single sided module; currency is left deliberately vague...
  * @param ptcostpersqcm What it costs, per square cm, to produce one pt module; see above for currency...
  * @param powerperchannel The current required by a single sided channel to function; in mA

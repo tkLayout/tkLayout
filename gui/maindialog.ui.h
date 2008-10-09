@@ -265,7 +265,7 @@ void MainDialog::nextPage()
 /**
  * The actual work is done by this function.
  * Or rather, it is delegated to the simulation executable with the appropriate config files in tow.
- * (Who said management was pointless? <i>*evil_grin*</i>) It then prepares the summary page and displays it.
+ * (Who said management was pointless? <i>*evil_grin*</i>) It then prepares the summary popup and displays it.
  */
 void MainDialog::go()
 {
@@ -749,6 +749,10 @@ void MainDialog::ringSelected( int index)
     }    
 }
 
+/**
+ * This is the event handler that fills and updates the <i>rings</i> listbox when a disc is selected on the parameter page.
+ * @param index The index of the selected combobox item; unused because all the information can be read from the widgets directly
+ */
 void MainDialog::discSelected(int index)
 {
     try {
@@ -876,7 +880,10 @@ void MainDialog::printCurrentParams()
 
 /**
  * This is the event handler that adds a new ring item to the listbox on the parameter page.
- * It also updates the relevant entry of parameterTable in the background.
+ * It also updates the relevant entry of parameterTable in the background and selects the new
+ * tail of the list.
+ * If newly created ring is the first list entry, it activates the chips and segments spinners as
+ * well as the type selection list box.
  */
 void MainDialog::addRing()
 {
@@ -909,7 +916,9 @@ void MainDialog::addRing()
 
 /**
  * This is the event handler that removes the last ring item from the listbox on the parameter page.
- * It also updates the relevant entry of parameterTable in the background.
+ * It also updates the relevant entry of parameterTable in the background and selects the new tail of the list.
+ * If the deleted ring was the last entry in the list, it deactivates the chips and segments spinners
+ * as well as the type selection listbox.
  */
 void MainDialog::removeRing()
 {

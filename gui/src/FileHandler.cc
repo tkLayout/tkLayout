@@ -151,6 +151,11 @@ void FileHandler::copyTextFile(QString& inName, QFile& outFile)
     copyTextFile(inFile, outFile);
 }
 
+/**
+ * This function copies raw data from one file to another. If either file fails to open, an exception is thrown.
+ * @param inFile The source file
+ * @param outFile The destination file
+ */
 void FileHandler::copyDataFile(QFile& inFile, QFile& outFile)
 {
     if (inFile.open(IO_ReadOnly)) {
@@ -175,6 +180,7 @@ void FileHandler::copyDataFile(QFile& inFile, QFile& outFile)
 /**
  * Removal of the temporary directory that contains the HTML summary happens in here.
  * If the directory is not empty, the files it contains are deleted first.
+ * @param outDir The path to the directory that needs to be removed
  */
 void FileHandler::removeOutputDir(const QString outDir)
 {
@@ -189,6 +195,7 @@ void FileHandler::removeOutputDir(const QString outDir)
 
 /**
  * If the file with the name <i>fileName</i> exists, it is removed in here.
+ * @param fileName The file name, as an absolute or a relative path
  */
 void FileHandler::removeTmpConfigFile(const QString& fileName)
 {
@@ -254,7 +261,7 @@ void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& para
 }
 
 /**
- * This function looks for the block headers in a configuration file that dresses existng modules.
+ * This function looks for the block headers in a configuration file that dresses existing modules.
 *  If it finds one, it calls the appropriate parser for the block.
  * @param lineList The contents of the config file, broken up into individual lines
  * @param paramrow The destination data struct
@@ -510,7 +517,7 @@ QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const
 }
 
 /**
- * This parser function reads parameters of interest from a block containing module options per ring.
+ * This parser function reads parameters of interest from a block containing module options per disc and ring.
  * The extracted information is added to a <i>paramaggreg</i> data struct, resizing the vectors as necessary.
  * If the iteration encounters an unexpected end of file, an exception is thrown.
  * @param iter An iterator to the current line in the configuration file
@@ -809,6 +816,12 @@ void FileHandler::appendOutputBlock(QStringList& fileContents, const QString& re
     }
 }
 
+/**
+ * Whether an index associated with a parameter has one or more dimensions is decided in this convenience function.
+ * If the function cannot make sense of the brackets around the index, an exception is thrown.
+ * @param line The line within the config file that contains the parameter of interest
+ * @return <i>TRUE</i> if only one number is found, <i>FALSE</i> otherwise
+ */
 bool FileHandler::indexIs1D(QString line)
 {
     int start, stop, comma;
@@ -821,7 +834,7 @@ bool FileHandler::indexIs1D(QString line)
 
 /**
  * Parsing of a layer or ring index from an indexed line in a module dressing block is bundled in here.
- * @param line The line within the config file containing the parameter of interest
+ * @param line The line within the config file that contains the parameter of interest
  * @return The index as it will be used by the internal data structures (i.e. the converted number - 1)
  */
 int FileHandler::parse1DIndex(QString line)
@@ -834,6 +847,11 @@ int FileHandler::parse1DIndex(QString line)
     return idx - 1;
 }
 
+/**
+ * Parsing a two-dimensional index of the type <i>ring, disc</i> from an endcap type block is bundled in here.
+ * @param line The line within the config file that contains the parameter of interest
+ * @return A <i>pair</i> object that contains the index for the ring and the disc as used internally (i.e. the converted numbers - 1)
+ */
 std::pair<int,int> FileHandler::parse2DIndex(QString line)
 {
     int start, stop;
