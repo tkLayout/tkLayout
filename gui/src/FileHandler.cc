@@ -1,6 +1,5 @@
 /**
-  * @file filehandler.cc
-  * @author Nicoletta De Maio
+  * @file FileHandler.cc
   * @brief This is the implementation of the FileHandler helper class.
   */
 
@@ -234,7 +233,7 @@ bool FileHandler::cleanOutDirectory(QDir& workingDir)
  */
 void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& paramrow)
 {
-    bool tb = FALSE, bb = FALSE, eb = FALSE;
+    bool tb = FALSE, bb = FALSE; //eb = FALSE;
     QStringList::const_iterator iter = lineList.begin();
     while (iter != lineList.end()) {
 	bool lineofinterest = FALSE;
@@ -251,13 +250,13 @@ void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& para
 	if ((*iter).startsWith(endcapblock) && !(*iter).startsWith(endcaptypeblock)) {
 	    lineofinterest = TRUE;
 	    iter = parseEndcapBlock(iter, lineList.end(), paramrow);
-	    eb = TRUE;
+	    //eb = TRUE;
 	}
 	if (!lineofinterest) iter++;
     }
     if (!tb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoTracker);
     if (!bb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoBarrel);
-    if (!eb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoEndcap);
+    //if (!eb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoEndcap);
 }
 
 /**
@@ -294,7 +293,7 @@ QString FileHandler::assembleSettingsFile(const paramaggreg& paramrow, const QSt
 {
     QStringList fileContents;
     appendBarrelTypeBlocks(fileContents, paramrow);
-    appendEndcapTypeBlocks(fileContents, paramrow);
+    if (paramrow.endcapnames.size() > 0) appendEndcapTypeBlocks(fileContents, paramrow);
     appendOutputBlock(fileContents, relativeOutputPath);
     return fileContents.join("\n");
 }

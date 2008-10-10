@@ -1,6 +1,5 @@
 /**
   * @file gui_constants.h
-  * @author Nicoletta De Maio
   * @brief Messages, string and integer constants and custom data types are bundled here.
   */
 
@@ -70,12 +69,14 @@ static const int cPositiveNumbers = 1;
 static const int cMaxChipsInSpinner = 8;
 
 /**
- * Enumeration of the available module types: single sided, double sided and pt
+ * @enum moduletype
+ * @brief Enumeration of the available module types: none, single sided, double sided and pt
  */
 enum moduletype { none = -1, rphi = 0, stereo = 1, pt = 2 };
 
 /**
- * Encapsulating struct for information about a pre-packaged geometry.
+ * @struct geominfo
+ * @brief Encapsulating struct for information about a pre-packaged geometry.
  * @param layoutDescription A short text description of the geometry; read from a file containing plaintext or simple HTML
  * @param layoutImage A diagram showing a cross-section of the detector geometry; read from a .png file
  * @param configFile The name of the original config file that comes with the geometry
@@ -87,7 +88,8 @@ typedef struct geominfo {
 };
 
 /**
- * Encapsulating struct for parameteres in a pre-packaged geometry that may be modified by the user
+ * @struct paramaggreg
+ * @brief Encapsulating struct for parameteres in a pre-packaged geometry that may be modified by the user
  * @param trackerName A name for the optimisation experiment...
  * @param nlayers The number of layers, listed per barrel; not customisable by the user
  * @param ndiscs The number of discs, listed per endcap; not customisable by the user

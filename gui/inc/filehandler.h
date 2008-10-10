@@ -1,6 +1,5 @@
 /**
   * @file filehandler.h
-  * @author Nicoletta De Maio
   * @brief This is the header file for the FileHandler helper class.
   */
 
@@ -68,6 +67,17 @@ static const QString eoi = "]";
 static const QString eol = ";";
 static const QString pad = "  ";
 
+
+/**
+ * @class FileHandler
+ * @brief This class bundles the various file operations used in the GUI.
+ *
+ * The FileHandler class is a customised helper class that encapsulates various kinds of read
+ * and write operations specific to the tkgeometry GUI. Its main functions provide access to
+ * the tkgeometry geometry and settings configuration files (parsing to internal data structures
+ * and translation of those internal data structures back to config file format). It also provides
+ * the functions that delete temporary output when the GUI is closed.
+ */
 class FileHandler {
 public:
     void readConfigurationFromFile(QFile& readFile, paramaggreg& paramrow);

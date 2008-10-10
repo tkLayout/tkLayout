@@ -12,8 +12,12 @@
 
 /**
  * @file resultspopup.ui.h
- * @author Nicoletta De Maio
  * @brief This file describes the popup that shows the results of <i>tkgeomgui</i> after a simulation has completed. It gives the option of saving those results in a directory chosen by the user
+ */
+
+/**
+ * @class resultspopup
+ * @brief This form creates a non-modal dialog popup that displays the simulation results.
  */
 
 /**
