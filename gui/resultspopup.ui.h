@@ -61,6 +61,7 @@ void ResultsPopup::saveResults()
 	    resDir.setNameFilter(saveFilter);
 	    resDir.setFilter(QDir::Files | QDir::NoSymLinks);
 	    QDir saveDir(savePath);
+	    if (!saveDir.exists()) saveDir.mkdir(savePath);
 	    QStringList fileNames = resDir.entryList();
 	    for (QStringList::const_iterator iter = fileNames.begin(); iter != fileNames.end(); iter++) {
 		QFile infile(resDir.canonicalPath() + "/" + *iter);

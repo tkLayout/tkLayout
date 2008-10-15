@@ -15,6 +15,14 @@
             <height>678</height>
         </rect>
     </property>
+    <property name="sizePolicy">
+        <sizepolicy>
+            <hsizetype>5</hsizetype>
+            <vsizetype>3</vsizetype>
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+        </sizepolicy>
+    </property>
     <property name="caption">
         <string>Tracker Geometry Playground</string>
     </property>
@@ -25,6 +33,14 @@
         <widget class="QWidgetStack" row="0" column="0">
             <property name="name">
                 <cstring>mainWidgetStack</cstring>
+            </property>
+            <property name="sizePolicy">
+                <sizepolicy>
+                    <hsizetype>5</hsizetype>
+                    <vsizetype>3</vsizetype>
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                </sizepolicy>
             </property>
             <widget class="QWidget">
                 <property name="name">
@@ -398,6 +414,20 @@
                                                                         <property name="name">
                                                                             <cstring>layerSelection</cstring>
                                                                         </property>
+                                                                        <property name="sizePolicy">
+                                                                            <sizepolicy>
+                                                                                <hsizetype>7</hsizetype>
+                                                                                <vsizetype>3</vsizetype>
+                                                                                <horstretch>0</horstretch>
+                                                                                <verstretch>0</verstretch>
+                                                                            </sizepolicy>
+                                                                        </property>
+                                                                        <property name="maximumSize">
+                                                                            <size>
+                                                                                <width>32767</width>
+                                                                                <height>100</height>
+                                                                            </size>
+                                                                        </property>
                                                                     </widget>
                                                                 </vbox>
                                                             </widget>
@@ -727,6 +757,20 @@
                                                                     <widget class="QListBox">
                                                                         <property name="name">
                                                                             <cstring>ringSelection</cstring>
+                                                                        </property>
+                                                                        <property name="sizePolicy">
+                                                                            <sizepolicy>
+                                                                                <hsizetype>7</hsizetype>
+                                                                                <vsizetype>7</vsizetype>
+                                                                                <horstretch>0</horstretch>
+                                                                                <verstretch>0</verstretch>
+                                                                            </sizepolicy>
+                                                                        </property>
+                                                                        <property name="maximumSize">
+                                                                            <size>
+                                                                                <width>32767</width>
+                                                                                <height>100</height>
+                                                                            </size>
                                                                         </property>
                                                                     </widget>
                                                                     <widget class="QLayoutWidget">
@@ -1414,13 +1458,14 @@
     <slot>discSelected( int index )</slot>
     <slot>barrelSelected( int index )</slot>
     <slot>endcapSelected( int index )</slot>
-    <slot>printCurrentParams()</slot>
     <slot>addRing()</slot>
     <slot>removeRing()</slot>
     <slot>layerChipsAcrossChanged( int value )</slot>
     <slot>layerSegmentsAlongChanged( int value )</slot>
     <slot>ringChipsAcrossChanged( int value )</slot>
     <slot>ringSegmentsAlongChanged( int value )</slot>
+    <slot>readLineEdits()</slot>
+    <slot>printCurrentParams()</slot>
 </slots>
 <functions>
     <function access="private" specifier="non virtual">init()</function>

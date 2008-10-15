@@ -80,7 +80,7 @@ void FileHandler::configureTracker(QFile& geometryFile, const paramaggreg& param
 	while (iter != fileContents.end()) {
 	    bool lineofinterest = FALSE;
 	    if ((*iter).startsWith(trackerblock)) {
-		iter = assembleTrackerBlock(iter, paramrow);
+		iter = assembleTrackerBlock(iter, fileContents, paramrow);
 		lineofinterest = TRUE;
 	    }
 	    if (!lineofinterest) iter++;
@@ -481,6 +481,7 @@ QStringList::const_iterator FileHandler::parseBarrelTypeBlock(QStringList::const
 	index++;
     }
     itrator++;
+    if (index >= paramrow.barrelnames.size()) return itrator;
     while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error("parseBarrelTypeBlock(): "
 						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
@@ -537,12 +538,13 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
 	if (paramrow.endcapnames.at(index) == *(++words.begin())) break;
 	index++;
     }
+    itrator++;
+    if (index >= paramrow.barrelnames.size()) return itrator;
     for (uint i = 0; i < paramrow.ndiscs.size(); i++) {
 	if (index >= paramrow.nchipsring.at(i).size()) paramrow.nchipsring.at(i).resize(index + 1);
 	if (index >= paramrow.nsegmentsring.at(i).size()) paramrow.nsegmentsring.at(i).resize(index + 1);
 	if (index >= paramrow.mtypesrings.at(i).size()) paramrow.mtypesrings.at(i).resize(index + 1);
     }
-    itrator++;
     while (!(*itrator).startsWith(eob)) {
 	if (itrator == end) throw std::runtime_error("parseEndcapTypeBlock() "
 						     + msgErrConfigFileParse + msgErrUnexpectedEndOfInput);
@@ -667,8 +669,10 @@ QStringList::const_iterator FileHandler::parseEndcapTypeBlock(QStringList::const
  * @param paramrow The source data struct
  * @return An iterator pointing to the line starting with the closing brace of the block
  */
-QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& iter, const paramaggreg& paramrow)
+QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& iter,
+							QStringList& linelist, const paramaggreg& paramrow)
 {
+    bool sc = FALSE, pc = FALSE, sp = FALSE, pp = FALSE;
     int pos, len;
     QString value;
     QStringList::iterator itrator = iter;
@@ -686,25 +690,49 @@ QStringList::iterator FileHandler::assembleTrackerBlock(QStringList::iterator& i
 	    len = (*itrator).find(eol) - pos;
 	    value = " " + QString::number(paramrow.costpersqcm);
 	    *itrator = (*itrator).replace(pos, len, value);
+	    sc = TRUE;
 	}
 	if (line.startsWith(pcost)) {
 	    pos = (*itrator).find(sep) + sep.length();
 	    len = (*itrator).find(eol) - pos;
 	    value = " " + QString::number(paramrow.ptcostpersqcm);
 	    *itrator = (*itrator).replace(pos, len, value);
+	    pc = TRUE;
 	}
 	if (line.startsWith(spow)) {
 	    pos = (*itrator).find(sep) + sep.length();
 	    len = (*itrator).find(eol) - pos;
 	    value = " " +QString::number(paramrow.powerperchannel);
 	    *itrator = (*itrator).replace(pos, len, value);
+	    sp = TRUE;
 	}
 	if (line.startsWith(ppow)) {
 	    pos = (*itrator).find(sep) + sep.length();
 	    len = (*itrator).find(eol) - pos;
 	    value = " " + QString::number(paramrow.ptpowerperchannel);
 	    *itrator = (*itrator).replace(pos, len, value);
+	    pp = TRUE;
 	}
+	itrator++;
+    }
+    if (!sc) {
+	value = pad + scost + " " + sep + " " + QString::number(paramrow.costpersqcm) + eol;
+	linelist.insert(itrator, value);
+	itrator++;
+    }
+    if (!pc) {
+	value = pad + pcost + " " + sep + " " + QString::number(paramrow.ptcostpersqcm) + eol;
+	linelist.insert(itrator, value);
+	itrator++;
+    }
+    if (!sp) {
+	value = pad + spow + " " + sep + " " + QString::number(paramrow.powerperchannel) + eol;
+	linelist.insert(itrator, value);
+	itrator++;
+    }
+    if (!pp) {
+	value = pad + ppow + " " + sep + " " + QString::number(paramrow.ptpowerperchannel) + eol;
+	linelist.insert(itrator, value);
 	itrator++;
     }
     return itrator;

@@ -309,6 +309,7 @@ void MainDialog::nextPage()
 void MainDialog::go()
 {
     if (validateInput()) {
+	readLineEdits();
 	QString command = basePath + "/" + cCommand + " ";
 	fh->configureTracker(tmpConfig, parameterTable.at(geometryPicker->selectedId()));
 	fh->writeSettingsToFile(tmpSettings, parameterTable.at(geometryPicker->selectedId()),
@@ -462,6 +463,7 @@ void MainDialog::saveSettingsDialog()
 								  QString("Save Module Options to File"));
 	    if (!toSettingsFile.isEmpty()) {
 		try {
+		    readLineEdits();
 		    QFile sourceFile(settingsPath + "/" + cDefaultConfig);
 		    QFile workingFile(toConfigFile);
 		    fh->copyTextFile(sourceFile, workingFile);
@@ -492,6 +494,7 @@ void MainDialog::overwriteDefaultSettings()
 {
     if (validateInput()) {
 	try {
+	    readLineEdits();
 	    QString settingsPath;
 	    settingsPath = buildSettingsPath(settingsPath);
 	    QDir settingsDir(settingsPath);
@@ -863,60 +866,6 @@ void MainDialog::endcapSelected(int index)
     }
 }
 
-void MainDialog::printCurrentParams()
-{
-    int geo = geometryPicker->selectedId();
-    std::cout << std::endl << "tracker " << parameterTable.at(geo).trackerName << std::endl;
-    for (uint i = 0; i < parameterTable.at(geo).barrelnames.size(); i++) {
-	std::cout << "barrel " << parameterTable.at(geo).barrelnames.at(i) << std::endl;
-	std::cout << "number of layers: " << parameterTable.at(geo).nlayers.at(i) << std::endl;
-	std::cout << "chips across per layer: ";
-	for (uint j = 0; j < parameterTable.at(geo).nchipslayer.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).nchipslayer.at(i).at(j) << " ";
-	}
-	std::cout << std::endl << "segments along per layer: ";
-	for (uint j = 0; j < parameterTable.at(geo).nsegmentslayer.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).nsegmentslayer.at(i).at(j) << " ";
-	}
-	std::cout << std::endl << "types per layer: ";
-	for (uint j = 0; j < parameterTable.at(geo).mtypeslayers.at(i).size(); j++) {
-	    std::cout << parameterTable.at(geo).mtypeslayers.at(i).at(j) << " ";
-	}
-	std::cout << std::endl;
-    }
-    std::cout << std::endl;
-    for (uint i = 0; i < parameterTable.at(geo).endcapnames.size(); i++) {
-	std::cout << "endcap " << parameterTable.at(geo).endcapnames.at(i) << std::endl;
-	std::cout << "number of discs: " << parameterTable.at(geo).ndiscs.at(i) << std::endl;
-	std::cout << "number of rings: " << parameterTable.at(geo).nrings.at(i) << std::endl;
-	std::cout << "chips across per disc and ring:" << std::endl;
-	for (uint j = 0; j < parameterTable.at(geo).nchipsring.at(i).size(); j++) {
-	    std::cout << "disc " << j << ": ";
-	    for (uint k = 0; k < parameterTable.at(geo).nchipsring.at(i).at(j).size(); k++) {
-		std::cout << parameterTable.at(geo).nchipsring.at(i).at(j).at(k) << " ";
-	    }
-	    std::cout << std::endl;
-	}
-	std::cout << "segments along per disc and ring:" << std::endl;
-	for (uint j = 0; j < parameterTable.at(geo).nsegmentsring.at(i).size(); j++) {
-	    std::cout << "disc " << j << ": ";
-	    for (uint k = 0; k < parameterTable.at(geo).nsegmentsring.at(i).at(j).size(); k++) {
-		std::cout << parameterTable.at(geo).nsegmentsring.at(i).at(j).at(k) << " ";
-	    }
-	    std::cout << std::endl;
-	}
-	std::cout << "types per disc and ring: " << std::endl;
-	for (uint j = 0; j < parameterTable.at(geo).mtypesrings.at(i).size(); j++) {
-	    std::cout << "disc " << j << ": ";
-	    for (uint k = 0; k < parameterTable.at(geo).mtypesrings.at(i).at(j).size(); k++) {
-		std::cout << parameterTable.at(geo).mtypesrings.at(i).at(j).at(k) << " ";
-	    }
-	    std::cout << std::endl;
-	}
-    }
-    std::cout << std::endl;
-}
-
 /**
  * This is the event handler that adds a new ring item to the listbox on the parameter page.
  * It also updates the relevant entry of parameterTable in the background and selects the new
@@ -1114,6 +1063,16 @@ void MainDialog::ringSegmentsAlongChanged(int value)
     }
 }
 
+
+void MainDialog::readLineEdits()
+{
+    parameterTable.at(geometryPicker->selectedId()).trackerName = trackerNameLineEdit->text();
+    parameterTable.at(geometryPicker->selectedId()).costpersqcm = costPerSqCmEdit->text().toDouble();
+    parameterTable.at(geometryPicker->selectedId()).ptcostpersqcm = costPtPerSqCmEdit->text().toDouble();
+    parameterTable.at(geometryPicker->selectedId()).powerperchannel = powerEdit->text().toDouble();
+    parameterTable.at(geometryPicker->selectedId()).ptpowerperchannel = ptPowerEdit->text().toDouble();
+}
+
 /**
  * This function validates all input that may not be in the correct format when the <i>Go</i> button is clicked.
  * If it doesn't accept the input, it displays a message in the status bar to give a clue about what may have happened.
@@ -1190,4 +1149,61 @@ bool MainDialog::validateInput()
 	statusBar->setText(statustext);
 	return FALSE;
     }   
+}
+
+/**
+  *
+  */
+void MainDialog::printCurrentParams()
+{
+    int geo = geometryPicker->selectedId();
+    std::cout << std::endl << "tracker " << parameterTable.at(geo).trackerName << std::endl;
+    for (uint i = 0; i < parameterTable.at(geo).barrelnames.size(); i++) {
+	std::cout << "barrel " << parameterTable.at(geo).barrelnames.at(i) << std::endl;
+	std::cout << "number of layers: " << parameterTable.at(geo).nlayers.at(i) << std::endl;
+	std::cout << "chips across per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).nchipslayer.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).nchipslayer.at(i).at(j) << " ";
+	}
+	std::cout << std::endl << "segments along per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).nsegmentslayer.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).nsegmentslayer.at(i).at(j) << " ";
+	}
+	std::cout << std::endl << "types per layer: ";
+	for (uint j = 0; j < parameterTable.at(geo).mtypeslayers.at(i).size(); j++) {
+	    std::cout << parameterTable.at(geo).mtypeslayers.at(i).at(j) << " ";
+	}
+	std::cout << std::endl;
+    }
+    std::cout << std::endl;
+    for (uint i = 0; i < parameterTable.at(geo).endcapnames.size(); i++) {
+	std::cout << "endcap " << parameterTable.at(geo).endcapnames.at(i) << std::endl;
+	std::cout << "number of discs: " << parameterTable.at(geo).ndiscs.at(i) << std::endl;
+	std::cout << "number of rings: " << parameterTable.at(geo).nrings.at(i) << std::endl;
+	std::cout << "chips across per disc and ring:" << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).nchipsring.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).nchipsring.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).nchipsring.at(i).at(j).at(k) << " ";
+	    }
+	    std::cout << std::endl;
+	}
+	std::cout << "segments along per disc and ring:" << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).nsegmentsring.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).nsegmentsring.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).nsegmentsring.at(i).at(j).at(k) << " ";
+	    }
+	    std::cout << std::endl;
+	}
+	std::cout << "types per disc and ring: " << std::endl;
+	for (uint j = 0; j < parameterTable.at(geo).mtypesrings.at(i).size(); j++) {
+	    std::cout << "disc " << j << ": ";
+	    for (uint k = 0; k < parameterTable.at(geo).mtypesrings.at(i).at(j).size(); k++) {
+		std::cout << parameterTable.at(geo).mtypesrings.at(i).at(j).at(k) << " ";
+	    }
+	    std::cout << std::endl;
+	}
+    }
+    std::cout << std::endl;
 }

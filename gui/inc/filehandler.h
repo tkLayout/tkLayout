@@ -105,7 +105,8 @@ private:
 						     const QStringList::const_iterator& end, paramaggreg& paramrow);
     QStringList::const_iterator parseEndcapTypeBlock(QStringList::const_iterator& iter,
 						     const QStringList::const_iterator& end, paramaggreg& paramrow);
-    QStringList::iterator assembleTrackerBlock(QStringList::iterator& iter, const paramaggreg& paramrow);
+    QStringList::iterator assembleTrackerBlock(QStringList::iterator& iter,
+					       QStringList& linelist, const paramaggreg& paramrow);
     void appendBarrelTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow);
     void appendEndcapTypeBlocks(QStringList& fileContents, const paramaggreg& paramrow);
     void appendOutputBlock(QStringList& fileContents, const QString& outputPath);
