@@ -61,6 +61,7 @@
  */
 
 /**
+ * @fn void init()
  * This is the initialisation function that serves as a programmer-defined addition to the constructor.
  * (The constructor itself is private and auto-generated.)
  * It initialises some of the widgets programmatically, reads the information about the available geometries from the
@@ -206,6 +207,7 @@ void MainDialog::init()
 }
 
 /**
+ * @fn void destroy()
  * Since the destructor is as private and auto-generated as the constructor, cleanup of programmer-defined stuff happens in here.
  * The file handler helper class and the settings popup menu (which were created with <i>new</i>) are deleted and the temporary
  * output and config files are removed.
@@ -226,6 +228,7 @@ void MainDialog::destroy()
 }
 
 /**
+ * @fn void settingsToGeometry()
  * This is the navigation function that moves focus from the parameter page back to the geometry selection page.
  * It is connected to the <i>Back</i> button on the parameter page.
  * It resets the content of the combo boxes to none so that they may be filled again for the next selected geometry.
@@ -244,6 +247,7 @@ void MainDialog::settingsToGeometry()
 }
 
 /**
+ * @fn void backOnePage()
  * The command that tells the widget stack to raise the previous page is encapsulated in this function for convenience.
  */
 void MainDialog::backOnePage()
@@ -252,6 +256,7 @@ void MainDialog::backOnePage()
 }
 
 /**
+ * @fn void nextPage()
  * This is the navigation function that moves focus from the geometry selection page to the parameter page.
  * It is connected to the <i>Next</i> button on the geometry selection page.
  * Before raising the parameter page on the widget stack, it initialises its widgets based on the selected geometry.
@@ -302,6 +307,7 @@ void MainDialog::nextPage()
 }
 
 /**
+ * @fn void go()
  * The actual work is done by this function.
  * Or rather, it is delegated to the simulation executable with the appropriate config files in tow.
  * (Who said management was pointless? <i>*evil_grin*</i>) It then prepares the summary popup and displays it.
@@ -318,9 +324,9 @@ void MainDialog::go()
 	command += cmdLineStub;
 	resultsPopup->summaryTextEdit->clear();
 	try  {
-	    int simulstatus;	
-	    simulstatus = simulate(command);
-	    std::cout << cCommand << msgSimulationExit << simulstatus << "." << std::endl;
+	    int retstatus;	
+	    retstatus = generate(command);
+	    std::cout << cCommand << msgGeneratorExit << reststatus << "." << std::endl;
 	    resultsPopup->setResultsPath(basePath + summaryExtension + outDirExtension);
 	    resultsPopup->summaryTextEdit->mimeSourceFactory()->setFilePath(resultsPopup->getResultsPath());
 	    resultsPopup->setTrackerName(parameterTable.at(geometryPicker->selectedId()).trackerName);
@@ -339,26 +345,28 @@ void MainDialog::go()
 }
 
 /**
+ * @fn int generate(const QString& command)
  * Control is transferred to the <i>TrackerGeom2</i> background application in here (by way of a horrible hack).
  * Once that exits, the function throws an exception if the attempt to run <i>TrackerGeom</i> was unsuccessful.
  * It returns normally otherwise.
  * @param command The command line string that will be passed through to the <i>system()</i> call
  * @return The exit code of the background application
  */
-int MainDialog::simulate( const QString& command)
+int MainDialog::generate(const QString& command)
 {
     int ret = system(command.ascii());
-    if (ret < 0) throw std::runtime_error("simulate(): " + msgErrSysCall);
+    if (ret < 0) throw std::runtime_error("generate(): " + msgErrSysCall);
     return ret;
 }
 
 /**
+ * @fn void geometryPicked(int radiobuttonid)
  * This is the event handler for the radio button group on the geometry selection page.
  * It reacts by displaying the available information about the chosen geometry in the diagram and description areas.
  * It also adds the immutable parts of the parameter list to <i>cmdLineStub</i> and enables the <i>Next</i> navigation button.
  * @param radiobuttonid The index of the selected radio button; at the same time, the required index for <i>geometryTable</i>
  */
-void MainDialog::geometryPicked( int radiobuttonid )
+void MainDialog::geometryPicked(int radiobuttonid)
 {
     try {
 	geometryLayoutBox->setPixmap(geometryTable.at(radiobuttonid).layoutImage);
@@ -371,6 +379,7 @@ void MainDialog::geometryPicked( int radiobuttonid )
 }
 
 /**
+ * @fn void settingsDialog()
  * This is the event handler for the <i>Settings...</i> button on the parameter page.
  * It reacts by opening the popup menu that contains the options for saving and loading settings files.
  */
@@ -380,6 +389,7 @@ void MainDialog::settingsDialog()
 }
 
 /**
+ * @fn void clearParameters()
  * This is the event handler for the <i>Default Values</i> option in the settings popup menu.
  * It reacts by resetting the parameterTable for the selected geometry to its initial defaults (stored in <i>widgetCache</i>).
  * It also reloads the information for the selected geometry on the geometry selection page and resets <i>cmdLineStub</i>.
@@ -408,6 +418,7 @@ void MainDialog::clearParameters()
 }
 
 /**
+ * @fn void loadSettingsDialog()
  * This is the event handler for the <i>Load settings...</i> option in the settings popup menu.
  * It reacts by opening two file dialogs, one after the other: the first expects a config file for geometry settings,
  * the second one with module options. It will then attempt to read and interpret the contents of those two files.
@@ -447,6 +458,7 @@ void MainDialog::loadSettingsDialog()
 }
 
 /**
+ * @fn void saveSettingsDialog()
  * This is the event handler for the <i>Save settings...</i> option in the settings popup menu.
  * It reacts by opening two file dialogs, one after the other: the first expects a name for the geometry config file,
  * the second one for the module options. It will then write the contents of the parameter page to those two files.
@@ -486,6 +498,7 @@ void MainDialog::saveSettingsDialog()
 }
 
 /**
+ * @fn void overwriteDefaultSettings()
  * This is the event handler for the <i>Save As Default</i> option in the settings popup menu.
  * It creates or replaces the default config and settings file in the <i>settings</i> subdirectory.
  * It also updates <i>widgetCache</i> to reflect the changes.
@@ -517,6 +530,7 @@ void MainDialog::overwriteDefaultSettings()
 }
 
 /**
+ * @fn void restoreDefaultSettings()
  * This is the event handler for the <i>Restore Default Files</i> option in the settings popup menu.
  * It reacts by looking up the immutable backups <i>geometry.cfg</i> and <i>settings.cfg</i>
  * and copying their contents to <i>defaultgeometry.cfg</i> and <i>defaultsettings.cfg</i>.
@@ -543,6 +557,7 @@ void MainDialog::restoreDefaultSettings()
 }
 
 /**
+ * @fn void settingsChanged(int button)
  * This is the event handler that deals with activation of one of the items in the settings popup menu.
  * @param button The index of the selected menu item
  */
@@ -565,6 +580,7 @@ void MainDialog::settingsChanged(int button)
 }
 
 /**
+ * @fn QString& buildSettingsPath(QString& sPath)
  * Building the path to the settings directory from internal variables and the name of the current geometry is bundled in here.
  * @param sPath A reference to the string variable that will hold the assembled path
  * @return The modified input parameter <i>sPath</i>
@@ -576,6 +592,7 @@ QString& MainDialog::buildSettingsPath(QString& sPath)
 }
 
 /**
+ * @fn void defaultsFromCache(paramaggreg& paramrow, int pos)
  * Copying the parameter cache entry at a given position to an instance of <i>paramaggreg</i> is bundled here for convenience.
  * @param paramrow A reference to the destination object
  * @param pos The index pointing to the entry in <i>widgetCache</i> that contains the requested information
@@ -606,6 +623,7 @@ void MainDialog::defaultsFromCache(paramaggreg& paramrow, int pos)
 }
 
 /**
+ * @fn void defaultsToCache(const paramaggreg& paramrow, int pos)
  * Copying the contents of an instance of <i>paramggreg</i> to an entry in the parameter cache is bundled here for convenience.
  * @param paramrow A reference to the information source
  * @param pos The index pointing to the entry in <i>widgetCache</i> that will receive the data
@@ -636,6 +654,7 @@ void MainDialog::defaultsToCache(const paramaggreg& paramrow, int pos)
 }
 
 /**
+ * @fn void valuesToWidgets(const paramaggreg& paramrow)
  * Copying the contents of an instance of <i>paramaggreg</i> to the parameter page widgets is bundled here for convenience.
  * @param paramrow A reference to the information source
  */
@@ -651,6 +670,7 @@ void MainDialog::valuesToWidgets(const paramaggreg& paramrow)
 }
 
 /**
+ * @fn void ringTypeSelected(int index)
  * This is the event handler that translates a selection in the ring module type listbox to an entry in <i>parameterTable</i>.
  * @param index The index of the selected list item
  */
@@ -684,6 +704,7 @@ void MainDialog::ringTypeSelected(int index)
 }
 
 /**
+ * @fn void layerTypeSelected(int index)
  * This is the event handler that translates a selection in the module type listbox to an entry in <i>parameterTable</i>.
  * @param index The index of the selected list item
  */
@@ -717,6 +738,7 @@ void MainDialog::layerTypeSelected(int index)
 }
 
 /**
+ * @fn void layerSelected( int index)
  * This is the event handler that updates the connected spinner and listbox when a layer is selected on the parameter page.
  * @param index The index of the selected listbox item
  */
@@ -751,10 +773,11 @@ void MainDialog::layerSelected( int index)
 }
 
 /**
+ * @fn void ringSelected(int index)
  * This is the event handler that updates the connected spinner and listbox when a ring is selected on the parameter page.
  * @param index The index of the selected listbox item
  */
-void MainDialog::ringSelected( int index)
+void MainDialog::ringSelected(int index)
 {
     try {
 	if (index < 0) {
@@ -792,6 +815,7 @@ void MainDialog::ringSelected( int index)
 }
 
 /**
+ * @fn void discSelected(int index)
  * This is the event handler that fills and updates the <i>rings</i> listbox when a disc is selected on the parameter page.
  * @param index The index of the selected combobox item; unused because all the information can be read from the widgets directly
  */
@@ -826,6 +850,7 @@ void MainDialog::discSelected(int index)
 }
 
 /**
+ * @fn void barrelSelected(int index)
  * This is the event handler that updates the connected listboxes and spinners when a barrel is selected on the parameter page.
  * @param index The index of the selected combobox item
  */
@@ -847,6 +872,7 @@ void MainDialog::barrelSelected(int index)
 }
 
 /**
+ * @fn void endcapSelected(int index)
  * This is the event handler that updates the connected listboxes and spinners when an endcap is selected on the parameter page.
  * @param index The index of the selected combobox item
  */
@@ -867,6 +893,7 @@ void MainDialog::endcapSelected(int index)
 }
 
 /**
+ * @fn void addRing()
  * This is the event handler that adds a new ring item to the listbox on the parameter page.
  * It also updates the relevant entry of parameterTable in the background and selects the new
  * tail of the list.
@@ -903,6 +930,7 @@ void MainDialog::addRing()
 }    
 
 /**
+ * @fn void removeRing()
  * This is the event handler that removes the last ring item from the listbox on the parameter page.
  * It also updates the relevant entry of parameterTable in the background and selects the new tail of the list.
  * If the deleted ring was the last entry in the list, it deactivates the chips and segments spinners
@@ -937,6 +965,7 @@ void MainDialog::removeRing()
 }
 
 /**
+ * @fn void layerChipsAcrossChanged(int value)
  * This is the event handler that validates the input when the value of the <i>chips across</i> spinner for layers changes.
  * It also updates the value of the label that displays the final number of chips per side, and the entry in <i>parameterTable</i>.
  * @param value The new value that was entered into the spinner
@@ -973,6 +1002,7 @@ void MainDialog::layerChipsAcrossChanged(int value)
 }
 
 /**
+ * @fn void layerSegmentsAlongChanged(int value)
  * This is the event handler that validates the input when the value of the <i>segments along</i> spinner for layers changes.
  * It also updates the corresponding entry in <i>parameterTable</i>.
  * @param value The new value that was entered into the spinner
@@ -1001,6 +1031,7 @@ void MainDialog::layerSegmentsAlongChanged(int value)
 }
 
 /**
+ * @fn void ringChipsAcrossChanged(int value)
  * This is the event handler that validates the input when the value of the <i>chips across</i> spinner for rings changes.
  * It also updates the value of the label that displays the final number of chips per side, and the entry in <i>parameterTable</i>.
  * @param value The new value that was entered into the spinner
@@ -1036,6 +1067,7 @@ void MainDialog::ringChipsAcrossChanged(int value)
 }
 
 /**
+ * @fn void ringSegmentsAlongChanged(int value)
  * This is the event handler that validates the input when the value of the <i>segments along</i> spinner for rings changes.
  * It also updates the corresponding entry in <i>parameterTable</i>.
  * @param value The new value that was entered into the spinner
@@ -1063,7 +1095,11 @@ void MainDialog::ringSegmentsAlongChanged(int value)
     }
 }
 
-
+/**
+  * @fn void readLineEdits()
+  * This function assembles the values in the line edit text fields on the parameter page and stores the values in <i>parameterTable</i>.
+  * It should not be called before the input has been validated.
+  */
 void MainDialog::readLineEdits()
 {
     parameterTable.at(geometryPicker->selectedId()).trackerName = trackerNameLineEdit->text();
@@ -1074,6 +1110,7 @@ void MainDialog::readLineEdits()
 }
 
 /**
+ * @fn bool validateInput()
  * This function validates all input that may not be in the correct format when the <i>Go</i> button is clicked.
  * If it doesn't accept the input, it displays a message in the status bar to give a clue about what may have happened.
  * @return success or failure; a result of <i>Intermediate</i> is considered a failure
@@ -1152,7 +1189,8 @@ bool MainDialog::validateInput()
 }
 
 /**
-  *
+  * @fn void printCurrentParams()
+  * Primarily used for debugging, this function prints the contents of the currently selected entry of <i>parameterTable</i>.
   */
 void MainDialog::printCurrentParams()
 {

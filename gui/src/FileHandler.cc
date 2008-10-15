@@ -250,13 +250,11 @@ void FileHandler::parseConfigFile(const QStringList& lineList, paramaggreg& para
 	if ((*iter).startsWith(endcapblock) && !(*iter).startsWith(endcaptypeblock)) {
 	    lineofinterest = TRUE;
 	    iter = parseEndcapBlock(iter, lineList.end(), paramrow);
-	    //eb = TRUE;
 	}
 	if (!lineofinterest) iter++;
     }
     if (!tb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoTracker);
     if (!bb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoBarrel);
-    //if (!eb) throw std::runtime_error("parseConfigFile(): " + msgErrConfigFileParse + msgNoEndcap);
 }
 
 /**

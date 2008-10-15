@@ -11,7 +11,7 @@
 /**
  * Messages that may pop up inside the status bar or on stdout
  */
-static const QString msgSimulationExit = " application exited with status ";
+static const QString msgGeneratorExit = " application exited with status ";
 static const QString msgCriticalErrorConfigFile = "Critical error handling config files. Aborting...";
 static const QString msgErrValueLoad ="Error loading values: ";
 static const QString msgErrSysCall = "Error during system() call.";

@@ -1470,7 +1470,7 @@
 <functions>
     <function access="private" specifier="non virtual">init()</function>
     <function access="private" specifier="non virtual">destroy()</function>
-    <function access="protected" returnType="int">simulate( const QString &amp; command )</function>
+    <function returnType="int">generate( const QString &amp; command )</function>
     <function access="protected">clearParameters()</function>
     <function access="protected" returnType="QString &amp;">buildSettingsPath( QString &amp; sPath )</function>
     <function access="protected">defaultsFromCache( paramaggreg &amp; paramrow, int pos )</function>
