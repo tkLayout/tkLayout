@@ -326,7 +326,7 @@ void MainDialog::go()
 	try  {
 	    int retstatus;	
 	    retstatus = generate(command);
-	    std::cout << cCommand << msgGeneratorExit << reststatus << "." << std::endl;
+	    std::cout << cCommand << msgGeneratorExit << retstatus << "." << std::endl;
 	    resultsPopup->setResultsPath(basePath + summaryExtension + outDirExtension);
 	    resultsPopup->summaryTextEdit->mimeSourceFactory()->setFilePath(resultsPopup->getResultsPath());
 	    resultsPopup->setTrackerName(parameterTable.at(geometryPicker->selectedId()).trackerName);
