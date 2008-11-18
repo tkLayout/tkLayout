@@ -190,6 +190,10 @@ public:
   double getOverlap() { return overlap_; };
   double getEtaCut() { return etaCut_; };
 
+// Access to layer vectors
+LayerVector* getBarrelLayers() { return &barrelLayerSet_; }
+LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
+
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };
   std::string getSummaryDirectory() { return summaryDirectory_; };
