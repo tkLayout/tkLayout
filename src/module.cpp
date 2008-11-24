@@ -641,6 +641,39 @@ double Module::getMeanTheta() {
   return meanPoint.Theta();
 }
 
+double Module::getMaxRho() {
+  double maxRho=-1;
+  for (uint i = 0; i < 4 ; i++) {
+    if (corner_[i].Rho()>maxRho) maxRho=corner_[i].Rho();
+  }
+  return maxRho;
+}
+
+double Module::getMinRho() {
+  double minRho=corner_[0].Rho();
+  for (uint i = 1; i < 4 ; i++) {
+    if (corner_[i].Rho()<minRho) minRho=corner_[i].Rho();
+  }
+  return minRho;
+}
+
+double Module::getMaxZ() {
+  double maxZ=corner_[0].Rho();
+  for (uint i = 1; i < 4 ; i++) {
+    if (corner_[i].Rho()>maxZ) maxZ=corner_[i].Rho();
+  }
+  return maxZ;
+}
+
+double Module::getMinZ()  {
+  double minZ=corner_[0].Rho();
+  for (uint i = 1; i < 4 ; i++) {
+    if (corner_[i].Rho()<minZ) minZ=corner_[i].Rho();
+  }
+  return minZ;
+}
+
+
 XYZVector Module::getMeanPoint() {
 
   XYZVector meanPoint(0,0,0);
@@ -717,7 +750,6 @@ double Module::getHighPitch() {
   XYZVector acrossV = corner_[2] - corner_[1];
   return (acrossV.R()/nStripAcross_);
 }
-
 
 /******************/
 /*                */

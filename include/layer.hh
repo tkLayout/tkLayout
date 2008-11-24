@@ -31,10 +31,11 @@ public:
   std::string getName() {return layerName_; };
   void setName(const std::string newName ) { layerName_ = newName; };
   
-  //double getMaxZ();
+  double getMaxZ();
   double getMinZ();
   double getMaxRho();
   double getMinRho();
+
   int cutOverEta(double etaCut);
 
   enum {NoSection = 0x0,

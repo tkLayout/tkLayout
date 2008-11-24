@@ -136,6 +136,11 @@ class Module {
   double getMinTheta();
   double getMaxTheta();
   double getMeanTheta();
+  double getMaxRho();
+  double getMinRho();
+  double getMaxZ();
+  double getMinZ();
+
   XYZVector getMeanPoint();
 
   virtual std::string getSensorTag() {  return std::string("");  };

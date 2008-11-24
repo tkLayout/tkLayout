@@ -67,30 +67,52 @@ void Layer::shapeModuleVolumes(TGeoVolume* container,
   
 }
 
-// double Layer::getMaxZ() {
-//   double maxZ;
+double Layer::getMaxZ() {
+  double maxZ;
+  
+  ModuleVector::iterator modIt;
+  maxZ=(*moduleSet_.begin())->getMaxZ();
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ((*modIt)->getMaxZ()>maxZ) maxZ=(*modIt)->getMaxZ();
+  }
 
-//   // TODO
-//   //   ModuleVector::iterator modIt;
-//   //   for (modIt=moduleSet_.begin(); modId!=moduleSet_.end(); modIt++) {
-//   //   }
-
-//   return 0;
-// };
+  return maxZ;
+};
 
 double Layer::getMinZ() {
-  // TODO
-  return 0;
+  double minZ;
+  
+  ModuleVector::iterator modIt;
+  minZ=(*moduleSet_.begin())->getMinZ();
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ((*modIt)->getMinZ()<minZ) minZ=(*modIt)->getMinZ();
+  }
+
+  return minZ;
 };
 
 double Layer::getMaxRho() {
-  // TODO
-  return 0;
+  double maxRho;
+  
+  ModuleVector::iterator modIt;
+  maxRho=(*moduleSet_.begin())->getMaxRho();
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ((*modIt)->getMaxRho()>maxRho) maxRho=(*modIt)->getMaxRho();
+  }
+
+  return maxRho;
 };
 
 double Layer::getMinRho() {
-  // TODO
-  return 0;
+  double minRho;
+  
+  ModuleVector::iterator modIt;
+  minRho=(*moduleSet_.begin())->getMinRho();
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ((*modIt)->getMinRho()<minRho) minRho=(*modIt)->getMinRho();
+  }
+
+  return minRho;
 };
 
 
@@ -796,7 +818,7 @@ double BarrelLayer::getMaxZ(int direction) {
     std::cerr << "BarrelLayer::getMaxZ was called with direction==0" << std::endl;
     return 0;
   }
-  direction/=abs(direction);
+  direction/=int(fabs(direction));
 
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
     if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
