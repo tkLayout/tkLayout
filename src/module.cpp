@@ -658,17 +658,17 @@ double Module::getMinRho() {
 }
 
 double Module::getMaxZ() {
-  double maxZ=corner_[0].Rho();
+  double maxZ=corner_[0].Z();
   for (uint i = 1; i < 4 ; i++) {
-    if (corner_[i].Rho()>maxZ) maxZ=corner_[i].Rho();
+    if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
   }
   return maxZ;
 }
 
 double Module::getMinZ()  {
-  double minZ=corner_[0].Rho();
+  double minZ=corner_[0].Z();
   for (uint i = 1; i < 4 ; i++) {
-    if (corner_[i].Rho()<minZ) minZ=corner_[i].Rho();
+    if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
   }
   return minZ;
 }

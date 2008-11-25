@@ -142,6 +142,7 @@ class Module {
   double getMinZ();
 
   XYZVector getMeanPoint();
+  XYZVector getCorner(int index) { return corner_[index]; };
 
   virtual std::string getSensorTag() {  return std::string("");  };
 
@@ -240,6 +241,7 @@ public:
   void setRing(const int& newRing) {ring_ = newRing;};
   int getDisk() {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
+
 };
 
 
