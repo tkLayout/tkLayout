@@ -6,6 +6,7 @@
 #include "module.hh"
 #include "layer.hh"
 #include "tracker.hh"
+#include <stdlib.h>
 
 using namespace std;
 

@@ -38,21 +38,22 @@ Module::Module(double waferDiameter) {
 
 void Module::setDefaultParameters() {
   // See the header file for the values of these
-  height_           = defaultHeight_;
-  nHits_            = defaultNHits_;
-  thickness_        = defaultThickness_;
-  area_             = defaultArea_;
-  id_               = "NoId";
-  tag_              = "";
-  type_             = "NoType";
-  thisVolume_       = NULL;
-  color_            = defaultColor_;
-  inSection_        = defaultInSection_;
-  nChannelsPerFace_ = defaultChannelsPerFace_;
-  nSegments_        = defaultSegments_;
-  nStripAcross_     = defaultStripAcross_;
-  nFaces_           = defaultFaces_;
-  readoutType_      = Strip;
+  height_             = defaultHeight_;
+  nHits_              = defaultNHits_;
+  thickness_          = defaultThickness_;
+  area_               = defaultArea_;
+  id_                 = "NoId";
+  tag_                = "";
+  type_               = "NoType";
+  thisVolume_         = NULL;
+  color_              = defaultColor_;
+  inSection_          = defaultInSection_;
+  nChannelsPerFace_   = defaultChannelsPerFace_;
+  nSegments_          = defaultSegments_;
+  nStripAcross_       = defaultStripAcross_;
+  nFaces_             = defaultFaces_;
+  readoutType_        = Strip;
+  computedBoundaries_ = false;
 }
 
 void Module::print() {
@@ -396,7 +397,7 @@ double Module::triangleCross(const XYZVector& P1, // Triangle points
   } else {
     // It does not cross the triangle
     moduleHit=false;
-    // std::cout << "Matrix is not invertible" << std::endl;
+    std::cout << "Matrix is not invertible" << std::endl; // debug
   }
 
 
@@ -658,17 +659,17 @@ double Module::getMinRho() {
 }
 
 double Module::getMaxZ() {
-  double maxZ=corner_[0].Z();
+  double maxZ=corner_[0].Rho();
   for (uint i = 1; i < 4 ; i++) {
-    if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
+    if (corner_[i].Rho()>maxZ) maxZ=corner_[i].Rho();
   }
   return maxZ;
 }
 
 double Module::getMinZ()  {
-  double minZ=corner_[0].Z();
+  double minZ=corner_[0].Rho();
   for (uint i = 1; i < 4 ; i++) {
-    if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
+    if (corner_[i].Rho()<minZ) minZ=corner_[i].Rho();
   }
   return minZ;
 }
@@ -750,6 +751,94 @@ double Module::getHighPitch() {
   XYZVector acrossV = corner_[2] - corner_[1];
   return (acrossV.R()/nStripAcross_);
 }
+
+void Module::computeBoundaries(double zError) {
+  double minEta, maxEta;
+  double minPhi, maxPhi;
+  double thisEta, thisPhi;
+  uint i,j;
+  double z;
+
+  // Compute eta boundaries:
+  minEta=corner_[0].Eta();
+  maxEta=corner_[0].Eta();
+  for (z=-zError*5; z<=zError*5; z+=zError*5) {
+    for (i=0; i<4; i++) {
+      thisEta = (corner_[i]+XYZVector(0,0,z)).Eta();
+      if (thisEta>maxEta) maxEta=thisEta;
+      if (thisEta<minEta) minEta=thisEta;
+    }
+    for (i=0; i<4; i++) {
+      j=i+1; if (j==4) j=0;
+      XYZVector sideMiddle((corner_[i]+corner_[j])/2.+XYZVector(0,0,z));
+      thisEta = sideMiddle.Eta();
+      if (thisEta>maxEta) maxEta=thisEta;
+      if (thisEta<minEta) minEta=thisEta;    
+    }
+  }
+
+  // Compute Phi boundaries
+  minPhi=corner_[0].Phi();
+  maxPhi=corner_[0].Phi();
+  for (i=1; i<4; i++) {
+    thisPhi = corner_[i].Phi();
+    if (thisPhi>maxPhi) maxPhi=thisPhi;
+    if (thisPhi<minPhi) minPhi=thisPhi;
+  }
+  for (i=0; i<4; i++) {
+    j=i+1; if (j==4) j=0;
+    XYZVector sideMiddle((corner_[i]+corner_[j])/2.);
+    thisPhi = sideMiddle.Phi();
+    if (thisPhi>maxPhi) maxPhi=thisPhi;
+    if (thisPhi<minPhi) minPhi=thisPhi;
+  }
+
+
+  // Assign boundaries to the module's
+  // member variables
+  boundaryMinEta_=minEta;
+  boundaryMaxEta_=maxEta;
+  boundaryMinPhi_=minPhi;
+  boundaryMaxPhi_=maxPhi;
+
+  // Assign logical member variables
+  if ((maxPhi-minPhi)>M_PI) isAcrossPi_=true; else isAcrossPi_=false;
+  computedBoundaries_ = true;
+
+}
+
+
+bool Module::couldHit(double eta, double phi) {
+
+  if (!computedBoundaries_) {
+    std::cerr << "ERROR: missing boundaries after computeBoundaries()" << std::endl;
+    return true;
+  }
+  
+  // If track's eta is outside the boundaries, then the result is certainly false
+  if ((eta<boundaryMinEta_)||(eta>boundaryMaxEta_)) return false;
+
+  // withinPhi represents whether the track's phi
+  // is comprised within minimum and maximum phi of the module
+  bool withinPhi = ((phi>boundaryMinPhi_)&&(phi<boundaryMaxPhi_));
+
+  // Explanation:
+  // if the modules lies across the M_PI, then in order for the track to cross the module
+  // we need the track's phi to be greater than maximum phi (M_PI-f)
+  // AND less then minimum phi (-(M_PI-f))
+
+  // Table of truth:
+  // withinPhi   isAcrossPi_    withinPhi XOR isAcrossPi_
+  // 0           0              0
+  // 0           1              1
+  // 1           0              1
+  // 1           1              0
+
+  // Thus XOR (^) is our operator...
+  return ((withinPhi^isAcrossPi_));
+  
+}
+
 
 /******************/
 /*                */

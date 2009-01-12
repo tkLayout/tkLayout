@@ -27,6 +27,14 @@ typedef std::pair<double, int> edge;
 class Module {
 
  protected:
+
+  double boundaryMinPhi_;
+  double boundaryMaxPhi_;
+  double boundaryMinEta_;
+  double boundaryMaxEta_;
+  bool isAcrossPi_;
+  bool computedBoundaries_;
+
   double waferDiameter_;
   
   // Shape-specific paramters
@@ -128,7 +136,6 @@ class Module {
   double getHeight() {return height_;};
   double getArea() {return area_;};
   double getDiameter() {return waferDiameter_; };
-  double getThickness() { return thickness_; };
 
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
@@ -143,7 +150,6 @@ class Module {
   double getMinZ();
 
   XYZVector getMeanPoint();
-  XYZVector getCorner(int index) { return corner_[index]; };
 
   virtual std::string getSensorTag() {  return std::string("");  };
 
@@ -154,7 +160,7 @@ class Module {
   int getNChannelsPerFace() { return nChannelsPerFace_ ;};
   int getNPerFace()         { return nChannelsPerFace_ ;};
   int getNStripAcross()     { return nStripAcross_ ;};
-  int getNStripsAcross()     { return nStripAcross_ ;};
+  int getNStripsAcross()    { return nStripAcross_ ;};
   int getNSegments()        { return nSegments_ ;};
   int getNFaces()           { return nFaces_ ;};
   int getReadoutType()      { return readoutType_ ;};
@@ -169,6 +175,10 @@ class Module {
   double getHighPitch();
 
   double getOccupancyPerEvent();
+
+  // Boundaries to ease the computation of tracks
+  void computeBoundaries(double zError);
+  bool couldHit(double eta, double phi);
 
   enum { Strip, Pixel, Pt, Undefined };
 };
@@ -242,7 +252,6 @@ public:
   void setRing(const int& newRing) {ring_ = newRing;};
   int getDisk() {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
-
 };
 
 

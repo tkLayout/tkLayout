@@ -22,6 +22,17 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+// Date and time
+#include <ctime> // for debug
+
+double diffclock(clock_t clock1,clock_t clock2)
+{
+  double diffticks=clock1-clock2;
+  double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
+  return diffms;
+}
+
+
 using namespace ROOT::Math;
 
 Tracker::~Tracker() {
@@ -357,7 +368,7 @@ double Tracker::getMaxBarrelZ(int direction) {
     std::cerr << "Tracker::getMaxBarrelZ was called with zero direction. Assuming +1" << std::endl;
     direction=+1;
   }
-  direction/=abs(direction);
+  direction/=int(fabs(direction));
 
   // Take the shortest barrel
   for (layIt = barrelLayerSet_.begin(); layIt!= barrelLayerSet_.end(); layIt++) {
@@ -559,14 +570,20 @@ ModuleVector Tracker::trackHit(const XYZVector& origin, const XYZVector& directi
   ModuleVector result;
   ModuleVector::iterator modIt;
   double distance;
-  
+ 
+  // Standard hit-finding method. Non optimized for many-modules
+  // Remove the commented lines to get the smart hit-finding system 
   for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
-    distance=(*modIt)->trackCross(origin, direction);
-    if (distance>0) {
-      result.push_back(*modIt);
-    }
+    //    if ((*modIt)->couldHit(direction.Eta(), direction.Phi())) {
+      // A module can be hit if it fits the phi (precise) contraints
+      // and the eta constaints (taken assuming origin within 5 sigma)
+      distance=(*modIt)->trackCross(origin, direction);
+      if (distance>0) {
+	result.push_back(*modIt);
+      }
+      //}
   }
-
+  
   return result;
 }
 
@@ -616,7 +633,7 @@ std::pair <XYZVector, double > Tracker::shootDirection(double minEta, double spa
   double theta;
 
   // phi is random [0, 2pi)
-  phi = myDice_.Rndm() * 2 * M_PI;
+  phi = myDice_.Rndm() * 2 * M_PI; // debug
 
   // eta is random (-4, 4]
   eta = myDice_.Rndm() * spanEta + minEta;
@@ -699,6 +716,7 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     moduleV = (*layIt)->getModuleVector();
     for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+      // (*modIt)->computeBoundaries(zError_); // only for smart hit-finding method
       if (section==Layer::NoSection) {
 	properModules.push_back(*modIt);
       } else {
@@ -709,20 +727,28 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     }
   }
 
-
   // The real simulation
   std::pair <XYZVector, double> aLine;
   ModuleVector hitMods;
+
+  struct tm *localt; // timing: debug
+  time_t t;          // timing: debug
+  
+  t = time(NULL);
+  localt = localtime(&t);
+  std::cout << asctime(localt) << std::endl;
+  clock_t starttime = clock();
   std::cout << "Shooting tracks: ";
   int nTrackHits; // mersi mod
   for (int i=0; i<nTracks; i++) {
     nTrackHits=0; // mersi mod
-    if (i%100==0) std::cout << "." << std::endl;
+    if (i%100==0) std::cout << "." ;
     if (section==Layer::YZSection) {
       aLine=shootDirectionFixedPhi(randomBase, randomSpan);
     } else {
       aLine=shootDirection(randomBase, randomSpan);
     }
+    
     hitMods = trackHit( XYZVector(0,0,myDice_.Gaus(0, zError_)), aLine.first, &properModules);
     resetTypeCounter(modTypes);
     for (ModuleVector::iterator it = hitMods.begin();
@@ -736,7 +762,13 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     }
     total2D->Fill(fabs(aLine.second), hitMods.size()); // mersi mod : was using hitMods.size() in place of nTrackHits
   }
-  std::cout << " done!";
+  std::cout << " done!" << std::endl;
+  t = time(NULL);
+  localt = localtime(&t);
+  clock_t endtime = clock();
+  std::cout << asctime(localt) << std::endl;
+  std::cout << "Elapsed time: " << diffclock(endtime, starttime) << std::endl;
+
 
   // Create the profile plots and schedule them for archival
   TProfile *myProf;
