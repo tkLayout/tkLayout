@@ -136,6 +136,8 @@ class Module {
   double getHeight() {return height_;};
   double getArea() {return area_;};
   double getDiameter() {return waferDiameter_; };
+  double getThickness() { return thickness_; };
+  XYZVector getCorner(int index) { return corner_[index]; };
 
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
