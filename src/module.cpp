@@ -104,6 +104,12 @@ void Module::rotateY_PI() {
   }
 }
 
+void Module::reflectZ() {
+  for (int i=0; i<4; i++) {
+    corner_[i].SetZ(corner_[i].Z()*-1.);
+  }
+}
+
 
 XYZVector* Module::marginBorderSide(double margin, int side){
   

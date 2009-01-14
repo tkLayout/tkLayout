@@ -123,7 +123,7 @@ private:
   // Formatted output
   void printHtmlTableRow(std::ofstream *output, std::vector<std::string> myRow);
   void printHtmlTableRow(std::ofstream *output, std::vector<double> myRow, int coordPrecision = 0, bool skimZero = false);
-  void compressBarrelLayers(LayerVector aLayerSet);
+  void compressBarrelLayers(LayerVector aLayerSet, bool oneSided);
   void createDirectories();
 
   enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
@@ -140,11 +140,12 @@ public:
   // Standard barrel builder
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
-		   bool compressed = false );
+		   bool compressed = false, double minZ = 0 );
   // Barrel builder for backwards compatibility with the command-line version
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
 		   bool compressed = false ); 
+
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,

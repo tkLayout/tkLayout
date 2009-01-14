@@ -223,7 +223,8 @@ void Tracker::buildBarrel(int nLayer,
 			  BarrelModule* sampleModule, 
 			  std::string barrelName,
 			  int section /* = NoSection */, 
-			  bool compressed /* = false */) {
+			  bool compressed /* = false */,
+			  double minZ /* = 0 used to build mezzanine barrels */ ) {
 
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
   
@@ -280,40 +281,68 @@ void Tracker::buildBarrel(int nLayer,
     layerName << "L" << std::dec << i+1;
     aBarrelLayer->setName(layerName.str());
 
-
+    
     std::cout << "Desired radius: " << radius << std::endl;
-    aBarrelLayer->buildLayer (radius,       // averageRadius
-			      smallDelta_ , 
-			      bigDelta_,
-			      overlap_,     // overlap
-			      zError_,      // safetyOrigin
-			      nModules,     // maxZ
-			      push,
-			      4,            // modules multiple of ...
-			      false,        // false = Strings with opposite parity
-			      sampleModule, section);
-
-    addLayer(aBarrelLayer, barrelName, TypeBarrel);
-    thisBarrelLayerSet.push_back(aBarrelLayer);
+    if (minZ==0) { // Standard Barrel
+      aBarrelLayer->buildLayer (radius,       // averageRadius
+				smallDelta_ , 
+				bigDelta_,
+				overlap_,     // overlap
+				zError_,      // safetyOrigin
+				nModules,     // maxZ
+				push,
+				4,            // modules multiple of ...
+				false,        // false = Strings with opposite parity
+				sampleModule, section);
+      
+      addLayer(aBarrelLayer, barrelName, TypeBarrel);
+      thisBarrelLayerSet.push_back(aBarrelLayer);
+    } else { // Mezzanine Barrel
+      aBarrelLayer->buildLayer (radius,       // averageRadius
+				smallDelta_ , 
+				bigDelta_,
+				overlap_,     // overlap
+				zError_,      // safetyOrigin
+				nModules,     // maxZ
+				push,
+				4,            // modules multiple of ...
+				false,        // false = Strings with opposite parity
+				sampleModule, section, minZ);
+      
+      addLayer(aBarrelLayer, barrelName, TypeBarrel);
+      thisBarrelLayerSet.push_back(aBarrelLayer);
+    }
   }
-
+  
   if (compressed) {
-    compressBarrelLayers(thisBarrelLayerSet);
+    compressBarrelLayers(thisBarrelLayerSet, (minZ!=0.));
   }
-
+  
+  
+  // Mezzanine barrel needs to be duplicated and reflected
+  if (minZ!=0.) {
+    LayerVector::iterator layIt;
+    BarrelLayer* anotherLayer;
+    LayerVector justDoneBarrelLayerSet=thisBarrelLayerSet;
+    
+    for (layIt = justDoneBarrelLayerSet.begin(); layIt!= justDoneBarrelLayerSet.end(); layIt++) {
+      if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
+	anotherLayer = new BarrelLayer(*aBarrelLayer);
+	anotherLayer->reflectZ();
+	addLayer(anotherLayer, barrelName, TypeBarrel);
+	thisBarrelLayerSet.push_back(anotherLayer);
+      }
+    }
+  }
+  
   double maxZ=getMaxBarrelZ(+1);
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
   // TODO: update this value if you want an independent compacting of the barrel section
 
 }
 
-//void Tracker::compressBarrelLayers() {
-//  compressBarrelLayers(barrelLayerSet_);
-//}
-
-
 // Barrel "compactification"
-void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
+void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
   LayerVector::iterator layIt;
   BarrelLayer* aBarrelLayer;
   
@@ -327,7 +356,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
     if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
       aZp = aBarrelLayer->getMaxZ(+1);
       aZm = aBarrelLayer->getMaxZ(-1);
-      //       std::cout << "it's a barrel layer in the range " << aZm << ".." << aZp;
+      // std::cout << "it's a barrel layer in the range " << aZm << ".." << aZp; // debug
       if (layIt==aLayerSet.begin()) {
 	minZp=aZp;
 	minZm=aZm;
@@ -343,15 +372,36 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet) {
     std::cout << std::endl;
   }
 
-  // std::cout << "Shortest layer on minus is " << minZm << std::endl;
-  // std::cout << "Shortest layer on plus  is " << minZp << std::endl;
+  // std::cout << "Shortest layer on minus is " << minZm << std::endl; // debug
+  // std::cout << "Shortest layer on plus  is " << minZp << std::endl; // debug
 
-  double minZt = (minZp>minZm) ? minZp : minZm;
+  double minZt;
+  double compactOrigin;
+  if (!oneSided) { // Standard barrel compressing
+    minZt = (minZp>minZm) ? minZp : minZm;
+    compactOrigin=0.;
+  } else { // Mezzanine barrel compressing
+    // Compact to the value with higher fabs()
+    // use the other one as zero reference
+    if (fabs(minZp)>fabs(minZm)) {
+      minZt = minZp; 
+      compactOrigin = minZm;
+    } else {
+      minZt = minZp; 
+      compactOrigin = minZm;
+    }
+  }
 
-  // And compact everything to it
+  // std::cout << "compact origin : " << compactOrigin << std::endl; // debug
+  // std::cout << "compact to z   : " << minZt << std::endl; // debug
+
   for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
     if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
-      aBarrelLayer->compressToZ(minZt);
+      if (!oneSided) { // Normal barrel
+	aBarrelLayer->compressToZ(minZt);
+      } else { // Mezzanine barrel
+	aBarrelLayer->compressExceeding(minZt, compactOrigin);
+      }
     } else {
       std::cerr << "ERROR: trying to compact a non-barrel layer" ;
     }

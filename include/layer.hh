@@ -76,7 +76,8 @@ private:
 		  double zOverlap,
 		  double safetyOrigin,
 		  int nModules,
-		  BarrelModule* sampleModule);
+		  BarrelModule* sampleModule,
+		  double minZ = 0);
   
   void buildStringPair(ModuleVector& thisModuleSet,
 		       double stringAverageRadius,
@@ -103,6 +104,7 @@ private:
 public:
   ~BarrelLayer();
   BarrelLayer();
+  BarrelLayer(BarrelLayer& sampleLayer);
   BarrelLayer(double waferDiameter, double heightOverWidth);
   BarrelLayer(double heightOverWidth);
   BarrelLayer(const BarrelModule& mySample);
@@ -126,7 +128,7 @@ public:
 		   int base,
 		   bool stringSameParity,
 		   BarrelModule* sampleModule,
-		   int sectioned=NoSection) { std::cout << "DEPRECATED" << std::endl; } ;
+		   int sectioned=NoSection) { std::cout << "DEPRECATED" << std::endl; } ; // TODO: remove this
 
   void buildLayer (double averageRadius,
 		   double smallDelta, 
@@ -138,11 +140,16 @@ public:
 		   int base,
 		   bool stringSameParity,
 		   BarrelModule* sampleModule,
-		   int sectioned=NoSection);
+		   int sectioned = NoSection,
+		   double minZ = 0.);
 
   double getMaxZ(int direction);
   void compressToZ(double newMaxZ);
+  void compressExceeding(double newMaxZ, double newMinZ);
+
   double getAverageRadius() {return averageRadius_;};
+  void rotateY_PI();
+  void reflectZ();
 
 };
 

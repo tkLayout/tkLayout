@@ -132,6 +132,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
   string parameterValue;
 
   int nBarrelLayers = 0;
+  double minZ=0;
   double barrelRhoIn = 0;
   double barrelRhoOut = 0;
   int nBarrelModules = 0;
@@ -153,6 +154,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     while (parseParameter(parameterName, parameterValue, inStream)) {
       if (parameterName=="nLayers") {
 	nBarrelLayers=atoi(parameterValue.c_str());
+      } else if (parameterName=="minimumZ") {
+	minZ=atof(parameterValue.c_str());
       } else if (parameterName=="nModules") {
 	nBarrelModules=atoi(parameterValue.c_str());
       } else if (parameterName=="innerRadius") {
@@ -212,25 +215,38 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
        (barrelRhoIn != 0) &&
        (barrelRhoOut != 0) &&
        (nBarrelModules != 0) ) {
-    sampleBarrelModule = new BarrelModule(1.);   // Square modules of kind rphi
 
+    sampleBarrelModule = new BarrelModule(1.);   // Square modules of kind rphi
+    
     // Important: if no directive was given, the following line will clear
     // possible previous directives coming from a different barrel
     myTracker_->setLayerDirectives(layerDirective);
-
-    myTracker_->buildBarrel(nBarrelLayers,
-			    barrelRhoIn,
-			    barrelRhoOut,
-			    nBarrelModules,
-			    sampleBarrelModule,
-			    myName,
-			    Layer::NoSection, true); // Actually build a compressed barrel
+    
+    if (minZ==0) { // This is a normal barrel symmetric w.r.t. z=0
+      myTracker_->buildBarrel(nBarrelLayers,
+			      barrelRhoIn,
+			      barrelRhoOut,
+			      nBarrelModules,
+			      sampleBarrelModule,
+			      myName,
+			      Layer::NoSection, true); // Actually build a compressed barrel
+    } else { // This is a special mezzanine barrel
+      myTracker_->buildBarrel(nBarrelLayers,
+			      barrelRhoIn,
+			      barrelRhoOut,
+			      nBarrelModules,
+			      sampleBarrelModule,
+			      myName,
+			      Layer::NoSection,
+			      true, minZ); // Actually build a non-compressed mezzanine barrel
+    }
+    
     delete sampleBarrelModule; // Dispose of the sample module
   } else {
     cout << "Missing mandatory parameter for barrel " << myName << endl;
     throw parsingException();
   }
-
+  
   return true;
 }
 

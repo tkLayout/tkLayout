@@ -40,6 +40,25 @@ void Layer::translate(XYZVector Delta) {
   }
 }
 
+
+// TODO: tidy up the next two functions: the Endcap-specific onw should
+// just call the generic Layer::rotateY_PI(), and multiply the averageZ_ by -1
+void BarrelLayer::rotateY_PI() {
+  ModuleVector::iterator modIt;
+
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    (*modIt)->rotateY_PI();
+  }
+}
+
+void BarrelLayer::reflectZ() {
+  ModuleVector::iterator modIt;
+
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    (*modIt)->reflectZ();
+  }
+}
+
 void EndcapLayer::rotateY_PI() {
   ModuleVector::iterator modIt;
 
@@ -153,6 +172,22 @@ BarrelLayer::~BarrelLayer() {
 
 BarrelLayer::BarrelLayer() {
   sampleModule_ = NULL;
+}
+
+BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
+  ModuleVector::iterator modIt;
+  ModuleVector inputModuleV = inputLayer.moduleSet_;
+  BarrelModule* aModule;
+  BarrelModule* stdModule;
+
+  for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
+    if ( (stdModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
+      aModule = new BarrelModule(*stdModule);
+      moduleSet_.push_back(aModule);
+    } else {
+      std::cerr << "ERROR: in BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) I found a non-barrel module in the source" << std::endl;
+    }
+  }
 }
 
 BarrelLayer::BarrelLayer(double waferDiameter, double heightOverWidth) {
@@ -292,8 +327,9 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
 			     double zOverlap,
 			     double safetyOrigin,
 			     int nDesiredModules,
-			     BarrelModule* sampleModule) {
-
+			     BarrelModule* sampleModule,
+			     double minZ /* = 0 used to build mezzanine layers */ ) {
+  
   int parity;
   int nModules;
 
@@ -320,7 +356,11 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
 
   // The first module is half displeced because the module from the opposite
   // string will also be displaced.
-  aModule->setEdgeZ(-1*parity*zOverlap/2., parity);
+  if (minZ==0) { // A string of a standard barrel
+    aModule->setEdgeZ(-1*parity*zOverlap/2., parity);
+  } else { // A special string starting at minZ (mezzanine barrel)
+    aModule->setEdgeZ(parity*minZ, parity);
+  }
   thisModuleSet.push_back(aModule);
   
   edge minSafetyEdge;
@@ -587,7 +627,8 @@ void BarrelLayer::buildLayer (double averageRadius,
 			      bool stringSameParity,  // Wether the strings should have
 			                              // the same or opposite module parity (in/out)
 			      BarrelModule* sampleModule,
-			      int sectioned // = NoSection  (deprecated)
+			      int sectioned, // = NoSection  (deprecated)
+			      double minZ // = 0 not zero in case you build a mezzanine
 			      )
 {
   
@@ -634,14 +675,23 @@ void BarrelLayer::buildLayer (double averageRadius,
     // std::cout << "Building a string" << std::endl;
 
     std::vector<Module*> aString;
-    buildStringPair(aString, 
-		    goodRadius+stringParity*bigDelta,
-		    stringSmallParity*smallDelta, 
-		    overlap,
-		    safetyOrigin,
-		    nModules,
-		    sampleModule);
-    
+    if (minZ==0) { // Build a standard (double) string
+      buildStringPair(aString, 
+		      goodRadius+stringParity*bigDelta,
+		      stringSmallParity*smallDelta, 
+		      overlap,
+		      safetyOrigin,
+		      nModules,
+		      sampleModule);
+    } else { // Build a mezzanine (single) string
+      buildString(aString,
+		  goodRadius+stringParity*bigDelta,
+		  stringSmallParity*smallDelta, 
+		  overlap,
+		  safetyOrigin,
+		  nModules,
+		  sampleModule,	minZ);
+    }
 
     if (i==0) {
       //std::cerr << "Computing min edge: ";
@@ -717,7 +767,6 @@ void BarrelLayer::buildLayer (double averageRadius,
   }
   
 }
-
 
 // Always look for this plot when changing the geometry!
 // Execute the program with 2> aaa
@@ -805,24 +854,27 @@ void BarrelLayer::neededModulesPlot(double smallDelta, // Half distance between 
 
 double BarrelLayer::getMaxZ(int direction) {
   double maxZ;
-  double minZ;
+  //double minZ;
   double aZ;
   ModuleVector::iterator modIt;
   BarrelModule* aBarrelModule;
-
-  maxZ=0;
-  minZ=0;
-
-
+  bool firstModule=true;
+  
   if (direction==0) {
     std::cerr << "BarrelLayer::getMaxZ was called with direction==0" << std::endl;
     return 0;
   }
   direction/=int(fabs(direction));
 
+  maxZ=0;
+  
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
     if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
       aZ = aBarrelModule->getEdgeZSide(direction).first;
+      if (firstModule) {
+	firstModule=false;
+	maxZ=aZ;
+      }
       if (direction*aZ>direction*maxZ) {
 	maxZ=aZ;
       }
@@ -833,6 +885,7 @@ double BarrelLayer::getMaxZ(int direction) {
 }
 
 
+
 void BarrelLayer::compressToZ(double newMaxZ) {
   double maxZ;
   double minZ;
@@ -841,6 +894,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
   BarrelModule* aBarrelModule;
   BarrelModule* maxBarrelModule=NULL;
   BarrelModule* minBarrelModule=NULL;
+  bool firstModule=true;
 
   maxZ=0;
   minZ=0;
@@ -848,15 +902,16 @@ void BarrelLayer::compressToZ(double newMaxZ) {
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
     if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
       aZ = aBarrelModule->getEdgeZSide(+1).first;
-      if (aZ>maxZ) {
+      if ((aZ>maxZ)||firstModule) {
 	maxBarrelModule = aBarrelModule;
 	maxZ=aZ;
       }
       aZ = aBarrelModule->getEdgeZSide(-1).first;
-      if (aZ<minZ) {
+      if ((aZ<minZ)||firstModule) {
 	minBarrelModule = aBarrelModule;
 	minZ=aZ;
       }
+      if (firstModule) firstModule=false;
     }
   }
 
@@ -866,7 +921,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
   //   std::cout << "The layer's highest z+ is " << maxZ << std::endl;
   //   std::cout << "The layer's highest z- is " << minZ << std::endl;
 
-  // Measure the Delta of the farthesr module
+  // Measure the Delta of the farthest module
   double Deltap;
   double Deltam;
   Deltap = fabs(newMaxZ) - maxZ;
@@ -882,25 +937,78 @@ void BarrelLayer::compressToZ(double newMaxZ) {
   double myMeanZ;
   XYZVector modShift;
   if (maxBarrelModule!=NULL) {
-    deltam=Deltam/(minBarrelModule->getMeanPoint()).Z();
-    deltap=Deltap/(maxBarrelModule->getMeanPoint()).Z();
+    deltam=Deltam/((minBarrelModule->getMeanPoint()).Z());
+    deltap=Deltap/((maxBarrelModule->getMeanPoint()).Z());
     // std::cerr << "delta-: " << deltam << std::endl;
     // std::cerr << "delta+: " << deltap << std::endl
-      ;
     
     for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
       if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
-	myMeanZ = (aBarrelModule->getMeanPoint()).Z();
-      if (myMeanZ>0) {
-	modShift=XYZVector(0, 0, deltap*myMeanZ);
-      } else {
-	modShift=XYZVector(0, 0, deltam*myMeanZ);
-      }	
-      aBarrelModule->translate(modShift);
+	myMeanZ = ((aBarrelModule->getMeanPoint()).Z());
+	if (myMeanZ>0) {
+	  modShift=XYZVector(0, 0, deltap*myMeanZ);
+	} else {
+	  modShift=XYZVector(0, 0, deltam*myMeanZ);
+	}	
+	aBarrelModule->translate(modShift);
       }
     } 
   } else {
     std::cerr << "ERROR! int BarrelLayer::compactToZ couldn't find the maxZ module" << std::endl;
+  }
+
+
+  // TODO: add exit code
+}
+
+// This procedure assumes there is no module with a border < newMinZ
+void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
+  double maxZ;
+  double aZ;
+  ModuleVector::iterator modIt;
+  BarrelModule* aBarrelModule;
+  BarrelModule* maxBarrelModule=NULL;
+  bool firstModule=true;
+
+  int direction = int(newMaxZ/newMaxZ);
+  
+  maxZ=0;
+
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
+      aZ = aBarrelModule->getEdgeZSide(direction).first;
+      if ((aZ>maxZ)||firstModule) {
+	maxBarrelModule = aBarrelModule;
+	maxZ=aZ;
+      }
+      if (firstModule) firstModule=false;
+    }
+  }
+  
+  // Measure the Delta of the farthest module
+  double Delta;
+  Delta = newMaxZ - maxZ;
+
+  // TODO: if Deltam < 0 raise an error
+
+  // delta is the ratio between Delta and the module's loewst Z w.r.t. newMinZ
+  double delta=0;
+  double myMinZ;
+  XYZVector modShift;
+  if (maxBarrelModule!=NULL) {
+    delta=Delta/((maxBarrelModule->getEdgeZSide(direction*-1)).first-newMinZ);
+    
+    for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+      if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
+	myMinZ = ((aBarrelModule->getEdgeZSide(direction*-1)).first-newMinZ);
+	if (myMinZ>0) {
+	  modShift=XYZVector(0, 0, delta*myMinZ);
+	}
+	aBarrelModule->translate(modShift);
+      }
+    } 
+  } else {
+    std::cerr << "ERROR! int BarrelLayer::compressExceeding couldn't find the maxZ module" << std::endl;
   }
 
 
