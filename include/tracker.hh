@@ -109,6 +109,7 @@ private:
 
   std::map<int, int> ringDirectives_;
   std::map<int,double> layerDirectives_;
+  std::map<int,LayerOption> layerOptions_;
 
   // Color picking
   Color_t colorPicker(std::string);
@@ -174,6 +175,7 @@ public:
   void setTrackerName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
   void setName(const std::string newName) { trackerName_ = newName; }; // deprecated: TODO remove it
   void setLayerDirectives(const std::map<int, double> newDirectives ) { layerDirectives_=newDirectives; };
+  void setLayerOptions(const std::map<int, LayerOption> newOptions ) { layerOptions_=newOptions; };
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
   void setComment(const std::string &newComment) {comment_=newComment;};

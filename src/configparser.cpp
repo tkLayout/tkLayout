@@ -140,7 +140,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
   BarrelModule* sampleBarrelModule = NULL;
 
   // Directives (this are communicated to the Tracker object)
-  std::map<int,double> layerDirective;
+  std::map<int,double> layerDirectives;
+  std::map<int,LayerOption> layerOptions;
+  
 
   // Tracker shoujld be already there
   if (!myTracker_) {
@@ -162,6 +164,41 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 	barrelRhoIn=atof(parameterValue.c_str());
       } else if (parameterName=="outerRadius") {
 	barrelRhoOut=atof(parameterValue.c_str());
+      } else if (parameterName=="option") {
+	char charBuf[100];
+	std::string aString;
+	double aVal;
+	int layerNum;
+	bool gotIt=false;
+	if (sscanf(parameterValue.c_str(), "%d/%s", &layerNum, charBuf)==2) {
+	  aString = charBuf;
+	  // Stacked option, example option = 3/Stacked-30
+	  // meaning 3rd layer becomes stacked with the inner one at -30 mm w.r.t. the outer
+	  // Warning: the inner one would be the 3rd layer and the outer one would become the 4th
+	  // In order to have 2 consecutive stacked layers you should say: 3/Stacked-30 5/Stacked-30
+	  if (aString.find("Stacked")==0) {
+	    aVal=atof(aString.substr(7, aString.length()).c_str());
+	    if (aVal<0) {
+	      layerOptions[layerNum].first=Layer::Stacked;
+	      layerOptions[layerNum].second=aVal;
+	      gotIt=true;
+	      std::cout << "Option: stacked for layer " << layerNum << " at " << aVal << std::endl; // debug
+	    } else {
+	      cout << "Wrong stack distance: (" << aVal << ") must be negative." << std::endl;
+	      throw parsingException();
+	    }
+	  } 
+	  if (!gotIt) {
+	    cout << "Parsing layer option for barrel " << myName
+		 << ": unknown/nonsense option \"" << aString << "\"" << endl;
+	    throw parsingException();
+	  }
+	} else {
+	  cout << "Parsing barrel " << myName << endl
+	       << "Wrong syntax for a layer option: \"" << parameterValue
+	       << "\" should be layer/option" << endl;
+	  throw parsingException();	  
+	}
       } else if (parameterName=="directive") {
 	char charBuf[100];
 	std::string aString;
@@ -171,22 +208,22 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 	if (sscanf(parameterValue.c_str(), "%d/%s", &layerNum, charBuf)==2) {
 	  aString = charBuf;
 	  if (aString=="F") {
-	    layerDirective[layerNum]=Layer::FIXED;
+	    layerDirectives[layerNum]=Layer::FIXED;
 	    gotIt=true;
 	  } else if (aString=="S") {
-	    layerDirective[layerNum]=Layer::SHRINK;
+	    layerDirectives[layerNum]=Layer::SHRINK;
 	    gotIt=true;
 	  } else if (aString=="E") {
-	    layerDirective[layerNum]=Layer::ENLARGE;
+	    layerDirectives[layerNum]=Layer::ENLARGE;
 	    gotIt=true;
 	  } else if (aString=="A") {
-	    layerDirective[layerNum]=Layer::AUTO;
+	    layerDirectives[layerNum]=Layer::AUTO;
 	    gotIt=true;
 	  }
 	  if (!gotIt) {
 	    aVal = atof(aString.c_str());
 	    if (aVal>0) {
-	      layerDirective[layerNum]=aVal;
+	      layerDirectives[layerNum]=aVal;
 	      gotIt=true;
 	    }
 	  }
@@ -220,26 +257,18 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     // Important: if no directive was given, the following line will clear
     // possible previous directives coming from a different barrel
-    myTracker_->setLayerDirectives(layerDirective);
+    myTracker_->setLayerDirectives(layerDirectives);
+    myTracker_->setLayerOptions(layerOptions);
     
-    if (minZ==0) { // This is a normal barrel symmetric w.r.t. z=0
-      myTracker_->buildBarrel(nBarrelLayers,
-			      barrelRhoIn,
-			      barrelRhoOut,
-			      nBarrelModules,
-			      sampleBarrelModule,
-			      myName,
-			      Layer::NoSection, true); // Actually build a compressed barrel
-    } else { // This is a special mezzanine barrel
-      myTracker_->buildBarrel(nBarrelLayers,
-			      barrelRhoIn,
-			      barrelRhoOut,
-			      nBarrelModules,
-			      sampleBarrelModule,
-			      myName,
-			      Layer::NoSection,
-			      true, minZ); // Actually build a non-compressed mezzanine barrel
-    }
+    myTracker_->buildBarrel(nBarrelLayers,
+			    barrelRhoIn,
+			    barrelRhoOut,
+			    nBarrelModules,
+			    sampleBarrelModule,
+			    myName,
+			    Layer::NoSection,
+			    true,
+			    minZ); // Actually build a compressed barrel (mezzanine or normal)
     
     delete sampleBarrelModule; // Dispose of the sample module
   } else {

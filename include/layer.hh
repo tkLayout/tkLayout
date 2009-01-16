@@ -10,8 +10,10 @@
 using namespace ROOT::Math;
 
 typedef std::vector<Module* > ModuleVector;
+typedef std::pair<int,double> LayerOption;
 
 class Layer {
+
 protected:
   ModuleVector moduleSet_;
   std::string layerName_;
@@ -43,10 +45,15 @@ public:
 	YZSection = 0x2,
 	Forward   = 0x4};
 
+  // Directives
   enum {SHRINK  = -1,
 	FIXED   = -2,
 	ENLARGE = -3,
 	AUTO    = -4};
+
+  // Options
+  enum {Stacked = 1};
+
 };
 
 
@@ -150,6 +157,7 @@ public:
   double getAverageRadius() {return averageRadius_;};
   void rotateY_PI();
   void reflectZ();
+  void shiftRho(double Delta);
 
 };
 

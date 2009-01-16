@@ -100,6 +100,7 @@ class Module {
   void rotatePhi(double phi);
   void rotateY_PI();
   void reflectZ();
+  void shiftRho(double Delta);
 
   XYZVector* marginBorder(double widthMargin, double lengthMargin, int corner );
   XYZVector* marginBorderSide(double margin, int side);

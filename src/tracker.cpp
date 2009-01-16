@@ -230,10 +230,12 @@ void Tracker::buildBarrel(int nLayer,
   
   int push;
   std::map<int, double>::iterator aDirective;
-
+  std::map<int, LayerOption>::iterator anOption;
+  
   LayerVector thisBarrelLayerSet;
   std::ostringstream layerName;
   BarrelLayer* aBarrelLayer;
+
   for (int i=0; i<nLayer; i++) {
     double radius = minRadius + (maxRadius-minRadius)/double(nLayer-1)*i;
     
@@ -245,12 +247,12 @@ void Tracker::buildBarrel(int nLayer,
       push = Layer::AUTO;
     }
 
-
     if ((i==0)||(i==(nLayer-1))) {
       push = Layer::FIXED;
     } else {
       push = Layer::AUTO;
     }
+
     aDirective = layerDirectives_.find(i+1);
     if (aDirective!=layerDirectives_.end()) {
       if  ((i==0)||(i==(nLayer-1))) {
@@ -312,6 +314,19 @@ void Tracker::buildBarrel(int nLayer,
       addLayer(aBarrelLayer, barrelName, TypeBarrel);
       thisBarrelLayerSet.push_back(aBarrelLayer);
     }
+    
+    anOption = layerOptions_.find(i+1);
+    if (anOption!=layerOptions_.end()) {
+      BarrelLayer* anotherLayer;
+      LayerOption myOption=layerOptions_[i+1];
+      if (myOption.first==Layer::Stacked) {
+	anotherLayer = new BarrelLayer(*aBarrelLayer);
+	anotherLayer->shiftRho(myOption.second);
+	addLayer(anotherLayer, barrelName, TypeBarrel);
+	thisBarrelLayerSet.push_back(anotherLayer);
+      }
+    }
+    
   }
   
   if (compressed) {

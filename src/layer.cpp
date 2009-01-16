@@ -59,6 +59,14 @@ void BarrelLayer::reflectZ() {
   }
 }
 
+void BarrelLayer::shiftRho(double Delta) {
+  ModuleVector::iterator modIt;
+
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    (*modIt)->shiftRho(Delta);
+  }
+}
+
 void EndcapLayer::rotateY_PI() {
   ModuleVector::iterator modIt;
 
