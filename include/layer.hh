@@ -54,6 +54,9 @@ public:
   // Options
   enum {Stacked = 1};
 
+  // Other constants
+  enum {InvalidRadius = -1 }; // It needs to be negative
+
 };
 
 
@@ -154,7 +157,8 @@ public:
   void compressToZ(double newMaxZ);
   void compressExceeding(double newMaxZ, double newMinZ);
 
-  double getAverageRadius() {return averageRadius_;};
+  double computeAverageRadius();
+  double getAverageRadius() { if (averageRadius_<=0) return computeAverageRadius(); return averageRadius_;};
   void rotateY_PI();
   void reflectZ();
   void shiftRho(double Delta);

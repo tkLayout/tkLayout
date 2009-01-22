@@ -62,6 +62,7 @@ void BarrelLayer::reflectZ() {
 void BarrelLayer::shiftRho(double Delta) {
   ModuleVector::iterator modIt;
 
+  averageRadius_ = InvalidRadius;
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
     (*modIt)->shiftRho(Delta);
   }
@@ -187,6 +188,9 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
   ModuleVector inputModuleV = inputLayer.moduleSet_;
   BarrelModule* aModule;
   BarrelModule* stdModule;
+
+  layerName_     = inputLayer.layerName_;
+  averageRadius_ = inputLayer.averageRadius_;
 
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
     if ( (stdModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
@@ -1023,6 +1027,23 @@ void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
   // TODO: add exit code
 }
 
+double BarrelLayer::computeAverageRadius() {
+  ModuleVector::iterator modIt;
+  BarrelModule* aBarrelModule;
+  double myRadius=0;
+  int nModules=0;
+
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
+      myRadius+=aBarrelModule->getMeanPoint().Rho();
+      nModules++;
+    }
+  }
+
+  myRadius /= nModules;
+  averageRadius_=myRadius;
+  return myRadius;
+}
 
 /******************/
 /*                */
@@ -1046,7 +1067,8 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
   EndcapModule* aModule;
   EndcapModule* stdModule;
 
-  averageZ_=inputLayer.averageZ_;
+  layerName_ = inputLayer.layerName_;
+  averageZ_  = inputLayer.averageZ_;
 
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
     if ( (stdModule=dynamic_cast<EndcapModule*>(*modIt)) ) {

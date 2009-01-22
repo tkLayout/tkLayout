@@ -979,8 +979,10 @@ void Tracker::writeSummary(bool configFiles,
   for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
     aLayer = (*layIt);
     if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
-      layerNames.push_back(aBarrelLayer->getName());
-      layerRho.push_back(aBarrelLayer->getAverageRadius());
+      if (aBarrelLayer->getMaxZ(+1)>0) {
+	layerNames.push_back(aBarrelLayer->getName());
+	layerRho.push_back(aBarrelLayer->getAverageRadius());
+      }
     }
     if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
       if (anEndcapDisk->getAverageZ()>0) {
