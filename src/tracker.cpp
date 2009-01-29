@@ -67,6 +67,9 @@ void Tracker::setDefaultParameters() {
   maxL_ = 0;
   maxR_ = 0;
   lastPickedColor_ = STARTCOLOR;
+  colorPicker("pt");
+  colorPicker("rphi");
+  colorPicker("stereo");
 }
 
 void Tracker::shapeVolume() {
