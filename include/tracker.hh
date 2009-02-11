@@ -134,6 +134,9 @@ private:
   void drawLayout(double maxZ, double maxRho, std::string fileName);
 
 public:
+  // Adjustment for short barrels
+  void alignShortBarrels();
+
   ~Tracker();
   Tracker();
   Tracker(std::string trackerName);
@@ -146,9 +149,6 @@ public:
   void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
 		   bool compressed = false ); 
-
-  // Adjustment for short barrels
-  void alignShortBarrels();
 
 
   // Standard endcap builder
