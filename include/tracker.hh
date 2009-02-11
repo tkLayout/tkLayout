@@ -147,6 +147,9 @@ public:
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
 		   bool compressed = false ); 
 
+  // Adjustment for short barrels
+  void alignShortBarrels();
+
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
@@ -259,9 +262,3 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
 
 
 #endif
-
-
-
-
-
-
