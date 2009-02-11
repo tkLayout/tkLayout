@@ -134,9 +134,6 @@ private:
   void drawLayout(double maxZ, double maxRho, std::string fileName);
 
 public:
-  // Adjustment for short barrels
-  void alignShortBarrels();
-
   ~Tracker();
   Tracker();
   Tracker(std::string trackerName);
@@ -163,6 +160,9 @@ public:
 
   // Endcap ring remover
   void removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter);
+
+  // Adjustment for short barrels
+  void alignShortBarrels();
 
 
   // Access to parameters
