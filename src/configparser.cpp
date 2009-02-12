@@ -18,7 +18,7 @@ configParser::~configParser() {
     
 }
 
-string configParser::getTill(istream &inStream, char delimiter, bool singleWord,bool allowNothing=false) {
+string configParser::getTill(istream &inStream, char delimiter, bool singleWord, bool allowNothing=false) {
     string result="";
     
     if (getline(inStream, result, delimiter)) {
@@ -140,8 +140,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     BarrelModule* sampleBarrelModule = NULL;
     
     // Directives (this are communicated to the Tracker object)
-    std::map<int,double> layerDirectives;
-    std::map<int,LayerOption> layerOptions;
+    std::map<int, double> layerDirectives;
+    std::map<int, LayerOption> layerOptions;
     
     
     // Tracker shoujld be already there
@@ -293,11 +293,11 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     double innerEta = 0;
     int diskParity = 0;
     
-    map<pair<int,int>, bool> mapDiskRingRemoveToOuter;
-    map<pair<int,int>, bool>::iterator mapDiskRingRemoveToOuterIt;
+    map<pair<int, int>, bool> mapDiskRingRemoveToOuter;
+    map<pair<int, int>, bool>::iterator mapDiskRingRemoveToOuterIt;
     
     // Directives (this are communicated to the Tracker object)
-    std::map<int,int> ringDirective;
+    std::map<int, int> ringDirective;
     
     // Tracker should be already there
     if (!myTracker_) {
@@ -341,7 +341,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
                 char plusMinus;
                 bool parseError=false;
                 pair <int, int> diskRing;
-                if (sscanf(parameterValue.c_str(),"D%dR%d%c", &diskNum, &ringNum, &plusMinus)==3) {
+                if (sscanf(parameterValue.c_str(), "D%dR%d%c", &diskNum, &ringNum, &plusMinus)==3) {
                     if ((plusMinus=='+')||(plusMinus=='-')) {
                         diskRing.first=diskNum;
                         diskRing.second=ringNum;
@@ -616,6 +616,15 @@ bool configParser::parseOutput(istream& inStream) {
     
 }
 
+bool parseSupportParameters(istream& inStream, list<UserDefSupport>& list) {
+    string name, value;
+    double mid_z;
+    int startstop;
+    while (!inStream.eof()) {
+        parseParameter(name, value, inStream); // TODO: finish depending on verbal agreement
+    }
+    return true; // TODO: replace dummy value
+}
 
 // Takes the type and the name of the object, creates a strstream of
 // everything between '{' and '}' and passes it to the parser corresponding
@@ -657,6 +666,7 @@ bool configParser::parseObjectType(string myType) {
                 parseEndcap(str, typeStream);
             }
         }
+    } else if (myType=="Support") {
     } else {
         cerr << "Error: unknown piece of tracker " << myType;
         return false;
@@ -739,7 +749,7 @@ Tracker* configParser::parseFile(string configFileName) {
         string::size_type locComm1; // Location of commenting substring 1
         string::size_type locComm2; // Location of commenting substring 2
         
-        while (getline(rawConfigFile_,str)) {
+        while (getline(rawConfigFile_, str)) {
             locComm1=str.find("//", 0);
             locComm2=str.find("#", 0);
             if ((locComm1==string::npos)&&(locComm2==string::npos)) {
@@ -815,7 +825,7 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
         string::size_type locComm1; // Location of commenting substring 1
         string::size_type locComm2; // Location of commenting substring 2
         
-        while (getline(rawConfigFile_,str)) {
+        while (getline(rawConfigFile_, str)) {
             locComm1=str.find("//", 0);
             locComm2=str.find("#", 0);
             if ((locComm1==string::npos)&&(locComm2==string::npos)) {
@@ -842,4 +852,47 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
     }
     
     myTracker_=NULL; return true;
+}
+
+list<UserDefSupport>* configParser::parseSupportsFromFile(string fileName) {
+    ifstream infilestream;
+    stringstream filecontents;
+    string lineorword;
+    infilestream.open(fileName.c_str());
+    if (infilestream.is_open()) {
+        string::size_type locComm1;
+        string::size_type locComm2;
+        while (getline(infilestream, lineorword)) {
+            locComm1 = lineorword.find("//", 0);
+            locComm2 = lineorword.find("#", 0);
+            if ((locComm1 == string::npos) && (locComm2 == string::npos)) {
+                filecontents << lineorword << endl;
+            }
+            else {
+                filecontents << lineorword.substr(0, (locComm1 < locComm2 ? locComm1 : locComm2));
+            }
+            list<UserDefSupport>* result = new list<UserDefSupport>();
+            try {
+                while (filecontents >> lineorword) {
+                    if (lineorword == "Support") {
+                        lineorword = getTill(filecontents, '{', false);
+                        if (!lineorword.empty()) {
+                            string configparams = getTill(filecontents, '}', false);
+                            if (!configparams.empty()) {
+                                istringstream paramstream(configparams);
+                                parseSupportParameters(paramstream, *result);
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+            catch (exception& e) {
+                cerr << e.what() << endl;
+                if (result) delete result;
+                return NULL;
+            }
+        }
+    }
+    else return NULL;
 }
