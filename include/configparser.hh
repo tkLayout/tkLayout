@@ -11,14 +11,15 @@
 
 using namespace std;
 
-struct UserDefSupport {
-    double midZ;
-    int startLayer;
-    int stopLayer;
-};
-
 class configParser {
 public:
+  // Struct for support part info
+  struct UserDefSupport {
+      double midZ;
+      int startLayer;
+      int stopLayer;
+  };
+
   // Constructor and destructor
   configParser();
   ~configParser();
@@ -56,6 +57,9 @@ private:
   bool parseEndcapType(string myName, istream &inStream);
   bool parseAnyType(string myName, istream &inStream);
   bool parseOutput(istream &inStream);
+
+  // Parsing function for inactive surfactes
+  bool parseSupportParameters(istream& inStream, list<UserDefSupport>& list);
 
 };
 
