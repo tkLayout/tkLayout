@@ -147,6 +147,9 @@ public:
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
 		   bool compressed = false ); 
 
+  // Adjustment for short barrels
+  void alignShortBarrels();
+
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
@@ -160,9 +163,6 @@ public:
 
   // Endcap ring remover
   void removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter);
-
-  // Adjustment for short barrels
-  void alignShortBarrels();
 
 
   // Access to parameters
