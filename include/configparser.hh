@@ -11,6 +11,12 @@
 
 using namespace std;
 
+struct UserDefSupport {
+    double midZ;
+    int startLayer;
+    int stopLayer;
+};
+
 class configParser {
 public:
   // Constructor and destructor
@@ -22,6 +28,9 @@ public:
 
   // Parse the module type config file and "dresses" a Tracker object
   bool dressTracker(Tracker* aTracker, string fileName);
+
+  // Extract the user-defined support structures from the geometry config file
+  list<UserDefSupport>* parseSupportsFromFile(string fileName);
 
 private:
 
