@@ -426,55 +426,55 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
 }
 
 void Tracker::alignShortBarrels() {
-    std::cout << "tracker: aligning short barrels...";
     if (barrelLayerSet_.size() > 1) {
-        bool is_short;
+        bool is_short, is_long;
         LayerVector::iterator iter = barrelLayerSet_.begin();
         LayerVector::iterator guard = barrelLayerSet_.end();
+        LayerVector::iterator first_long = iter;
+        // find first long layer for start and stop
+        is_long = ((*first_long)->getMinZ() < 0) && ((*first_long)->getMaxZ() > 0);
+        while (!is_long) {
+            first_long++;
+            if (first_long == guard) break;
+            is_long = ((*first_long)->getMinZ() < 0) && ((*first_long)->getMaxZ() > 0);
+        }
         while (iter != guard) {
-            bool found = false;
             is_short = ((*iter)->getMaxZ() < 0) || ((*iter)->getMinZ() > 0);
             if (is_short) {
-                bool is_long, change;
+                bool change;
                 LayerVector::iterator start = barrelLayerSet_.begin();
                 LayerVector::iterator stop;
                 LayerVector::iterator cmp;
-                // find first long layer for start and stop
-                is_long = ((*start)->getMinZ() < 0) && ((*start)->getMaxZ() > 0);
-                while (!is_long) {
-                    start++;
-                    if (start == guard) break;
-                    is_long = ((*start)->getMinZ() < 0) && ((*start)->getMaxZ() > 0);
-                }
-                stop = start;
-                cmp = start;
-                cmp++;
+                start = first_long;
+                stop = first_long;
+                cmp = first_long;
+                if (cmp != guard) cmp++;
                 while (cmp != guard) {
                     is_long = ((*cmp)->getMinZ() < 0) && ((*cmp)->getMaxZ() > 0);
                     if (is_long) {
-                        change = (*iter)->getMinRho() > (*cmp)->getMinRho();
-                        change = change && ((*cmp)->getMinRho() > (*start)->getMinRho());
-                        if (change) {
-                            start = cmp;
-                            found = true;
+                        if ((*iter)->getMinRho() > (*cmp)->getMinRho()) {
+                            change = ((*start)->getMinRho() > (*iter)->getMinRho()) || ((*cmp)->getMinRho() > (*start)->getMinRho());
                         }
+                        else change = false;
+                        if (change) start = cmp;
                     }
                     cmp++;
                 }
-                if (!found) start = guard;
-                found = false;
+                if ((start == first_long) && ((*start)->getMinRho() > (*iter)->getMinRho())) start = guard;
                 cmp = stop;
-                cmp++;
+                if (cmp != guard) cmp++;
                 while (cmp != guard) {
                     is_long = ((*cmp)->getMinZ() < 0) && ((*cmp)->getMaxZ() > 0);
-                    change = (*iter)->getMinRho() < (*cmp)->getMinRho();
-                    change = change && ((*cmp)->getMinRho() < (*stop)->getMinRho());
-                    if (change) {
-                        stop = cmp;
-                        found = true;
+                    if (is_long) {
+                        if ((*iter)->getMinRho() < (*cmp)->getMinRho()) {
+                            change = ((*stop)->getMinRho() < (*iter)->getMinRho()) || ((*cmp)->getMinRho() < (*stop)->getMinRho());
+                        }
+                        else change = false;
+                        if (change)  stop = cmp;
                     }
+                    cmp++;
                 }
-                if (!found) stop = guard;
+                if ((stop == first_long) && ((*stop)->getMinRho() < (*iter)->getMinRho())) stop = guard;
                 if ((stop == guard) && (start != guard)) {
                     if ((*iter)->getMinZ() > 0) { // right of the origin
                         XYZVector dz(0, 0, (*start)->getMaxZ() - (*iter)->getMaxZ());
@@ -508,8 +508,8 @@ void Tracker::alignShortBarrels() {
                         else {
                             double dist1, dist2;
                             XYZVector dz;
-                            dist1 = (*start)->getMinZ() - (*iter)->getMaxZ();
-                            dist2 = (*stop)->getMinZ() - (*iter)->getMaxZ();
+                            dist1 = (*start)->getMaxZ() - (*iter)->getMaxZ();
+                            dist2 = (*stop)->getMaxZ() - (*iter)->getMaxZ();
                             if (fabs(dist1) < fabs(dist2)) dz.SetZ(dist1);
                             else dz.SetZ(dist2);
                             (*iter)->translate(dz);
@@ -535,7 +535,6 @@ void Tracker::alignShortBarrels() {
             iter++;
         }
     }
-    std::cout << "done." << std::endl;
 }
 
 double Tracker::getMaxBarrelZ(int direction) {
