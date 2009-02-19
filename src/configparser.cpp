@@ -616,14 +616,26 @@ bool configParser::parseOutput(istream& inStream) {
     
 }
 
-bool parseSupportParameters(istream& inStream, list<UserDefSupport>& list) {
+bool configParser::parseSupportParameters(istream& inStream, list<double>& plist) {
     string name, value;
     double mid_z;
-    int startstop;
     while (!inStream.eof()) {
-        parseParameter(name, value, inStream); // TODO: finish depending on verbal agreement
+        while (parseParameter(name, value, inStream)) {
+            if (name == "midz") {
+                mid_z = atof(value.c_str());
+                if (mid_z >= 0) plist.push_back(mid_z);
+            }
+            else {
+                return false;
+            }
+        }
     }
-    return true; // TODO: replace dummy value
+    list<double>::iterator iter = plist.begin();
+    while (iter != plist.end()) {
+        if (*iter < 0) iter = plist.erase(iter);
+        else iter++;
+    }
+    return true;
 }
 
 // Takes the type and the name of the object, creates a strstream of
@@ -776,6 +788,7 @@ Tracker* configParser::parseFile(string configFileName) {
         if (myTracker_) delete myTracker_; myTracker_ = NULL;
         return NULL;
     }
+    myTracker_->alignShortBarrels();
     
     // Eta cut and other post-operations
     std::pair<double, double> minMaxEta;
@@ -854,12 +867,14 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
     myTracker_=NULL; return true;
 }
 
-list<UserDefSupport>* configParser::parseSupportsFromFile(string fileName) {
+list<double>* configParser::parseSupportsFromFile(string fileName) {
+    list<double>* result = NULL;
     ifstream infilestream;
-    stringstream filecontents;
-    string lineorword;
     infilestream.open(fileName.c_str());
     if (infilestream.is_open()) {
+        result = new list<double>;
+        stringstream filecontents;
+        string lineorword;
         string::size_type locComm1;
         string::size_type locComm2;
         while (getline(infilestream, lineorword)) {
@@ -869,30 +884,32 @@ list<UserDefSupport>* configParser::parseSupportsFromFile(string fileName) {
                 filecontents << lineorword << endl;
             }
             else {
-                filecontents << lineorword.substr(0, (locComm1 < locComm2 ? locComm1 : locComm2));
+                filecontents << lineorword.substr(0, (locComm1 < locComm2 ? locComm1 : locComm2)) << endl;
             }
-            list<UserDefSupport>* result = new list<UserDefSupport>();
-            try {
-                while (filecontents >> lineorword) {
-                    if (lineorword == "Support") {
-                        lineorword = getTill(filecontents, '{', false);
-                        if (!lineorword.empty()) {
-                            string configparams = getTill(filecontents, '}', false);
-                            if (!configparams.empty()) {
-                                istringstream paramstream(configparams);
-                                parseSupportParameters(paramstream, *result);
-                            }
+        }
+        try {
+            while (filecontents >> lineorword) {
+                if (lineorword == "Support") {
+                    getTill(filecontents, '{', true);
+                    string configparams = getTill(filecontents, '}', false, true);
+                    if (configparams != " ") {
+                        std::cout << configparams;
+                        istringstream paramstream(configparams);
+                        if (!parseSupportParameters(paramstream, *result)) {
+                            if (result) delete result;
+                            return NULL;
                         }
                     }
                 }
-                return result;
             }
-            catch (exception& e) {
-                cerr << e.what() << endl;
-                if (result) delete result;
-                return NULL;
-            }
+            return result;
+        }
+        catch (exception& e) {
+            cerr << e.what() << endl;
+            if (result) delete result;
+            return NULL;
         }
     }
-    else return NULL;
+    if (result) delete result;
+    return NULL;
 }
