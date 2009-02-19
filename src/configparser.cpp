@@ -621,7 +621,7 @@ bool configParser::parseSupportParameters(istream& inStream, list<double>& plist
     double mid_z;
     while (!inStream.eof()) {
         while (parseParameter(name, value, inStream)) {
-            if (name == "midz") {
+            if (name == "midZ") {
                 mid_z = atof(value.c_str());
                 if (mid_z >= 0) plist.push_back(mid_z);
             }
@@ -679,6 +679,7 @@ bool configParser::parseObjectType(string myType) {
             }
         }
     } else if (myType=="Support") {
+        getTill(configFile_, '}', false, true);
     } else {
         cerr << "Error: unknown piece of tracker " << myType;
         return false;
