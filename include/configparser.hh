@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <list>
 #include <exception>
 #include "tracker.hh"
 
@@ -13,13 +14,6 @@ using namespace std;
 
 class configParser {
 public:
-  // Struct for support part info
-  struct UserDefSupport {
-      double midZ;
-      int startLayer;
-      int stopLayer;
-  };
-
   // Constructor and destructor
   configParser();
   ~configParser();
@@ -31,7 +25,7 @@ public:
   bool dressTracker(Tracker* aTracker, string fileName);
 
   // Extract the user-defined support structures from the geometry config file
-  list<UserDefSupport>* parseSupportsFromFile(string fileName);
+  list<double>* parseSupportsFromFile(string fileName);
 
 private:
 
@@ -59,7 +53,7 @@ private:
   bool parseOutput(istream &inStream);
 
   // Parsing function for inactive surfactes
-  bool parseSupportParameters(istream& inStream, list<UserDefSupport>& list);
+  bool parseSupportParameters(istream& inStream, list<double>& list);
 
 };
 
