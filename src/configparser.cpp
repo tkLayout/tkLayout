@@ -893,7 +893,6 @@ list<double>* configParser::parseSupportsFromFile(string fileName) {
                     getTill(filecontents, '{', true);
                     string configparams = getTill(filecontents, '}', false, true);
                     if (configparams != " ") {
-                        std::cout << configparams;
                         istringstream paramstream(configparams);
                         if (!parseSupportParameters(paramstream, *result)) {
                             if (result) delete result;
