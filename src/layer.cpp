@@ -220,6 +220,7 @@ BarrelLayer::BarrelLayer(BarrelModule* mySample) {
 
 
 // Builds a string and places into a module vector
+// Obsolete function to be removed)
 int BarrelLayer::buildString(ModuleVector& thisModuleSet,
 			     double stringAverageRadius,
 			     double smallDelta, // Half the distance between inner and outer modules
@@ -228,6 +229,11 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
 			     double safetyOrigin,
 			     double maxZ,
 			     BarrelModule* sampleModule) {
+
+  std::cout << "WARNING: buildString with maxZ option is an obsolete function: no more mantained" << std::endl;
+  std::cout << "You should not be using this function!" << std::endl;
+  std::cout << "Missing features (al least): ring accounting for layer modules" << std::endl;
+  
 
   int parity;
   int nModules;
@@ -373,11 +379,14 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
   } else { // A special string starting at minZ (mezzanine barrel)
     aModule->setEdgeZ(parity*minZ, parity);
   }
+  // std::cout << "pushing back one module out of " << nDesiredModules << " desired modules" << std::endl; // debug
+  aModule->setRing(1);
   thisModuleSet.push_back(aModule);
   
   edge minSafetyEdge;
 
-  for (nModules = 0; nModules<nDesiredModules; nModules++) {
+  // I start counting from one, as I already created module #0
+  for (nModules = 1; nModules<nDesiredModules; nModules++) {
  
     // The smallParity parameter sets the direction of
     // the smallDelta (rho difference of modules within the same string)
@@ -437,7 +446,9 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
       }
     }
 
+    // std::cout << "pushing back module "<< nModules <<" out of " << nDesiredModules << " desired modules" << std::endl; // debug
     // Finally we add this module in the list of built
+    aModule->setRing(nModules+1);
     thisModuleSet.push_back(aModule);
   }
 
