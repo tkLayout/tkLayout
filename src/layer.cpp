@@ -392,7 +392,7 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
     // the smallDelta (rho difference of modules within the same string)
     // smallParity will be -1 the first time here
     // [nModules=2]
-    smallParity=(nModules%2)*2-1;
+    smallParity=1-(nModules%2)*2;
 
     // Two conditions may apply: either we ask for an overlap
     // with respect to the projection from the origin (CASE 0)
