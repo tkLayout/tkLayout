@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 
 // My descriptor
 #include "tracker.hh"
@@ -31,6 +32,9 @@ double diffclock(clock_t clock1, clock_t clock2) {
     return diffms;
 }
 
+// comparators
+bool smallerRho(Layer* l1, Layer* l2) { return l1->getMinRho() < l2->getMinRho(); }
+bool smallerZ(Layer* l1, Layer* l2) { return l1->getMinZ() < l2->getMinZ(); }
 
 using namespace ROOT::Math;
 
@@ -535,6 +539,11 @@ void Tracker::alignShortBarrels() {
             iter++;
         }
     }
+}
+
+void Tracker::sortLayers() {
+    std::sort(barrelLayerSet_.begin(), barrelLayerSet_.end(), smallerRho);
+    std::sort(endcapLayerSet_.begin(), endcapLayerSet_.end(), smallerZ);
 }
 
 double Tracker::getMaxBarrelZ(int direction) {

@@ -790,6 +790,7 @@ Tracker* configParser::parseFile(string configFileName) {
         return NULL;
     }
     myTracker_->alignShortBarrels();
+    myTracker_->sortLayers();
     
     // Eta cut and other post-operations
     std::pair<double, double> minMaxEta;
