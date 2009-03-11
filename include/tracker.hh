@@ -150,6 +150,9 @@ public:
   // Adjustment for short barrels
   void alignShortBarrels();
 
+  // Sort barrel and endcap layer collections by rho and z, respectively
+  void sortLayers();
+
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
