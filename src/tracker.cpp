@@ -542,8 +542,9 @@ void Tracker::alignShortBarrels() {
 }
 
 void Tracker::sortLayers() {
-    std::sort(barrelLayerSet_.begin(), barrelLayerSet_.end(), smallerRho);
-    std::sort(endcapLayerSet_.begin(), endcapLayerSet_.end(), smallerZ);
+    std::stable_sort(barrelLayerSet_.begin(), barrelLayerSet_.end(), smallerZ);
+    std::stable_sort(barrelLayerSet_.begin(), barrelLayerSet_.end(), smallerRho);
+    std::stable_sort(endcapLayerSet_.begin(), endcapLayerSet_.end(), smallerZ);
 }
 
 double Tracker::getMaxBarrelZ(int direction) {
