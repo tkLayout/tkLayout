@@ -91,6 +91,8 @@ class Module {
   void computeDphiDeta();
 
  private:
+  int ring_;
+
   void setDefaultParameters();
     
  public:
@@ -160,6 +162,9 @@ class Module {
 
   virtual std::string getSensorTag() {  return std::string("");  };
 
+  int getRing() {return ring_;};
+  void setRing(const int& newRing) {ring_ = newRing;};
+
   int getSection() { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };
 
@@ -200,7 +205,6 @@ class BarrelModule : public Module {
   edge getEdgeZ(int direction, double margin = 0);
   edge getEdgePhi(int direction, double margin = 0);
   double width_;
-  int ring_;
   int layer_;
   
  public:
@@ -220,8 +224,6 @@ class BarrelModule : public Module {
 
   std::string getSensorTag();
 
-  int getRing() {return ring_;};
-  void setRing(const int& newRing) {ring_ = newRing;};
   int getLayer() {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
 
@@ -240,7 +242,6 @@ private:
   bool cut_;
   double lost_; // lost millimeters in height because of cut
   void setSensorGeometry(double alpha, double d, double maxRho = -1);
-  int ring_;  
   int disk_;  
 
 public:
@@ -259,8 +260,6 @@ public:
   double getLost(){if (cut_) return lost_; return 0;};
   double getDist(){return dist_;};
 
-  int getRing() {return ring_;};
-  void setRing(const int& newRing) {ring_ = newRing;};
   int getDisk() {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
 
