@@ -50,6 +50,8 @@ class Module {
   int readoutType_;
 
   int inSection_;
+
+  int ring_;
   
   //  point corner_[4];
   XYZVector corner_[4];
@@ -91,8 +93,6 @@ class Module {
   void computeDphiDeta();
 
  private:
-  int ring_;
-
   void setDefaultParameters();
     
  public:
