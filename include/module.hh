@@ -42,6 +42,7 @@ class Module {
   double thickness_;
   double area_;
   double stripArea_;
+  double dphideta_;
   int nChannelsPerFace_;
   int nSegments_;
   int nStripAcross_;
@@ -87,6 +88,7 @@ class Module {
   edge getEdgeRho(int direction);
 
   void computeStripArea();
+  void computeDphiDeta();
 
  private:
   void setDefaultParameters();
@@ -98,6 +100,7 @@ class Module {
   
   void translate(XYZVector Delta);
   void rotatePhi(double phi);
+  void rotateX(double phi);
   void rotateY_PI();
   void reflectZ();
   void shiftRho(double Delta);
@@ -136,7 +139,7 @@ class Module {
   TPolyLine3D* getContour();
 
   double getHeight() {return height_;};
-  double getArea() {return area_;};
+  double getArea() { return area_;};
   double getDiameter() {return waferDiameter_; };
   double getThickness() { return thickness_; };
   XYZVector getCorner(int index) { return corner_[index]; };
@@ -178,7 +181,7 @@ class Module {
   double getLowPitch();
   double getHighPitch();
 
-  double getOccupancyPerEvent();
+  virtual double getOccupancyPerEvent();
 
   // Boundaries to ease the computation of tracks
   void computeBoundaries(double zError);
@@ -222,6 +225,7 @@ class BarrelModule : public Module {
   int getLayer() {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
 
+  double getOccupancyPerEvent();
 };
 
 
@@ -259,6 +263,8 @@ public:
   void setRing(const int& newRing) {ring_ = newRing;};
   int getDisk() {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
+
+  double getOccupancyPerEvent();
 };
 
 

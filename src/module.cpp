@@ -3,6 +3,7 @@
 #include "module.hh"
 
 #include "Math/RotationZ.h"
+#include "Math/RotationX.h"
 #include "Math/Vector3D.h"
 
 #include "TMatrixD.h"
@@ -94,6 +95,14 @@ void Module::rotatePhi(double phi) {
     //    newy=corner_[i].x*sin(phi)+corner_[i].y*cos(phi);
     //    corner_[i].x=newx;
     //    corner_[i].y=newy;
+  }
+}
+
+void Module::rotateX(double phi) {
+  RotationX xRot(phi);
+
+  for (int i=0; i<4; i++) {
+    corner_[i]=xRot(corner_[i]);
   }
 }
 
@@ -735,31 +744,82 @@ void Module::computeStripArea() {
 
   stripArea_ = phiWidth * etaWidth / double(nChannelsPerFace_);
   //  std::cerr << "area:\t" << stripArea_ << std::endl;
+
+  delete anotherModule;
+}
+
+
+void Module::computeDphiDeta() {
+  XYZVector meanPoint = getMeanPoint();
+  double meanPhi = meanPoint.phi();
+
+  double maxTheta, minTheta, maxPhi, minPhi, aPhi;
+  maxTheta = getMaxTheta();
+  minTheta = getMinTheta();
+  
+  Module* anotherModule = new Module(*this);
+  anotherModule->rotatePhi(-1*meanPhi);
+  maxPhi=0;
+  minPhi=0;
+  for (int i=0; i<4 ; i++) {
+    aPhi=anotherModule->corner_[i].phi();
+    if (aPhi>maxPhi) maxPhi=aPhi;
+    if (aPhi<minPhi) minPhi=aPhi;
+  }
+
+  double phiWidth, etaWidth;
+  phiWidth = maxPhi-minPhi;
+  etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
+
+  dphideta_ = phiWidth * etaWidth / double(nSegments_);
+
+  delete anotherModule;
 }
 
 double Module::getOccupancyPerEvent() {
-  XYZVector meanPoint = getMeanPoint();
-  double meanEta = fabs(meanPoint.eta());
+  std::cout << "ERROR: you are somehow accessing the deprecated generic getOccupancyPerEvent" << std::endl;
 
-  computeStripArea();
-  double spOcc;
-
-  if (meanEta<1) {
-    spOcc = 3.7 * (1+meanEta);
-  } else {
-    spOcc = 3.7 * 2;
-  }
-
-  // Per ottenere l'occupanza vera basta moltiplicare spOcc
-  // per l'area della strip espressa in unità di (phi, eta).
-  // Il risultato deve essere in seguito moltiplicato per il numero di eventi di minimum bias per evento.
-  // (5, 24 o 400, per bassa, alta e super luminosità). 
-
-  //  std::cerr << "occupancy: " << spOcc*stripArea_ << std::endl;
-
-  return spOcc*stripArea_;
+  return 0;
 }
 
+// The occupancy ε estimation is obtained with the following formula:
+// ε=μ*Δφ*Δη/f
+// where:
+//  μ comes from a separate barrel/endcap fit on current tracker
+//  Δφ refers to the module
+//  Δη refers to the strip
+//  f is a compensation factor:
+//    sin(theta) for barrel
+//    cos(theta) for endcap
+
+double BarrelModule::getOccupancyPerEvent() {
+  XYZVector meanPoint = getMeanPoint();
+  double rho = meanPoint.Rho()/10.;
+  double theta = meanPoint.Theta();
+  
+  double myOccupancyBarrel=(1.63e-4)+(2.56e-4)*rho-(1.92e-6)*rho*rho;
+  //std::cerr << "Rho: " << rho << ", "
+  //	    << "myOcc: " << myOccupancyBarrel << std::endl;
+  double factor=fabs(sin(theta));
+  computeDphiDeta();
+
+  return myOccupancyBarrel*dphideta_/factor;  
+}
+
+double EndcapModule::getOccupancyPerEvent() {
+  XYZVector meanPoint = getMeanPoint();
+  double z = fabs(meanPoint.Z())/10.;
+  double rho = meanPoint.Rho()/10.;
+  double theta = meanPoint.Theta();
+  
+  double myOccupancyEndcap=(-6.20e-5)+(1.75e-4)*rho-(1.08e-6)*rho*rho+(1.50e-5)*(z);
+  //std::cerr << "Rho: " << rho << ", z: " << z << ", "
+  //	    << "myOcc: " << myOccupancyEndcap << std::endl;
+  double factor=fabs(cos(theta));
+  computeDphiDeta();
+
+  return myOccupancyEndcap*dphideta_/factor;
+}
 
 double Module::getLowPitch() {
   XYZVector acrossV = corner_[0] - corner_[3];

@@ -1271,6 +1271,7 @@ void Tracker::writeSummary(bool configFiles,
         // Area
         anArea.str("");
         anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+        if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
         // Occupancy
         anOccupancy.str("");
         anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
