@@ -27,6 +27,8 @@ typedef std::pair<double, int> edge;
 class Module {
 
  protected:
+  int shape_;
+  double aspectRatio_;
 
   double boundaryMinPhi_;
   double boundaryMaxPhi_;
@@ -62,6 +64,7 @@ class Module {
 
   // Default variables
   static const double  defaultWaferDiameter_ = 131.; // Wafer diameter 131 mm
+  static const double  defaultAspectRatio_ = 1.;
   static const double  defaultThickness_ = 0.3; // Wafer thickness: 300 um
   static const Color_t defaultColor_ = kBlack;
   static const int     defaultNHits_ = 0;
@@ -99,6 +102,9 @@ class Module {
   virtual ~Module();
   Module();
   Module(double waferDiameter);
+
+  virtual int getSubdetectorType() { return Undefined; };
+  int getShape() const { return shape_; };
   
   void translate(XYZVector Delta);
   void rotatePhi(double phi);
@@ -192,7 +198,11 @@ class Module {
   void computeBoundaries(double zError);
   bool couldHit(double eta, double phi);
 
-  enum { Strip, Pixel, Pt, Undefined };
+  enum { Strip, Pixel, Pt,   // sensor types
+	 Barrel, Endcap,     // module subdetector type
+	 Rectangular, Wedge, // sensor shapes
+	 Undefined };
+
 };
 
 
@@ -201,7 +211,7 @@ class Module {
 class BarrelModule : public Module {
 
  private:
-  void setSensorGeometry(double heightOverWidth);
+  void setSensorRectGeometry(double heightOverWidth);
   edge getEdgeZ(int direction, double margin = 0);
   edge getEdgePhi(int direction, double margin = 0);
   double width_;
@@ -212,6 +222,7 @@ class BarrelModule : public Module {
   BarrelModule(double waferDiameter, double heightOverWidth);
   BarrelModule(double heightOverWidth=1);
 
+  virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
   int setEdgeZ(double newZ, int direction);
 
@@ -235,30 +246,48 @@ class EndcapModule : public Module {
 
 private:
   // Remember to update the copyconstructor when adding member variables
-  double phiWidth_;
+  //double phiWidth_;
   double widthLo_;
   double widthHi_;
   double dist_;
   bool cut_;
   double lost_; // lost millimeters in height because of cut
-  void setSensorGeometry(double alpha, double d, double maxRho = -1);
+  void setSensorWedgeGeometry(double alpha, double d, double maxRho = -1);
+  void setSensorRectGeometry(double heightOverWidth, double d);
   int disk_;  
 
 public:
   ~EndcapModule();
+  virtual int getSubdetectorType() { return Endcap; };
+
   // The constructor needs 
   // alpha: the angle covered by the module
   // d: the dstance of the module's base from the z axis
+  EndcapModule(int shape=Wedge);
+
+  // Rectangular-shaped detectors
+  // EndcapModule(double waferDiameter, double heightOverWidth); // TODO: treat the wafer's diameter properly
+  EndcapModule(double heightOverWidth);
+
+  // Wedge- or square-shaped (no real geometry setting here)
+  //  EndcapModule(const Module& aModule);
+
+  // Generating wedge-shaped modules
   EndcapModule(double alpha, double d, double maxRho = -1);
   EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho = -1);
   EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho = -1);
-  EndcapModule(const Module& aModule);
+
+  // Generating square-shaped modules
+  EndcapModule(const Module& aModule, double d);
 
   std::string getSensorTag();
 
   bool wasCut() {return cut_ ; };
   double getLost(){if (cut_) return lost_; return 0;};
   double getDist(){return dist_;};
+
+  double getWidthLo() { return widthLo_ ; };
+  double getWidthHi() { return widthHi_ ; };
 
   int getDisk() {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};

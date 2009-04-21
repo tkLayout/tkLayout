@@ -577,28 +577,28 @@ double Tracker::getMaxBarrelZ(int direction) {
 }
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-        Module* genericSampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
-    buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, genericSampleModule, DEFAULTENDCAPNAME, diskParity,  sectioned);
+        EndcapModule* sampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
+    buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, sampleModule, DEFAULTENDCAPNAME, diskParity,  sectioned);
 }
 
 void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
-        Module* genericSampleModule, std::string endcapName, int diskParity,
+        EndcapModule* sampleModule, std::string endcapName, int diskParity,
         int sectioned /* = Layer::NoSection */ ) {
     
     double minTheta = 2*atan(exp(-1*maxEta));
     double minRadius = minZ * tan(minTheta);
     
     buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
-            genericSampleModule, endcapName, diskParity, sectioned );
+		 sampleModule, endcapName, diskParity, sectioned );
     
 }
 
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-        Module* genericSampleModule, std::string endcapName, int diskParity,
+        EndcapModule* sampleModule, std::string endcapName, int diskParity,
         int sectioned /* = Layer::NoSection */ ) {
     
-    EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
+    //EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
     
     maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
     maxL_=(maxZ>maxL_)?maxZ:maxL_;

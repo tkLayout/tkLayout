@@ -55,6 +55,8 @@ void Module::setDefaultParameters() {
   nFaces_             = defaultFaces_;
   readoutType_        = Strip;
   computedBoundaries_ = false;
+  shape_              = Undefined;
+  aspectRatio_        = defaultAspectRatio_;
 }
 
 void Module::print() {
@@ -929,15 +931,17 @@ BarrelModule::~BarrelModule() {
 }
 
 BarrelModule::BarrelModule(double waferDiameter, double heightOverWidth) : Module(waferDiameter) {
-  setSensorGeometry(heightOverWidth);
+  setSensorRectGeometry(heightOverWidth);
 }
 
 BarrelModule::BarrelModule(double heightOverWidth /*=1*/ ) : Module() {
-  setSensorGeometry(heightOverWidth);
+  setSensorRectGeometry(heightOverWidth);
 }
 
-void BarrelModule::setSensorGeometry(double heightOverWidth) {
+void BarrelModule::setSensorRectGeometry(double heightOverWidth) {
   double cornerAngle = atan(heightOverWidth);
+  shape_ = Rectangular;
+  aspectRatio_=heightOverWidth;
   height_ = waferDiameter_ * sin (cornerAngle);
   width_  = waferDiameter_ * cos (cornerAngle);
   area_ = height_*width_;
@@ -954,6 +958,36 @@ void BarrelModule::setSensorGeometry(double heightOverWidth) {
   corner_[1].SetZ(height_/2);
   corner_[2].SetZ((-1)*height_/2);
   corner_[3].SetZ((-1)*height_/2);  
+}
+
+void EndcapModule::setSensorRectGeometry(double heightOverWidth, double d) {
+  double cornerAngle = atan(heightOverWidth);
+  double width;
+  height_ = waferDiameter_ * sin (cornerAngle);
+  width  = waferDiameter_ * cos (cornerAngle);
+  area_ = height_*width;
+  widthLo_=width;
+  widthHi_=width;
+  dist_=d;
+  cut_=false;
+  lost_=0;
+  shape_=Rectangular;
+  aspectRatio_=heightOverWidth;
+  
+
+  // Upon creation the module is placed vertically
+  // with its center laying on 0,d+height_/2.,0
+  // that is with its base point in 0,d,0
+  for (int i=0; i<4; i++) corner_[i].SetY(0.);
+  corner_[0].SetX((-1)*width/2);
+  corner_[1].SetX(width/2);
+  corner_[2].SetX(width/2);
+  corner_[3].SetX((-1)*width/2);
+
+  corner_[0].SetY(d+height_);
+  corner_[1].SetY(d+height_);
+  corner_[2].SetY(d);
+  corner_[3].SetY(d);  
 }
 
 
@@ -1173,22 +1207,42 @@ EndcapModule::~EndcapModule() {
 }
 
 // Just to make an endcapmodule out of a module, without touching the geometry
-EndcapModule::EndcapModule(const Module& aModule) : Module(aModule) {
+/*EndcapModule::EndcapModule(const Module& aModule) : Module(aModule) {
   cut_ = false;
 
-  phiWidth_ = 0;
+  //phiWidth_ = 0;
   widthLo_  = 0;
   widthHi_  = 0;
   dist_     = 0;
+  
+  }*/
+
+EndcapModule::EndcapModule(int shape /*=wedge*/) : Module() {
+  shape_=shape;
+  if (shape==Rectangular) {
+    setSensorRectGeometry(defaultAspectRatio_,0);
+  }
 }
 
+
+//EndcapModule::EndcapModule(double waferDiameter, double heightOverWidth) : Module(waferDiameter) {
+//  setSensorRectGeometry(heightOverWidth,0);
+//}
+
+EndcapModule::EndcapModule(double heightOverWidth) : Module() {
+  setSensorRectGeometry(heightOverWidth,0);
+}
+
+// Modifying the geometry
+
+// Wedge-shaped:
 EndcapModule::EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule) {
-  setSensorGeometry(alpha, d, maxRho);
+  setSensorWedgeGeometry(alpha, d, maxRho);
 }
 
 EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule){
   
-  phiWidth_ = sampleModule.phiWidth_;
+  //phiWidth_ = sampleModule.phiWidth_;
   widthLo_ = sampleModule.widthLo_;
   widthHi_ = sampleModule.widthHi_;
   dist_ = sampleModule.dist_;
@@ -1197,15 +1251,27 @@ EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, doubl
   ring_ = sampleModule.ring_;  
   disk_ = sampleModule.disk_;
   
-  setSensorGeometry(alpha, d, maxRho);
+  setSensorWedgeGeometry(alpha, d, maxRho);
 }
 
 EndcapModule::EndcapModule(double alpha, double d, double maxRho /* = -1 */) : Module() {
-  setSensorGeometry(alpha, d, maxRho);
+  setSensorWedgeGeometry(alpha, d, maxRho);
 }
 
-void EndcapModule::setSensorGeometry(double alpha, double d, double maxRho /* = -1 */) {
+EndcapModule::EndcapModule(const Module& aModule, double d) : Module(aModule) {
+  if (aModule.getShape()==Wedge) {
+    std::cout << "WARNING: creating a rectangular endcap module out of a wedge-shaped module"
+	      << "I'm going to guess the aspect ratio from the height/averageWidth!" << std::endl;
+  } else if (shape_==Undefined) {
+    std::cout << "ERROR: creating a rectangular endcap module out of an unknown-shaped module" << std::endl;
+  }
+  setSensorRectGeometry(aspectRatio_, d);
+}
+
+
+void EndcapModule::setSensorWedgeGeometry(double alpha, double d, double maxRho /* = -1 */) {
   
+  shape_=Wedge;
   cut_=false;
 
   double r = waferDiameter_/2.;
@@ -1254,10 +1320,12 @@ void EndcapModule::setSensorGeometry(double alpha, double d, double maxRho /* = 
   // Some member variable computing:
   area_     = (b1+b2)*(h2+h1);
   height_   = b1+b2;
-  phiWidth_ = 2*phi;
+  //phiWidth_ = 2*phi;
   widthLo_  = 2*h1;
   widthHi_  = 2*h2;
   dist_     = d;
+  aspectRatio_ = height_/(h1+h2);
+
 
   // Some checks
   // std::cerr << "r1-r: " << sqrt(pow(h1,2)+pow(b1,2)) - r << std::endl;

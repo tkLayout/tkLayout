@@ -138,6 +138,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     int nBarrelModules = 0;
     string aDirective = "";
     BarrelModule* sampleBarrelModule = NULL;
+    double aspectRatio = 1.;
     
     // Directives (this are communicated to the Tracker object)
     std::map<int, double> layerDirectives;
@@ -158,6 +159,14 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 nBarrelLayers=atoi(parameterValue.c_str());
             } else if (parameterName=="minimumZ") {
                 minZ=atof(parameterValue.c_str());
+            } else if (parameterName=="aspectRatio") {
+                aspectRatio=atof(parameterValue.c_str());
+                if (aspectRatio<=0) {
+		  cout << "Parsing barrel " << myName << endl
+		       << "Wrong aspect ratio (height/width): " << parameterValue
+		       << " should be a positive number" << endl;
+		  throw parsingException();
+		}
             } else if (parameterName=="nModules") {
                 nBarrelModules=atoi(parameterValue.c_str());
             } else if (parameterName=="innerRadius") {
@@ -253,7 +262,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     (barrelRhoOut != 0) &&
     (nBarrelModules != 0) ) {
         
-        sampleBarrelModule = new BarrelModule(1.);   // Square modules of kind rphi
+        sampleBarrelModule = new BarrelModule(aspectRatio);   // Square modules of kind rphi
         
         // Important: if no directive was given, the following line will clear
         // possible previous directives coming from a different barrel
@@ -292,6 +301,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     double rhoOut = 0;
     double innerEta = 0;
     int diskParity = 0;
+    int shapeType = Module::Wedge;
+    double aspectRatio = 1.;
     
     map<pair<int, int>, bool> mapDiskRingRemoveToOuter;
     map<pair<int, int>, bool>::iterator mapDiskRingRemoveToOuterIt;
@@ -325,6 +336,29 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             } else if (parameterName=="diskParity") {
                 diskParity=atoi(parameterValue.c_str());
                 if (diskParity>0) diskParity=1; else diskParity=-1;
+            } else if (parameterName=="aspectRatio") {
+                aspectRatio=atof(parameterValue.c_str());
+                if (aspectRatio<=0) {
+		  cout << "Parsing endcap " << myName << endl
+		       << "Wrong aspect ratio (height/width): " << parameterValue
+		       << " should be a positive number" << endl;
+		  throw parsingException();
+		}
+	    } else if (parameterName=="shape") {
+	      bool syntaxOk=true;
+	      if (parameterValue=="wedge") {
+		shapeType=Module::Wedge;
+	      } else if (parameterValue=="rectangular") {
+		shapeType=Module::Rectangular;
+	      } else {
+		syntaxOk=false;
+	      }
+	      if (!syntaxOk) {
+		cout << "Parsing endcap " << myName << endl
+		     << "Wrong syntax for a shape: \"" << parameterValue
+		     << "\" should be \"rectangular\" or \"wedge\"" << endl;
+		throw parsingException();
+	      }
             } else if (parameterName=="directive") {
                 int ringNum; int increment;
                 if (sscanf(parameterValue.c_str(), "%d%d", &ringNum, &increment)==2) {
@@ -396,8 +430,17 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     (minZ != 0) &&
     (maxZ != 0) &&
     (diskParity != 0)) {
-        // The same old sample module
-        Module* sampleModule = new Module();
+      // The same old sample module
+      EndcapModule* sampleModule;
+      if (shapeType==Module::Wedge) {
+	sampleModule = new EndcapModule(Module::Wedge);
+      } else if (shapeType==Module::Rectangular) {
+	sampleModule = new EndcapModule(aspectRatio);
+      } else {
+	std::cout << "ERROR: an unknown module shape type was generated inside the configuration parser" 
+		  << std::endl << "this should never happen!" << std::endl;
+	throw parsingException();
+      }
         // Important: if no directive was given, the following line will clear
         // possible previous directives coming from a different endcap
         myTracker_->setRingDirectives(ringDirective);

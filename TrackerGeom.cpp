@@ -293,7 +293,7 @@ int main (int argc, char* argv[]) {
 
 
   // The same old sample module
-  Module* sampleModule = new Module();
+  EndcapModule* sampleModule = new EndcapModule();
   myTracker->buildEndcaps(nEndcapDisks,     // nDisks (per side)
 			  myTracker->getMaxBarrelZ(+1)+barrelToEndcap,  // minZ
 			  endcapMaxZ,

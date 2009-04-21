@@ -156,13 +156,13 @@ public:
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-		    Module* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+		    EndcapModule* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
   // Gets the minimum radius from eta and minimum Z
   void buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
-		    Module* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+		    EndcapModule* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
   // Endcap builder for backwards compatibility with the command-line version
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-		    Module* sampleModule, int diskParity, int sectioned = Layer::NoSection );
+		    EndcapModule* sampleModule, int diskParity, int sectioned = Layer::NoSection );
 
   // Endcap ring remover
   void removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter);

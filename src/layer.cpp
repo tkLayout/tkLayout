@@ -1317,63 +1317,81 @@ double EndcapLayer::buildRing(double minRadius,
 			      int sectioned /* = NoSection */) {
   
 
-  double r = sampleModule->getDiameter()/2.;
-
-  std::cout << "Desired distance: " << minRadius << std::endl;
-  std::cout << "Desired overlap: " << overlap << std::endl;
-  std::cout << std::endl;
-
-  double l=(minRadius-r);
-  std::cout << "l: " << l << std::endl;
-  std::cout << "r: " << r << std::endl;
-  double y=pow(r/l,2);
-  std::cout << "y: " << y << std::endl;
-  double x=solvex(y);
-  std::cout << "x: " << x << std::endl;
-  std::cout << "gamma1: " << gamma1(x,y,r) << std::endl;
-  std::cout << "gamma2: " << gamma2(x,y,r) << std::endl;
-
-  // Max area
-  std::cout << "Area : " << Area(x,y,r) << std::endl;
-
-  std::cout << "Optimization: " << std::endl;
-
-
-  double tempd;
-  bool computeFinish=false;
+  double alpha; // Module angular aperture
+  bool wedges=false;
   
-  for (int i=0; i < MAX_LOOPS; i++) {
-    l=compute_l(x,y,minRadius);
-    y=pow(r/l,2);
-    x=solvex(y);
+  // Used only for barrel modules
+  double modMaxRadius=1;
+
+  if ( sampleModule->getShape()==Module::Wedge ) {
+    wedges=true;
+    double r = sampleModule->getDiameter()/2.;
+
+    std::cout << "Desired distance: " << minRadius << std::endl;
+    std::cout << "Desired overlap: " << overlap << std::endl;
+    std::cout << std::endl;
+
+    double l=(minRadius-r);
+    std::cout << "l: " << l << std::endl;
+    std::cout << "r: " << r << std::endl;
+    double y=pow(r/l,2);
+    std::cout << "y: " << y << std::endl;
+    double x=solvex(y);
+    std::cout << "x: " << x << std::endl;
+    std::cout << "gamma1: " << gamma1(x,y,r) << std::endl;
+    std::cout << "gamma2: " << gamma2(x,y,r) << std::endl;
     
-    tempd=compute_d(x,y,l);
-        
-    if (fabs(minRadius-tempd)<1e-15) {
-      computeFinish=true;
-      break;
+    // Max area
+    std::cout << "Area : " << Area(x,y,r) << std::endl;
+    
+    std::cout << "Optimization: " << std::endl;
+    
+    
+    double tempd;
+    bool computeFinish=false;
+    
+    for (int i=0; i < MAX_LOOPS; i++) {
+      l=compute_l(x,y,minRadius);
+      y=pow(r/l,2);
+      x=solvex(y);
+    
+      tempd=compute_d(x,y,l);
+      
+      if (fabs(minRadius-tempd)<1e-15) {
+	computeFinish=true;
+	break;
+      }
+      
     }
     
+    if (!computeFinish) {
+      std::cerr << "Computation not finished" << std::endl;
+      std::cerr << "Delta_d is now: " << minRadius-tempd << std::endl;
+    }
+    std::cout << "x: " << x << std::endl;
+    std::cout << "Area : " << Area(x,y,r) << std::endl;
+    
+    alpha=asin(sqrt(x))*2;
+
+    std::cout << "mod aperture: " << alpha*180./M_PI << std::endl;
+  } else if ( sampleModule->getShape()==Module::Rectangular ) { // it's a barrel module
+    modMaxRadius=minRadius + sampleModule->getHeight();
+    // widthHi or widthLo would give the same number: it's a square module!
+    alpha=2*asin(sampleModule->getWidthHi()/2. / modMaxRadius); 
+  } else { // It's not a barrel or an endcap module
+    std::cout << "ERROR: the sample EndcapModule was not Barrel nor Endcap... this should never happen!" << std::endl;
   }
-
-  if (!computeFinish) {
-    std::cerr << "Computation not finished" << std::endl;
-    std::cerr << "Delta_d is now: " << minRadius-tempd << std::endl;
-  }
-  std::cout << "x: " << x << std::endl;
-  std::cout << "Area : " << Area(x,y,r) << std::endl;
-  
-  double alpha;
-  
-  alpha=asin(sqrt(x))*2;
-
-  std::cout << "mod aperture: " << alpha*180./M_PI << std::endl;
-
 
   // The needed overlap becomes an angle delta by
   // checking the unsafest point (r=r_min)
-  double delta = overlap / minRadius;
-  double effectiveAlpha = alpha - delta;
+  double delta, effectiveAlpha;
+
+  if (wedges) {
+    delta = overlap / minRadius;
+  } else {
+    delta = overlap / modMaxRadius;
+  }
+  effectiveAlpha = alpha - delta;
 
   
   std::cout << "overlap delta: " << delta*180./M_PI << std::endl;
@@ -1388,9 +1406,10 @@ double EndcapLayer::buildRing(double minRadius,
   // We round to the nearest multiple of base
   int nOpt = int(floor((n/double(base))+.5)) * base;
   
-  std::cout << "I would use " << nOpt << " modules (optimized)" << std::endl;
-
-  nOpt += (addModules*base);
+  if (wedges) {
+    std::cout << "I would use " << nOpt << " modules (optimized)" << std::endl;
+    nOpt += (addModules*base);
+  }
 
   std::cout << "I will use " << nOpt << " modules (user request)" << std::endl;
 
@@ -1404,6 +1423,8 @@ double EndcapLayer::buildRing(double minRadius,
   //   XYZVector ringShift   = XYZVector(0, 0, bigDelta);  
   int ringParity;
   EndcapModule *myModule;
+  //BarrelModule *myBarrelModule;
+  //Module* myModule;
 
   //   std::cout << "diskShift:  " << diskZ << std::endl
   // 	    << "petalShift: " << smallDelta << std::endl 
@@ -1411,7 +1432,11 @@ double EndcapLayer::buildRing(double minRadius,
 
   for (int i=0; i<nOpt; i++) {
     ringParity = ((i%2)*2)-1;
-    myModule = new EndcapModule(*sampleModule, goodAlpha, minRadius, maxRadius);
+    if (wedges) {
+      myModule = new EndcapModule(*sampleModule, goodAlpha, minRadius, maxRadius);
+    } else {
+      myModule = new EndcapModule(*sampleModule, minRadius);
+    }
     myModule->rotatePhi(2.*M_PI*i/double(nOpt));
     XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
     myModule->translate(shift);
@@ -1427,15 +1452,20 @@ double EndcapLayer::buildRing(double minRadius,
     }
   }
 
-  EndcapModule* aRingModule = new EndcapModule(sampleModule->getDiameter(), goodAlpha, minRadius, maxRadius);
-  double lastRho = minRadius + aRingModule->getHeight();
-  std::cout << "Actual module area: " << aRingModule->getArea() << std::endl;
-  // Just to be sure...!
-  if (aRingModule->wasCut()) {
-    std::cout << "The ring Module was cut, loosing: " << aRingModule->getLost() << std::endl;
-    lastRho=maxRadius;
+  double lastRho;
+  if (wedges) {
+    EndcapModule* aRingModule = new EndcapModule(*sampleModule, goodAlpha, minRadius, maxRadius);
+    lastRho = minRadius + aRingModule->getHeight();
+    std::cout << "Actual module area: " << aRingModule->getArea() << std::endl;
+    // Just to be sure...!
+    if (aRingModule->wasCut()) {
+      std::cout << "The ring Module was cut, loosing: " << aRingModule->getLost() << std::endl;
+      lastRho=maxRadius;
+    }
+    delete aRingModule;
+  } else {
+    lastRho = modMaxRadius;
   }
-  delete aRingModule;
 
   return lastRho;
 }
