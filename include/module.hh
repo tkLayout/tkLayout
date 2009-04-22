@@ -189,8 +189,8 @@ class Module {
   void setNFaces(const int& newN) { nFaces_=newN; };
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
 
-  double getLowPitch();
-  double getHighPitch();
+  virtual double getLowPitch();
+  virtual double getHighPitch();
 
   virtual double getOccupancyPerEvent();
 
@@ -221,6 +221,9 @@ class BarrelModule : public Module {
   ~BarrelModule();
   BarrelModule(double waferDiameter, double heightOverWidth);
   BarrelModule(double heightOverWidth=1);
+
+  double getLowPitch();
+  double getHighPitch();
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -258,6 +261,8 @@ private:
 
 public:
   ~EndcapModule();
+  double getLowPitch();
+  double getHighPitch();
   virtual int getSubdetectorType() { return Endcap; };
 
   // The constructor needs 

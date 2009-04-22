@@ -824,13 +824,31 @@ double EndcapModule::getOccupancyPerEvent() {
 }
 
 double Module::getLowPitch() {
-  XYZVector acrossV = corner_[0] - corner_[3];
-  return (acrossV.R()/nStripAcross_);
+  //XYZVector acrossV = corner_[0] - corner_[3];
+  //return (acrossV.R()/nStripAcross_);
+  return 0;
 }
 
 double Module::getHighPitch() {
-  XYZVector acrossV = corner_[2] - corner_[1];
-  return (acrossV.R()/nStripAcross_);
+  //XYZVector acrossV = corner_[2] - corner_[1];
+  //return (acrossV.R()/nStripAcross_);
+  return 0;
+}
+
+double BarrelModule::getLowPitch() {
+  return (width_/double(nStripAcross_));
+}
+
+double BarrelModule::getHighPitch() {
+  return (width_/double(nStripAcross_));
+}
+
+double EndcapModule::getLowPitch() {
+  return (widthLo_/double(nStripAcross_));
+}
+
+double EndcapModule::getHighPitch() {
+  return (widthHi_/double(nStripAcross_));
 }
 
 void Module::computeBoundaries(double zError) {
