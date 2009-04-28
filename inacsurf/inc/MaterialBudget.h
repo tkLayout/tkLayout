@@ -29,6 +29,10 @@ namespace insur {
     public:
         MaterialBudget(Tracker& tr, InactiveSurfaces& is);
         virtual ~MaterialBudget();
+        Tracker& getTracker();
+        InactiveSurfaces& getInactiveSurfaces();
+        std::vector<std::vector<ModuleCap> >& getBarrelModuleCaps();
+        std::vector<std::vector<ModuleCap> >& getEndcapModuleCaps();
         void materialsAll(MatCalc& calc);
         void print();
     protected:

@@ -56,8 +56,8 @@ namespace insur {
     
     bool MatCalcDummy::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
         for (uint i = 0; i < supports.size(); i++) {
-            if (supports.at(i).isVertical()) supports.at(i).addLocalMass(tl, sb);
-            else supports.at(i).addLocalMass(tl, se);
+            if (supports.at(i).isVertical()) supports.at(i).addLocalMass(tl, lb);
+            else supports.at(i).addLocalMass(tl, le);
             supports.at(i).calculateTotalMass();
             supports.at(i).calculateRadiationLength(mt);
             supports.at(i).calculateInteractionLength(mt);

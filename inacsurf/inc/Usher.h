@@ -81,7 +81,6 @@ namespace insur {
             std::vector<int> analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
             bool analyzePolarity();
-            bool sanityCheck();
         };
         virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
         virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);

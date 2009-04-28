@@ -14,7 +14,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry general elements ushers dressers viz demo
+all: tkgeometry general elements ushers dressers viz test demo
 	@echo "Full build successful."
 #TODO: define targets for all: tkgeometry, insur, densities, demo
 
@@ -127,7 +127,13 @@ $(LIBDIR)/Vizard.o: $(SRCDIR)/Vizard.cc $(INCDIR)/Vizard.h
 	@echo "Built target Vizard.o"
 
 #TESTS
-#TODO: add directives if necessary
+test: $(LIBDIR)/MatCalcDummy.o
+	@echo "Built target 'test'."
+
+$(LIBDIR)/MatCalcDummy.o: $(SRCDIR)/MatCalcDummy.cc $(INCDIR)/MatCalcDummy.h
+	@echo "Building target MatCalcDummy.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatCalcDummy.o $(SRCDIR)/MatCalcDummy.cc
+	@echo "Built target MatCalcDummy.o"
 
 #FINAL
 demo: $(LIBDIR)/demo.o
@@ -136,7 +142,8 @@ demo: $(LIBDIR)/demo.o
 	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/TrackerActions.o \
 	$(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o \
 	$(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
-	$(LIBDIR)/MatCalc.o $(LIBDIR)/Vizard.o $(LIBDIR)/demo.o \
+	$(LIBDIR)/MatCalc.o $(LIBDIR)/Vizard.o $(LIBDIR)/MatCalcDummy.o \
+	$(LIBDIR)/demo.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o demo
 

@@ -21,7 +21,8 @@
 namespace insur {
     static const std::string err_no_such_type = "Error: the requested type is not on the list.";
     static const std::string err_no_material = "Error: no material with the specified tag was found.";
-    static const std::string err_no_service = "Error: no service with the specified tag was found.";
+    static const std::string err_no_service = "Error: no service material with the specified properties was found.";
+    static const std::string err_no_support = "Error: no support material with the specified properties was found.";
     static const std::string err_unknown_type = "Error: unknown module type.";
     static const std::string err_up_general = "Error updating parameter entry.";
     static const std::string err_matadd_weird = "Something weird happened when trying to add an entry to one of the vectors for material parameters...";
@@ -31,7 +32,7 @@ namespace insur {
      */
     class MatCalc {
     public:
-        enum Modtype { rphi, stereo, pt };
+        enum Modtype { un_mod, rphi, stereo, pt };
         enum Matunit { gr, mm3, mm, grpm };
         MatCalc() { init_done = false; }
         virtual ~MatCalc() {}
@@ -47,7 +48,7 @@ namespace insur {
                 double A, Matunit uA, double B, Matunit uB, double C, Matunit uC, double D, Matunit uD, bool local);
         void addServiceParameters(std::string tag, double Q, Matunit uQ);
         void addServiceParameters(std::string tagIn, double In, Matunit uIn, std::string tagOut, double Out, Matunit uOut, bool local);
-        // TODO: add more functions as necessary
+        void addSupportParameters(std::string tag, double M, Matunit uM, MaterialProperties::Category cM);
         void clearTypeVector();
         void clearModVectors();
         void clearModVector(Modtype type);
@@ -98,6 +99,7 @@ namespace insur {
             std::string tag;
             double M;
             Matunit uM;
+            MaterialProperties::Category cM;
         };
         struct MatInfo {
             std::vector<TypeInfo> typeinfo;
@@ -116,13 +118,17 @@ namespace insur {
         SingleMod& getSingleMod(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local); // throws exception
         SingleSerLocal& getSingleSer(std::string tag, Matunit u); // throws exception
         SingleSerExit& getSingleSer(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local); // throws exception
+        SingleSup& getSingleSup(std::string tag, Matunit uM, MaterialProperties::Category cM); // throws exception
     private:
         bool entryExists(Modtype type);
         bool entryExists(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local);
         bool entryExists(std:: string tag, Matunit uQ);
         bool entryExists(std::string tag1, std::string tag2, Matunit uIn, Matunit uOut, bool local);
+        bool entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM);
         int findRods(std::vector<std::vector<ModuleCap> >& caps, int layer);
         double convert(double value, Matunit unit, double densityorlength, double surface = 0);
+        void adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s);
+        void adjacentSameCategory(InactiveElement& source, InactiveElement& dest);
     };
 }
 #endif	/* _MATCALC_H */

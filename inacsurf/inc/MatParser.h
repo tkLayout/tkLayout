@@ -44,6 +44,10 @@ namespace insur {
     static const std::string m_line_delim = "M";
     static const std::string s_line_delim = "S";
     static const std::string d_line_delim = "D";
+    static const std::string w_line_delim = "W";
+    static const std::string x_line_delim = "X";
+    static const std::string y_line_delim = "Y";
+    static const std::string z_line_delim = "Z";
     static const std::string line_end_delim = ";";
     static const std::string type_marker = "type";
     static const std::string strip_marker = "nStripsAcross";
@@ -62,6 +66,10 @@ namespace insur {
     static const std::string msg_m_line_err = "Error parsing M entry. Skipping line.";
     static const std::string msg_s_line_err = "Error parsing S entry. Skipping line.";
     static const std::string msg_d_line_err = "Error parsing D entry. Skipping line.";
+    static const std::string msg_x_line_err = "Error parsing X entry. Skipping line";
+    static const std::string msg_y_line_err = "Error parsing Y entry. Skipping line";
+    static const std::string msg_z_line_err = "Error parsing Z entry. Skipping line";
+    static const std::string msg_w_line_err = "Error parsing W entry. Skipping line";
     static const std::string warning_too_many_values = "Warning: ignoring values beyond the fourth.";
     
     /**
@@ -80,8 +88,8 @@ namespace insur {
     protected:
         bool parseStripsSegs(std::ifstream& instream, std::string& strips, std::string& segs);
         bool parseMLine(std::string line, std::string type, MatCalc& calc);
-        bool parseSLine(std::string line, MatCalc& calc);
         bool parseDLine(std::string line, MatCalc& calc);
+        bool parseSimpleLine(std::string line, MatCalc& calc, std::string marker);
     private:
         std::string readFromLine(std::string source, std::string paramname);
         std::string getValue(std::string source, bool final_delim = true, std::string delimiter = name_value_delim);

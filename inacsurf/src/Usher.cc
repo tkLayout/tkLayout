@@ -131,9 +131,11 @@ namespace insur {
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
                 is = addBarrelServiceTube(is, zl, zo, ri, volume_width, false);
+                is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(k));
                 is = addBarrelServiceRing(is, volume_width, zo + zl, ri, rw, false);
+                is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::barrel);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(is.getBarrelServices().size() - 2);
                 if (i != 0) {
@@ -153,6 +155,7 @@ namespace insur {
                     ri = tracker.innerRadiusLayer(k);
                     rw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
                     is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
+                    is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(k));
                     if (j == 0) {
@@ -195,6 +198,7 @@ namespace insur {
                         zo = tracker.zOffsetDisc(k) - zl;
                         if (tracker.totalDiscs() == 1) is = addEndcapServiceTube(is, zl, zo, ri, rw, true);
                         else is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
+                        is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(k));
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::barrel);
@@ -208,6 +212,7 @@ namespace insur {
                             zl = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) - zo + volume_width + epsilon;
                             if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) is = addEndcapServiceTube(is, zl, zo, ro, rw, true);
                             else is = addEndcapServiceTube(is, zl, zo, ro, rw, false);
+                            is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
                             zo = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) + volume_width + 2 * epsilon;
@@ -220,6 +225,7 @@ namespace insur {
                         }
                         if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) is = addEndcapServiceTube(is, zl, zo, ri, rw, true);
                         else is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
+                        is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(k));
                         if (j > 0) {
@@ -254,8 +260,9 @@ namespace insur {
                 ri = tracker.innerRadiusLayer(k);
                 rrw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
                 is = addBarrelServiceTube(is, ztl, zbo, ri, rtw, true);
-                is.getBarrelServices().back().setFeederType(InactiveElement::tracker);
-                is.getBarrelServices().back().setFeederIndex(tracker.realIndexLayer(k));
+                is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
+                is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
+                is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(k));
                 k++;
             }
         }
@@ -269,6 +276,7 @@ namespace insur {
             zeo = tracker.zOffsetDisc(i) - ztl;
             if (i == tracker.totalDiscs() - 1) is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, true);
             else is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, false);
+            is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(i));
             if (i == 0) {
@@ -286,8 +294,10 @@ namespace insur {
     InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         // outer tube
         is = addSupportTube(is, max_length, 0.0 - max_length / 2.0, outer_radius, volume_width);
+        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
         // inner tube
         is = addSupportTube(is, max_length, 0.0 - max_length / 2.0, inner_radius - volume_width, volume_width);
+        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
         // barrel endpoints
         is = supportsRegularBarrels(tracker, is);
         // short barrels
@@ -311,6 +321,7 @@ namespace insur {
             ri = tracker.innerRadiusLayer(layer);
             rw = tracker.innerRadiusLayer(layer + 1) - ri - epsilon;
             is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
+            is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
             is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
             is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(layer));
             if (i != 0) {
@@ -324,6 +335,7 @@ namespace insur {
         rw = outer_radius - ri - epsilon;
         if (tracker.nOfEndcaps() == 0) is = addBarrelServiceRing(is, zl, zo, ri, rw, true);
         else is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
+        is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
         is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
         is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(layer));
         if (layer > 0) {
@@ -344,6 +356,7 @@ namespace insur {
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + tracker.nOfLayers(i) - 1) - ri;
                 is = addSupportRing(is, zl, zo, ri, rw);
+                is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::b_sup);
             }
             k = k + tracker.nOfLayers(i);
         }
@@ -376,6 +389,7 @@ namespace insur {
             if (stop == tracker.totalLayers()) w = outer_radius - r - epsilon;
             else w = tracker.innerRadiusLayer(stop) - r - epsilon;
             is = addSupportRing(is, volume_width, z, r, w);
+            is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::b_sup);
             iter++;
         }
         return is;
@@ -391,8 +405,10 @@ namespace insur {
                 zo = tracker.zOffsetDisc(k);
                 zl = tracker.zOffsetDisc(k + tracker.nOfDiscs(i) - 1) - zo;
                 is = addSupportTube(is, zl, zo, ri, rw);
+                is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
                 ri = tracker.innerRadiusEndcap(i) - rw - epsilon;
                 is  = addSupportTube(is, zl, zo, ri, rw);
+                is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
             }
             k = k + tracker.nOfDiscs(i);
         }
@@ -427,15 +443,18 @@ namespace insur {
                             r = tracker.outerRadiusLayer(stop) + epsilon;
                             w = tracker.innerRadiusLayer(tracker.totalLayers() - 1) - r - epsilon;
                             is = addSupportRing(is, volume_width, z, r, w);
+                            is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
                             r = inner_radius + epsilon;
                         }
                         w = tracker.innerRadiusLayer(start) - r - epsilon;
                     }
                     is = addSupportRing(is, volume_width, z, r, w);
+                    is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
                     for (int k = start; k < stop; k++) {
                         r = tracker.outerRadiusLayer(k) + epsilon;
                         w = tracker.innerRadiusLayer(k + 1) - r - epsilon;
                         is = addSupportRing(is, volume_width, z, r, w);
+                        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
                     }
                 }
             }
@@ -557,6 +576,7 @@ namespace insur {
     
     InactiveRing Usher::mirrorRing(InactiveElement& blueprint) {
         InactiveRing ir;
+        ir.setCategory(blueprint.getCategory());
         ir.setZOffset(0.0 - blueprint.getZOffset() - blueprint.getZLength());
         ir.setZLength(blueprint.getZLength());
         ir.setInnerRadius(blueprint.getInnerRadius());
@@ -578,6 +598,7 @@ namespace insur {
     
     InactiveTube Usher::mirrorTube(InactiveElement& blueprint) {
         InactiveTube it;
+        it.setCategory(blueprint.getCategory());
         it.setZOffset(0.0 - blueprint.getZOffset() - blueprint.getZLength());
         it.setZLength(blueprint.getZLength());
         it.setInnerRadius(blueprint.getInnerRadius());
@@ -744,7 +765,6 @@ namespace insur {
     void Usher::TrackerIntRep::print() {
         if (!post_analysis) std::cout << "Internal tracker representation has not been initialised yet." << std::endl;
         else {
-            if (sanityCheck()) {
                 std::cout << std::endl << "Internal tracker representation consists of the following parameters:" << std::endl;
                 std::cout << std::endl << "Number of barrels: " << nOfBarrels() << std::endl;
                 for (int i = 0; i < nOfBarrels(); i++) {
@@ -776,16 +796,6 @@ namespace insur {
                     for (std::list<std::pair<int, double> >::iterator iter = short_layers.begin(); iter != short_layers.end(); iter++) std::cout << iter->second << " ";
                     std::cout << "." << std::endl;
                 }
-            }
-            else {
-                std::cout << "!!! Internal tracker representation is not sane. !!!" << std::endl;
-                std::cout << "n_of_layers.size() (i.e. nOfBarrels) == " << n_of_layers.size() << ", ";
-                // TODO: print relevant barrel information "...should be equal."
-                std::cout << "n_of_discs.size() (i.e. nOfEndcaps) == " << n_of_discs.size() << ", ";
-                // TODO: print relevant endcap information "...should be equal."
-                // TODO: print equality relation between total layers and layers in/out
-                // TODO: print equality relation between total discs and discs length/offset
-            }
         }
     }
     
@@ -885,16 +895,6 @@ namespace insur {
                 if (zOffsetBarrel(i) > zOffsetBarrel(i + 1)) return false;
             }
         }
-        return true;
-    }
-    
-    bool Usher::TrackerIntRep::sanityCheck() {
-        // TODO: rewrite this to reflect the new data structures
-        /*if (n_of_layers.size() != barrels_z_offset.size()) return false;
-         * if (n_of_layers.size() != barrels_length.size()) return false;
-         * if (n_of_discs.size() != endcaps_outer_radius.size()) return false;
-         * if (layers_inner_radius.size() != totalLayers()) return false;
-         * if (discs_z_offset.size() != totalDiscs()) return false;*/
         return true;
     }
 }

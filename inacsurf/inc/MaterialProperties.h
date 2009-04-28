@@ -29,19 +29,25 @@ namespace insur {
      */
     class MaterialProperties {
     public:
-        MaterialProperties() { ms_set = false; total_mass = -1; local_mass = -1; exiting_mass = -1; r_length = -1; i_length = -1; }
+        enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, e_sup, t_sup, u_sup};
+        MaterialProperties();
         virtual ~MaterialProperties() {}
+        // bureaucracy
+        Category getCategory();
+        void setCategory(Category c);
         // to be used by the subclasses
         virtual double getSurface();
         // material mass handling
         double getLocalMass(std::string tag); // throws exception
         double getLocalMass(int index); // throws exception
+        std::string getLocalTag(int index);
         double getExitingMass(std::string tag); // throws exception
         double getExitingMass(int index); // throws exception
-        void setLocalMass(std::string tag, double tk);
-        void addLocalMass(std::string tag, double tk);
-        void setExitingMass(std::string tag, double tk);
-        void addExitingMass(std::string tag, double tk);
+        std::string getExitingTag(int index);
+        void setLocalMass(std::string tag, double ms);
+        void addLocalMass(std::string tag, double ms);
+        void setExitingMass(std::string tag, double ms);
+        void addExitingMass(std::string tag, double ms);
         uint localMassCount();
         uint exitingMassCount();
         void clearMassVectors();
@@ -62,8 +68,9 @@ namespace insur {
         void print();
     protected:
         // init flag
-        bool ms_set;
+        bool msl_set, mse_set;
         // geometry-dependent parameters
+        Category cat;
         std::vector<std::pair<std::string, double> > localmasses, exitingmasses;
         // complex parameters (OUTPUT)
         double total_mass, local_mass, exiting_mass, r_length, i_length;

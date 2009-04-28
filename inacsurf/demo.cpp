@@ -9,9 +9,11 @@
 #include <iostream>
 #include <tracker.hh>
 #include <MatCalc.h>
+#include <MatCalcDummy.h>
 #include <MatParser.h>
 #include <MaterialTable.h>
 #include <TrackerActions.h>
+#include <MaterialBudget.h>
 #include <InactiveSurfaces.h>
 #include <Usher.h>
 #include <Vizard.h>
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
     insur::InactiveSurfaces is;
     insur::TrackerActions ta;
     insur::Usher u;
-    insur::Vizard v;
+    //insur::Vizard v;
     // tracker instance builds up active volumes
     if (argc == 3) tr = ta.createActiveSurfaces(argv[1], argv[2]);
     else if (argc == 2) tr = ta.createActiveSurfaces(argv[1]);
@@ -46,7 +48,7 @@ int main(int argc, char** argv) {
         // Usher instance builds inactive geometry around tracker elements
         is = u.arrange(*tr, is, argv[1]);
         // display result
-        v.buildVisualization(*tr, is, true);
+        /*v.buildVisualization(*tr, is, true);
         v.display();
         std::string tmp(argv[1]);
         int pos = tmp.find('/') + 1;
@@ -54,7 +56,15 @@ int main(int argc, char** argv) {
         pos = tmp.find('.') + 1;
         tmp.erase(pos);
         tmp = tmp + "graph";
-        v.writeNeighbourGraph(is, tmp);
+        v.writeNeighbourGraph(is, tmp);*/
+        insur::MatCalcDummy mc;
+        std::cout << std::endl << "Creating MaterialBudget instance...";
+        insur::MaterialBudget mb(*tr, is);
+        std::cout << "done." << std::endl << "Assigning dummy materials...";
+        mb.materialsAll(mc);
+        std::cout << "done." << std::endl << std::endl;
+        mc.getMaterialTable().print();
+        mb.print();
     }
     return (EXIT_SUCCESS);
 }

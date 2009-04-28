@@ -110,11 +110,23 @@ namespace insur {
                     else if (word.compare(m_line_delim) == 0) {
                         if (!parseMLine(line, type, calc)) std::cout << msg_m_line_err << std::endl << "Line was: " << line << std::endl;
                     }
-                    else if (word.compare(s_line_delim) == 0) {
-                        if (!parseSLine(line, calc)) std::cout << msg_s_line_err << std::endl << "Line was: " << line << std::endl;
-                    }
                     else if(word.compare(d_line_delim) == 0) {
                         if (!parseDLine(line, calc)) std::cout << msg_d_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
+                    else if (word.compare(s_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, s_line_delim)) std::cout << msg_s_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
+                    else if (word.compare(x_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, x_line_delim)) std::cout << msg_x_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
+                    else if (word.compare(y_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, y_line_delim)) std::cout << msg_y_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
+                    else if (word.compare(z_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, z_line_delim)) std::cout << msg_z_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
+                    else if (word.compare(w_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, w_line_delim)) std::cout << msg_w_line_err << std::endl << "Line was: " << line << std::endl;
                     }
                     else if (!line.empty()) {
                         std::cerr << "Confusion detected...skipping line '" << line << "'." << std::endl;
@@ -237,31 +249,6 @@ namespace insur {
         return true;
     }
     
-    bool MatParser::parseSLine(std::string line, MatCalc& calc) {
-        uint start = line.find(s_line_delim) + s_line_delim.size();
-        uint stop = line.find(line_end_delim);
-        if ((start >= line.size()) || (stop == std::string::npos)) return false;
-        line = line.substr(start, stop - start);
-        balgo::trim(line);
-        std::stringstream wordstream(line);
-        std::string tag, tmp;
-        if (!(wordstream >> tag)) return false;
-        double val;
-        MatCalc::Matunit uni;
-        if (!(wordstream >> val)) return false;
-        if (val != 0.0) {
-            if (!(wordstream >> tmp)) return false;
-            try { uni = getUnit(tmp); }
-            catch (std::range_error& re) {
-                std::cerr << re.what() << std::endl;
-                return false;
-            }
-        }
-        else uni = MatCalc::gr;
-        calc.addServiceParameters(tag, val, uni);
-        return true;
-    }
-    
     bool MatParser::parseDLine(std::string line, MatCalc& calc) {
         uint start = line.find(d_line_delim) +d_line_delim.size();
         uint stop = line.find(line_end_delim);
@@ -303,6 +290,35 @@ namespace insur {
         return true;
     }
     
+    bool MatParser::parseSimpleLine(std::string line, MatCalc& calc, std::string marker) {
+        uint start = line.find(marker) + marker.size();
+        uint stop = line.find(line_end_delim);
+        if ((start >= line.size()) || (stop == std::string::npos)) return false;
+        line = line.substr(start, stop - start);
+        balgo::trim(line);
+        std::stringstream wordstream(line);
+        std::string tag, tmp;
+        if (!(wordstream >> tag)) return false;
+        double val;
+        MatCalc::Matunit uni;
+        if (!(wordstream >> val)) return false;
+        if (val != 0.0) {
+            if (!(wordstream >> tmp)) return false;
+            try { uni = getUnit(tmp); }
+            catch (std::range_error& re) {
+                std::cerr << re.what() << std::endl;
+                return false;
+            }
+        }
+        else uni = MatCalc::gr;
+        if (marker.compare(s_line_delim) == 0) calc.addServiceParameters(tag, val, uni);
+        else if (marker.compare(x_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::b_sup);
+        else if (marker.compare(y_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::e_sup);
+        else if (marker.compare(z_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::t_sup);
+        else if(marker.compare(w_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::u_sup);
+        else return false;
+        return true;
+    }
 // private
     std::string MatParser::readFromLine(std::string source, std::string paramname) {
         std::string value, tmp;

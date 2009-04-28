@@ -6,6 +6,21 @@
 #include <MaterialProperties.h>
 namespace insur {
     /*-----public functions-----*/
+    MaterialProperties::MaterialProperties() {
+        msl_set = false;
+        mse_set = false;
+        cat = no_cat;
+        total_mass = -1;
+        local_mass = -1;
+        exiting_mass = -1;
+        r_length = -1;
+        i_length = -1;
+    }
+    
+    MaterialProperties::Category MaterialProperties::getCategory() { return cat; }
+    
+    void MaterialProperties::setCategory(Category c) { cat = c; }
+    
     double MaterialProperties::getSurface() { return -1; }
     
     /**
@@ -31,6 +46,12 @@ namespace insur {
         return localmasses.at(index).second;
     }
     
+    std::string MaterialProperties::getLocalTag(int index) {
+        std::string res;
+        if ((index >= 0) && (index < (int)localmasses.size())) res = localmasses.at(index).first;
+        return res;
+    }
+    
     /**
      * Get the exiting mass of one of the materials, as identified by its name, that make up the element.
      * If the material is not present in the list, the function throws an exception.
@@ -52,6 +73,12 @@ namespace insur {
     double MaterialProperties::getExitingMass(int index) {
         if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error("");
         return exitingmasses.at(index).second;
+    }
+    
+    std::string MaterialProperties::getExitingTag(int index) {
+        std::string res;
+        if ((index >=0) && (index < (int)exitingmasses.size())) res = exitingmasses.at(index).first;
+        return res;
     }
     
     /**
@@ -164,11 +191,11 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateTotalMass(double offset) {
-        if (ms_set) {
-            calculateLocalMass();
-            calculateExitingMass();
-            total_mass = local_mass + exiting_mass + offset;
-        }
+        if (msl_set) calculateLocalMass();
+        if (mse_set) calculateExitingMass();
+        if (msl_set && mse_set) total_mass = local_mass + exiting_mass + offset;
+        else if (!msl_set) total_mass = exiting_mass;
+        else if (!mse_set) total_mass = local_mass;
     }
     
     /**
@@ -177,7 +204,7 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateLocalMass(double offset) {
-        if (ms_set) {
+        if (msl_set) {
             local_mass = offset;
             for (uint i = 0; i < localmasses.size(); i++) local_mass = local_mass + localmasses.at(i).second;
         }
@@ -190,7 +217,7 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateExitingMass(double offset) {
-        if (ms_set) {
+        if (mse_set) {
             exiting_mass = offset;
             for (uint i = 0; i < exitingmasses.size(); i++) exiting_mass = exiting_mass + exitingmasses.at(i).second;
         }
@@ -202,7 +229,7 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateRadiationLength(MaterialTable& materials, double offset) {
-        if ((ms_set) && (getSurface() > 0)) {
+        if ((msl_set || mse_set) && (getSurface() > 0)) {
             r_length = offset;
             for (uint i = 0; i < localmasses.size(); i++) {
                 try {
@@ -230,7 +257,7 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateInteractionLength(MaterialTable& materials, double offset) {
-        if ((ms_set) && (getSurface() > 0)) {
+        if ((msl_set || mse_set) && (getSurface() > 0)) {
             i_length = offset;
             for (uint i = 0; i < localmasses.size(); i++) {
                 try {
@@ -281,7 +308,7 @@ namespace insur {
         int index = findLocalIndex(ms.first);
         if (index >= 0)  {
             localmasses.at(index) = ms;
-            ms_set = true;
+            msl_set = true;
         }
     }
     
@@ -293,14 +320,14 @@ namespace insur {
     void MaterialProperties::addLocalMass(std::pair<std::string, double> ms) {
         if (newLocalMaterial(ms.first)) {
             localmasses.push_back(ms);
-            ms_set = true;
+            msl_set = true;
         }
         else {
             setLocalMass(ms.first, getLocalMass(ms.first) + ms.second);
         }
     }
     
-     /**
+    /**
      * Set the exiting mass of one of the materials, as identified by its name, that make up the element.
      * If no material with the given name is found on the list, nothing happens.
      * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
@@ -309,7 +336,7 @@ namespace insur {
         int index = findExitingIndex(ms.first);
         if (index >= 0)  {
             exitingmasses.at(index) = ms;
-            ms_set = true;
+            mse_set = true;
         }
     }
     
@@ -321,7 +348,7 @@ namespace insur {
     void MaterialProperties::addExitingMass(std::pair<std::string, double> ms) {
         if (newExitingMaterial(ms.first)) {
             exitingmasses.push_back(ms);
-            ms_set = true;
+            mse_set = true;
         }
         else {
             setExitingMass(ms.first, getExitingMass(ms.first) + ms.second);
@@ -344,7 +371,7 @@ namespace insur {
         return index;
     }
     
-     /**
+    /**
      * Find the index of an entry in the exiting mass vector from the material tag.
      * @param The name of the material
      * @return The material index in the internal mass vector; -1 if the material is not listed
@@ -367,9 +394,9 @@ namespace insur {
      */
     bool MaterialProperties::newLocalMaterial(std::string tag) {
         for (uint i = 0; i < localmasses.size(); i++) {
-            if (tag.compare(localmasses.at(i).first) == 0) return true;
+            if (tag.compare(localmasses.at(i).first) == 0) return false;
         }
-        return false;
+        return true;
     }
     
     /**
@@ -379,8 +406,8 @@ namespace insur {
      */
     bool MaterialProperties::newExitingMaterial(std::string tag) {
         for (uint i = 0; i < exitingmasses.size(); i++) {
-            if (tag.compare(exitingmasses.at(i).first) == 0) return true;
+            if (tag.compare(exitingmasses.at(i).first) == 0) return false;
         }
-        return false;
+        return true;
     }
 }
