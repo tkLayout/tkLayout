@@ -13,6 +13,7 @@
 #ifndef _MATCALC_H
 #define	_MATCALC_H
 
+#include <list>
 #include <string>
 #include <stdexcept>
 #include <ModuleCap.h>
