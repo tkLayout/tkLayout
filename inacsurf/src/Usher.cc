@@ -6,13 +6,13 @@
 #include <Usher.h>
 namespace insur {
     // public
-    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile) {
+    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
         if (is.isUp()) is = arrangeUp(tintrep, is, geomfile);
         else is = arrangeDown(tintrep, is, geomfile);
         is = mirror(tintrep, is);
-        print(tintrep, is, false);
+        if (printstatus) print(tintrep, is, false);
         return is;
     }
     

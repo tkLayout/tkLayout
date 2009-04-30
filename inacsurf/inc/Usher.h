@@ -35,7 +35,7 @@ namespace insur {
     public:
         Usher() {}
         virtual ~Usher() {}
-        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile);
+        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus = false);
     protected:
         /**
          * @class TrackerIntRep

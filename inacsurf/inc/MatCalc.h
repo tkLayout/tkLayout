@@ -26,7 +26,10 @@ namespace insur {
     static const std::string err_no_support = "Error: no support material with the specified properties was found.";
     static const std::string err_unknown_type = "Error: unknown module type.";
     static const std::string err_up_general = "Error updating parameter entry.";
+    static const std::string err_conversion = "Error: material unit not recognised during conversion.";
     static const std::string err_matadd_weird = "Something weird happened when trying to add an entry to one of the vectors for material parameters...";
+    static const std::string msg_negative_area = "Warning: module surface is negative.";
+    static const std::string msg_abort = "Aborting function.";
     /**
      * @class MatCalc
      * @brief
@@ -127,7 +130,7 @@ namespace insur {
         bool entryExists(std::string tag1, std::string tag2, Matunit uIn, Matunit uOut, bool local);
         bool entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM);
         int findRods(std::vector<std::vector<ModuleCap> >& caps, int layer);
-        double convert(double value, Matunit unit, double densityorlength, double surface = 0);
+        double convert(double value, Matunit unit, double densityorlength, double surface = 0); // throws exception
         void adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s);
         void adjacentSameCategory(InactiveElement& source, InactiveElement& dest);
     };

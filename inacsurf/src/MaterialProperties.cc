@@ -31,7 +31,7 @@ namespace insur {
      */
     double MaterialProperties::getLocalMass(std::string tag) {
         int index = findLocalIndex(tag);
-        if (index < 0) throw std::runtime_error("");
+        if (index < 0) throw std::runtime_error(err_local_mass + ": " + tag);
         return getLocalMass(index);
     }
     
@@ -42,7 +42,7 @@ namespace insur {
      * @return The mass of the requested material
      */
     double MaterialProperties::getLocalMass(int index) {
-        if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error("");
+        if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error(err_local_mass);
         return localmasses.at(index).second;
     }
     
@@ -60,7 +60,7 @@ namespace insur {
      */
     double MaterialProperties::getExitingMass(std::string tag) {
         int index = findExitingIndex(tag);
-        if (index < 0) throw std::runtime_error("");
+        if (index < 0) throw std::runtime_error(err_exiting_mass + ": " + tag);
         return getExitingMass(index);
     }
     
@@ -71,7 +71,7 @@ namespace insur {
      * @return The mass of the requested material
      */
     double MaterialProperties::getExitingMass(int index) {
-        if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error("");
+        if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error(err_exiting_mass);
         return exitingmasses.at(index).second;
     }
     
@@ -151,8 +151,10 @@ namespace insur {
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
         mp.clearMassVectors();
-        for (uint i = 0; i < localMassCount(); i++) mp.setLocalMass(localmasses.at(i).first, localmasses.at(i).second);
-        for (uint i = 0; i < exitingMassCount(); i++) mp.setExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
+        for (uint i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i).first, localmasses.at(i).second);
+        for (uint i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
+        if (localmasses.size() > 0) msl_set = true;
+        if (exitingmasses.size() > 0) mse_set = true;
     }
     
     /**

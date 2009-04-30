@@ -222,9 +222,7 @@ namespace insur {
     
     MaterialTable& MatCalc::getMaterialTable() { return mt; }
     
-    // TODO: implement skeleton functions once they are defined in the header
     bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
-        bool noerrors = true;
         for (uint i = 0; i < barrelcaps.size(); i++) {
             if (barrelcaps.at(i).size() > 0) {
                 Modtype mtype;
@@ -232,9 +230,8 @@ namespace insur {
                 else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtype = stereo;
                 else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtype = pt;
                 else {
-                    std::cerr << err_unknown_type << std::endl;
-                    noerrors = false;
-                    continue;
+                    std::cerr << err_unknown_type << " " << msg_abort << std::endl;
+                    return false;
                 }
                 try {
                     double stripseg_scalar = (double)barrelcaps.at(i).at(0).getModule().getNStripsAcross() / (double)getStripsAcross(mtype);
@@ -270,16 +267,15 @@ namespace insur {
                     }
                 }
                 catch(std::range_error re) {
-                    std::cerr << re.what() << std::endl;
-                    noerrors = false;
+                    std::cerr << re.what() << " " << msg_abort << std::endl;
+                    return false;
                 }
             }
         }
-        return noerrors;
+        return true;
     }
     
     bool MatCalc::calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps) {
-        bool noerrors = true;
         for (uint i = 0; i < endcapcaps.size(); i++) {
             if (endcapcaps.at(i).size() > 0) {
                 try {
@@ -303,7 +299,7 @@ namespace insur {
                             else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtypes.at(rindex - 1) = pt;
                             else {
                                 std::cerr << err_unknown_type << " Encountered type value '" << endcapcaps.at(i).at(j).getModule().getType() << "'" << std::endl;
-                                noerrors = false;
+                                return false;
                             }
                         }
                         if ((int)stripseg_scalars.size() < rindex) {
@@ -333,68 +329,81 @@ namespace insur {
                             std::list<int>::iterator first = modinrings.at(j).begin();
                             std::list<int>::iterator start = modinrings.at(j).begin(); start++;
                             std::list<int>::iterator stop = modinrings.at(j).end();
-                            if (j > 0) {
-                                for (int k = 0; k < j; k++) {
-                                    if (mods.at(k) > 0) {
-                                        surface = endcapcaps.at(i).at(modinrings.at(k).front()).getSurface();
-                                        length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
-                                        std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
-                                        std::vector<SingleMod>::const_iterator guard = vect.end();
-                                        std::vector<SingleMod>::const_iterator iter;
-                                        for (iter = vect.begin(); iter != guard; iter++) {
-                                            density = mt.getMaterial(iter->tag).density;
-                                            if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
-                                            else A = convert(iter->A, iter->uA, density, surface);
-                                            if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
-                                            else C = convert(iter->C, iter->uC, density, surface);
-                                            A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
-                                            C = C * (double)mods.at(k) / (double)mods.at(j);
-                                            if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, A + C);
-                                            else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, A + C);
+                            surface = endcapcaps.at(i).at(*first).getSurface();
+                            if (surface < 0) {
+                                std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << j;
+                                std::cerr << " with index " << *first << " within the disc. " << msg_abort << std::endl;
+                                return false;
+                            }
+                            else {
+                                length = endcapcaps.at(i).at(*first).getModule().getHeight();
+                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                                std::vector<SingleMod>::const_iterator guard = vect.end();
+                                std::vector<SingleMod>::const_iterator iter;
+                                for (iter = vect.begin(); iter != guard; iter++) {
+                                    density = mt.getMaterial(iter->tag).density;
+                                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
+                                    else B = convert(iter->B, iter->uB, density, surface);
+                                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
+                                    else D = convert(iter->D, iter->uD, density, surface);
+                                    B = B * stripseg_scalars.at(j);
+                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, B + D);
+                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, B + D);
+                                }
+                                if (j > 0) {
+                                    for (int k = 0; k < j; k++) {
+                                        if (mods.at(k) > 0) {
+                                            surface = endcapcaps.at(i).at(modinrings.at(k).front()).getSurface();
+                                            if (surface < 0) {
+                                                std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << k;
+                                                std::cerr << " with index " << *first << " within the disc. " << msg_abort << std::endl;
+                                                return false;
+                                            }
+                                            else {
+                                                length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                                                std::vector<SingleMod>::const_iterator guard = vect.end();
+                                                std::vector<SingleMod>::const_iterator iter;
+                                                for (iter = vect.begin(); iter != guard; iter++) {
+                                                    density = mt.getMaterial(iter->tag).density;
+                                                    if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
+                                                    else A = convert(iter->A, iter->uA, density, surface);
+                                                    if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
+                                                    else C = convert(iter->C, iter->uC, density, surface);
+                                                    A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
+                                                    C = C * (double)mods.at(k) / (double)mods.at(j);
+                                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, A + C);
+                                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, A + C);
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            surface = endcapcaps.at(i).at(*first).getSurface();
-                            length = endcapcaps.at(i).at(*first).getModule().getHeight();
-                            std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
-                            std::vector<SingleMod>::const_iterator guard = vect.end();
-                            std::vector<SingleMod>::const_iterator iter;
-                            for (iter = vect.begin(); iter != guard; iter++) {
-                                density = mt.getMaterial(iter->tag).density;
-                                if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
-                                else B = convert(iter->B, iter->uB, density, surface);
-                                if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
-                                else D = convert(iter->D, iter->uD, density, surface);
-                                B = B * stripseg_scalars.at(j);
-                                if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, B + D);
-                                else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, B + D);
-                            }
-                            endcapcaps.at(i).at(*first).calculateTotalMass();
-                            endcapcaps.at(i).at(*first).calculateRadiationLength(mt);
-                            endcapcaps.at(i).at(*first).calculateInteractionLength(mt);
-                            while (start != stop) {
-                                endcapcaps.at(i).at(*first).copyMassVectors(endcapcaps.at(i).at(*start));
-                                endcapcaps.at(i).at(*start).calculateTotalMass();
-                                endcapcaps.at(i).at(*start).calculateRadiationLength(mt);
-                                endcapcaps.at(i).at(*start).calculateInteractionLength(mt);
-                                start++;
+                                endcapcaps.at(i).at(*first).calculateTotalMass();
+                                endcapcaps.at(i).at(*first).calculateRadiationLength(mt);
+                                endcapcaps.at(i).at(*first).calculateInteractionLength(mt);
+                                while (start != stop) {
+                                    endcapcaps.at(i).at(*first).copyMassVectors(endcapcaps.at(i).at(*start));
+                                    endcapcaps.at(i).at(*start).calculateTotalMass();
+                                    endcapcaps.at(i).at(*start).calculateRadiationLength(mt);
+                                    endcapcaps.at(i).at(*start).calculateInteractionLength(mt);
+                                    start++;
+                                }
                             }
                         }
                     }
                 }
                 catch (std::range_error re) {
-                    std::cerr << re.what() << std::endl;
-                    noerrors = false;
+                    std::cerr << re.what() << " " << msg_abort << std::endl;
+                    return false;
                 }
             }
         }
-        return noerrors;
+        return true;
     }
     
     bool MatCalc::calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        bool noerrors = true;
         int feeder, neighbour;
         InactiveElement::InType ftype, ntype;
         double length, surface;
@@ -429,17 +438,20 @@ namespace insur {
                 barrelservices.at(i).calculateRadiationLength(mt);
                 barrelservices.at(i).calculateInteractionLength(mt);
             }
+            catch(std::runtime_error re) {
+                std::cerr << re.what() << " " << msg_abort << std::endl;
+                return false;
+            }
             catch(std::exception e) {
-                std::cerr << e.what() << std::endl;
-                noerrors = false;
+                std::cerr << e.what() << " " << msg_abort << std::endl;
+                return false;
             }
         }
-        return noerrors;
+        return true;
     }
     
     bool MatCalc::calculateEndcapServiceMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps,
             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        bool noerrors = true;
         int feeder, neighbour;
         InactiveElement::InType ftype, ntype;
         double length, surface;
@@ -474,16 +486,19 @@ namespace insur {
                 endcapservices.at(i).calculateRadiationLength(mt);
                 endcapservices.at(i).calculateInteractionLength(mt);
             }
+            catch(std::runtime_error re) {
+                std::cerr << re.what() << " " << msg_abort << std::endl;
+                return false;
+            }
             catch(std::exception e) {
-                std::cerr << e.what() << std::endl;
-                noerrors = false;
+                std::cerr << e.what() << " " << msg_abort << std::endl;
+                return false;
             }
         }
-        return noerrors;
+        return true;
     }
     
     bool MatCalc::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
-        bool noerrors = true;
         double length, surface;
         try {
             for (uint i = 0; i < supports.size(); i++) {
@@ -499,13 +514,16 @@ namespace insur {
                         supports.at(i).addLocalMass(iter->tag, M);
                     }
                 }
+                supports.at(i).calculateTotalMass();
+                supports.at(i).calculateRadiationLength(mt);
+                supports.at(i).calculateInteractionLength(mt);
             }
         }
         catch(std::exception e) {
-            std::cerr << e.what();
-            noerrors = false;
+            std::cerr << e.what() << " " << msg_abort << std::endl;
+            return false;
         }
-        return noerrors;
+        return true;
     }
     
     void MatCalc::printInternals() {
@@ -696,13 +714,13 @@ namespace insur {
         return res;
     }
     
-    double MatCalc::convert(double value, Matunit unit, double densityorlength, double surface) {
+    double MatCalc::convert(double value, Matunit unit, double densityorlength, double surface) { // throws exception
         switch(unit) {
             case gr : return value;
             case mm3 : return densityorlength * value;
             case mm : return densityorlength * surface * value;
             case grpm : return densityorlength * value;
-            default : return -1.0;
+            default : throw std::range_error(err_conversion);
         }
     }
     

@@ -17,6 +17,8 @@
 #include <iostream>
 #include <MaterialTable.h>
 namespace insur {
+    static const std::string err_local_mass = "Local mass not found";
+    static const std::string err_exiting_mass = "Exiting mass not found";
     /**
      * @class MaterialProperties
      * @brief This is the base class for collections of properties related to the material budget.
