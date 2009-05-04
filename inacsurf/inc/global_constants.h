@@ -64,6 +64,8 @@ namespace insur {
      */
     static const std::string default_mattabdir = "config";
     static const std::string default_mattabfile = "mattab.list";
+    static const std::string default_rootfiledir = "rootfiles";
+    static const std::string default_rootfile = "trackergeometry.root";
     static const std::string default_graphdir = "graphs";
     static const std::string default_graphfile = "neighbours.graph";
 }

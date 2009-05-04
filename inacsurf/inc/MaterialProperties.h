@@ -50,8 +50,8 @@ namespace insur {
         void addLocalMass(std::string tag, double ms);
         void setExitingMass(std::string tag, double ms);
         void addExitingMass(std::string tag, double ms);
-        uint localMassCount();
-        uint exitingMassCount();
+        unsigned int localMassCount();
+        unsigned int exitingMassCount();
         void clearMassVectors();
         void copyMassVectors(MaterialProperties& mp);
         // calculated output values

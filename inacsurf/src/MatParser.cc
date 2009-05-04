@@ -190,8 +190,8 @@ namespace insur {
     
     bool MatParser::parseMLine(std::string line, std::string type, MatCalc& calc) {
         if (type.empty()) return false;
-        uint start = line.find(m_line_delim) + m_line_delim.size();
-        uint stop = line.find(line_end_delim);
+        unsigned int start = line.find(m_line_delim) + m_line_delim.size();
+        unsigned int stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         line = line.substr(start, stop - start);
         balgo::trim(line);
@@ -250,8 +250,8 @@ namespace insur {
     }
     
     bool MatParser::parseDLine(std::string line, MatCalc& calc) {
-        uint start = line.find(d_line_delim) +d_line_delim.size();
-        uint stop = line.find(line_end_delim);
+        unsigned int start = line.find(d_line_delim) +d_line_delim.size();
+        unsigned int stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         line = line.substr(start, stop - start);
         balgo::trim(line);
@@ -291,8 +291,8 @@ namespace insur {
     }
     
     bool MatParser::parseSimpleLine(std::string line, MatCalc& calc, std::string marker) {
-        uint start = line.find(marker) + marker.size();
-        uint stop = line.find(line_end_delim);
+        unsigned int start = line.find(marker) + marker.size();
+        unsigned int stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         line = line.substr(start, stop - start);
         balgo::trim(line);
@@ -331,10 +331,10 @@ namespace insur {
     
     std::string MatParser::getValue(std::string source, bool final_delim, std::string delimiter) {
         std::string value;
-        uint start = source.find(delimiter) + delimiter.size();
+        unsigned int start = source.find(delimiter) + delimiter.size();
         if (start < source.size()) {
             if (final_delim) {
-                uint stop = source.find(line_end_delim);
+                unsigned int stop = source.find(line_end_delim);
                 if (stop != std::string::npos) value = source.substr(start, stop - start);
             }
             else value = source.substr(start);

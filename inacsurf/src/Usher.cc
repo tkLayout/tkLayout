@@ -35,8 +35,8 @@ namespace insur {
     
     InactiveSurfaces& Usher::mirror(TrackerIntRep& tracker, InactiveSurfaces& is) {
         std::cout << "Mirroring barrel services...";
-        uint half = is.getBarrelServices().size();
-        for (uint i = 0; i < half; i++) {
+        unsigned int half = is.getBarrelServices().size();
+        for (unsigned int i = 0; i < half; i++) {
             InactiveElement& blueprint = is.getBarrelServicePart(i);
             if (blueprint.isVertical()) {
                 InactiveRing ring = mirrorRing(blueprint);
@@ -80,7 +80,7 @@ namespace insur {
         }
         std::cout << "done." << std::endl << "Mirroring endcap services...";
         half = is.getEndcapServices().size();
-        for (uint i = 0; i < half; i++) {
+        for (unsigned int i = 0; i < half; i++) {
             InactiveElement& blueprint = is.getEndcapServicePart(i);
             if (blueprint.isVertical()) {
                 InactiveRing ring = mirrorRing(blueprint);
@@ -101,7 +101,7 @@ namespace insur {
         }
         std::cout << "done." << std::endl << "Mirroring supports...";
         half = is.getSupports().size();
-        for (uint i = 0; i < half; i ++) {
+        for (unsigned int i = 0; i < half; i ++) {
             InactiveElement& blueprint = is.getSupportPart(i);
             if (blueprint.getZOffset() > 0) {
                 if (blueprint.isVertical()) {
@@ -270,7 +270,7 @@ namespace insur {
         k = servicesOutmostBarrel(tracker, is, k);
         // endcap
         ri = outer_radius - rtw - epsilon;
-        for (uint i = 0; i < tracker.totalDiscs(); i++) {
+        for (unsigned int i = 0; i < tracker.totalDiscs(); i++) {
             if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
             else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
@@ -365,7 +365,7 @@ namespace insur {
     
     InactiveSurfaces& Usher::supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
         bool regular;
-        uint start, stop;
+        unsigned int start, stop;
         double r, w, z;
         std::list<std::pair<int, double> >::iterator next;
         std::list<std::pair<int, double> >::iterator iter = tracker.shortBarrelsList().begin();
@@ -480,7 +480,7 @@ namespace insur {
                 first_last_endcap.push_back(std::pair<int, int>(first_e, last_e));
             }
             int b_out = begin_b, b_in = begin_b, e_out = begin_e, e_in = begin_e;
-            for (uint i = 0; i < first_last_endcap.size() - 1; i++) {
+            for (unsigned int i = 0; i < first_last_endcap.size() - 1; i++) {
                 b_out = b_in;
                 while ((b_out < end_b) && (!is.getBarrelServicePart(b_out).isVertical()
                         || (is.getBarrelServicePart(b_out).getFeederType() != InactiveElement::tracker)
@@ -656,40 +656,40 @@ namespace insur {
     
     int Usher::TrackerIntRep::nOfLayers(int barrelindex) {
         if (post_analysis) {
-            if ((barrelindex >= 0) && ((uint)barrelindex < n_of_layers.size())) return n_of_layers.at(barrelindex);
+            if ((barrelindex >= 0) && ((unsigned int)barrelindex < n_of_layers.size())) return n_of_layers.at(barrelindex);
         }
         return -1;
     }
     
-    uint Usher::TrackerIntRep::totalLayers() {
-        uint sum = 0;
-        for (uint i = 0; i < n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
+    unsigned int Usher::TrackerIntRep::totalLayers() {
+        unsigned int sum = 0;
+        for (unsigned int i = 0; i < n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
         return sum;
     }
     
     int Usher::TrackerIntRep::nOfDiscs(int endcapindex) {
         if (post_analysis) {
-            if ((endcapindex >= 0) && ((uint)endcapindex < n_of_discs.size())) return n_of_discs.at(endcapindex);
+            if ((endcapindex >= 0) && ((unsigned int)endcapindex < n_of_discs.size())) return n_of_discs.at(endcapindex);
         }
         return -1;
     }
     
-    uint Usher::TrackerIntRep::totalDiscs() {
-        uint sum = 0;
-        for (uint i = 0; i < n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
+    unsigned int Usher::TrackerIntRep::totalDiscs() {
+        unsigned int sum = 0;
+        for (unsigned int i = 0; i < n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
         return sum;
     }
     
     double Usher::TrackerIntRep::innerRadiusLayer(int layerindex) {
         if (post_analysis) {
-            if ((layerindex >= 0) && ((uint)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).first;
+            if ((layerindex >= 0) && ((unsigned int)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).first;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::outerRadiusLayer(int layerindex) {
         if (post_analysis) {
-            if ((layerindex >= 0) && ((uint)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).second;
+            if ((layerindex >= 0) && ((unsigned int)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).second;
         }
         return -1;
         return -1;
@@ -697,56 +697,56 @@ namespace insur {
     
     double Usher::TrackerIntRep::innerRadiusEndcap(int endcapindex) {
         if (post_analysis) {
-            if ((endcapindex >= 0) && ((uint)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).first;
+            if ((endcapindex >= 0) && ((unsigned int)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).first;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::outerRadiusEndcap(int endcapindex) {
         if (post_analysis) {
-            if ((endcapindex >= 0) && ((uint)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).second;
+            if ((endcapindex >= 0) && ((unsigned int)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).second;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::lengthBarrel(int barrelindex) {
         if (post_analysis) {
-            if ((barrelindex >= 0) && ((uint)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).first;
+            if ((barrelindex >= 0) && ((unsigned int)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).first;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::zOffsetBarrel(int barrelindex) {
         if (post_analysis) {
-            if ((barrelindex >= 0) && ((uint)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).second;
+            if ((barrelindex >= 0) && ((unsigned int)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).second;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::lengthDisc(int discindex) {
         if (post_analysis) {
-            if ((discindex >= 0) && ((uint)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).first;
+            if ((discindex >= 0) && ((unsigned int)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).first;
         }
         return -1;
     }
     
     double Usher::TrackerIntRep::zOffsetDisc(int discindex) {
         if (post_analysis) {
-            if ((discindex >= 0) && ((uint)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).second;
+            if ((discindex >= 0) && ((unsigned int)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).second;
         }
         return -1;
     }
     
     int Usher::TrackerIntRep::realIndexLayer(int tintreplayer) {
         if (post_analysis) {
-            if ((tintreplayer >= 0) && ((uint)tintreplayer < real_index_layer.size())) return real_index_layer.at(tintreplayer);
+            if ((tintreplayer >= 0) && ((unsigned int)tintreplayer < real_index_layer.size())) return real_index_layer.at(tintreplayer);
         }
         return -1;
     }
     
     int Usher::TrackerIntRep::realIndexDisc(int tintrepdisc) {
         if (post_analysis) {
-            if ((tintrepdisc >= 0) && ((uint)tintrepdisc < real_index_disc.size())) return real_index_disc.at(tintrepdisc);
+            if ((tintrepdisc >= 0) && ((unsigned int)tintrepdisc < real_index_disc.size())) return real_index_disc.at(tintrepdisc);
         }
         return -1;
     }
@@ -774,7 +774,7 @@ namespace insur {
                 }
                 std::cout << std::endl << "Total number of layers: " << totalLayers() << std::endl;
                 std::cout << "Layers at inner radius of:";
-                for (uint i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
+                for (unsigned int i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
                 std::cout << "." << std::endl;
                 std::cout << std::endl << "Number of endcaps: " << nOfEndcaps() << std::endl;
                 for (int i = 0; i < nOfEndcaps(); i++) {
@@ -784,7 +784,7 @@ namespace insur {
                 }
                 std::cout << std::endl << "Total number of discs: " << totalDiscs() << std::endl;
                 std::cout << "Discs at an offset of:";
-                for (uint i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
+                for (unsigned int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
                 std::cout << "." << std::endl << std::endl;
                 std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;
                 std::cout << "Number of short layers: " << short_layers.size() << "." << std::endl;

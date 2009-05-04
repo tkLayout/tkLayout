@@ -31,7 +31,7 @@ namespace insur {
      * @return An interator to the element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeBarrelServicePart(int index) {
-        if ((index >= 0) && ((uint)index < barrelservices.size())) return barrelservices.erase(barrelservices.begin() + index);
+        if ((index >= 0) && ((unsigned int)index < barrelservices.size())) return barrelservices.erase(barrelservices.begin() + index);
         return barrelservices.end();
     }
     
@@ -52,7 +52,7 @@ namespace insur {
     }
     
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeEndcapServicePart(int index) {
-        if ((index >= 0) && ((uint)index < endcapservices.size())) return endcapservices.erase(endcapservices.begin() + index);
+        if ((index >= 0) && ((unsigned int)index < endcapservices.size())) return endcapservices.erase(endcapservices.begin() + index);
         return endcapservices.end();
     }
     
@@ -85,7 +85,7 @@ namespace insur {
      * @return An interator to the element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeSupportPart(int index) {
-        if ((index >= 0) && ((uint)index < supports.size())) return supports.erase(supports.begin() + index);
+        if ((index >= 0) && ((unsigned int)index < supports.size())) return supports.erase(supports.begin() + index);
         return supports.end();
     }
     
@@ -113,7 +113,7 @@ namespace insur {
     void InactiveSurfaces::print(bool full_summary = true) {
         std::cout << "Number of barrel service elements: " << barrelservices.size() << std::endl;
         if (full_summary) {
-            for (uint i = 0; i < barrelservices.size(); i++) {
+            for (unsigned int i = 0; i < barrelservices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
                 barrelservices.at(i).print();
                 std::cout << std::endl;
@@ -121,7 +121,7 @@ namespace insur {
         }
         std::cout << "Number of endcap service elements: " << endcapservices.size() << std::endl;
         if (full_summary) {
-            for (uint i = 0; i < endcapservices.size(); i++) {
+            for (unsigned int i = 0; i < endcapservices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
                 endcapservices.at(i).print();
                 std::cout << std::endl;
@@ -129,7 +129,7 @@ namespace insur {
         }
         std::cout << "Number of support elements: " << supports.size() << std::endl;
         if (full_summary) {
-            for (uint i = 0; i < supports.size(); i++) {
+            for (unsigned int i = 0; i < supports.size(); i++) {
                 std::cout << "Support element " << i << ":" << std::endl;
                 supports.at(i).print();
                 std::cout << std::endl;

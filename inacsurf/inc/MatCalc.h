@@ -60,7 +60,7 @@ namespace insur {
         void appendContents(Modtype source, Modtype dest);
         // TODO: add vector operations for services and supports
         bool typeRegistered(Modtype type);
-        uint registeredTypes();
+        unsigned int registeredTypes();
         MaterialTable& getMaterialTable();
         // TODO: add more functions as necessary
         virtual bool calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps);

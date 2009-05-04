@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     insur::TrackerActions ta;
     insur::Usher u;
     insur::MatCalc c;
-    //insur::Vizard v;
+    insur::Vizard v;
     // tracker instance builds up active volumes
     if ((argc == 3) || (argc == 4)) tr = ta.createActiveSurfaces(argv[1], argv[2]);
     else if (argc == 2) tr = ta.createActiveSurfaces(argv[1]);
@@ -41,9 +41,12 @@ int main(int argc, char** argv) {
         // Usher instance builds inactive geometry around tracker elements
         is = u.arrange(*tr, is, argv[1], true);
         if (argc == 4) {
+            // MatParser instance parses material file and initialises MatCalc instance with its contents
             if (p.initMatCalc(argv[3], c)) {
+                // MaterialBudget instance builds up internal structures in constructor
                 insur::MaterialBudget m(*tr, is);
                 std::cout << "done." << std::endl << "Assigning materials...";
+                // MaterialBudget instance assigns materials from material file to geometry using MatCalc instance
                 m.materialsAll(c);
                 std::cout << "done." << std::endl << std::endl;
                 m.print();
@@ -51,15 +54,19 @@ int main(int argc, char** argv) {
             else std::cout << "main(): Reading of material parameter file failed." << std::endl;
         }
         // display result
-        /*v.buildVisualization(*tr, is, true);
-         * v.display();
-         * std::string tmp(argv[1]);
-         * int pos = tmp.find('/') + 1;
-         * tmp = tmp.substr(pos);
-         * pos = tmp.find('.') + 1;
-         * tmp.erase(pos);
-         * tmp = tmp + "graph";
-         * v.writeNeighbourGraph(is, tmp);*/
+        /*std::string tmp(argv[1]);
+        int pos = tmp.find('/') + 1;
+        tmp = tmp.substr(pos);
+         pos = tmp.find('.') + 1;
+         tmp.erase(pos);
+         tmp = tmp + "root";
+        v.display(*tr, is, tmp, true);
+         pos = tmp.find('/') + 1;
+         tmp = tmp.substr(pos);
+         pos = tmp.find('.') + 1;
+         tmp.erase(pos);
+         tmp = tmp + "graph";
+         v.writeNeighbourGraph(is, tmp);*/
     }
     return (EXIT_SUCCESS);
 }

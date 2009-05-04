@@ -83,17 +83,17 @@ namespace insur {
     void MaterialBudget::print() {
         std::cout << "-----Material Budget Internal State-----" << std::endl;
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, x = 0, s = 0, t = 0;
-        for (uint i = 0; i < inactive->getSupports().size(); i++) {
+        for (unsigned int i = 0; i < inactive->getSupports().size(); i++) {
             if (inactive->getSupportPart(i).getCategory() == MaterialProperties::b_sup) a++;
             else if (inactive->getSupportPart(i).getCategory() == MaterialProperties::e_sup) b++;
             else if (inactive->getSupportPart(i).getCategory() == MaterialProperties::t_sup) g++;
             else if (inactive->getSupportPart(i).getCategory() == MaterialProperties::u_sup) h++;
             else x++;
         }
-        for (uint i = 0; i < tracker->getBarrelLayers()->size(); i++) c = c + tracker->getBarrelLayers()->at(i)->getModuleVector()->size();
-        for (uint i = 0; i < capsbarrelmods.size(); i++) d = d + capsbarrelmods.at(i).size();
-        for (uint i = 0; i < tracker->getEndcapLayers()->size(); i++) e = e + tracker->getEndcapLayers()->at(i)->getModuleVector()->size();
-        for (uint i = 0; i < capsendmods.size(); i++) f = f + capsendmods.at(i).size();
+        for (unsigned int i = 0; i < tracker->getBarrelLayers()->size(); i++) c = c + tracker->getBarrelLayers()->at(i)->getModuleVector()->size();
+        for (unsigned int i = 0; i < capsbarrelmods.size(); i++) d = d + capsbarrelmods.at(i).size();
+        for (unsigned int i = 0; i < tracker->getEndcapLayers()->size(); i++) e = e + tracker->getEndcapLayers()->at(i)->getModuleVector()->size();
+        for (unsigned int i = 0; i < capsendmods.size(); i++) f = f + capsendmods.at(i).size();
         std::cout << "Tracker: " << c << " barrel modules in " << tracker->getBarrelLayers()->size() << " layers." << std::endl;
         std::cout << "MaterialBudget: " << d << " barrel modcaps in " << capsbarrelmods.size() << " vectors." << std::endl;
         std::cout << "Tracker: " << e << " endcap modules in " << tracker->getEndcapLayers()->size() << " discs." << std::endl;
@@ -105,8 +105,8 @@ namespace insur {
         double am = 0, bm = 0, cm = 0, dm = 0, em = 0, fm = 0, gm = 0, hm = 0;
         double ar = 0, br = 0, cr = 0, dr = 0, er = 0, fr = 0, gr = 0, hr = 0;
         double ai = 0, bi = 0, ci = 0, di = 0, ei = 0, fi = 0, gi = 0, hi = 0;
-        for (uint i = 0; i < capsbarrelmods.size(); i++) {
-            for (uint j = 0; j < capsbarrelmods.at(i).size(); j++) {
+        for (unsigned int i = 0; i < capsbarrelmods.size(); i++) {
+            for (unsigned int j = 0; j < capsbarrelmods.at(i).size(); j++) {
                 if (capsbarrelmods.at(i).at(j).getTotalMass() > 0) {
                 am = am + capsbarrelmods.at(i).at(j).getTotalMass();
                 ar = ar + capsbarrelmods.at(i).at(j).getRadiationLength();
@@ -120,8 +120,8 @@ namespace insur {
         std::cout << "Average module mass in barrels: " << (am / (double)d) << std::endl;
         std::cout << "Average module radiation length in barrels: " << (ar / (double)d) << std::endl;
         std::cout << "Average module interaction length in barrels: " << (ai / (double)d) << std::endl;
-        for (uint i = 0; i < capsendmods.size(); i++) {
-            for (uint j = 0; j < capsendmods.at(i).size(); j++) {
+        for (unsigned int i = 0; i < capsendmods.size(); i++) {
+            for (unsigned int j = 0; j < capsendmods.at(i).size(); j++) {
                 if (capsendmods.at(i).at(j).getTotalMass() > 0) {
                 bm = bm + capsendmods.at(i).at(j).getTotalMass();
                 br = br + capsendmods.at(i).at(j).getRadiationLength();
@@ -135,7 +135,7 @@ namespace insur {
         std::cout << "Average module mass in endcaps: " << (bm / (double)f) << std::endl;
         std::cout << "Average module radiation length in endcaps: " << (br / (double)f) << std::endl;
         std::cout << "Average module interaction length in endcaps: " << (bi / (double)f) << std::endl;
-        for (uint i = 0; i < inactive->getBarrelServices().size(); i++) {
+        for (unsigned int i = 0; i < inactive->getBarrelServices().size(); i++) {
             if (inactive->getBarrelServicePart(i).getTotalMass() > 0) {
             cm = cm + inactive->getBarrelServicePart(i).getTotalMass();
             cr = cr + inactive->getBarrelServicePart(i).getRadiationLength();
@@ -148,7 +148,7 @@ namespace insur {
         std::cout << "Average service mass in barrels: " << (cm / (double)(inactive->getBarrelServices().size())) << std::endl;
         std::cout << "Average service radiation length in barrels: " << (cr / (double)(inactive->getBarrelServices().size())) << std::endl;
         std::cout << "Average service interaction length in barrels: " << (ci / (double)(inactive->getBarrelServices().size())) << std::endl;
-        for (uint i = 0; i < inactive->getEndcapServices().size(); i++) {
+        for (unsigned int i = 0; i < inactive->getEndcapServices().size(); i++) {
             if (inactive->getEndcapServicePart(i).getTotalMass() > 0) {
             dm = dm + inactive->getEndcapServicePart(i).getTotalMass();
             dr = dr + inactive->getEndcapServicePart(i).getRadiationLength();
@@ -161,7 +161,7 @@ namespace insur {
         std::cout << "Average service mass in endcaps: " << (dm / (double)(inactive->getEndcapServices().size())) << std::endl;
         std::cout << "Average service radiation length in endcaps: " << (dr / (double)(inactive->getEndcapServices().size())) << std::endl;
         std::cout << "Average service interaction length in endcaps: " << (di / (double)(inactive->getEndcapServices().size())) << std::endl;
-        for (uint i = 0; i < inactive->getSupports().size(); i++) {
+        for (unsigned int i = 0; i < inactive->getSupports().size(); i++) {
             if (inactive->getSupportPart(i).getCategory() == MaterialProperties::b_sup) {
                 if (inactive->getSupportPart(i).getTotalMass() > 0) {
                 em = em + inactive->getSupportPart(i).getTotalMass();

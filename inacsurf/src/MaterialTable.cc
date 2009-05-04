@@ -78,7 +78,7 @@ namespace insur {
      * This is a bookkeeping function that wraps around a basic function of <i>std::vector</i>.
      * @return The number of entries in the table.
      */
-    uint MaterialTable::rowCount() {
+    unsigned int MaterialTable::rowCount() {
         return materials.size();
     }
     
@@ -92,7 +92,7 @@ namespace insur {
     
     void MaterialTable::print() {
         std::cout << "The material table contains " << materials.size() << " elements:" << std::endl;
-        for (uint i = 0; i < materials.size(); i++) {
+        for (unsigned int i = 0; i < materials.size(); i++) {
             std::cout << "Material: " << materials.at(i).tag << ", density: " << materials.at(i).density << ", radiation length: ";
             std::cout << materials.at(i).rlength << ", interaction length: " << materials.at(i).ilength << std::endl;
         }

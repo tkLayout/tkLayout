@@ -54,9 +54,9 @@ namespace insur {
             int nOfBarrels();
             int nOfEndcaps();
             int nOfLayers(int barrelindex);
-            uint totalLayers();
+            unsigned int totalLayers();
             int nOfDiscs(int endcapindex);
-            uint totalDiscs();
+            unsigned int totalDiscs();
             double innerRadiusLayer(int layerindex);
             double outerRadiusLayer(int layerindex);
             double innerRadiusEndcap(int endcapindex);

@@ -129,13 +129,13 @@ namespace insur {
      * Get the number of registered local masses for the materials found in the inactive element.
      * @return The size of the internal mass vector
      */
-    uint MaterialProperties::localMassCount() { return localmasses.size(); }
+    unsigned int MaterialProperties::localMassCount() { return localmasses.size(); }
     
     /**
      * Get the number of registered exiting masses for the materials found in the inactive element.
      * @return The size of the internal mass vector
      */
-    uint MaterialProperties::exitingMassCount() { return exitingmasses.size(); }
+    unsigned int MaterialProperties::exitingMassCount() { return exitingmasses.size(); }
     
     /**
      * Reset the state of the internal mass vector to empty, discarding all entries.
@@ -151,8 +151,8 @@ namespace insur {
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
         mp.clearMassVectors();
-        for (uint i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i).first, localmasses.at(i).second);
-        for (uint i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
+        for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i).first, localmasses.at(i).second);
+        for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
         if (localmasses.size() > 0) msl_set = true;
         if (exitingmasses.size() > 0) mse_set = true;
     }
@@ -208,7 +208,7 @@ namespace insur {
     void MaterialProperties::calculateLocalMass(double offset) {
         if (msl_set) {
             local_mass = offset;
-            for (uint i = 0; i < localmasses.size(); i++) local_mass = local_mass + localmasses.at(i).second;
+            for (unsigned int i = 0; i < localmasses.size(); i++) local_mass = local_mass + localmasses.at(i).second;
         }
     }
     
@@ -221,7 +221,7 @@ namespace insur {
     void MaterialProperties::calculateExitingMass(double offset) {
         if (mse_set) {
             exiting_mass = offset;
-            for (uint i = 0; i < exitingmasses.size(); i++) exiting_mass = exiting_mass + exitingmasses.at(i).second;
+            for (unsigned int i = 0; i < exitingmasses.size(); i++) exiting_mass = exiting_mass + exitingmasses.at(i).second;
         }
     }
     /**
@@ -231,9 +231,10 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateRadiationLength(MaterialTable& materials, double offset) {
-        if ((msl_set || mse_set) && (getSurface() > 0)) {
+        if (getSurface() > 0) {
             r_length = offset;
-            for (uint i = 0; i < localmasses.size(); i++) {
+            if (msl_set) {
+            for (unsigned int i = 0; i < localmasses.size(); i++) {
                 try {
                     r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
                 }
@@ -241,7 +242,9 @@ namespace insur {
                     std::cerr << re.what() << std::endl;
                 }
             }
-            for (uint i = 0; i < exitingmasses.size(); i++) {
+            }
+            if (mse_set) {
+            for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                 try {
                     r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
                 }
@@ -249,6 +252,7 @@ namespace insur {
                     std::cerr << re.what() << std::endl;
                 }
             }
+        }
         }
     }
     
@@ -261,20 +265,26 @@ namespace insur {
     void MaterialProperties::calculateInteractionLength(MaterialTable& materials, double offset) {
         if ((msl_set || mse_set) && (getSurface() > 0)) {
             i_length = offset;
-            for (uint i = 0; i < localmasses.size(); i++) {
+            for (unsigned int i = 0; i < localmasses.size(); i++) {
                 try {
                     i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface());
                 }
-                catch(std::runtime_error re) {
+                catch(std::runtime_error& re) {
                     std::cerr << re.what() << std::endl;
                 }
+                catch(std::exception& e) {
+                    std::cout << "Exception other than runtime_error occurred accessing material table for local masses: " << e.what() << std::endl;
+                }
             }
-            for (uint i = 0; i < exitingmasses.size(); i++) {
+            for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                 try {
                     i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface());
                 }
-                catch(std::runtime_error re) {
+                catch(std::runtime_error& re) {
                     std::cerr << re.what() << std::endl;
+                }
+                catch(std::exception& e) {
+                    std::cout << "Exception other than runtime_error occurred accessing material table for exiting masses: " << e.what() << std::endl;
                 }
             }
         }
@@ -286,11 +296,11 @@ namespace insur {
     void MaterialProperties::print() {
         std::cout << "Material properties (current state)" << std::endl;
         std::cout << "localmasses: vector with " << localmasses.size() << " elements." << std::endl;
-        for (uint i = 0; i < localmasses.size(); i++) {
+        for (unsigned int i = 0; i < localmasses.size(); i++) {
             std::cout << "element " << i << "(material, mass): (" << localmasses.at(i).first << ", " << localmasses.at(i).second << ")" << std::endl;
         }
         std::cout << "exitingmasses: vector with " << exitingmasses.size() << " elements." << std::endl;
-        for (uint i = 0; i < exitingmasses.size(); i++) {
+        for (unsigned int i = 0; i < exitingmasses.size(); i++) {
             std::cout << "element " << i << "(material, mass): (" << exitingmasses.at(i).first << ", " << exitingmasses.at(i).second << ")" << std::endl;
         }
         std::cout << "total_mass = " << total_mass << std::endl;
@@ -395,7 +405,7 @@ namespace insur {
      * @return True if the material is not listed in the vector, false otherwise
      */
     bool MaterialProperties::newLocalMaterial(std::string tag) {
-        for (uint i = 0; i < localmasses.size(); i++) {
+        for (unsigned int i = 0; i < localmasses.size(); i++) {
             if (tag.compare(localmasses.at(i).first) == 0) return false;
         }
         return true;
@@ -407,7 +417,7 @@ namespace insur {
      * @return True if the material is not listed in the vector, false otherwise
      */
     bool MaterialProperties::newExitingMaterial(std::string tag) {
-        for (uint i = 0; i < exitingmasses.size(); i++) {
+        for (unsigned int i = 0; i < exitingmasses.size(); i++) {
             if (tag.compare(exitingmasses.at(i).first) == 0) return false;
         }
         return true;

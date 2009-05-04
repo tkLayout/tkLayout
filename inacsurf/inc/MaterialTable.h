@@ -56,7 +56,7 @@ namespace insur {
         MaterialRow& getMaterial(int index); // throws exception
         bool replaceMaterial(std::string oldtag, MaterialRow newmat);
         bool replaceMaterial(int index, MaterialRow newmat);
-        uint rowCount();
+        unsigned int rowCount();
         bool empty();
         void print();
     protected:

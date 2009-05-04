@@ -40,7 +40,7 @@ namespace insur {
         Layer* current;
         // barrels
         if (simplified) {
-            for (uint i = 0; i < am.getBarrelLayers()->size(); i++) {
+            for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
                 current = am.getBarrelLayers()->at(i);
                 if ((current->getMinZ() > 0) || (current->getMaxZ() < 0)) {
                     vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(), (current->getMaxZ() - current->getMinZ()) / 2.0);
@@ -61,9 +61,9 @@ namespace insur {
                 mod = am.getBarrelLayers()->at(0)->getModuleVector()->at(0);
                 vol = gm->MakeArb8("", medact, 0);
                 vol->SetLineColor(kRed);
-                for (uint i = 0; i < am.getBarrelLayers()->size(); i++) {
+                for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
                     current = am.getBarrelLayers()->at(i);
-                    for (uint j = 0; j < current->getModuleVector()->size(); j++) {
+                    for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
                         mod = current->getModuleVector()->at(j);
                         trafo = modulePlacement(mod, vol);
                         barrels->AddNode(vol, c, trafo);
@@ -74,7 +74,7 @@ namespace insur {
         }
         // endcaps
         if (simplified) {
-            for (uint i = 0; i < am.getEndcapLayers()->size(); i++) {
+            for (unsigned int i = 0; i < am.getEndcapLayers()->size(); i++) {
                 current = am.getEndcapLayers()->at(i);
                 vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(),
                         (current->getMaxZ() - current->getMinZ()) / 2.0);
@@ -149,10 +149,12 @@ namespace insur {
         
     }
     
-    void Vizard::display() {
+    void Vizard::display(std::string rootfilename) {
         if (geometry_created) {
-            char outfilename[] = "./rootfiles/output.root";
-            TFile f(outfilename, "recreate");
+            std::string outfilename = default_rootfiledir + "/";
+            if (rootfilename.empty()) outfilename = outfilename + default_rootfile;
+            else outfilename = outfilename + rootfilename;
+            TFile f(outfilename.c_str(), "recreate");
             if (f.IsZombie()) {
                 std::cout << "Something went wrong creating output file.";
                 std::cout << " Existing geometry was not written to file." << std::endl;
@@ -171,9 +173,9 @@ namespace insur {
         else std::cout << "Vizard::buildVisualization(am, is) needs to be called first to build the visual geometry objects." << std::endl;
     }
     
-    void Vizard::display(Tracker& am, InactiveSurfaces& is, bool simplified) {
+    void Vizard::display(Tracker& am, InactiveSurfaces& is, std::string rootfilename, bool simplified) {
         buildVisualization(am, is, simplified);
-        display();
+        display(rootfilename);
     }
     
     void Vizard::writeNeighbourGraph(InactiveSurfaces& is) {
@@ -189,7 +191,7 @@ namespace insur {
             std::ofstream outstream(filename.c_str());
             if (outstream) {
                 outstream << "BARREL SERVICES:" << std::endl << std::endl;
-                for (uint i = 0; i < is.getBarrelServices().size(); i++) {
+                for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
                     outstream << "Barrel element " << i << ": service is ";
                     if (is.getBarrelServicePart(i).isFinal()) outstream << "final and ";
                     else outstream << "not final and ";
@@ -224,7 +226,7 @@ namespace insur {
                     outstream << std::endl << std::endl;
                 }
                 outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
-                for (uint i = 0; i < is.getEndcapServices().size(); i++) {
+                for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
                     outstream << "Endcap element " << i << ": service is ";
                     if (is.getEndcapServicePart(i).isFinal()) outstream << "final and ";
                     else outstream << "not final and ";

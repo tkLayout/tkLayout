@@ -21,13 +21,15 @@
 #include <tracker.hh>
 #include <InactiveSurfaces.h>
 namespace insur {
+    // TODO: move messages to static strings
+    
     class Vizard {
     public:
         Vizard();
         virtual ~Vizard();
         void buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified);
-        void display();
-        void display(Tracker& am, InactiveSurfaces& is, bool simplified);
+        void display(std::string rootfilename = "");
+        void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
         void writeNeighbourGraph(InactiveSurfaces& is);
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     protected:
