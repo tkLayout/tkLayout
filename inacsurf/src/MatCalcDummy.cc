@@ -3,8 +3,8 @@ namespace insur {
     MatCalcDummy::MatCalcDummy() { init(); }
     
     bool MatCalcDummy::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
-        for (uint i = 0; i < barrelcaps.size(); i++) {
-            for (uint j = 0; j < barrelcaps.at(i).size(); j++) {
+        for (unsigned int i = 0; i < barrelcaps.size(); i++) {
+            for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
                 if (barrelcaps.at(i).at(j).getSurface() <= 0) {
                     std::cout << "MatCalcDummy::calculateBarrelMaterials(): Warning: surface of barrelcap reported as " << barrelcaps.at(i).at(j).getSurface() << std::endl;
                 }
@@ -18,8 +18,8 @@ namespace insur {
     }
     
     bool MatCalcDummy::calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps) {
-        for (uint i = 0; i < endcapcaps.size(); i++) {
-            for (uint j = 0; j < endcapcaps.at(i).size(); j++) {
+        for (unsigned int i = 0; i < endcapcaps.size(); i++) {
+            for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
                 if (endcapcaps.at(i).at(j).getSurface() <= 0) {
                     std::cout << "MatCalcDummy::calculateEndcapMaterials(): Warning: surface of endcapcap reported as " << endcapcaps.at(i).at(j).getSurface() << std::endl;
                 }
@@ -34,7 +34,7 @@ namespace insur {
     
     bool MatCalcDummy::calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
                             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        for (uint i = 0; i < barrelservices.size(); i++) {
+        for (unsigned int i = 0; i < barrelservices.size(); i++) {
             barrelservices.at(i).addLocalMass(ts, sb);
             barrelservices.at(i).calculateTotalMass();
             barrelservices.at(i).calculateRadiationLength(mt);
@@ -45,7 +45,7 @@ namespace insur {
     
     bool MatCalcDummy::calculateEndcapServiceMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps,
                             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        for (uint i = 0; i < endcapservices.size(); i++) {
+        for (unsigned int i = 0; i < endcapservices.size(); i++) {
             endcapservices.at(i).addLocalMass(ts, se);
             endcapservices.at(i).calculateTotalMass();
             endcapservices.at(i).calculateRadiationLength(mt);
@@ -55,7 +55,7 @@ namespace insur {
     }
     
     bool MatCalcDummy::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
-        for (uint i = 0; i < supports.size(); i++) {
+        for (unsigned int i = 0; i < supports.size(); i++) {
             if (supports.at(i).isVertical()) supports.at(i).addLocalMass(tl, lb);
             else supports.at(i).addLocalMass(tl, le);
             supports.at(i).calculateTotalMass();
