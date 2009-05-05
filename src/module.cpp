@@ -1296,41 +1296,67 @@ void EndcapModule::setSensorWedgeGeometry(double alpha, double d, double maxRho 
 
   // We need the half angle covered by the module
   double phi;
+  //double delta,epsilon; // alternate
   phi = alpha/2.;
   
+  //double gamma1; // alternate
   double gamma2;
   double h1, h2, b1, b2, dfar, l;
 
+  //std::cout << "d=" << d << ", ";
+  //std::cout << "phi=" << phi << ", ";
   // The short (half)base
   h1 = d * tan(phi);
+  //std::cout << "h1=" << h1 << ", ";
   // Distance of short base from the wafer center
-  b1 = sqrt(pow(r,2)-pow(h1,2));
+  b1 = sqrt(pow(r,2)-pow(h1,2)); // main + alternate
+  //std::cout << "b1=" << b1 << ", ";
 
   // y coordinate of the wafer center
-  l = b1 + d;
+  l = b1 + d; // main
+  // gamma1 = d / cos(phi); // alternate
+  //std::cout << "g1=" << gamma1 << ", ";  
+  // delta = atan(h1/b1); // alternate
+  //std::cout << "del=" << delta << ", ";  
+  // epsilon = phi + delta; // alternate
+  //std::cout << "eps=" << epsilon << ", ";  
+
+  
   // Distance of the far angle form the z axis
-  gamma2 = l*cos(phi) + sqrt(pow(r,2)-pow(l*sin(phi),2));
+  gamma2 = l*cos(phi) + sqrt(pow(r,2)-pow(l*sin(phi),2)); // main
+  // gamma2 = gamma1 + 2 * r * cos(epsilon); // alternate
+  //std::cout << "g2=" << gamma2 << ", ";  
+  
 
   // The long (half)base
   h2 = gamma2 * sin(phi);
+  //std::cout << "h2=" << h2 << ", ";
   // Distance of long base from the z axis
   dfar = gamma2 * cos(phi);
+  //std::cout << "dfar=" << dfar << ", ";
 
   // The distance of the long base from the wafer center
-  b2 =  sqrt(pow(r,2)-pow(h2,2));
+  //b2 =  sqrt(pow(r,2)-pow(h2,2)); // old
+  //std::cout << "b2 = " << b2;
+  b2 = dfar - d - b1;
+  //std::cout << "b2 = " << b2 << std::endl;
+  
   // NOTE: in principle we don't need to compute b2 to get the
   // module's corner coordinates. Still we use this way of computing
-  // b2 to ensure maximum precision to the corner being placed on
-  // the wafer's edge
+  // b2 to ease the computation of the module's area
 
   // Add a check: if the module overcomes the max rho
   // it must be cut.
   if (maxRho>0) {
-    if ((d+b1+b2)>maxRho) {
-      lost_=d+b1+b2-maxRho;
+    if ((dfar)>maxRho) {
+      //std::cout << "maxRho=" << maxRho << ", ";
+      lost_=dfar-maxRho;
+      //std::cout << "lost_=" << lost_ << ", ";      
       b1=0;
       b2=maxRho-d;
+      //std::cout << "b2=" << b2 << ", ";
       h2=h1/d*maxRho;
+      //std::cout << "h2=" << h2 << std::endl;
       cut_=true;
     }
   }
