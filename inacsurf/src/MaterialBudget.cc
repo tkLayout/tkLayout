@@ -72,6 +72,7 @@ namespace insur {
         }
         else std::cout << err_materials_bservices << std::endl;
     }
+    
     void MaterialBudget::materialsModules(MatCalc& calc) {
         if (calc.calculateBarrelMaterials(capsbarrelmods)) {
             if (!calc.calculateEndcapMaterials(capsendmods))

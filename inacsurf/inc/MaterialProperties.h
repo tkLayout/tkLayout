@@ -19,6 +19,8 @@
 namespace insur {
     static const std::string err_local_mass = "Local mass not found";
     static const std::string err_exiting_mass = "Exiting mass not found";
+    static const std::string msg_mattab_except_local = "Exception other than runtime_error occurred accessing material table for local masses: ";
+    static const std::string msg_mattab_except_exiting = "Exception other than runtime_error occurred accessing material table for exiting masses: ";
     /**
      * @class MaterialProperties
      * @brief This is the base class for collections of properties related to the material budget.

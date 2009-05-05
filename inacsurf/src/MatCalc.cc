@@ -416,7 +416,6 @@ namespace insur {
                 if (barrelservices.at(i).isVertical()) length = barrelservices.at(i).getRWidth();
                 else length = barrelservices.at(i).getZLength();
                 surface = barrelservices.at(i).getSurface();
-                std::cout << "feeder of " << i << "..." << std::endl;
                 // feeder
                 switch(ftype) {
                     case InactiveElement::no_in : break;
@@ -426,7 +425,6 @@ namespace insur {
                     break;
                     case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(feeder), barrelservices.at(i));
                 }
-                std::cout << "done." << std::endl << "neighbour of " << i << "..." << std::endl;
                 // neighbour
                 switch(ntype) {
                     case InactiveElement::no_in : break;
@@ -436,13 +434,9 @@ namespace insur {
                     break;
                     case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(neighbour), barrelservices.at(i));
                 }
-                std::cout << "done." << std::endl;
                 barrelservices.at(i).calculateTotalMass();
-                std::cout << "total mass calculated" << std::endl;
                 barrelservices.at(i).calculateRadiationLength(mt);
-                std::cout << "radiation length calculated" << std::endl;
                 barrelservices.at(i).calculateInteractionLength(mt);
-                std::cout << "interaction length calculated" << std::endl;
             }
             catch(std::runtime_error re) {
                 std::cerr << re.what() << " " << msg_abort << std::endl;
@@ -706,7 +700,6 @@ namespace insur {
     }
     
     int MatCalc::findRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
-        std::cout << "findRods(): called on layer " << layer << " of size " << caps.at(layer).size() << "." << std::endl;
         int res = 0;
         int index = 1;
         if (layer < (int)caps.size()) {
@@ -718,7 +711,6 @@ namespace insur {
                 else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
             }
         }
-        std::cout << "findRods(): about to return result " << res << "." << std::endl;
         return res;
     }
     
@@ -733,7 +725,6 @@ namespace insur {
     }
     
     void MatCalc::adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s) {
-        std::cout << "adjacentDifferentCategory(): number of rods/mods is " << r << "." << std::endl;
         // S-labelled service materials
         std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
         for (liter = internals.serlocalinfo.begin(); liter != lguard; liter++) {
@@ -761,11 +752,9 @@ namespace insur {
             if (eiter->is_local) dest.addLocalMass(eiter->tagOut, r * Out);
             else dest.addExitingMass(eiter->tagOut, r * Out);
         }
-        std::cout << "adjacentDifferentCategory(): done." << std::endl;
     }
     
     void MatCalc::adjacentSameCategory(InactiveElement& source, InactiveElement& dest) {
-        std::cout << "adjacentSameCategory(): starting..." << std::endl;
         double tmp;
         for (unsigned int j = 0; j < source.exitingMassCount(); j++) {
             tmp = source.getExitingMass(j);
@@ -775,6 +764,5 @@ namespace insur {
             else tmp = tmp * dest.getZLength();
             dest.addExitingMass(source.getExitingTag(j), tmp);
         }
-        std::cout << "adjacentSameCategory(): done." << std::endl;
     }
 }

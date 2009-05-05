@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
             if (p.initMatCalc(argv[3], c)) {
                 // MaterialBudget instance builds up internal structures in constructor
                 insur::MaterialBudget m(*tr, is);
-                std::cout << "done." << std::endl << "Assigning materials...";
+                std::cout << std::endl << "Assigning materials...";
                 // MaterialBudget instance assigns materials from material file to geometry using MatCalc instance
                 m.materialsAll(c);
                 std::cout << "done." << std::endl << std::endl;
@@ -53,20 +53,20 @@ int main(int argc, char** argv) {
             }
             else std::cout << "main(): Reading of material parameter file failed." << std::endl;
         }
-        // display result
-        /*std::string tmp(argv[1]);
+        // display result: write (simplified) geometry to .root file in rootfiles/, write neighbour graph to .graph file in graphs/
+        std::string tmp(argv[1]);
         int pos = tmp.find('/') + 1;
         tmp = tmp.substr(pos);
-         pos = tmp.find('.') + 1;
-         tmp.erase(pos);
-         tmp = tmp + "root";
+        pos = tmp.find('.') + 1;
+        tmp.erase(pos);
+        tmp = tmp + "root";
         v.display(*tr, is, tmp, true);
-         pos = tmp.find('/') + 1;
-         tmp = tmp.substr(pos);
-         pos = tmp.find('.') + 1;
-         tmp.erase(pos);
-         tmp = tmp + "graph";
-         v.writeNeighbourGraph(is, tmp);*/
+        pos = tmp.find('/') + 1;
+        tmp = tmp.substr(pos);
+        pos = tmp.find('.') + 1;
+        tmp.erase(pos);
+        tmp = tmp + "graph";
+        v.writeNeighbourGraph(is, tmp);
     }
     return (EXIT_SUCCESS);
 }

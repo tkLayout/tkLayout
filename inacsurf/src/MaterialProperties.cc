@@ -234,25 +234,31 @@ namespace insur {
         if (getSurface() > 0) {
             r_length = offset;
             if (msl_set) {
-            for (unsigned int i = 0; i < localmasses.size(); i++) {
-                try {
-                    r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
+                for (unsigned int i = 0; i < localmasses.size(); i++) {
+                    try {
+                        r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
+                    }
+                    catch(std::runtime_error& re) {
+                        std::cerr << re.what() << std::endl;
+                    }
+                    catch(std::exception& e) {
+                        std::cout << msg_mattab_except_local << e.what() << std::endl;
+                    }
                 }
-                catch(std::runtime_error re) {
-                    std::cerr << re.what() << std::endl;
-                }
-            }
             }
             if (mse_set) {
-            for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-                try {
-                    r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
-                }
-                catch(std::runtime_error re) {
-                    std::cerr << re.what() << std::endl;
+                for (unsigned int i = 0; i < exitingmasses.size(); i++) {
+                    try {
+                        r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).rlength * getSurface());
+                    }
+                    catch(std::runtime_error& re) {
+                        std::cerr << re.what() << std::endl;
+                    }
+                    catch(std::exception& e) {
+                        std::cout << msg_mattab_except_exiting << e.what() << std::endl;
+                    }
                 }
             }
-        }
         }
     }
     
@@ -273,18 +279,18 @@ namespace insur {
                     std::cerr << re.what() << std::endl;
                 }
                 catch(std::exception& e) {
-                    std::cout << "Exception other than runtime_error occurred accessing material table for local masses: " << e.what() << std::endl;
+                    std::cout << msg_mattab_except_local << e.what() << std::endl;
                 }
             }
             for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                 try {
-                    i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface());
+                    i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface());
                 }
                 catch(std::runtime_error& re) {
                     std::cerr << re.what() << std::endl;
                 }
                 catch(std::exception& e) {
-                    std::cout << "Exception other than runtime_error occurred accessing material table for exiting masses: " << e.what() << std::endl;
+                    std::cout << msg_mattab_except_exiting << e.what() << std::endl;
                 }
             }
         }
