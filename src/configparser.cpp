@@ -139,6 +139,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     string aDirective = "";
     BarrelModule* sampleBarrelModule = NULL;
     double aspectRatio = 1.;
+   int phiSegments = 4;
     
     // Directives (this are communicated to the Tracker object)
     std::map<int, double> layerDirectives;
@@ -157,6 +158,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             if (parameterName=="nLayers") {
                 nBarrelLayers=atoi(parameterValue.c_str());
+            } else if (parameterName=="phiSegments") {
+                phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="minimumZ") {
                 minZ=atof(parameterValue.c_str());
             } else if (parameterName=="aspectRatio") {
@@ -268,6 +271,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         // possible previous directives coming from a different barrel
         myTracker_->setLayerDirectives(layerDirectives);
         myTracker_->setLayerOptions(layerOptions);
+	myTracker_->setPhiSegments(phiSegments);
         
         myTracker_->buildBarrel(nBarrelLayers,
                 barrelRhoIn,
@@ -303,6 +307,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     int diskParity = 0;
     int shapeType = Module::Wedge;
     double aspectRatio = 1.;
+    int phiSegments = 4;
     
     map<pair<int, int>, bool> mapDiskRingRemoveToOuter;
     map<pair<int, int>, bool>::iterator mapDiskRingRemoveToOuterIt;
@@ -321,6 +326,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             if (parameterName=="nDisks") {
                 nDisks=atoi(parameterValue.c_str());
+            } else if (parameterName=="phiSegments") {
+                phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="innerEta") {
                 innerEta=atof(parameterValue.c_str());
             } else if (parameterName=="innerRadius") {
@@ -444,6 +451,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         // Important: if no directive was given, the following line will clear
         // possible previous directives coming from a different endcap
         myTracker_->setRingDirectives(ringDirective);
+	myTracker_->setPhiSegments(phiSegments);
         
         if (rhoIn!=0) {
             myTracker_->buildEndcaps(nDisks,     // nDisks (per side)

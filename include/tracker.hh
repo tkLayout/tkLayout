@@ -101,6 +101,7 @@ private:
   double bigDelta_;
   double overlap_;
   double etaCut_;
+  int phiSegments_;
 
   std::string summaryDirectory_;
   std::string storeDirectory_;
@@ -174,6 +175,8 @@ public:
   void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; };
   void setOverlap(const double& newOverlap) { overlap_ = newOverlap; };
   void setEtaCut(const double& newEta) { etaCut_ = newEta; };
+
+  void setPhiSegments(const int& newPhiSegments) { phiSegments_ = newPhiSegments; };
 
   void setStoreDirectory(const std::string newDir) { storeDirectory_ = newDir; };
   void setSummaryDirectory(const std::string newDir) { summaryDirectory_ = newDir; };

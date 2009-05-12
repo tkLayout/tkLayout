@@ -69,6 +69,7 @@ void Tracker::setDefaultParameters() {
     arguments_= "";
     maxL_ = 0;
     maxR_ = 0;
+    phiSegments_=4;
     lastPickedColor_ = STARTCOLOR;
     colorPicker("pt");
     colorPicker("rphi");
@@ -299,7 +300,7 @@ void Tracker::buildBarrel(int nLayer,
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
                     push,
-                    4,            // modules multiple of ...
+                    phiSegments_, // modules multiple of ...
                     false,        // false = Strings with opposite parity
                     sampleModule, section);
             
@@ -313,7 +314,7 @@ void Tracker::buildBarrel(int nLayer,
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
                     push,
-                    4,            // modules multiple of ...
+                    phiSegments_, // modules multiple of ...
                     false,        // false = Strings with opposite parity
                     sampleModule, section, minZ);
             
@@ -615,7 +616,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
     defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
             bigDelta_, (minZ+maxZ)/2, overlap_,
             zError_+(maxZ-minZ)/2,
-            4, // Base
+            phiSegments_, // Base
             sampleModule,
             ringDirectives_,
             diskParity,
