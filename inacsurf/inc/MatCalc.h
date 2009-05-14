@@ -7,7 +7,7 @@
 
 /**
  * @file MatCalc.h
- * @brief
+ * @brief This is the base class header file for the algorithms that assign materials to the elements of the tracker geometry
  */
 
 #ifndef _MATCALC_H
@@ -32,11 +32,22 @@ namespace insur {
     static const std::string msg_abort = "Aborting function.";
     /**
      * @class MatCalc
-     * @brief
+     * @brief The MatCalc class provides the core material assignment algorithm for a given tracker geometry.
+     *
+     * Once its internal data structures have been initialised from the material config file by the <i>MatParser</i> class,
+     * it uses that information, combined with the geometry and position of an individual tracker element, to set
+     * the local and exiting materials vector that element before getting it to calculate its overall mass, its radiation length
+     * and its interaction length. The tracker geometry is ready for further study afterwards.
      */
     class MatCalc {
     public:
+        /**
+         * @enum Modtype A list of the possible types (including <i>none</i>) for active volumes
+         */
         enum Modtype { un_mod, rphi, stereo, pt };
+        /**
+         * @enum Matunit The allowed measurement units for the quantities of material that the config file defines
+         */
         enum Matunit { gr, mm3, mm, grpm };
         MatCalc() { init_done = false; }
         virtual ~MatCalc() {}
@@ -74,22 +85,38 @@ namespace insur {
         virtual bool calculateSupportMaterials(std::vector<InactiveElement>& supports);
         void printInternals();
     protected:
+        /**
+         * @struct TypeInfo
+         * @brief 
+         * @param type 
+         * @param strips_across 
+         * @param segments_along 
+         */
         struct TypeInfo {
             Modtype type;
             int strips_across;
             int segments_along;
         };
+        /**
+         * @struct SingleMod
+         */
         struct SingleMod {
             std::string tag;
             double A, B, C, D;
             Matunit uA, uB, uC, uD;
             bool is_local;
         };
+        /**
+         * @struct SingleSerLocal
+         */
         struct SingleSerLocal {
             std::string tag;
             double Q;
             Matunit uQ;
         };
+        /**
+         * @struct SingleSerExit
+         */
         struct SingleSerExit {
             std::string tagIn;
             double In;
@@ -99,12 +126,18 @@ namespace insur {
             Matunit uOut;
             bool is_local;
         };
+        /**
+         * @struct SingleSup
+         */
         struct SingleSup {
             std::string tag;
             double M;
             Matunit uM;
             MaterialProperties::Category cM;
         };
+        /**
+         * @struct MatInfo
+         */
         struct MatInfo {
             std::vector<TypeInfo> typeinfo;
             std::vector<SingleMod> modinforphi;

@@ -508,7 +508,7 @@ namespace insur {
                 std::vector<SingleSup>::const_iterator iter, guard = internals.supinfo.end();
                 for (iter = internals.supinfo.begin(); iter != guard; iter++) {
                     if (iter->cM == supports.at(i).getCategory()) {
-                        int M;
+                        double M;
                         if (iter->uM == grpm) M = convert(iter->M, iter->uM, length);
                         else M = convert(iter->M, iter->uM, mt.getMaterial(iter->tag).density, surface);
                         supports.at(i).addLocalMass(iter->tag, M);
@@ -717,9 +717,9 @@ namespace insur {
     double MatCalc::convert(double value, Matunit unit, double densityorlength, double surface) { // throws exception
         switch(unit) {
             case gr : return value;
-            case mm3 : return densityorlength * value;
-            case mm : return densityorlength * surface * value;
-            case grpm : return densityorlength * value;
+            case mm3 : return densityorlength * value / 1000.0;
+            case mm : return densityorlength * surface * value / 1000.0;
+            case grpm : return densityorlength * value / 1000.0;
             default : throw std::range_error(err_conversion);
         }
     }
@@ -728,7 +728,7 @@ namespace insur {
         // S-labelled service materials
         std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
         for (liter = internals.serlocalinfo.begin(); liter != lguard; liter++) {
-            int Q;
+            double Q;
             if (liter->uQ == grpm) Q = convert(liter->Q, liter->uQ, l);
             else Q = convert(liter->Q, liter->uQ, mt.getMaterial(liter->tag).density, s);
             dest.addLocalMass(liter->tag, r * Q);
@@ -743,7 +743,7 @@ namespace insur {
         }
         std::vector<SingleSerExit>::const_iterator eiter, eguard = internals.serexitinfo.end();
         for (eiter = internals.serexitinfo.begin(); eiter != eguard; eiter++) {
-            int In, Out;
+            double In, Out;
             if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, l);
             else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, s);
             if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);

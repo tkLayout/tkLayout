@@ -59,8 +59,12 @@ namespace insur {
     
     /**
      * Filename and path constants
-     * @param mattabdir Relative path to the list of materials
-     * @param mattabfile List of materials and of their properties as required by <i>MaterialTable</i>
+     * @param default_mattabdir Relative path to the list of materials
+     * @param default_mattabfile List of materials and of their properties as required by <i>MaterialTable</i>
+     * @param default_rootfiledir Output directory for <i>.root</i> files
+     * @param default_rootfile Default filename for <i>.root</i> geometry output
+     * @param default_graphdir Output directory for neighbour graphs
+     * @param default_graphfile Default filename for neighbour graph output
      */
     static const std::string default_mattabdir = "config";
     static const std::string default_mattabfile = "mattab.list";

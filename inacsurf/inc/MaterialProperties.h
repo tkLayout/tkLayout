@@ -17,6 +17,9 @@
 #include <iostream>
 #include <MaterialTable.h>
 namespace insur {
+    /**
+     * Errors and messages that may be reported during operations on member variables
+     */
     static const std::string err_local_mass = "Local mass not found";
     static const std::string err_exiting_mass = "Exiting mass not found";
     static const std::string msg_mattab_except_local = "Exception other than runtime_error occurred accessing material table for local masses: ";
@@ -33,6 +36,9 @@ namespace insur {
      */
     class MaterialProperties {
     public:
+        /**
+         * @enum Category A list of logical categories within the detector geometry; a single element belongs to exactly one of them
+         */
         enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, e_sup, t_sup, u_sup};
         MaterialProperties();
         virtual ~MaterialProperties() {}

@@ -25,7 +25,7 @@
 namespace insur {
     /*
      * @class Usher
-     * @brief The Usher class forms the core geometry creation algorithm for inactive surfaces.
+     * @brief The Usher class defines the core geometry creation algorithm for inactive surfaces.
      *
      * It analyses an existing collection of active modules, then goes on to decide where to place services and
      * support structures. It does this by building all the necessary parts on the z+ side and mirroring everything
@@ -68,7 +68,7 @@ namespace insur {
             int realIndexLayer(int tintreplayer);
             int realIndexDisc(int tintrepdisc);
             std::list<std::pair<int, double> >& shortBarrelsList();
-            bool analyze(Tracker& tracker);
+            virtual bool analyze(Tracker& tracker);
             void print();
         protected:
             std::vector<int> n_of_layers, n_of_discs, real_index_layer, real_index_disc;

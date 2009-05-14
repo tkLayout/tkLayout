@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
             else std::cout << "main(): Reading of material parameter file failed." << std::endl;
         }
         // display result: write (simplified) geometry to .root file in rootfiles/, write neighbour graph to .graph file in graphs/
-        std::string tmp(argv[1]);
+        /*std::string tmp(argv[1]);
         int pos = tmp.find('/') + 1;
         tmp = tmp.substr(pos);
         pos = tmp.find('.') + 1;
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
         pos = tmp.find('.') + 1;
         tmp.erase(pos);
         tmp = tmp + "graph";
-        v.writeNeighbourGraph(is, tmp);
+        v.writeNeighbourGraph(is, tmp);*/
     }
     return (EXIT_SUCCESS);
 }

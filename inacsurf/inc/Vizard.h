@@ -32,6 +32,7 @@ namespace insur {
         void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
         void writeNeighbourGraph(InactiveSurfaces& is);
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
+        void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
     protected:
         TGeoManager* gm;
         TGeoVolume* top;

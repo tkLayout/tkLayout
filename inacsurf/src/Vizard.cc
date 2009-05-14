@@ -126,7 +126,7 @@ namespace insur {
         c = c + skip;
         
         // supports => inner and outer support tube will not be displayed
-        skip = is.getSupports().size() - 2.0;
+        skip = is.getSupports().size() - 2;
         for (int i = 2; i < skip + 2; i++) {
             if ((is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength()) > 0) {
                 vol = gm->MakeTube("", medlazy, is.getSupportPart(i).getInnerRadius(),
@@ -269,6 +269,14 @@ namespace insur {
             std::cerr << "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
             std::cerr << "Neighbour graph was not written to file." << std::endl;
         }
+    }
+    
+    void Vizard::dotGraph(InactiveSurfaces& is, std::string outfile) {
+        const std::string preamble = "digraph tracker";
+        const std::string ori = "rankdir=DU"; // check if this is possible!
+        const std::string shape = "node [shape=box]";
+        const std::string label = "label=";
+        const std::string edge = "->";
     }
     
     TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
