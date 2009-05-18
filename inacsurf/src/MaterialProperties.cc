@@ -236,7 +236,7 @@ namespace insur {
             if (msl_set) {
                 for (unsigned int i = 0; i < localmasses.size(); i++) {
                     try {
-                        r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface());
+                        r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
                         std::cerr << re.what() << std::endl;
@@ -249,7 +249,7 @@ namespace insur {
             if (mse_set) {
                 for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                     try {
-                        r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).rlength * getSurface());
+                        r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).rlength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
                         std::cerr << re.what() << std::endl;
@@ -273,7 +273,7 @@ namespace insur {
             i_length = offset;
             for (unsigned int i = 0; i < localmasses.size(); i++) {
                 try {
-                    i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface());
+                    i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface() / 100.0);
                 }
                 catch(std::runtime_error& re) {
                     std::cerr << re.what() << std::endl;
@@ -284,7 +284,7 @@ namespace insur {
             }
             for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                 try {
-                    i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface());
+                    i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface() / 100.0);
                 }
                 catch(std::runtime_error& re) {
                     std::cerr << re.what() << std::endl;
