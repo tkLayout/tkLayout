@@ -13,6 +13,7 @@
 #ifndef _INACTIVEELEMENT_H
 #define	_INACTIVEELEMENT_H
 
+#include <cmath>
 #include <iostream>
 #include <MaterialProperties.h>
 #include <global_constants.h>
@@ -56,6 +57,7 @@ namespace insur {
         void setExitingMass(double mass);
         void setRadiationLength(double rlength);
         void setInteractionLength(double ilength);
+        std::pair<double, double> getEtaMinMax();
         virtual void print();
     protected:
         bool is_vertical, is_final;

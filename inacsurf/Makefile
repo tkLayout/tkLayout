@@ -14,9 +14,8 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry general elements ushers dressers viz test demo
+all: tkgeometry exocom general elements ushers dressers viz naly demo
 	@echo "Full build successful."
-#TODO: define targets for all: tkgeometry, insur, densities, demo
 
 #TKGEOMETRY
 tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o
@@ -40,9 +39,23 @@ $(LIBDIR)/tracker.o: $(TKSRCDIR)/tracker.cpp $(TKINCDIR)/tracker.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tracker.o $(TKSRCDIR)/tracker.cpp 	
 	@echo "Built target tracker.o"
 
+#EXOCOM
+exocom:  $(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o
+	@echo "Built target 'exocom'."
+	
+$(LIBDIR)/TrackerActions.o: $(SRCDIR)/TrackerActions.cc $(INCDIR)/TrackerActions.h
+	@echo "Building target TrackerActions.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackerActions.o $(SRCDIR)/TrackerActions.cc
+	@echo "Built target TrackerActions.o"
+
+$(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
+	@echo "Building target MatParser.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatParser.o $(SRCDIR)/MatParser.cc
+	@echo "Built target MatParser.o"
+
 #GENERAL
 general: $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
-	$(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o
+	$(LIBDIR)/InactiveSurfaces.o
 	@echo "Built target 'general'."
 
 $(LIBDIR)/MaterialBudget.o: $(SRCDIR)/MaterialBudget.cc $(INCDIR)/MaterialBudget.h
@@ -64,16 +77,6 @@ $(LIBDIR)/InactiveSurfaces.o: $(SRCDIR)/InactiveSurfaces.cc $(INCDIR)/InactiveSu
 	@echo "Building target InactiveSurfaces.o..."
 	$(COMP) -c -o $(LIBDIR)/InactiveSurfaces.o $(SRCDIR)/InactiveSurfaces.cc
 	@echo "Built target InactiveSurfaces.o"
-
-$(LIBDIR)/TrackerActions.o: $(SRCDIR)/TrackerActions.cc $(INCDIR)/TrackerActions.h
-	@echo "Building target TrackerActions.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackerActions.o $(SRCDIR)/TrackerActions.cc
-	@echo "Built target TrackerActions.o"
-
-$(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
-	@echo "Building target MatParser.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatParser.o $(SRCDIR)/MatParser.cc
-	@echo "Built target MatParser.o"
 	
 #ELEMENTS
 elements: $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
@@ -109,13 +112,18 @@ $(LIBDIR)/Usher.o: $(SRCDIR)/Usher.cc $(INCDIR)/Usher.h
 	@echo "Built target Usher.o"
 
 #DRESSERS
-dressers: $(LIBDIR)/MatCalc.o
+dressers: $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o
 	@echo "Built target 'dressers'."
 
 $(LIBDIR)/MatCalc.o: $(SRCDIR)/MatCalc.cc $(INCDIR)/MatCalc.h
 	@echo "Building target MatCalc.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatCalc.o $(SRCDIR)/MatCalc.cc
 	@echo "Built target MatlCalc.o"
+
+$(LIBDIR)/MatCalcDummy.o: $(SRCDIR)/MatCalcDummy.cc $(INCDIR)/MatCalcDummy.h
+	@echo "Building target MatCalcDummy.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatCalcDummy.o $(SRCDIR)/MatCalcDummy.cc
+	@echo "Built target MatCalcDummy.o"
 
 #VISUALISATION
 viz: $(LIBDIR)/Vizard.o
@@ -126,24 +134,23 @@ $(LIBDIR)/Vizard.o: $(SRCDIR)/Vizard.cc $(INCDIR)/Vizard.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Vizard.o $(SRCDIR)/Vizard.cc
 	@echo "Built target Vizard.o"
 
-#TESTS
-test: $(LIBDIR)/MatCalcDummy.o
-	@echo "Built target 'test'."
+#ANALYSYS
+naly: $(LIBDIR)/Analyzer.o
+	@echo "Built target 'naly'."
 
-$(LIBDIR)/MatCalcDummy.o: $(SRCDIR)/MatCalcDummy.cc $(INCDIR)/MatCalcDummy.h
-	@echo "Building target MatCalcDummy.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatCalcDummy.o $(SRCDIR)/MatCalcDummy.cc
-	@echo "Built target MatCalcDummy.o"
+$(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cc $(INCDIR)/Analyzer.h
+	@echo "Building target Analyzer.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Analyzer.o $(SRCDIR)/Analyzer.cc
+	@echo "Built target Analyzer.o"
 
 #FINAL
 demo: $(LIBDIR)/demo.o
-	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
-	$(LIBDIR)/configparser.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MatParser.o \
-	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/TrackerActions.o \
-	$(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o \
-	$(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
-	$(LIBDIR)/MatCalc.o $(LIBDIR)/Vizard.o $(LIBDIR)/MatCalcDummy.o \
-	$(LIBDIR)/demo.o \
+	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/TrackerActions.o $(LIBDIR)/MaterialBudget.o \
+	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/InactiveSurfaces.o  \
+	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
+	$(LIBDIR)/Analyzer.o $(LIBDIR)/demo.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o demo
 

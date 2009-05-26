@@ -19,6 +19,7 @@
 #include <TFile.h>
 #include <global_constants.h>
 #include <tracker.hh>
+#include<Analyzer.h>
 #include <InactiveSurfaces.h>
 namespace insur {
     // TODO: move messages to static strings
@@ -33,6 +34,7 @@ namespace insur {
         void writeNeighbourGraph(InactiveSurfaces& is);
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
+        void histogramSummary(Analyzer& a, std::string outfile);
     protected:
         TGeoManager* gm;
         TGeoVolume* top;

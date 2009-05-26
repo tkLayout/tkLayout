@@ -99,7 +99,7 @@ namespace insur {
     InactiveElement::InType InactiveElement::getNeighbourType() { return neighbour_type; }
     
     void InactiveElement::setNeighbourType(InactiveElement::InType type) { neighbour_type = type; }
-        
+    
     /**
      * Set the total mass of the inactive element.
      * @param mass The new overall mass
@@ -129,6 +129,33 @@ namespace insur {
      * @param ilength The new overall interaction length, averaged over all the different material that occur in the inactive element
      */
     void InactiveElement::setInteractionLength(double ilength) { i_length = ilength; }
+    
+    /**
+     * Calculate and return the Eta range of the element
+     * @return The pair <i>(Eta_min, Eta_max)</i>
+     */
+    std::pair<double, double> InactiveElement::getEtaMinMax() {
+        std::pair<double, double> res;
+        double theta0, theta1;
+        if ((getZOffset() < 0) && (getZOffset() + getZLength() > 0)) {
+            theta0 = atan(getInnerRadius() / (-1 * getZOffset()));
+            theta0 = PI - theta0;
+            theta1 = atan(getInnerRadius() / (getZOffset() + getZLength()));
+        }
+        else {
+            if (isVertical()) {
+                theta0 = atan((getInnerRadius() + getRWidth()) / (getZLength() / 2.0 + getZOffset()));
+                theta1 = atan(getInnerRadius() / (getZLength() / 2.0 + getZOffset()));
+            }
+            else {
+                theta0 = atan((getRWidth() / 2.0 + getInnerRadius()) / getZOffset());
+                theta1 = atan((getRWidth() / 2.0 + getInnerRadius()) / (getZOffset() + getZLength()));
+            }
+        }
+        res.first = -1 * log(tan(theta0 / 2.0));
+        res.second = -1 * log(tan(theta1 / 2.0));
+        return res;
+    }
     
     /**
      * Print the geometry-specific parameters of the inactive element including the orientation.

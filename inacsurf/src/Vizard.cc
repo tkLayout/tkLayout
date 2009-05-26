@@ -279,6 +279,10 @@ namespace insur {
         const std::string edge = "->";
     }
     
+    void Vizard::histogramSummary(Analyzer& a, std::string outfile) {
+        // TODO: write summary to html file
+    }
+    
     TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
         XYZVector ex, ey, ez, b, c, d, p;
         TGeoArb8* arb;

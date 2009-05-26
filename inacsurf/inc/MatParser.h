@@ -77,6 +77,8 @@ namespace insur {
      * @brief This class provides a parser for the - very simple - material config file format
      *
      * It encapsulates the parser code that reads the material list from file and initialises the material table.
+     * It also provides the functions that parse a material config file and stores the extracted information
+     * within the internal fields of a <i>MatCalc</i> object.
      */
     class MatParser {
     public:
