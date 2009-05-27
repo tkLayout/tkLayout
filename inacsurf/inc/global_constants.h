@@ -10,7 +10,7 @@
 
 namespace insur {
     static const double PI = 3.14159265358979323846;
-    static const double E = 2.71;
+    static const double E = 2.71828182845904523536;
     /**
      * Geometry constants; all length measurements are in mm
      * @param epsilon The standard distance between one solid object and the next
@@ -73,5 +73,7 @@ namespace insur {
     static const std::string default_rootfile = "trackergeometry.root";
     static const std::string default_graphdir = "graphs";
     static const std::string default_graphfile = "neighbours.graph";
+    static const std::string default_summarypath = "matsum";
+    static const std::string default_summary = "profiles.html";
 }
 #endif /* _GLOBAL_CONSTANTS_H */

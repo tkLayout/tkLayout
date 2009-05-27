@@ -279,8 +279,53 @@ namespace insur {
         const std::string edge = "->";
     }
     
-    void Vizard::histogramSummary(Analyzer& a, std::string outfile) {
-        // TODO: write summary to html file
+    void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
+        TH1D container;
+        std::string outfile = default_summarypath + "/";
+        if (outfilename.empty()) outfile = outfile + default_summary;
+        else outfile = outfile + outfilename;
+        std::string pngout = outfile + ".png";
+        std::string htmlcontents;
+        std::ofstream outstream(outfile.c_str());
+        TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 800, 800);
+        c.Divide(2, 2);
+        c.cd(0);
+        a.getHistoGlobalR().Draw();
+        c.cd(1);
+        a.getHistoGlobalI().Draw();
+        c.cd(2);
+        // TODO: add correctly
+        container.Add(&(a.getHistoSupportsAllR()));
+        container.Add(&(a.getHistoServicesAllR()));
+        container.Add(&(a.getHistoModulesAllR()));
+        container.DrawCopy();
+        container.Reset();
+        container.Add(&(a.getHistoSupportsAllR()));
+        container.Add(&(a.getHistoServicesAllR()));
+        container.DrawCopy();
+        container.Reset();
+        container.Add(&(a.getHistoSupportsAllR()));
+        container.DrawCopy();
+        c.cd(3);
+        // TODO: add correctly
+        container.Reset();
+        container.Add(&(a.getHistoSupportsAllI()));
+        container.Add(&(a.getHistoServicesAllI()));
+        container.Add(&(a.getHistoModulesAllI()));
+        container.DrawCopy();
+        container.Reset();
+        container.Add(&(a.getHistoSupportsAllI()));
+        container.Add(&(a.getHistoServicesAllI()));
+        container.DrawCopy();
+        container.Reset();
+        container.Add(&(a.getHistoSupportsAllI()));
+        container.DrawCopy();
+        c.SaveAs(pngout.c_str());
+        htmlcontents = "<html><title>" + outfilename + "</title><body>";
+        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" />" + "</body></html>";
+        outstream << htmlcontents << std::endl;
+        outstream.close();
+        std::cout << "HTML file written to " << outfile << ", image written to " << pngout << std::endl;
     }
     
     TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {

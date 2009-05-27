@@ -30,6 +30,7 @@ namespace insur {
                 std::pair<double, double> tmp;
                 eta = i_eta * etaStep - etaMax;
                 theta = 2 * atan(pow(E, -1 * eta));
+                std::cout << "Phi = " << phi << ", Theta = " << theta << ", Eta = " << eta << std::endl;
                 //      active volumes, barrel
                 tmp = analyzeModules(mb.getBarrelModuleCaps(), theta, phi);
                 tmp.first = tmp.first / (double)nScans;
@@ -129,6 +130,7 @@ namespace insur {
     
     // protected
     std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double theta, double phi) {
+        std::cout << "analyzeModules()" << std::endl;
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
         std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
         std::pair<double, double> res, tmp;
@@ -140,18 +142,22 @@ namespace insur {
             res.second = res.second + tmp.second;
             iter++;
         }
+        std::cout << "analyzeModules(): done." << std::endl;
         return res;
     }
     
     std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double theta, double phi) {
+        std::cout << "findModuleLayerRI()" << std::endl;
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
         std::pair<double, double> res, tmp;
         XYZVector origin, direction;
+        Polar3DVector dir;
         double distance;
         res.first = 0.0;
         res.second = 0.0;
-        direction.SetCoordinates(cos(theta) * sin(phi), sin(theta) * sin(phi), cos(theta));
+        dir.SetCoordinates(1, theta, phi);
+        direction = dir;
         while (iter != guard) {
             if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                     (iter->getModule().getSubdetectorType() == Module::Endcap)) {
@@ -167,13 +173,13 @@ namespace insur {
                         tmp.first = tmp.first / cos(theta);
                         tmp.second = tmp.second / cos(theta);
                     }
-                    res.first = res.first + tmp.first / cos(phi);
-                    res.second = res.second + tmp.second / cos(phi);
+                    // TODO: incorporate phi in calculation
                 }
             }
             else std::cout << msg_module_warning << std::endl;
             iter++;
         }
+        std::cout << "findModuleLayerRI(): done." << std::endl;
         return res;
     }
     
