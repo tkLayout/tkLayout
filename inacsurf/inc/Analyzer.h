@@ -57,7 +57,7 @@ namespace insur {
         TH1D& getHistoSupportsAllI() { return ilazyall; }
         TH1D& getHistoGlobalR() { return rglobal; }
         TH1D& getHistoGlobalI() { return iglobal; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 100, int phiSteps = 72);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 100);
     protected:
         bool analysed;
         TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazytube, rlazyuserdef;
@@ -72,6 +72,7 @@ namespace insur {
         void clearHistograms();
         void setHistogramBinsBoundaries(int bins, double min, double max);
         double findEtaMax(MaterialBudget& mb);
+    private:
     };
 }
 #endif	/* _ANALYZER_H */

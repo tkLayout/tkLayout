@@ -69,11 +69,11 @@ namespace insur {
         ta = "Si_dummy";
         ts = "Cu_dummy";
         tl = "CF_dummy";
-        ab = 100.0;
-        ae = 200.0;
+        ab = 10.0;
+        ae = 10.0;
         sb = 500.0;
-        se = 1000.0;
-        lb = 2500.0;
+        se = 500.0;
+        lb = 2000.0;
         le = 2000.0;
         mt.addMaterial(ta, d_silicon, 1, 1.5);
         mt.addMaterial(ts, d_copper, 2, 2.5);

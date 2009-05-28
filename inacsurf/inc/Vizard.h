@@ -17,6 +17,7 @@
 #include <TGeoArb8.h>
 #include <TGeoMatrix.h>
 #include <TFile.h>
+#include <THStack.h>
 #include <global_constants.h>
 #include <tracker.hh>
 #include<Analyzer.h>

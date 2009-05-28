@@ -158,11 +158,14 @@ $(LIBDIR)/demo.o: demo.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/demo.o demo.cpp
 
 cleantkgeometry:
-	-rm -f include/tkgeometry/*~ include/*~ *~ $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
+	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
+
+cleanexocom:
+	-rm -f $(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o
 
 cleangeneral:
 	-rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
-	$(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o $(LIBDIR)/InactiveSurfaces.o
+	$(LIBDIR)/InactiveSurfaces.o
 
 cleanelements:
 	-rm -f $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
@@ -171,14 +174,17 @@ cleanushers:
 	-rm -f $(LIBDIR)/Usher.o
 
 cleandressers:
-	-rm -f $(LIBDIR)/MatCalc.o
+	-rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
 	
 cleanviz:
 	-rm -r $(LIBDIR)/Vizard.o
+	
+cleannaly:
+	-rm -r $(LIBDIR)/Analyzer.o
 
 cleandemo:
 	-rm -f $(LIBDIR)/demo.o ./demo
 
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleandemo
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleandemo
 	
 #TODO: add final build targets to list
