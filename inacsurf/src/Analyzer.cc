@@ -6,18 +6,23 @@
 #include <Analyzer.h>
 namespace insur {
     // public
+    /**
+     * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
+     * and interaction lengths for each volume category to subfunctions, and sorts those results into the
+     * correct histograms.
+     * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
+     * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
+     */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
         int nTracks;
-        double etaStep, etaMax, eta, theta, phi;
+        double etaStep, eta, theta, phi;
         if (analysed) {
             clearHistograms();
             analysed = !analysed;
         }
-        // find etaMax
-        etaMax = findEtaMax(mb);
         // prepare etaStep, phiStep, nTracks, nScans
-        etaStep = etaMax / (double)etaSteps;
-        nTracks = etaMax / etaStep + 1;
+        etaStep = etaMax / (double)(etaSteps - 1);
+        nTracks = etaSteps;
         // reset the number of bins and the histogram boundaries (-etaMax to etaMax) for all histograms
         setHistogramBinsBoundaries(nTracks, 0, etaMax);
         // used fixed phi
@@ -108,6 +113,13 @@ namespace insur {
     }
     
     // protected
+    /**
+     * 
+     * @param tr 
+     * @param theta 
+     * @param phi
+     * @return 
+     */
     std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double theta, double phi) {
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
         std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
@@ -297,33 +309,5 @@ namespace insur {
         ilazyall.SetBins(bins, min, max);
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
-    }
-    
-    double Analyzer::findEtaMax(MaterialBudget& mb) {
-        InactiveSurfaces& is = mb.getInactiveSurfaces();
-        std::vector<InactiveElement>::iterator iter, guard;
-        std::pair<double, double> etaMinMax;
-        double eta;
-        etaMinMax = mb.getTracker().getEtaMinMax();
-        eta = (fabs(etaMinMax.first) < fabs(etaMinMax.second)) ? fabs(etaMinMax.second) : fabs(etaMinMax.first);
-        guard = is.getBarrelServices().end();
-        for (iter = is.getBarrelServices().begin(); iter != guard; iter++) {
-            etaMinMax = iter->getEtaMinMax();
-            if (fabs(etaMinMax.first) > eta) eta = fabs(etaMinMax.first);
-            if (fabs(etaMinMax.second) > eta) eta = fabs(etaMinMax.second);
-        }
-        guard = is.getEndcapServices().end();
-        for (iter = is.getEndcapServices().begin(); iter != guard; iter++) {
-            etaMinMax = iter->getEtaMinMax();
-            if (fabs(etaMinMax.first) > eta) eta = fabs(etaMinMax.first);
-            if (fabs(etaMinMax.second) > eta) eta = fabs(etaMinMax.second);
-        }
-        guard = is.getSupports().end();
-        for (iter = is.getSupports().begin(); iter != guard; iter++) {
-            etaMinMax = iter->getEtaMinMax();
-            if (fabs(etaMinMax.first) > eta) eta = fabs(etaMinMax.first);
-            if (fabs(etaMinMax.second) > eta) eta = fabs(etaMinMax.second);
-        }
-        return eta;
     }
 }

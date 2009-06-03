@@ -7,7 +7,7 @@
 
 /**
  * @file Analyzer.h
- * @brief
+ * @brief This class takes care of analysing the material budget
  */
 
 #ifndef _ANALYZER_H
@@ -21,14 +21,25 @@
 #include<InactiveSurfaces.h>
 #include <MaterialBudget.h>
 namespace insur {
+    /**
+     * A warning that may occur during processing
+     */
     static const std::string msg_module_warning = "Warning: tracker module with undefined subdetector type found.";
     
+    /**
+     * @class Analyzer
+     * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
+     *
+     * It simulates a series of tracks that start at the origin (z = 0), maintain a fixed value of PI / 2 for phi and cover
+     * an eta range from 0 to the maximal eta found in the provided geometry. Each volume hit by a track contributes
+     * its radiation and interaction lengths to a grand total for that track. Those grand totals, recorded by eta, are
+     * stored in a series of histograms that give a complete profile of the expected interaction of the tracker itself with
+     * the particles that pass through it.
+     */
     class Analyzer {
     public:
         Analyzer() { analysed = false; }
         virtual ~Analyzer() {}
-        // TODO: getters and setter for histograms
-        // list: r and i by category, global r and i, r and i for barrel(all) and endcap(all), r and i for active(all), services(all) and supports(all)
         TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
         TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
         TH1D& getHistoModulesEndcapsR() {return ractiveendcap; }
@@ -57,7 +68,7 @@ namespace insur {
         TH1D& getHistoSupportsAllI() { return ilazyall; }
         TH1D& getHistoGlobalR() { return rglobal; }
         TH1D& getHistoGlobalI() { return iglobal; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 100);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
     protected:
         bool analysed;
         TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazytube, rlazyuserdef;
@@ -71,7 +82,6 @@ namespace insur {
                                                                                                        double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
         void clearHistograms();
         void setHistogramBinsBoundaries(int bins, double min, double max);
-        double findEtaMax(MaterialBudget& mb);
     private:
     };
 }
