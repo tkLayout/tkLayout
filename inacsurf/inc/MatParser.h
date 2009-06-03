@@ -74,11 +74,13 @@ namespace insur {
     
     /**
      * @class MatParser
-     * @brief This class provides a parser for the - very simple - material config file format
+     * @brief This class provides a parser for the - very simple - material config file formats.
      *
-     * It encapsulates the parser code that reads the material list from file and initialises the material table.
-     * It also provides the functions that parse a material config file and stores the extracted information
-     * within the internal fields of a <i>MatCalc</i> object.
+     * It encapsulates the parser code that reads the material list from file and initialises the global material table.
+     * More importantly, it also provides the functions that parse a material config file and stores the extracted
+     * information within the internal fields of a <i>MatCalc</i> object. One of the private functions may throw an
+     * exception if the string parameter does not correspond to one of the predefined units. This exception is always
+     * caught by the caller function and the unit set to the default <i>gr</i>.
      */
     class MatParser {
     public:

@@ -26,7 +26,8 @@ namespace insur {
      * It contains lists of all subgroups of inactive volumes: the services list and the supporting parts list.
      * It provides access functions to them or their individual elements that typically copy a new element to
      * its place at the end of the vector or return a reference to a requested element. It also stores the type of
-     * configuration (UP or DOWN) in a boolean flag.
+     * configuration (UP or DOWN) in a boolean flag. Some of the access functions to individual elements
+     * may throw an exception if the requested index is out of range.
      */
     class InactiveSurfaces {
     public:

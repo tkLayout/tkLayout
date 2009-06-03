@@ -5,6 +5,11 @@
 // Created on November 20, 2008, 12:41 PM
 //
 
+/**
+ * @file Vizard.h
+ * @brief This is the header file for the core visualisation class
+ */
+
 #ifndef _VIZARD_H
 #define	_VIZARD_H
 
@@ -23,8 +28,27 @@
 #include<Analyzer.h>
 #include <InactiveSurfaces.h>
 namespace insur {
-    // TODO: move messages to static strings
+    /*
+     * Assorted messages that may pop up
+     */
+    static const std::string msg_uninitialised = "Vizard::buildVisualization(am, is) needs to be called first to build the visual geometry objects.";
+    static const std::string root_wrong = "Something went wrong creating output file. Existing geometry was not written to file.";
+    static const std::string graph_wrong = "File stream reported error state: neighbour graph not written to file.";
+    static const std::string exc_badalloc_graph = "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
+    static const std::string graph_nowrite = "Neighbour graph was not written to file.";
     
+    /**
+     * @class Vizard
+     * @brief This class bundles a number of output functions for different parts and stages of the material budget buildup.
+     *
+     * It provides one to write a simplified geometry of active and inactive surfaces to a <i>ROOT</i> file, another to
+     * save the neighbour relations between different inactive surfaces and layers/discs to a text file, and a third to print
+     * the radiation and interaction length histograms to an image and embed that in HTML after a tracker layout has
+     * been analysed. A function to write the neighbour relations to a DOT file instead of the quick and dirty internal
+     * format that is used now is planned but not implemented yet.
+     *
+     * WARNING: the unsimplified version of <i>display()</i> compiles and runs, but does not produce correct results yet!!!
+     */
     class Vizard {
     public:
         Vizard();
@@ -55,6 +79,8 @@ namespace insur {
         TGeoMaterial* matlazy;
     private:
         bool geometry_created;
+        int detailedModules(std::vector<Layer*>* layers,
+                TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
     };
 }

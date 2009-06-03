@@ -193,11 +193,11 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateTotalMass(double offset) {
-        if (msl_set) calculateLocalMass();
-        if (mse_set) calculateExitingMass();
+        calculateLocalMass(offset);
+        calculateExitingMass(offset);
         if (msl_set && mse_set) total_mass = local_mass + exiting_mass + offset;
-        else if (!msl_set) total_mass = exiting_mass;
-        else if (!mse_set) total_mass = local_mass;
+        else if (!msl_set) total_mass = exiting_mass + offset;
+        else if (!mse_set) total_mass = local_mass + offset;
     }
     
     /**
@@ -269,28 +269,32 @@ namespace insur {
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateInteractionLength(MaterialTable& materials, double offset) {
-        if ((msl_set || mse_set) && (getSurface() > 0)) {
+        if (getSurface() > 0) {
             i_length = offset;
-            for (unsigned int i = 0; i < localmasses.size(); i++) {
-                try {
-                    i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface() / 100.0);
-                }
-                catch(std::runtime_error& re) {
-                    std::cerr << re.what() << std::endl;
-                }
-                catch(std::exception& e) {
-                    std::cout << msg_mattab_except_local << e.what() << std::endl;
+            if (msl_set) {
+                for (unsigned int i = 0; i < localmasses.size(); i++) {
+                    try {
+                        i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface() / 100.0);
+                    }
+                    catch(std::runtime_error& re) {
+                        std::cerr << re.what() << std::endl;
+                    }
+                    catch(std::exception& e) {
+                        std::cout << msg_mattab_except_local << e.what() << std::endl;
+                    }
                 }
             }
-            for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-                try {
-                    i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface() / 100.0);
-                }
-                catch(std::runtime_error& re) {
-                    std::cerr << re.what() << std::endl;
-                }
-                catch(std::exception& e) {
-                    std::cout << msg_mattab_except_exiting << e.what() << std::endl;
+            if (mse_set) {
+                for (unsigned int i = 0; i < exitingmasses.size(); i++) {
+                    try {
+                        i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface() / 100.0);
+                    }
+                    catch(std::runtime_error& re) {
+                        std::cerr << re.what() << std::endl;
+                    }
+                    catch(std::exception& e) {
+                        std::cout << msg_mattab_except_exiting << e.what() << std::endl;
+                    }
                 }
             }
         }

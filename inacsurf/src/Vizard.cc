@@ -36,8 +36,8 @@ namespace insur {
         TGeoVolume* vol;
         TGeoTranslation* trans;
         TGeoCombiTrans* trafo;
-        Module* mod;
         Layer* current;
+        std::vector<Module*> templates;
         // barrels
         if (simplified) {
             for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
@@ -56,22 +56,7 @@ namespace insur {
                 c++;
             }
         }
-        else {
-            if (!am.getBarrelLayers()->empty() && !am.getBarrelLayers()->at(0)->getModuleVector()->empty()) {
-                mod = am.getBarrelLayers()->at(0)->getModuleVector()->at(0);
-                vol = gm->MakeArb8("", medact, 0);
-                vol->SetLineColor(kRed);
-                for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
-                    current = am.getBarrelLayers()->at(i);
-                    for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
-                        mod = current->getModuleVector()->at(j);
-                        trafo = modulePlacement(mod, vol);
-                        barrels->AddNode(vol, c, trafo);
-                        c++;
-                    }
-                }
-            }
-        }
+        else c = detailedModules(am.getBarrelLayers(), vol, trafo, barrels, c);
         // endcaps
         if (simplified) {
             for (unsigned int i = 0; i < am.getEndcapLayers()->size(); i++) {
@@ -84,18 +69,7 @@ namespace insur {
                 c++;
             }
         }
-        else {
-            if (!am.getEndcapLayers()->empty() && !am.getEndcapLayers()->at(0)->getModuleVector()->empty()) {
-                // TODO: for each endcap:
-                // for each ring:
-                // define module shape
-                // create volume("", shape, medact)
-                // for all modules in this ring, in every disc:
-                // define transform trafo as a combination of trans and rot
-                // endcaps->AddNode(vol, some_index, trafo);
-                // c++;
-            }
-        }
+        else c = detailedModules(am.getEndcapLayers(), vol, trafo, endcaps, c);
         
         // services
         int skip = is.getBarrelServices().size() / 2;
@@ -143,10 +117,9 @@ namespace insur {
                 }
             }
         }
-        
+        // check overlaps, write status to cout
         gm->CloseGeometry();
         geometry_created = true;
-        
     }
     
     void Vizard::display(std::string rootfilename) {
@@ -156,8 +129,7 @@ namespace insur {
             else outfilename = outfilename + rootfilename;
             TFile f(outfilename.c_str(), "recreate");
             if (f.IsZombie()) {
-                std::cout << "Something went wrong creating output file.";
-                std::cout << " Existing geometry was not written to file." << std::endl;
+                std::cout << root_wrong << std::endl;
             }
             else {
                 gm->Write();
@@ -170,7 +142,7 @@ namespace insur {
             // gm->GetMasterVolume()->Draw("ogl");
             // press 'w' for wireframe or 't' for outline view
         }
-        else std::cout << "Vizard::buildVisualization(am, is) needs to be called first to build the visual geometry objects." << std::endl;
+        else std::cout << msg_uninitialised << std::endl;
     }
     
     void Vizard::display(Tracker& am, InactiveSurfaces& is, std::string rootfilename, bool simplified) {
@@ -183,92 +155,94 @@ namespace insur {
     }
     
     void Vizard::writeNeighbourGraph(InactiveSurfaces& is, std::string outfile) {
-        std::string filename = default_graphdir + "/";
-        if (outfile.empty()) filename = filename + default_graphfile;
-        else filename = filename + outfile;
-        std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
-        try {
-            std::ofstream outstream(filename.c_str());
-            if (outstream) {
-                outstream << "BARREL SERVICES:" << std::endl << std::endl;
-                for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
-                    outstream << "Barrel element " << i << ": service is ";
-                    if (is.getBarrelServicePart(i).isFinal()) outstream << "final and ";
-                    else outstream << "not final and ";
-                    if (is.getBarrelServicePart(i).isVertical()) outstream << "vertical.";
-                    else outstream << "horizontal.";
-                    outstream << std::endl << "Feeder type: ";
-                    switch (is.getBarrelServicePart(i).getFeederType()) {
-                        case InactiveElement::no_in: outstream << "none, ";
-                        break;
-                        case InactiveElement::tracker: outstream << "tracker, ";
-                        break;
-                        case InactiveElement::barrel: outstream << "barrel service, ";
-                        break;
-                        case InactiveElement::endcap: outstream << "endcap service, ";
-                        break;
-                        default: outstream << "something weird, ";
+        if (geometry_created) {
+            std::string filename = default_graphdir + "/";
+            if (outfile.empty()) filename = filename + default_graphfile;
+            else filename = filename + outfile;
+            std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
+            try {
+                std::ofstream outstream(filename.c_str());
+                if (outstream) {
+                    outstream << "BARREL SERVICES:" << std::endl << std::endl;
+                    for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
+                        outstream << "Barrel element " << i << ": service is ";
+                        if (is.getBarrelServicePart(i).isFinal()) outstream << "final and ";
+                        else outstream << "not final and ";
+                        if (is.getBarrelServicePart(i).isVertical()) outstream << "vertical.";
+                        else outstream << "horizontal.";
+                        outstream << std::endl << "Feeder type: ";
+                        switch (is.getBarrelServicePart(i).getFeederType()) {
+                            case InactiveElement::no_in: outstream << "none, ";
+                            break;
+                            case InactiveElement::tracker: outstream << "tracker, ";
+                            break;
+                            case InactiveElement::barrel: outstream << "barrel service, ";
+                            break;
+                            case InactiveElement::endcap: outstream << "endcap service, ";
+                            break;
+                            default: outstream << "something weird, ";
+                        }
+                        outstream << "feeder index = " << is.getBarrelServicePart(i).getFeederIndex() << ".";
+                        outstream << std::endl << "Neighbour type: ";
+                        switch (is.getBarrelServicePart(i).getNeighbourType()) {
+                            case InactiveElement::no_in: outstream << "none, ";
+                            break;
+                            case InactiveElement::tracker: outstream << "tracker, ";
+                            break;
+                            case InactiveElement::barrel: outstream << "barrel service, ";
+                            break;
+                            case InactiveElement::endcap: outstream << "endcap service, ";
+                            break;
+                            default: outstream << "something weird, ";
+                        }
+                        outstream << "neighbour index = " << is.getBarrelServicePart(i).getNeighbourIndex() << ".";
+                        outstream << std::endl << std::endl;
                     }
-                    outstream << "feeder index = " << is.getBarrelServicePart(i).getFeederIndex() << ".";
-                    outstream << std::endl << "Neighbour type: ";
-                    switch (is.getBarrelServicePart(i).getNeighbourType()) {
-                        case InactiveElement::no_in: outstream << "none, ";
-                        break;
-                        case InactiveElement::tracker: outstream << "tracker, ";
-                        break;
-                        case InactiveElement::barrel: outstream << "barrel service, ";
-                        break;
-                        case InactiveElement::endcap: outstream << "endcap service, ";
-                        break;
-                        default: outstream << "something weird, ";
+                    outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
+                    for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
+                        outstream << "Endcap element " << i << ": service is ";
+                        if (is.getEndcapServicePart(i).isFinal()) outstream << "final and ";
+                        else outstream << "not final and ";
+                        if (is.getEndcapServicePart(i).isVertical()) outstream << "vertical.";
+                        else outstream << "horizontal.";
+                        outstream << std::endl << "Feeder type: ";
+                        switch (is.getEndcapServicePart(i).getFeederType()) {
+                            case InactiveElement::no_in: outstream << "none, ";
+                            break;
+                            case InactiveElement::tracker: outstream << "tracker, ";
+                            break;
+                            case InactiveElement::barrel: outstream << "barrel service, ";
+                            break;
+                            case InactiveElement::endcap: outstream << "endcap service, ";
+                            break;
+                            default: outstream << "something weird, ";
+                        }
+                        outstream << "feeder index = " << is.getEndcapServicePart(i).getFeederIndex() << ".";
+                        outstream << std::endl << "Neighbour type: ";
+                        switch (is.getEndcapServicePart(i).getNeighbourType()) {
+                            case InactiveElement::no_in: outstream << "none, ";
+                            break;
+                            case InactiveElement::tracker: outstream << "tracker, ";
+                            break;
+                            case InactiveElement::barrel: outstream << "barrel service, ";
+                            break;
+                            case InactiveElement::endcap: outstream << "endcap service, ";
+                            break;
+                            default: outstream << "something weird, ";
+                        }
+                        outstream << "neighbour index = " << is.getEndcapServicePart(i).getNeighbourIndex() << ".";
+                        outstream << std::endl << std::endl;
                     }
-                    outstream << "neighbour index = " << is.getBarrelServicePart(i).getNeighbourIndex() << ".";
-                    outstream << std::endl << std::endl;
+                    outstream.close();
+                    std::cout << "Neighbour graph written to " << filename << "." << std::endl;
                 }
-                outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
-                for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
-                    outstream << "Endcap element " << i << ": service is ";
-                    if (is.getEndcapServicePart(i).isFinal()) outstream << "final and ";
-                    else outstream << "not final and ";
-                    if (is.getEndcapServicePart(i).isVertical()) outstream << "vertical.";
-                    else outstream << "horizontal.";
-                    outstream << std::endl << "Feeder type: ";
-                    switch (is.getEndcapServicePart(i).getFeederType()) {
-                        case InactiveElement::no_in: outstream << "none, ";
-                        break;
-                        case InactiveElement::tracker: outstream << "tracker, ";
-                        break;
-                        case InactiveElement::barrel: outstream << "barrel service, ";
-                        break;
-                        case InactiveElement::endcap: outstream << "endcap service, ";
-                        break;
-                        default: outstream << "something weird, ";
-                    }
-                    outstream << "feeder index = " << is.getEndcapServicePart(i).getFeederIndex() << ".";
-                    outstream << std::endl << "Neighbour type: ";
-                    switch (is.getEndcapServicePart(i).getNeighbourType()) {
-                        case InactiveElement::no_in: outstream << "none, ";
-                        break;
-                        case InactiveElement::tracker: outstream << "tracker, ";
-                        break;
-                        case InactiveElement::barrel: outstream << "barrel service, ";
-                        break;
-                        case InactiveElement::endcap: outstream << "endcap service, ";
-                        break;
-                        default: outstream << "something weird, ";
-                    }
-                    outstream << "neighbour index = " << is.getEndcapServicePart(i).getNeighbourIndex() << ".";
-                    outstream << std::endl << std::endl;
-                }
-                outstream.close();
-                std::cout << "Neighbour graph written to " << filename << "." << std::endl;
+                else std::cout << graph_wrong << std::endl;
             }
-            else std::cout << "File stream reported error state: neighbour graph not written to file." << std::endl;
+            catch (std::bad_alloc ba) {
+                std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
+            }
         }
-        catch (std::bad_alloc ba) {
-            std::cerr << "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
-            std::cerr << "Neighbour graph was not written to file." << std::endl;
-        }
+        else std::cout << msg_uninitialised << std::endl;
     }
     
     void Vizard::dotGraph(InactiveSurfaces& is, std::string outfile) {
@@ -360,6 +334,29 @@ namespace insur {
         outstream << htmlcontents << std::endl;
         outstream.close();
         std::cout << "HTML file written to " << outfile << ", image written to " << pngout << std::endl;
+    }
+    
+    int Vizard::detailedModules(std::vector<Layer*>* layers,
+            TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter) {
+        Layer* current;
+        Module* mod;
+        if (!layers->empty()) {
+            std::cout << "detailedModules(): layers vector is not empty." << std::endl;
+            v = gm->MakeArb8("", medact, 0);
+            v->SetLineColor(kRed);
+            for (unsigned int i = 0; i < layers->size(); i++) {
+                std::cout << "detailedModules(): layer " << i << std::endl;
+                current = layers->at(i);
+                for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
+                    mod = current->getModuleVector()->at(j);
+                    t = modulePlacement(mod, v);
+                    a->AddNode(v, counter, t);
+                    counter++;
+                }
+            }
+        }
+        else std::cout << "detailedModules(): layers vector is empty." << std::endl;
+        return counter;
     }
     
     TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {

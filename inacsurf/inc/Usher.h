@@ -7,7 +7,7 @@
 
 /**
  * @file Usher.h
- * @brief This is the base class header file for the algorithm that places the inactive elements around an existing <i>Tracker</i> object of active modules.
+ * @brief This is the base class header file for the algorithm that places the inactive elements around an existing <i>Tracker</i> object of active modules
  */
 
 #ifndef _USHER_H

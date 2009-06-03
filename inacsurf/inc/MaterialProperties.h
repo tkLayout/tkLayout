@@ -32,7 +32,8 @@ namespace insur {
      * and interaction length of a tracker element, as well as the influence of the materials that make
      * up this building block. Access functions are provided where appropriate. But unless the object
      * is cloned the overall parameters should typically be calculated from a list of materials and their
-     *  properties rather than set explicitly.
+     *  properties rather than set explicitly. Some of the access functions for individual materials may
+     * throw exceptions if the requested material does not appear on the list.
      */
     class MaterialProperties {
     public:
@@ -72,8 +73,8 @@ namespace insur {
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);
         void calculateExitingMass(double offset = 0);
-        void calculateRadiationLength(MaterialTable& materials, double offset = 0);
-        void calculateInteractionLength(MaterialTable& materials,  double offset = 0);
+        void calculateRadiationLength(MaterialTable& materials, double offset = 0.0);
+        void calculateInteractionLength(MaterialTable& materials,  double offset = 0.0);
         // base print function
         void print();
     protected:

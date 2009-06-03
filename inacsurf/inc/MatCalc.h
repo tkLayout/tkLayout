@@ -20,6 +20,9 @@
 #include <MaterialTable.h>
 #include <InactiveElement.h>
 namespace insur {
+    /**
+     * Messages that may appear during the calculations
+     */
     static const std::string err_no_such_type = "Error: the requested type is not on the list.";
     static const std::string err_no_material = "Error: no material with the specified tag was found.";
     static const std::string err_no_service = "Error: no service material with the specified properties was found.";
@@ -37,7 +40,8 @@ namespace insur {
      * Once its internal data structures have been initialised from the material config file by the <i>MatParser</i> class,
      * it uses that information, combined with the geometry and position of an individual tracker element, to set
      * the local and exiting materials vector that element before getting it to calculate its overall mass, its radiation length
-     * and its interaction length. The tracker geometry is ready for further study afterwards.
+     * and its interaction length. The tracker geometry is ready for further study afterwards. Some of the access functions
+     * for various internal list elements may return an exception if the requested element does not exist on the list.
      */
     class MatCalc {
     public:
@@ -69,15 +73,12 @@ namespace insur {
         void clearModVector(Modtype type);
         void copyContents(Modtype source, Modtype dest);
         void appendContents(Modtype source, Modtype dest);
-        // TODO: add vector operations for services and supports
         bool typeRegistered(Modtype type);
         unsigned int registeredTypes();
         MaterialTable& getMaterialTable();
-        // TODO: add more functions as necessary
         virtual bool calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps);
         virtual bool calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps);
-        virtual bool calculateBarrelServiceMaterials(
-            std::vector<std::vector<ModuleCap> >& barrelcaps,
+        virtual bool calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
                 std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices);
         virtual bool calculateEndcapServiceMaterials(
             std::vector<std::vector<ModuleCap> >& endcapcaps,
@@ -87,10 +88,10 @@ namespace insur {
     protected:
         /**
          * @struct TypeInfo
-         * @brief 
-         * @param type 
-         * @param strips_across 
-         * @param segments_along 
+         * @brief Instances of this struct contain the default dimensions for modules of a certain type.
+         * @param type One of <i>rphi</i>, <i>stereo</i> or <i>pt</i> indicating the module type
+         * @param strips_across The number of chips across the module
+         * @param segments_along The number of segments along the module
          */
         struct TypeInfo {
             Modtype type;
@@ -99,6 +100,17 @@ namespace insur {
         };
         /**
          * @struct SingleMod
+         * @brief This struct contains the values for a single material that contributes to the mix within the modules.
+         * @param tag A string that identifies the material unambiguously
+         * @param A The component that depends on the position of the module on the rod as well as its layout of chips and segments
+         * @param B The component that depends on the layout of chips and segments on an individual module
+         * @param C The component that depends on the position of a module on a rod
+         * @param D The constant component local to every module in the tracker
+         * @param uA The unit of component A
+         * @param uB The unit of component B
+         * @param uC The unit of component C
+         * @param uD The unit of component D
+         * @param is_local A flag that states whether the described material is local to the module or exits the layer
          */
         struct SingleMod {
             std::string tag;
@@ -108,6 +120,10 @@ namespace insur {
         };
         /**
          * @struct SingleSerLocal
+         * @brief This struct contains the values for the local components of a service material at the layer-service boundary.
+         * @param tag A string that identifies the material unambiguously
+         * @param Q The amount of material that needs to be scaled to the actual size of the service volume
+         * @param uQ The unit of component Q
          */
         struct SingleSerLocal {
             std::string tag;
@@ -116,18 +132,28 @@ namespace insur {
         };
         /**
          * @struct SingleSerExit
+         * @brief This struct contains one mapping from layer material to service material as it is used to describe the layer-service boundary.
+         * @param tagIn A string that identifies the layer material unambiguously
+         * @param tagOut A string that identifies the resulting service material unambiguously
+         * @param In The amount of layer material that needs to be mapped to the service
+         * @param Out The amount of service material that results from the given amount of layer material
+         * @param uIn The unit of component In
+         * @param uOut The unit of component Out
+         * @param is_local A flag that states whether the resulting material is local to the service or continues outward to the next volume
          */
         struct SingleSerExit {
-            std::string tagIn;
-            double In;
-            Matunit uIn;
-            std::string tagOut;
-            double Out;
-            Matunit uOut;
+            std::string tagIn, tagOut;
+            double In, Out;
+            Matunit uIn, uOut;
             bool is_local;
         };
         /**
          * @struct SingleSup
+         * @brief This struct contains one material that is used for a certain category of support structure
+         * @param tag A string that identifies the supporting material unambiguously
+         * @param M The amount of material that needs to be scaled to the actual size of the support volume
+         * @param uM The unit of component M
+         * @param cM The category of support structure component M is used for
          */
         struct SingleSup {
             std::string tag;
@@ -137,6 +163,14 @@ namespace insur {
         };
         /**
          * @struct MatInfo
+         * @brief An instance of this struct bundles the material information for all types of volumes as it comes out of the config file.
+         * @param typeinfo A vector with information about the module layouts for different types
+         * @param modinforphi A vector describing the materials that are found in <i>rphi</i> modules
+         * @param modinfostereo A vector describing the additional materials that are found in <i>stereo</i> modules
+         * @param modinfopt A vector describing the materials that are found in <i>pt</i> modules
+         * @param serlocalinfo A vector describing the local materials in services at the layer-service boundary
+         * @param serexitinfo A vector describing the material mappings at the layer-service boundary
+         * @param supinfo A vector describing the materials that are found in the various categories of support structures
          */
         struct MatInfo {
             std::vector<TypeInfo> typeinfo;
