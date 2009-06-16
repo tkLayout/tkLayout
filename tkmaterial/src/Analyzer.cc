@@ -1,6 +1,6 @@
 /**
  * @file Analyzer.cc
- * @brief
+ * @brief This is the implementation of the class that analyses a material budget
  */
 
 #include <Analyzer.h>
@@ -16,10 +16,7 @@ namespace insur {
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
         int nTracks;
         double etaStep, eta, theta, phi;
-        if (analysed) {
-            clearHistograms();
-            analysed = !analysed;
-        }
+        clearHistograms();
         // prepare etaStep, phiStep, nTracks, nScans
         etaStep = etaMax / (double)(etaSteps - 1);
         nTracks = etaSteps;
@@ -109,16 +106,22 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
         }
-        analysed = true;
+        for (int r = 2; r <= isor.GetNbinsY(); r++) {
+            for (int z = 1; z <= isor.GetNbinsX(); z++) {
+                isor.SetBinContent(z, r, isor.GetBinContent(z, r) + isor.GetBinContent(z, r - 1));
+                isoi.SetBinContent(z, r, isor.GetBinContent(z, r) + isor.GetBinContent(z, r - 1));
+            }
+        }
     }
     
     // protected
     /**
-     * 
-     * @param tr 
-     * @param theta 
-     * @param phi
-     * @return 
+     * The layer-level analysis function for modules forms the frame for sending a single track through the active modules.
+     * It loops through all layers and adds up the results returned from the analysis of each of them.
+     * @param tr A reference to the <i>ModuleCap</i> vector of vectors that sits on top of the tracker modules
+     * @param theta The track angle in the yz-plane
+     * @param phi The track angle in the xy-plane
+     * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
      */
     std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double theta, double phi) {
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
@@ -135,6 +138,16 @@ namespace insur {
         return res;
     }
     
+    /**
+     * The module-level analysis function loops through all modules of a given layer, checking for collisions with the given track.
+     * If one is found, the radiation and interaction lengths are scaled with respect to theta, then summed up into a grand total,
+     * which is returned. As phi is fixed at the moment and the tracks hit the modules orthogonally with respect to it, it is so far
+     * not used to scale the results further.
+     * @param layer A reference to the <i>ModuleCap</i> vector linking the collection of material properties to the current layer
+     * @param theta The track angle in the yz-plane
+     * @param phi The track angle in the xy-plane
+     * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
+     */
     std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double theta, double phi) {
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
@@ -147,25 +160,32 @@ namespace insur {
         dir.SetCoordinates(1, theta, phi);
         direction = dir;
         while (iter != guard) {
-            if ((iter->getModule().getMaxZ() > 0) && 
-                (theta > iter->getModule().getMinTheta()) && (theta < iter->getModule().getMaxTheta())) {
+            if ((iter->getModule().getMaxZ() > 0) &&
+                    (theta > iter->getModule().getMinTheta()) && (theta < iter->getModule().getMaxTheta())) {
                 if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
+                        double r, z;
                         tmp.first = iter->getRadiationLength();
                         tmp.second = iter->getInteractionLength();
                         if (iter->getModule().getSubdetectorType() == Module::Barrel) {
                             tmp.first = tmp.first / sin(theta);
                             tmp.second = tmp.second / sin(theta);
+                            r = iter->getModule().getMeanPoint().Rho();
+                            if (theta != PI / 2.0) z = r / tan(theta);
+                            else z = 0.0;
                         }
                         else {
                             tmp.first = tmp.first / cos(theta);
                             tmp.second = tmp.second / cos(theta);
+                            z = iter->getModule().getMeanPoint().Z();
+                            r = z * tan(theta);
                         }
                         res.first = res.first + tmp.first;
                         res.second = res.second + tmp.second;
-                        // TODO: incorporate phi in calculation
+                        isor.Fill(z, r, res.first);
+                        isoi.Fill(z, r, res.second);
                     }
                 }
                 else std::cout << msg_module_warning << std::endl;
@@ -175,6 +195,17 @@ namespace insur {
         return res;
     }
     
+    /**
+     * The analysis function for inactive volumes loops through the given vector of elements, checking for collisions with
+     * the given track. If one is found, the radiation and interaction lengths are scaled with respect to theta, then summed
+     * up into a grand total, which is returned. As all inactive volumes are symmetric with respect to rotation around the
+     * z-axis, the track angle phi is not necessary.
+     * @param elements A reference to the collection of inactive surfaces that is to be checked for collisions with the track
+     * @param eta The pseudorapidity value of the current track
+     * @param theta The track angle in the yz-plane
+     * @param cat The category of inactive surfaces that need to be considered within the collection; none if the function is to look at all of them
+     * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
+     */
     std::pair<double, double> Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
             double theta, MaterialProperties::Category cat) {
         std::vector<InactiveElement>::iterator iter = elements.begin();
@@ -184,10 +215,11 @@ namespace insur {
         res.first = 0.0;
         res.second = 0.0;
         while (iter != guard) {
-            if (((iter->getZOffset() + iter->getZLength() > 0))
+            if (((iter->getZOffset() + iter->getZLength()) > 0)
                     && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
                 tmp = iter->getEtaMinMax();
                 if ((tmp.first < eta) && (tmp.second > eta)) {
+                    double r, z;
                     if (iter->isVertical()) {
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
@@ -199,6 +231,8 @@ namespace insur {
                             res.first = res.first + iter->getRadiationLength() / cos(theta);
                             res.second = res.second + iter->getInteractionLength() / cos(theta);
                         }
+                        z = iter->getZOffset() + iter->getZLength() / 2.0;
+                        r = z * tan(theta);
                     }
                     else {
                         if (cat == MaterialProperties::u_sup) {
@@ -211,7 +245,12 @@ namespace insur {
                             res.first = res.first + iter->getRadiationLength() / sin(theta);
                             res.second = res.second + iter->getInteractionLength() / sin(theta);
                         }
+                        r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+                        if (theta != PI / 2.0) z = r / tan(theta);
+                        else z = 0.0;
                     }
+                    isor.Fill(z, r, res.first);
+                    isoi.Fill(z, r, res.second);
                 }
             }
             iter++;
@@ -219,6 +258,9 @@ namespace insur {
         return res;
     }
     
+    /**
+     * This convenience function resets and empties all histograms so they are ready for a new round of analysis.
+     */
     void Analyzer::clearHistograms() {
         ractivebarrel.Reset();
         ractivebarrel.SetNameTitle("ractivebarrels", "Barrel Modules Radiation Length");
@@ -278,8 +320,17 @@ namespace insur {
         rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
         iglobal.Reset();
         iglobal.SetNameTitle("iglobal", "Overall Interaction Length");
+        // isolines
+        isor.Reset();
+        isor.SetNameTitle("isor", "Radiation Length Contours");
+        isoi.Reset();
+        isoi.SetNameTitle("isoi", "Interaction Length Contours");
     }
     
+    /**
+     * This convenience function sets the number of bins and the lower and upper range for their contents for
+     * each of the available histograms.
+     */
     void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
         ractivebarrel.SetBins(bins, min, max);
         ractiveendcap.SetBins(bins, min, max);
@@ -309,5 +360,7 @@ namespace insur {
         ilazyall.SetBins(bins, min, max);
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
-    }
+        isor.SetBins(z_bins, 0.0, max_length / 2.0, r_bins, inner_radius - volume_width, outer_radius);
+        isoi.SetBins(z_bins, 0.0, max_length / 2.0, r_bins, inner_radius - volume_width, outer_radius);
+    } 
 }

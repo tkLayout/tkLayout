@@ -257,6 +257,7 @@ namespace insur {
         THStack rcontainer("rstack", "Radiation Length by Category");
         THStack icontainer("istack", "Interaction Length by Category");
         TH1D *cr = NULL, *ci = NULL, *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+        //TH2D *ir = NULL, *ii = NULL;
         TVirtualPad* pad;
         std::string outfile = default_summarypath + "/";
         std::string pngoutfile, pngout;
@@ -273,7 +274,8 @@ namespace insur {
         std::ofstream outstream(outfile.c_str());
         TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 800, 800);
         c.SetFillColor(kWhite);
-        c.Divide(2, 2);
+        c.Divide(2,2);
+        //c.Divide(2, 3);
         pad = c.GetPad(0);
         pad->SetFillColor(kGray);
         pad = c.GetPad(1);
@@ -320,6 +322,22 @@ namespace insur {
         icontainer.Add(aci);
         aci->SetXTitle("Eta");
         icontainer.Draw();
+        /*pad = c.GetPad(5);
+        pad->cd();
+        ir = (TH2D*)a.getHistoIsoR().Clone();
+        ir->SetNameTitle("isor", "Radiation Length Contours");
+        ir->SetContour(5);
+        ir->SetXTitle("z");
+        ir->SetYTitle("r");
+        ir->Draw("CONT");
+        pad = c.GetPad(6);
+        pad->cd();
+        ii = (TH2D*)a.getHistoIsoI().Clone();
+        ii->SetNameTitle("isoi", "Interaction Length Contours");
+        ii->SetContour(5);
+        ii->SetXTitle("z");
+        ii->SetYTitle("r");
+        ii->Draw("CONT");*/
         c.SaveAs(pngout.c_str());
         if (cr) delete cr;
         if (ci) delete ci;

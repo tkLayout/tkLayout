@@ -6,6 +6,11 @@
 #include <MaterialProperties.h>
 namespace insur {
     /*-----public functions-----*/
+    /**
+     * The constructor sets a few defaults. The flags for the initialisation status of the material vectors are
+     * set to false, the element category to none, i.e. unidentified, and the numeric values for the sums of masses
+     * and the radiation and interaction lengths to -1 to indicate that they are all uninitialised.
+     */
     MaterialProperties::MaterialProperties() {
         msl_set = false;
         mse_set = false;
@@ -17,15 +22,30 @@ namespace insur {
         i_length = -1;
     }
     
+    /**
+     * Get the category of this element.
+     * @return The category identifier as defined in the enumeration <i>Category</i>
+     */
     MaterialProperties::Category MaterialProperties::getCategory() { return cat; }
     
+    /**
+     * Set the category of this element.
+     * @param c The category identifier as defined in the enumeration <i>Category</i>
+     */
     void MaterialProperties::setCategory(Category c) { cat = c; }
     
+    /**
+     * Get the surface of this element that is relevant for tracking. This is a virtual function that is meant to be
+     * implemented by the subclasses since the material properties as collected in this class know nothing about
+     * the geometry of the element they belong to. As soon as a subclass contains the relevant information, it is
+     * expected to provide a meaningful value that this function can return.
+     * @return A constant value of <i>-1</i>
+     */
     double MaterialProperties::getSurface() { return -1; }
     
     /**
      * Get the local mass of one of the materials, as identified by its name, that make up the element.
-     * If the material is not present in the list, the function throws an exception.
+     * If the material does not appear on the list, the function throws an exception.
      * @param tag The name of the material
      * @return The mass of the requested material
      */
@@ -37,7 +57,7 @@ namespace insur {
     
     /**
      * Get the local mass of one of the materials, as identified by its internal index, that make up the element.
-     * If the material is not present in the list, the function throws an exception.
+     * If the material does not appear on the list, the function throws an exception.
      * @param index The internal index of the material
      * @return The mass of the requested material
      */
@@ -46,6 +66,12 @@ namespace insur {
         return localmasses.at(index).second;
     }
     
+    /**
+     * Get the tag of one of the local materials that make up the element by its internal index. If the material
+     * does not appear on the list, the function returns an empty string.
+     * @param index The internal index of the material
+     * @return The unique identifier of the requested material
+     */
     std::string MaterialProperties::getLocalTag(int index) {
         std::string res;
         if ((index >= 0) && (index < (int)localmasses.size())) res = localmasses.at(index).first;
@@ -54,7 +80,7 @@ namespace insur {
     
     /**
      * Get the exiting mass of one of the materials, as identified by its name, that make up the element.
-     * If the material is not present in the list, the function throws an exception.
+     * If the material does not appear on the list, the function throws an exception.
      * @param tag The name of the material
      * @return The mass of the requested material
      */
@@ -66,7 +92,7 @@ namespace insur {
     
     /**
      * Get the exiting mass of one of the materials, as identified by its internal index, that make up the element.
-     * If the material is not present in the list, the function throws an exception.
+     * If the material does not appear on the list, the function throws an exception.
      * @param index The internal index of the material
      * @return The mass of the requested material
      */
@@ -75,6 +101,12 @@ namespace insur {
         return exitingmasses.at(index).second;
     }
     
+    /**
+     * Get the tag of one of the exiting materials that make up the element by its internal index. If the material
+     * does not appear on the list, the function returns an empty string.
+     * @param index The internal index of the material
+     * @return The unique identifier of the requested material
+     */
     std::string MaterialProperties::getExitingTag(int index) {
         std::string res;
         if ((index >=0) && (index < (int)exitingmasses.size())) res = exitingmasses.at(index).first;
@@ -94,7 +126,8 @@ namespace insur {
     
     /**
      * Add the local mass for a material, as specified by its tag, to the internal list.
-     * If the given material is already listed with a mass value, that value is replaced.
+     * If the given material is already listed with a mass value, the new value is added
+     * to the existing one.
      * @param tag The name of the material
      * @param ms The mass value
      */
@@ -116,7 +149,8 @@ namespace insur {
     
     /**
      * Add the exiting mass for a material, as specified by its tag, to the internal list.
-     * If the given material is already listed with a mass value, that value is replaced.
+     * If the given material is already listed with a mass value, the new value is added
+     * to the existing one.
      * @param tag The name of the material
      * @param ms The mass value
      */
@@ -189,7 +223,7 @@ namespace insur {
     
     /**
      * Calculate the overall mass of the inactive element from the internal mass vectors,
-     * if the one of the mass vectors has at least one element in it.
+     * if the one of the mass vectors has at least one element in it, and an offset value.
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateTotalMass(double offset) {
@@ -198,11 +232,12 @@ namespace insur {
         if (msl_set && mse_set) total_mass = local_mass + exiting_mass + offset;
         else if (!msl_set) total_mass = exiting_mass + offset;
         else if (!mse_set) total_mass = local_mass + offset;
+        else total_mass = offset;
     }
     
     /**
      * Calculate the overall local mass of the inactive element from the internal mass vector,
-     * if that mass vectors has at least one element in it.
+     * if that mass vectors has at least one element in it, and an offset value.
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateLocalMass(double offset) {
@@ -215,7 +250,7 @@ namespace insur {
     
     /**
      * Calculate the overall exiting mass of the inactive element from the internal mass vector,
-     * if that mass vectors has at least one element in it.
+     * if that mass vectors has at least one element in it, and an offset value.
      * @param offset A starting value for the calculation
      */
     void MaterialProperties::calculateExitingMass(double offset) {
@@ -225,8 +260,8 @@ namespace insur {
         }
     }
     /**
-     * Calculate the overall radiation length of the inactive element from the material table and the internal thickness vector,
-     * if the thickness vector has at least one element in it.
+     * Calculate the overall radiation length of the inactive element from the material table and the material vectors,
+     * if they have at least one element in them, and an offset value.
      * @param materials A reference to the external material table
      * @param offset A starting value for the calculation
      */
@@ -263,8 +298,8 @@ namespace insur {
     }
     
     /**
-     * Calculate the overall interaction length of the inactive element from the material table and the internal thickness vector,
-     * if the thickness vector has at least one element in it.
+     * Calculate the overall interaction length of the inactive element from the material table and the material vectors,
+     * if they have at least one element in them, and an offset value.
      * @param materials A reference to the external material table
      * @param offset A starting value for the calculation
      */

@@ -6,7 +6,9 @@
 #include <InactiveElement.h>
 namespace insur {
     /*-----public functions-----*/
-    
+    /**
+     * The constructor sets some defaults: no neighbours, intermediate element.
+     */
     InactiveElement::InactiveElement() {
         is_final = false;
         feeder_type = no_in;
@@ -15,13 +17,17 @@ namespace insur {
         neighbour_index = -1;
     }
     
+    /**
+     * Get the surface of the element that is relevant for material budget calculation.
+     * @return The average cylinder surface for a horizontal tube, the disc surface for a vertical disc
+     */
     double InactiveElement::getSurface() {
         if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * PI;
         else return 2 * PI * (i_radius + w_radius / 2.0) * z_length;
     }
     
     /**
-     * Query the orientation of the object.
+     * Get the orientation of the object.
      * @return True if the element points up or down, false if it points sideways
      */
     bool InactiveElement::isVertical() { return is_vertical; }
@@ -32,8 +38,16 @@ namespace insur {
      */
     void InactiveElement::setVertical(bool vertical) { is_vertical = vertical; }
     
+    /**
+     * Check if the content of this element travels out of the tracking volume after this.
+     * @return True if the element is not a neighbour to anything, false otherwise
+     */
     bool InactiveElement::isFinal() { return is_final; }
     
+    /**
+     * Set if the content of this element travels out of the tracking volume after this.
+     * @param final Should be true if the element is not a neighbour to anything and false otherwise
+     */
     void InactiveElement::setFinal(bool final) { is_final = final; }
     
     /**
@@ -84,20 +98,52 @@ namespace insur {
      */
     void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
     
+    /**
+     * Get the index of the element's feeder volume.
+     * @return The index within the tracker object's layer or disc vector, or of the service volume; -1 if there is none
+     */
     int InactiveElement::getFeederIndex() { return feeder_index; }
     
+    /**
+     * Set the index of the element's feeder volume.
+     * @param layer The index within the tracker object's layer or disc vector, or of the service volume
+     */
     void InactiveElement::setFeederIndex(int layer) { feeder_index = layer; }
     
+    /**
+     * Get the type of the element's feeder volume.
+     * @return The type of feeder as listed in the enumeration <i>InType</i>
+     */
     InactiveElement::InType InactiveElement::getFeederType() { return feeder_type; }
     
+    /**
+     * Set the type of the element's feeder volume.
+     * @param type The type of feeder as listed in the enumeration <i>InType</i>
+     */
     void InactiveElement::setFeederType(InType type) { feeder_type = type; }
     
+    /**
+     * Get the index of the element's neighbour volume.
+     * @return The index of the previous service volume
+     */
     int InactiveElement::getNeighbourIndex() { return neighbour_index; }
     
+    /**
+     * Set the index of the element's neighbour volume.
+     * @param previous The index of the previous service volume
+     */
     void InactiveElement::setNeighbourIndex(int previous) { neighbour_index = previous; }
     
+    /**
+     * Get the type of the element's neighbour volume.
+     * @return The type of neighbour as listed in the enumeration <i>InType</i>
+     */
     InactiveElement::InType InactiveElement::getNeighbourType() { return neighbour_type; }
     
+    /**
+     * Set the type of the element-s neighbour volume.
+     * @param type The type of neighbour as listed in the enumeration <i>InType</i>
+     */
     void InactiveElement::setNeighbourType(InactiveElement::InType type) { neighbour_type = type; }
     
     /**

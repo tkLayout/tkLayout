@@ -1,7 +1,21 @@
+/**
+ * @file MatCalcDummy.cc
+ * @brief This is the implementation of the derivative material assignment test class
+ */
+
 #include <MatCalcDummy.h>
 namespace insur {
+    /**
+     * The constructor simply calls the init function...
+     */
     MatCalcDummy::MatCalcDummy() { init(); }
     
+    /**
+     * The function to assign materials to the barrel modules simply puts the same static amount in each one. It overrides the
+     * more complex version of the parent class with something quick and dirty.
+     * @param barrelcaps A reference to the collection of <i>ModuleCap</i> objects that sit on top of the barrel modules
+     * @return True, because the process is always considered successful - even if one of the module surfaces was reported as negative
+     */
     bool MatCalcDummy::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
         for (unsigned int i = 0; i < barrelcaps.size(); i++) {
             for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
@@ -17,6 +31,13 @@ namespace insur {
         return true;
     }
     
+    
+    /**
+     * The function to assign materials to the endcap modules simply puts the same static amount in each one. It overrides
+     * the more complex version of the parent class with something quick and dirty.
+     * @param endcapcaps A reference to the collection of <i>ModuleCap</i> objects that sit on top of the endcap modules
+     * @return True, because the process is always considered successful - even if one of the module surfaces was reported as negative
+     */
     bool MatCalcDummy::calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps) {
         for (unsigned int i = 0; i < endcapcaps.size(); i++) {
             for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
@@ -32,6 +53,14 @@ namespace insur {
         return true;
     }
     
+    /**
+     * The function to assign materials to the barrel services simply puts the same static amount in each one. It overrides
+     * the more complex version of the parent class with something quick and dirty.
+     * @param barrelcaps A reference to the collection of <i>ModuleCap</i> that sits on top of the barrel modules; unused
+     * @param barrelservices A reference to the collection of barrel services
+     * @param endcapservices A reference to the collection of endcap services; unused
+     * @return True, because the process is always considered successful
+     */
     bool MatCalcDummy::calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
                             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
         for (unsigned int i = 0; i < barrelservices.size(); i++) {
@@ -43,6 +72,14 @@ namespace insur {
         return true;
     }
     
+    /**
+     * The function to assign materials to the endcap services simply puts the same static amount in each one. It overrides
+     * the more complex version of the parent class with something quick and dirty.
+     * @param endcapcaps A reference to the collection of <i>ModuleCap</i> that sits on top of the endcap modules; unused
+     * @param barrelservices A reference to the collection of barrel services; unused
+     * @param endcapservices A reference to the collection of endcap services
+     * @return True, because the process is always considered successful
+     */
     bool MatCalcDummy::calculateEndcapServiceMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps,
                             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
         for (unsigned int i = 0; i < endcapservices.size(); i++) {
@@ -54,6 +91,12 @@ namespace insur {
         return true;
     }
     
+    /**
+     * The function to assign materials to the supports simply puts the same static amount in each one. It overrides the 
+     * more complex version of the parent class with something quick and dirty.
+     * @param supports A reference to the collection of support parts
+     * @return True, because the process is always considered successful
+     */
     bool MatCalcDummy::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
         for (unsigned int i = 0; i < supports.size(); i++) {
             if (supports.at(i).isVertical()) supports.at(i).addLocalMass(tl, lb);
@@ -65,6 +108,10 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This function initialises the material variables and the material table to the dummy values necessary to assign
+     * test materials and calculate the radiation and interaction lengths from them.
+     */
     void MatCalcDummy::init() {
         ta = "Si_dummy";
         ts = "Cu_dummy";

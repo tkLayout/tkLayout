@@ -38,7 +38,7 @@ namespace insur {
      */
     class Analyzer {
     public:
-        Analyzer() { analysed = false; }
+        Analyzer() {}
         virtual ~Analyzer() {}
         TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
         TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
@@ -68,14 +68,18 @@ namespace insur {
         TH1D& getHistoSupportsAllI() { return ilazyall; }
         TH1D& getHistoGlobalR() { return rglobal; }
         TH1D& getHistoGlobalI() { return iglobal; }
+        TH2D& getHistoIsoR() { return isor; }
+        TH2D& getHistoIsoI() { return isoi; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
     protected:
-        bool analysed;
+        static const int r_bins = 25;
+        static const int z_bins = 50;
         TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazytube, rlazyuserdef;
         TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazytube, ilazyuserdef;
         TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
         TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
         TH1D rglobal, iglobal;
+        TH2D isor, isoi;
         virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta);
         virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double theta, double phi);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,

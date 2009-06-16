@@ -6,6 +6,17 @@
 #include <Usher.h>
 namespace insur {
     // public
+    /**
+     * This is the function that provides a frame for the steps that are necessary to build up the inactive surfaces around
+     * a given collection of active modules. The tracker object is analysed first, then the information is used to create the
+     * inactive surfaces on the z+ side. In a last step, those surfaces are mirrored around the origin of z to create the
+     * complete set of volumes.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
+     * @param printstatus A flag that turns the command line summary at the end of processing on or off
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
@@ -17,6 +28,14 @@ namespace insur {
     }
     
     // protected
+    /**
+     * This function provides a frame for the steps that are necessary to to build the inactive surfaces on the z+
+     * side for the UP configuration.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         std::cout << "Arranging UP configuration..." << std::endl;
         is = servicesUp(tracker, is);
@@ -25,6 +44,14 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This function provides a frame for the steps that are necessary to to build the inactive surfaces on the z+
+     * side for the DOWN configuration.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         std::cout << "Arranging DOWN configuration..." << std::endl;
         is = servicesDown(tracker, is);
@@ -33,6 +60,13 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the function that performs the final mirror operation once the z+ side has been completed.
+     * It takes care of tracking the correct feeder and neighbour volumes in the mirror images as well.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that the mirror operations will be applied to
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::mirror(TrackerIntRep& tracker, InactiveSurfaces& is) {
         std::cout << "Mirroring barrel services...";
         unsigned int half = is.getBarrelServices().size();
@@ -118,6 +152,17 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the core function that creates and arranges the service volumes in an UP configuration.
+     * It first deals with the cut layers that are logically part of the barrel above but treated separately
+     * by the analysis function. Then it works through the remaining barrels, then through the endcaps.
+     * Feeder and neighbour relations within a single barrel or a single endcap are taken care of right
+     * away, the interconnections between the two categories are done as a last step after everything
+     * else is in place.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is) {
         double zl, zo, ri, rw;
         int k = 0, h;
@@ -243,6 +288,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the core function that creates and arranges the service volumes in an DOWN configuration.
+     * It first deals with the cut layers that are logically part of the barrel above but treated separately
+     * by the analysis function. Then it works through the remaining barrel-endcap pair. Feeder and
+     * neighbour relations are taken care of right away since the structure is much simpler than that
+     * of the UP configuration and allows for far less variation.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is) {
         double zrl, ztl, zbo, zeo, ri, rrw, rtw;
         int k = 0;
@@ -291,6 +346,13 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This function provides a frame for the steps that are necessary to to build the supports on the z+ side.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         // outer tube
         is = addSupportTube(is, max_length, 0.0 - max_length / 2.0, outer_radius, volume_width);
@@ -310,6 +372,15 @@ namespace insur {
     }
     
 // private
+    /**
+     * This convenience function bundles service creation and arrangement for the last barrel within a
+     * tracker. It takes care of connecting feeders and neighbours to a certain extent but does not
+     * connect anything to other active surface layers or discs outside the last barrel.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param layer The overall layer index of the first layer of the last barrel
+     * @return One past the last overall layer index that occurs in the tracker, i.e. the total number of barrel layers
+     */
     int Usher::servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, int layer) {
         int om_b;
         double zl, zo, ri, rw;
@@ -346,6 +417,13 @@ namespace insur {
         return layer;
     }
     
+    /**
+     * This is the core function that creates and arranges the support parts that hold up the regular barrels.
+     * It places a disc at the end of each barrel and outside the service volumes that belong to that same barrel.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
         double zl, zo, ri, rw;
         int k = 0;
@@ -363,6 +441,14 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the core function that creates and arranges the extra support parts needed in short barrels.
+     * It places a disc at the inner end of each of those, reaching in radius from the nearest long layer below
+     * to the nearest long layer above.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
         bool regular;
         unsigned int start, stop;
@@ -395,6 +481,13 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the core function that creates and arranges the support parts that hold up the endcaps. It places
+     * two tubes per endcap, one inside the innermost and one outside the outmost ring, outside the service volumes.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is) {
         double zl, zo, ri, rw;
         int k = 0;
@@ -415,6 +508,18 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This is the core function that creates and arranges the user-defined support parts. It uses
+     * a function in the <i>configParser</i> class to extract a collection of positions in z from
+     * the geometry configuration file and goes on to place a series of support discs - one between
+     * each layer pair - from the inner to the outer support tube across all barrels. Since these
+     * discs are mirrored later along with everything else, only z positions equal or greater than 0
+     * are considered in the config file.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param geomfile The name of the tracker's geometry configuration file for the user-defined supports
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         int start, stop;
         double z, r, w;
@@ -463,6 +568,20 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This function performs the vital task of connecting barrel and endcap services in neighbourhood
+     * relations. Each barrel's last service volume is connected to its endcap's first, if it exists. By contrast,
+     * each endcap's last service volume is connected to the first volume of the next barrel out, if such a
+     * barrel exists.
+     * @param tracker A reference to the existing tracker object with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param begin_b The index of the first barrel service that needs to be considered for connection to an endcap service
+     * @param end_b One past the index of the last barrel service that needs to be considered for connection to an endcap service
+     * @param begin_e The index of the first endcap service that needs to be considered for connection to a barrel service
+     * @param end_e One past the index of the last endcap service that needs to be considered for connection to a barrel service
+     * @param d_offset An index offset into the collection of endcap services; used when mirroring endcap services
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::joinBarrelEndcapServices(
     TrackerIntRep& tracker, InactiveSurfaces& is, int begin_b, int end_b, int begin_e, int end_e, int d_offset) {
         std::vector<std::pair<int, int> > first_last_barrel, first_last_endcap;
@@ -521,6 +640,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function adds a ring of the given specifics to the collection of barrel services.
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param length The length in z
+     * @param offset The position of the leftmost end in z
+     * @param radius The inner radius
+     * @param width The width in r
+     * @param final A flag indicating if the volume will be neighbour to anything or not
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::addBarrelServiceRing(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final) {
         InactiveRing ir;
         ir.setZLength(length);
@@ -532,6 +661,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function adds a tube of the given specifics to the collection of barrel services.
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param length The length in z
+     * @param offset The position of the leftmost end in z
+     * @param radius The inner radius
+     * @param width The width in r
+     * @param final A flag indicating if the volume will be neighbour to anything or not
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::addBarrelServiceTube(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final) {
         InactiveTube it;
         it.setZLength(length);
@@ -543,6 +682,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function adds a tube of the given specifics to the collection of endcap services.
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param length The length in z
+     * @param offset The position of the leftmost end in z
+     * @param radius The inner radius
+     * @param width The width in r
+     * @param final A flag indicating if the volume will be neighbour to anything or not
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::addEndcapServiceTube(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final) {
         InactiveTube it;
         it.setZLength(length);
@@ -554,6 +703,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function adds a ring of the given specifics to the collection of supports.
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param length The length in z
+     * @param offset The position of the leftmost end in z
+     * @param radius The inner radius
+     * @param width The width in r
+     * @param final A flag indicating if the volume will be neighbour to anything or not
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::addSupportRing(InactiveSurfaces& is, double length, double offset, double radius, double width) {
         InactiveRing ir;
         ir.setZLength(length);
@@ -564,6 +723,16 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function adds a tube of the given specifics to the collection of supports.
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param length The length in z
+     * @param offset The position of the leftmost end in z
+     * @param radius The inner radius
+     * @param width The width in r
+     * @param final A flag indicating if the volume will be neighbour to anything or not
+     * @return A reference to the modified collection of inactive surfaces
+     */
     InactiveSurfaces& Usher::addSupportTube(InactiveSurfaces& is, double length, double offset, double radius, double width) {
         InactiveTube it;
         it.setZLength(length);
@@ -574,6 +743,12 @@ namespace insur {
         return is;
     }
     
+    /**
+     * This convenience function creates a mirror image of a ring from a blueprint volume with respect to
+     * the z origin. The feeder and neighbour indices may have to be adjusted further afterwards.
+     * @param blueprint A reference to the original ring object
+     * @return The mirror image constructed from the blueprint
+     */
     InactiveRing Usher::mirrorRing(InactiveElement& blueprint) {
         InactiveRing ir;
         ir.setCategory(blueprint.getCategory());
@@ -596,6 +771,12 @@ namespace insur {
         return ir;
     }
     
+    /**
+     * This convenience function creates a mirror image of a tube from a blueprint volume with respect to
+     * the z origin. The feeder and neighbour indices may have to be adjusted further afterwards.
+     * @param blueprint A reference to the original tube object
+     * @return The mirror image constructed from the blueprint
+     */
     InactiveTube Usher::mirrorTube(InactiveElement& blueprint) {
         InactiveTube it;
         it.setCategory(blueprint.getCategory());
@@ -618,6 +799,12 @@ namespace insur {
         return it;
     }
     
+    /**
+     * This convenience function calculates the inner radius of an entire barrel.
+     * @param barrel The internal index of the barrel
+     * @param tintrep A reference to the internal data collection that represents the measurements of the tracker object
+     * @return The inner radius of the given barrel
+     */
     int Usher::findBarrelInnerRadius(int barrel, TrackerIntRep& tintrep) {
         int l = 0;
         for (int i = 0; i < barrel; i ++) {
@@ -626,6 +813,11 @@ namespace insur {
         return l;
     }
     
+    /**
+     * This convenience function finds the maximum size in z of the tracker object.
+     * @param tintrep A reference to the internal data collection that represents the measurements of the tracker object
+     * @return The maxima extension in z of the active tracker volumes
+     */
     double Usher::findMaxBarrelZ(TrackerIntRep& tintrep) {
         double z_max = -1.0;
         for (int i = 0; i < tintrep.nOfBarrels(); i++) {
@@ -634,6 +826,11 @@ namespace insur {
         return z_max;
     }
     
+    /**
+     * Print the internal status of the active and inactive surfaces given to the usher to be arranged.
+     * @param tintrep A reference to the internal data collection that represents the measurements of the tracker object
+     * @param is A reference to the collection of inactive surfaces that belong to this tracker
+     */
     void Usher::print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary) {
         std::cout << std::endl << "Current state of the system is:" << std::endl;
         std::cout << "Printing tracker information..." << std::endl;
@@ -644,16 +841,39 @@ namespace insur {
     }
     
 // nested class public
+    /**
+     * Get the number of barrels in a previously analysed tracker object. If no such object has been analysed
+     * yet, the function returns the negative value of -1 to indicate this. The number reflects the logical number
+     * of barrels relevant to inactive surface placement; it may be different from the conceptual number of
+     * barrels defined in the geometry configuration file.
+     * @return The number of barrels in the tracker as detected by the analysis function.
+     */
     int Usher::TrackerIntRep::nOfBarrels() {
         if (post_analysis) return n_of_layers.size();
         else return -1;
     }
     
+    /**
+     * Get the number of endcaps in a previously analysed tracker object. If no such object has been analysed
+     * yet, the function returns the negative value of -1 to indicate this. The number reflects the logical number
+     * of endcaps relevant to inactive surface placement; it may be different from the conceptual number of
+     * endcaps defined in the geometry configuration file. This is not the case at the moment but it may change
+     * if necessary.
+     * @return The number of endcaps in the tracker as detected by the analysis function.
+     */
     int Usher::TrackerIntRep::nOfEndcaps() {
         if (post_analysis) return n_of_discs.size();
         else return -1;
     }
     
+    /**
+     * Get the number of layers in a given barrel of a previously analysed tracker object. If no such object has been
+     * analysed yet or if the barrel index is out of range, the function returns the negative value of -1 to indicate this.
+     * The number reflects the logical number of barrels relevant to inactive surface placement; it may be different
+     * from the conceptual number of barrels defined in the geometry configuration file.
+     * @param barrelindex The internal, logical index of the requested barrel
+     * @return The number of layers in the requested logical barrel
+     */
     int Usher::TrackerIntRep::nOfLayers(int barrelindex) {
         if (post_analysis) {
             if ((barrelindex >= 0) && ((unsigned int)barrelindex < n_of_layers.size())) return n_of_layers.at(barrelindex);
@@ -661,12 +881,29 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the total number of layers across all barrels in a previously analysed tracker object. If no such object has
+     * been analysed yet, the function returns the negative value of -1 to indicate this.
+     * @return The total number of layers in the tracker
+     */
     unsigned int Usher::TrackerIntRep::totalLayers() {
-        unsigned int sum = 0;
-        for (unsigned int i = 0; i < n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
-        return sum;
+        if (post_analysis) {
+            unsigned int sum = 0;
+            for (unsigned int i = 0; i < n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
+            return sum;
+        }
+        return -1;
     }
     
+    /**
+     * Get the number of discs in a given endcap of a previously analysed tracker object. If no such object has been
+     * analysed yet or if the endcap index is out of range, the function returns the negative value of -1 to indicate this.
+     * The number reflects the logical number of endcaps relevant to inactive surface placement; it may be different
+     * from the conceptual number of endcaps defined in the geometry configuration file. This is not the case at the
+     * moment but may change if necessary.
+     * @param barrelindex The internal, logical index of the requested endcap
+     * @return The number of discs in the requested logical endcap
+     */
     int Usher::TrackerIntRep::nOfDiscs(int endcapindex) {
         if (post_analysis) {
             if ((endcapindex >= 0) && ((unsigned int)endcapindex < n_of_discs.size())) return n_of_discs.at(endcapindex);
@@ -674,12 +911,27 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the total number of discs across all endcaps on the z+ side in a previously analysed tracker object.
+     * If no such object has been analysed yet, the function returns the negative value of -1 to indicate this.
+     * @return The total number of discs on the z+ side of the tracker
+     */
     unsigned int Usher::TrackerIntRep::totalDiscs() {
-        unsigned int sum = 0;
-        for (unsigned int i = 0; i < n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
-        return sum;
+        if (post_analysis) {
+            unsigned int sum = 0;
+            for (unsigned int i = 0; i < n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
+            return sum;
+        }
+        return -1;
     }
     
+    /**
+     * Get the inner radius of a layer from the tracker object analysis data. If no analysis of a tracker object
+     * has been performed yet or if the layer index is out of range, the function returns the negative value of
+     * -1 to indicate this.
+     * @param layerindex The layer index
+     * @return The inner radius of the given layer
+     */
     double Usher::TrackerIntRep::innerRadiusLayer(int layerindex) {
         if (post_analysis) {
             if ((layerindex >= 0) && ((unsigned int)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).first;
@@ -687,14 +939,27 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the outer radius of a layer from the tracker object analysis data. If no analysis of a tracker object
+     * has been performed yet or if the layer index is out of range, the function returns the negative value of
+     * -1 to indicate this.
+     *@param layerindex The layer index
+     * @return The inner radius of the given layer
+     */
     double Usher::TrackerIntRep::outerRadiusLayer(int layerindex) {
         if (post_analysis) {
             if ((layerindex >= 0) && ((unsigned int)layerindex < layers_io_radius.size())) return layers_io_radius.at(layerindex).second;
         }
         return -1;
-        return -1;
     }
     
+    /**
+     * Get the inner radius of an endcap from the tracker object analysis data. If no analysis of a tracker object
+     * has been performed yet or if the endcap index is out of range, the function returns the negative value of
+     * -1 to indicate this.
+     * @param endcapindex The logical endcap index
+     * @return The inner radius of the given endcap
+     */
     double Usher::TrackerIntRep::innerRadiusEndcap(int endcapindex) {
         if (post_analysis) {
             if ((endcapindex >= 0) && ((unsigned int)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).first;
@@ -702,6 +967,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the outer radius of an endcap from the tracker object analysis data. If no analysis of a tracker object
+     * has been performed yet or if the endcap index is out of range, the function returns the negative value of
+     * -1 to indicate this.
+     * @param endcapindex The logical endcap index
+     * @return The inner radius of the given endcap
+     */
     double Usher::TrackerIntRep::outerRadiusEndcap(int endcapindex) {
         if (post_analysis) {
             if ((endcapindex >= 0) && ((unsigned int)endcapindex < endcaps_io_radius.size())) return endcaps_io_radius.at(endcapindex).second;
@@ -709,6 +981,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the length of a barrel from the tracker object analysis data. If no analysis of a tracker object has been
+     * performed yet or if the barrel index is out of range, the function returns the negative value of -1 to indicate
+     * this.
+     * @param barrelindex The logical barrel index
+     * @return The total length of the given barrel
+     */
     double Usher::TrackerIntRep::lengthBarrel(int barrelindex) {
         if (post_analysis) {
             if ((barrelindex >= 0) && ((unsigned int)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).first;
@@ -716,6 +995,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the leftmost z of a barrel from the tracker object analysis data. If no analysis of a tracker object has been
+     * performed yet or if the barrel index is out of range, the function returns the negative value of -1 to indicate
+     * this.
+     * @param barrelindex The logical barrel index
+     * @return The leftmost z of the given barrel
+     */
     double Usher::TrackerIntRep::zOffsetBarrel(int barrelindex) {
         if (post_analysis) {
             if ((barrelindex >= 0) && ((unsigned int)barrelindex < barrels_length_offset.size())) return barrels_length_offset.at(barrelindex).second;
@@ -723,6 +1009,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the width in z of a disc from the tracker object analysis data. If no analysis of a tracker object has been
+     * performed yet or if the disc index is out of range, the function returns the negative value of -1 to indicate
+     * this.
+     * @param discindex The logical disc index
+     * @return The total width in z of the given disc
+     */
     double Usher::TrackerIntRep::lengthDisc(int discindex) {
         if (post_analysis) {
             if ((discindex >= 0) && ((unsigned int)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).first;
@@ -730,6 +1023,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the leftmost z of a disc from the tracker object analysis data. If no analysis of a tracker object has been
+     * performed yet or if the disc index is out of range, the function returns the negative value of -1 to indicate
+     * this.
+     * @param discindex The logical disc index
+     * @return The leftmost z of the given disc
+     */
     double Usher::TrackerIntRep::zOffsetDisc(int discindex) {
         if (post_analysis) {
             if ((discindex >= 0) && ((unsigned int)discindex < discs_length_offset.size())) return discs_length_offset.at(discindex).second;
@@ -737,6 +1037,7 @@ namespace insur {
         return -1;
     }
     
+    //here
     int Usher::TrackerIntRep::realIndexLayer(int tintreplayer) {
         if (post_analysis) {
             if ((tintreplayer >= 0) && ((unsigned int)tintreplayer < real_index_layer.size())) return real_index_layer.at(tintreplayer);
@@ -762,40 +1063,43 @@ namespace insur {
         return up;
     }
     
+    /**
+     * Print a summary of the internal tracker representation.
+     */
     void Usher::TrackerIntRep::print() {
         if (!post_analysis) std::cout << "Internal tracker representation has not been initialised yet." << std::endl;
         else {
-                std::cout << std::endl << "Internal tracker representation consists of the following parameters:" << std::endl;
-                std::cout << std::endl << "Number of barrels: " << nOfBarrels() << std::endl;
-                for (int i = 0; i < nOfBarrels(); i++) {
-                    std::cout << "Barrel " << i << ": " << nOfLayers(i);
-                    std::cout << " layers of length " << lengthBarrel(i) << " reaching to z = " << zOffsetBarrel(i) << ".";
-                    std::cout << std::endl;
-                }
-                std::cout << std::endl << "Total number of layers: " << totalLayers() << std::endl;
-                std::cout << "Layers at inner radius of:";
-                for (unsigned int i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
+            std::cout << std::endl << "Internal tracker representation consists of the following parameters:" << std::endl;
+            std::cout << std::endl << "Number of barrels: " << nOfBarrels() << std::endl;
+            for (int i = 0; i < nOfBarrels(); i++) {
+                std::cout << "Barrel " << i << ": " << nOfLayers(i);
+                std::cout << " layers of length " << lengthBarrel(i) << " reaching to z = " << zOffsetBarrel(i) << ".";
+                std::cout << std::endl;
+            }
+            std::cout << std::endl << "Total number of layers: " << totalLayers() << std::endl;
+            std::cout << "Layers at inner radius of:";
+            for (unsigned int i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
+            std::cout << "." << std::endl;
+            std::cout << std::endl << "Number of endcaps: " << nOfEndcaps() << std::endl;
+            for (int i = 0; i < nOfEndcaps(); i++) {
+                std::cout << "Endcap " << i << ": " << nOfDiscs(i);
+                std::cout << " discs of radius " << outerRadiusEndcap(i) << ".";
+                std::cout << std::endl;
+            }
+            std::cout << std::endl << "Total number of discs: " << totalDiscs() << std::endl;
+            std::cout << "Discs at an offset of:";
+            for (unsigned int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
+            std::cout << "." << std::endl << std::endl;
+            std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;
+            std::cout << "Number of short layers: " << short_layers.size() << "." << std::endl;
+            if (short_layers.size() > 0) {
+                std::cout << "Short layers found at index";
+                for (std::list<std::pair<int, double> >::iterator iter = short_layers.begin(); iter != short_layers.end(); iter++) std::cout << " " << iter->first;
                 std::cout << "." << std::endl;
-                std::cout << std::endl << "Number of endcaps: " << nOfEndcaps() << std::endl;
-                for (int i = 0; i < nOfEndcaps(); i++) {
-                    std::cout << "Endcap " << i << ": " << nOfDiscs(i);
-                    std::cout << " discs of radius " << outerRadiusEndcap(i) << ".";
-                    std::cout << std::endl;
-                }
-                std::cout << std::endl << "Total number of discs: " << totalDiscs() << std::endl;
-                std::cout << "Discs at an offset of:";
-                for (unsigned int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
-                std::cout << "." << std::endl << std::endl;
-                std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;
-                std::cout << "Number of short layers: " << short_layers.size() << "." << std::endl;
-                if (short_layers.size() > 0) {
-                    std::cout << "Short layers found at index";
-                    for (std::list<std::pair<int, double> >::iterator iter = short_layers.begin(); iter != short_layers.end(); iter++) std::cout << " " << iter->first;
-                    std::cout << "." << std::endl;
-                    std::cout << "Short layers start at ";
-                    for (std::list<std::pair<int, double> >::iterator iter = short_layers.begin(); iter != short_layers.end(); iter++) std::cout << iter->second << " ";
-                    std::cout << "." << std::endl;
-                }
+                std::cout << "Short layers start at ";
+                for (std::list<std::pair<int, double> >::iterator iter = short_layers.begin(); iter != short_layers.end(); iter++) std::cout << iter->second << " ";
+                std::cout << "." << std::endl;
+            }
         }
     }
     
@@ -889,6 +1193,12 @@ namespace insur {
         return layer_counters;
     }
     
+    /**
+     * This function attempts to decide if a given tracker geometry should be classified as UP or DOWN:
+     * as long as each layer reaches equally far or farther in z as the previous one, it assumes UP. If it finds
+     * one that is shorter but farther out in r, it decides on DOWN.
+     * @return True if the given configuration is considered to be UP, false if it is considered to be DOWN
+     */
     bool Usher::TrackerIntRep::analyzePolarity() {
         if (nOfBarrels() > 1) {
             for (int i = 0; i < nOfBarrels() - 1; i++) {

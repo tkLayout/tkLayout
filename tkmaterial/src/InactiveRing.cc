@@ -11,6 +11,7 @@ namespace insur {
     InactiveRing::InactiveRing() : InactiveElement() {
         is_vertical = true;
     }
+    
     InactiveRing::InactiveRing(InactiveElement& previous) : InactiveElement(previous) {
         is_vertical = true;
     }
@@ -20,6 +21,9 @@ namespace insur {
      */
     InactiveRing::~InactiveRing() {}
     
+    /**
+     * This function prints a representation of the element to <i>cout</i>
+     */
     void InactiveRing::print() {
         InactiveElement::print();
         if (sanityCheck()) std::cout << "Volume is sane." << std::endl;

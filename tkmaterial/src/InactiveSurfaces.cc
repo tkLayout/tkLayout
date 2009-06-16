@@ -7,28 +7,28 @@
 namespace insur {
     /*===== services =====*/
     /**
-     * Add a single inactive element to the list of services by copying it.
-     * @param service The element that is appended to the list of service parts
+     * Add a single inactive element to the list of barrel services by copying it.
+     * @param service The element that is appended to the list of barrel service parts
      */
     void InactiveSurfaces::addBarrelServicePart(InactiveElement service) {
         barrelservices.push_back(service);
     }
     
     /**
-     * Access an individual element in the list of services by its index.
+     * Access an individual element in the list of barrel services by its index.
      * The internal vector will throw an exception if the index is out of range.
-     * @param index The index of the requested service part
-     * @return A reference to the requested service part
+     * @param index The index of the requested barrel service part
+     * @return A reference to the requested barrel service part
      */
     InactiveElement& InactiveSurfaces::getBarrelServicePart(int index) {
         return barrelservices.at(index);
     }
     
     /**
-     * Remove a single element identified by its index from the list. If the removed service part was the last on the list
-     * or the given index is out of range, the returned iterator will point to <i>end()</i>.
-     * @param index The index of the element that will be removed
-     * @return An interator to the element immediately after the removed one
+     * Remove a single barrel element identified by its index from the list. If the removed barrel service part
+     * was the last on the list or the given index is out of range, the returned iterator will point to <i>end()</i>.
+     * @param index The index of the barrel element that will be removed
+     * @return An interator to the barrel element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeBarrelServicePart(int index) {
         if ((index >= 0) && ((unsigned int)index < barrelservices.size())) return barrelservices.erase(barrelservices.begin() + index);
@@ -36,26 +36,46 @@ namespace insur {
     }
     
     /**
-     * Access the full list of service parts at once.
-     * @return A reference to the internal service vector
+     * Access the full list of barrel service parts at once.
+     * @return A reference to the internal barrel service vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getBarrelServices() {
         return barrelservices;
     }
     
+    /**
+     * Add a single inactive element to the list of endcap services by copying it.
+     * @param service The element that is appended to the list of endcap service parts
+     */
     void InactiveSurfaces::addEndcapServicePart(InactiveElement service) {
         endcapservices.push_back(service);
     }
     
+    /**
+     * Access an individual element in the list of endcap services by its index.
+     * The internal vector will throw an exception if the index is out of range.
+     * @param index The index of the requested endcap service part
+     * @return A reference to the requested endcap service part
+     */
     InactiveElement& InactiveSurfaces::getEndcapServicePart(int index) {
         return endcapservices.at(index);
     }
     
+    /**
+     * Remove a single endcap element identified by its index from the list. If the removed endcap service part
+     * was the last on the list or the given index is out of range, the returned iterator will point to <i>end()</i>.
+     * @param index The index of the endcap element that will be removed
+     * @return An interator to the endcap element immediately after the removed one
+     */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeEndcapServicePart(int index) {
         if ((index >= 0) && ((unsigned int)index < endcapservices.size())) return endcapservices.erase(endcapservices.begin() + index);
         return endcapservices.end();
     }
     
+    /**
+     * Access the full list of endcap services at once.
+     * @return A reference to the internal endcap services vector
+     */
     std::vector<InactiveElement>& InactiveSurfaces::getEndcapServices() {
         return endcapservices;
     }
@@ -110,6 +130,10 @@ namespace insur {
      */
     void InactiveSurfaces::setUp(bool up) { is_up = up; }
     
+    /**
+     * Print the contents of the collection.
+     * @param full_summary A flag to switch verbose output on or off
+     */
     void InactiveSurfaces::print(bool full_summary = true) {
         std::cout << "Number of barrel service elements: " << barrelservices.size() << std::endl;
         if (full_summary) {

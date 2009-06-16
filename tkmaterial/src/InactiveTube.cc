@@ -21,6 +21,9 @@ namespace insur {
      */
     InactiveTube::~InactiveTube() {}
     
+    /**
+     * This function prints a representation of the element to <i>cout</i>
+     */
     void InactiveTube::print() {
         InactiveElement::print();
         if (sanityCheck()) std::cout << "Volume is sane." << std::endl;

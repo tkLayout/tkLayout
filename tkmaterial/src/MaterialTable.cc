@@ -90,6 +90,9 @@ namespace insur {
         return materials.empty();
     }
     
+    /**
+     * Print the contents of the material table to <i>cout</i>.
+     */
     void MaterialTable::print() {
         std::cout << "The material table contains " << materials.size() << " elements:" << std::endl;
         for (unsigned int i = 0; i < materials.size(); i++) {

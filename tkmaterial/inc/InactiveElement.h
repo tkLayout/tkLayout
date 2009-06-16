@@ -28,6 +28,9 @@ namespace insur {
      */
     class InactiveElement : public MaterialProperties {
     public:
+        /**
+         * @enum InType A list of the various types of neighbour or feeder an element can have
+         */
         enum InType { no_in, tracker, barrel, endcap };
         InactiveElement();
         virtual ~InactiveElement() {}

@@ -1,9 +1,21 @@
 #include <MatParser.h>
 namespace insur {
+    /**
+     * Nothing to do for the constructor...
+     */
     MatParser::MatParser() {}
     
+    /**
+     * Nothing to do for the destructor...
+     */
     MatParser::~MatParser() {}
     
+    /**
+     * This function initialises the internal material table from a config file.
+     * @param materialfile The name and, if necessary, path of the global material config file
+     * @param mattab A reference to an empty material table
+     * @return True if the config file was successfully parsed, false otherwise
+     */
     bool MatParser::fillTable(std::string materialfile, MaterialTable& mattab) {
         if (materialfile.empty()) materialfile = default_mattabfile;
         bfs::path mpath(materialfile);
@@ -49,6 +61,12 @@ namespace insur {
         return false;
     }
     
+    /**
+     * This is the core function that does the actual parsing during initialisation of a material calculator.
+     * @param configfile The name and, if necessary, path of a material config file for a tracker layout
+     * @param calc A reference to an uninitialised material calculator
+     * @return True if the config file was successfully parsed, false otherwise
+     */
     bool MatParser::readParameters(std::string configfile, MatCalc& calc) {
         bfs::path mpath(configfile);
         if (bfs::exists(mpath)) {
@@ -156,17 +174,30 @@ namespace insur {
         return false;
     }
     
+    /**
+     * This function initialises a material calculator from a config file.
+     * @param configfile The name and, if necessary, path of a material config file for a tracker layout
+     * @param calc A reference to an uninitialised material calculator
+     * @return True if the config file was successfully parsed, false otherwise
+     */
     bool MatParser::initMatCalc(std::string configfile, MatCalc& calc) {
-        std::string filename(default_mattabdir + "/" + default_mattabfile);
-        if(fillTable(filename, calc.getMaterialTable())) {
-            calc.initDone(readParameters(configfile, calc));
-            if (calc.initDone()) return true;
-            return false;
+        if (calc.getMaterialTable().empty()) {
+            std::string filename(default_mattabdir + "/" + default_mattabfile);
+            if(!fillTable(filename, calc.getMaterialTable())) return false;
         }
+        calc.initDone(readParameters(configfile, calc));
+        if (calc.initDone()) return true;
         return false;
     }
     
-// protected
+    // protected
+    /**
+     * This function parses the default dimensions of a module type and stores them in the provided string objects.
+     * @param instream A reference to the input file stream pointing to the config file
+     * @param strips A reference to the output string for the parsed number of strips
+     * @param segs A reference to the output string for the parsed number of segments
+     * @return True if there were no errors during parsing, false otherwise
+     */
     bool MatParser::parseStripsSegs(std::ifstream& instream, std::string& strips, std::string& segs) {
         bool strips_done = false, segs_done = false;
         std::string line;
@@ -188,6 +219,14 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This function parses a line containing information about module materials and stores it in the
+     * internal data structures of a <i>MatCalc</i> object.
+     * @param line The input line that needs to be parsed
+     * @param type The module type that the given material information refers to
+     * @param calc The material calculator where the extracted information is transferred
+     * @return True if there were no errors during parsing, false otherwise
+     */
     bool MatParser::parseMLine(std::string line, std::string type, MatCalc& calc) {
         if (type.empty()) return false;
         unsigned int start = line.find(m_line_delim) + m_line_delim.size();
@@ -249,6 +288,13 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This function parses a line containing information about a material mapping at the layer/service
+     * boundary and stores it in the internal data structures of a <i>MatCalc</i> object.
+     * @param line The input line that needs to be parsed
+     * @param calc The material calculator where the extracted information is transferred
+     * @return True if there were no errors during parsing, false otherwise
+     */
     bool MatParser::parseDLine(std::string line, MatCalc& calc) {
         unsigned int start = line.find(d_line_delim) +d_line_delim.size();
         unsigned int stop = line.find(line_end_delim);
@@ -290,6 +336,14 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This function parses a line containing information about local materials within the detector and
+     * stores it in the internal data structures of a <i>MatCalc</i> object.
+     * @param line The input line that needs to be parsed
+     * @param calc The material calculator where the extracted information is transferred
+     * @param marker A string identifying the material category
+     * @return True if there were no errors during parsing, false otherwise
+     */
     bool MatParser::parseSimpleLine(std::string line, MatCalc& calc, std::string marker) {
         unsigned int start = line.find(marker) + marker.size();
         unsigned int stop = line.find(line_end_delim);
@@ -319,7 +373,15 @@ namespace insur {
         else return false;
         return true;
     }
-// private
+    
+    // private
+    /**
+     * This convenience function reads a parameter value for the given parameter name from a line in the config file.
+     * Depending on whether the parameter name occurs in it or not, the function may return an empty string.
+     * @param source The line as taken from the config file
+     * @param paramname The parameter identifier that the requested value belongs to
+     * @return The requested value in string form
+     */
     std::string MatParser::readFromLine(std::string source, std::string paramname) {
         std::string value, tmp;
         std::istringstream wordstream(source);
@@ -329,6 +391,14 @@ namespace insur {
         return value;
     }
     
+    /**
+     * This convenience function extracts a value from a line found in the config file. Depending on what there is
+     * to extract and if the line meets the syntax requirements or not, the return value may be an empty string.
+     * @param source The line as taken from the config file
+     * @param final_delim The end-of-line marker used in this line
+     * @param delimiter The marker denoting the beginning of the substring that is to be extracted
+     * @return The substring containing the requested value
+     */
     std::string MatParser::getValue(std::string source, bool final_delim, std::string delimiter) {
         std::string value;
         unsigned int start = source.find(delimiter) + delimiter.size();
@@ -343,6 +413,12 @@ namespace insur {
         return value;
     }
     
+    /**
+     * This convenience function turns a given string into a material unit of type <i>Matunit</i>. If the
+     * contents of the string cannot be mapped to a unit, an exception is thrown.
+     * @param source The string that needs to be converted
+     * @return The unit described by the input string
+     */
     MatCalc::Matunit MatParser::getUnit(std::string source) { // throws exception
         if (source.compare(gr_unit) == 0) return MatCalc::gr;
         else if(source.compare(mm_unit) == 0) return MatCalc::mm;

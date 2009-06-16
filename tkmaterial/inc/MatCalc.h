@@ -57,6 +57,7 @@ namespace insur {
         virtual ~MatCalc() {}
         bool initDone();
         void initDone(bool yes);
+        void reset();
         int getStripsAcross(Modtype type); // throws exception
         int getSegmentsAlong(Modtype type); // throws exception
         std::pair<int, int> getDefaultDimensions(Modtype type); // throws exception
@@ -196,7 +197,8 @@ namespace insur {
         bool entryExists(std:: string tag, Matunit uQ);
         bool entryExists(std::string tag1, std::string tag2, Matunit uIn, Matunit uOut, bool local);
         bool entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM);
-        int findRods(std::vector<std::vector<ModuleCap> >& caps, int layer);
+        int findBarrelRods(std::vector<std::vector<ModuleCap> >& caps, int layer);
+        int findEndcapRods(std::vector<std::vector<ModuleCap> >& caps, int layer);
         double convert(double value, Matunit unit, double densityorlength, double surface = 0); // throws exception
         void adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s);
         void adjacentSameCategory(InactiveElement& source, InactiveElement& dest);

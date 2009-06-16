@@ -5,6 +5,10 @@
 
 #include <MaterialBudget.h>
 namespace insur {
+    /**
+     * The constructor registers a tracker and a collection of inactive surfaces with the material budget before 
+     * creating a module cap object for each active module found in the tracker.
+     */
     MaterialBudget::MaterialBudget(Tracker& tr, InactiveSurfaces& is) {
         tracker = &tr;
         inactive = &is;
@@ -44,27 +48,58 @@ namespace insur {
         }
     }
     
+    /**
+     * Nothing to do for the destructor...
+     */
     MaterialBudget::~MaterialBudget() {}
     
+    /**
+     * Get the tracker object that belongs to this material budget.
+     * @return A reference to the registered tracker object
+     */
     Tracker& MaterialBudget::getTracker() { return *tracker; }
     
+    /**
+     * Get the collection of inactive surfaces that belongs to this material budget.
+     * @return A reference to the registered inactive surfaces collection
+     */
     InactiveSurfaces& MaterialBudget::getInactiveSurfaces() { return *inactive; }
     
+    /**
+     * Get the collection of barrel module caps.
+     * @return A reference to the vector of vectors listing the module caps that are associated with the barrel modules
+     */
     std::vector<std::vector<ModuleCap> >& MaterialBudget::getBarrelModuleCaps() { return capsbarrelmods; }
     
+    /**
+     * Get the collection of endcap module caps.
+     * @return A reference to the vector of vectors listing the module caps that are associated with the endcap modules
+     */
     std::vector<std::vector<ModuleCap> >& MaterialBudget::getEndcapModuleCaps() { return capsendmods; }
     
+    /**
+     * This is the general function that calls all other functions related to material assignment in sequence.
+     * @param calc A reference to the material calculator that will do the actual work
+     */
     void MaterialBudget::materialsAll(MatCalc& calc) {
         materialsModules(calc);
         materialsServices(calc);
         materialsSupports(calc);
     }
     
+    /**
+     * This is the specialised function that causes materials to be assigned to the support volumes.
+     * @param calc A reference to the material calculator that will do the actual work
+     */
     void MaterialBudget::materialsSupports(MatCalc& calc) {
         if (!calc.calculateSupportMaterials(inactive->getSupports()))
             std::cout << err_materials_supports << std::endl;
     }
     
+    /**
+     * This is the specialised function that causes materials to be assigned to the service volumes.
+     * @param calc A reference to the material calculator that will do the actual work
+     */
     void MaterialBudget::materialsServices(MatCalc& calc) {
         if (calc.calculateBarrelServiceMaterials(capsbarrelmods, inactive->getBarrelServices(), inactive->getEndcapServices())) {
             if (!calc.calculateEndcapServiceMaterials(capsendmods, inactive->getBarrelServices(), inactive->getEndcapServices()))
@@ -73,6 +108,10 @@ namespace insur {
         else std::cout << err_materials_bservices << std::endl;
     }
     
+    /**
+     * This is the specialised function that causes materials to be assigned to the tracker modules.
+     * @param calc A reference to the material calculator that will do the actual work
+     */
     void MaterialBudget::materialsModules(MatCalc& calc) {
         if (calc.calculateBarrelMaterials(capsbarrelmods)) {
             if (!calc.calculateEndcapMaterials(capsendmods))
@@ -81,6 +120,9 @@ namespace insur {
         else std::cout << err_materials_bmodules << std::endl;
     }
     
+    /**
+     * Print a summary of the material budget to <i>cout</i>.
+     */
     void MaterialBudget::print() {
         std::cout << "-----Material Budget Internal State-----" << std::endl;
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, x = 0, s = 0, t = 0;

@@ -1,5 +1,5 @@
 //
-// File:   demo.cpp.cc
+// File:   demo.cpp
 // Author: ndemaio
 //
 // Created on October 13, 2008, 11:55 AM

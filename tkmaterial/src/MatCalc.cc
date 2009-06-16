@@ -566,7 +566,8 @@ namespace insur {
                 // feeder
                 switch(ftype) {
                     case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(feeder), barrelservices.at(i), findRods(barrelcaps, feeder), length, surface);
+                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(feeder), barrelservices.at(i),
+                                                                                                                   findBarrelRods(barrelcaps, feeder), length, surface);
                     break;
                     case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), barrelservices.at(i));
                     break;
@@ -575,7 +576,8 @@ namespace insur {
                 // neighbour
                 switch(ntype) {
                     case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(neighbour), barrelservices.at(i), findRods(barrelcaps, neighbour), length, surface);
+                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(neighbour), barrelservices.at(i),
+                                                                                                                   findBarrelRods(barrelcaps, neighbour), length, surface);
                     break;
                     case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), barrelservices.at(i));
                     break;
@@ -625,7 +627,8 @@ namespace insur {
                 // feeder
                 switch(ftype) {
                     case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(feeder), endcapservices.at(i), findRods(endcapcaps, feeder), length, surface);
+                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(feeder), endcapservices.at(i),
+                                                                                                                   findEndcapRods(endcapcaps, feeder), length, surface);
                     break;
                     case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), endcapservices.at(i));
                     break;
@@ -634,7 +637,8 @@ namespace insur {
                 // neighbour
                 switch(ntype) {
                     case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(neighbour), endcapservices.at(i), findRods(endcapcaps, neighbour), length, surface);
+                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(neighbour), endcapservices.at(i),
+                                                                                                                   findEndcapRods(endcapcaps, neighbour), length, surface);
                     break;
                     case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), endcapservices.at(i));
                     break;
@@ -958,11 +962,21 @@ namespace insur {
     
     /**
      * This convenience function finds the number of rods in a layer.
-     * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of layers or discs in a tracker
+     * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of layers in a tracker
      * @param layer The layer under investigation
      * @return The number of rods in the given layer
      */
-    int MatCalc::findRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
+    int MatCalc::findBarrelRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
+        return findEndcapRods(caps, layer) / 2;
+    }
+    
+    /**
+     * This convenience function finds the number of modules in the last ring of a disc.
+     * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of discs in a tracker
+     * @param layer The disc under investigation
+     * @return The number of modules in the outmost ring of the given disc
+     */
+    int MatCalc::findEndcapRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
         int res = 0;
         int index = 1;
         if ((layer >= 0) && (layer < (int)caps.size())) {
@@ -974,7 +988,7 @@ namespace insur {
                 else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
             }
         }
-        return res / 2;
+        return res;
     }
     
     /**
