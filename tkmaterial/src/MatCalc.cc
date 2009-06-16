@@ -6,10 +6,38 @@
 #include <MatCalc.h>
 namespace insur {
     // public
+    /**
+     * This function returns the initialisation status.
+     * @return True if the internal data structures have been initialised from a config file, false otherwise
+     */
     bool MatCalc::initDone() { return init_done; }
     
+    /**
+     * This function sets the initialisation status.
+     * @param yes True if the internal data structures contain information, false otherwise
+     */
     void MatCalc::initDone(bool yes) { init_done = yes; }
     
+    /**
+     * This function resets the internal data structures.
+     */
+    void MatCalc::reset() {
+        internals.typeinfo.clear();
+        internals.modinforphi.clear();
+        internals.modinfostereo.clear();
+        internals.modinfopt.clear();
+        internals.serlocalinfo.clear();
+        internals.serexitinfo.clear();
+        internals.supinfo.clear();
+        init_done = false;
+    }
+    
+    /**
+     * Getter for the default number of strips of a given type. If the requested type is unknown
+     * or not on the list, an exception is thrown.
+     * @param type The module type for the requested value
+     * @return The default number of strips across a module
+     */
     int MatCalc::getStripsAcross(Modtype type) {
         try {
             TypeInfo& info = getTypeInfoByType(type);
@@ -21,6 +49,12 @@ namespace insur {
         }
     }
     
+    /**
+     * Getter for the default number of segments of a given type. If the requested type is unknown
+     * or not on the list, an exception is thrown.
+     * @param type The module type for the requested value
+     * @return The default number of segments along a module
+     */
     int MatCalc::getSegmentsAlong(Modtype type) {
         try {
             TypeInfo& info = getTypeInfoByType(type);
@@ -32,6 +66,12 @@ namespace insur {
         }
     }
     
+    /**
+     * Compact getter for the default number of strips and segments of a given type. If the
+     * requested type is unknown or not on the list, an exception is thrown.
+     * @param type The module type for the requested value
+     * @return The default number of strips across and segments along a module, bundled into a <i>std::pair</i>
+     */
     std::pair<int, int> MatCalc::getDefaultDimensions(Modtype type) {
         try {
             std::pair<int, int> result;
@@ -46,6 +86,12 @@ namespace insur {
         }
     }
     
+    /**
+     * Adding a module type and its default dimensions is done in here.
+     * @param type The type of the module that needs to be added
+     * @param strips The default number of strips across the module
+     * @param segments The default number of segments along the module
+     */
     void MatCalc::addTypeInfo(Modtype type, int strips, int segments) {
         if (!entryExists(type)) {
             TypeInfo info;
@@ -56,6 +102,11 @@ namespace insur {
         }
     }
     
+    /**
+     * Updating the default number of strips on a given module type is done here.
+     * @param type The type of the module that needs to be changed
+     * @param strips The new default number of strips across a module
+     */
     void MatCalc::updateTypeInfoStrips(Modtype type, int strips) {
         if (entryExists(type)) {
             try {
@@ -68,6 +119,11 @@ namespace insur {
         }
     }
     
+    /**
+     * Updating the default number of segments on a given module type is done here.
+     * @param type The type of the module that needs to be changed
+     * @param segments The new default number of segments along a module
+     */
     void MatCalc::updateTypeInfoSegments(Modtype type, int segments) {
         if (entryExists(type)) {
             try {
@@ -81,14 +137,19 @@ namespace insur {
     }
     
     /**
-     * Add a parameter entry to the vector corresponding to <i>type</i> by copying the supplied values.
-     * Add the new values to the old ones if a material with the given parameters already appears on the list.
+     * Add a parameter entry to the module info vector corresponding to <i>type</i> by copying the supplied
+     * values. Add the new values to the old ones if a material with the given parameters already appears on
+     * the list.
      * @param tag A unique material identifier
      * @param type The type of module the material parameters refer to
      * @param A The coefficient for the layout-dependent and travelling portion
+     * @param uA The unit of parameter <i>A</i>
      * @param B The coefficient for the layout-dependent and localised portion
+     *@param uB The unit of parameter <i>B</i>
      * @param C The coefficient for the per-module and travelling portion
+     *@param uC The unit of parameter <i>C</i>
      * @param D The coefficient for the per-module and localised portion
+     *@param uD The unit of parameter <i>D</i>
      * @param local A flag indicating whether the amounts as a whole will be treated as local or as exiting the module later
      */
     void MatCalc::addModuleParameters(std::string tag, Modtype type,
@@ -123,6 +184,12 @@ namespace insur {
         }
     }
     
+    /**
+     * Add a parameter entry to the local service info vector.
+     * @param tag A unique material identifier
+     * @param Q The amount of material to be added to the service
+     * @param uQ The unit of parameter <i>Q</i>
+     */
     void MatCalc::addServiceParameters(std::string tag, double Q, Matunit uQ) {
         if (!entryExists(tag, uQ)) {
             SingleSerLocal serl;
@@ -137,6 +204,16 @@ namespace insur {
         }
     }
     
+    /**
+     * Add a parameter entry to the info vector mapping transitions from modules to services.
+     * @param tagIn A unique identifier for the module material
+     * @param In The amount of module material that is to be converted
+     * @param uIn The unit of parameter <i>In</i>
+     * @param tagOut A unique identifier for the service material
+     * @param Out The amount of service material that comes out of the conversion
+     * @param uOut The unit of parameter <i>Out</i>
+     * @param local A flag indicating whether the resulting amount of service material will be treated as local or exiting
+     */
     void MatCalc::addServiceParameters(std::string tagIn, double In, Matunit uIn,
             std::string tagOut, double Out, Matunit uOut, bool local) {
         if (!entryExists(tagIn, tagOut, uIn, uOut, local)) {
@@ -157,6 +234,13 @@ namespace insur {
         }
     }
     
+    /**
+     * Add a parameter entry to the supports info vector.
+     * @param tag A unique material identifier
+     * @param M The amount of material to be added to the support structure
+     * @param uM The unit of parameter <i>M</i>
+     * @param cM The category of supports that this amount of material belongs to
+     */
     void MatCalc::addSupportParameters(std::string tag, double M, Matunit uM, MaterialProperties::Category cM) {
         if (!entryExists(tag, uM, cM)) {
             SingleSup sup;
@@ -172,14 +256,24 @@ namespace insur {
         }
     }
     
+    /**
+     * Reset the vector containing the information about the default dimensions of different module types.
+     */
     void MatCalc::clearTypeVector() { internals.typeinfo.clear(); }
     
+    /**
+     * Reset the vectors containing the material information for the three module types.
+     */
     void MatCalc::clearModVectors() {
         internals.modinforphi.clear();
         internals.modinfostereo.clear();
         internals.modinfopt.clear();
     }
     
+    /**
+     * Reset a module info vector of a given type.
+     * @param type The type indentifier of the vector that needs to be cleared
+     */
     void MatCalc::clearModVector(Modtype type) {
         try {
             std::vector<SingleMod>& vect = getModVector(type);
@@ -190,11 +284,21 @@ namespace insur {
         }
     }
     
+    /**
+     * Copy the contents of one module info vector into another.
+     * @param source The type of the source vector
+     * @param dest The type of the destination vector
+     */
     void MatCalc::copyContents(Modtype source, Modtype dest) {
         clearModVector(dest);
         appendContents(source, dest);
     }
     
+    /**
+     * Append the contents of one module info vector to another.
+     * @param source The type of the source vector
+     * @param dest The type of the destination vector
+     */
     void MatCalc::appendContents(Modtype source, Modtype dest) {
         if (source != dest) {
             try {
@@ -208,6 +312,11 @@ namespace insur {
         }
     }
     
+    /**
+     * Check if there is internal information about a a given module type or not.
+     * @param type The identifier used to query the collection of type info entries
+     * @return True if the given module type appears in the <i>typeinfo</i> vector, false otherwise
+     */
     bool MatCalc::typeRegistered(Modtype type) {
         std::vector<TypeInfo>::const_iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::const_iterator guard = internals.typeinfo.end();
@@ -218,10 +327,28 @@ namespace insur {
         return false;
     }
     
+    /**
+     * This is a convenince function that returns the number of registered module types.
+     * @return The number of module types with registered default dimensions
+     */
     unsigned int MatCalc::registeredTypes() { return internals.typeinfo.size(); }
     
+    /**
+     * Getter for the internal global material table. The material table always exists but 
+     * it may be empty if the class has not been initialised.
+     * @return A reference to the global material table
+     */
     MaterialTable& MatCalc::getMaterialTable() { return mt; }
     
+    /**
+     * This is the core function that assigns materials to barrel modules once the calculator has been initialised.
+     * It loops through the elements of the provided vector of vectors and calculates the relevant material mix for
+     * the element based on its position along a rod. If a material is declared with a unit other than grammes, the
+     * resulting mass is calculated from the value and unit of the material combined with the geometry and size
+     * of the element before it is added to the total.
+     * @param barrelcaps The collection mapping to the barrel modules that need to have a material mix assigned to them
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
         for (unsigned int i = 0; i < barrelcaps.size(); i++) {
             if (barrelcaps.at(i).size() > 0) {
@@ -275,6 +402,15 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This is the core function that assigns materials to endcap modules once the calculator has been initialised.
+     * It loops through the elements of the provided vector of vectors and calculates the relevant material mix for
+     * the element based on the ring and disc it belongs to. If a material is declared with a unit other than grammes, the
+     * resulting mass is calculated from the value and unit of the material combined with the geometry and size
+     * of the element before it is added to the total.
+     * @param endcapcaps The collection mapping to the endcap modules that need to have a material mix assigned to them
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool MatCalc::calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps) {
         for (unsigned int i = 0; i < endcapcaps.size(); i++) {
             if (endcapcaps.at(i).size() > 0) {
@@ -402,6 +538,17 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This is the core function that assigns materials to barrel services once the calculator has been initialised.
+     * It loops through the elements of the provided vector and calculates the relevant material mix for the element
+     * based on the feeder and neighbour volumes. If a material is declared with a unit other than grammes, the
+     * resulting mass is calculated from the value and unit of the material combined with the geometry and size
+     * of the element before it is added to the total.
+     * @param barrelcaps The collection mapping to the barrel modules that may act as feeder volumes to the service
+     * @param barrelservices The collection of barrel services that need to have a material mix assigned to them
+     * @param endcapservices The collection of endcap service volumes - they may act as neighbour volumes to the barrel services
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool MatCalc::calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
         int feeder, neighbour;
@@ -450,6 +597,17 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This is the core function that assigns materials to endcap services once the calculator has been initialised.
+     * It loops through the elements of the provided vector and calculates the relevant material mix for the element
+     * based on the feeder and neighbour volumes. If a material is declared with a unit other than grammes, the
+     * resulting mass is calculated from the value and unit of the material combined with the geometry and size
+     * of the element before it is added to the total.
+     * @param endcapcaps The collection mapping to the endcap modules that may act as feeder volumes to the service
+     * @param barrelservices The collection of barrel service volumes - they may act as neighbour volumes to the endcap services
+     * @param endcapservices The collection of endcap services that need to have a material mix assigned to them
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool MatCalc::calculateEndcapServiceMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps,
             std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
         int feeder, neighbour;
@@ -498,6 +656,15 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This is the core function that assigns materials to support structures once the calculator has been initialised.
+     * It loops through the elements of the provided vector, checks the category of the support and calculates the 
+     * relevant material mix for the element. If a material is declared with a unit other than grammes, the resulting
+     * mass is calculated from the value and unit of the material combined with the geometry and size of the element
+     * before it is added to the total.
+     * @param supports The vector of support parts that need to have a material mix assigned to them
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool MatCalc::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
         double length, surface;
         try {
@@ -526,6 +693,9 @@ namespace insur {
         return true;
     }
     
+    /**
+     * This function prints a summary of the internal state of the material calculator.
+     */
     void MatCalc::printInternals() {
         if (init_done) {
             std::cout << "-----MatCalc parsed parameters-----" << std::endl << std::endl;
@@ -570,6 +740,12 @@ namespace insur {
     }
     
     // protected
+    /**
+     * Getter for the module info vector of the given type. If that type is unknown or not on the list,
+     * an exception is thrown.
+     * @param type The module type of the requested info vector
+     * @return A reference to the requested module info vector
+     */
     std::vector<MatCalc::SingleMod>& MatCalc::getModVector(Modtype type) { // throws exception
         switch(type) {
             case rphi : return internals.modinforphi;
@@ -579,6 +755,12 @@ namespace insur {
         }
     }
     
+    /**
+     * Getter for the complete type information of a given module type. If that type is unknown or not on 
+     * the list, an exception is thrown.
+     * @param type The module type of the requested vector entry
+     * @return A reference to the requested module type information
+     */
     MatCalc::TypeInfo& MatCalc::getTypeInfoByType(Modtype type) { // throws exception
         std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
@@ -589,6 +771,18 @@ namespace insur {
         throw std::range_error(err_no_such_type);
     }
     
+    /**
+     * Getter for a single material entry from one of the module info vectors. If the given parameter combination
+     * does not exist on the list, an exception is thrown.
+     * @param tag A unique material identifier
+     * @param type The module type that the material should be applied to
+     * @param uA The unit of parameter <i>A</i>
+     * @param uB The unit of parameter <i>B</i>
+     * @param uC The unit of parameter <i>C</i>
+     * @param uD The unit of parameter <i>D</i>
+     * @param local A flag indicating whether the material in question is local or exiting
+     * @return A reference to the requested entry
+     */
     MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
         std::vector<SingleMod>& vect = getModVector(type);
         std::vector<SingleMod>::iterator iter = vect.begin();
@@ -601,6 +795,13 @@ namespace insur {
         throw std::range_error(err_no_material);
     }
     
+    /**
+     * Getter for a single entry from the info vector for materials local to the layer/service boundary. If
+     * the given parameter combination does not exist on the list, an exception is thrown.
+     * @param tag A unique material identifier
+     * @param u The unit of the requested material
+     * @return A reference to the requested entry
+     */
     MatCalc::SingleSerLocal& MatCalc::getSingleSer(std::string tag, Matunit u) { // throws exception
         std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
         std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
@@ -611,6 +812,16 @@ namespace insur {
         throw std::range_error(err_no_service);
     }
     
+     /**
+     * Getter for a single entry from the info vector for material mappings at the layer/service boundary. If
+     * the given parameter combination does not exist on the list, an exception is thrown.
+     * @param tag1 A unique material identifier for the source material
+     * @param tag2 A unique material identifier for the destination material
+     * @param u1 The unit of the source material
+     * @param u2 The unit of the destination material
+     * @param local A flag indicating whether the destination material stays local to the service or exits it
+     * @return A reference to the requested entry
+     */
     MatCalc::SingleSerExit& MatCalc::getSingleSer(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local) { // throws exception
         std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
         std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
@@ -625,6 +836,14 @@ namespace insur {
         throw std::range_error(err_no_service);
     }
     
+    /**
+     * Getter for a single entry from the support parts info vector. If the given parameter combination does
+     * not exist, an exception is thrown.
+     * @param tag A unique material identifier
+     * @param uM The unit of the requested material
+     * @param cM The category of support parts that the material belongs to
+     * @return A reference to the requested entry
+     */
     MatCalc::SingleSup& MatCalc::getSingleSup(std::string tag, Matunit uM, MaterialProperties::Category cM) { // throws exception
         std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
         std::vector<SingleSup>::iterator guard = internals.supinfo.end();
@@ -638,6 +857,11 @@ namespace insur {
     }
     
     // private
+    /**
+     * Check if there is an entry for a given type in the internal type info list.
+     * @param type The requested module type
+     * @return True if such an entry exists, false otherwise
+     */
     bool MatCalc::entryExists(Modtype type) {
         std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
@@ -648,6 +872,17 @@ namespace insur {
         return false;
     }
     
+    /**
+     * Check if there is an entry of the given specifics in one of  the internal lists of module materials.
+     * @param tag A unique material identifier
+     * @param type The module type that the material should be applied to
+     * @param uA The unit of parameter <i>A</i>
+     * @param uB The unit of parameter <i>B</i>
+     * @param uC The unit of parameter <i>C</i>
+     * @param uD The unit of parameter <i>D</i>
+     * @param local A flag indicating whether the material in question is local or exiting
+     * @return True if such an entry exists, false otherwise
+     */
     bool MatCalc::entryExists(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
         try {
             std::vector<SingleMod>& vect = getModVector(type);
@@ -667,6 +902,12 @@ namespace insur {
         return false;
     }
     
+    /**
+     * Check if there is an entry of the given specifics in the internal list of local materials at the layer/service boundary.
+     * @param tag A unique material identifier
+     * @param uQ The unit of the material in question
+     * @return True if such an entry exists, false otherwise
+     */
     bool MatCalc::entryExists(std::string tag, Matunit uQ) {
         std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
         std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
@@ -677,6 +918,15 @@ namespace insur {
         return false;
     }
     
+    /**
+     * Check if there is an entry of the given specifics in the internal list of material mappings for the layer/service boundary.
+     * @param tag1 A unique identifier for the source material that the mapping starts from
+     * @param tag2 A unique identifier for the destination material that the source material is converted to
+     * @param u1 The unit of the source material
+     * @param u2 The unit of the destination material
+     * @param local A flag indicating whether the destination material stays local to the service or exits it
+     * @return True if such an entry exists, false otherwise
+     */
     bool MatCalc::entryExists(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local) {
         std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
         std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
@@ -689,6 +939,13 @@ namespace insur {
         return false;
     }
     
+    /**
+     * Check if there is an entry of the given specifics in the internal list of support materials.
+     * @param tag A unique material identifier
+     * @param uM The unit of the requested material
+     * @param cM The category of support parts that the material belongs to
+     * @return True if such an entry exists, false otherwise
+     */
     bool MatCalc::entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM) {
         std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
         std::vector<SingleSup>::iterator guard = internals.supinfo.end();
@@ -699,10 +956,16 @@ namespace insur {
         return false;
     }
     
+    /**
+     * This convenience function finds the number of rods in a layer.
+     * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of layers or discs in a tracker
+     * @param layer The layer under investigation
+     * @return The number of rods in the given layer
+     */
     int MatCalc::findRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
         int res = 0;
         int index = 1;
-        if (layer < (int)caps.size()) {
+        if ((layer >= 0) && (layer < (int)caps.size())) {
             for (unsigned int i = 0; i < caps.at(layer).size(); i++) {
                 if (caps.at(layer).at(i).getModule().getRing() > index) {
                     index = caps.at(layer).at(i).getModule().getRing();
@@ -711,9 +974,20 @@ namespace insur {
                 else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
             }
         }
-        return res;
+        return res / 2;
     }
     
+    /**
+     * This is a convenience function that converts an amount of material from one of the units available to the
+     * config file to the internal unit ofgrammes. Since this normally requires additional information about the
+     * geometry of the volume or about the material, those parameters must be supplied as well. If the caller
+     * attempts to convert from an unknown unit, an exception is thrown.
+     * @param value The amount of material that is to be converted
+     * @param unit The unit that the conversion starts from
+     * @param densityorlength The density of the material if the unit is in mm or mm3, the traversed length if it is in g/m
+     * @param surface The surface of the tracker volume
+     * @return The material mass after conversion
+     */
     double MatCalc::convert(double value, Matunit unit, double densityorlength, double surface) { // throws exception
         switch(unit) {
             case gr : return value;
@@ -724,6 +998,14 @@ namespace insur {
         }
     }
     
+    /**
+     * This function propagates materials from a layer or disc to the first adjacent service.
+     * @param source The layer or disc vector that the materials come out of
+     * @param dest The service that is currently being processed
+     * @param r The number of rods within the source layer
+     * @param l The length that e.g. a cable would have to travel to cross along the service volume
+     * @param s The surface of the service volume
+     */
     void MatCalc::adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s) {
         // S-labelled service materials
         std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
@@ -754,6 +1036,11 @@ namespace insur {
         }
     }
     
+    /**
+     * This function propagates the materials of a service to the next.
+     * @param source The neighbour volume of the current service
+     * @param dest The service that is currently being processed
+     */
     void MatCalc::adjacentSameCategory(InactiveElement& source, InactiveElement& dest) {
         double tmp;
         for (unsigned int j = 0; j < source.exitingMassCount(); j++) {
