@@ -44,10 +44,10 @@ namespace insur {
      * It provides one to write a simplified geometry of active and inactive surfaces to a <i>ROOT</i> file, another to
      * save the neighbour relations between different inactive surfaces and layers/discs to a text file, and a third to print
      * the radiation and interaction length histograms to an image and embed that in HTML after a tracker layout has
-     * been analysed. A function to write the neighbour relations to a DOT file instead of the quick and dirty internal
-     * format that is used now is planned but not implemented yet.
-     *
-     * WARNING: the unsimplified version of <i>display()</i> compiles and runs, but does not produce correct results yet!!!
+     * been analysed. 
+     * 
+     * A function to write the neighbour relations to a DOT file instead of the quick and dirty internal format that is
+     * used now is planned but not implemented yet.
      */
     class Vizard {
     public:

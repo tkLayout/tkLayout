@@ -1037,7 +1037,11 @@ namespace insur {
         return -1;
     }
     
-    //here
+    /**
+     * Get the real index of a layer as opposed to the one recorded during analysis.
+     * @param tintreplayer The layer as recorded internally during analysis
+     * @return The position of the requested layer in the layer collection of the tracker object
+     */
     int Usher::TrackerIntRep::realIndexLayer(int tintreplayer) {
         if (post_analysis) {
             if ((tintreplayer >= 0) && ((unsigned int)tintreplayer < real_index_layer.size())) return real_index_layer.at(tintreplayer);
@@ -1045,6 +1049,11 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get the real index of a disc as opposed to the one recorded during analysis.
+     * @param tintrepdisc The disc as recorded internally during analysis
+     * @return The position of the requested disc in the layer collection of the tracker object
+     */
     int Usher::TrackerIntRep::realIndexDisc(int tintrepdisc) {
         if (post_analysis) {
             if ((tintrepdisc >= 0) && ((unsigned int)tintrepdisc < real_index_disc.size())) return real_index_disc.at(tintrepdisc);
@@ -1052,8 +1061,18 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Get access to the entire list of short layers as recorded during analysis.
+     * @return A reference to the internal list of pairs that contain the index and the leftmost z of the layer
+     */
     std::list<std::pair<int, double> >& Usher::TrackerIntRep::shortBarrelsList() { return short_layers; }
     
+    /**
+     * This function provides a frame for those parts that analyse the geometrical properties of an existing tracker object.
+     * The entire tracker is defined in terms of what is needed to build the inactive surfaces around it afterwards.
+     * @param tracker A reference to the existing tracker object.
+     * @return The polarity of the tracker: true if it is UP, false if it is DOWN
+     */
     bool Usher::TrackerIntRep::analyze(Tracker& tracker) {
         bool up;
         n_of_layers = analyzeBarrels(*(tracker.getBarrelLayers()), layers_io_radius, barrels_length_offset, real_index_layer, short_layers);
@@ -1104,6 +1123,15 @@ namespace insur {
     }
     
 // nested class private
+    /**
+     * This core function analyses the geometrical properties of the barrels and regroups the values into a more easily accessible format.
+     * @param barrel_layers A reference to the collection of layers in the existing tracker object; the source data
+     * @param radius_list_io A reference to an empty vector of pairs that will contain the inner and outer radius of each layer
+     * @param length_offset_list A reference to an empty vector of pairs that will contain the length and the leftmost point of each layer
+     * @param real_index A reference to an empty vector that will contain the index of each layer within the collection of the tracker object
+     * @param layers_short A reference to an empty list of pairs that will contain the internal index and the leftmost z of the short layers
+     * @return A vector listing the number of layers per barrel
+     */
     std::vector<int> Usher::TrackerIntRep::analyzeBarrels(std::vector<Layer*>& barrel_layers, std::vector<std::pair<double, double> >& radius_list_io,
             std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short) {
         std::vector<int> layer_counters;
@@ -1150,6 +1178,14 @@ namespace insur {
         return layer_counters;
     }
     
+    /**
+     * This core function analyses the geometrical properties of the endcaps and regroups the values into a more easily accessible format.
+     * @param endcap_layers A reference to the collection of discs in the existing tracker object; the source data
+     * @param radius_list_io A reference to an empty vector of pairs that will contain the inner and outer radius of each disc
+     * @param length_offset_list A reference to an empty vector of pairs that will contain the width in z and the leftmost point of each disc
+     * @param real_index A reference to an empty vector that will contain the index of each disc within the collection of the tracker object
+     * @return A vector listing the number of discs per endcap
+     */
     std::vector<int> Usher::TrackerIntRep::analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
             std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index) {
         std::vector<int> layer_counters;

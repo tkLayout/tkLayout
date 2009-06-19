@@ -124,7 +124,7 @@ namespace insur {
      * Print a summary of the material budget to <i>cout</i>.
      */
     void MaterialBudget::print() {
-        std::cout << "-----Material Budget Internal State-----" << std::endl;
+        std::cout << std::endl << "-----Material Budget Internal State-----" << std::endl;
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, x = 0, s = 0, t = 0;
         for (unsigned int i = 0; i < inactive->getSupports().size(); i++) {
             if (inactive->getSupportPart(i).getCategory() == MaterialProperties::b_sup) a++;

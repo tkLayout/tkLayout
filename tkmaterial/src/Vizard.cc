@@ -1,5 +1,11 @@
 #include <Vizard.h>
 namespace insur {
+    // public
+    /**
+     * The constructor builds the logical structure within the <i>TGeoManager</i> that is used to display
+     * a tracker geometry in ROOT. It assigns different materials and media to the various categories of
+     * geometry elements.
+     */
     Vizard::Vizard() {
         geometry_created = false;
         gm = new TGeoManager("display", "Tracker");
@@ -27,10 +33,30 @@ namespace insur {
         gm->SetTopVolume(top);
     }
     
+    /**
+     * The destructor deletes the instance of <i>TGeoManager</i> that was created in the constructor. Since
+     * any object that was added to it in the constructor is now owned by it, this is the only step that is necessary
+     * to clean up memory: everything else will be deleted from within the <i>TGeoManager</i>.
+     */
     Vizard::~Vizard() {
         delete gm;
     }
     
+    /**
+     * This function turns the abstract representation of the active and inactive surfaces in a tracker geometry into
+     * a series of ROOT shapes. Those shapes are added as leaves to the collections of volumes that were previously
+     * initialised in the constructor. Once all of them have been added to the volume tree, the geometry manager is
+     * closed, making it ready to be displayed or written to file.
+     *
+     * NOTE: It is highly recommended to use the <i>simplified</i> flag to have layers and discs represented as
+     * bounding boxes rather than by individual module. In a typical case, the modules in a tracker number in the
+     * thousands; since volume creation and placement in this function is at this point unoptimised, this will cause
+     * considerable strain on the resources of whatever is used to visualise the geometry tree later.
+     *
+     * @param am A reference to the tracker object that contains the collection of active surfaces
+     * @param is A reference to the collection of inactive surfaces
+     * @param simplified A flag indicating whether to draw bounding boxes around the layers/discs or whether to display each module individually
+     */
     void Vizard::buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified) {
         int c = 0;
         TGeoVolume* vol;
@@ -122,6 +148,12 @@ namespace insur {
         geometry_created = true;
     }
     
+    /**
+     * This function writes the previously created geometry tree (including the geometry manager) to a ROOT
+     * file. If it finds that the internal representation using ROOT shapes has not been initialised, it prints an 
+     * error message and does nothing.
+     * @param rootfilename The name of the output file that will be written to the application's default directory for root files
+     */
     void Vizard::display(std::string rootfilename) {
         if (geometry_created) {
             std::string outfilename = default_rootfiledir + "/";
@@ -145,106 +177,134 @@ namespace insur {
         else std::cout << msg_uninitialised << std::endl;
     }
     
+    /**
+     * This convenience function provides a frame for creation of a geometry tree from a tracker object and a 
+     * collection of inactive surfaces and for writing them to a ROOT file in a single step.
+     * @param am A reference to the tracker object that contains the collection of active surfaces
+     * @param is A reference to the collection of inactive surfaces
+     * @param rootfilename The name of the output file that will be written to the application's default directory for ROOT files
+     * @param simplified A flag indicating whether to draw bounding boxes around the layers/discs or whether to display each module individually
+     */
     void Vizard::display(Tracker& am, InactiveSurfaces& is, std::string rootfilename, bool simplified) {
         buildVisualization(am, is, simplified);
         display(rootfilename);
     }
     
+    /**
+     * This convenience function writes the feeder/neighbour relations of a collection of inactive surfaces to a
+     * default file.
+     * @param is A reference to the collection of inactive surfaces
+     */
     void Vizard::writeNeighbourGraph(InactiveSurfaces& is) {
         writeNeighbourGraph(is, default_graphfile);
     }
     
+    /**
+     * This function writes the feeder/neighbour relations in a collection of inactive surfaces to a very simple text
+     * file. It essentially lists all edges of the neighbour graph, first those in the barrels, then those in the endcaps,
+     * but otherwise in a more or less unordered heap: the more order in the source collection, the more order in
+     * the output. If no name is given for the output file, a default filename is used.
+     * @param is A reference to the collection of inactive surfaces
+     * @param outfile The name of the output file that will be written to the application's default directory for graph files
+     */
     void Vizard::writeNeighbourGraph(InactiveSurfaces& is, std::string outfile) {
-        if (geometry_created) {
-            std::string filename = default_graphdir + "/";
-            if (outfile.empty()) filename = filename + default_graphfile;
-            else filename = filename + outfile;
-            std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
-            try {
-                std::ofstream outstream(filename.c_str());
-                if (outstream) {
-                    outstream << "BARREL SERVICES:" << std::endl << std::endl;
-                    for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
-                        outstream << "Barrel element " << i << ": service is ";
-                        if (is.getBarrelServicePart(i).isFinal()) outstream << "final and ";
-                        else outstream << "not final and ";
-                        if (is.getBarrelServicePart(i).isVertical()) outstream << "vertical.";
-                        else outstream << "horizontal.";
-                        outstream << std::endl << "Feeder type: ";
-                        switch (is.getBarrelServicePart(i).getFeederType()) {
-                            case InactiveElement::no_in: outstream << "none, ";
-                            break;
-                            case InactiveElement::tracker: outstream << "tracker, ";
-                            break;
-                            case InactiveElement::barrel: outstream << "barrel service, ";
-                            break;
-                            case InactiveElement::endcap: outstream << "endcap service, ";
-                            break;
-                            default: outstream << "something weird, ";
-                        }
-                        outstream << "feeder index = " << is.getBarrelServicePart(i).getFeederIndex() << ".";
-                        outstream << std::endl << "Neighbour type: ";
-                        switch (is.getBarrelServicePart(i).getNeighbourType()) {
-                            case InactiveElement::no_in: outstream << "none, ";
-                            break;
-                            case InactiveElement::tracker: outstream << "tracker, ";
-                            break;
-                            case InactiveElement::barrel: outstream << "barrel service, ";
-                            break;
-                            case InactiveElement::endcap: outstream << "endcap service, ";
-                            break;
-                            default: outstream << "something weird, ";
-                        }
-                        outstream << "neighbour index = " << is.getBarrelServicePart(i).getNeighbourIndex() << ".";
-                        outstream << std::endl << std::endl;
+        std::string filename = default_graphdir + "/";
+        if (outfile.empty()) filename = filename + default_graphfile;
+        else filename = filename + outfile;
+        std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
+        try {
+            std::ofstream outstream(filename.c_str());
+            if (outstream) {
+                outstream << "BARREL SERVICES:" << std::endl << std::endl;
+                for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
+                    outstream << "Barrel element " << i << ": service is ";
+                    if (is.getBarrelServicePart(i).isFinal()) outstream << "final and ";
+                    else outstream << "not final and ";
+                    if (is.getBarrelServicePart(i).isVertical()) outstream << "vertical.";
+                    else outstream << "horizontal.";
+                    outstream << std::endl << "Feeder type: ";
+                    switch (is.getBarrelServicePart(i).getFeederType()) {
+                        case InactiveElement::no_in: outstream << "none, ";
+                        break;
+                        case InactiveElement::tracker: outstream << "tracker, ";
+                        break;
+                        case InactiveElement::barrel: outstream << "barrel service, ";
+                        break;
+                        case InactiveElement::endcap: outstream << "endcap service, ";
+                        break;
+                        default: outstream << "something weird, ";
                     }
-                    outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
-                    for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
-                        outstream << "Endcap element " << i << ": service is ";
-                        if (is.getEndcapServicePart(i).isFinal()) outstream << "final and ";
-                        else outstream << "not final and ";
-                        if (is.getEndcapServicePart(i).isVertical()) outstream << "vertical.";
-                        else outstream << "horizontal.";
-                        outstream << std::endl << "Feeder type: ";
-                        switch (is.getEndcapServicePart(i).getFeederType()) {
-                            case InactiveElement::no_in: outstream << "none, ";
-                            break;
-                            case InactiveElement::tracker: outstream << "tracker, ";
-                            break;
-                            case InactiveElement::barrel: outstream << "barrel service, ";
-                            break;
-                            case InactiveElement::endcap: outstream << "endcap service, ";
-                            break;
-                            default: outstream << "something weird, ";
-                        }
-                        outstream << "feeder index = " << is.getEndcapServicePart(i).getFeederIndex() << ".";
-                        outstream << std::endl << "Neighbour type: ";
-                        switch (is.getEndcapServicePart(i).getNeighbourType()) {
-                            case InactiveElement::no_in: outstream << "none, ";
-                            break;
-                            case InactiveElement::tracker: outstream << "tracker, ";
-                            break;
-                            case InactiveElement::barrel: outstream << "barrel service, ";
-                            break;
-                            case InactiveElement::endcap: outstream << "endcap service, ";
-                            break;
-                            default: outstream << "something weird, ";
-                        }
-                        outstream << "neighbour index = " << is.getEndcapServicePart(i).getNeighbourIndex() << ".";
-                        outstream << std::endl << std::endl;
+                    outstream << "feeder index = " << is.getBarrelServicePart(i).getFeederIndex() << ".";
+                    outstream << std::endl << "Neighbour type: ";
+                    switch (is.getBarrelServicePart(i).getNeighbourType()) {
+                        case InactiveElement::no_in: outstream << "none, ";
+                        break;
+                        case InactiveElement::tracker: outstream << "tracker, ";
+                        break;
+                        case InactiveElement::barrel: outstream << "barrel service, ";
+                        break;
+                        case InactiveElement::endcap: outstream << "endcap service, ";
+                        break;
+                        default: outstream << "something weird, ";
                     }
-                    outstream.close();
-                    std::cout << "Neighbour graph written to " << filename << "." << std::endl;
+                    outstream << "neighbour index = " << is.getBarrelServicePart(i).getNeighbourIndex() << ".";
+                    outstream << std::endl << std::endl;
                 }
-                else std::cout << graph_wrong << std::endl;
+                outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
+                for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
+                    outstream << "Endcap element " << i << ": service is ";
+                    if (is.getEndcapServicePart(i).isFinal()) outstream << "final and ";
+                    else outstream << "not final and ";
+                    if (is.getEndcapServicePart(i).isVertical()) outstream << "vertical.";
+                    else outstream << "horizontal.";
+                    outstream << std::endl << "Feeder type: ";
+                    switch (is.getEndcapServicePart(i).getFeederType()) {
+                        case InactiveElement::no_in: outstream << "none, ";
+                        break;
+                        case InactiveElement::tracker: outstream << "tracker, ";
+                        break;
+                        case InactiveElement::barrel: outstream << "barrel service, ";
+                        break;
+                        case InactiveElement::endcap: outstream << "endcap service, ";
+                        break;
+                        default: outstream << "something weird, ";
+                    }
+                    outstream << "feeder index = " << is.getEndcapServicePart(i).getFeederIndex() << ".";
+                    outstream << std::endl << "Neighbour type: ";
+                    switch (is.getEndcapServicePart(i).getNeighbourType()) {
+                        case InactiveElement::no_in: outstream << "none, ";
+                        break;
+                        case InactiveElement::tracker: outstream << "tracker, ";
+                        break;
+                        case InactiveElement::barrel: outstream << "barrel service, ";
+                        break;
+                        case InactiveElement::endcap: outstream << "endcap service, ";
+                        break;
+                        default: outstream << "something weird, ";
+                    }
+                    outstream << "neighbour index = " << is.getEndcapServicePart(i).getNeighbourIndex() << ".";
+                    outstream << std::endl << std::endl;
+                }
+                outstream.close();
+                std::cout << "Neighbour graph written to " << filename << "." << std::endl;
             }
-            catch (std::bad_alloc ba) {
-                std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
-            }
+            else std::cout << graph_wrong << std::endl;
         }
-        else std::cout << msg_uninitialised << std::endl;
+        catch (std::bad_alloc ba) {
+            std::cerr << exc_badalloc_graph << graph_nowrite << std::endl;
+        }
     }
     
+    /**
+     * This function is meant to write the feeder/neighbour relations of a given collection of inactive surfaces
+     * to a DOT file instead of the quick and dirty text format that is used at the moment.
+     *
+     * NOTE: This function is currently in DEVELOPMENT HELL. There is no way of knowing if it will ever
+     * finished, or when. So for now, the function can be called, but it does NOTHING AT ALL. Don't say you
+     * haven't been warned.
+     * @param is A reference to the collection of inactive surfaces
+     * @param outfile The name of the output file that will be written to the application's default directory for graph files
+     */
     void Vizard::dotGraph(InactiveSurfaces& is, std::string outfile) {
         const std::string preamble = "digraph tracker";
         const std::string ori = "rankdir=DU"; // check if this is possible!
@@ -253,6 +313,13 @@ namespace insur {
         const std::string edge = "->";
     }
     
+    /**
+     * This function draws some of the histograms that were filled during material budget analysis and
+     * embeds the resulting image in an HTML file for easy access. If no name is given for the output file,
+     * a default filename is used.
+     * @param a A reference to the analysing class that examined the material budget and filled the histograms
+     * @param outfilename The name of the output file that will be written to the application's default directory for material budget summaries
+     */
     void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
         THStack rcontainer("rstack", "Radiation Length by Category");
         THStack icontainer("istack", "Interaction Length by Category");
@@ -274,7 +341,7 @@ namespace insur {
         std::ofstream outstream(outfile.c_str());
         TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 800, 800);
         c.SetFillColor(kWhite);
-        c.Divide(2,2);
+        c.Divide(2, 2);
         //c.Divide(2, 3);
         pad = c.GetPad(0);
         pad->SetFillColor(kGray);
@@ -323,21 +390,21 @@ namespace insur {
         aci->SetXTitle("Eta");
         icontainer.Draw();
         /*pad = c.GetPad(5);
-        pad->cd();
-        ir = (TH2D*)a.getHistoIsoR().Clone();
-        ir->SetNameTitle("isor", "Radiation Length Contours");
-        ir->SetContour(5);
-        ir->SetXTitle("z");
-        ir->SetYTitle("r");
-        ir->Draw("CONT");
-        pad = c.GetPad(6);
-        pad->cd();
-        ii = (TH2D*)a.getHistoIsoI().Clone();
-        ii->SetNameTitle("isoi", "Interaction Length Contours");
-        ii->SetContour(5);
-        ii->SetXTitle("z");
-        ii->SetYTitle("r");
-        ii->Draw("CONT");*/
+         * pad->cd();
+         * ir = (TH2D*)a.getHistoIsoR().Clone();
+         * ir->SetNameTitle("isor", "Radiation Length Contours");
+         * ir->SetContour(5);
+         * ir->SetXTitle("z");
+         * ir->SetYTitle("r");
+         * ir->Draw("CONT");
+         * pad = c.GetPad(6);
+         * pad->cd();
+         * ii = (TH2D*)a.getHistoIsoI().Clone();
+         * ii->SetNameTitle("isoi", "Interaction Length Contours");
+         * ii->SetContour(5);
+         * ii->SetXTitle("z");
+         * ii->SetYTitle("r");
+         * ii->Draw("CONT");*/
         c.SaveAs(pngout.c_str());
         if (cr) delete cr;
         if (ci) delete ci;
@@ -354,6 +421,19 @@ namespace insur {
         std::cout << "HTML file written to " << outfile << ", image written to " << pngout << std::endl;
     }
     
+    // private
+    /**
+     * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for 
+     * visualisation. It loops through the provided module vectors, determining their modules' corners and position
+     * in space. Using that information, it adds a ROOT shape and a 3D transformation to a volume assembly
+     * note from the geometry tree for each module found in the vectors.
+     * @param layers A pointer to the list of layers or discs that is to be displayed
+     * @param v A pointer to a template volume that is to be adjusted to the module shape
+     * @param t A pointer to a transformation object that will describe the template volume's position in space
+     * @param a A pointer to the assembly node that the template volume will be added to
+     * @param counter The element counter that keeps track of how many volumes have been added to the geometry tree
+     * @return The new value of the element counter
+     */
     int Vizard::detailedModules(std::vector<Layer*>* layers,
             TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter) {
         Layer* current;
@@ -377,6 +457,13 @@ namespace insur {
         return counter;
     }
     
+    /**
+     * This geometry function computes the transformation matrix that describes the position of a given module
+     * in space. It also sets the shape of the provided template volume to correspond to that of the module.
+     * @param m A pointer to the module object that needs to be visualised
+     * @param v A pointer to the template volume that will represent the module in the visualisation
+     * @return A pointer to the finished transformation matrix object
+     */
     TGeoCombiTrans* Vizard::modulePlacement(Module* m, TGeoVolume* v) {
         XYZVector ex, ey, ez, b, c, d, p;
         TGeoArb8* arb;

@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
         std::cout << "or './demo <geometry_config_file> <settings_file>' for fully dressed modules." << std::endl;
         std::cout << "./demo <geometry_config_file> <settings_file> <materials_list> creates the" << std::endl;
         std::cout << "complete material budget." << std::endl;
-        exit(EXIT_FAILURE);
+        return (EXIT_FAILURE);
     }
     if (tr) {
         // Usher instance builds inactive geometry around tracker elements

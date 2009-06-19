@@ -14,7 +14,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry exocom general elements ushers dressers viz naly demo
+all: tkgeometry exocom general elements ushers dressers viz naly squid demo tkmaterial
 	@echo "Full build successful."
 
 #TKGEOMETRY
@@ -143,6 +143,15 @@ $(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cc $(INCDIR)/Analyzer.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Analyzer.o $(SRCDIR)/Analyzer.cc
 	@echo "Built target Analyzer.o"
 
+#SQUID
+squid: $(LIBDIR)/Squid.o
+	@echo "Built target 'squid'."
+	
+$(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
+	@echo "Building target Squid.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Squid.o $(SRCDIR)/Squid.cc
+	@echo "Built target Squid.o"
+
 #FINAL
 demo: $(LIBDIR)/demo.o
 	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
@@ -156,6 +165,19 @@ demo: $(LIBDIR)/demo.o
 
 $(LIBDIR)/demo.o: demo.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/demo.o demo.cpp
+
+tkmaterial: $(LIBDIR)/tkmaterial.o
+	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
+	$(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
+	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
+	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o tkmaterial
+
+$(LIBDIR)/tkmaterial.o: tkmaterial.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
 
 cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
@@ -184,7 +206,10 @@ cleannaly:
 
 cleandemo:
 	-rm -f $(LIBDIR)/demo.o ./demo
+	
+cleantkmaterial:
+	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial
 
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleandemo
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleandemo cleantkmaterial
 	
 #TODO: add final build targets to list
