@@ -33,6 +33,7 @@ namespace insur {
     static const std::string err_matadd_weird = "Something weird happened when trying to add an entry to one of the vectors for material parameters...";
     static const std::string msg_negative_area = "Warning: module surface is negative.";
     static const std::string msg_abort = "Aborting function.";
+    static const std::string msg_ignore_tag = " Ignoring module material labelled ";
     /**
      * @class MatCalc
      * @brief The MatCalc class provides the core material assignment algorithm for a given tracker geometry.

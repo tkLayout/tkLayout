@@ -1039,14 +1039,19 @@ namespace insur {
         }
         std::vector<SingleSerExit>::const_iterator eiter, eguard = internals.serexitinfo.end();
         for (eiter = internals.serexitinfo.begin(); eiter != eguard; eiter++) {
+            try {
             double In, Out;
-            if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, l);
-            else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, s);
+            if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
+            else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
             if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);
             else Out = convert(eiter->Out, eiter->uOut, mt.getMaterial(eiter->tagOut).density, s);
-            Out = (double)Out * source.at(lastmod).getExitingMass(eiter->tagIn) / (double)In;
+            Out = Out * source.at(lastmod).getExitingMass(eiter->tagIn) / In;
             if (eiter->is_local) dest.addLocalMass(eiter->tagOut, r * Out);
             else dest.addExitingMass(eiter->tagOut, r * Out);
+            }
+            catch (std::runtime_error& re) {
+                std::cout << err_no_material << msg_ignore_tag << eiter->tagIn << "." << std::endl;
+            }
         }
     }
     
