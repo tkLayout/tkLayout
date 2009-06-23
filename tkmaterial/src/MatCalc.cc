@@ -1061,13 +1061,10 @@ namespace insur {
      * @param dest The service that is currently being processed
      */
     void MatCalc::adjacentSameCategory(InactiveElement& source, InactiveElement& dest) {
-        double tmp;
+        double tmp, scalar;
+        scalar = dest.getSurface() / source.getSurface();
         for (unsigned int j = 0; j < source.exitingMassCount(); j++) {
-            tmp = source.getExitingMass(j);
-            if (source.isVertical()) tmp = tmp / source.getRWidth();
-            else tmp = tmp / source.getZLength();
-            if (dest.isVertical()) tmp = tmp * dest.getRWidth();
-            else tmp = tmp * dest.getZLength();
+            tmp = scalar * source.getExitingMass(j);
             dest.addExitingMass(source.getExitingTag(j), tmp);
         }
     }

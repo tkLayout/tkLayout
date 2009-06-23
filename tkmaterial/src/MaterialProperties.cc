@@ -120,7 +120,7 @@ namespace insur {
      * @param ms The new mass of the material
      */
     void MaterialProperties::setLocalMass(std::string tag, double ms) {
-        std::pair<std::string, double> p;
+        std::pair<std::string, double> p(tag, ms);
         setLocalMass(p);
     }
     
@@ -143,7 +143,7 @@ namespace insur {
      * @param ms The new mass of the material
      */
     void MaterialProperties::setExitingMass(std::string tag, double ms) {
-        std::pair<std::string, double> p;
+        std::pair<std::string, double> p(tag, ms);
         setExitingMass(p);
     }
     
@@ -408,7 +408,7 @@ namespace insur {
             mse_set = true;
         }
         else {
-            setExitingMass(ms.first, getExitingMass(ms.first) + ms.second);
+            setExitingMass(ms.first, (getExitingMass(ms.first) + ms.second));
         }
     }
     
