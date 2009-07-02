@@ -7,21 +7,44 @@
 namespace insur {
     // public
     /**
+     * A comparison function for the first elements in two pairs of integers.
+     * @param p The first pair
+     * @param q The second pair
+     * @return True if <i>p.first</i> is smaller than <i>q.first</i>, false otherwise
+     */
+    bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q) {
+        return (p.first < q.first);
+    }
+    
+    /**
+     * A comparison function for the second elements in two pairs of integers.
+     * @param p The first pair
+     * @param q The second pair
+     * @return True if <i>p.second</i> is smaller than <i>q.second</i>, false otherwise
+     */
+    bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q) {
+        return (p.second < q.second);
+    }
+    
+    /**
      * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
      * and interaction lengths for each volume category to subfunctions, and sorts those results into the
      * correct histograms.
      * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      */
-    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
-        int nTracks;
-        double etaStep, eta, theta, phi;
+    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps, bool ztransform) {
+        int nTracks, binnr;
+        double etaStep, eta, theta, phi, r, z;
         clearHistograms();
+        clearCells();
         // prepare etaStep, phiStep, nTracks, nScans
-        etaStep = etaMax / (double)(etaSteps - 1);
+        if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
+        else etaStep = etaMax;
         nTracks = etaSteps;
-        // reset the number of bins and the histogram boundaries (-etaMax to etaMax) for all histograms
-        setHistogramBinsBoundaries(nTracks, 0, etaMax);
+        // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
+        setHistogramBinsBoundaries(nTracks, 0.0, etaMax, ztransform);
+        setCellBoundaries(nTracks, inner_radius - volume_width, outer_radius + volume_width, 0.0, etaMax);
         // used fixed phi
         phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
@@ -30,7 +53,8 @@ namespace insur {
             eta = i_eta * etaStep;
             theta = 2 * atan(pow(E, -1 * eta));
             //      active volumes, barrel
-            tmp = analyzeModules(mb.getBarrelModuleCaps(), theta, phi);
+            std::cout << "analyzeModules(): barrel modules." << std::endl;
+            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi);
             ractivebarrel.Fill(eta, tmp.first);
             iactivebarrel.Fill(eta, tmp.second);
             rbarrelall.Fill(eta, tmp.first);
@@ -40,7 +64,8 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      active volumes, endcap
-            tmp = analyzeModules(mb.getEndcapModuleCaps(), theta, phi);
+            std::cout << "analyzeModules(): endcap modules." << std::endl;
+            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi);
             ractiveendcap.Fill(eta, tmp.first);
             iactiveendcap.Fill(eta, tmp.second);
             rendcapall.Fill(eta, tmp.first);
@@ -50,6 +75,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, barrel
+            std::cout << "analyzeInactiveSurfaces(): barrel services." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta);
             rserfbarrel.Fill(eta, tmp.first);
             iserfbarrel.Fill(eta, tmp.second);
@@ -60,6 +86,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, endcap
+            std::cout << "analyzeInactiveSurfaces(): endcap services." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta);
             rserfendcap.Fill(eta, tmp.first);
             iserfendcap.Fill(eta, tmp.second);
@@ -70,6 +97,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, barrel
+            std::cout << "analyzeInactiveSurfaces(): barrel supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::b_sup);
             rlazybarrel.Fill(eta, tmp.first);
             ilazybarrel.Fill(eta, tmp.second);
@@ -80,6 +108,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, endcap
+            std::cout << "analyzeInactiveSurfaces(): endcap supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::e_sup);
             rlazyendcap.Fill(eta, tmp.first);
             ilazyendcap.Fill(eta, tmp.second);
@@ -90,6 +119,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, tubes
+            std::cout << "analyzeInactiveSurfaces(): support tubes." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::t_sup);
             rlazytube.Fill(eta, tmp.first);
             ilazytube.Fill(eta, tmp.second);
@@ -98,6 +128,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, user defined
+            std::cout << "analyzeInactiveSurfaces(): user-defined supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::u_sup);
             rlazyuserdef.Fill(eta, tmp.first);
             ilazyuserdef.Fill(eta, tmp.second);
@@ -106,10 +137,35 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
         }
-        for (int r = 2; r <= isor.GetNbinsY(); r++) {
-            for (int z = 1; z <= isor.GetNbinsX(); z++) {
-                isor.SetBinContent(z, r, isor.GetBinContent(z, r) + isor.GetBinContent(z, r - 1));
-                isoi.SetBinContent(z, r, isor.GetBinContent(z, r) + isor.GetBinContent(z, r - 1));
+        /*for (unsigned int i = 0; i < cells.size(); i++) {
+            for (unsigned int j = 1; j < cells.at(i).size(); j++) {
+                cells.at(i).at(j).rlength = cells.at(i).at(j).rlength + cells.at(i).at(j - 1).rlength;
+                cells.at(i).at(j).ilength = cells.at(i).at(j).ilength + cells.at(i).at(j - 1).ilength;
+            }
+        }*/
+        if (ztransform) {
+            // loop over all cells(eta, r)
+            for (unsigned int i = 0; i < cells.size(); i++) { // eta loop
+                for (unsigned int j = 0; j < cells.at(i).size(); j++) { // r loop
+                    r = (cells.at(i).at(j).rmin + cells.at(i).at(j).rmax) / 2.0;
+                    theta = 2 * atan(pow(E, -1 * ((cells.at(i).at(j).etamin + cells.at(i).at(j).etamax) / 2.0)));
+                    if (theta == PI / 2.0) z = 0; // theta = 0 does not occur for etaMax < inf, so no need to consider it
+                    else z = r / tan(theta);
+                    binnr = isor.FindBin(z, r);
+                    if (cells.at(i).at(j).rlength > isor.GetBinContent(binnr)) isor.SetBinContent(binnr, cells.at(i).at(j).rlength);
+                    binnr = isoi.FindBin(z, r);
+                    if (cells.at(i).at(j).ilength > isoi.GetBinContent(binnr)) isoi.SetBinContent(binnr, cells.at(i).at(j).ilength);
+                }
+            }
+        }
+        else {
+            for (unsigned int i = 0; i < cells.size(); i++) {
+                for (unsigned int j = 0; j < cells.at(i).size(); j++) {
+                    r = (cells.at(i).at(j).rmin + cells.at(i).at(j).rmax) / 2.0;
+                    z = (cells.at(i).at(j).etamin + cells.at(i).at(j).etamax) / 2.0;
+                    isor.Fill(z, r, cells.at(i).at(j).rlength);
+                    isoi.Fill(z, r, cells.at(i).at(j).ilength);
+                }
             }
         }
     }
@@ -123,14 +179,14 @@ namespace insur {
      * @param phi The track angle in the xy-plane
      * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
      */
-    std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double theta, double phi) {
+    std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi) {
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
         std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
         std::pair<double, double> res, tmp;
         res.first = 0.0;
         res.second = 0.0;
         while (iter != guard) {
-            tmp = findModuleLayerRI(*iter, theta, phi);
+            tmp = findModuleLayerRI(*iter, eta, theta, phi);
             res.first = res.first + tmp.first;
             res.second = res.second + tmp.second;
             iter++;
@@ -148,13 +204,13 @@ namespace insur {
      * @param phi The track angle in the xy-plane
      * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
      */
-    std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double theta, double phi) {
+    std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi) {
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
-        std::pair<double, double> res, tmp;
+        std::pair<double, double> res, tmp, offset;
         XYZVector origin, direction;
         Polar3DVector dir;
-        double distance;
+        double distance, r;
         res.first = 0.0;
         res.second = 0.0;
         dir.SetCoordinates(1, theta, phi);
@@ -166,26 +222,20 @@ namespace insur {
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
-                        double r, z;
+                        r = distance * sin(theta);
                         tmp.first = iter->getRadiationLength();
                         tmp.second = iter->getInteractionLength();
                         if (iter->getModule().getSubdetectorType() == Module::Barrel) {
                             tmp.first = tmp.first / sin(theta);
                             tmp.second = tmp.second / sin(theta);
-                            r = iter->getModule().getMeanPoint().Rho();
-                            if (theta != PI / 2.0) z = r / tan(theta);
-                            else z = 0.0;
                         }
                         else {
                             tmp.first = tmp.first / cos(theta);
                             tmp.second = tmp.second / cos(theta);
-                            z = iter->getModule().getMeanPoint().Z();
-                            r = z * tan(theta);
                         }
+                        fillCell(r, eta, tmp.first, tmp.second);
                         res.first = res.first + tmp.first;
                         res.second = res.second + tmp.second;
-                        isor.Fill(z, r, res.first);
-                        isoi.Fill(z, r, res.second);
                     }
                 }
                 else std::cout << msg_module_warning << std::endl;
@@ -210,7 +260,7 @@ namespace insur {
             double theta, MaterialProperties::Category cat) {
         std::vector<InactiveElement>::iterator iter = elements.begin();
         std::vector<InactiveElement>::iterator guard = elements.end();
-        std::pair<double, double> res, tmp;
+        std::pair<double, double> res, tmp, offset;
         double s = 0.0;
         res.first = 0.0;
         res.second = 0.0;
@@ -221,36 +271,36 @@ namespace insur {
                 if ((tmp.first < eta) && (tmp.second > eta)) {
                     double r, z;
                     if (iter->isVertical()) {
+                        z = (iter->getZOffset() + iter->getZLength()) / 2.0;
+                        r = z * tan(theta);
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
                             if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
                             res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
                             res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                            fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                         }
                         else {
                             res.first = res.first + iter->getRadiationLength() / cos(theta);
                             res.second = res.second + iter->getInteractionLength() / cos(theta);
+                            fillCell(r, eta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
                         }
-                        z = iter->getZOffset() + iter->getZLength() / 2.0;
-                        r = z * tan(theta);
                     }
                     else {
+                        r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / sin(theta);
                             if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
                             res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
                             res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                            fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                         }
                         else {
                             res.first = res.first + iter->getRadiationLength() / sin(theta);
                             res.second = res.second + iter->getInteractionLength() / sin(theta);
+                            fillCell(r, eta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
                         }
-                        r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
-                        if (theta != PI / 2.0) z = r / tan(theta);
-                        else z = 0.0;
                     }
-                    isor.Fill(z, r, res.first);
-                    isoi.Fill(z, r, res.second);
                 }
             }
             iter++;
@@ -328,10 +378,23 @@ namespace insur {
     }
     
     /**
+     * This convenience function sets all values in the internal array <i>cells</i> to zero.
+     */
+    void Analyzer::clearCells() {
+        for (unsigned int i = 0; i < cells.size(); i++) {
+            cells.at(i).clear();
+        }
+        cells.clear();
+    }
+    
+    /**
      * This convenience function sets the number of bins and the lower and upper range for their contents for
      * each of the available histograms.
+     * @param bins The number of bins in each 1D histogram
+     * @param min The minimal eta value that should be plotted
+     * @param max the maximal eta value that should be plotted
      */
-    void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
+    void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max, bool ztransform) {
         ractivebarrel.SetBins(bins, min, max);
         ractiveendcap.SetBins(bins, min, max);
         rserfbarrel.SetBins(bins, min, max);
@@ -360,7 +423,69 @@ namespace insur {
         ilazyall.SetBins(bins, min, max);
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
-        isor.SetBins(z_bins, 0.0, max_length / 2.0, r_bins, inner_radius - volume_width, outer_radius);
-        isoi.SetBins(z_bins, 0.0, max_length / 2.0, r_bins, inner_radius - volume_width, outer_radius);
-    } 
+        if (bins != 1) {
+            if (ztransform) {
+                isor.SetBins(bins / 2, 0.0, max_length / 2.0, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
+                isoi.SetBins(bins / 2, 0.0, max_length / 2.0, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
+            }
+            else {
+                isor.SetBins(bins, 0.0, etaMax, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
+                isoi.SetBins(bins, 0.0, etaMax, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
+            }
+        }
+        else { //DEBUG
+            if (ztransform) {
+                isor.SetBins(bins, 0.0, max_length / 2.0, 10, inner_radius - volume_width, outer_radius + volume_width);
+                isoi.SetBins(bins, 0.0, max_length / 2.0, 10, inner_radius - volume_width, outer_radius + volume_width);
+            }
+            else {
+                isor.SetBins(bins, 0.0, etaMax, 10, inner_radius - volume_width, outer_radius + volume_width);
+                isoi.SetBins(bins, 0.0, etaMax, 10, inner_radius - volume_width, outer_radius + volume_width);
+            }
+        }
+    }
+    
+    void Analyzer::setCellBoundaries(int bins, double minr, double maxr, double mineta, double maxeta) {
+        double rstep, etastep;
+        rstep = 2 * (maxr - minr) / bins;
+        etastep = (maxeta - mineta) / bins;
+        Cell c;
+        c.rlength = 0.0;
+        c.ilength = 0.0;
+        cells.resize(bins);
+        for (unsigned int i = 0; i < cells.size(); i++) {
+            if (bins != 1) cells.at(i).resize(bins / 2, c);
+            else { //DEBUG
+                cells.at(i).resize(10, c);
+                rstep = (maxr - minr) / 10.0;
+            }
+        }
+        for (unsigned int i = 0; i < cells.size(); i++) {
+            for (unsigned int j = 0; j < cells.at(i).size(); j++) {
+                cells.at(i).at(j).rmin = minr + j * rstep;
+                cells.at(i).at(j).rmax = minr + (j+1) * rstep;
+                cells.at(i).at(j).etamin = mineta + i * etastep;;
+                cells.at(i).at(j).etamax = mineta + (i+1) * etastep;
+            }
+        }
+    }
+    
+    void Analyzer::fillCell(double r, double eta, double rl, double il) {
+        std::cout << "r = " << r << ", eta = " << eta << ", rl = " << rl << ", il = " << il << std::endl;
+        int rindex, etaindex;
+        if (cells.size() > 0) {
+            for (rindex = 0; (unsigned int) rindex < cells.at(0).size(); rindex++) {
+                if ((cells.at(0).at(rindex).rmin <= r) && (cells.at(0).at(rindex).rmax > r)) break;
+            }
+            if ((unsigned int) rindex < cells.at(0).size()) {
+                for (etaindex = 0; (unsigned int) etaindex < cells.size(); etaindex++) {
+                    if ((cells.at(etaindex).at(rindex).etamin <= eta) && (cells.at(etaindex).at(rindex).etamax > eta)) break;
+                }
+                if ((unsigned int) etaindex < cells.size()) {
+                    cells.at(etaindex).at(rindex).rlength = cells.at(etaindex).at(rindex).rlength + rl;
+                    cells.at(etaindex).at(rindex).ilength = cells.at(etaindex).at(rindex).ilength + il;
+                }
+            }
+        }
+    }
 }

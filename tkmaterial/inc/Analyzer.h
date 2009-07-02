@@ -13,18 +13,26 @@
 #ifndef _ANALYZER_H
 #define	_ANALYZER_H
 
-#include<string>
-#include<vector>
-#include<module.hh>
-#include<ModuleCap.h>
-#include<InactiveElement.h>
-#include<InactiveSurfaces.h>
-#include <MaterialBudget.h>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <module.hh>
+#include <ModuleCap.h>
+#include <InactiveElement.h>
+#include <InactiveSurfaces.h>
+#include  <MaterialBudget.h>
 namespace insur {
     /**
      * A warning that may occur during processing
      */
     static const std::string msg_module_warning = "Warning: tracker module with undefined subdetector type found.";
+    
+    /**
+     * Two comparison functions for <i>std::pair<int, int></i> entries.
+     */
+    bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
+    bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
     
     /**
      * @class Analyzer
@@ -70,22 +78,35 @@ namespace insur {
         TH1D& getHistoGlobalI() { return iglobal; }
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50, bool ztransform = false);
     protected:
-        static const int r_bins = 25;
-        static const int z_bins = 50;
+        /**
+         * @struct Cell
+         * @brief This struct contains the cumulative radiation and interaction lengths over the area described by r and z.
+         * @param rlength The cumulative radiation length
+         * @param ilength The cumulative interaction length
+         * @param rmin The minimal radius value of the cell
+         * @param rmax The maximal radius value of the cell
+         * @param etamin The minimal eta value of the cell
+         * @param etamax The maximal eta value of the cell
+         */
+        struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
+        std::vector<std::vector<Cell> > cells;
         TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazytube, rlazyuserdef;
         TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazytube, ilazyuserdef;
         TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
         TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
         TH1D rglobal, iglobal;
         TH2D isor, isoi;
-        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta);
-        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double theta, double phi);
+        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi);
+        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
                                                                                                        double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
         void clearHistograms();
-        void setHistogramBinsBoundaries(int bins, double min, double max);
+        void clearCells();
+        void setHistogramBinsBoundaries(int bins, double min, double max, bool ztransform = false);
+        void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
+        void fillCell(double r, double eta, double rl, double il);
     private:
     };
 }
