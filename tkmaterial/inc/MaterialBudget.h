@@ -55,6 +55,7 @@ namespace insur {
         void materialsSupports(MatCalc& calc);
         void materialsServices(MatCalc& calc);
         void materialsModules(MatCalc& calc);
+        int onBoundary(std::vector<std::vector<ModuleCap> >& source, int layer); //throws exception
     private:
         MaterialBudget();
         MaterialBudget(const MaterialBudget& budget);

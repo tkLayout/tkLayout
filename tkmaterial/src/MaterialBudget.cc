@@ -124,7 +124,7 @@ namespace insur {
      * Print a summary of the material budget to <i>cout</i>.
      */
     void MaterialBudget::print() {
-        std::cout << std::endl << "-----Material Budget Internal State-----" << std::endl;
+        std::cout << std::endl << "----------Material Budget Internal State----------" << std::endl;
         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, x = 0, s = 0, t = 0;
         for (unsigned int i = 0; i < inactive->getSupports().size(); i++) {
             if (inactive->getSupportPart(i).getCategory() == MaterialProperties::b_sup) a++;
@@ -159,11 +159,22 @@ namespace insur {
                 else d--;
             }
         }
+        std::cout << "-----Barrel Modules-----" << std::endl;
         std::cout << "Total valid modules in barrels: " << d << std::endl;
         std::cout << "Total module mass in barrels: " << am << std::endl;
         std::cout << "Average module mass in barrels: " << (am / (double)d) << std::endl;
         std::cout << "Average module radiation length in barrels: " << (ar / (double)d) << std::endl;
         std::cout << "Average module interaction length in barrels: " << (ai / (double)d) << std::endl;
+        for (unsigned int i = 0; i < capsbarrelmods.size(); i++) {
+            std::cout << "Sample boundary module in layer " << i << ":" << std::endl;
+            try {
+                capsbarrelmods.at(i).at(onBoundary(capsbarrelmods, i)).print();
+            }
+            catch (std::out_of_range& oor) {
+                std::cerr << "Error: unable to find a module index for layer " << i << "." << std::endl;
+                std::cerr << oor.what() << std::endl;
+            }
+        }
         std::cout << std::endl;
         for (unsigned int i = 0; i < capsendmods.size(); i++) {
             for (unsigned int j = 0; j < capsendmods.at(i).size(); j++) {
@@ -175,11 +186,22 @@ namespace insur {
                 else f--;
             }
         }
+        std::cout << "-----Endcap Modules-----" << std::endl;
         std::cout << "Total valid modules in endcaps: " << f << std::endl;
         std::cout << "Total module mass in endcaps: " << bm << std::endl;
         std::cout << "Average module mass in endcaps: " << (bm / (double)f) << std::endl;
         std::cout << "Average module radiation length in endcaps: " << (br / (double)f) << std::endl;
         std::cout << "Average module interaction length in endcaps: " << (bi / (double)f) << std::endl;
+        for (unsigned int i = 0; i < capsendmods.size(); i++) {
+            std::cout << "Sample boundary module on disc " << i << ":" << std::endl;
+            try {
+                capsendmods.at(i).at(onBoundary(capsendmods, i)).print();
+            }
+            catch (std::out_of_range& oor) {
+                std::cerr << "Error: unable to find a module index for disc " << i << "." << std::endl;
+                std::cerr << oor.what() << std::endl;
+            }
+        }
         std::cout << std::endl;
         for (unsigned int i = 0; i < inactive->getBarrelServices().size(); i++) {
             if (inactive->getBarrelServicePart(i).getTotalMass() > 0) {
@@ -189,6 +211,7 @@ namespace insur {
             }
             else s++;
         }
+        std::cout << "-----Barrel Services-----" << std::endl;
         std::cout << "Total valid services in barrels: " << (inactive->getBarrelServices().size() - s) << std::endl;
         std::cout << "Total service mass in barrels: " << cm << std::endl;
         std::cout << "Average service mass in barrels: " << (cm / (double)(inactive->getBarrelServices().size())) << std::endl;
@@ -203,6 +226,7 @@ namespace insur {
             }
             else t++;
         }
+        std::cout << "-----Endcap Services-----" << std::endl;
         std::cout << "Total valid services in endcaps: " << (inactive->getEndcapServices().size() - t) << std::endl;
         std::cout << "Total service mass in endcaps: " << dm << std::endl;
         std::cout << "Average service mass in endcaps: " << (dm / (double)(inactive->getEndcapServices().size())) << std::endl;
@@ -243,6 +267,7 @@ namespace insur {
                 h--;
             }
         }
+        std::cout << "-----Supports-----" << std::endl;
         std::cout << "Total valid support parts: " << a << " in barrels, " << b << " in endcaps, ";
         std::cout << g << " in support tubes and " << h << " user defined." << std::endl << std::endl;
         std::cout << "Total support mass in barrels: " << em << std::endl;
@@ -275,6 +300,22 @@ namespace insur {
         std::cout << "Average interaction length in endcaps: " << (((bi / (double)f) + (di / (double)(inactive->getEndcapServices().size())) + (fi / (double)b)) / 3.0) << std::endl;
         std::cout << std::endl;
         std::cout << "Total mass in tracker: " << ((am + bm + cm + dm + em + fm + gm +hm) / 1000.0) << "kg." << std::endl;
-        std::cout << "-----Material Budget Internal State-----" << std::endl << std::endl;
+        std::cout << "----------Material Budget Internal State----------" << std::endl << std::endl;
+    }
+    
+    // protected
+    int MaterialBudget::onBoundary(std::vector<std::vector<ModuleCap> >& source, int layer) { //throws exception
+        int ring = 0, index = 0;
+        if ((layer > 0) && (layer < (int)source.size())) {
+            for (unsigned int mod = 0; mod < source.at(layer).size(); mod++) {
+                if (source.at(layer).at(mod).getModule().getRing() > ring) {
+                    ring = source.at(layer).at(mod).getModule().getRing();
+                    index = mod;
+                }
+            }
+        }
+        else throw std::out_of_range("Layer index is out of range: " + layer);
+        std::cout << "returning index " << index << std::endl;
+        return index;
     }
 }

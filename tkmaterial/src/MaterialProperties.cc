@@ -355,11 +355,11 @@ namespace insur {
         std::cout << "Material properties (current state)" << std::endl;
         std::cout << "localmasses: vector with " << localmasses.size() << " elements." << std::endl;
         for (unsigned int i = 0; i < localmasses.size(); i++) {
-            std::cout << "element " << i << "(material, mass): (" << localmasses.at(i).first << ", " << localmasses.at(i).second << ")" << std::endl;
+            std::cout << "Material " << i << " (material, mass): (" << localmasses.at(i).first << ", " << localmasses.at(i).second << ")" << std::endl;
         }
         std::cout << "exitingmasses: vector with " << exitingmasses.size() << " elements." << std::endl;
         for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-            std::cout << "element " << i << "(material, mass): (" << exitingmasses.at(i).first << ", " << exitingmasses.at(i).second << ")" << std::endl;
+            std::cout << "Material " << i << " (material, mass): (" << exitingmasses.at(i).first << ", " << exitingmasses.at(i).second << ")" << std::endl;
         }
         std::cout << "total_mass = " << total_mass << std::endl;
         std::cout << "local_mass = " << local_mass << std::endl;

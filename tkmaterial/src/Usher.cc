@@ -361,6 +361,7 @@ namespace insur {
         // outer tube
         is = addSupportTube(is, 2 * max_length, 0.0 - max_length, outer_radius, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
+        is.getSupportPart(is.getSupports().size() - 1).track(false);
         // inner tube
         is = addSupportTube(is, 2 * max_length, 0.0 - max_length, inner_radius - volume_width, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
@@ -1113,7 +1114,8 @@ namespace insur {
             std::cout << "Discs at an offset of:";
             for (unsigned int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
             std::cout << "." << std::endl << std::endl;
-            std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;
+            if (nOfEndcaps() < 1) std::cout << "There are no endcaps in this configuration." << std::endl;
+            else std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;
             std::cout << "Number of short layers: " << short_layers.size() << "." << std::endl;
             if (short_layers.size() > 0) {
                 std::cout << "Short layers found at index";
