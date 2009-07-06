@@ -14,6 +14,7 @@ namespace insur {
     MaterialProperties::MaterialProperties() {
         msl_set = false;
         mse_set = false;
+        trck = true;
         cat = no_cat;
         total_mass = -1;
         local_mass = -1;
@@ -334,6 +335,18 @@ namespace insur {
             }
         }
     }
+    
+    /**
+     * Find out if the volume is relevant for tracking during analysis.
+     * @return True if the material properties of this volume matter for the tracker analysis, false otherwise
+     */
+    bool MaterialProperties::track() { return trck; }
+    
+    /**
+     * Set this volume's relevance for tracking during analysis.
+     * @param tracking_on The flag that turns tracking of material properties for the volume on or off
+     */
+    void MaterialProperties::track(bool tracking_on) { trck = tracking_on; }
     
     /**
      * Print the material properties.

@@ -33,9 +33,9 @@ namespace insur {
      * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      */
-    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps, bool ztransform) {
-        int nTracks, binnr;
-        double etaStep, eta, theta, phi, r, z;
+    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
+        int nTracks;
+        double etaStep, eta, theta, phi;
         clearHistograms();
         clearCells();
         // prepare etaStep, phiStep, nTracks, nScans
@@ -43,8 +43,8 @@ namespace insur {
         else etaStep = etaMax;
         nTracks = etaSteps;
         // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
-        setHistogramBinsBoundaries(nTracks, 0.0, etaMax, ztransform);
-        setCellBoundaries(nTracks, inner_radius - volume_width, outer_radius + volume_width, 0.0, etaMax);
+        setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
+        setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, etaMax);
         // used fixed phi
         phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
@@ -53,7 +53,6 @@ namespace insur {
             eta = i_eta * etaStep;
             theta = 2 * atan(pow(E, -1 * eta));
             //      active volumes, barrel
-            std::cout << "analyzeModules(): barrel modules." << std::endl;
             tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi);
             ractivebarrel.Fill(eta, tmp.first);
             iactivebarrel.Fill(eta, tmp.second);
@@ -64,7 +63,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      active volumes, endcap
-            std::cout << "analyzeModules(): endcap modules." << std::endl;
             tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi);
             ractiveendcap.Fill(eta, tmp.first);
             iactiveendcap.Fill(eta, tmp.second);
@@ -75,7 +73,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, barrel
-            std::cout << "analyzeInactiveSurfaces(): barrel services." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta);
             rserfbarrel.Fill(eta, tmp.first);
             iserfbarrel.Fill(eta, tmp.second);
@@ -86,7 +83,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, endcap
-            std::cout << "analyzeInactiveSurfaces(): endcap services." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta);
             rserfendcap.Fill(eta, tmp.first);
             iserfendcap.Fill(eta, tmp.second);
@@ -97,7 +93,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, barrel
-            std::cout << "analyzeInactiveSurfaces(): barrel supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::b_sup);
             rlazybarrel.Fill(eta, tmp.first);
             ilazybarrel.Fill(eta, tmp.second);
@@ -108,7 +103,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, endcap
-            std::cout << "analyzeInactiveSurfaces(): endcap supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::e_sup);
             rlazyendcap.Fill(eta, tmp.first);
             ilazyendcap.Fill(eta, tmp.second);
@@ -119,7 +113,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, tubes
-            std::cout << "analyzeInactiveSurfaces(): support tubes." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::t_sup);
             rlazytube.Fill(eta, tmp.first);
             ilazytube.Fill(eta, tmp.second);
@@ -128,7 +121,6 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, user defined
-            std::cout << "analyzeInactiveSurfaces(): user-defined supports." << std::endl;
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::u_sup);
             rlazyuserdef.Fill(eta, tmp.first);
             ilazyuserdef.Fill(eta, tmp.second);
@@ -137,37 +129,15 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
         }
-        /*for (unsigned int i = 0; i < cells.size(); i++) {
+        // integration over eta
+        for (unsigned int i = 0; i < cells.size(); i++) {
             for (unsigned int j = 1; j < cells.at(i).size(); j++) {
                 cells.at(i).at(j).rlength = cells.at(i).at(j).rlength + cells.at(i).at(j - 1).rlength;
                 cells.at(i).at(j).ilength = cells.at(i).at(j).ilength + cells.at(i).at(j - 1).ilength;
             }
-        }*/
-        if (ztransform) {
-            // loop over all cells(eta, r)
-            for (unsigned int i = 0; i < cells.size(); i++) { // eta loop
-                for (unsigned int j = 0; j < cells.at(i).size(); j++) { // r loop
-                    r = (cells.at(i).at(j).rmin + cells.at(i).at(j).rmax) / 2.0;
-                    theta = 2 * atan(pow(E, -1 * ((cells.at(i).at(j).etamin + cells.at(i).at(j).etamax) / 2.0)));
-                    if (theta == PI / 2.0) z = 0; // theta = 0 does not occur for etaMax < inf, so no need to consider it
-                    else z = r / tan(theta);
-                    binnr = isor.FindBin(z, r);
-                    if (cells.at(i).at(j).rlength > isor.GetBinContent(binnr)) isor.SetBinContent(binnr, cells.at(i).at(j).rlength);
-                    binnr = isoi.FindBin(z, r);
-                    if (cells.at(i).at(j).ilength > isoi.GetBinContent(binnr)) isoi.SetBinContent(binnr, cells.at(i).at(j).ilength);
-                }
-            }
         }
-        else {
-            for (unsigned int i = 0; i < cells.size(); i++) {
-                for (unsigned int j = 0; j < cells.at(i).size(); j++) {
-                    r = (cells.at(i).at(j).rmin + cells.at(i).at(j).rmax) / 2.0;
-                    z = (cells.at(i).at(j).etamin + cells.at(i).at(j).etamax) / 2.0;
-                    isor.Fill(z, r, cells.at(i).at(j).rlength);
-                    isoi.Fill(z, r, cells.at(i).at(j).ilength);
-                }
-            }
-        }
+        // transformation from (eta, r) to (z, r) coordinates
+        transformEtaToZ();
     }
     
     // protected
@@ -268,10 +238,10 @@ namespace insur {
             if (((iter->getZOffset() + iter->getZLength()) > 0)
                     && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
                 tmp = iter->getEtaMinMax();
-                if ((tmp.first < eta) && (tmp.second > eta)) {
+                if ((tmp.first < eta) && (tmp.second > eta) && iter->track()) {
                     double r, z;
                     if (iter->isVertical()) {
-                        z = (iter->getZOffset() + iter->getZLength()) / 2.0;
+                        z = iter->getZOffset() + iter->getZLength() / 2.0;
                         r = z * tan(theta);
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
@@ -394,7 +364,7 @@ namespace insur {
      * @param min The minimal eta value that should be plotted
      * @param max the maximal eta value that should be plotted
      */
-    void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max, bool ztransform) {
+    void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
         ractivebarrel.SetBins(bins, min, max);
         ractiveendcap.SetBins(bins, min, max);
         rserfbarrel.SetBins(bins, min, max);
@@ -423,28 +393,18 @@ namespace insur {
         ilazyall.SetBins(bins, min, max);
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
-        if (bins != 1) {
-            if (ztransform) {
-                isor.SetBins(bins / 2, 0.0, max_length / 2.0, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
-                isoi.SetBins(bins / 2, 0.0, max_length / 2.0, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
-            }
-            else {
-                isor.SetBins(bins, 0.0, etaMax, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
-                isoi.SetBins(bins, 0.0, etaMax, bins / 2, inner_radius - volume_width, outer_radius + volume_width);
-            }
-        }
-        else { //DEBUG
-            if (ztransform) {
-                isor.SetBins(bins, 0.0, max_length / 2.0, 10, inner_radius - volume_width, outer_radius + volume_width);
-                isoi.SetBins(bins, 0.0, max_length / 2.0, 10, inner_radius - volume_width, outer_radius + volume_width);
-            }
-            else {
-                isor.SetBins(bins, 0.0, etaMax, 10, inner_radius - volume_width, outer_radius + volume_width);
-                isoi.SetBins(bins, 0.0, etaMax, 10, inner_radius - volume_width, outer_radius + volume_width);
-            }
-        }
+        isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+        isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
     }
-    
+    /**
+     * This convenience function sets the number of bins and the lower and upper range for their contents for
+     * each of the cells that make up the basis for the 2D histograms.
+     * @param bins The number of bins in eta; the number of bins in r will be half that
+     * @param minr The minimum radius that will be considered for tracking
+     * @param maxr The maximum radius that will be considered for tracking
+     * @param mineta The minimum value of eta that will be considered for tracking
+     * @param maxeta The maximum value of eta that will be considered for tracking
+     */
     void Analyzer::setCellBoundaries(int bins, double minr, double maxr, double mineta, double maxeta) {
         double rstep, etastep;
         rstep = 2 * (maxr - minr) / bins;
@@ -453,13 +413,7 @@ namespace insur {
         c.rlength = 0.0;
         c.ilength = 0.0;
         cells.resize(bins);
-        for (unsigned int i = 0; i < cells.size(); i++) {
-            if (bins != 1) cells.at(i).resize(bins / 2, c);
-            else { //DEBUG
-                cells.at(i).resize(10, c);
-                rstep = (maxr - minr) / 10.0;
-            }
-        }
+        for (unsigned int i = 0; i < cells.size(); i++) if (bins != 1) cells.at(i).resize(bins / 2, c);
         for (unsigned int i = 0; i < cells.size(); i++) {
             for (unsigned int j = 0; j < cells.at(i).size(); j++) {
                 cells.at(i).at(j).rmin = minr + j * rstep;
@@ -470,8 +424,15 @@ namespace insur {
         }
     }
     
+    /**
+     * This function assigns the local radiation and interaction lengths of a detected hit to their position in the
+     * (eta, r) space.
+     * @param r The radius at which the hit was detected
+     * @param eta The eta value of the current track
+     * @param rl The local radiation length
+     * @param il The local interaction length
+     */
     void Analyzer::fillCell(double r, double eta, double rl, double il) {
-        std::cout << "r = " << r << ", eta = " << eta << ", rl = " << rl << ", il = " << il << std::endl;
         int rindex, etaindex;
         if (cells.size() > 0) {
             for (rindex = 0; (unsigned int) rindex < cells.at(0).size(); rindex++) {
@@ -487,5 +448,97 @@ namespace insur {
                 }
             }
         }
+    }
+    
+    /**
+     * The integrated radiation and interaction lengths in (eta, r) are converted to (z, r) coordinates and stored in
+     * <i>isor</i> and <i>isoi</i> in this function.
+     */
+    void Analyzer::transformEtaToZ() {
+        int size_z, size_r, rindex, etaindex;
+        double z, r, eta, z_max, z_min, r_max, r_min, z_c, r_c;
+        size_z = isor.GetNbinsX();
+        size_r = isor.GetNbinsY();
+        z_max = isor.GetXaxis()->GetXmax();
+        z_min = isor.GetXaxis()->GetXmin();
+        r_max = isor.GetYaxis()->GetXmax();
+        r_min = isor.GetYaxis()->GetXmin();
+        z_c = (z_max - z_min) / (2 * size_z);
+        r_c = (r_max - r_min) / (2 * size_r);
+        for (int i = 1; i <= size_z; i++) {
+            z = z_min + 2 * (i - 1) * z_c + z_c;
+            for (int j = 1; j <= size_r; j++) {
+                r = r_min + 2 * (j - 1) * r_c + r_c;
+                eta = -log(tan(atan(r / z) / 2.0));
+                etaindex = findCellIndexEta(eta);
+                rindex = findCellIndexR(r);
+                if ((etaindex >= 0) && (rindex >= 0)) isor.Fill(z, r, cells.at(etaindex).at(rindex).rlength);
+            }
+        }
+        size_z = isoi.GetNbinsX();
+        size_r = isoi.GetNbinsY();
+        z_max = isoi.GetXaxis()->GetXmax();
+        z_min = isoi.GetXaxis()->GetXmin();
+        r_max = isoi.GetYaxis()->GetXmax();
+        r_min = isoi.GetYaxis()->GetXmin();
+        z_c = (z_max - z_min) / (2 * size_z);
+        r_c = (r_max - r_min) / (2 * size_r);
+        for (int i = 0; i < size_z; i++) {
+            z = z_min + 2 * i * z_c + z_c;
+            for (int j = 0; j < size_r; j++) {
+                r = r_min + 2 * j * r_c + r_c;
+                eta = -log(tan(atan(r / z) / 2.0));
+                etaindex = findCellIndexEta(eta);
+                rindex = findCellIndexR(r);
+                if ((etaindex >= 0) && (rindex >= 0)) isoi.Fill(z, r, cells.at(etaindex).at(rindex).ilength);
+            }
+        }
+    }
+    
+    // private
+    /**
+     * This is a convenience function that converts a radius to an index into the second dimension of <i>cells</i>.
+     * @param r The given radius value
+     * @return The corresponding index into the vector
+     */
+    int Analyzer::findCellIndexR(double r) {
+        int index = -1;
+        if (r >= 0) {
+            if (cells.size() > 0) {
+                index = 0;
+                while (index < (int)cells.at(0).size()) {
+                    if (cells.at(0).at(index).rmax < r) index++;
+                    else break;
+                }
+                if (index == (int)cells.at(0).size()) index = -1;
+                return index;
+            }
+        }
+        return index;
+    }
+    
+    /**
+     * This is a convenience function that converts an eta value to an index into the first dimension of <i>cells</i>.
+     * @param eta The given eta value
+     * @return the corresponding index into the vector
+     */
+    int Analyzer::findCellIndexEta(double eta) {
+        int index = -1;
+        if (eta >= 0) {
+           index = 0;
+           while (index < (int)cells.size()) {
+               if (cells.at(index).size() > 0) {
+                   if (cells.at(index).at(0).etamax < eta) index++;
+                   else break;
+               }
+               else {
+                   index = -1;
+                   break;
+               }
+           }
+           if (index == (int)cells.size()) index = -1;
+           return index;
+        }
+        return index;
     }
 }

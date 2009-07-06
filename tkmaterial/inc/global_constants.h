@@ -18,7 +18,7 @@ namespace insur {
      * @param volume_width The standard geometrical thickness of an inactive volume
      * @param inner_radius The inner radius of the tracker; the inner support tube starts immediately inside, everything below is part of the pixel detector
      * @param outer_radius The outer radius of the tracker; the outer support tube starts immediately outside, everything above is part of ECAL
-     * @param max_length The maximum length, -z to +z, available to place the tracker components
+     * @param max_length The maximum length, in +z, available to place the tracker components
      */
     static const double epsilon = 0.1;
     static const double volume_width = 10.0;
@@ -39,6 +39,7 @@ namespace insur {
      * @param z_carbon Carbon charge
      * @param d_carbon Carbon density
      * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
+     * @param temperature_levels The number of different colour levels in 2D histogram plots
      */
     static const double a_silicon = 28.0855;
     static const double z_silicon = 14;
@@ -50,6 +51,7 @@ namespace insur {
     static const double z_carbon = 6;
     static const double d_carbon = 1.9;
     static const double top_volume_pad = 200;
+    static const double temperature_levels = 10;
     
     /**
      * Internal string constants

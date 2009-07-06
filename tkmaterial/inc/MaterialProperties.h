@@ -75,11 +75,14 @@ namespace insur {
         void calculateExitingMass(double offset = 0);
         void calculateRadiationLength(MaterialTable& materials, double offset = 0.0);
         void calculateInteractionLength(MaterialTable& materials,  double offset = 0.0);
+        // tracking information
+        bool track();
+        void track(bool tracking_on);
         // base print function
         void print();
     protected:
-        // init flag
-        bool msl_set, mse_set;
+        // init flags and tracking
+        bool msl_set, mse_set, trck;
         // geometry-dependent parameters
         Category cat;
         std::vector<std::pair<std::string, double> > localmasses, exitingmasses;

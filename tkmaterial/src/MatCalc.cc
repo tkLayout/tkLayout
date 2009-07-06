@@ -229,7 +229,6 @@ namespace insur {
         }
         else {
             SingleSerExit& ser = getSingleSer(tagIn, tagOut, uIn, uOut, local);
-            //ser.In = ser.In + In;
             ser.Out = ser.Out + ser.In / In * Out;
         }
     }

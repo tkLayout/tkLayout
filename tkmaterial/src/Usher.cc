@@ -247,6 +247,7 @@ namespace insur {
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(k));
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::barrel);
+                        if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                     }
                     else {
                         if (j == 0) {
@@ -260,6 +261,7 @@ namespace insur {
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
+                            if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                             zo = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) + volume_width + 2 * epsilon;
                             zl = tracker.zOffsetDisc(k) - zo;
                         }
@@ -278,6 +280,7 @@ namespace insur {
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
                         }
                         else is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::barrel);
+                        if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                     }
                     k++;
                 }
@@ -342,6 +345,7 @@ namespace insur {
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
             }
+            is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
         }
         return is;
     }
@@ -355,10 +359,10 @@ namespace insur {
      */
     InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         // outer tube
-        is = addSupportTube(is, max_length, 0.0 - max_length / 2.0, outer_radius, volume_width);
+        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, outer_radius, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
         // inner tube
-        is = addSupportTube(is, max_length, 0.0 - max_length / 2.0, inner_radius - volume_width, volume_width);
+        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, inner_radius - volume_width, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
         // barrel endpoints
         is = supportsRegularBarrels(tracker, is);

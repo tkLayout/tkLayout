@@ -78,7 +78,7 @@ namespace insur {
         TH1D& getHistoGlobalI() { return iglobal; }
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50, bool ztransform = false);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
     protected:
         /**
          * @struct Cell
@@ -104,10 +104,13 @@ namespace insur {
                                                                                                        double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
         void clearHistograms();
         void clearCells();
-        void setHistogramBinsBoundaries(int bins, double min, double max, bool ztransform = false);
+        void setHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
         void fillCell(double r, double eta, double rl, double il);
+        void transformEtaToZ();
     private:
+        int findCellIndexR(double r);
+        int findCellIndexEta(double eta);
     };
 }
 #endif	/* _ANALYZER_H */
