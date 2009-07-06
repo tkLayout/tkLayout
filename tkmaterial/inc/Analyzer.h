@@ -74,6 +74,10 @@ namespace insur {
         TH1D& getHistoServicesAllI() { return iserfall; }
         TH1D& getHistoSupportsAllR() { return rlazyall; }
         TH1D& getHistoSupportsAllI() { return ilazyall; }
+        TH1D& getHistoExtraServicesR() { return rextraservices; }
+        TH1D& getHistoExtraServicesI() { return iextraservices; }
+        TH1D& getHistoExtraSupportsR() { return rextrasupports; }
+        TH1D& getHistoExtraSupportsI() { return iextrasupports; }
         TH1D& getHistoGlobalR() { return rglobal; }
         TH1D& getHistoGlobalI() { return iglobal; }
         TH2D& getHistoIsoR() { return isor; }
@@ -96,6 +100,8 @@ namespace insur {
         TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazytube, ilazyuserdef;
         TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
         TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
+        TH1D rextraservices, rextrasupports;
+        TH1D iextraservices, iextrasupports;
         TH1D rglobal, iglobal;
         TH2D isor, isoi;
         virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi);

@@ -238,7 +238,7 @@ namespace insur {
             if (((iter->getZOffset() + iter->getZLength()) > 0)
                     && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
                 tmp = iter->getEtaMinMax();
-                if ((tmp.first < eta) && (tmp.second > eta) && iter->track()) {
+                if ((tmp.first < eta) && (tmp.second > eta)) {
                     double r, z;
                     if (iter->isVertical()) {
                         z = iter->getZOffset() + iter->getZLength() / 2.0;
@@ -246,14 +246,35 @@ namespace insur {
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
                             if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
-                            res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
-                            res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
-                            fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                            if (iter->track()) {
+                                res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
+                                res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                                fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                            }
+                            else {
+                                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
+                                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
+                            }
                         }
                         else {
-                            res.first = res.first + iter->getRadiationLength() / cos(theta);
-                            res.second = res.second + iter->getInteractionLength() / cos(theta);
-                            fillCell(r, eta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
+                            if (iter->track()) {
+                                res.first = res.first + iter->getRadiationLength() / cos(theta);
+                                res.second = res.second + iter->getInteractionLength() / cos(theta);
+                                fillCell(r, eta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
+                            }
+                            else {
+                                if ((iter->getCategory() == MaterialProperties::b_ser)
+                                      || (iter->getCategory() == MaterialProperties::e_ser)) {
+                                    rextraservices.Fill(eta, iter->getRadiationLength() / cos(theta));
+                                    iextraservices.Fill(eta, iter->getInteractionLength() / cos(theta));
+                                }
+                                else if ((iter->getCategory() == MaterialProperties::b_sup)
+                                             || (iter->getCategory() == MaterialProperties::e_sup)
+                                             || (iter->getCategory() == MaterialProperties::t_sup)) {
+                                    rextrasupports.Fill(eta, iter->getRadiationLength() / cos(theta));
+                                    iextrasupports.Fill(eta, iter->getInteractionLength() / cos(theta));
+                                }
+                            }
                         }
                     }
                     else {
@@ -261,14 +282,35 @@ namespace insur {
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / sin(theta);
                             if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
-                            res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
-                            res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
-                            fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                            if (iter->track()) {
+                                res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
+                                res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                                fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                            }
+                            else {
+                                rextrasupports.Fill(eta, iter->getRadiationLength() * s / iter->getZLength());
+                                iextrasupports.Fill(eta, iter->getInteractionLength() * s / iter->getZLength());
+                            }
                         }
                         else {
-                            res.first = res.first + iter->getRadiationLength() / sin(theta);
-                            res.second = res.second + iter->getInteractionLength() / sin(theta);
-                            fillCell(r, eta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
+                            if (iter->track()) {
+                                res.first = res.first + iter->getRadiationLength() / sin(theta);
+                                res.second = res.second + iter->getInteractionLength() / sin(theta);
+                                fillCell(r, eta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
+                            }
+                            else {
+                                if ((iter->getCategory() == MaterialProperties::b_ser)
+                                      || (iter->getCategory() == MaterialProperties::e_ser)) {
+                                    rextraservices.Fill(eta, iter->getRadiationLength() / sin(theta));
+                                    iextraservices.Fill(eta, iter->getInteractionLength() / sin(theta));
+                                }
+                                else if ((iter->getCategory() == MaterialProperties::b_sup)
+                                             || (iter->getCategory() == MaterialProperties::e_sup)
+                                             || (iter->getCategory() == MaterialProperties::t_sup)) {
+                                    rextrasupports.Fill(eta, iter->getRadiationLength() / sin(theta));
+                                    iextrasupports.Fill(eta, iter->getInteractionLength() / sin(theta));
+                                }
+                            }
                         }
                     }
                 }
@@ -335,6 +377,15 @@ namespace insur {
         iserfall.SetNameTitle("iserfall", "Services Interaction Length");
         ilazyall.Reset();
         ilazyall.SetNameTitle("ilazyall", "Supports Interaction Length");
+        // outside tracking volume
+        rextraservices.Reset();
+        rextraservices.SetNameTitle("rextraservices", "Services Outside Tracking Volume: Radiation Length");
+        rextrasupports.Reset();
+        rextrasupports.SetNameTitle("rextrasupports", "Supports Outside Tracking Volume: Radiation Length");
+        iextraservices.Reset();
+        iextraservices.SetNameTitle("iextraservices", "Services Outside Tracking Volume: Interaction Length");
+        iextrasupports.Reset();
+        iextrasupports.SetNameTitle("iextrasupports", "Supports Outside Tracking Volume: Interaction Length");
         // global
         rglobal.Reset();
         rglobal.SetNameTitle("rglobal", "Overall Radiation Length");
@@ -391,6 +442,10 @@ namespace insur {
         iactiveall.SetBins(bins, min, max);
         iserfall.SetBins(bins, min, max);
         ilazyall.SetBins(bins, min, max);
+        rextraservices.SetBins(bins, min, max);
+        rextrasupports.SetBins(bins, min, max);
+        iextraservices.SetBins(bins, min, max);
+        iextrasupports.SetBins(bins, min, max);
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
@@ -525,19 +580,19 @@ namespace insur {
     int Analyzer::findCellIndexEta(double eta) {
         int index = -1;
         if (eta >= 0) {
-           index = 0;
-           while (index < (int)cells.size()) {
-               if (cells.at(index).size() > 0) {
-                   if (cells.at(index).at(0).etamax < eta) index++;
-                   else break;
-               }
-               else {
-                   index = -1;
-                   break;
-               }
-           }
-           if (index == (int)cells.size()) index = -1;
-           return index;
+            index = 0;
+            while (index < (int)cells.size()) {
+                if (cells.at(index).size() > 0) {
+                    if (cells.at(index).at(0).etamax < eta) index++;
+                    else break;
+                }
+                else {
+                    index = -1;
+                    break;
+                }
+            }
+            if (index == (int)cells.size()) index = -1;
+            return index;
         }
         return index;
     }

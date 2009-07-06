@@ -323,28 +323,66 @@ namespace insur {
     void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
         THStack rcontainer("rstack", "Radiation Length by Category");
         THStack icontainer("istack", "Interaction Length by Category");
-        TH1D *cr = NULL, *ci = NULL, *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
-        //TH2D *ir = NULL, *ii = NULL;
+        TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
+        TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+        TH2D *ir = NULL, *ii = NULL;
         TVirtualPad* pad;
         std::string outfile = default_summarypath + "/";
-        std::string pngoutfile, pngout;
+        std::string pngoutfile, pngout, pngpath;
         if (outfilename.empty()) {
             outfile = outfile + default_summary;
-            pngoutfile = default_summary + ".png";
+            pngoutfile = default_summary;
         }
         else {
             outfile = outfile + outfilename;
-            pngoutfile = outfilename + ".png";
+            pngoutfile = outfilename;
         }
-        pngout = default_summarypath + "/" + pngoutfile;
+        if (pngoutfile.substr(pngoutfile.size() - 4) == "html") {
+            pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 4);
+            if (pngoutfile.substr(pngoutfile.size() - 1) == ".") pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 1);
+        }
         std::string htmlcontents;
         std::ofstream outstream(outfile.c_str());
-        TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 800, 800);
+        htmlcontents = "<html><title>" + outfilename + "</title><body>";
+        TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 900, 400);
         c.SetFillColor(kWhite);
-        c.Divide(2, 2);
-        //c.Divide(2, 3);
+        c.Divide(2,1);
         pad = c.GetPad(0);
         pad->SetFillColor(kGray);
+        pad = c.GetPad(1);
+        pad->cd();
+        cr = (TH1D*)a.getHistoGlobalR().Clone();
+        fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+        fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+        fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+        fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+        cr->Add(fr1);
+        cr->Add(fr2);
+        cr->SetFillColor(kGray + 2);
+        cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
+        cr->SetXTitle("Eta");
+        cr->Draw();
+        pad = c.GetPad(2);
+        pad->cd();
+        // total tracking volume ilength
+        ci = (TH1D*)a.getHistoGlobalI().Clone();
+        fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+        fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+        fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+        fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+        ci->Add(fi1);
+        ci->Add(fi2);
+        ci->SetFillColor(kGray + 1);
+        ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
+        ci->SetXTitle("Eta");
+        ci->Draw();
+        pngout = pngoutfile + ".fullvolume.png";
+        pngpath = default_summarypath + "/" + pngout;
+        c.SaveAs(pngpath.c_str());
+        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        c.Clear("D");
+        if (cr) delete cr;
+        if (ci) delete ci;
         pad = c.GetPad(1);
         pad->cd();
         cr = (TH1D*)a.getHistoGlobalR().Clone();
@@ -359,7 +397,12 @@ namespace insur {
         ci->SetNameTitle("iglobal", "Overall Interaction Length");
         ci->SetXTitle("Eta");
         ci->Draw();
-        pad = c.GetPad(3);
+        pngout = pngoutfile + ".global.png";
+        pngpath = default_summarypath + "/" + pngout;
+        c.SaveAs(pngpath.c_str());
+        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        c.Clear("D");
+        pad = c.GetPad(1);
         pad->cd();
         sur = (TH1D*)a.getHistoSupportsAllR().Clone();
         sur->SetFillColor(kOrange + 4);
@@ -374,7 +417,7 @@ namespace insur {
         acr->SetXTitle("Eta");
         rcontainer.Add(acr);
         rcontainer.Draw();
-        pad = c.GetPad(4);
+        pad = c.GetPad(2);
         pad->cd();
         sui = (TH1D*)a.getHistoSupportsAllI().Clone();
         sui->SetFillColor(kOrange + 2);
@@ -389,36 +432,47 @@ namespace insur {
         icontainer.Add(aci);
         aci->SetXTitle("Eta");
         icontainer.Draw();
-        /*pad = c.GetPad(5);
-         * pad->cd();
-         * ir = (TH2D*)a.getHistoIsoR().Clone();
-         * ir->SetNameTitle("isor", "Radiation Length Contours");
-         * ir->SetContour(5);
-         * ir->SetXTitle("z");
-         * ir->SetYTitle("r");
-         * ir->Draw("CONT");
-         * pad = c.GetPad(6);
-         * pad->cd();
-         * ii = (TH2D*)a.getHistoIsoI().Clone();
-         * ii->SetNameTitle("isoi", "Interaction Length Contours");
-         * ii->SetContour(5);
-         * ii->SetXTitle("z");
-         * ii->SetYTitle("r");
-         * ii->Draw("CONT");*/
-        c.SaveAs(pngout.c_str());
+        pngout = pngoutfile + ".asl.png";
+        pngpath = default_summarypath + "/" + pngout;
+        c.SaveAs(pngpath.c_str());
+        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        c.Clear("D");
+        pad = c.GetPad(1);
+        pad->cd();
+        ir = (TH2D*)a.getHistoIsoR().Clone();
+        ir->SetNameTitle("isor", "Radiation Length Contours");
+        ir->SetContour(temperature_levels);
+        ir->SetXTitle("z");
+        ir->SetYTitle("r");
+        ir->Draw("COLZ");
+        pad = c.GetPad(2);
+        pad->cd();
+        ii = (TH2D*)a.getHistoIsoI().Clone();
+        ii->SetNameTitle("isoi", "Interaction Length Contours");
+        ii->SetContour(temperature_levels);
+        ii->SetXTitle("z");
+        ii->SetYTitle("r");
+        ii->Draw("COLZ");
+        pngout = pngoutfile + ".twodee.png";
+        pngpath = default_summarypath + "/" + pngout;
+        c.SaveAs(pngpath.c_str());
+        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
         if (cr) delete cr;
         if (ci) delete ci;
+        if (fr1) delete fr1;
+        if (fi1) delete fi1;
+        if (fr2) delete fr2;
+        if (fi2) delete fi2;
         if (acr) delete acr;
         if (aci) delete aci;
         if (ser) delete ser;
         if (sei) delete sei;
         if (sur) delete sur;
         if (sui) delete sui;
-        htmlcontents = "<html><title>" + outfilename + "</title><body>";
-        htmlcontents = htmlcontents + "<img src=\"" + pngoutfile + "\" />" + "</body></html>";
+        htmlcontents = htmlcontents + "</body></html>";
         outstream << htmlcontents << std::endl;
         outstream.close();
-        std::cout << "HTML file written to " << outfile << ", image written to " << pngout << std::endl;
+        std::cout << "HTML file written to " << outfile << std::endl;
     }
     
     // private
