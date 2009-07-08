@@ -29,6 +29,7 @@ public:
   void shapeVolume(TGeoVolume* container, TGeoMedium* medium, TGeoManager* geom);
   void shapeModuleVolumes(TGeoVolume* container, TGeoMedium* medium, TGeoManager* geom);
   ModuleVector* getModuleVector() { return &moduleSet_; }
+  virtual Module* getSampleModule() { return NULL; }
 
   std::string getName() {return layerName_; };
   void setName(const std::string newName ) { layerName_ = newName; };
@@ -63,6 +64,7 @@ public:
 class BarrelLayer : public Layer {
 private:
   BarrelModule* sampleModule_;
+  BarrelModule* getSampleModule() { return sampleModule_; }
   double averageRadius_;
   void setDefaultParameters(){ averageRadius_=0;};
 
@@ -169,6 +171,7 @@ public:
 class EndcapLayer : public Layer {
 private:
   EndcapModule* sampleModule_;
+  EndcapModule* getSampleModule() { return sampleModule_; }
   double averageZ_;
   void setDefaultParameters(){averageZ_=0;};
 

@@ -15,7 +15,6 @@ using namespace ROOT::Math;
 
 Layer::~Layer() {
   ModuleVector::iterator modIt;
-
   for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
     if ((*modIt)!=NULL) {
       delete (*modIt);
@@ -174,9 +173,7 @@ int Layer::cutOverEta(double etaCut) {
 /******************/
 
 BarrelLayer::~BarrelLayer() {
-  if (sampleModule_) {
-    delete sampleModule_;
-  }
+  if (sampleModule_) delete sampleModule_;
 }
 
 BarrelLayer::BarrelLayer() {
@@ -192,6 +189,10 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
   layerName_     = inputLayer.layerName_;
   averageRadius_ = inputLayer.averageRadius_;
 
+  if ( (sampleModule_=dynamic_cast<BarrelModule*>(inputLayer.getSampleModule())) ) {
+      sampleModule_ = new BarrelModule(*(inputLayer.getSampleModule()));
+  }
+  
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
     if ( (stdModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
       aModule = new BarrelModule(*stdModule);
@@ -1063,9 +1064,7 @@ double BarrelLayer::computeAverageRadius() {
 /******************/
 
 EndcapLayer::~EndcapLayer() {
-  if (sampleModule_) {
-    delete sampleModule_;
-  }
+  if (sampleModule_) delete sampleModule_;
 }
 
 EndcapLayer::EndcapLayer() {
@@ -1081,6 +1080,10 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
   layerName_ = inputLayer.layerName_;
   averageZ_  = inputLayer.averageZ_;
 
+    if ( (sampleModule_=dynamic_cast<EndcapModule*>(inputLayer.getSampleModule())) ) {
+      sampleModule_ = new EndcapModule(*(inputLayer.getSampleModule()));
+  }
+  
   for (modIt=inputModuleV.begin(); modIt!=inputModuleV.end(); modIt++) {
     if ( (stdModule=dynamic_cast<EndcapModule*>(*modIt)) ) {
       aModule = new EndcapModule(*stdModule);

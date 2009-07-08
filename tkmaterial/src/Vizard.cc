@@ -574,6 +574,13 @@ namespace insur {
         return tr;
     }
     
+    /**
+     * This function computes the average of a range of histogram bins: from the first to the one that includes a
+     * cutoff value along the axis.
+     * @param histo A reference to the histogram data
+     * @param cutoff The cutoff value
+     * @return The average value of the bins within range
+     */
     double Vizard::averageHistogramValues(TH1D& histo, double cutoff) {
         double avg = 0.0;
         int cobin = 1;

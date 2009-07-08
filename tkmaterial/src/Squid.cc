@@ -115,13 +115,13 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise.
      */
     bool Squid::buildInactiveSurfaces(std::string geomfile, bool verbose) {
-        if (tr)  delete tr;
         if (is) delete is;
         if (buildTracker(geomfile)) {
             is = new InactiveSurfaces();
             u.arrange(*tr, *is, geomfile, verbose);
             return true;
         }
+        is = NULL;
         return false;
     }
     
@@ -137,13 +137,13 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise.
      */
     bool Squid::buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose) {
-        if (tr)  delete tr;
         if (is) delete is;
         if (buildTrackerSystem(geomfile, settingsfile)) {
             is = new InactiveSurfaces();
             u.arrange(*tr, *is, geomfile, verbose);
             return true;
         }
+        is = NULL;
         return false;
     }
     
@@ -171,6 +171,7 @@ namespace insur {
                 }
                 else {
                     delete mb;
+                    mb = NULL;
                     std::cout << "Squid::createMaterialBudget(): " << err_init_failed << std::endl;
                     return false;
                 }

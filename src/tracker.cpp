@@ -40,7 +40,6 @@ using namespace ROOT::Math;
 
 Tracker::~Tracker() {
     LayerVector::iterator layIt;
-    
     for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
         if ((*layIt)!=NULL) {
             delete (*layIt);
