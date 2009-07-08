@@ -82,6 +82,7 @@ namespace insur {
         int detailedModules(std::vector<Layer*>* layers,
                 TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
+        double averageHistogramValues(TH1D& histo, double cutoff);
     };
 }
 #endif	/* _VIZARD_H */

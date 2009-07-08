@@ -341,9 +341,10 @@ namespace insur {
             pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 4);
             if (pngoutfile.substr(pngoutfile.size() - 1) == ".") pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 1);
         }
-        std::string htmlcontents;
+        std::ostringstream htmlstream;
         std::ofstream outstream(outfile.c_str());
-        htmlcontents = "<html><title>" + outfilename + "</title><body>";
+        htmlstream << "<html><title>" << outfilename << "</title><body>";
+        htmlstream << "<p><big><b>1D Overview</b></big></p>";
         TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 900, 400);
         c.SetFillColor(kWhite);
         c.Divide(2,1);
@@ -379,7 +380,10 @@ namespace insur {
         pngout = pngoutfile + ".fullvolume.png";
         pngpath = default_summarypath + "/" + pngout;
         c.SaveAs(pngpath.c_str());
-        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        htmlstream << "<img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in full volume ";
+        htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average interaction length in full volume (eta = [0, 2.4]): ";
+        htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
         c.Clear("D");
         if (cr) delete cr;
         if (ci) delete ci;
@@ -400,7 +404,10 @@ namespace insur {
         pngout = pngoutfile + ".global.png";
         pngpath = default_summarypath + "/" + pngout;
         c.SaveAs(pngpath.c_str());
-        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        htmlstream << "<br><img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in tracking volume ";
+        htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average interaction length in tracking volume (eta = [0, 2.4]): ";
+        htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
         c.Clear("D");
         pad = c.GetPad(1);
         pad->cd();
@@ -435,7 +442,20 @@ namespace insur {
         pngout = pngoutfile + ".asl.png";
         pngpath = default_summarypath + "/" + pngout;
         c.SaveAs(pngpath.c_str());
-        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        htmlstream << "<img src=\"" << pngout << "\" /><br>";
+        //TODO: add information about average rlength and ilength per category a, s or l
+        htmlstream << "<br><p><small><b>Average radiation length in modules ";
+        htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*acr, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average radiation length in services ";
+        htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*ser, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average radiation length in supports ";
+        htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*sur, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<br><p><small><b>Average interaction length in modules (eta = [0, 2.4]): ";
+        htmlstream << averageHistogramValues(*aci, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average interaction length in services (eta = [0, 2.4]): ";
+        htmlstream << averageHistogramValues(*sei, etaMaxAvg) << "</b></small></p>";
+        htmlstream << "<p><small><b>Average interaction length in supports (eta = [0, 2.4]): ";
+        htmlstream << averageHistogramValues(*sui, etaMaxAvg) << "</b></small></p>";
         c.Clear("D");
         pad = c.GetPad(1);
         pad->cd();
@@ -456,7 +476,7 @@ namespace insur {
         pngout = pngoutfile + ".twodee.png";
         pngpath = default_summarypath + "/" + pngout;
         c.SaveAs(pngpath.c_str());
-        htmlcontents = htmlcontents + "<img src=\"" + pngout + "\" /><br>";
+        htmlstream << "<br><p><big><b>2D Overview</b></big></p><img src=\"" << pngout << "\" /><br>";
         if (cr) delete cr;
         if (ci) delete ci;
         if (fr1) delete fr1;
@@ -469,8 +489,8 @@ namespace insur {
         if (sei) delete sei;
         if (sur) delete sur;
         if (sui) delete sui;
-        htmlcontents = htmlcontents + "</body></html>";
-        outstream << htmlcontents << std::endl;
+        htmlstream << "</body></html>";
+        outstream << htmlstream.str() << std::endl;
         outstream.close();
         std::cout << "HTML file written to " << outfile << std::endl;
     }
@@ -552,5 +572,16 @@ namespace insur {
         rot->SetMatrix(matrix);
         tr = new TGeoCombiTrans(m->getCorner(0).X(), m->getCorner(0).Y(), m->getCorner(0).Z(), rot);
         return tr;
+    }
+    
+    double Vizard::averageHistogramValues(TH1D& histo, double cutoff) {
+        double avg = 0.0;
+        int cobin = 1;
+        while ((cobin < histo.GetNbinsX()) && (histo.GetBinLowEdge(cobin) < cutoff)) cobin++;
+        if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
+        else {
+            for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
+        }
+        return avg;
     }
 }

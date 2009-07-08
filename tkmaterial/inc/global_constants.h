@@ -11,6 +11,7 @@
 namespace insur {
     static const double PI = 3.14159265358979323846;
     static const double E = 2.71828182845904523536;
+    static const double etaMaxAvg = 2.4;
     static const double etaMax = 3.0;
     /**
      * Geometry constants; all length measurements are in mm

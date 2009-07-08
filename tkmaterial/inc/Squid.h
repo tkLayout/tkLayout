@@ -81,6 +81,7 @@ namespace insur {
         Analyzer a;
         Vizard v;
         bool fileExists(std::string filename);
+        Squid(const Squid& s);
     };
 }
 #endif	/* _SQUID_H */
