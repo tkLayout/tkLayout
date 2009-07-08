@@ -306,7 +306,7 @@ namespace insur {
     // protected
     int MaterialBudget::onBoundary(std::vector<std::vector<ModuleCap> >& source, int layer) { //throws exception
         int ring = 0, index = 0;
-        if ((layer > 0) && (layer < (int)source.size())) {
+        if ((layer >= 0) && (layer < (int)source.size())) {
             for (unsigned int mod = 0; mod < source.at(layer).size(); mod++) {
                 if (source.at(layer).at(mod).getModule().getRing() > ring) {
                     ring = source.at(layer).at(mod).getModule().getRing();
@@ -315,7 +315,6 @@ namespace insur {
             }
         }
         else throw std::out_of_range("Layer index is out of range: " + layer);
-        std::cout << "returning index " << index << std::endl;
         return index;
     }
 }
