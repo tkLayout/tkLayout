@@ -113,7 +113,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, tubes
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::t_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::o_sup);
             rlazytube.Fill(eta, tmp.first);
             ilazytube.Fill(eta, tmp.second);
             rlazyall.Fill(eta, tmp.first);
@@ -270,6 +270,7 @@ namespace insur {
                                 }
                                 else if ((iter->getCategory() == MaterialProperties::b_sup)
                                              || (iter->getCategory() == MaterialProperties::e_sup)
+                                             || (iter->getCategory() == MaterialProperties::o_sup)
                                              || (iter->getCategory() == MaterialProperties::t_sup)) {
                                     rextrasupports.Fill(eta, iter->getRadiationLength() / cos(theta));
                                     iextrasupports.Fill(eta, iter->getInteractionLength() / cos(theta));
@@ -306,6 +307,7 @@ namespace insur {
                                 }
                                 else if ((iter->getCategory() == MaterialProperties::b_sup)
                                              || (iter->getCategory() == MaterialProperties::e_sup)
+                                             || (iter->getCategory() == MaterialProperties::o_sup)
                                              || (iter->getCategory() == MaterialProperties::t_sup)) {
                                     rextrasupports.Fill(eta, iter->getRadiationLength() / sin(theta));
                                     iextrasupports.Fill(eta, iter->getInteractionLength() / sin(theta));

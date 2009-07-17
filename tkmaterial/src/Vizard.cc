@@ -125,9 +125,9 @@ namespace insur {
         }
         c = c + skip;
         
-        // supports => inner and outer support tube will not be displayed
-        skip = is.getSupports().size() - 2;
-        for (int i = 2; i < skip + 2; i++) {
+        // supports
+        skip = is.getSupports().size();
+        for (int i = 0; i < skip; i++) {
             if ((is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength()) > 0) {
                 vol = gm->MakeTube("", medlazy, is.getSupportPart(i).getInnerRadius(),
                         is.getSupportPart(i).getInnerRadius() + is.getSupportPart(i).getRWidth(),

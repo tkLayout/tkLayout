@@ -40,7 +40,7 @@ namespace insur {
         /**
          * @enum Category A list of logical categories within the detector geometry; a single element belongs to exactly one of them
          */
-        enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, e_sup, t_sup, u_sup};
+        enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, d_sup, e_sup, o_sup, t_sup, u_sup};
         MaterialProperties();
         virtual ~MaterialProperties() {}
         // bureaucracy

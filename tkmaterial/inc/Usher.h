@@ -91,6 +91,7 @@ namespace insur {
     private:
         int servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, int layer);
         InactiveSurfaces& supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
+        InactiveSurfaces& supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is);
         InactiveSurfaces& supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
         InactiveSurfaces& supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is);
         InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
@@ -100,10 +101,13 @@ namespace insur {
         InactiveSurfaces& addEndcapServiceTube(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);
         InactiveSurfaces& addSupportRing(InactiveSurfaces& is, double length, double offset, double radius, double width);
         InactiveSurfaces& addSupportTube(InactiveSurfaces& is, double length, double offset, double radius, double width);
+        InactiveSurfaces& addBarrelSupportsUserDefined(InactiveSurfaces& is, TrackerIntRep& tracker, int start, int stop, double z);
         InactiveRing mirrorRing(InactiveElement& blueprint);
         InactiveTube mirrorTube(InactiveElement& blueprint);
         int findBarrelInnerRadius(int barrel, TrackerIntRep& tintrep);
         double findMaxBarrelZ(TrackerIntRep& tintrep);
+        std::pair<int, int> findBarrelSupportParams(TrackerIntRep& tracker, bool up);
+        std::pair<int, int> findSupportStartStop(TrackerIntRep& tracker, std::pair<int, int> udef, std::pair<int, int> aux, double z, bool up);
         void print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary);
     };
 }

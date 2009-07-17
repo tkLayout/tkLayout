@@ -45,6 +45,7 @@ namespace insur {
     static const std::string m_line_delim = "M";
     static const std::string s_line_delim = "S";
     static const std::string d_line_delim = "D";
+    static const std::string v_line_delim = "V";
     static const std::string w_line_delim = "W";
     static const std::string x_line_delim = "X";
     static const std::string y_line_delim = "Y";
@@ -70,6 +71,7 @@ namespace insur {
     static const std::string msg_y_line_err = "Error parsing Y entry. Skipping line";
     static const std::string msg_z_line_err = "Error parsing Z entry. Skipping line";
     static const std::string msg_w_line_err = "Error parsing W entry. Skipping line";
+    static const std::string msg_v_line_err = "Error parsing V entry. Skipping line";
     static const std::string warning_too_many_values = "Warning: ignoring values beyond the fourth.";
     
     /**

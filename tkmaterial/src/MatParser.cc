@@ -146,6 +146,9 @@ namespace insur {
                     else if (word.compare(w_line_delim) == 0) {
                         if (!parseSimpleLine(line, calc, w_line_delim)) std::cout << msg_w_line_err << std::endl << "Line was: " << line << std::endl;
                     }
+                    else if (word.compare(v_line_delim) == 0) {
+                        if (!parseSimpleLine(line, calc, v_line_delim)) std::cout << msg_v_line_err << std::endl << "Line was: " << line << std::endl;
+                    }
                     else if (!line.empty()) {
                         std::cerr << "Confusion detected...skipping line '" << line << "'." << std::endl;
                         break;
@@ -368,8 +371,9 @@ namespace insur {
         if (marker.compare(s_line_delim) == 0) calc.addServiceParameters(tag, val, uni);
         else if (marker.compare(x_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::b_sup);
         else if (marker.compare(y_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::e_sup);
-        else if (marker.compare(z_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::t_sup);
-        else if(marker.compare(w_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::u_sup);
+        else if (marker.compare(z_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::o_sup);
+        else if (marker.compare(w_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::u_sup);
+        else if (marker.compare(v_line_delim) == 0) calc.addSupportParameters(tag, val, uni, MaterialProperties::t_sup);
         else return false;
         return true;
     }

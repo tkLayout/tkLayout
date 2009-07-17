@@ -139,7 +139,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     string aDirective = "";
     BarrelModule* sampleBarrelModule = NULL;
     double aspectRatio = 1.;
-   int phiSegments = 4;
+    int phiSegments = 4;
     
     // Directives (this are communicated to the Tracker object)
     std::map<int, double> layerDirectives;
@@ -165,11 +165,11 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
             } else if (parameterName=="aspectRatio") {
                 aspectRatio=atof(parameterValue.c_str());
                 if (aspectRatio<=0) {
-		  cout << "Parsing barrel " << myName << endl
-		       << "Wrong aspect ratio (height/width): " << parameterValue
-		       << " should be a positive number" << endl;
-		  throw parsingException();
-		}
+                    cout << "Parsing barrel " << myName << endl
+                            << "Wrong aspect ratio (height/width): " << parameterValue
+                            << " should be a positive number" << endl;
+                    throw parsingException();
+                }
             } else if (parameterName=="nModules") {
                 nBarrelModules=atoi(parameterValue.c_str());
             } else if (parameterName=="innerRadius") {
@@ -271,7 +271,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         // possible previous directives coming from a different barrel
         myTracker_->setLayerDirectives(layerDirectives);
         myTracker_->setLayerOptions(layerOptions);
-	myTracker_->setPhiSegments(phiSegments);
+        myTracker_->setPhiSegments(phiSegments);
         
         myTracker_->buildBarrel(nBarrelLayers,
                 barrelRhoIn,
@@ -346,26 +346,26 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             } else if (parameterName=="aspectRatio") {
                 aspectRatio=atof(parameterValue.c_str());
                 if (aspectRatio<=0) {
-		  cout << "Parsing endcap " << myName << endl
-		       << "Wrong aspect ratio (height/width): " << parameterValue
-		       << " should be a positive number" << endl;
-		  throw parsingException();
-		}
-	    } else if (parameterName=="shape") {
-	      bool syntaxOk=true;
-	      if (parameterValue=="wedge") {
-		shapeType=Module::Wedge;
-	      } else if (parameterValue=="rectangular") {
-		shapeType=Module::Rectangular;
-	      } else {
-		syntaxOk=false;
-	      }
-	      if (!syntaxOk) {
-		cout << "Parsing endcap " << myName << endl
-		     << "Wrong syntax for a shape: \"" << parameterValue
-		     << "\" should be \"rectangular\" or \"wedge\"" << endl;
-		throw parsingException();
-	      }
+                    cout << "Parsing endcap " << myName << endl
+                            << "Wrong aspect ratio (height/width): " << parameterValue
+                            << " should be a positive number" << endl;
+                    throw parsingException();
+                }
+            } else if (parameterName=="shape") {
+                bool syntaxOk=true;
+                if (parameterValue=="wedge") {
+                    shapeType=Module::Wedge;
+                } else if (parameterValue=="rectangular") {
+                    shapeType=Module::Rectangular;
+                } else {
+                    syntaxOk=false;
+                }
+                if (!syntaxOk) {
+                    cout << "Parsing endcap " << myName << endl
+                            << "Wrong syntax for a shape: \"" << parameterValue
+                            << "\" should be \"rectangular\" or \"wedge\"" << endl;
+                    throw parsingException();
+                }
             } else if (parameterName=="directive") {
                 int ringNum; int increment;
                 if (sscanf(parameterValue.c_str(), "%d%d", &ringNum, &increment)==2) {
@@ -437,21 +437,21 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     (minZ != 0) &&
     (maxZ != 0) &&
     (diskParity != 0)) {
-      // The same old sample module
-      EndcapModule* sampleModule;
-      if (shapeType==Module::Wedge) {
-	sampleModule = new EndcapModule(Module::Wedge);
-      } else if (shapeType==Module::Rectangular) {
-	sampleModule = new EndcapModule(aspectRatio);
-      } else {
-	std::cout << "ERROR: an unknown module shape type was generated inside the configuration parser" 
-		  << std::endl << "this should never happen!" << std::endl;
-	throw parsingException();
-      }
+        // The same old sample module
+        EndcapModule* sampleModule;
+        if (shapeType==Module::Wedge) {
+            sampleModule = new EndcapModule(Module::Wedge);
+        } else if (shapeType==Module::Rectangular) {
+            sampleModule = new EndcapModule(aspectRatio);
+        } else {
+            std::cout << "ERROR: an unknown module shape type was generated inside the configuration parser"
+            << std::endl << "this should never happen!" << std::endl;
+            throw parsingException();
+        }
         // Important: if no directive was given, the following line will clear
         // possible previous directives coming from a different endcap
         myTracker_->setRingDirectives(ringDirective);
-	myTracker_->setPhiSegments(phiSegments);
+        myTracker_->setPhiSegments(phiSegments);
         
         if (rhoIn!=0) {
             myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
@@ -667,24 +667,25 @@ bool configParser::parseOutput(istream& inStream) {
     
 }
 
-bool configParser::parseSupportParameters(istream& inStream, list<double>& plist) {
-    string name, value;
+bool configParser::parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& plist) {
+    std::string name, value;
+    int index, dummy;
     double mid_z;
     while (!inStream.eof()) {
         while (parseParameter(name, value, inStream)) {
-            if (name == "midZ") {
-                mid_z = atof(value.c_str());
-                if (mid_z >= 0) plist.push_back(mid_z);
-            }
+            std::pair<int, double> p;
+            if (name.compare("midZ") == 0) index = 0;
             else {
-                return false;
+                if (name.compare("midZ") > 0) {
+                    if (!breakParameterName(name, index, dummy)) return false;
+                }
+                else return false;
             }
+            p.first = index;
+            mid_z = atof(value.c_str());
+            p.second = mid_z;
+            if (mid_z >= 0) plist.push_back(p);
         }
-    }
-    list<double>::iterator iter = plist.begin();
-    while (iter != plist.end()) {
-        if (*iter < 0) iter = plist.erase(iter);
-        else iter++;
     }
     return true;
 }
@@ -920,17 +921,17 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
     myTracker_=NULL; return true;
 }
 
-list<double>* configParser::parseSupportsFromFile(string fileName) {
-    list<double>* result = NULL;
-    ifstream infilestream;
+std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string fileName) {
+    std::list<std::pair<int, double> >* result = NULL;
+    std::ifstream infilestream;
     infilestream.open(fileName.c_str());
     if (infilestream.is_open()) {
-        result = new list<double>;
-        stringstream filecontents;
-        string lineorword;
-        string::size_type locComm1;
-        string::size_type locComm2;
-        while (getline(infilestream, lineorword)) {
+        result = new std::list<std::pair<int, double> >;
+        std::stringstream filecontents;
+        std::string lineorword;
+        std::string::size_type locComm1;
+        std::string::size_type locComm2;
+        while (std::getline(infilestream, lineorword)) {
             locComm1 = lineorword.find("//", 0);
             locComm2 = lineorword.find("#", 0);
             if ((locComm1 == string::npos) && (locComm2 == string::npos)) {
@@ -944,9 +945,9 @@ list<double>* configParser::parseSupportsFromFile(string fileName) {
             while (filecontents >> lineorword) {
                 if (lineorword == "Support") {
                     getTill(filecontents, '{', true);
-                    string configparams = getTill(filecontents, '}', false, true);
+                    std::string configparams = getTill(filecontents, '}', false, true);
                     if (configparams != " ") {
-                        istringstream paramstream(configparams);
+                        std::istringstream paramstream(configparams);
                         if (!parseSupportParameters(paramstream, *result)) {
                             if (result) delete result;
                             return NULL;
@@ -956,7 +957,7 @@ list<double>* configParser::parseSupportsFromFile(string fileName) {
             }
             return result;
         }
-        catch (exception& e) {
+        catch (std::exception& e) {
             cerr << e.what() << endl;
             if (result) delete result;
             return NULL;

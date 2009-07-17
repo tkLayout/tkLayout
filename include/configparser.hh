@@ -25,7 +25,7 @@ public:
   bool dressTracker(Tracker* aTracker, string fileName);
 
   // Extract the user-defined support structures from the geometry config file
-  list<double>* parseSupportsFromFile(string fileName);
+  std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);
 
 private:
 
@@ -53,7 +53,7 @@ private:
   bool parseOutput(istream &inStream);
 
   // Parsing function for inactive surfactes
-  bool parseSupportParameters(istream& inStream, list<double>& list);
+  bool parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& list);
 
 };
 

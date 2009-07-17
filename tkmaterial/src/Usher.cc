@@ -360,13 +360,12 @@ namespace insur {
     InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         // outer tube
         is = addSupportTube(is, 2 * max_length, 0.0 - max_length, outer_radius, volume_width);
-        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
+        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::o_sup);
         is.getSupportPart(is.getSupports().size() - 1).track(false);
-        // inner tube
-        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, inner_radius - volume_width, volume_width);
-        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
-        // barrel endpoints
+        // barrels
         is = supportsRegularBarrels(tracker, is);
+        // barrel tubes
+        is = supportsBarrelTubes(tracker, is);
         // short barrels
         is = supportsShortBarrels(tracker, is);
         // endcaps
@@ -425,6 +424,7 @@ namespace insur {
     /**
      * This is the core function that creates and arranges the support parts that hold up the regular barrels.
      * It places a disc at the end of each barrel and outside the service volumes that belong to that same barrel.
+     * It also places an inner and an outer tube outside the first and the last layer of each barrel.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
      * @return A reference to the modified collection of inactive surfaces
@@ -432,9 +432,9 @@ namespace insur {
     InactiveSurfaces& Usher::supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
         double zl, zo, ri, rw;
         int k = 0;
-        zl = volume_width;
         for (int i = 0; i < tracker.nOfBarrels(); i++) {
             if (tracker.nOfLayers(i) > 1) {
+                zl = volume_width;
                 zo = tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + tracker.nOfLayers(i) - 1) - ri;
@@ -443,6 +443,39 @@ namespace insur {
             }
             k = k + tracker.nOfLayers(i);
         }
+        return is;
+    }
+    
+    InactiveSurfaces& Usher::supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is) {
+        double r, z, l;
+        std::pair<int, int> aux, stst;
+        std::pair<int, double> tmp;
+        aux = findBarrelSupportParams(tracker, is.isUp());
+        for (int i = 0; i < aux.second; i++) {
+            tmp.first = i + 1;
+            tmp.second = 0.0;
+            stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
+            std::cout << "supportsBarrelTubes(): h = " << aux.first << ", max_b = " << aux.second << std::endl;
+            std::cout << "supportsBarrelTubes(): start = " << stst.first << ", stop = " << stst.second << std::endl;
+            if ((stst.second > 0) && (stst.first < stst.second)) {
+                r = tracker.innerRadiusLayer(stst.first) - volume_width - epsilon;
+                if (aux.first == 0) z = tracker.zOffsetBarrel(i);
+                else z = tracker.zOffsetBarrel(aux.first + i - 1);
+                l = 2.0 * z;
+                z = -z;
+                is = addSupportTube(is, l, z, r, volume_width);
+                std::cout << "supportsBarrelTubes(): added tube with l = " << l << ", z = " << z << ", r = " << r << std::endl;
+                is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
+                r = tracker.outerRadiusLayer(stst.second) + epsilon;
+                is = addSupportTube(is, l, z, r, volume_width);
+                std::cout << "supportsBarrelTubes(): added tube with l = " << l << ", z = " << z << ", r = " << r << std::endl;
+                is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
+            }
+        }
+        //TODO: implement
+        //find h
+        //if h > 0: place a tube below layer = 0 and one above layer = layerSum(h) - 1, set k to layerSum(h)
+        //for all remaining barrels starting at h: place a tube below first and above last layer (at k and k + barrelLayers(i), respectively)
         return is;
     }
     
@@ -526,45 +559,31 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
-        int start, stop;
-        double z, r, w;
+        std::pair<int, int> aux, stst;
+        std::pair<int, double> tmp;
+        double z;
         configParser persian;
-        std::list<double>* extras = NULL;
-        std::list<double>::iterator iter;
+        std::list<std::pair<int, double> >* extras = NULL;
+        std::list<std::pair<int, double> >::iterator iter;
         extras = persian.parseSupportsFromFile(geomfile);
         if (extras) {
+            aux = findBarrelSupportParams(tracker, is.isUp());
             for (iter = extras->begin(); iter != extras->end(); iter++) {
-                if (*iter < max_length) {
-                    start = 0;
-                    stop = tracker.totalLayers() - 1;
-                    z = *iter - volume_width / 2.0;
-                    for (int i = 0; i < tracker.nOfBarrels(); i++) {
-                        if (*iter > tracker.lengthBarrel(i) / 2.0) start = start + tracker.nOfLayers(i);
-                        else break;
-                    }
-                    for (int i = tracker.nOfBarrels() - 1; i >= 0; i--) {
-                        if (*iter > tracker.lengthBarrel(i) / 2.0) stop = stop - tracker.nOfLayers(i);
-                        else break;
-                    }
-                    r = inner_radius + epsilon;
-                    if (start > stop) w = tracker.innerRadiusLayer(tracker.totalLayers() - 1) - r - epsilon;
-                    else {
-                        if (stop < (int)tracker.totalLayers() - 1) {
-                            r = tracker.outerRadiusLayer(stop) + epsilon;
-                            w = tracker.innerRadiusLayer(tracker.totalLayers() - 1) - r - epsilon;
-                            is = addSupportRing(is, volume_width, z, r, w);
-                            is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
-                            r = inner_radius + epsilon;
+                if (iter->second < max_length) {
+                    z = iter->second - volume_width / 2.0;
+                    if (iter->first == 0) {
+                        for (int i = 0; i < aux.second; i++) {
+                            tmp.first = i + 1;
+                            tmp.second = iter->second;
+                            stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
+                            is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
                         }
-                        w = tracker.innerRadiusLayer(start) - r - epsilon;
                     }
-                    is = addSupportRing(is, volume_width, z, r, w);
-                    is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
-                    for (int k = start; k < stop; k++) {
-                        r = tracker.outerRadiusLayer(k) + epsilon;
-                        w = tracker.innerRadiusLayer(k + 1) - r - epsilon;
-                        is = addSupportRing(is, volume_width, z, r, w);
-                        is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
+                    else {
+                        if (iter->first <= aux.second) {
+                            stst = findSupportStartStop(tracker, *iter, aux, z, is.isUp());
+                            is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
+                        }
                     }
                 }
             }
@@ -748,6 +767,17 @@ namespace insur {
         return is;
     }
     
+    InactiveSurfaces& Usher::addBarrelSupportsUserDefined(InactiveSurfaces& is, TrackerIntRep& tracker, int start, int stop, double z) {
+        double r, w;
+        for (int k = start; k < stop; k++) {
+            r = tracker.outerRadiusLayer(k) + epsilon;
+            w = tracker.innerRadiusLayer(k + 1) - r - epsilon;
+            is = addSupportRing(is, volume_width, z, r, w);
+            is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
+        }
+        return is;
+    }
+    
     /**
      * This convenience function creates a mirror image of a ring from a blueprint volume with respect to
      * the z origin. The feeder and neighbour indices may have to be adjusted further afterwards.
@@ -829,6 +859,62 @@ namespace insur {
             if (z_max < tintrep.zOffsetBarrel(i)) z_max = tintrep.zOffsetBarrel(i);
         }
         return z_max;
+    }
+    
+    std::pair<int, int> Usher::findSupportStartStop(TrackerIntRep& tracker, std::pair<int, int> udef, std::pair<int, int> aux, double z, bool up) {
+        std::pair<int, int> startstop(0, 0);
+        if (up) {
+            if (udef.first == 1) {
+                int i = 0;
+                startstop.first = 0;
+                while (i < tracker.nOfBarrels()) {
+                    if (tracker.zOffsetBarrel(i) < z) startstop.first = startstop.first + tracker.nOfLayers(i);
+                    i++;
+                }
+                startstop.second = tracker.nOfLayers(aux.first);
+                for (int i = 0; i < aux.first; i++) startstop.second = startstop.second + tracker.nOfLayers(i);
+                if ((tracker.nOfEndcaps() > 0) && (tracker.nOfBarrels() == tracker.nOfEndcaps())) startstop.second--;
+            }
+            else if (udef.first == aux.second) {
+                if (tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) < z) {
+                    startstop.first = 0;
+                    startstop.second = 0;
+                }
+                else {
+                    startstop.second = tracker.totalLayers();
+                    startstop.first = startstop.second - tracker.nOfLayers(tracker.nOfBarrels() - 1);
+                    startstop.second--;
+                }
+            }
+            else {
+                if (tracker.zOffsetBarrel(udef.first - 1) < z) {
+                    startstop.first = 0;
+                    startstop.second = 0;
+                }
+                else {
+                    startstop.second = 0;
+                    for (int i = 0; i < (aux.first + udef.first); i++) startstop.second = startstop.second + tracker.nOfLayers(i);
+                    startstop.first = startstop.second - tracker.nOfLayers(aux.first + udef.first - 1);
+                    startstop.second--;
+                }
+            }
+        }
+        else {
+            if (udef.first == 1) {
+                int i = 0;
+                startstop.first = 0;
+                while (i < tracker.nOfBarrels()) {
+                    if (tracker.zOffsetBarrel(i) < z) startstop.first = startstop.first + tracker.nOfLayers(i);
+                    i++;
+                }
+                startstop.second = tracker.totalLayers() - tracker.nOfLayers(aux.first) - 1;
+            }
+            else {
+                startstop.first = tracker.totalLayers() - tracker.nOfLayers(aux.first);
+                startstop.second = tracker.totalLayers() - 1;
+            }
+        }
+        return startstop;
     }
     
     /**
@@ -1085,6 +1171,31 @@ namespace insur {
         post_analysis = true;
         up = analyzePolarity();
         return up;
+    }
+    
+    std::pair<int, int> Usher::findBarrelSupportParams(TrackerIntRep& tracker, bool up) {
+        std::pair<int, int> res(0, 0);
+        if (up) {
+            if (tracker.nOfEndcaps() > 0) {
+                if (tracker.nOfBarrels() == tracker.nOfEndcaps()) {
+                    res.first = 0;
+                    res.second = tracker.nOfBarrels();
+                }
+                else {
+                    res.first = tracker.nOfBarrels() - tracker.nOfEndcaps() + 1;
+                    res.second = tracker.nOfBarrels() - res.first + 1;
+                }
+            }
+            else {
+                res.first = tracker.nOfBarrels();
+                res.second = 1;
+            }
+        }
+        else {
+            res.first = tracker.nOfBarrels() - 1;
+            res.second = 2;
+        }
+        return res;
     }
     
     /**
