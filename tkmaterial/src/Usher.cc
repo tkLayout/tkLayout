@@ -198,7 +198,7 @@ namespace insur {
                 zo = tracker.zOffsetBarrel(i) + epsilon;
                 for (int j = 0; j < tracker.nOfLayers(i); j++) {
                     ri = tracker.innerRadiusLayer(k);
-                    rw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
+                    rw = tracker.innerRadiusLayer(k + 1) - ri - volume_width - 2 * epsilon;
                     is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
@@ -234,7 +234,7 @@ namespace insur {
             for (int i = 0; i < tracker.nOfEndcaps(); i++) {
                 if (i < tracker.nOfEndcaps() - 1) {
                     int l = findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + 1, tracker);
-                    ri = tracker.innerRadiusLayer(l) - rw - epsilon;
+                    ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * epsilon;
                 }
                 else ri = outer_radius - rw - epsilon;
                 for (int j = 0; j < tracker.nOfDiscs(i); j++) {
@@ -253,7 +253,7 @@ namespace insur {
                         if (j == 0) {
                             double ro;
                             ro = tracker.innerRadiusLayer(findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + i, tracker));
-                            ro = ro - rw - epsilon;
+                            ro = ro - 2 * rw - 2 * epsilon;
                             zo = tracker.zOffsetDisc(k - 1) + epsilon;
                             zl = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) - zo + volume_width + epsilon;
                             if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) is = addEndcapServiceTube(is, zl, zo, ro, rw, true);
