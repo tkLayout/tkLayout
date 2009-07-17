@@ -661,7 +661,7 @@ int main(int argc, char** argv) {
                 }
                 pos = htmlout.find('.');
                 if (pos != (int)htmlout.npos) {
-                    if (pos < (int)htmlout.npos - 1) htmlout.erase(pos + 1);
+                    if (pos > (int)htmlout.npos - 1) htmlout.erase(pos + 1);
                 }
                 else htmlout.push_back('.');
                 htmlout = htmlout + "html";
@@ -685,7 +685,7 @@ int main(int argc, char** argv) {
                     }
                     pos = rootout.find('.');
                     if (pos != (int)rootout.npos) {
-                        if (pos < (int)rootout.npos - 1) rootout.erase(pos + 1);
+                        if (pos > (int)rootout.npos - 1) rootout.erase(pos + 1);
                     }
                     else rootout.push_back('.');
                     rootout = rootout + "root";
@@ -702,7 +702,7 @@ int main(int argc, char** argv) {
                         }
                         pos = graphout.find('.');
                         if (pos != (int)graphout.npos) {
-                            if (pos < (int)graphout.npos - 1) graphout.erase(pos + 1);
+                            if (pos > (int)graphout.npos - 1) graphout.erase(pos + 1);
                         }
                         else graphout.push_back('.');
                         graphout = graphout + "graph";
@@ -731,7 +731,7 @@ int main(int argc, char** argv) {
                     }
                     pos = rootout.find('.');
                     if (pos != (int)rootout.npos) {
-                        if (pos < (int)rootout.npos - 1) rootout.erase(pos + 1);
+                        if (pos > (int)rootout.npos - 1) rootout.erase(pos + 1);
                     }
                     else rootout.push_back('.');
                     rootout = rootout + "root";
@@ -748,7 +748,7 @@ int main(int argc, char** argv) {
                         }
                         pos = graphout.find('.');
                         if (pos != (int)graphout.npos) {
-                            if (pos < (int)graphout.npos - 1) graphout.erase(pos + 1);
+                            if (pos > (int)graphout.npos - 1) graphout.erase(pos + 1);
                         }
                         else graphout.push_back('.');
                         graphout = graphout + "graph";
@@ -776,7 +776,7 @@ int main(int argc, char** argv) {
                     }
                     pos = graphout.find('.');
                     if (pos != (int)graphout.npos) {
-                        if ((unsigned int)pos < graphout.npos - 1) graphout.erase(pos + 1);
+                        if (pos > (int)graphout.npos - 1) graphout.erase(pos + 1);
                     }
                     else graphout.push_back('.');
                     graphout = graphout + "graph";
