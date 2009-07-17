@@ -655,13 +655,13 @@ int main(int argc, char** argv) {
             if (htmlout.empty()) {
                 htmlout = geomfile;
                 pos = htmlout.find_last_of('/');
-                if ((unsigned int)pos != htmlout.npos) {
+                if (pos != (int)htmlout.npos) {
                     pos++;
                     htmlout = htmlout.substr(pos);
                 }
                 pos = htmlout.find('.');
-                if ((unsigned int)pos != htmlout.npos) {
-                    if ((unsigned int)pos < htmlout.npos - 1) htmlout.erase(pos + 1);
+                if (pos != (int)htmlout.npos) {
+                    if (pos < (int)htmlout.npos - 1) htmlout.erase(pos + 1);
                 }
                 else htmlout.push_back('.');
                 htmlout = htmlout + "html";
@@ -679,13 +679,13 @@ int main(int argc, char** argv) {
                 if (rootout.empty()) {
                     rootout = geomfile;
                     pos = rootout.find_last_of('/');
-                    if ((unsigned int)pos != rootout.npos) {
+                    if (pos != (int)rootout.npos) {
                         pos++;
                         rootout = rootout.substr(pos);
                     }
                     pos = rootout.find('.');
-                    if ((unsigned int)pos != rootout.npos) {
-                        if ((unsigned int)pos < rootout.npos - 1) rootout.erase(pos + 1);
+                    if (pos != (int)rootout.npos) {
+                        if (pos < (int)rootout.npos - 1) rootout.erase(pos + 1);
                     }
                     else rootout.push_back('.');
                     rootout = rootout + "root";
@@ -696,13 +696,13 @@ int main(int argc, char** argv) {
                     if (graphout.empty()) {
                         graphout = geomfile;
                         pos = graphout.find_last_of('/');
-                        if ((unsigned int)pos != graphout.npos) {
+                        if (pos != (int)graphout.npos) {
                             pos++;
                             graphout = graphout.substr(pos);
                         }
                         pos = graphout.find('.');
-                        if ((unsigned int)pos != graphout.npos) {
-                            if ((unsigned int)pos < graphout.npos - 1) graphout.erase(pos + 1);
+                        if (pos != (int)graphout.npos) {
+                            if (pos < (int)graphout.npos - 1) graphout.erase(pos + 1);
                         }
                         else graphout.push_back('.');
                         graphout = graphout + "graph";
@@ -725,13 +725,13 @@ int main(int argc, char** argv) {
                 if (rootout.empty()) {
                     rootout = geomfile;
                     pos = rootout.find_last_of('/');
-                    if ((unsigned int)pos != rootout.npos) {
+                    if (pos != (int)rootout.npos) {
                         pos++;
                         rootout = rootout.substr(pos);
                     }
                     pos = rootout.find('.');
-                    if ((unsigned int)pos != rootout.npos) {
-                        if ((unsigned int)pos < rootout.npos - 1) rootout.erase(pos + 1);
+                    if (pos != (int)rootout.npos) {
+                        if (pos < (int)rootout.npos - 1) rootout.erase(pos + 1);
                     }
                     else rootout.push_back('.');
                     rootout = rootout + "root";
@@ -742,13 +742,13 @@ int main(int argc, char** argv) {
                     if (graphout.empty()) {
                         graphout = geomfile;
                         pos = graphout.find_last_of('/');
-                        if ((unsigned int)pos != graphout.npos) {
+                        if (pos != (int)graphout.npos) {
                             pos++;
                             graphout = graphout.substr(pos);
                         }
                         pos = graphout.find('.');
-                        if ((unsigned int)pos != graphout.npos) {
-                            if ((unsigned int)pos < graphout.npos - 1) graphout.erase(pos + 1);
+                        if (pos != (int)graphout.npos) {
+                            if (pos < (int)graphout.npos - 1) graphout.erase(pos + 1);
                         }
                         else graphout.push_back('.');
                         graphout = graphout + "graph";
@@ -770,12 +770,12 @@ int main(int argc, char** argv) {
                 if (graphout.empty()) {
                     graphout = geomfile;
                     pos = graphout.find_last_of('/');
-                    if ((unsigned int)pos != graphout.npos) {
+                    if (pos != (int)graphout.npos) {
                         pos++;
                         graphout = graphout.substr(pos);
                     }
                     pos = graphout.find('.');
-                    if ((unsigned int)pos != graphout.npos) {
+                    if (pos != (int)graphout.npos) {
                         if ((unsigned int)pos < graphout.npos - 1) graphout.erase(pos + 1);
                     }
                     else graphout.push_back('.');

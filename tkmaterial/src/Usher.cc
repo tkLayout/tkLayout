@@ -328,7 +328,7 @@ namespace insur {
         k = servicesOutmostBarrel(tracker, is, k);
         // endcap
         ri = outer_radius - rtw - epsilon;
-        for (unsigned int i = 0; i < tracker.totalDiscs(); i++) {
+        for (int i = 0; i < tracker.totalDiscs(); i++) {
             if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
             else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
@@ -482,7 +482,7 @@ namespace insur {
      */
     InactiveSurfaces& Usher::supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
         bool regular;
-        unsigned int start, stop;
+        int start, stop;
         double r, w, z;
         std::list<std::pair<int, double> >::iterator next;
         std::list<std::pair<int, double> >::iterator iter = tracker.shortBarrelsList().begin();
@@ -857,7 +857,7 @@ namespace insur {
         return z_max;
     }
     
-    std::pair<int, int> Usher::findSupportStartStop(TrackerIntRep& tracker, std::pair<int, int> udef, std::pair<int, int> aux, double z, bool up) {
+    std::pair<int, int> Usher::findSupportStartStop(TrackerIntRep& tracker, std::pair<int, double> udef, std::pair<int, int> aux, double z, bool up) {
         std::pair<int, int> startstop(0, 0);
         if (up) {
             if (udef.first == 1) {
@@ -973,10 +973,10 @@ namespace insur {
      * been analysed yet, the function returns the negative value of -1 to indicate this.
      * @return The total number of layers in the tracker
      */
-    unsigned int Usher::TrackerIntRep::totalLayers() {
+    int Usher::TrackerIntRep::totalLayers() {
         if (post_analysis) {
-            unsigned int sum = 0;
-            for (unsigned int i = 0; i < n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
+            int sum = 0;
+            for (int i = 0; i < (int)n_of_layers.size(); i++) sum = sum + n_of_layers.at(i);
             return sum;
         }
         return -1;
@@ -1003,10 +1003,10 @@ namespace insur {
      * If no such object has been analysed yet, the function returns the negative value of -1 to indicate this.
      * @return The total number of discs on the z+ side of the tracker
      */
-    unsigned int Usher::TrackerIntRep::totalDiscs() {
+    int Usher::TrackerIntRep::totalDiscs() {
         if (post_analysis) {
-            unsigned int sum = 0;
-            for (unsigned int i = 0; i < n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
+            int sum = 0;
+            for (int i = 0; i < (int)n_of_discs.size(); i++) sum = sum + n_of_discs.at(i);
             return sum;
         }
         return -1;
@@ -1209,7 +1209,7 @@ namespace insur {
             }
             std::cout << std::endl << "Total number of layers: " << totalLayers() << std::endl;
             std::cout << "Layers at inner radius of:";
-            for (unsigned int i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
+            for (int i = 0; i < totalLayers(); i++) std::cout << " " << innerRadiusLayer(i);
             std::cout << "." << std::endl;
             std::cout << std::endl << "Number of endcaps: " << nOfEndcaps() << std::endl;
             for (int i = 0; i < nOfEndcaps(); i++) {
@@ -1219,7 +1219,7 @@ namespace insur {
             }
             std::cout << std::endl << "Total number of discs: " << totalDiscs() << std::endl;
             std::cout << "Discs at an offset of:";
-            for (unsigned int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
+            for (int i = 0; i < totalDiscs(); i++) std::cout << " " << zOffsetDisc(i);
             std::cout << "." << std::endl << std::endl;
             if (nOfEndcaps() < 1) std::cout << "There are no endcaps in this configuration." << std::endl;
             else std::cout << "Endcaps extend to z = " << (zOffsetDisc(totalDiscs() - 1) + lengthDisc(totalDiscs() - 1)) << "." << std::endl;

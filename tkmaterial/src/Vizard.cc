@@ -461,7 +461,7 @@ namespace insur {
         pad->cd();
         ir = (TH2D*)a.getHistoIsoR().Clone();
         ir->SetNameTitle("isor", "Radiation Length Contours");
-        ir->SetContour(temperature_levels);
+        ir->SetContour(temperature_levels, NULL);
         ir->SetXTitle("z");
         ir->SetYTitle("r");
         ir->Draw("COLZ");
@@ -469,7 +469,7 @@ namespace insur {
         pad->cd();
         ii = (TH2D*)a.getHistoIsoI().Clone();
         ii->SetNameTitle("isoi", "Interaction Length Contours");
-        ii->SetContour(temperature_levels);
+        ii->SetContour(temperature_levels, NULL);
         ii->SetXTitle("z");
         ii->SetYTitle("r");
         ii->Draw("COLZ");

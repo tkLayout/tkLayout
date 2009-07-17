@@ -54,9 +54,9 @@ namespace insur {
             int nOfBarrels();
             int nOfEndcaps();
             int nOfLayers(int barrelindex);
-            unsigned int totalLayers();
+            int totalLayers();
             int nOfDiscs(int endcapindex);
-            unsigned int totalDiscs();
+            int totalDiscs();
             double innerRadiusLayer(int layerindex);
             double outerRadiusLayer(int layerindex);
             double innerRadiusEndcap(int endcapindex);
@@ -107,7 +107,7 @@ namespace insur {
         int findBarrelInnerRadius(int barrel, TrackerIntRep& tintrep);
         double findMaxBarrelZ(TrackerIntRep& tintrep);
         std::pair<int, int> findBarrelSupportParams(TrackerIntRep& tracker, bool up);
-        std::pair<int, int> findSupportStartStop(TrackerIntRep& tracker, std::pair<int, int> udef, std::pair<int, int> aux, double z, bool up);
+        std::pair<int, int> findSupportStartStop(TrackerIntRep& tracker, std::pair<int, double> udef, std::pair<int, int> aux, double z, bool up);
         void print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary);
     };
 }
