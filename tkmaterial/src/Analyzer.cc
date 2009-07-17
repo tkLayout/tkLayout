@@ -120,6 +120,14 @@ namespace insur {
             ilazyall.Fill(eta, tmp.second);
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
+            //      supports, barrel tubes
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::t_sup);
+            rlazybtube.Fill(eta, tmp.first);
+            ilazybtube.Fill(eta, tmp.second);
+            rlazyall.Fill(eta, tmp.first);
+            ilazyall.Fill(eta, tmp.second);
+            rglobal.Fill(eta, tmp.first);
+            iglobal.Fill(eta, tmp.second);
             //      supports, user defined
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::u_sup);
             rlazyuserdef.Fill(eta, tmp.first);

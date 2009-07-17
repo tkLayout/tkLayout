@@ -60,6 +60,8 @@ namespace insur {
         TH1D& getHistoSupportsBarrelsI() { return ilazybarrel; }
         TH1D& getHistoSupportsEndcapsR() { return rlazyendcap; }
         TH1D& getHistoSupportsEndcapsI() { return ilazyendcap; }
+        TH1D& getHistoSupportsBarrelTubesR() { return rlazybtube; }
+        TH1D& getHistoSupportsBarrelTubesI() { return ilazybtube; }
         TH1D& getHistoSupportsTubesR() { return rlazytube; }
         TH1D& getHistoSupportsTubesI() { return ilazytube; }
         TH1D& getHistoSupportsUserDefinedR() { return rlazyuserdef; }
@@ -96,8 +98,8 @@ namespace insur {
          */
         struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
         std::vector<std::vector<Cell> > cells;
-        TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazytube, rlazyuserdef;
-        TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazytube, ilazyuserdef;
+        TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazybtube, rlazytube, rlazyuserdef;
+        TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
         TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
         TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
         TH1D rextraservices, rextrasupports;

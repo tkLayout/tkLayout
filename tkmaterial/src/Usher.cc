@@ -455,8 +455,6 @@ namespace insur {
             tmp.first = i + 1;
             tmp.second = 0.0;
             stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
-            std::cout << "supportsBarrelTubes(): h = " << aux.first << ", max_b = " << aux.second << std::endl;
-            std::cout << "supportsBarrelTubes(): start = " << stst.first << ", stop = " << stst.second << std::endl;
             if ((stst.second > 0) && (stst.first < stst.second)) {
                 r = tracker.innerRadiusLayer(stst.first) - volume_width - epsilon;
                 if (aux.first == 0) z = tracker.zOffsetBarrel(i);
@@ -464,18 +462,13 @@ namespace insur {
                 l = 2.0 * z;
                 z = -z;
                 is = addSupportTube(is, l, z, r, volume_width);
-                std::cout << "supportsBarrelTubes(): added tube with l = " << l << ", z = " << z << ", r = " << r << std::endl;
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
                 r = tracker.outerRadiusLayer(stst.second) + epsilon;
                 is = addSupportTube(is, l, z, r, volume_width);
-                std::cout << "supportsBarrelTubes(): added tube with l = " << l << ", z = " << z << ", r = " << r << std::endl;
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
+                if (i == aux.second - 1) is.getSupportPart(is.getSupports().size() - 1).track(false);
             }
         }
-        //TODO: implement
-        //find h
-        //if h > 0: place a tube below layer = 0 and one above layer = layerSum(h) - 1, set k to layerSum(h)
-        //for all remaining barrels starting at h: place a tube below first and above last layer (at k and k + barrelLayers(i), respectively)
         return is;
     }
     
@@ -537,6 +530,7 @@ namespace insur {
                 zl = tracker.zOffsetDisc(k + tracker.nOfDiscs(i) - 1) - zo;
                 is = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
+                if (i == tracker.nOfEndcaps() - 1) is.getSupportPart(is.getSupports().size() - 1).track(false);
                 ri = tracker.innerRadiusEndcap(i) - rw - epsilon;
                 is  = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
@@ -803,6 +797,7 @@ namespace insur {
         ir.setNeighbourType(blueprint.getNeighbourType());
         ir.setNeighbourIndex(blueprint.getNeighbourIndex());
         ir.setFinal(blueprint.isFinal());
+        ir.track(blueprint.track());
         return ir;
     }
     
@@ -831,6 +826,7 @@ namespace insur {
         it.setNeighbourType(blueprint.getNeighbourType());
         it.setNeighbourIndex(blueprint.getNeighbourIndex());
         it.setFinal(blueprint.isFinal());
+        it.track(blueprint.track());
         return it;
     }
     

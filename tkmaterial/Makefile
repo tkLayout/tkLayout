@@ -14,7 +14,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid demo tkmaterial
+all: tkgeometry exocom general elements ushers dressers viz naly squid tkmaterial
 	@echo "Full build successful."
 
 #TKGEOMETRY
@@ -40,13 +40,8 @@ $(LIBDIR)/tracker.o: $(TKSRCDIR)/tracker.cpp $(TKINCDIR)/tracker.hh
 	@echo "Built target tracker.o"
 
 #EXOCOM
-exocom:  $(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o
+exocom:  $(LIBDIR)/MatParser.o
 	@echo "Built target 'exocom'."
-	
-$(LIBDIR)/TrackerActions.o: $(SRCDIR)/TrackerActions.cc $(INCDIR)/TrackerActions.h
-	@echo "Building target TrackerActions.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackerActions.o $(SRCDIR)/TrackerActions.cc
-	@echo "Built target TrackerActions.o"
 
 $(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
 	@echo "Building target MatParser.o..."
@@ -153,19 +148,6 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 	@echo "Built target Squid.o"
 
 #FINAL
-demo: $(LIBDIR)/demo.o
-	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/TrackerActions.o $(LIBDIR)/MaterialBudget.o \
-	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/InactiveSurfaces.o  \
-	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
-	$(LIBDIR)/Analyzer.o $(LIBDIR)/demo.o \
-	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o demo
-
-$(LIBDIR)/demo.o: demo.cpp
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/demo.o demo.cpp
-
 tkmaterial: $(LIBDIR)/tkmaterial.o
 	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
@@ -183,7 +165,7 @@ cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 
 cleanexocom:
-	-rm -f $(LIBDIR)/TrackerActions.o $(LIBDIR)/MatParser.o
+	-rm -f $(LIBDIR)/MatParser.o
 
 cleangeneral:
 	-rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
@@ -203,13 +185,10 @@ cleanviz:
 	
 cleannaly:
 	-rm -r $(LIBDIR)/Analyzer.o
-
-cleandemo:
-	-rm -f $(LIBDIR)/demo.o ./demo
 	
 cleantkmaterial:
 	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial
 
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleandemo cleantkmaterial
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaterial
 	
 #TODO: add final build targets to list

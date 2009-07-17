@@ -758,6 +758,7 @@ int main(int argc, char** argv) {
                 }
             }
             else return (EXIT_FAILURE);
+            if (m && !matfile.empty()) s.createMaterialBudget(matfile, m);
         }
         else if (g) {
             if (!s.buildTracker(geomfile)) return (EXIT_FAILURE);
@@ -783,6 +784,7 @@ int main(int argc, char** argv) {
                 }
                 if (!s.analyzeNeighbours(graphout)) return (EXIT_FAILURE);
             }
+            if (m && !matfile.empty()) s.createMaterialBudget(matfile, m);
         }
         else {
             //no output files required
