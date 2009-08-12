@@ -185,21 +185,22 @@ namespace insur {
     std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi) {
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
-        std::pair<double, double> res, tmp, offset;
+        std::pair<double, double> res, tmp;
         XYZVector origin, direction;
         Polar3DVector dir;
         double distance, r;
+        int hits = 0;
         res.first = 0.0;
         res.second = 0.0;
         dir.SetCoordinates(1, theta, phi);
         direction = dir;
         while (iter != guard) {
-            if ((iter->getModule().getMaxZ() > 0) &&
-                    (theta > iter->getModule().getMinTheta()) && (theta < iter->getModule().getMaxTheta())) {
+            if (iter->getModule().getMaxZ() > 0) {
                 if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
+                        hits++;
                         r = distance * sin(theta);
                         tmp.first = iter->getRadiationLength();
                         tmp.second = iter->getInteractionLength();
@@ -238,7 +239,7 @@ namespace insur {
             double theta, MaterialProperties::Category cat) {
         std::vector<InactiveElement>::iterator iter = elements.begin();
         std::vector<InactiveElement>::iterator guard = elements.end();
-        std::pair<double, double> res, tmp, offset;
+        std::pair<double, double> res, tmp;
         double s = 0.0;
         res.first = 0.0;
         res.second = 0.0;
