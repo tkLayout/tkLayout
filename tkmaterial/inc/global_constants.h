@@ -70,6 +70,10 @@ namespace insur {
      * @param default_rootfile Default filename for <i>.root</i> geometry output
      * @param default_graphdir Output directory for neighbour graphs
      * @param default_graphfile Default filename for neighbour graph output
+     * @param default_summarypath Output directory for material summaries
+     * @param default_summary Default filename root for material summary
+     * @param default_xmlpath Output base directory for CMSSW XML output
+     * @param default_xml Default subdirectory name for CMSSW XML output
      */
     static const std::string default_mattabdir = "config";
     static const std::string default_mattabfile = "mattab.list";
@@ -79,5 +83,7 @@ namespace insur {
     static const std::string default_graphfile = "neighbours.graph";
     static const std::string default_summarypath = "matsum";
     static const std::string default_summary = "profiles.html";
+    static const std::string default_xmlpath = "xml";
+    static const std::string default_xml = "tk2CMSSWxml";
 }
 #endif /* _GLOBAL_CONSTANTS_H */

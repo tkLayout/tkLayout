@@ -59,6 +59,7 @@ namespace insur {
     private:
         MaterialBudget();
         MaterialBudget(const MaterialBudget& budget);
+        MaterialBudget& operator=(const MaterialBudget& budget);
     };
 }
 #endif	/* _MATERIALBUDGET_H */

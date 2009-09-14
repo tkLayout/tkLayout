@@ -14,7 +14,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid tkmaterial
+all: tkgeometry exocom general elements ushers dressers viz naly squid tkmaterial xmltest
 	@echo "Full build successful."
 
 #TKGEOMETRY
@@ -121,13 +121,18 @@ $(LIBDIR)/MatCalcDummy.o: $(SRCDIR)/MatCalcDummy.cc $(INCDIR)/MatCalcDummy.h
 	@echo "Built target MatCalcDummy.o"
 
 #VISUALISATION
-viz: $(LIBDIR)/Vizard.o
+viz: $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
 	@echo "Built target 'viz'."
 	
 $(LIBDIR)/Vizard.o: $(SRCDIR)/Vizard.cc $(INCDIR)/Vizard.h
 	@echo "Building target Vizard.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Vizard.o $(SRCDIR)/Vizard.cc
 	@echo "Built target Vizard.o"
+
+$(LIBDIR)/tk2CMSSW.o: $(SRCDIR)/tk2CMSSW.cc $(INCDIR)/tk2CMSSW.h
+	@echo "Building target tk2CMSSW.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tk2CMSSW.o $(SRCDIR)/tk2CMSSW.cc
+	@echo "Built target tk2CMSSW.o"
 
 #ANALYSYS
 naly: $(LIBDIR)/Analyzer.o
@@ -153,13 +158,28 @@ tkmaterial: $(LIBDIR)/tkmaterial.o
 	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
 	$(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
 	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
-	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o \
+	$(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o tkmaterial
 
 $(LIBDIR)/tkmaterial.o: tkmaterial.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
+
+xmltest: $(LIBDIR)/xmltest.o
+	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
+	$(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
+	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o \
+	$(LIBDIR)/Squid.o $(LIBDIR)/xmltest.o \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o xmltest
+	
+$(LIBDIR)/xmltest.o: xmltest.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/xmltest.o xmltest.cpp
 
 cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
@@ -181,14 +201,16 @@ cleandressers:
 	-rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
 	
 cleanviz:
-	-rm -r $(LIBDIR)/Vizard.o
+	-rm -r $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
 	
 cleannaly:
 	-rm -r $(LIBDIR)/Analyzer.o
 	
 cleantkmaterial:
 	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial
-
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaterial
 	
-#TODO: add final build targets to list
+cleanxmltest:
+	-rm -r $(LIBDIR)/xmltest.o ./xmltest
+
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaterial cleanxmltest
+	

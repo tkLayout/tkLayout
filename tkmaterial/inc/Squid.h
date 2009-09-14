@@ -23,6 +23,7 @@
 #include <MatCalc.h>
 #include <Analyzer.h>
 #include <Vizard.h>
+#include <tk2CMSSW.h>
 #include <boost/filesystem/operations.hpp>
 /**
  * A shorter alias for the filesystem library namespace
@@ -69,6 +70,7 @@ namespace insur {
         bool analyzeGeometry(std::string rootout = "", bool simplified = true);
         bool analyzeNeighbours(std::string graphout = "");
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
+        bool translateFullSystemToXML(std::string xmlout = "");
     private:
         std::string g;
         Tracker* tr;
@@ -80,8 +82,10 @@ namespace insur {
         MatCalc c;
         Analyzer a;
         Vizard v;
+        tk2CMSSW t2c;
         bool fileExists(std::string filename);
         Squid(const Squid& s);
+        Squid& operator=(const Squid& s);
     };
 }
 #endif	/* _SQUID_H */

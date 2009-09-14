@@ -338,6 +338,17 @@ namespace insur {
         }
     }
     
+    bool Squid::translateFullSystemToXML(std::string xmlout) {
+        if (mb) {
+            t2c.translate(c.getMaterialTable(), *mb, xmlout);
+            return true;
+        }
+        else {
+            std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
+            return false;
+        }
+    }
+    
     // private
     /**
      * Check if a given configuration file actually exists.
