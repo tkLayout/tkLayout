@@ -30,6 +30,8 @@ namespace insur {
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
     public: //TODO: declare protected after testing
+        enum CompType { wt, vl, ap };
+        enum ShapeType { bx, tb, tp };
         struct Rotation {
             std::string name;
             double phix;
@@ -51,14 +53,16 @@ namespace insur {
             double atomic_weight;
         };
         struct Composite {
-            //TODO
+            std::string name;
+            double density;
+            CompType method;
+            std::vector<std::pair<std::string, double> > elements;
         };
         struct LogicalInfo {
             std::string name_tag;
             std::string shape_tag;
             std::string material_tag;
         };
-        enum ShapeType { bx, tb, tp };
         struct ShapeInfo {
             ShapeType type;
             std::string name_tag;
@@ -76,17 +80,18 @@ namespace insur {
             Translation trans;
         };
         std::vector<Element> elements;
-        std::vector<Composite> composites
+        std::vector<Composite> composites;
         std::vector<LogicalInfo> logic;
         std::vector<ShapeInfo> shapes;
         std::vector<PosInfo> positions;
-        void materialSection(std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
+        void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
         void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream);
         void posPartSection(std::vector<PosInfo>& p, std::string label, std::ostringstream& stream);
         void algorithm(/*TODO: TBD*/ std::ostringstream& stream);
         void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
-        void compositeMaterial()
+        void compositeMaterial(std::string name, double density, CompType method,
+                                               std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
         void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream);
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
         void trapezoid(std::string name, double dx, double dxx, double dy, double dz, std::ostringstream& stream);
