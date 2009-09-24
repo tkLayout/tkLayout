@@ -115,6 +115,10 @@ private:
   // Color picking
   Color_t colorPicker(std::string);
 
+  // Internal stats
+  std::vector<int> LpB_, DpE_;
+  std::vector<double> rMinpB_, rMaxpB_, dZpB_, rMinpE_, rMaxpE_, dZpE_;
+
   // Geometry validation functions
   ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
   void resetTypeCounter(std::map <std::string, int> &modTypes);
@@ -138,6 +142,15 @@ public:
   ~Tracker();
   Tracker();
   Tracker(std::string trackerName);
+
+  std::vector<int>& getLayersPerBarrel() { return LpB_; }
+  std::vector<int>& getDiscsPerEndcap() { return DpE_; }
+  std::vector<double>& getMinRPerBarrel() { return rMinpB_; }
+  std::vector<double>& getMaxRPerBarrel() { return rMaxpB_; }
+  std::vector<double>& getdZPerBarrel() { return dZpB_; }
+  std::vector<double>& getMinRPerEndcap() { return rMinpE_; }
+  std::vector<double>& getMaxRPerEndcap() { return rMaxpE_; }
+  std::vector<double>& getdZPerEndcap() { return dZpE_; }
 
   // Standard barrel builder
   void buildBarrel(int nLayer, double minRadius, double maxRadius,

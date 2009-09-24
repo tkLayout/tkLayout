@@ -41,6 +41,8 @@ public:
 
   int cutOverEta(double etaCut);
 
+  virtual void decreaseModCount(int ring) {}
+
   enum {NoSection = 0x0,
 	XYSection = 0x1,
 	YZSection = 0x2,
@@ -63,6 +65,7 @@ public:
 
 class BarrelLayer : public Layer {
 private:
+  int nOfRods_, nModsOnString_;
   BarrelModule* sampleModule_;
   BarrelModule* getSampleModule() { return sampleModule_; }
   double averageRadius_;
@@ -155,6 +158,9 @@ public:
 		   int sectioned = NoSection,
 		   double minZ = 0.);
 
+  int getRods() { return nOfRods_; }
+  int getModulesOnRod() { return nModsOnString_; }
+
   double getMaxZ(int direction);
   void compressToZ(double newMaxZ);
   void compressExceeding(double newMaxZ, double newMinZ);
@@ -170,6 +176,8 @@ public:
 
 class EndcapLayer : public Layer {
 private:
+  int nOfRings_;
+  std::vector<int> nModsOnRing_;
   EndcapModule* sampleModule_;
   EndcapModule* getSampleModule() { return sampleModule_; }
   double averageZ_;
@@ -219,6 +227,9 @@ public:
 		   int addModules = 0,
 		   int sectioned = NoSection);
 
+  int getRings() { return nOfRings_; }
+  std::vector<int>& getModulesOnRing() { return nModsOnRing_; }
+  virtual void decreaseModCount(int ring) { nModsOnRing_.at(ring)--; }
 
   void rotateY_PI();
   double getAverageZ() {return averageZ_;};

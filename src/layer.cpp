@@ -188,6 +188,8 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
 
   layerName_     = inputLayer.layerName_;
   averageRadius_ = inputLayer.averageRadius_;
+  nOfRods_ = inputLayer.getRods();
+  nModsOnString_ = inputLayer.getModulesOnRod();
 
   if ( (sampleModule_=dynamic_cast<BarrelModule*>(inputLayer.getSampleModule())) ) {
       sampleModule_ = new BarrelModule(*(inputLayer.getSampleModule()));
@@ -662,6 +664,8 @@ void BarrelLayer::buildLayer (double averageRadius,
   double goodRadius;
   int nStrings;
 
+  nOfRods_ = 0;
+  nModsOnString_ = 0;
   optimalBarrel = layerPhi(averageRadius   , // tentativeX
 			   smallDelta, 
 			   bigDelta,
@@ -789,7 +793,8 @@ void BarrelLayer::buildLayer (double averageRadius,
       // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl;
     }
   }
-  
+  nOfRods_ = nStrings;
+  nModsOnString_ = nModules;
 }
 
 // Always look for this plot when changing the geometry!
@@ -1079,6 +1084,11 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
 
   layerName_ = inputLayer.layerName_;
   averageZ_  = inputLayer.averageZ_;
+  nOfRings_ = inputLayer.getRings();
+  nModsOnRing_.clear();
+  for (unsigned int i = 0; i < inputLayer.getModulesOnRing().size(); i++) {
+      nModsOnRing_.push_back(inputLayer.getModulesOnRing().at(i));
+  }
 
     if ( (sampleModule_=dynamic_cast<EndcapModule*>(inputLayer.getSampleModule())) ) {
       sampleModule_ = new EndcapModule(*(inputLayer.getSampleModule()));
@@ -1303,6 +1313,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     std::cerr << "Next radius at rho: " << nextRho << std::endl;
     std::cerr << "************END OF RING COMPUTATION**************" << std::endl << std::endl;
   }
+  nOfRings_ = nRing - 1;
   
 }
 
@@ -1454,6 +1465,7 @@ double EndcapLayer::buildRing(double minRadius,
       }
     }
   }
+  nModsOnRing_.push_back(nOpt);
 
   double lastRho;
   if (wedges) {
@@ -1462,7 +1474,7 @@ double EndcapLayer::buildRing(double minRadius,
     std::cout << "Actual module area: " << aRingModule->getArea() << std::endl;
     // Just to be sure...!
     if (aRingModule->wasCut()) {
-      std::cout << "The ring Module was cut, loosing: " << aRingModule->getLost() << std::endl;
+      std::cout << "The ring Module was cut, losing: " << aRingModule->getLost() << std::endl;
       lastRho=maxRadius;
     }
     delete aRingModule;

@@ -360,6 +360,10 @@ void Tracker::buildBarrel(int nLayer,
     maxL_=(maxZ>maxL_)?maxZ:maxL_;
     // TODO: update this value if you want an independent compacting of the barrel section
     
+    LpB_.push_back(nLayer);
+    rMinpB_.push_back(minRadius);
+    rMaxpB_.push_back(maxRadius);
+    dZpB_.push_back(maxZ);
 }
 
 // Barrel "compactification"
@@ -659,6 +663,10 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
     // TODO: decide how to handle this
     // delete defaultDisk;
     
+    DpE_.push_back(nDisks);
+    rMinpE_.push_back(minRadius);
+    rMaxpE_.push_back(maxRadius);
+    dZpE_.push_back((maxZ - minZ) / 2.0);
 }
 
 // Function used to remove some endcaps rings
@@ -691,6 +699,7 @@ void Tracker::removeDiskRings(std::string sectionName, int iDisk, int iRing, boo
                         anotherModIt=modIt-1;
                         aLay->erase(modIt);
                         modIt=anotherModIt;
+                        (*layIt)->decreaseModCount(anEndcapModule->getRing() - 1);
                     }
                 } else {
                     if ((anEndcapModule->getDisk()==iDisk)
@@ -699,6 +708,7 @@ void Tracker::removeDiskRings(std::string sectionName, int iDisk, int iRing, boo
                         anotherModIt=modIt-1;
                         aLay->erase(modIt);
                         modIt=anotherModIt;
+                        (*layIt)->decreaseModCount(anEndcapModule->getRing() - 1);
                     }
                 }
             } else if (dynamic_cast<BarrelModule*>(aModule)) {
