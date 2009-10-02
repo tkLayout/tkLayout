@@ -101,6 +101,7 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
 
     // Summary and save
     myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
+    myTracker->printBarrelModuleZ();
     myTracker->save();
 
     myDirectory = myTracker->getActiveDirectory();

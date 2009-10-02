@@ -247,6 +247,7 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
   void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html");
   void writeSummary(std::string fileType = "html");
   void createPackageLayout(std::string dirName);
+  void printBarrelModuleZ();
 
   // Save everything
   void save();

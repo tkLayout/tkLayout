@@ -288,7 +288,7 @@ void Tracker::buildBarrel(int nLayer,
         layerName.str("");
         layerName << "L" << std::dec << i+1;
         aBarrelLayer->setName(layerName.str());
-        
+	aBarrelLayer->setContainerName(barrelName);
         
         std::cout << "Desired radius: " << radius << std::endl;
         if (minZ==0) { // Standard Barrel
@@ -647,6 +647,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
         deltaZ=-1*(minZ+maxZ)/2+thisZ;
         anotherDisk = new EndcapLayer(*defaultDisk);
         anotherDisk->setName(layerName.str());
+	anotherDisk->setContainerName(endcapName);
         anotherDisk->translateZ(deltaZ);
         addLayer(anotherDisk, endcapName, TypeEndcap);
         anotherDisk = new EndcapLayer(*anotherDisk);
@@ -1486,6 +1487,51 @@ void Tracker::createPackageLayout(std::string dirName) {
     std::string layoutFile = dirName + "/layout.png";
     drawLayout(maxL_, maxR_, layoutFile);
     
+}
+
+void Tracker::printBarrelModuleZ() {
+
+  ModuleVector* myModules;
+  ModuleVector::iterator itModule;
+  LayerVector* myBarrels;
+  LayerVector::iterator itLayer;
+  std::pair<int, int> myRZ;
+  int myR, myZ;
+  XYZVector meanPoint;
+
+  myBarrels = getBarrelLayers();
+  for (itLayer = myBarrels->begin();
+       itLayer != myBarrels->end();
+       itLayer++) {
+    std::cout << "Barrel layer name: \""
+	      << (*itLayer)->getContainerName() << "-"
+	      << (*itLayer)->getName() << "\"" << std::endl;
+
+    std::map< std::pair<int,int>, int > posCount;
+    
+    myModules = (*itLayer)->getModuleVector();
+    for (itModule = myModules->begin();
+	 itModule != myModules->end();
+	 itModule++) {
+      meanPoint = (*itModule)->getMeanPoint();
+      myR = int(ceil(meanPoint.Rho()-0.5));
+      myZ = int(ceil(meanPoint.Z()-0.5));
+      myRZ.first=myR;
+      myRZ.second=myZ;
+      posCount[myRZ]++;
+    }
+
+    std::map<std::pair<int,int>, int>::iterator itPos;
+    for (itPos = posCount.begin();
+	 itPos != posCount.end();
+	 itPos++) {
+      std::cout << "r=" << (*itPos).first.first
+		<< ", z=" << (*itPos).first.second
+		<< " (" << (*itPos).second << " modules)"
+		<< std::endl;
+    }
+  }
+
 }
 
 void Tracker::printHtmlTableRow(ofstream *output, std::vector<std::string> myRow) {
