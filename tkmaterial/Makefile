@@ -14,7 +14,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid tkmaterial xmltest
+all: tkgeometry exocom general elements ushers dressers viz naly squid tkmaterial
 	@echo "Full build successful."
 
 #TKGEOMETRY
@@ -167,20 +167,6 @@ tkmaterial: $(LIBDIR)/tkmaterial.o
 $(LIBDIR)/tkmaterial.o: tkmaterial.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
 
-xmltest: $(LIBDIR)/xmltest.o
-	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
-	$(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
-	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o \
-	$(LIBDIR)/Squid.o $(LIBDIR)/xmltest.o \
-	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o xmltest
-	
-$(LIBDIR)/xmltest.o: xmltest.cpp
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/xmltest.o xmltest.cpp
-
 cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 
@@ -209,8 +195,5 @@ cleannaly:
 cleantkmaterial:
 	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial
 	
-cleanxmltest:
-	-rm -r $(LIBDIR)/xmltest.o ./xmltest
-
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaterial cleanxmltest
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaterial
 	

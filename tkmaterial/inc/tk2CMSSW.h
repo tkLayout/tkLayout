@@ -14,6 +14,7 @@
 #define	_TK2CMSSW_H
 
 #include <tk2CMSSW_strings.h>
+#include <set>
 #include <fstream>
 #include <sstream>
 #include <MaterialTable.h>
@@ -22,8 +23,6 @@
 
 namespace bfs = boost::filesystem;
 namespace insur {
-    static const std::string trackerfile = "tracker.xml";
-    
     class tk2CMSSW {
     public:
         tk2CMSSW() {}
@@ -88,7 +87,7 @@ namespace insur {
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
         void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream);
         void posPartSection(std::vector<PosInfo>& p, std::string label, std::ostringstream& stream);
-        void algorithm(/*TODO: TBD*/ std::ostringstream& stream);
+        void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
         void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
         void compositeMaterial(std::string name, double density, CompType method,
                                                std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
@@ -96,13 +95,17 @@ namespace insur {
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
         void trapezoid(std::string name, double dx, double dxx, double dy, double dz, std::ostringstream& stream);
         void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
-        void posPart(int copy, std::string parent, std::string child, Rotation& rot, Translation& trans, std::ostringstream& stream);
+        void posPart(std::string parent, std::string child, Rotation& rot, Translation& trans, int copy, std::ostringstream& stream);
         void rotation(std::string name, double phix, double phiy, double phiz,
                                                           double thetax, double thetay, double thetaz, std::ostringstream& stream);
         void translation(double x, double y, double z, std::ostringstream& stream);
     private:
         void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& elements, std::vector<Composite>& composites,
                                                               std::vector<LogicalInfo>& logic, std::vector<ShapeInfo>& shapes, std::vector<PosInfo>& positions);
+        tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp);
+        double compositeDensity(InactiveElement& ie);
+        double compositeDensity(ModuleCap& mc);
+        int Z(double x0, double A);
         void print();
     };
 }
