@@ -19,7 +19,10 @@
 #include <sstream>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 namespace bfs = boost::filesystem;
 namespace insur {
