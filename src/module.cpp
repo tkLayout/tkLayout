@@ -685,6 +685,7 @@ double Module::getMinRho() {
   for (uint i = 1; i < 4 ; i++) {
     if (corner_[i].Rho()<minRho) minRho=corner_[i].Rho();
   }
+  if (getMeanPoint().Rho() < minRho) minRho = getMeanPoint().Rho();
   return minRho;
 }
 

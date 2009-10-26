@@ -15,16 +15,16 @@ namespace insur {
         }
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes and position
-        analyse(mt, mb, elements, composites, logic, shapes, positions);
+        analyse(mt, mb, elements, composites, logic, shapes, positions, algos);
+        // translate collected information to XML and write to buffer
         std::ostringstream buffer;
-        buffer << xml_preamble;
+        buffer << xml_preamble << xml_const_section;
         materialSection(xml_trackerfile, elements, composites, buffer);
         logicalPartSection(logic, xml_trackerfile, buffer);
         solidSection(shapes, xml_trackerfile, buffer);
-        posPartSection(positions, xml_trackerfile, buffer);
-        //TODO: find out if algorithm() calls happen here or within posPartSection()
+        posPartSection(positions, algos, xml_trackerfile, buffer);
         buffer << xml_defclose;
-        // write results to top-level file
+        // write contents of buffer to top-level file
         bfs::remove_all(outpath.c_str());
         bfs::create_directory(outpath);
         std::ofstream outstream((outpath + xml_trackerfile).c_str());
@@ -66,21 +66,12 @@ namespace insur {
         stream << xml_solid_section_close;
     }
     
-    void tk2CMSSW::posPartSection(std::vector<PosInfo>& p, std::string label, std::ostringstream& stream) {
-        std::vector<PosInfo>::iterator iter, guard = p.end();
+    void tk2CMSSW::posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream) {
+        std::vector<PosInfo>::iterator piter, pguard = p.end();
+        std::vector<AlgoInfo>::iterator aiter, aguard = a.end();
         stream << xml_pos_part_section_open << label << xml_pos_part_section_inter;
-        for (iter = p.begin(); iter != guard; iter++) posPart(iter->parent_tag, iter->child_tag, iter->rot, iter->trans, 1, stream);
-        //TODO: position every single volume relative to its parent using a series of posPart() calls
-        //            IMPORTANT: find out the role of algorithm() in reducing the number of posPart() calls
-        //                                    assemble parameters in String, Numeric and Vector blocks here and collect them
-        //                                    in a vector using an ostringstream os for conversions (declared within the loop)
-        //                                    String: os << xml_algorithm_string << name << xml_algorithm_value << value << xml_algorithm_endl;
-        //                                    Numeric: os << xml_algorithm_numeric << name << xml_algorithm_value << value << xml_algorithm_endl;
-        //                                    Vector: os << xml_algorithm_vector_open << name << xml_algorithm_vector_first_inter << type;
-        //                                                os << xml_algorithm_vector_second_inter << entries << xml_algorithm_vector_third_inter;
-        //                                                if (!vector.empty()) os << vector.at(0);
-        //                                                for (unsigned int i = 1; i < vector.size(); i++) os << "," << vector.at(i);
-        //                                                os << xml_algorithm_vector_close; (see xmltest.cpp for code)
+        for (piter = p.begin(); piter != pguard; piter++) posPart(piter->parent_tag, piter->child_tag, piter->rot, piter->trans, piter->copy, stream);
+        for (aiter = a.begin(); aiter != aguard; aiter++) algorithm(aiter->name, aiter->parent, aiter->parameters, stream);
         stream << xml_pos_part_section_close;
     }
     
@@ -90,6 +81,24 @@ namespace insur {
         for (unsigned int i = 0; i < params.size(); i++) stream << params.at(i);
         stream << xml_algorithm_close;
     }
+    
+    std::string tk2CMSSW::stringParam(std::string name, std::string value) {
+        std::string res;
+        res = xml_algorithm_string + name + xml_algorithm_value + value + xml_algorithm_endline;
+        return res;
+    }
+    
+    std::string tk2CMSSW::numericParam(std::string name, std::string value) {
+        std::string res;
+        res = xml_algorithm_numeric + name + xml_algorithm_value + value + xml_algorithm_endline;
+        return res;
+    }
+    
+    //                                    Vector: os << xml_algorithm_vector_open << name << xml_algorithm_vector_first_inter << type;
+    //                                                os << xml_algorithm_vector_second_inter << entries << xml_algorithm_vector_third_inter;
+    //                                                if (!vector.empty()) os << vector.at(0);
+    //                                                for (unsigned int i = 1; i < vector.size(); i++) os << "," << vector.at(i);
+    //                                                os << xml_algorithm_vector_close; (see xmltest.cpp for code)
     
     void tk2CMSSW::elementaryMaterial(std::string tag, double density, int a_number,
             double a_weight, std::ostringstream& stream) {
@@ -165,7 +174,7 @@ namespace insur {
     
     // private
     void tk2CMSSW::analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e, std::vector<Composite>& c,
-            std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p) {
+            std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a) {
         Tracker& tr = mb.getTracker();
         InactiveSurfaces& is = mb.getInactiveSurfaces();
         std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
@@ -183,6 +192,8 @@ namespace insur {
         ShapeInfo shape;
         LogicalInfo logic;
         PosInfo pos;
+        AlgoInfo alg;
+        pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
         pos.trans.dz = 0.0;
@@ -218,37 +229,180 @@ namespace insur {
             e.push_back(elem);
         }
         // b_mod: one composite for every module position on rod
+        // s and l: one entry for every module position on rod (box), one for every layer (tube), rods TBD
+        // p: one entry for every layer, first rod+ and rod- of that layer, wafer and active of one +/-rod, module of rod+ and module of rod-
+        //TODO: handle mezzanine layers, this one only manages regular layers for now!!!
         layer = 1;
+        alg.name = xml_tobalgo;
         oguard = bc.end();
         for (oiter = bc.begin(); oiter != oguard; oiter++) {
-            counter = 0;
-            iguard = oiter->end();
-            for (iiter = oiter->begin(); iiter != iguard; iiter++) {
-                if (iiter->getModule().getRing() > counter) {
-                    std::ostringstream matname;
-                    matname << xml_base_actcomp << "L" << layer << "P" << iiter->getModule().getRing();
-                    c.push_back(createComposite(matname.str(), compositeDensity(*iiter), *iiter));
-                    counter++;
+            double rmin = tr.getBarrelLayers()->at(layer - 1)->getMinRho();
+            double rmax = tr.getBarrelLayers()->at(layer - 1)->getMaxRho();
+            double zmin = tr.getBarrelLayers()->at(layer - 1)->getMinZ();
+            double zmax = tr.getBarrelLayers()->at(layer - 1)->getMaxZ();
+            double deltar = findDeltaR(tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
+                    tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+            double umin = findMinRhoUpperRod(tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
+                    tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0, rmax);
+            if ((deltar == 0.0) || (umin == 0.0)) continue;
+            bool is_short = (zmax < 0.0) || (zmin > 0.0);
+            bool is_relevant = !is_short || (zmin > 0.0);
+            if (is_relevant) {
+                std::ostringstream lname, rname, pconverter;
+                lname << xml_layer << layer;
+                rname << xml_rod << layer;
+                counter = 0;
+                iguard = oiter->end();
+                for (iiter = oiter->begin(); iiter != iguard; iiter++) {
+                    if (iiter->getModule().getRing() > counter) {
+                        std::vector<ModuleCap>::iterator partner;
+                        std::ostringstream matname, shapename;
+                        matname << xml_base_actcomp << "L" << layer << "P" << iiter->getModule().getRing();
+                        c.push_back(createComposite(matname.str(), compositeDensity(*iiter), *iiter));
+                        shapename << iiter->getModule().getRing() << lname.str();
+                        shape.type = bx;
+                        shape.name_tag = xml_barrel_module + shapename.str();
+                        shape.dx = iiter->getModule().getThickness() / 2.0;
+                        shape.dy = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
+                        shape.dz = iiter->getModule().getHeight() / 2.0;
+                        s.push_back(shape);
+                        logic.name_tag = shape.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_material_air;
+                        l.push_back(logic);
+                        partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
+                        pos.parent_tag = xml_fileident + ":" + rname.str();
+                        pos.child_tag = logic.shape_tag;
+                        if (((iiter->getModule().getMinRho() > rmin)
+                                && (iiter->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
+                                || (iiter->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
+                        else pos.trans.dx = shape.dx - deltar / 2.0;
+                        if (iiter->getModule().getMaxZ() > 0) {
+                            pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
+                            p.push_back(pos);
+                            if (partner != iguard) {
+                                if (((partner->getModule().getMinRho() > rmin)
+                                        && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
+                                        || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
+                                else pos.trans.dx = shape.dx - deltar / 2.0;
+                                pos.trans.dz = shape.dz - iiter->getModule().getMinZ();
+                                pos.copy = 2;
+                                p.push_back(pos);
+                                pos.copy = 1;
+                            }
+                        }
+                        else {
+                            pos.trans.dz = shape.dz - iiter->getModule().getMinZ();
+                            pos.copy = 2;
+                            p.push_back(pos);
+                            pos.copy = 1;
+                            if (partner != iguard) {
+                                if (((partner->getModule().getMinRho() > rmin)
+                                        && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
+                                        || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
+                                else pos.trans.dx = shape.dx - deltar / 2.0;
+                                pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
+                                p.push_back(pos);
+                            }
+                        }
+                        shape.name_tag = xml_barrel_module + shapename.str() + xml_base_waf;
+                        s.push_back(shape);
+                        pos.parent_tag = logic.shape_tag;
+                        logic.name_tag = shape.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        l.push_back(logic);
+                        pos.child_tag = logic.shape_tag;
+                        pos.copy = 1;
+                        pos.trans.dx = 0.0;
+                        pos.trans.dz = 0.0;
+                        p.push_back(pos);
+                        shape.name_tag = xml_barrel_module + shapename.str() + xml_base_act;
+                        s.push_back(shape);
+                        pos.parent_tag = logic.shape_tag;
+                        logic.name_tag = shape.name_tag;
+                        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                        logic.material_tag = xml_fileident + ":" + matname.str();
+                        l.push_back(logic);
+                        pos.child_tag = logic.shape_tag;
+                        p.push_back(pos);
+                        counter++;
+                    }
                 }
+                shape.name_tag = rname.str();
+                shape.dx = deltar / 2.0;
+                shape.dz = zmax;
+                s.push_back(shape);
+                logic.name_tag = shape.name_tag;
+                logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                logic.material_tag = xml_material_air;
+                l.push_back(logic);
+                alg.parameters.push_back(stringParam(xml_childparam, logic.shape_tag));
+                shape.type = tb;
+                shape.dx = 0.0;
+                shape.dxx = 0.0;
+                shape.dy = 0.0;
+                pos.trans.dx = 0.0;
+                pos.trans.dz = 0.0;
+                shape.name_tag = lname.str();
+                shape.rmin = rmin;
+                shape.rmax = rmax;
+                shape.dz = zmax;
+                s.push_back(shape);
+                logic.name_tag = shape.name_tag;
+                logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                logic.material_tag = xml_material_air;
+                l.push_back(logic);
+                pos.child_tag = logic.shape_tag;
+                p.push_back(pos);
+                alg.parent = logic.shape_tag;
+                pconverter << (tr.getBarrelLayers()->at(layer - 1)->getTilt() + 90) << "*deg";
+                alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+                pconverter.str("");
+                pconverter << tr.getBarrelLayers()->at(layer - 1)->getStartAngle();
+                alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+                pconverter << (rmin + deltar / 2.0) << "*mm";
+                alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+                pconverter.str("");
+                pconverter << (umin + deltar / 2.0) << "*mm";
+                alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+                pconverter.str("");
+                alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+                pconverter << static_cast<BarrelLayer*>(tr.getBarrelLayers()->at(layer - 1))->getRods();
+                alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+                alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+                alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+                a.push_back(alg);
+                alg.parameters.clear();
             }
             layer++;
         }
         // e_mod: one composite for every ring
-        layer = 1;
-        oguard = ec.end();
-        for (oiter = ec.begin(); oiter != oguard; oiter++) {
-            counter = 0;
-            iguard = oiter->end();
-            for (iiter = oiter->begin(); iiter != iguard; iiter++) {
-                if (iiter->getModule().getRing() > counter) {
-                    std::ostringstream matname;
-                    matname << xml_base_actcomp << "D" << layer << "R" << iiter->getModule().getRing();
-                    c.push_back(createComposite(matname.str(), compositeDensity(*iiter), *iiter));
-                    counter++;
-                }
-            }
-            layer++;
-        }
+        // s and l: one entry for every ring module, one for every ring in z+, one for every disc in z+
+        // p: TBD, TODO
+        /*layer = 1;
+         * alg.name = xml_tobalgo; //TODO: placeholder, replace with endcap algo name
+         * oguard = ec.end();
+         * for (oiter = ec.begin(); oiter != oguard; oiter++) {
+         * double rmin = tr.getEndcapLayers()->at(layer - 1)->getMinRho();
+         * double rmax = tr.getEndcapLayers()->at(layer - 1)->getMaxRho();
+         * double zmax = tr.getEndcapLayers()->at(layer - 1)->getMaxZ();
+         * std::ostringstream dname;
+         * dname << xml_disc << layer;
+         * counter = 0;
+         * iguard = oiter->end();
+         * for (iiter = oiter->begin(); iiter != iguard; iiter++) {
+         * if (iiter->getModule().getRing() > counter) {
+         * std::ostringstream matname;
+         * matname << xml_base_actcomp << "D" << layer << "R" << iiter->getModule().getRing();
+         * c.push_back(createComposite(matname.str(), compositeDensity(*iiter), *iiter));
+         * counter++;
+         * }
+         * }
+         * //disc here
+         * layer++;
+         * }*/
         // all tubes from now on, only translations in z
         shape.type = tb;
         shape.dx = 0.0;
@@ -280,26 +434,26 @@ namespace insur {
             pos.trans.dz = iter->getZOffset() + shape.dz;
             p.push_back(pos);
         }
-        guard = es.end();
-        for (iter = es.begin(); iter != guard; iter++) {
-            std::ostringstream matname, shapename;
-            matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-            shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-            if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-            shape.name_tag = shapename.str();
-            shape.dz = iter->getZLength() / 2.0;
-            shape.rmin = iter->getInnerRadius();
-            shape.rmax = shape.rmin + iter->getRWidth();
-            s.push_back(shape);
-            logic.name_tag = shapename.str();
-            logic.shape_tag = xml_fileident + ":" + shapename.str();
-            logic.material_tag = xml_fileident + ":" + matname.str();
-            l.push_back(logic);
-            pos.parent_tag = xml_fileident + ":" + xml_tracker;
-            pos.child_tag = logic.shape_tag;
-            pos.trans.dz = iter->getZOffset() + shape.dz;
-            p.push_back(pos);
-        }
+        /*guard = es.end();
+         * for (iter = es.begin(); iter != guard; iter++) {
+         * std::ostringstream matname, shapename;
+         * matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+         * shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+         * if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+         * shape.name_tag = shapename.str();
+         * shape.dz = iter->getZLength() / 2.0;
+         * shape.rmin = iter->getInnerRadius();
+         * shape.rmax = shape.rmin + iter->getRWidth();
+         * s.push_back(shape);
+         * logic.name_tag = shapename.str();
+         * logic.shape_tag = xml_fileident + ":" + shapename.str();
+         * logic.material_tag = xml_fileident + ":" + matname.str();
+         * l.push_back(logic);
+         * pos.parent_tag = xml_fileident + ":" + xml_tracker;
+         * pos.child_tag = logic.shape_tag;
+         * pos.trans.dz = iter->getZOffset() + shape.dz;
+         * p.push_back(pos);
+         * }*/
         // b_sup, e_sup, o_sup, t_sup, u_sup: one composite per category
         // l, s and p: one entry per support part
         std::set<MaterialProperties::Category> found;
@@ -307,29 +461,40 @@ namespace insur {
         std::vector<InactiveElement>& sp = is.getSupports();
         guard = sp.end();
         for (iter = sp.begin(); iter != guard; iter++) {
-            std::ostringstream matname, shapename;
-            matname << xml_base_lazycomp << iter->getCategory();
-            shapename << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
-            fres = found.find(iter->getCategory());
-            if (fres == found.end()) {
-                c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-                found.insert(iter->getCategory());
+            if (iter->getCategory() != MaterialProperties::e_sup) { //TODO: remove later
+                std::ostringstream matname, shapename;
+                matname << xml_base_lazycomp << iter->getCategory();
+                shapename << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
+                fres = found.find(iter->getCategory());
+                if (fres == found.end()) {
+                    c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+                    found.insert(iter->getCategory());
+                }
+                shape.name_tag = shapename.str();
+                shape.dz = iter->getZLength() / 2.0;
+                shape.rmin = iter->getInnerRadius();
+                shape.rmax = shape.rmin + iter->getRWidth();
+                s.push_back(shape);
+                logic.name_tag = shapename.str();
+                logic.shape_tag = xml_fileident + ":" + shapename.str();
+                logic.material_tag = xml_fileident + ":" + matname.str();
+                l.push_back(logic);
+                pos.parent_tag = xml_fileident + ":" + xml_tracker;
+                pos.child_tag = logic.shape_tag;
+                if ((iter->getCategory() == MaterialProperties::o_sup) ||
+                        (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
+                else pos.trans.dz = iter->getZOffset() + shape.dz;
+                if (iter->getCategory() == MaterialProperties::o_sup) {
+                    std::string tmp_l = xml_fileident + ":" + xml_layer;
+                    std::string tmp_d = xml_fileident + ":" + xml_disc;
+                    std::vector<PosInfo>::iterator iter, guard = p.end();
+                    for (iter = p.begin(); iter != guard; iter++) {
+                        if (((iter->child_tag).substr(0, tmp_l.size()).compare(tmp_l) == 0)
+                                || ((iter->child_tag).substr(0, tmp_d.size()).compare(tmp_d) == 0)) iter->parent_tag = logic.shape_tag;
+                    }
+                }
+                p.push_back(pos);
             }
-            shape.name_tag = shapename.str();
-            shape.dz = iter->getZLength() / 2.0;
-            shape.rmin = iter->getInnerRadius();
-            shape.rmax = shape.rmin + iter->getRWidth();
-            s.push_back(shape);
-            logic.name_tag = shapename.str();
-            logic.shape_tag = xml_fileident + ":" + shapename.str();
-            logic.material_tag = xml_fileident + ":" + matname.str();
-            l.push_back(logic);
-            pos.parent_tag = xml_fileident + ":" + xml_tracker;
-            pos.child_tag = logic.shape_tag;
-            if ((iter->getCategory() == MaterialProperties::o_sup) ||
-                    (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
-            else pos.trans.dz = iter->getZOffset() + shape.dz;
-            p.push_back(pos);
         }
         //TODO: traverse collections in mb and fill up l, s and p
         //            find out how to handle <algorithm> blocks
@@ -343,8 +508,6 @@ namespace insur {
         //        see notes for rest of hierarchy
         //loop through discs
         //        see XML files for hierarchy
-        //DEBUG
-        //print();
     }
     
     tk2CMSSW::Composite tk2CMSSW::createComposite(std::string name, double density, MaterialProperties& mp) {
@@ -375,6 +538,64 @@ namespace insur {
         }
         for (unsigned int i = 0; i < comp.elements.size(); i++) comp.elements.at(i).second = comp.elements.at(i).second / mp.getTotalMass();
         return comp;
+    }
+    
+    std::vector<ModuleCap>::iterator tk2CMSSW::findPartnerModule(std::vector<ModuleCap>::iterator i,
+            std::vector<ModuleCap>::iterator g, int ponrod) {
+        std::vector<ModuleCap>::iterator res = i;
+        if (i != g) {
+            bool plus = i->getModule().getMaxZ() > 0;
+            while (res != g) {
+                if (res->getModule().getRing() == ponrod) {
+                    if((plus && (res->getModule().getMaxZ() < 0)) || (!plus && (res->getModule().getMaxZ() > 0))) break;
+                }
+                res++;
+            }
+        }
+        return res;
+    }
+    
+    double tk2CMSSW::findDeltaR(std::vector<Module*>::iterator start,
+            std::vector<Module*>::iterator stop, double middle) {
+        std::vector<Module*>::iterator iter, mod1, mod2;
+        double dr = 0.0;
+        iter = start;
+        mod1 = stop;
+        mod2 = stop;
+        for (iter = start; iter != stop; iter++) {
+            if ((*iter)->getMeanPoint().Rho() > middle) {
+                mod1 = iter;
+                break;
+            }
+        }
+        for (iter = mod1; iter != stop; iter++) {
+            if ((*iter)->getMeanPoint().Rho() > middle) {
+                if ((*iter)->getMeanPoint().Rho() < (*mod1)->getMeanPoint().Rho()) {
+                    mod2 = iter;
+                    break;
+                }
+                else if (!((*iter)->getMeanPoint().Rho() == (*mod1)->getMeanPoint().Rho())) {
+                    mod2 = mod1;
+                    mod1 = iter;
+                    break;
+                }
+            }
+        }
+        dr = (*mod1)->getMinRho() - (*mod2)->getMinRho() + (*mod1)->getThickness();
+        return dr;
+    }
+    
+    double tk2CMSSW::findMinRhoUpperRod(std::vector<Module*>::iterator start,
+            std::vector<Module*>::iterator stop, double middle, double max) {
+        std::vector<Module*>::iterator iter;
+        double u = 0.0;
+        for (iter = start; iter != stop; iter++) {
+            if (((*iter)->getMeanPoint().Rho() > middle) && ((*iter)->getMaxRho() != max)) {
+                u = (*iter)->getMinRho();
+                break;
+            }
+        }
+        return u;
     }
     
     double tk2CMSSW::compositeDensity(InactiveElement& ie) {

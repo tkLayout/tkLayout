@@ -1,0 +1,37 @@
+Tested for CMSSW_2_2_6
+
+Given a CMSSW workspace and environment:
+1. Check out Geometry/CMSCommonData/python and 
+Geometry/TrackerCommonData/data from the CMSSW repository to your 
+workspace (CMSSW_x_x_x/src).
+
+2. Rename the file Geometry/CMSCommonData/python/cmsIdealGeometryXML_cfi.py to 
+back it up.
+
+3. Copy the altered file cmsIdealGeometryXML_cfi.py provided in this 
+folder ([somepath]/tkgeometry/tkmaterial/xml/) to 
+CMSSW_x_x_x/src/Geometry/CMSCommonData/python to replace the renamed 
+.py file.
+
+4. Rename the file Geometry/TrackerCommonData/data/tracker.xml to back 
+it up.
+
+5. Run tkmaterial with 3 config files and the -x option: 
+./tkmaterial geometryfile settingsfile materialfile -x [outname]
+from directory [somepath]/tkgeometry/tkmaterial
+
+6. Go to xml/[outname] or xml/[geometryfile_without_extension], 
+depending on whether you specified a name for the output subfolder or 
+not.
+
+7. Copy the file tracker.xml to 
+[anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerCommonData/data/ to 
+replace the renamed .xml file.
+
+8. If necessary, copy the file xml/geometry_cfg.py to a directory within 
+your workspace.
+
+9. If necessary, set up the environment by running cmsenv.
+
+10. Switch to the directory containing the file geometry_cfg.py and 
+start Iguana with it (iguana geometry_cfg.py) to display the result.

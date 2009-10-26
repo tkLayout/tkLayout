@@ -75,19 +75,28 @@ namespace insur {
         struct PosInfo {
             std::string parent_tag;
             std::string child_tag;
+            int copy;
             Rotation rot;
             Translation trans;
+        };
+        struct AlgoInfo {
+            std::string name;
+            std::string parent;
+            std::vector<std::string> parameters;
         };
         std::vector<Element> elements;
         std::vector<Composite> composites;
         std::vector<LogicalInfo> logic;
         std::vector<ShapeInfo> shapes;
         std::vector<PosInfo> positions;
+        std::vector<AlgoInfo> algos;
         void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
         void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream);
-        void posPartSection(std::vector<PosInfo>& p, std::string label, std::ostringstream& stream);
+        void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
         void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
+        std::string stringParam(std::string name, std::string value);
+        std::string numericParam(std::string name, std::string value);
         void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
         void compositeMaterial(std::string name, double density, CompType method,
                                                std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
@@ -100,9 +109,14 @@ namespace insur {
                                                           double thetax, double thetay, double thetaz, std::ostringstream& stream);
         void translation(double x, double y, double z, std::ostringstream& stream);
     private:
-        void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& elements, std::vector<Composite>& composites,
-                                                              std::vector<LogicalInfo>& logic, std::vector<ShapeInfo>& shapes, std::vector<PosInfo>& positions);
+        void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e, std::vector<Composite>& c,
+                             std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a);
         tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp);
+        std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
+                                                                                                std::vector<ModuleCap>::iterator g, int ponrod);
+        double findDeltaR(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
+        double findMinRhoUpperRod(std::vector<Module*>::iterator start,
+                                                        std::vector<Module*>::iterator stop, double middle, double max);
         double compositeDensity(InactiveElement& ie);
         double compositeDensity(ModuleCap& mc);
         int Z(double x0, double A);

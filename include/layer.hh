@@ -41,6 +41,8 @@ public:
   double getMinZ();
   double getMaxRho();
   double getMinRho();
+  virtual double getTilt() { return 0.0; }
+  virtual double getStartAngle() { return 0.0; }
 
   int cutOverEta(double etaCut);
 

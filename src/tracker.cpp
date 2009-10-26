@@ -450,7 +450,7 @@ void Tracker::alignShortBarrels() {
             is_short = ((*iter)->getMaxZ() < 0) || ((*iter)->getMinZ() > 0);
             if (is_short) {
                 bool change;
-                LayerVector::iterator start = barrelLayerSet_.begin();
+                LayerVector::iterator start;
                 LayerVector::iterator stop;
                 LayerVector::iterator cmp;
                 start = first_long;

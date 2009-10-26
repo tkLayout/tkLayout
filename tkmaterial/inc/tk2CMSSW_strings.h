@@ -12,8 +12,9 @@ namespace insur {
     // Numeric constants
     static const int xml_prec = 3;
     // XML tags and attributes
-    static const std::string xml_preamble = "<?xml version=1.0?><DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
+    static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
     static const std::string xml_defclose = "</DDDefinition>\n";
+    static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_material_section_open = "<MaterialSection label=\"";
     static const std::string xml_material_section_inter = "\">\n";
     static const std::string xml_material_section_close = "</MaterialSection>\n";
@@ -32,11 +33,6 @@ namespace insur {
     static const std::string xml_algorithm_numeric = "<Numeric name=\"";
     static const std::string xml_algorithm_value = "\" value=\"";
     static const std::string xml_algorithm_endline = "\"/>\n";
-    static const std::string xml_algorithm_vector_open = "<Vector name=\"";
-    static const std::string xml_algorithm_vector_first_inter = "\" type=\"";
-    static const std::string xml_algorithm_vector_second_inter = "\" nEntries=\"";
-    static const std::string xml_algorithm_vector_third_inter = "\">";
-    static const std::string xml_algorithm_vector_close = "</Vector>\n";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
     static const std::string xml_elementary_material_open = "<ElementaryMaterial name=\"";
     static const std::string xml_elementary_material_first_inter = "\" symbol=\"";
@@ -93,13 +89,35 @@ namespace insur {
     // naming conventions
     static const std::string xml_trackerfile = "tracker.xml";
     static const std::string xml_base_act = "active";
+    static const std::string xml_base_waf = "wafer";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
+    static const std::string xml_layer = "Layer";
+    static const std::string xml_disc = "Disc";
+    static const std::string xml_rod = "Rod";
+    static const std::string xml_ring = "Ring";
+    static const std::string xml_plus = "Plus";
+    static const std::string xml_minus = "Minus";
+    static const std::string xml_barrel_module = "BModule";
+    static const std::string xml_endcap_module = "EModule";
     static const std::string xml_base_actcomp = "modulecomposite";
     static const std::string xml_base_serfcomp = "servicecomposite";
     static const std::string xml_base_lazycomp = "supportcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_fileident = "tracker";
-    static const std::string xml_tracker = "TRACKER";
+    static const std::string xml_tracker = "Tracker";
+    static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
+    static const std::string xml_param_string = "String";
+    static const std::string xml_param_numeric = "Numeric";
+    static const std::string xml_childparam = "ChildName";
+    static const std::string xml_tilt = "Tilt";
+    static const std::string xml_startangle = "StartAngle";
+    static const std::string xml_rangeangle = "RangeAngle";
+    static const std::string xml_radiusin = "RadiusIn";
+    static const std::string xml_radiusout = "RadiusOut";
+    static const std::string xml_zposition = "ZPosition";
+    static const std::string xml_number = "Number";
+    static const std::string xml_startcopyno = "StartCopyNo";
+    static const std::string xml_incrcopyno = "IncrCopyNo";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
