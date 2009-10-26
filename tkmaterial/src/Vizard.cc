@@ -329,6 +329,8 @@ namespace insur {
         TVirtualPad* pad;
         std::string outfile = default_summarypath + "/";
         std::string pngoutfile, pngout, pngpath;
+        std::string svgout, svgpath;
+        std::string Cout, Cpath;
         if (outfilename.empty()) {
             outfile = outfile + default_summary;
             pngoutfile = default_summary;
@@ -379,7 +381,13 @@ namespace insur {
         ci->Draw();
         pngout = pngoutfile + ".fullvolume.png";
         pngpath = default_summarypath + "/" + pngout;
+        svgout = pngoutfile + ".fullvolume.svg";
+        svgpath = default_summarypath + "/" + svgout;
+        Cout = pngoutfile + ".fullvolume.C";
+        Cpath = default_summarypath + "/" + Cout;
         c.SaveAs(pngpath.c_str());
+        c.SaveAs(svgpath.c_str());
+        c.SaveAs(Cpath.c_str());
         htmlstream << "<img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in full volume ";
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average interaction length in full volume (eta = [0, 2.4]): ";
@@ -403,7 +411,13 @@ namespace insur {
         ci->Draw();
         pngout = pngoutfile + ".global.png";
         pngpath = default_summarypath + "/" + pngout;
+        svgout = pngoutfile + ".global.svg";
+        svgpath = default_summarypath + "/" + svgout;
+        Cout = pngoutfile + ".global.C";
+        Cpath = default_summarypath + "/" + Cout;
         c.SaveAs(pngpath.c_str());
+        c.SaveAs(svgpath.c_str());
+        c.SaveAs(Cpath.c_str());
         htmlstream << "<br><img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in tracking volume ";
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average interaction length in tracking volume (eta = [0, 2.4]): ";
@@ -441,7 +455,13 @@ namespace insur {
         icontainer.Draw();
         pngout = pngoutfile + ".asl.png";
         pngpath = default_summarypath + "/" + pngout;
+        svgout = pngoutfile + ".asl.svg";
+        svgpath = default_summarypath + "/" + svgout;
+        Cout = pngoutfile + ".asl.C";
+        Cpath = default_summarypath + "/" + Cout;
         c.SaveAs(pngpath.c_str());
+        c.SaveAs(svgpath.c_str());
+        c.SaveAs(Cpath.c_str());
         htmlstream << "<img src=\"" << pngout << "\" /><br>";
         //TODO: add information about average rlength and ilength per category a, s or l
         htmlstream << "<br><p><small><b>Average radiation length in modules ";
@@ -475,7 +495,13 @@ namespace insur {
         ii->Draw("COLZ");
         pngout = pngoutfile + ".twodee.png";
         pngpath = default_summarypath + "/" + pngout;
+        svgout = pngoutfile + ".twodee.svg";
+        svgpath = default_summarypath + "/" + svgout;
+        Cout = pngoutfile + ".twodee.C";
+        Cpath = default_summarypath + "/" + Cout;
         c.SaveAs(pngpath.c_str());
+        c.SaveAs(svgpath.c_str());
+        c.SaveAs(Cpath.c_str());
         htmlstream << "<br><p><big><b>2D Overview</b></big></p><img src=\"" << pngout << "\" /><br>";
         if (cr) delete cr;
         if (ci) delete ci;
