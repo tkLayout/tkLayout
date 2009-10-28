@@ -211,7 +211,7 @@ namespace insur {
         shape.dxx = 0.0;
         shape.dy = 0.0;
         shape.dz = max_length;
-        shape.rmin = 0.0;
+        shape.rmin = inner_radius;
         shape.rmax = outer_radius + volume_width;
         s.push_back(shape);
         logic.name_tag = xml_tracker;
@@ -270,39 +270,51 @@ namespace insur {
                         logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
-                        partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
-                        pos.parent_tag = xml_fileident + ":" + rname.str();
                         pos.child_tag = logic.shape_tag;
                         if (((iiter->getModule().getMinRho() > rmin)
                                 && (iiter->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
                                 || (iiter->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
                         else pos.trans.dx = shape.dx - deltar / 2.0;
-                        if (iiter->getModule().getMaxZ() > 0) {
-                            pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
+                        if (is_short) {
+                            pos.parent_tag = xml_fileident + ":" + rname.str() + xml_plus;
+                            pos.trans.dz = iiter->getModule().getMinZ() + shape.dz - (zmax - zmin) / 2.0 - zmin;
                             p.push_back(pos);
-                            if (partner != iguard) {
-                                if (((partner->getModule().getMinRho() > rmin)
-                                        && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
-                                        || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
-                                else pos.trans.dx = shape.dx - deltar / 2.0;
+                            pos.parent_tag = xml_fileident + ":" + rname.str() + xml_minus;
+                            pos.trans.dz = (zmax + zmin) / 2.0 - iiter->getModule().getMinZ() - shape.dz;
+                            pos.copy = 2;
+                            p.push_back(pos);
+                            pos.copy = 1;
+                        }
+                        else {
+                            pos.parent_tag = xml_fileident + ":" + rname.str();
+                            partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
+                            if (iiter->getModule().getMaxZ() > 0) {
+                                pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
+                                p.push_back(pos);
+                                if (partner != iguard) {
+                                    if (((partner->getModule().getMinRho() > rmin)
+                                            && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
+                                            || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
+                                    else pos.trans.dx = shape.dx - deltar / 2.0;
+                                    pos.trans.dz = shape.dz - iiter->getModule().getMinZ();
+                                    pos.copy = 2;
+                                    p.push_back(pos);
+                                    pos.copy = 1;
+                                }
+                            }
+                            else {
                                 pos.trans.dz = shape.dz - iiter->getModule().getMinZ();
                                 pos.copy = 2;
                                 p.push_back(pos);
                                 pos.copy = 1;
-                            }
-                        }
-                        else {
-                            pos.trans.dz = shape.dz - iiter->getModule().getMinZ();
-                            pos.copy = 2;
-                            p.push_back(pos);
-                            pos.copy = 1;
-                            if (partner != iguard) {
-                                if (((partner->getModule().getMinRho() > rmin)
-                                        && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
-                                        || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
-                                else pos.trans.dx = shape.dx - deltar / 2.0;
-                                pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
-                                p.push_back(pos);
+                                if (partner != iguard) {
+                                    if (((partner->getModule().getMinRho() > rmin)
+                                            && (partner->getModule().getMinRho() < rmin + (rmin + rmax) / 2.0))
+                                            || (partner->getModule().getMaxRho() == rmax)) pos.trans.dx = deltar / 2.0 - shape.dx;
+                                    else pos.trans.dx = shape.dx - deltar / 2.0;
+                                    pos.trans.dz = shape.dz + iiter->getModule().getMinZ();
+                                    p.push_back(pos);
+                                }
                             }
                         }
                         shape.name_tag = xml_barrel_module + shapename.str() + xml_base_waf;
@@ -329,14 +341,23 @@ namespace insur {
                     }
                 }
                 shape.name_tag = rname.str();
+                if (is_short) shape.name_tag = shape.name_tag + xml_plus;
                 shape.dx = deltar / 2.0;
-                shape.dz = zmax;
+                if (is_short) shape.dz = (zmax - zmin) / 2.0;
+                else shape.dz = zmax;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
-                alg.parameters.push_back(stringParam(xml_childparam, logic.shape_tag));
+                pconverter << logic.shape_tag;
+                if (is_short) {
+                    shape.name_tag = rname.str() + xml_minus;
+                    s.push_back(shape);
+                    logic.name_tag = shape.name_tag;
+                    logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                    l.push_back(logic);
+                }
                 shape.type = tb;
                 shape.dx = 0.0;
                 shape.dxx = 0.0;
@@ -355,6 +376,8 @@ namespace insur {
                 pos.child_tag = logic.shape_tag;
                 p.push_back(pos);
                 alg.parent = logic.shape_tag;
+                alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+                pconverter.str("");
                 pconverter << (tr.getBarrelLayers()->at(layer - 1)->getTilt() + 90) << "*deg";
                 alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
                 pconverter.str("");
@@ -368,12 +391,26 @@ namespace insur {
                 pconverter << (umin + deltar / 2.0) << "*mm";
                 alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
                 pconverter.str("");
-                alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+                if (is_short) {
+                    pconverter << (zmin + (zmax - zmin) / 2.0);
+                    alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
+                    pconverter.str("");
+                }
+                else alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
                 pconverter << static_cast<BarrelLayer*>(tr.getBarrelLayers()->at(layer - 1))->getRods();
                 alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
                 alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
                 alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
                 a.push_back(alg);
+                if (is_short) {
+                    pconverter.str("");
+                    pconverter << xml_fileident << ":" << rname.str() << xml_minus;
+                    alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
+                    pconverter.str("");
+                    pconverter << (-(zmin + (zmax - zmin) / 2.0));
+                    alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
+                    a.push_back(alg);
+                }
                 alg.parameters.clear();
             }
             layer++;
@@ -497,15 +534,10 @@ namespace insur {
             }
         }
         //TODO: traverse collections in mb and fill up l, s and p
-        //            find out how to handle <algorithm> blocks
         //FOR NOW: barrel only
-        //            find out about DOWN configuration (inner barrel longer than outer one)
-        //            => not necessarily a problem if going from tracker straight to layers
         //            find out about short layers and stacked layers
         //            => should be straightforward: treat stacked layers as two individual ones,
         //                  short layers have two copies instead of one and translations in +z and -z
-        //loop through layers
-        //        see notes for rest of hierarchy
         //loop through discs
         //        see XML files for hierarchy
     }
