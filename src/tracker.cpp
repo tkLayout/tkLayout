@@ -2121,7 +2121,10 @@ void Tracker::setModuleTypes(std::string sectionName,
                 myTag << "L" << aBarrelModule->getLayer();
                 myIndex = aBarrelModule->getLayer();
                 mySpecialIndex.first= myIndex;
-                mySpecialIndex.second = -1;
+                mySpecialIndex.second = aBarrelModule->getRing();
+		if (specialSecond[mySpecialIndex]) {
+		  myTag << "R" << aBarrelModule->getRing();
+		}
             } else if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
                 myTag << "R" << anEndcapModule->getRing();
                 myIndex = anEndcapModule->getRing();
@@ -2315,16 +2318,20 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
     
     std::string pngFileName = fileName+".png";
     std::string YZpngFileName = fileName+"YZ.png";
-    //std::string epsFileName = fileName+".eps";
+    std::string svgFileName = fileName+".svg";
+    std::string YZsvgFileName = fileName+"YZ.svg";
     //std::string gifFileName = fileName+".gif";
     
     summaryCanvas->SaveAs(pngFileName.c_str());
+    summaryCanvas->SaveAs(svgFileName.c_str());
     YZCanvas->SaveAs(YZpngFileName.c_str());
+    YZCanvas->SaveAs(YZsvgFileName.c_str());
     
     if (etaProfileCanvas_) {
         summaryCanvas = new TCanvas("etaprofilebig", "big etaprofile plot", 1000, 700);
         summaryCanvas->cd();
         pngFileName = fileName+"_nhitplot.png";
+        svgFileName = fileName+"_nhitplot.svg";
         etaProfileCanvas_->DrawClonePad();
         etaProfileCanvas_->SetFillColor(COLOR_PLOT_BACKGROUND);
         //     TFrame* myFrame = summaryCanvas->GetFrame();
@@ -2338,13 +2345,16 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
         summaryCanvas->SetBorderSize(0);
         summaryCanvas->Modified();
         summaryCanvas->SaveAs(pngFileName.c_str());
+        summaryCanvas->SaveAs(svgFileName.c_str());
     }
     
     
     if (bandWidthCanvas_) {
         pngFileName = fileName+"_bandwidth.png";
+        svgFileName = fileName+"_bandwidth.svg";
         bandWidthCanvas_->DrawClonePad();
         bandWidthCanvas_->SaveAs(pngFileName.c_str());
+        bandWidthCanvas_->SaveAs(svgFileName.c_str());
     }
     
     //summaryCanvas->SaveAs(epsFileName.c_str());
