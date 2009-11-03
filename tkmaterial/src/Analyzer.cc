@@ -192,26 +192,34 @@ namespace insur {
         int hits = 0;
         res.first = 0.0;
         res.second = 0.0;
+        // set the track direction vector
         dir.SetCoordinates(1, theta, phi);
         direction = dir;
         while (iter != guard) {
+            // collision detection: rays are in z+ only, so consider only modules that lie on that side
+            // only consider modules that have type BarrelModule or EndcapModule
             if (iter->getModule().getMaxZ() > 0) {
                 if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
+                    // same method as in Tracker, same function used
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
+                        // module was hit
                         hits++;
                         r = distance * sin(theta);
                         tmp.first = iter->getRadiationLength();
                         tmp.second = iter->getInteractionLength();
+                        // radiation and interaction length scaling for barrels
                         if (iter->getModule().getSubdetectorType() == Module::Barrel) {
                             tmp.first = tmp.first / sin(theta);
                             tmp.second = tmp.second / sin(theta);
                         }
+                        // radiation and interaction length scaling for endcaps
                         else {
                             tmp.first = tmp.first / cos(theta);
                             tmp.second = tmp.second / cos(theta);
                         }
+                        // 2D plot and eta plot results
                         fillCell(r, eta, tmp.first, tmp.second);
                         res.first = res.first + tmp.first;
                         res.second = res.second + tmp.second;
@@ -244,17 +252,23 @@ namespace insur {
         res.first = 0.0;
         res.second = 0.0;
         while (iter != guard) {
+            // collision detection: rays are in z+ only, so only volumes in z+ need to be considered
+            // only volumes of the requested category, or those without one (which should not exist) are examined
             if (((iter->getZOffset() + iter->getZLength()) > 0)
                     && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
+                // collision detection: check eta range
                 tmp = iter->getEtaMinMax();
                 if ((tmp.first < eta) && (tmp.second > eta)) {
                     double r, z;
+                    // radiation and interaction lenth scaling for vertical volumes
                     if (iter->isVertical()) {
                         z = iter->getZOffset() + iter->getZLength() / 2.0;
                         r = z * tan(theta);
+                        // special treatment for user-defined supports as they can be very close to z=0
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
                             if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
+                            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
                                 res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
                                 res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
@@ -266,6 +280,7 @@ namespace insur {
                             }
                         }
                         else {
+                            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
                                 res.first = res.first + iter->getRadiationLength() / cos(theta);
                                 res.second = res.second + iter->getInteractionLength() / cos(theta);
@@ -287,11 +302,15 @@ namespace insur {
                             }
                         }
                     }
+                    // radiation and interaction length scaling for horizontal volumes
                     else {
                         r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+                        // special treatment for user-defined supports; should not be necessary for now
+                        // as all user-defined supports are vertical, but just in case...
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / sin(theta);
                             if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
+                            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
                                 res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
                                 res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
@@ -303,6 +322,7 @@ namespace insur {
                             }
                         }
                         else {
+                            // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
                                 res.first = res.first + iter->getRadiationLength() / sin(theta);
                                 res.second = res.second + iter->getInteractionLength() / sin(theta);
@@ -335,6 +355,7 @@ namespace insur {
      * This convenience function resets and empties all histograms so they are ready for a new round of analysis.
      */
     void Analyzer::clearHistograms() {
+        // single category
         ractivebarrel.Reset();
         ractivebarrel.SetNameTitle("ractivebarrels", "Barrel Modules Radiation Length");
         ractiveendcap.Reset();
@@ -427,6 +448,7 @@ namespace insur {
      * @param max the maximal eta value that should be plotted
      */
     void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
+        // single category
         ractivebarrel.SetBins(bins, min, max);
         ractiveendcap.SetBins(bins, min, max);
         rserfbarrel.SetBins(bins, min, max);
@@ -443,6 +465,7 @@ namespace insur {
         ilazyendcap.SetBins(bins, min, max);
         ilazytube.SetBins(bins, min, max);
         ilazyuserdef.SetBins(bins, min, max);
+        // composite
         rbarrelall.SetBins(bins, min, max);
         rendcapall.SetBins(bins, min, max);
         ractiveall.SetBins(bins, min, max);
@@ -453,12 +476,15 @@ namespace insur {
         iactiveall.SetBins(bins, min, max);
         iserfall.SetBins(bins, min, max);
         ilazyall.SetBins(bins, min, max);
+        // outside tracking volume
         rextraservices.SetBins(bins, min, max);
         rextrasupports.SetBins(bins, min, max);
         iextraservices.SetBins(bins, min, max);
         iextrasupports.SetBins(bins, min, max);
+        // global
         rglobal.SetBins(bins, min, max);
         iglobal.SetBins(bins, min, max);
+        // isolines
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
     }
@@ -523,39 +549,53 @@ namespace insur {
     void Analyzer::transformEtaToZ() {
         int size_z, size_r, rindex, etaindex;
         double z, r, eta, z_max, z_min, r_max, r_min, z_c, r_c;
+        // init: sizes and boundaries
         size_z = isor.GetNbinsX();
         size_r = isor.GetNbinsY();
         z_max = isor.GetXaxis()->GetXmax();
         z_min = isor.GetXaxis()->GetXmin();
         r_max = isor.GetYaxis()->GetXmax();
         r_min = isor.GetYaxis()->GetXmin();
+        // new number of bins in z and r
         z_c = (z_max - z_min) / (2 * size_z);
         r_c = (r_max - r_min) / (2 * size_r);
+        // radiation length loop
         for (int i = 1; i <= size_z; i++) {
+            // calculate current z bin
             z = z_min + 2 * (i - 1) * z_c + z_c;
             for (int j = 1; j <= size_r; j++) {
+                // calculate current r bin
                 r = r_min + 2 * (j - 1) * r_c + r_c;
                 eta = -log(tan(atan(r / z) / 2.0));
+                // find corresponding r and eta positions
                 etaindex = findCellIndexEta(eta);
                 rindex = findCellIndexR(r);
+                // fill in radiation length in r and z
                 if ((etaindex >= 0) && (rindex >= 0)) isor.Fill(z, r, cells.at(etaindex).at(rindex).rlength);
             }
         }
+        // init: sizes and boundaries
         size_z = isoi.GetNbinsX();
         size_r = isoi.GetNbinsY();
         z_max = isoi.GetXaxis()->GetXmax();
         z_min = isoi.GetXaxis()->GetXmin();
         r_max = isoi.GetYaxis()->GetXmax();
         r_min = isoi.GetYaxis()->GetXmin();
+        // new number of bins in z and r
         z_c = (z_max - z_min) / (2 * size_z);
         r_c = (r_max - r_min) / (2 * size_r);
+        // interaction length loop
         for (int i = 0; i < size_z; i++) {
+            // calculate current z bin
             z = z_min + 2 * i * z_c + z_c;
             for (int j = 0; j < size_r; j++) {
+                // calculate current r bin
                 r = r_min + 2 * j * r_c + r_c;
                 eta = -log(tan(atan(r / z) / 2.0));
+                // find corresponding r and eta positions
                 etaindex = findCellIndexEta(eta);
                 rindex = findCellIndexR(r);
+                // fill in interaction length in r and z
                 if ((etaindex >= 0) && (rindex >= 0)) isoi.Fill(z, r, cells.at(etaindex).at(rindex).ilength);
             }
         }

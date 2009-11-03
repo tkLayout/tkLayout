@@ -116,6 +116,7 @@ namespace insur {
         ta = "Si_dummy";
         ts = "Cu_dummy";
         tl = "CF_dummy";
+        // arbitrary numbers
         ab = 10.0;
         ae = 10.0;
         sb = 500.0;

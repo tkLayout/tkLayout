@@ -9,9 +9,13 @@
 #include <string>
 
 namespace insur {
-    // Numeric constants
+    /** 
+     * Numeric constants
+     */
     static const int xml_prec = 3;
-    // XML tags and attributes
+    /**
+     * XML tags and attributes
+     */
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
@@ -86,7 +90,9 @@ namespace insur {
     static const std::string xml_translation_first_inter = "*mm\" y=\"";
     static const std::string xml_translation_second_inter = "*mm\" z=\"";
     static const std::string xml_translation_close = "*mm\"/>\n";
-    // naming conventions
+    /**
+     * Naming conventions and variable names
+     */
     static const std::string xml_trackerfile = "tracker.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_waf = "wafer";

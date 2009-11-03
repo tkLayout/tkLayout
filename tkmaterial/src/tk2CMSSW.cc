@@ -365,15 +365,18 @@ namespace insur {
                 pos.trans.dx = 0.0;
                 pos.trans.dz = 0.0;
                 shape.name_tag = lname.str();
+                if (is_short) shape.name_tag = shape.name_tag + xml_plus;
                 shape.rmin = rmin;
                 shape.rmax = rmax;
-                shape.dz = zmax;
+                if (is_short) shape.dz = (zmax - zmin) / 2.0;
+                else shape.dz = zmax;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
                 pos.child_tag = logic.shape_tag;
+                if (is_short) pos.trans.dz = zmin + (zmax - zmin) / 2.0;
                 p.push_back(pos);
                 alg.parent = logic.shape_tag;
                 alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
@@ -391,24 +394,25 @@ namespace insur {
                 pconverter << (umin + deltar / 2.0) << "*mm";
                 alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
                 pconverter.str("");
-                if (is_short) {
-                    pconverter << (zmin + (zmax - zmin) / 2.0);
-                    alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
-                    pconverter.str("");
-                }
-                else alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+                alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
                 pconverter << static_cast<BarrelLayer*>(tr.getBarrelLayers()->at(layer - 1))->getRods();
                 alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
                 alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
                 alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
                 a.push_back(alg);
                 if (is_short) {
+                    shape.name_tag = lname.str() + xml_minus;
+                    s.push_back(shape);
+                    logic.name_tag = shape.name_tag;
+                    logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+                    l.push_back(logic);
+                    pos.child_tag = logic.shape_tag;
+                    pos.trans.dz = -(zmin + (zmax - zmin) / 2.0);
+                    p.push_back(pos);
+                    alg.parent = logic.shape_tag;
                     pconverter.str("");
                     pconverter << xml_fileident << ":" << rname.str() << xml_minus;
                     alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
-                    pconverter.str("");
-                    pconverter << (-(zmin + (zmax - zmin) / 2.0));
-                    alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
                     a.push_back(alg);
                 }
                 alg.parameters.clear();
