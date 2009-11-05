@@ -375,6 +375,7 @@ namespace insur {
                 logic.shape_tag = xml_fileident + ":" + logic.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
+                pos.parent_tag = xml_fileident + ":" + xml_tracker;
                 pos.child_tag = logic.shape_tag;
                 if (is_short) pos.trans.dz = zmin + (zmax - zmin) / 2.0;
                 p.push_back(pos);
@@ -525,15 +526,6 @@ namespace insur {
                 if ((iter->getCategory() == MaterialProperties::o_sup) ||
                         (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
                 else pos.trans.dz = iter->getZOffset() + shape.dz;
-                if (iter->getCategory() == MaterialProperties::o_sup) {
-                    std::string tmp_l = xml_fileident + ":" + xml_layer;
-                    std::string tmp_d = xml_fileident + ":" + xml_disc;
-                    std::vector<PosInfo>::iterator iter, guard = p.end();
-                    for (iter = p.begin(); iter != guard; iter++) {
-                        if (((iter->child_tag).substr(0, tmp_l.size()).compare(tmp_l) == 0)
-                                || ((iter->child_tag).substr(0, tmp_d.size()).compare(tmp_d) == 0)) iter->parent_tag = logic.shape_tag;
-                    }
-                }
                 p.push_back(pos);
             }
         }

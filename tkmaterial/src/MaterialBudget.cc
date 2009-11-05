@@ -142,7 +142,7 @@ namespace insur {
         std::cout << "MaterialBudget: " << d << " barrel modcaps in " << capsbarrelmods.size() << " vectors." << std::endl;
         std::cout << "Tracker: " << e << " endcap modules in " << tracker->getEndcapLayers()->size() << " discs." << std::endl;
         std::cout << "MaterialBudget: " << f << " endcap modcaps in " << capsendmods.size() << " vectors." << std::endl;
-        std::cout << "InactiveServices: " << inactive->getBarrelServices().size() << " barrel services and ";
+        std::cout << "InactiveSurfaces: " << inactive->getBarrelServices().size() << " barrel services and ";
         std::cout << inactive->getEndcapServices().size() << " endcap services." << std::endl;
         std::cout << "InactiveSurfaces: " << inactive->getSupports().size() << " supports in total, "  << a << " in barrels, ";
         std::cout << b << " in endcaps, " << g << " in barrel support tubes, " << h << " user defined, " << o;

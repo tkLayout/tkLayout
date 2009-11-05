@@ -173,6 +173,7 @@ namespace insur {
             // TGeoManager* gm = (TGeoManager*)f.Get("display");
             // gm->GetMasterVolume()->Draw("ogl");
             // press 'w' for wireframe or 't' for outline view
+            // when done: delete gm, f.Close()
         }
         else std::cout << msg_uninitialised << std::endl;
     }
@@ -327,6 +328,7 @@ namespace insur {
         TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
         TH2D *ir = NULL, *ii = NULL;
         TVirtualPad* pad;
+        // filename gymnastics
         std::string outfile = default_summarypath + "/";
         std::string pngoutfile, pngout, pngpath;
         std::string svgout, svgpath;
@@ -343,6 +345,7 @@ namespace insur {
             pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 4);
             if (pngoutfile.substr(pngoutfile.size() - 1) == ".") pngoutfile = pngoutfile.substr(0, pngoutfile.size() - 1);
         }
+        // output initialisation and headers
         std::ostringstream htmlstream;
         std::ofstream outstream(outfile.c_str());
         htmlstream << "<html><title>" << outfilename << "</title><body>";
@@ -354,6 +357,7 @@ namespace insur {
         pad->SetFillColor(kGray);
         pad = c.GetPad(1);
         pad->cd();
+        // total tracking volume rlength
         cr = (TH1D*)a.getHistoGlobalR().Clone();
         fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
         fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
@@ -379,6 +383,7 @@ namespace insur {
         ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
         ci->SetXTitle("Eta");
         ci->Draw();
+        // write total plots to file
         pngout = pngoutfile + ".fullvolume.png";
         pngpath = default_summarypath + "/" + pngout;
         svgout = pngoutfile + ".fullvolume.svg";
@@ -392,11 +397,13 @@ namespace insur {
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average interaction length in full volume (eta = [0, 2.4]): ";
         htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
+        // work area cleanup an re-init
         c.Clear("D");
         if (cr) delete cr;
         if (ci) delete ci;
         pad = c.GetPad(1);
         pad->cd();
+        // global plots in tracking volume: radiation length
         cr = (TH1D*)a.getHistoGlobalR().Clone();
         cr->SetFillColor(kGray + 2);
         cr->SetNameTitle("rglobal", "Overall Radiation Length");
@@ -404,11 +411,13 @@ namespace insur {
         cr->Draw();
         pad = c.GetPad(2);
         pad->cd();
+        // global plots in tracking volume: interaction length
         ci = (TH1D*)a.getHistoGlobalI().Clone();
         ci->SetFillColor(kGray + 1);
         ci->SetNameTitle("iglobal", "Overall Interaction Length");
         ci->SetXTitle("Eta");
         ci->Draw();
+        // write global tracking volume plots to file
         pngout = pngoutfile + ".global.png";
         pngpath = default_summarypath + "/" + pngout;
         svgout = pngoutfile + ".global.svg";
@@ -422,9 +431,11 @@ namespace insur {
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average interaction length in tracking volume (eta = [0, 2.4]): ";
         htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
+        // work area cleanup and re-init
         c.Clear("D");
         pad = c.GetPad(1);
         pad->cd();
+        // radiation length in tracking volume by active, serving or passive
         sur = (TH1D*)a.getHistoSupportsAllR().Clone();
         sur->SetFillColor(kOrange + 4);
         sur->SetXTitle("Eta");
@@ -438,6 +449,7 @@ namespace insur {
         acr->SetXTitle("Eta");
         rcontainer.Add(acr);
         rcontainer.Draw();
+        // interaction length in tracking volume by active, serving or passive
         pad = c.GetPad(2);
         pad->cd();
         sui = (TH1D*)a.getHistoSupportsAllI().Clone();
@@ -450,9 +462,10 @@ namespace insur {
         icontainer.Add(sei);
         aci = (TH1D*)a.getHistoModulesAllI().Clone();
         aci->SetFillColor(kRed - 3);
-        icontainer.Add(aci);
         aci->SetXTitle("Eta");
+        icontainer.Add(aci);
         icontainer.Draw();
+        // write asl category plots to file
         pngout = pngoutfile + ".asl.png";
         pngpath = default_summarypath + "/" + pngout;
         svgout = pngoutfile + ".asl.svg";
@@ -463,7 +476,7 @@ namespace insur {
         c.SaveAs(svgpath.c_str());
         c.SaveAs(Cpath.c_str());
         htmlstream << "<img src=\"" << pngout << "\" /><br>";
-        //TODO: add information about average rlength and ilength per category a, s or l
+        // average values by active, serving and passive
         htmlstream << "<br><p><small><b>Average radiation length in modules ";
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*acr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average radiation length in services ";
@@ -476,9 +489,11 @@ namespace insur {
         htmlstream << averageHistogramValues(*sei, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average interaction length in supports (eta = [0, 2.4]): ";
         htmlstream << averageHistogramValues(*sui, etaMaxAvg) << "</b></small></p>";
+        // work area cleanup and re-init
         c.Clear("D");
         pad = c.GetPad(1);
         pad->cd();
+        // radiation length in isolines
         ir = (TH2D*)a.getHistoIsoR().Clone();
         ir->SetNameTitle("isor", "Radiation Length Contours");
         ir->SetContour(temperature_levels, NULL);
@@ -487,12 +502,14 @@ namespace insur {
         ir->Draw("COLZ");
         pad = c.GetPad(2);
         pad->cd();
+        // interaction length in isolines
         ii = (TH2D*)a.getHistoIsoI().Clone();
         ii->SetNameTitle("isoi", "Interaction Length Contours");
         ii->SetContour(temperature_levels, NULL);
         ii->SetXTitle("z");
         ii->SetYTitle("r");
         ii->Draw("COLZ");
+        // write isoline plots to file
         pngout = pngoutfile + ".twodee.png";
         pngpath = default_summarypath + "/" + pngout;
         svgout = pngoutfile + ".twodee.svg";
@@ -503,6 +520,7 @@ namespace insur {
         c.SaveAs(svgpath.c_str());
         c.SaveAs(Cpath.c_str());
         htmlstream << "<br><p><big><b>2D Overview</b></big></p><img src=\"" << pngout << "\" /><br>";
+        // general cleanup
         if (cr) delete cr;
         if (ci) delete ci;
         if (fr1) delete fr1;
@@ -515,6 +533,7 @@ namespace insur {
         if (sei) delete sei;
         if (sur) delete sur;
         if (sui) delete sui;
+        // write html frame to file
         htmlstream << "</body></html>";
         outstream << htmlstream.str() << std::endl;
         outstream.close();
