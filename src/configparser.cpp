@@ -139,7 +139,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     string aDirective = "";
     BarrelModule* sampleBarrelModule = NULL;
     double aspectRatio = 1.;
+    bool aspectRatioManual = false;
     int phiSegments = 4;
+    std::pair<double, double> size; size.first=0; size.second=0; // width, length
     
     // Directives (this are communicated to the Tracker object)
     std::map<int, double> layerDirectives;
@@ -164,12 +166,29 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 minZ=atof(parameterValue.c_str());
             } else if (parameterName=="aspectRatio") {
                 aspectRatio=atof(parameterValue.c_str());
+		aspectRatioManual = true;
                 if (aspectRatio<=0) {
                     cout << "Parsing barrel " << myName << endl
                             << "Wrong aspect ratio (height/width): " << parameterValue
                             << " should be a positive number" << endl;
                     throw parsingException();
                 }
+            } else if (parameterName=="size") {
+	      double widthValue, lengthValue;
+	      if (sscanf(parameterValue.c_str(), "%lfx%lf", &widthValue, &lengthValue)==2) {
+		if ((widthValue>0)&&(lengthValue>0)) {
+		  size.first=widthValue;
+		  size.second=lengthValue;
+		} else {
+		  cout << "Error: parsing the module size for barrel " << myName
+		       << ": \"" << parameterValue.c_str() << "\"I got a negative width or length." << endl;
+		  throw parsingException();
+		}
+	      } else {
+		cout << "Parsing size of modules for barrel " << myName
+		     << ": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
+		throw parsingException();
+              }
             } else if (parameterName=="nModules") {
                 nBarrelModules=atoi(parameterValue.c_str());
             } else if (parameterName=="innerRadius") {
@@ -261,12 +280,29 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     // Actually creating the barrel if all the mandatory parameters were set
     if ( (nBarrelLayers != 0) &&
-    (barrelRhoIn != 0) &&
-    (barrelRhoOut != 0) &&
-    (nBarrelModules != 0) ) {
-        
+	 (barrelRhoIn != 0) &&
+	 (barrelRhoOut != 0) &&
+	 (nBarrelModules != 0) ) {
+
+
+      if ((size.first==0)||(size.second==0)) {
+	cout << "mersidebug: normal module" << endl;
         sampleBarrelModule = new BarrelModule(aspectRatio);   // Square modules of kind rphi
-        
+      } else {
+	cout << "mersidebug: normal special size module" << endl;
+	if (aspectRatioManual) { // You set the size manually and also specify the aspect ratio!
+	  cout << "mersidebug: special size, but also manual aspect ratio" << endl;
+	  cout << "Parting barrel " << myName << " found both the size and the aspect ratio specified!" << endl
+	       << "Please remove one of the two settings" << endl;
+	  throw parsingException();
+	} else {
+	  double waferDiameter = pow((pow(size.first,2) + pow(size.second,2)), 0.5);
+	  aspectRatio = size.second/size.first; // heigth/width
+	  sampleBarrelModule = new BarrelModule(waferDiameter, aspectRatio);
+	  cout << "mersidebug: sampleBarrelModule = new BarrelModule(" << waferDiameter << ", " << aspectRatio << ");" <<  endl;
+	}
+      }
+      
         // Important: if no directive was given, the following line will clear
         // possible previous directives coming from a different barrel
         myTracker_->setLayerDirectives(layerDirectives);
