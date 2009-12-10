@@ -44,7 +44,7 @@ public:
   virtual double getTilt() { return 0.0; }
   virtual double getStartAngle() { return 0.0; }
 
-  int cutOverEta(double etaCut);
+  virtual int cutOverEta(double etaCut) { return 0; }
 
   virtual void decreaseModCount(int ring) {}
 
@@ -163,6 +163,8 @@ public:
 		   int sectioned = NoSection,
 		   double minZ = 0.);
 
+  int cutOverEta(double etaCut);
+
   int getRods() { return nOfRods_; }
   int getModulesOnRod() { return nModsOnString_; }
 
@@ -231,6 +233,8 @@ public:
 		   double maxRadius = -1,
 		   int addModules = 0,
 		   int sectioned = NoSection);
+
+  int cutOverEta(double etaCut);
 
   int getRings() { return nOfRings_; }
   std::vector<int>& getModulesOnRing() { return nModsOnRing_; }

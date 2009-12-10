@@ -37,10 +37,10 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
-        std::cout << "Arranging UP configuration..." << std::endl;
+        std::cout << "Arranging UP configuration...";
         is = servicesUp(tracker, is);
         is = supportsAll(tracker, is, geomfile);
-        std::cout << "Arrangement done." << std::endl;
+        std::cout << "done." << std::endl;
         return is;
     }
     
@@ -53,10 +53,10 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
-        std::cout << "Arranging DOWN configuration..." << std::endl;
+        std::cout << "Arranging DOWN configuration...";
         is = servicesDown(tracker, is);
         is = supportsAll(tracker, is, geomfile);
-        std::cout << "Arrangement done." << std::endl;
+        std::cout << "done." << std::endl;
         return is;
     }
     
@@ -69,36 +69,49 @@ namespace insur {
      */
     InactiveSurfaces& Usher::mirror(TrackerIntRep& tracker, InactiveSurfaces& is) {
         std::cout << "Mirroring barrel services...";
+        // number of barrel service volumes that need to be reflected
         unsigned int half = is.getBarrelServices().size();
+        // barrel service loop
         for (unsigned int i = 0; i < half; i++) {
             InactiveElement& blueprint = is.getBarrelServicePart(i);
+            // vertical services => complex neighbourhood
             if (blueprint.isVertical()) {
                 InactiveRing ring = mirrorRing(blueprint);
+                // feeder is module layer
                 if (ring.getFeederType() == InactiveElement::tracker) {
+                    // find out if feeder is short layer
                     bool short_layer = false;
                     std::list<std::pair<int, double> >::const_iterator iter = tracker.shortBarrelsList().begin();
-                    while (iter != tracker.shortBarrelsList().end()) {
+                    std::list<std::pair<int, double> >::const_iterator guard = tracker.shortBarrelsList().end();
+                    while (iter != guard) {
                         if (blueprint.getFeederIndex() == tracker.realIndexLayer(iter->first)) {
                             short_layer = true;
                             break;
                         }
                         else iter++;
                     }
+                    // feeder index of short layer must be adjusted by 1
                     if (short_layer) ring.setFeederIndex(ring.getFeederIndex() - 1);
                 }
+                // feeder is another service
                 else if (ring.getFeederType() == InactiveElement::barrel) {
                     ring.setFeederIndex(is.getBarrelServices().size() - 1);
                 }
+                // neighbour is barrel service
                 if (blueprint.getNeighbourType() == InactiveElement::barrel) {
                     ring.setNeighbourIndex(is.getBarrelServices().size() - i + blueprint.getNeighbourIndex());
                 }
+                // neighbour is endcap service
                 else if (blueprint.getNeighbourType() == InactiveElement::endcap) {
                     ring.setNeighbourIndex(2 * tracker.totalDiscs() - blueprint.getNeighbourIndex() - 1);
                 }
+                // append the new volume to the list of barrel services
                 is.addBarrelServicePart(ring);
             }
+            // horizontal services => simple neighbourhood
             else {
                 InactiveTube tube = mirrorTube(blueprint);
+                // find out if feeder is short layer
                 bool short_layer = false;
                 std::list<std::pair<int, double> >::const_iterator iter = tracker.shortBarrelsList().begin();
                 while (iter != tracker.shortBarrelsList().end()) {
@@ -108,42 +121,57 @@ namespace insur {
                     }
                     else iter++;
                 }
+                // feeder index of short layer must be adjusted by 1
                 if (short_layer) tube.setFeederIndex(tube.getFeederIndex() - 1);
+                // append the new volume to the list of barrel services
                 is.addBarrelServicePart(tube);
             }
         }
         std::cout << "done." << std::endl << "Mirroring endcap services...";
+        // number of endcap service volumes that need to be reflected
         half = is.getEndcapServices().size();
+        // endcap service loop
         for (unsigned int i = 0; i < half; i++) {
             InactiveElement& blueprint = is.getEndcapServicePart(i);
+            // vertical services => should not occur in endcaps for now
             if (blueprint.isVertical()) {
                 InactiveRing ring = mirrorRing(blueprint);
                 if (blueprint.getFeederIndex() != -1) ring.setFeederIndex(2 * tracker.totalDiscs() - blueprint.getFeederIndex() - 1);
                 is.addEndcapServicePart(ring);
             }
+            // horizontal services => standard and only case for now
             else {
                 InactiveTube tube = mirrorTube(blueprint);
+                // calculate feeder index to match that of mirroring disc
                 if (blueprint.getFeederIndex() != -1) tube.setFeederIndex(2 * tracker.totalDiscs() - blueprint.getFeederIndex() - 1);
+                // calculate neighbour index to match that of a recently-reflected barrel service
                 if (blueprint.getNeighbourType() == InactiveElement::barrel) {
                     tube.setNeighbourIndex(is.getBarrelServices().size() / 2 + blueprint.getNeighbourIndex());
                 }
+                // calculate neighbour index to match that of a recently-reflected endcap service
                 else if (blueprint.getNeighbourType() == InactiveElement::endcap) {
                     tube.setNeighbourIndex(is.getEndcapServices().size() - i + blueprint.getNeighbourIndex());
                 }
+                // append the new volume to the list of endcap services
                 is.addEndcapServicePart(tube);
             }
         }
         std::cout << "done." << std::endl << "Mirroring supports...";
+        // number of support volumes that may need to be reflected
         half = is.getSupports().size();
+        // supports loop
         for (unsigned int i = 0; i < half; i ++) {
             InactiveElement& blueprint = is.getSupportPart(i);
+            // only supports that do not cross z=0 need to be reflected
             if (blueprint.getZOffset() > 0) {
                 if (blueprint.isVertical()) {
                     InactiveRing ring = mirrorRing(blueprint);
+                    // append the new volume to the list of supports
                     is.addSupportPart(ring);
                 }
                 else {
                     InactiveTube tube = mirrorTube(blueprint);
+                    // append the new volume to the list of supports
                     is.addSupportPart(tube);
                 }
             }
@@ -164,8 +192,9 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is) {
-        double zl, zo, ri, rw;
-        int k = 0, h;
+        double zl, zo, ri, rw; //zlength, zoffset, rinner, rwidth
+        int k = 0, h; // global layer counter, helper variable
+        // set the difference between number of barrels and number of endcaps
         if (tracker.nOfEndcaps() == 0) h = tracker.nOfBarrels() - 1;
         else h = tracker.nOfBarrels() - tracker.nOfEndcaps();
         // cut layers

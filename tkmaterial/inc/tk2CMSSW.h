@@ -15,6 +15,7 @@
 
 #include <tk2CMSSW_strings.h>
 #include <set>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <MaterialTable.h>
@@ -30,7 +31,7 @@ namespace insur {
         tk2CMSSW() {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
-    public: //TODO: declare protected after testing
+    protected:
         enum CompType { wt, vl, ap };
         enum ShapeType { bx, tb, tp };
         struct Rotation {
@@ -86,19 +87,35 @@ namespace insur {
             std::string parent;
             std::vector<std::string> parameters;
         };
+        struct RingInfo {
+            std::string name;
+            std::string childname;
+            bool fw;
+            int modules;
+            double rin;
+            double rout;
+            double rmid;
+            double mthk;
+            double phi;
+        };
+        struct SpecPar {
+            std::string name;
+            std::pair<std::string, std::string> parameter;
+            std::vector<std::string> partselectors;
+        };
         std::vector<Element> elements;
         std::vector<Composite> composites;
         std::vector<LogicalInfo> logic;
         std::vector<ShapeInfo> shapes;
         std::vector<PosInfo> positions;
         std::vector<AlgoInfo> algos;
+        std::vector<SpecPar> specs;
         void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
         void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream);
         void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
+        void specParSection(std::vector<SpecPar>& t, std::string label, std::ostringstream& stream);
         void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
-        std::string stringParam(std::string name, std::string value);
-        std::string numericParam(std::string name, std::string value);
         void elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream);
         void compositeMaterial(std::string name, double density, CompType method,
                                                std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
@@ -110,15 +127,21 @@ namespace insur {
         void rotation(std::string name, double phix, double phiy, double phiz,
                                                           double thetax, double thetay, double thetaz, std::ostringstream& stream);
         void translation(double x, double y, double z, std::ostringstream& stream);
+        std::string stringParam(std::string name, std::string value);
+        std::string numericParam(std::string name, std::string value);
+        std::string vectorParam(double x, double y, double z);
+        void specPar(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
     private:
-        void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e, std::vector<Composite>& c,
-                             std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a);
+        void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e,
+                             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                             std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecPar>& t);
         tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp);
         std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
-                                                                                                std::vector<ModuleCap>::iterator g, int ponrod);
+                                                                                                std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
         double findDeltaR(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
-        double findMinRhoUpperRod(std::vector<Module*>::iterator start,
-                                                        std::vector<Module*>::iterator stop, double middle, double max);
+        double findDeltaZ(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
+        int findSpecParIndex(std::vector<SpecPar>& specs, std::string label);
+        double fromRim(double r, double w);
         double compositeDensity(InactiveElement& ie);
         double compositeDensity(ModuleCap& mc);
         int Z(double x0, double A);

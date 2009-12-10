@@ -50,9 +50,9 @@ namespace insur {
      * @param tag The name of the material
      * @return The mass of the requested material
      */
-    double MaterialProperties::getLocalMass(std::string tag) {
+    double MaterialProperties::getLocalMass(std::string tag) { // throws exception
         int index = findLocalIndex(tag);
-        if (index < 0) throw std::runtime_error(err_local_mass + ": " + tag);
+        if (index < 0) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + tag);
         return getLocalMass(index);
     }
     
@@ -62,8 +62,8 @@ namespace insur {
      * @param index The internal index of the material
      * @return The mass of the requested material
      */
-    double MaterialProperties::getLocalMass(int index) {
-        if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error(err_local_mass);
+    double MaterialProperties::getLocalMass(int index) { // throws exception
+        if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error("MaterialProperties::getLocalMass(int): " + err_local_mass);
         return localmasses.at(index).second;
     }
     
@@ -85,9 +85,9 @@ namespace insur {
      * @param tag The name of the material
      * @return The mass of the requested material
      */
-    double MaterialProperties::getExitingMass(std::string tag) {
+    double MaterialProperties::getExitingMass(std::string tag) { // throws exception
         int index = findExitingIndex(tag);
-        if (index < 0) throw std::runtime_error(err_exiting_mass + ": " + tag);
+        if (index < 0) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + tag);
         return getExitingMass(index);
     }
     
@@ -97,8 +97,8 @@ namespace insur {
      * @param index The internal index of the material
      * @return The mass of the requested material
      */
-    double MaterialProperties::getExitingMass(int index) {
-        if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error(err_exiting_mass);
+    double MaterialProperties::getExitingMass(int index) { // throws exception
+        if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error("MaterialProperties::getExitingMass(int): " + err_exiting_mass);
         return exitingmasses.at(index).second;
     }
     
@@ -188,8 +188,6 @@ namespace insur {
         mp.clearMassVectors();
         for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i).first, localmasses.at(i).second);
         for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
-        if (localmasses.size() > 0) msl_set = true;
-        if (exitingmasses.size() > 0) mse_set = true;
     }
     
     /**
@@ -270,28 +268,30 @@ namespace insur {
         if (getSurface() > 0) {
             r_length = offset;
             if (msl_set) {
+                // local mass loop
                 for (unsigned int i = 0; i < localmasses.size(); i++) {
                     try {
                         r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
-                        std::cerr << re.what() << std::endl;
+                        std::cerr << "MaterialProperties::calculateRadiationLength(): " << re.what() << std::endl;
                     }
                     catch(std::exception& e) {
-                        std::cout << msg_mattab_except_local << e.what() << std::endl;
+                        std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_local << e.what() << std::endl;
                     }
                 }
             }
             if (mse_set) {
+                // exiting mass loop
                 for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                     try {
                         r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).rlength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
-                        std::cerr << re.what() << std::endl;
+                        std::cerr << "MaterialProperties::calculateRadiationLength(): " << re.what() << std::endl;
                     }
                     catch(std::exception& e) {
-                        std::cout << msg_mattab_except_exiting << e.what() << std::endl;
+                        std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
                     }
                 }
             }
@@ -308,28 +308,30 @@ namespace insur {
         if (getSurface() > 0) {
             i_length = offset;
             if (msl_set) {
+                // local mass loop
                 for (unsigned int i = 0; i < localmasses.size(); i++) {
                     try {
                         i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
-                        std::cerr << re.what() << std::endl;
+                        std::cerr << "MaterialProperties::calculateInteractionLength(): " << re.what() << std::endl;
                     }
                     catch(std::exception& e) {
-                        std::cout << msg_mattab_except_local << e.what() << std::endl;
+                        std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_local << e.what() << std::endl;
                     }
                 }
             }
             if (mse_set) {
+                // exiting mass loop
                 for (unsigned int i = 0; i < exitingmasses.size(); i++) {
                     try {
                         i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface() / 100.0);
                     }
                     catch(std::runtime_error& re) {
-                        std::cerr << re.what() << std::endl;
+                        std::cerr << "MaterialProperties::calculateInteractionLength(): " << re.what() << std::endl;
                     }
                     catch(std::exception& e) {
-                        std::cout << msg_mattab_except_exiting << e.what() << std::endl;
+                        std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
                     }
                 }
             }

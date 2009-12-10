@@ -16,7 +16,7 @@ namespace insur {
         std::vector<Layer*>::const_iterator lend = tracker->getBarrelLayers()->end();
         std::vector<Module*>::const_iterator miter;
         std::vector<Module*>::const_iterator mend;
-        // barrel layers
+        // create module caps for barrel layers
         while (liter != lend) {
             std::vector<ModuleCap> tmp;
             capsbarrelmods.push_back(tmp);
@@ -30,7 +30,7 @@ namespace insur {
             }
             liter++;
         }
-        // endcap layers
+        // create module caps for endcap layers
         liter = tracker->getEndcapLayers()->begin();
         lend = tracker->getEndcapLayers()->end();
         while (liter != lend) {
@@ -315,6 +315,12 @@ namespace insur {
     }
     
     // protected
+    /**
+     * This finds a sample module in the given layer that sits at the end of its rod.
+     * @param source The complete collection of barrel module caps
+     * @param layer The layer within that the query applies to
+     * @return The index of the sample module within the vector of module caps of the given layer
+     */
     int MaterialBudget::onBoundary(std::vector<std::vector<ModuleCap> >& source, int layer) { //throws exception
         int ring = 0, index = 0;
         if ((layer >= 0) && (layer < (int)source.size())) {

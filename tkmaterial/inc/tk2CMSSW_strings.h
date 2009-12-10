@@ -18,25 +18,26 @@ namespace insur {
      */
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
     static const std::string xml_defclose = "</DDDefinition>\n";
+    static const std::string xml_general_inter = "\">\n";
+    static const std::string xml_general_endline = "\"/>\n";
     static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_material_section_open = "<MaterialSection label=\"";
-    static const std::string xml_material_section_inter = "\">\n";
     static const std::string xml_material_section_close = "</MaterialSection>\n";
     static const std::string xml_logical_part_section_open = "<LogicalPartSection label=\"";
-    static const std::string xml_logical_part_section_inter = "\">\n";
     static const std::string xml_logical_part_section_close = "</LogicalPartSection>\n";
     static const std::string xml_solid_section_open = "<SolidSection label=\"";
-    static const std::string xml_solid_section_inter = "\">\n";
     static const std::string xml_solid_section_close = "</SolidSection>\n";
     static const std::string xml_pos_part_section_open = "<PosPartSection label=\"";
-    static const std::string xml_pos_part_section_inter = "\">\n";
     static const std::string xml_pos_part_section_close = "</PosPartSection>\n";
+    static const std::string xml_spec_part_section_open = "<SpecPartSection label=\"";
+    static const std::string xml_spec_part_section_close = "</SpecPartSection>\n";
     static const std::string xml_algorithm_open = "<Algorithm name=\"";
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
     static const std::string xml_algorithm_numeric = "<Numeric name=\"";
+    static const std::string xml_algorithm_vector_open = "<Vector name=\"Center\" type=\"numeric\" nEntries=\"3\">";
+    static const std::string xml_algorithm_vector_close = "</Vector>\n";
     static const std::string xml_algorithm_value = "\" value=\"";
-    static const std::string xml_algorithm_endline = "\"/>\n";
     static const std::string xml_algorithm_close = "</Algorithm>\n";
     static const std::string xml_elementary_material_open = "<ElementaryMaterial name=\"";
     static const std::string xml_elementary_material_first_inter = "\" symbol=\"";
@@ -47,7 +48,6 @@ namespace insur {
     static const std::string xml_composite_material_open = "<CompositeMaterial name=\"";
     static const std::string xml_composite_material_first_inter = "\" density=\"";
     static const std::string xml_composite_material_second_inter = "*g/cm3\" method=\"";
-    static const std::string xml_composite_material_third_inter = "\">\n";
     static const std::string xml_composite_material_close = "</CompositeMaterial>\n";
     static const std::string xml_material_fraction_open = "<MaterialFraction fraction=\"";
     static const std::string xml_material_fraction_inter = "\">\n<rMaterial name=\"";
@@ -76,7 +76,6 @@ namespace insur {
     static const std::string xml_pos_part_open = "<PosPart copyNumber=\"";
     static const std::string xml_pos_part_first_inter = "\">\n<rParent name=\"";
     static const std::string xml_pos_part_second_inter = "\"/>\n<rChild name=\"";
-    static const std::string xml_pos_part_third_inter = "\"/>\n";
     static const std::string xml_pos_part_close = "</PosPart>\n";
     static const std::string xml_rotation_open = "<Rotation name=\"";
     static const std::string xml_rotation_first_inter = "\" phiX=\"";
@@ -90,6 +89,11 @@ namespace insur {
     static const std::string xml_translation_first_inter = "*mm\" y=\"";
     static const std::string xml_translation_second_inter = "*mm\" z=\"";
     static const std::string xml_translation_close = "*mm\"/>\n";
+    static const std::string xml_spec_par_open = "<SpecPar name=\"";
+    static const std::string xml_spec_par_selector = "<PartSelector path=\"//";
+    static const std::string xml_spec_par_parameter_first = "<Parameter name=\"";
+    static const std::string xml_spec_par_parameter_second = "\" value=\"";
+    static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
     /**
      * Naming conventions and variable names
      */
@@ -113,6 +117,7 @@ namespace insur {
     static const std::string xml_fileident = "tracker";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
+    static const std::string xml_ecalgo = "track:DDTrackerAngular";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
     static const std::string xml_childparam = "ChildName";
@@ -125,5 +130,10 @@ namespace insur {
     static const std::string xml_number = "Number";
     static const std::string xml_startcopyno = "StartCopyNo";
     static const std::string xml_incrcopyno = "IncrCopyNo";
+    static const std::string xml_radius = "Radius";
+    static const std::string xml_nmods = "N";
+    static const std::string xml_apv_head = "TrackerAPVNumber";
+    static const std::string xml_apv_tail = "Par";
+    static const std::string xml_apv_number = "SiliconAPVNumber";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
