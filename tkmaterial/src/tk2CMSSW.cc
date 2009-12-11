@@ -14,24 +14,30 @@ namespace insur {
             else outpath = outpath + "/" + outsubdir;
         }
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
-        // analyse tracker system and build up collection of elements, composites, hierarchy, shapes and position
+        // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, position and topology
         analyse(mt, mb, elements, composites, logic, shapes, positions, algos, specs);
-        // translate collected information to XML and write to buffer
-        std::ostringstream buffer;
-        buffer << xml_preamble << xml_const_section;
-        materialSection(xml_trackerfile, elements, composites, buffer);
-        logicalPartSection(logic, xml_trackerfile, buffer);
-        solidSection(shapes, xml_trackerfile, buffer);
-        posPartSection(positions, algos, xml_trackerfile, buffer);
-        //specParSection(specs, xml_trackerfile, buffer);
-        buffer << xml_defclose;
+        // translate collected information to XML and write to buffers
+        std::ostringstream gbuffer, tbuffer;
+        gbuffer << xml_preamble << xml_const_section;
+        //TODO: tbuffer preamble
+        materialSection(xml_trackerfile, elements, composites, gbuffer);
+        logicalPartSection(logic, xml_trackerfile, gbuffer);
+        solidSection(shapes, xml_trackerfile, gbuffer);
+        posPartSection(positions, algos, xml_trackerfile, gbuffer);
+        //specParSection(specs, xml_trackerfile, tbuffer);
+        gbuffer << xml_defclose;
+        //TODO: tbuffer defclose
         // write contents of buffer to top-level file
         bfs::remove_all(outpath.c_str());
         bfs::create_directory(outpath);
-        std::ofstream outstream((outpath + xml_trackerfile).c_str());
-        outstream << buffer.str() << std::endl;
-        outstream.close();
+        std::ofstream goutstream((outpath + xml_trackerfile).c_str());
+        goutstream << gbuffer.str() << std::endl;
+        goutstream.close();
         std::cout << "CMSSW XML output has been written to " << outpath << xml_trackerfile << std::endl;
+        //std::ofstream toutstream((outpath + xml_topology).c_str());
+        //toutstream << tbuffer.str() << std::endl;
+        //toutstream.close();
+        //std::cout << "CMSSW topology output has been written to " << outpath << xml_topology << std::endl;
     }
     
     // protected
@@ -59,6 +65,8 @@ namespace insur {
                 case tp : trapezoid(iter->name_tag, iter->dx, iter->dxx, iter->dy, iter->dz, stream);
                 break;
                 case tb : tubs(iter->name_tag, iter->rmin, iter->rmax, iter->dz, stream);
+                break;
+                case sl : shapeless(iter->name_tag, stream);
                 break;
                 default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
                 box(iter->name_tag, iter->dx, iter->dy, iter->dz, stream);
@@ -142,6 +150,10 @@ namespace insur {
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
     }
     
+    void tk2CMSSW::shapeless(std::string name, std::ostringstream& stream) {
+        stream << xml_shapeless_open << name << xml_general_endline;
+    }
+    
     void tk2CMSSW::posPart(std::string parent, std::string child, Rotation& rot, Translation& trans, int copy, std::ostringstream& stream) {
         stream << xml_pos_part_open << copy << xml_pos_part_first_inter << parent;
         stream << xml_pos_part_second_inter << child << xml_general_endline;
@@ -194,6 +206,8 @@ namespace insur {
     void tk2CMSSW::analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
             std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecPar>& t) {
+        //TODO: break this up into analyseElements(), analyseLayers(), analyseDiscs(), analyseBarrelServices(),
+        //                                         analyseEndcapServices(), analyseSupports()
         Tracker& tr = mb.getTracker();
         InactiveSurfaces& is = mb.getInactiveSurfaces();
         std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
@@ -236,20 +250,39 @@ namespace insur {
         shape.rmin = inner_radius;
         shape.rmax = outer_radius + volume_width;
         s.push_back(shape);
-        logic.name_tag = xml_tracker;
-        logic.shape_tag = xml_fileident + ":" + xml_tracker;
+        logic.name_tag = shape.name_tag;
+        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
         logic.material_tag = xml_material_air;
         l.push_back(logic);
+        // define top-level barrel volume container (shapeless volume)
+        shape.type = sl;
+        shape.name_tag = xml_tob;
+        s.push_back(shape);
+        logic.name_tag = shape.name_tag;
+        logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+        l.push_back(logic);
+        pos.parent_tag = xml_fileident + ":" + xml_tracker;
+        pos.child_tag = logic.shape_tag;
+        p.push_back(pos);
+        // define top-level endcap volume containers (shapeless volumes)
+        /**shape.name_tag = xml_tidf;
+         * s.push_back(shape);
+         * logic.name_tag = shape.name_tag;
+         * logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+         * l.push_back(logic);
+         * pos.parent_tag = xml_fileident + ":" + xml_tracker;
+         * pos.child_tag = logic.shape_tag;
+         * p.push_back(pos);
+         * shape.name_tag = xml_tidb;
+         * s.push_back(shape);
+         * logic.name_tag = shape.name_tag;
+         * logic.shape_tag = xml_fileident + ":" + logic.name_tag;
+         * l.push_back(logic);
+         * pos.parent_tag = xml_fileident + ":" + xml_tracker;
+         * pos.child_tag = logic.shape_tag;
+         * p.push_back(pos);*/
         // translate entries in mt to elementary materials
-        for (unsigned int i = 0; i < mt.rowCount(); i++) {
-            Element elem;
-            MaterialRow& r = mt.getMaterial(i);
-            elem.tag = r.tag;
-            elem.density = r.density;
-            elem.atomic_weight = pow((r.ilength / 35.), 3); // magic!
-            elem.atomic_number = Z(r.rlength, elem.atomic_weight);
-            e.push_back(elem);
-        }
+        analyseElements(mt, e);
         // b_mod: one composite for every module position on rod
         // s and l: one entry for every module position on rod (box), one for every layer (tube), rods TBD
         // p: one entry for every layer (two for short layers), two modules, one wafer and active for each ring on rod
@@ -320,7 +353,7 @@ namespace insur {
                         else {
                             pos.parent_tag = xml_fileident + ":" + rname.str();
                             partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
-                            if (iiter->getModule().getMaxZ() > 0) {
+                            if (iiter->getModule().getMeanPoint().Z() > 0) {
                                 pos.trans.dz = iiter->getModule().getMaxZ() - shape.dz;
                                 p.push_back(pos);
                                 if (partner != iguard) {
@@ -428,9 +461,9 @@ namespace insur {
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = xml_fileident + ":" + logic.name_tag;
-                logic.material_tag = xml_material_air;
                 l.push_back(logic);
-                pos.parent_tag = xml_fileident + ":" + xml_tracker;
+                pos.parent_tag = xml_fileident + ":" + xml_tob;
+                //pos.parent_tag = xml_fileident + ":" + xml_tracker;
                 pos.child_tag = logic.shape_tag;
                 if (is_short) pos.trans.dz = zmin + (zmax - zmin) / 2.0;
                 p.push_back(pos);
@@ -636,11 +669,52 @@ namespace insur {
          * p.push_back(pos);
          * layer++;
          * }*/
-        // all tubes from now on, only translations in z
-        // b_ser, e_ser: one composite for every service volume on the z+ side
+        // barrel services
+        analyseBarrelServices(is, c, l, s, p, t);
+        // endcap services
+        analyseEndcapServices(is, c, l, s, p, t);
+        // supports
+        analyseSupports(is, c, l, s, p, t);
+    }
+    
+    void tk2CMSSW::analyseElements(MaterialTable&mattab, std::vector<Element>& elems) {
+        for (unsigned int i = 0; i < mattab.rowCount(); i++) {
+            Element e;
+            MaterialRow& r = mattab.getMaterial(i);
+            e.tag = r.tag;
+            e.density = r.density;
+            e.atomic_weight = pow((r.ilength / 35.), 3); // magic!
+            e.atomic_number = Z(r.rlength, e.atomic_weight);
+            elems.push_back(e);
+        }
+    }
+    
+    //TODO: implement analyseLayers(), analyseEndcaps()
+    
+    void tk2CMSSW::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecPar>& t) {
+        // container inits
+        ShapeInfo shape;
+        LogicalInfo logic;
+        PosInfo pos;
+        shape.type = tb;
+        shape.dx = 0.0;
+        shape.dxx = 0.0;
+        shape.dy = 0.0;
+        pos.copy = 1;
+        pos.trans.dx = 0.0;
+        pos.trans.dy = 0.0;
+        pos.rot.name = "";
+        pos.rot.phix = 0.0;
+        pos.rot.phiy = 0.0;
+        pos.rot.phiz = 0.0;
+        pos.rot.thetax = 0.0;
+        pos.rot.thetay = 0.0;
+        pos.rot.thetaz = 0.0;
+        // b_ser: one composite for every service volume on the z+ side
         // s, l and p: one entry per service volume
+        std::vector<InactiveElement>::iterator iter, guard;
         std::vector<InactiveElement>& bs = is.getBarrelServices();
-        std::vector<InactiveElement>& es = is.getEndcapServices();
         guard = bs.end();
         for (iter = bs.begin(); iter != guard; iter++) {
             std::ostringstream matname, shapename;
@@ -661,30 +735,79 @@ namespace insur {
             pos.trans.dz = iter->getZOffset() + shape.dz;
             p.push_back(pos);
         }
-        /*guard = es.end();
-         * for (iter = es.begin(); iter != guard; iter++) {
-         * std::ostringstream matname, shapename;
-         * matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-         * shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-         * if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-         * shape.name_tag = shapename.str();
-         * shape.dz = iter->getZLength() / 2.0;
-         * shape.rmin = iter->getInnerRadius();
-         * shape.rmax = shape.rmin + iter->getRWidth();
-         * s.push_back(shape);
-         * logic.name_tag = shapename.str();
-         * logic.shape_tag = xml_fileident + ":" + shapename.str();
-         * logic.material_tag = xml_fileident + ":" + matname.str();
-         * l.push_back(logic);
-         * pos.parent_tag = xml_fileident + ":" + xml_tracker;
-         * pos.child_tag = logic.shape_tag;
-         * pos.trans.dz = iter->getZOffset() + shape.dz;
-         * p.push_back(pos);
-         * }*/
+    }
+    
+    void tk2CMSSW::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecPar>& t) {
+        // container inits
+        ShapeInfo shape;
+        LogicalInfo logic;
+        PosInfo pos;
+        shape.type = tb;
+        shape.dx = 0.0;
+        shape.dxx = 0.0;
+        shape.dy = 0.0;
+        pos.copy = 1;
+        pos.trans.dx = 0.0;
+        pos.trans.dy = 0.0;
+        pos.rot.name = "";
+        pos.rot.phix = 0.0;
+        pos.rot.phiy = 0.0;
+        pos.rot.phiz = 0.0;
+        pos.rot.thetax = 0.0;
+        pos.rot.thetay = 0.0;
+        pos.rot.thetaz = 0.0;
+        // e_ser: one composite for every service volume on the z+ side
+        // s, l and p: one entry per service volume
+        std::vector<InactiveElement>::iterator iter, guard;
+        std::vector<InactiveElement>& es = is.getEndcapServices();
+        guard = es.end();
+        for (iter = es.begin(); iter != guard; iter++) {
+            std::ostringstream matname, shapename;
+            matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+            shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+            if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+            shape.name_tag = shapename.str();
+            shape.dz = iter->getZLength() / 2.0;
+            shape.rmin = iter->getInnerRadius();
+            shape.rmax = shape.rmin + iter->getRWidth();
+            s.push_back(shape);
+            logic.name_tag = shapename.str();
+            logic.shape_tag = xml_fileident + ":" + shapename.str();
+            logic.material_tag = xml_fileident + ":" + matname.str();
+            l.push_back(logic);
+            pos.parent_tag = xml_fileident + ":" + xml_tracker;
+            pos.child_tag = logic.shape_tag;
+            pos.trans.dz = iter->getZOffset() + shape.dz;
+            p.push_back(pos);
+        }
+    }
+    
+    void tk2CMSSW::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
+            std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecPar>& t) {
+        // container inits
+        ShapeInfo shape;
+        LogicalInfo logic;
+        PosInfo pos;
+        shape.type = tb;
+        shape.dx = 0.0;
+        shape.dxx = 0.0;
+        shape.dy = 0.0;
+        pos.copy = 1;
+        pos.trans.dx = 0.0;
+        pos.trans.dy = 0.0;
+        pos.rot.name = "";
+        pos.rot.phix = 0.0;
+        pos.rot.phiy = 0.0;
+        pos.rot.phiz = 0.0;
+        pos.rot.thetax = 0.0;
+        pos.rot.thetay = 0.0;
+        pos.rot.thetaz = 0.0;
         // b_sup, e_sup, o_sup, t_sup, u_sup: one composite per category
         // l, s and p: one entry per support part
         std::set<MaterialProperties::Category> found;
         std::set<MaterialProperties::Category>::iterator fres;
+        std::vector<InactiveElement>::iterator iter, guard;
         std::vector<InactiveElement>& sp = is.getSupports();
         guard = sp.end();
         for (iter = sp.begin(); iter != guard; iter++) {
@@ -752,13 +875,13 @@ namespace insur {
         std::vector<ModuleCap>::iterator res = i;
         if (i != g) {
             bool plus = false;
-            if (!find_first) plus = i->getModule().getMaxZ() > 0;
+            if (!find_first) plus = i->getModule().getMeanPoint().Z() > 0;
             while (res != g) {
                 if (res->getModule().getRing() == ponrod) {
                     if (find_first) break;
                     else {
-                        if((plus && (res->getModule().getMaxZ() < 0))
-                                || (!plus && (res->getModule().getMaxZ() > 0))) break;
+                        if((plus && (res->getModule().getMeanPoint().Z() < 0))
+                                || (!plus && (res->getModule().getMeanPoint().Z() > 0))) break;
                     }
                 }
                 res++;

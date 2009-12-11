@@ -33,7 +33,7 @@ namespace insur {
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
     protected:
         enum CompType { wt, vl, ap };
-        enum ShapeType { bx, tb, tp };
+        enum ShapeType { bx, tb, tp, sl };
         struct Rotation {
             std::string name;
             double phix;
@@ -123,6 +123,7 @@ namespace insur {
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
         void trapezoid(std::string name, double dx, double dxx, double dy, double dz, std::ostringstream& stream);
         void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
+        void shapeless(std::string name, std::ostringstream& stream);
         void posPart(std::string parent, std::string child, Rotation& rot, Translation& trans, int copy, std::ostringstream& stream);
         void rotation(std::string name, double phix, double phiy, double phiz,
                                                           double thetax, double thetay, double thetaz, std::ostringstream& stream);
@@ -135,6 +136,14 @@ namespace insur {
         void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e,
                              std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                              std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecPar>& t);
+        void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
+        //TODO: define analyseLayers(), analyseDiscs()
+        void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                                                    std::vector<PosInfo>& p, std::vector<SpecPar>& t);
+        void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                                                      std::vector<PosInfo>& p, std::vector<SpecPar>& t);
+        void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                                            std::vector<PosInfo>& p, std::vector<SpecPar>& t);
         tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp);
         std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                                                                 std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);

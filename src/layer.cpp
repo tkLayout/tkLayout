@@ -865,16 +865,26 @@ int BarrelLayer::cutOverEta(double etaCut) {
     double zmax = Layer::getMaxZ();
     double zmin = getMinZ();
     
-    bool is_short = (zmax < 0) || (zmin > 0);
-    
-    for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); ) {
+    int minRingDelete=0;
+    bool firstCutFound=false;
+    for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
         theta=(*modIt)->getMeanTheta();
         eta = -1*log(tan(theta/2.));
         if (fabs(eta)>etaCut) {
-            // Bookkeeping
-            if ((is_short) || ((*modIt)->getMaxZ() > 0)) {
-                if ((*modIt)->getRing() < nModsOnString_) nModsOnString_ = (*modIt)->getRing();
+            if (!firstCutFound) {
+                minRingDelete=(*modIt)->getRing();
+                firstCutFound=true;
+            } else {
+                if ((*modIt)->getRing() < minRingDelete) minRingDelete = (*modIt)->getRing();
             }
+        }
+    }
+    
+    if (firstCutFound) {
+        // Bookkeeping
+        nModsOnString_ = minRingDelete -1;
+    for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); ) {
+        if ((*modIt)->getRing()>=minRingDelete) {
             // Erase the useless module!
             delete (*modIt);
             moduleSet_.erase(modIt);
@@ -883,7 +893,7 @@ int BarrelLayer::cutOverEta(double etaCut) {
             modIt++;
         }
     }
-    
+    }
     return nCut;
 }
 
@@ -1502,6 +1512,8 @@ int EndcapLayer::cutOverEta(double etaCut) {
         theta=(*modIt)->getMeanTheta();
         eta = -1*log(tan(theta/2.));
         if (fabs(eta)>etaCut) {
+            // Bookkeeping
+            decreaseModCount((*modIt)->getRing() - 1);
             // Erase the useless module!
             delete (*modIt);
             moduleSet_.erase(modIt);
