@@ -18,6 +18,7 @@
 #include "TText.h"
 #include "TFrame.h"
 #include "TLegend.h"
+#include "TStyle.h"
 
 // Stuff to create directories
 #include <sys/stat.h>
@@ -771,17 +772,15 @@ ModuleVector Tracker::trackHit(const XYZVector& origin, const XYZVector& directi
     ModuleVector::iterator modIt;
     double distance;
     
-    // Standard hit-finding method. Non optimized for many-modules
-    // Remove the commented lines to get the smart hit-finding system
     for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
-        //    if ((*modIt)->couldHit(direction.Eta(), direction.Phi())) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-        distance=(*modIt)->trackCross(origin, direction);
-        if (distance>0) {
-            result.push_back(*modIt);
+        if ((*modIt)->couldHit(direction.Eta(), direction.Phi())) {
+          distance=(*modIt)->trackCross(origin, direction);
+          if (distance>0) {
+              result.push_back(*modIt);
+          }
         }
-        //}
     }
     
     return result;
@@ -821,6 +820,19 @@ int Tracker::createResetCounters(std::map <std::string, int> &modTypes) {
     }
     
     return(typeCounter);
+}
+
+// Shoots directions with random (flat) phi, random (flat) pseudorapidity
+// gives also the direction's eta
+std::pair <XYZVector, double > Tracker::shootFixedDirection(double phi, double eta) {
+    std::pair <XYZVector, double> result;
+    
+    double theta=2*atan(exp(-1*eta));
+    
+    // Direction
+    result.first  = XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
+    result.second = eta;
+    return result;
 }
 
 // Shoots directions with random (flat) phi, random (flat) pseudorapidity
@@ -905,18 +917,18 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
             maxEta*1.2,
             1000,
             0., 10.);
-    
-    
+
     LayerVector::iterator layIt;
     ModuleVector* moduleV;
     ModuleVector properModules;
     ModuleVector::iterator modIt;
+    ModuleVector allModules;
     
     // Build the proper list of modules
     for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
         moduleV = (*layIt)->getModuleVector();
         for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
-            // (*modIt)->computeBoundaries(zError_); // only for smart hit-finding method
+            (*modIt)->computeBoundaries(zError_); // only for smart hit-finding method
             if (section==Layer::NoSection) {
                 properModules.push_back(*modIt);
             } else {
@@ -924,6 +936,7 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
                     properModules.push_back(*modIt);
                 }
             }
+            allModules.push_back(*modIt);
         }
     }
     
@@ -940,15 +953,13 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     clock_t starttime = clock();
     std::cout << "Shooting tracks: ";
     int nTrackHits; // mersi mod
-    for (int i=0; i<nTracks; i++) {
+    
+    if (section==Layer::YZSection) {
+      for (int i=0; i<nTracks; i++) {
         nTrackHits=0; // mersi mod
         if (i%100==0) std::cout << "." ;
-        if (section==Layer::YZSection) {
-            aLine=shootDirectionFixedPhi(randomBase, randomSpan);
-        } else {
-            aLine=shootDirection(randomBase, randomSpan);
-        }
-        
+        aLine=shootDirectionFixedPhi(randomBase, randomSpan);
+	
         hitMods = trackHit( XYZVector(0, 0, myDice_.Gaus(0, zError_)), aLine.first, &properModules);
         resetTypeCounter(modTypes);
         for (ModuleVector::iterator it = hitMods.begin();
@@ -961,16 +972,63 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
             etaType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
         }
         total2D->Fill(fabs(aLine.second), hitMods.size()); // mersi mod : was using hitMods.size() in place of nTrackHits
+      }
+    } else {
+      int nTracksPerSide = int(pow(nTracks, 0.5));
+      int nBlocks = int(nTracksPerSide/2.);
+      nTracks = nTracksPerSide*nTracksPerSide;
+      TH2D* mapPhiEta = new TH2D( "mapPhiEta", "Number of hits;phi;eta", nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
+      TH2I* mapPhiEtaCount = new TH2I( "mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
+    
+
+      for (int i=0; i<nTracksPerSide; i++) {
+	for (int j=0; j<nTracksPerSide; j++) {
+	  nTrackHits=0; // mersi mod
+	  //aLine = shootFixedDirection(2*M_PI*(i+.5)/double(nTracksPerSide), randomBase + (randomSpan*j)/double(nTracksPerSide) );
+	  aLine = shootDirection(randomBase, randomSpan);
+	    
+	  hitMods = trackHit( XYZVector(0, 0, myDice_.Gaus(0, zError_)), aLine.first, &properModules);
+	  resetTypeCounter(modTypes);
+	  for (ModuleVector::iterator it = hitMods.begin(); it!=hitMods.end(); it++) {
+            modTypes[(*it)->getType()]++; // mersi mod
+            nTrackHits++; // mersi mod
+	  }
+
+	  for (std::map <std::string, int>::iterator it = modTypes.begin(); it!=modTypes.end(); it++) {
+            etaType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
+	  }
+	  total2D->Fill(fabs(aLine.second), hitMods.size()); // mersi mod : was using hitMods.size() in place of nTrackHits
+	  mapPhiEta->Fill(aLine.first.Phi(), aLine.second, hitMods.size()); // phi, eta 2d plot
+	  mapPhiEtaCount->Fill(aLine.first.Phi(), aLine.second); // how many traks where shot
+	}
+      }
+      double hitCount;
+      int trackCount;
+      for (int nx=0; nx<=mapPhiEtaCount->GetNbinsX()+1; nx++) {
+	for (int ny=0; ny<=mapPhiEtaCount->GetNbinsY()+1; ny++) {
+	  trackCount=mapPhiEtaCount->GetBinContent(nx, ny);
+	  if (trackCount>0) {
+	    hitCount=mapPhiEta->GetBinContent(nx, ny);
+	    mapPhiEta->SetBinContent(nx, ny, hitCount/trackCount);
+	  }
+	}
+      }
+      delete mapPhiEtaCount;
+      mapPhiEta_=mapPhiEta;
+      savingV_.push_back(mapPhiEta);
     }
+      
+
     std::cout << " done!" << std::endl;
     t = time(NULL);
     localt = localtime(&t);
     clock_t endtime = clock();
     std::cout << asctime(localt) << std::endl;
-    std::cout << "Elapsed time: " << diffclock(endtime, starttime) << std::endl;
-    
-    
-    // Create the profile plots and schedule them for archival
+    std::cout << "Elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+    std::cout << asctime(localt) << std::endl;
+   
     TProfile *myProf;
     etaProfileCanvas_ = new TCanvas("etaProfileCanvas", "Eta Profiles", 800, 800);
     etaProfileCanvas_->cd();
@@ -1467,6 +1525,7 @@ void Tracker::writeSummary(bool configFiles,
         myfile << "<h3>Plots</h3>" << std::endl;
         myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
         myfile << "<img src=\"summaryPlots_nhitplot.png\" />" << std::endl;
+        myfile << "<img src=\"summaryPlots_hitmap.png\" />" << std::endl;
         myfile << "<img src=\"summaryPlotsYZ.png\" />" << std::endl;
         // TODO: make an object that handles this properly:
         myfile << "<h5>Bandwidth useage estimate:</h5>" << std::endl;
@@ -2326,7 +2385,26 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
     summaryCanvas->SaveAs(svgFileName.c_str());
     YZCanvas->SaveAs(YZpngFileName.c_str());
     YZCanvas->SaveAs(YZsvgFileName.c_str());
-    
+   
+
+    if (mapPhiEta_) {
+      int prevStat = gStyle->GetOptStat();
+      gStyle->SetOptStat(0);
+      TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 800, 800);
+      hitMapCanvas->cd();
+      gStyle->SetPalette(1);
+      pngFileName = fileName+"_hitmap.png";                                                                                                                                  
+      svgFileName = fileName+"_hitmap.svg";
+      hitMapCanvas->SetFillColor(COLOR_PLOT_BACKGROUND);
+      hitMapCanvas->SetBorderMode(0);
+      hitMapCanvas->SetBorderSize(0);
+      mapPhiEta_->Draw("colz");
+      hitMapCanvas->Modified();
+      hitMapCanvas->SaveAs(pngFileName.c_str());
+      hitMapCanvas->SaveAs(svgFileName.c_str());
+      gStyle->SetOptStat(prevStat);
+    }
+ 
     if (etaProfileCanvas_) {
         summaryCanvas = new TCanvas("etaprofilebig", "big etaprofile plot", 1000, 700);
         summaryCanvas->cd();

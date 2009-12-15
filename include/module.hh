@@ -202,6 +202,7 @@ class Module {
 	 Barrel, Endcap,     // module subdetector type
 	 Rectangular, Wedge, // sensor shapes
 	 Undefined };
+  static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
 };
 

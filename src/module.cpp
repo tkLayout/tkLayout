@@ -862,6 +862,8 @@ double EndcapModule::getHighPitch() {
 void Module::computeBoundaries(double zError) {
     double minEta, maxEta;
     double minPhi, maxPhi;
+    double averagePhi, artificialRotation;
+    Module* fakeModule;
     double thisEta, thisPhi;
     uint i, j;
     double z;
@@ -869,7 +871,7 @@ void Module::computeBoundaries(double zError) {
     // Compute eta boundaries:
     minEta=corner_[0].Eta();
     maxEta=corner_[0].Eta();
-    for (z=-zError*5; z<=zError*5; z+=zError*5) {
+    for (z=-zError*BoundaryEtaSafetyMargin; z<=zError*BoundaryEtaSafetyMargin; z+=zError*BoundaryEtaSafetyMargin) {
         for (i=0; i<4; i++) {
             thisEta = (corner_[i]+XYZVector(0, 0, z)).Eta();
             if (thisEta>maxEta) maxEta=thisEta;
@@ -882,23 +884,36 @@ void Module::computeBoundaries(double zError) {
             if (thisEta>maxEta) maxEta=thisEta;
             if (thisEta<minEta) minEta=thisEta;
         }
+        if (zError*BoundaryEtaSafetyMargin==0) break;
     }
     
     // Compute Phi boundaries
-    minPhi=corner_[0].Phi();
-    maxPhi=corner_[0].Phi();
+    artificialRotation=0;
+    averagePhi=this->getMeanPoint().Phi();
+    if (averagePhi>M_PI/2.) artificialRotation=-1*M_PI/2.;
+    if (averagePhi<-1*M_PI/2.) artificialRotation=M_PI/2.;
+    fakeModule = new Module(*this);
+    fakeModule->rotatePhi(artificialRotation);
+
+    minPhi=fakeModule->getCorner(0).Phi();
+    maxPhi=fakeModule->getCorner(0).Phi();
     for (i=1; i<4; i++) {
-        thisPhi = corner_[i].Phi();
+        thisPhi = fakeModule->getCorner(i).Phi();
         if (thisPhi>maxPhi) maxPhi=thisPhi;
         if (thisPhi<minPhi) minPhi=thisPhi;
     }
     for (i=0; i<4; i++) {
         j=i+1; if (j==4) j=0;
-        XYZVector sideMiddle((corner_[i]+corner_[j])/2.);
+        XYZVector sideMiddle((fakeModule->getCorner(i)+fakeModule->getCorner(j))/2.);
         thisPhi = sideMiddle.Phi();
         if (thisPhi>maxPhi) maxPhi=thisPhi;
         if (thisPhi<minPhi) minPhi=thisPhi;
     }
+    delete fakeModule;
+    //fprintf(stderr, "AveragePhi: %.2f  artRot: %.2f  min/max: %.2f/%.2f", averagePhi, artificialRotation, minPhi, maxPhi); //debug
+    minPhi-=artificialRotation;
+    maxPhi-=artificialRotation;
+    //fprintf(stderr, "->  min/max: %.2f/%.2f\n", minPhi, maxPhi); //debug
     
     
     // Assign boundaries to the module's
@@ -909,14 +924,19 @@ void Module::computeBoundaries(double zError) {
     boundaryMaxPhi_=maxPhi;
     
     // Assign logical member variables
-    if ((maxPhi-minPhi)>M_PI) isAcrossPi_=true; else isAcrossPi_=false;
+    if (artificialRotation==0) {
+        isAcrossPi_=false;
+    } else {
+        isAcrossPi_=true;
+    }    
     computedBoundaries_ = true;
     
 }
 
 
 bool Module::couldHit(double eta, double phi) {
-    
+    bool withinPhi, withinPhiSub, withinPhiAdd;    
+
     if (!computedBoundaries_) {
         std::cerr << "ERROR: missing boundaries after computeBoundaries()" << std::endl;
         return true;
@@ -927,22 +947,12 @@ bool Module::couldHit(double eta, double phi) {
     
     // withinPhi represents whether the track's phi
     // is comprised within minimum and maximum phi of the module
-    bool withinPhi = ((phi>boundaryMinPhi_)&&(phi<boundaryMaxPhi_));
+    // Phi +- 2Pi is also to be checked
+    withinPhi = ((phi>boundaryMinPhi_)&&(phi<boundaryMaxPhi_));
+    withinPhiSub = ((phi-2.*M_PI>boundaryMinPhi_)&&(phi-2.*M_PI<boundaryMaxPhi_));
+    withinPhiAdd = ((phi+2.*M_PI>boundaryMinPhi_)&&(phi+2.*M_PI<boundaryMaxPhi_));
     
-    // Explanation:
-    // if the modules lies across the M_PI, then in order for the track to cross the module
-    // we need the track's phi to be greater than maximum phi (M_PI-f)
-    // AND less then minimum phi (-(M_PI-f))
-    
-    // Table of truth:
-    // withinPhi   isAcrossPi_    withinPhi XOR isAcrossPi_
-    // 0           0              0
-    // 0           1              1
-    // 1           0              1
-    // 1           1              0
-    
-    // Thus XOR (^) is our operator...
-    return ((withinPhi^isAcrossPi_));
+    return (withinPhi||withinPhiSub||withinPhiAdd);
     
 }
 

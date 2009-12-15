@@ -10,7 +10,7 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: TrackerGeom tkLayout testObj Gui 
+all: tkLayout testObj Gui 
 
 Gui:
 	cd gui && qmake tkgeomgui.pro && make && cd ..
@@ -37,4 +37,4 @@ testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp $(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
 clean:
-	-rm -f include/*~ *~ $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o TrackerGeom tkLayout tkGeometry.root testObj cmsTest
+	rm -f include/*~ *~ $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o TrackerGeom tkLayout tkGeometry.root testObj cmsTest

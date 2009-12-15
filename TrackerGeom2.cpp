@@ -97,7 +97,8 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
     myTracker->computeBandwidth();
 
     // Analysis
-    myTracker->analyze(2000, Layer::YZSection);
+    //myTracker->analyze(2000, Layer::YZSection);
+    myTracker->analyze(6000);
 
     // Summary and save
     myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));

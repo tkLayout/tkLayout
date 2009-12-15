@@ -88,11 +88,14 @@ private:
   TCanvas* geomLiteYZ_;
   TCanvas* geomLiteEC_;
   TCanvas* etaProfileCanvas_;
+  TCanvas* etaProfileCanvas2_;
   TCanvas* bandWidthCanvas_;
 
   TH1F* bandWidthDist_;
   TH1F* bandWidthDistSp_;
   TH1F* chanHitDist_;
+
+  TH2D* mapPhiEta_;
 
   std::vector<TObject* > savingV_;
 
@@ -124,6 +127,7 @@ private:
   void resetTypeCounter(std::map <std::string, int> &modTypes);
   int createResetCounters(std::map <std::string, int> &modTypes);
   std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
+  std::pair <XYZVector, double > shootFixedDirection(double phi, double eta);
   std::pair <XYZVector, double > shootDirectionFixedPhi(double minEta, double maxEta);
   
   // Formatted output
