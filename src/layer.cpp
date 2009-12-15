@@ -862,8 +862,8 @@ int BarrelLayer::cutOverEta(double etaCut) {
     double theta;
     double eta;
     
-    double zmax = Layer::getMaxZ();
-    double zmin = getMinZ();
+    //double zmax = Layer::getMaxZ();
+    //double zmin = getMinZ();
     
     int minRingDelete=0;
     bool firstCutFound=false;
