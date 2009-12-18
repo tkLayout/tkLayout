@@ -9,7 +9,7 @@
 #include <string>
 
 namespace insur {
-    /** 
+    /**
      * Numeric constants
      */
     static const int xml_prec = 3;
@@ -73,7 +73,12 @@ namespace insur {
     static const std::string xml_tubs_second_inter = "*mm\" rMax=\"";
     static const std::string xml_tubs_third_inter = "*mm\" dz=\"";
     static const std::string xml_tubs_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
-    static const std::string xml_shapeless_open = "<ShapelessSolid name=\"";
+    static const std::string xml_polycone_open = "<Polycone name=\"";
+    static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n";
+    static const std::string xml_polycone_close = "</Polycone>\n";
+    static const std::string xml_rzpoint_open = "<RZPoint r=\"";
+    static const std::string xml_rzpoint_inter = "*mm\" z=\"";
+    static const std::string xml_rzpoint_close = "*mm\"/>\n";
     static const std::string xml_pos_part_open = "<PosPart copyNumber=\"";
     static const std::string xml_pos_part_first_inter = "\">\n<rParent name=\"";
     static const std::string xml_pos_part_second_inter = "\"/>\n<rChild name=\"";
@@ -99,7 +104,8 @@ namespace insur {
      * Naming conventions and variable names
      */
     static const std::string xml_trackerfile = "tracker.xml";
-    static const std::string xml_topology = "trackerStructureTopology.xml";
+    static const std::string xml_topologyfile = "trackerStructureTopology.xml";
+    static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_waf = "wafer";
     static const std::string xml_base_serf = "service";

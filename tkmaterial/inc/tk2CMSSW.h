@@ -33,7 +33,7 @@ namespace insur {
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
     protected:
         enum CompType { wt, vl, ap };
-        enum ShapeType { bx, tb, tp, sl };
+        enum ShapeType { bx, tb, tp, pc };
         struct Rotation {
             std::string name;
             double phix;
@@ -74,6 +74,8 @@ namespace insur {
             double dz;
             double rmin;
             double rmax;
+            std::vector<std::pair<double, double> > rzup;
+            std::vector<std::pair<double, double> > rzdown;
         };
         struct PosInfo {
             std::string parent_tag;
@@ -123,7 +125,8 @@ namespace insur {
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
         void trapezoid(std::string name, double dx, double dxx, double dy, double dz, std::ostringstream& stream);
         void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
-        void shapeless(std::string name, std::ostringstream& stream);
+        void polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
+                               std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream);
         void posPart(std::string parent, std::string child, Rotation& rot, Translation& trans, int copy, std::ostringstream& stream);
         void rotation(std::string name, double phix, double phiy, double phiz,
                                                           double thetax, double thetay, double thetaz, std::ostringstream& stream);
@@ -137,7 +140,18 @@ namespace insur {
                              std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                              std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecPar>& t);
         void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
-        //TODO: define analyseLayers(), analyseDiscs()
+        void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+                                                                           std::vector<std::pair<double, double> >& down);
+        void analyseForwardEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+                                                                                           std::vector<std::pair<double, double> >& down);
+        void analyseBackwardEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+                                                                                              std::vector<std::pair<double, double> >& down);
+        void analyseEndcapContainer(std::vector<Module*>::iterator i, std::vector<Module*>::iterator g,
+                                                         std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down);
+        void analyseLayers(std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
+                                        std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                                        std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecPar>& t);
+        //TODO: analyseDiscs()
         void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                                     std::vector<PosInfo>& p, std::vector<SpecPar>& t);
         void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
