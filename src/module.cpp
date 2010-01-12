@@ -43,6 +43,8 @@ void Module::setDefaultParameters() {
     nHits_              = defaultNHits_;
     thickness_          = defaultThickness_;
     area_               = defaultArea_;
+    stereodist_         = defaultStereoDist_;
+    stereorot_          = defaultStereoRot_;
     id_                 = "NoId";
     tag_                = "";
     type_               = "NoType";

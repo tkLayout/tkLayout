@@ -29,8 +29,8 @@ namespace insur {
     static const std::string xml_solid_section_close = "</SolidSection>\n";
     static const std::string xml_pos_part_section_open = "<PosPartSection label=\"";
     static const std::string xml_pos_part_section_close = "</PosPartSection>\n";
-    static const std::string xml_spec_part_section_open = "<SpecPartSection label=\"";
-    static const std::string xml_spec_part_section_close = "</SpecPartSection>\n";
+    static const std::string xml_spec_part_section_open = "<SpecParSection label=\"";
+    static const std::string xml_spec_part_section_close = "</SpecParSection>\n";
     static const std::string xml_algorithm_open = "<Algorithm name=\"";
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
@@ -125,6 +125,7 @@ namespace insur {
     static const std::string xml_fileident = "tracker";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
+    static const std::string xml_tid = "TID";
     static const std::string xml_tidf = "TIDF";
     static const std::string xml_tidb = "TIDB";
     static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
@@ -143,8 +144,24 @@ namespace insur {
     static const std::string xml_incrcopyno = "IncrCopyNo";
     static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
+    static const std::string xml_tkddd_structure = "TkDDDStructure";
+    static const std::string xml_full_tracker = "FullTracker";
+    static const std::string xml_det_layer = "TOBLayer";
+    static const std::string xml_det_rod = "TOBRod";
+    static const std::string xml_det_tobdet = "TOBDet";
+    static const std::string xml_tob_subdet = "TOBSubDet";
+    static const std::string xml_subdet_layer = "TOBSubDetLayer";
+    static const std::string xml_subdet_rod = "TOBSubDetRod";
+    static const std::string xml_subdet_tobdet = "TOBSubDetDet";
+    static const std::string xml_det_wheel = "TIDWheel";
+    static const std::string xml_det_ring = "TIDRing";
+    static const std::string xml_det_tiddet = "TIDDet";
+    static const std::string xml_tid_subdet = "TIDSubDet";
+    static const std::string xml_subdet_wheel = "TIDSubDetWheel";
+    static const std::string xml_subdet_ring = "TIDSubDetRing";
+    static const std::string xml_subdet_tiddet = "TIDSubDetDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
-    static const std::string xml_apv_tail = "Par";
     static const std::string xml_apv_number = "SiliconAPVNumber";
+    static const std::string xml_par_tail = "Par";
 }
 #endif /* _TK2CMSSW_STRINGS_H */

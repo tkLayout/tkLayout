@@ -272,10 +272,14 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
 		      std::map<int, int> nFaces,
 		      std::map<int, int> nSegments,
 		      std::map<int, std::string> myType, 
+                      std::map<int, double> dsDistance,
+                      std::map<int, double> dsRotation,
 		      std::map<std::pair<int, int>, int> nStripsAcrossSecond,
 		      std::map<std::pair<int, int>, int> nFacesSecond,
 		      std::map<std::pair<int, int>, int> nSegmentsSecond,
 		      std::map<std::pair<int, int>, std::string> myTypeSecond,
+                      std::map<std::pair<int, int>, double> dsDistanceSecond,
+                      std::map<std::pair<int, int>, double> dsRotationSecond,
 		      std::map<std::pair<int, int>, bool> specialSecond);
 
 

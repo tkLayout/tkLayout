@@ -1950,7 +1950,7 @@ void Tracker::setModuleTypesDemo1() {
 
 
 // The real method used here
-// Paramter set here (example)
+// Parameter set here (example)
 //       sampleModule->setNStripAcross(512);
 //       sampleModule->setNSegments(1);
 //       sampleModule->setNFaces(2);
@@ -2135,10 +2135,14 @@ void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, int> nFaces,
         std::map<int, int> nSegments,
         std::map<int, std::string> myType,
+        std::map<int, double> dsDistance,
+        std::map<int, double> dsRotation,
         std::map<std::pair<int, int>, int> nStripsAcrossSecond,
         std::map<std::pair<int, int>, int> nFacesSecond,
         std::map<std::pair<int, int>, int> nSegmentsSecond,
         std::map<std::pair<int, int>, std::string> myTypeSecond,
+        std::map<std::pair<int, int>, double> dsDistanceSecond,
+        std::map<std::pair<int, int>, double> dsRotationSecond,
         std::map<std::pair<int, int>, bool> specialSecond) {
     
     LayerVector::iterator layIt;
@@ -2152,11 +2156,15 @@ void Tracker::setModuleTypes(std::string sectionName,
     std::map<int, bool> warningFaces;
     std::map<int, bool> warningSegments;
     std::map<int, bool> warningType;
+    std::map<int, bool> warningDistance;
+    std::map<int, bool> warningRotation;
     
     int aStripsAcross;
     int aFaces;
     int aSegments;
     std::string aType;
+    double aDistance;
+    double aRotation;
     
     std::pair<int, int> mySpecialIndex;
     
@@ -2205,6 +2213,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aFaces = nFaces[myIndex];
             aSegments = nSegments[myIndex];
             aType = myType[myIndex];
+            aDistance = dsDistance[myIndex];
+            aRotation = dsRotation[myIndex];
             
             if (specialSecond[mySpecialIndex]) {
                 if (nStripsAcrossSecond[mySpecialIndex]!=0) {
@@ -2218,6 +2228,12 @@ void Tracker::setModuleTypes(std::string sectionName,
                 }
                 if (myTypeSecond[mySpecialIndex]!="") {
                     aType = myTypeSecond[mySpecialIndex];
+                }
+                if (dsDistanceSecond[mySpecialIndex]!=0) {
+                    aDistance = dsDistanceSecond[mySpecialIndex];
+                }
+                if (dsRotationSecond[mySpecialIndex]!=0) {
+                    aRotation = dsRotationSecond[mySpecialIndex];
                 }
             }
             
@@ -2238,6 +2254,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setNFaces(aFaces);
             aModule->setNSegments(aSegments);
             aModule->setType(aType);
+            aModule->setStereoDistance(aDistance);
+            aModule->setStereoRotation(aRotation);
             aModule->setTag(myTag.str());
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
@@ -2266,6 +2284,16 @@ void Tracker::setModuleTypes(std::string sectionName,
                 std::cerr << "WARNING: undefined or void module type: \"" << myType[myIndex] << "\" "
                 << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
                 warningType[myIndex]=true;
+            }
+            if ((dsDistance[myIndex]<0)&&(!warningDistance[myIndex])) {
+                std::cerr << "WARNING: negative distance for stereo sensors: \"" << dsDistance[myIndex] << "\" "
+                << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+                warningDistance[myIndex]=true;
+            }
+            if ((dsRotation[myIndex]>2*M_PI)&&(!warningRotation[myIndex])) {
+                std::cerr << "WARNING: rotation for stereo sensors is greater than 2*PI: \"" << dsRotation[myIndex] << "\" "
+                << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
+                warningRotation[myIndex]=true;
             }
             
         }

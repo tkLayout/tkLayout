@@ -584,6 +584,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<int, int> nSides;
     map<int, int> nSegments;
     map<int, string> type;
+    map<int, double> dsDistance;
+    map<int, double> dsRotation;
     
     pair<int, int> specialIndex; // used to indicate ring,disk
     
@@ -591,6 +593,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<pair<int, int>, int> nSidesSecond;
     map<pair<int, int>, int> nSegmentsSecond;
     map<pair<int, int>, string> typeSecond;
+    map<pair<int, int>, double> dsDistanceSecond;
+    map<pair<int, int>, double> dsRotationSecond;
     map<pair<int, int>, bool> specialSecond;
     
     // Tracker should be already there
@@ -618,6 +622,10 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         nSegments[mainIndex]=atoi(parameterValue.c_str());
                     } else if (parameterName=="type") {
                         type[mainIndex]=parameterValue.c_str();
+                    } else if (parameterName == "dsDistance") {
+                        dsDistance[mainIndex]=atof(parameterValue.c_str());
+                    } else if (parameterName == "dsRotation") {
+                        dsRotation[mainIndex]=atof(parameterValue.c_str());
                     }
                     cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
                 } else { // Special assignment per disk/ring
@@ -649,6 +657,18 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                             specialSecond[specialIndex]=true;
                             isSpecial = true;
                         }
+                    } else if (parameterName=="dsDistance") {
+                        if (atoi(parameterValue.c_str())!=dsDistance[mainIndex]) {
+                            dsDistanceSecond[specialIndex]=atof(parameterValue.c_str());
+                            specialSecond[specialIndex]=true;
+                            isSpecial = true;
+                        }
+                    } else if (parameterName=="dsRotation") {
+                        if (atoi(parameterValue.c_str())!=dsRotation[mainIndex]) {
+                            dsRotationSecond[specialIndex]=atof(parameterValue.c_str());
+                            specialSecond[specialIndex]=true;
+                            isSpecial = true;
+                        }
                     }
                     if (!isSpecial) {
                         cerr << "WARNING: the special parameter "
@@ -662,11 +682,11 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
             }
         }
     }
-    
-    
+        
     myTracker_->setModuleTypes(myName,
-            nStripsAcross, nSides, nSegments, type,
-            nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond, specialSecond);
+            nStripsAcross, nSides, nSegments, type, dsDistance, dsRotation,
+            nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
+            dsDistanceSecond, dsRotationSecond, specialSecond);
     
     return true;
     

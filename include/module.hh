@@ -44,6 +44,8 @@ class Module {
   double thickness_;
   double area_;
   double stripArea_;
+  double stereodist_;
+  double stereorot_;
   double dphideta_;
   int nChannelsPerFace_;
   int nSegments_;
@@ -70,6 +72,8 @@ class Module {
   static const int     defaultNHits_ = 0;
   static const int     defaultHeight_ = 0;
   static const int     defaultArea_ = 0;
+  static const int     defaultStereoDist_ = 0;
+  static const int     defaultStereoRot_ = 0;
   static const int     defaultInSection_ = 0;
   static const int     defaultChannelsPerFace_ = 1;
   static const int     defaultSegments_ = 1;
@@ -133,6 +137,12 @@ class Module {
 
   void setType(const std::string newType) {type_=newType;}
   std::string getType() {return type_;}
+
+  void setStereoDistance(double sdist) { stereodist_=sdist; }
+  double getStereoDistance() { return stereodist_; };
+
+  void setStereoRotation(double srot) { stereorot_=srot; }
+  double getStereoRotation() { return stereorot_; };
 
   void setColor(const Color_t newColor) {color_ = newColor;}
   Color_t getColor() {return color_;}
