@@ -105,6 +105,10 @@ namespace insur {
             std::pair<std::string, std::string> parameter;
             std::vector<std::string> partselectors;
         };
+        struct Node {
+            std::string name;
+            std::vector<int> indices;
+        };
         std::vector<Element> elements;
         std::vector<Composite> composites;
         std::vector<LogicalInfo> logic;
@@ -112,6 +116,9 @@ namespace insur {
         std::vector<PosInfo> positions;
         std::vector<AlgoInfo> algos;
         std::vector<SpecParInfo> specs;
+        void prodcuts(std::vector<SpecParInfo>& t, std::ostringstream& stream);
+        void trackersens(std::vector<SpecParInfo>& t, std::ostringstream& stream);
+        void recomaterial(std::vector<SpecParInfo>& t, std::ostringstream& stream);
         void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
         void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream);
@@ -148,19 +155,19 @@ namespace insur {
                                                                                               std::vector<std::pair<double, double> >& down);
         void analyseEndcapContainer(std::vector<Module*>::iterator i, std::vector<Module*>::iterator g,
                                                          std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down);
-        void analyseLayers(std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
+        void analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
                                         std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                         std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
-        void analyseDiscs(std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
-                                        std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                                        std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
+        void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
+                                      std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                                      std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
         void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                                     std::vector<PosInfo>& p, std::vector<SpecParInfo>& t);
         void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                                       std::vector<PosInfo>& p, std::vector<SpecParInfo>& t);
         void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                             std::vector<PosInfo>& p, std::vector<SpecParInfo>& t);
-        tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp);
+        tk2CMSSW::Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
         std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                                                                 std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);
         double findDeltaR(std::vector<Module*>::iterator start, std::vector<Module*>::iterator stop, double middle);
@@ -168,8 +175,17 @@ namespace insur {
         int findSpecParIndex(std::vector<SpecParInfo>& specs, std::string label);
         double fromRim(double r, double w);
         double compositeDensity(InactiveElement& ie);
-        double compositeDensity(ModuleCap& mc);
+        double compositeDensity(ModuleCap& mc, bool nosensors = false);
+        double calculateSensorThickness(ModuleCap& mc, MaterialTable& mt);
         int Z(double x0, double A);
+        bool endcapsInTopology(std::vector<SpecParInfo>& specs);
+        std::vector<std::pair<std::string, std::vector<std::string> > >& buildPaths(std::vector<SpecParInfo>& specs,
+                                                                                                               std::vector<std::pair<std::string, std::vector<std::string> > >& blocks);
+        int findAlphaNumericPrefixSize(std::string s);
+        int findNodeNamed(std::vector<Node>& tree, std::string name);
+        int findEntry(std::vector<SpecParInfo>& specs, std::string name);
+        std::vector<std::pair<std::string, std::vector<std::string> > >::iterator findEntry(std::string name,
+                                                                                                                          std::vector<std::pair<std::string, std::vector<std::string> > >& data);
         void print();
     };
 }

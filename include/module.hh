@@ -42,6 +42,7 @@ class Module {
   // Shape-specific paramters
   double height_;
   double thickness_;
+  double moduleThickness_;
   double area_;
   double stripArea_;
   double stereodist_;
@@ -68,6 +69,7 @@ class Module {
   static const double  defaultWaferDiameter_ = 131.; // Wafer diameter 131 mm
   static const double  defaultAspectRatio_ = 1.;
   static const double  defaultThickness_ = 0.3; // Wafer thickness: 300 um
+  static const double defaultModuleThickness_ = 1.0; //total module thickness
   static const Color_t defaultColor_ = kBlack;
   static const int     defaultNHits_ = 0;
   static const int     defaultHeight_ = 0;
@@ -160,6 +162,7 @@ class Module {
   double getArea() { return area_;};
   double getDiameter() {return waferDiameter_; };
   double getThickness() { return thickness_; };
+  double getModuleThickness() { return moduleThickness_; };
   XYZVector getCorner(int index) { return corner_[index]; };
 
   edge getEdgeRhoSide(int direction);

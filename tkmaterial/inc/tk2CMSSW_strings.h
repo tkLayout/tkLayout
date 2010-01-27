@@ -21,6 +21,14 @@ namespace insur {
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
     static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
+    static const std::string xml_prodcuts_open = "<SpecParSection label=\"trackerProdCuts.xml\" eval=\"true\">\n<SpecPar name=\"tracker-dead\">\n<PartSelector path=\"//Tracker\"/>\n<Parameter name=\"CMSCutsRegion\" value=\"TrackerDeadRegion\" eval=\"false\"/>\n<Parameter name=\"ProdCutsForElectrons\" value=\"10*cm\"/>\n<Parameter name=\"ProdCutsForPositrons\" value=\"10*cm\"/>\n<Parameter name=\"ProdCutsForGamma\" value=\"10*cm\"/>\n</SpecPar>\n<SpecPar name=\"tracker-sens\">\n";
+    static const std::string xml_prodcuts_close = "<Parameter name=\"CMSCutsRegion\" value=\"TrackerSensRegion\" eval=\"false\"/>\n<Parameter name=\"ProdCutsForElectrons\" value=\"0.1*mm\"/>\n<Parameter name=\"ProdCutsForPositrons\" value=\"0.1*mm\"/>\n<Parameter name=\"ProdCutsForGamma\" value=\"0.1*mm";
+    static const std::string xml_trackersens_open = "<SpecParSection label=\"spec-pars.xml\">\n<SpecPar name=\"ROUHitsTrackerTOB\">\n";
+    static const std::string xml_trackersens_endtob = "<Parameter name=\"SensitiveDetector\" value=\"TkAccumulatingSensitiveDetector\"/>\n<Parameter name=\"ReadOutName\" value=\"TrackerHitsTOB";
+    static const std::string xml_trackersens_inter = "<SpecPar name=\"ROUHitsTrackerTID\">\n";
+    static const std::string xml_trackersens_endtid = "<Parameter name=\"SensitiveDetector\" value=\"TkAccumulatingSensitiveDetector\"/>\n<Parameter name=\"ReadOutName\" value=\"TrackerHitsTID";
+    static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
+    static const std::string xml_eval_true = "\" eval=\"true\">\n";
     static const std::string xml_material_section_open = "<MaterialSection label=\"";
     static const std::string xml_material_section_close = "</MaterialSection>\n";
     static const std::string xml_logical_part_section_open = "<LogicalPartSection label=\"";
@@ -29,8 +37,8 @@ namespace insur {
     static const std::string xml_solid_section_close = "</SolidSection>\n";
     static const std::string xml_pos_part_section_open = "<PosPartSection label=\"";
     static const std::string xml_pos_part_section_close = "</PosPartSection>\n";
-    static const std::string xml_spec_part_section_open = "<SpecParSection label=\"";
-    static const std::string xml_spec_part_section_close = "</SpecParSection>\n";
+    static const std::string xml_spec_par_section_open = "<SpecParSection label=\"";
+    static const std::string xml_spec_par_section_close = "</SpecParSection>\n";
     static const std::string xml_algorithm_open = "<Algorithm name=\"";
     static const std::string xml_algorithm_parent = "\">\n<rParent name=\"";
     static const std::string xml_algorithm_string = "<String name=\"";
@@ -101,10 +109,16 @@ namespace insur {
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
     /**
-     * Naming conventions and variable names
+     * Output filenames
      */
     static const std::string xml_trackerfile = "tracker.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
+    static const std::string xml_prodcutsfile = "trackerProdCuts.xml";
+    static const std::string xml_trackersensfile = "trackersens.xml";
+    static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
+    /**
+     * Naming conventions and variable names
+     */
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_waf = "wafer";
@@ -122,6 +136,7 @@ namespace insur {
     static const std::string xml_base_serfcomp = "servicecomposite";
     static const std::string xml_base_lazycomp = "supportcomposite";
     static const std::string xml_material_air = "materials:Air";
+    static const std::string xml_sensor_silicon = "SenSi";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
@@ -163,5 +178,6 @@ namespace insur {
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_apv_number = "SiliconAPVNumber";
     static const std::string xml_par_tail = "Par";
+    static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
