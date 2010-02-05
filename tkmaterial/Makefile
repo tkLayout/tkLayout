@@ -40,13 +40,23 @@ $(LIBDIR)/tracker.o: $(TKSRCDIR)/tracker.cpp $(TKINCDIR)/tracker.hh
 	@echo "Built target tracker.o"
 
 #EXOCOM
-exocom:  $(LIBDIR)/MatParser.o
+exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
 	@echo "Built target 'exocom'."
 
 $(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
 	@echo "Building target MatParser.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatParser.o $(SRCDIR)/MatParser.cc
 	@echo "Built target MatParser.o"
+	
+$(LIBDIR)/Extractor.o: $(SRCDIR)/Extractor.cc $(INCDIR)/Extractor.h
+	@echo "Building target Extractor.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Extractor.o $(SRCDIR)/Extractor.cc
+	@echo "Built target Extractor.o"
+	
+$(LIBDIR)/XMLWriter.o: $(SRCDIR)/XMLWriter.cc $(INCDIR)/XMLWriter.h
+	@echo "Building target XMLWriter.o..."
+	$(COMP) -c -o $(LIBDIR)/XMLWriter.o $(SRCDIR)/XMLWriter.cc
+	@echo "Built target XMLWriter.o"
 
 #GENERAL
 general: $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
@@ -155,12 +165,11 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 #FINAL
 tkmaterial: $(LIBDIR)/tkmaterial.o
 	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o \
-	$(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
-	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o \
-	$(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
+	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
+	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
+	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
+	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o tkmaterial
 
@@ -171,7 +180,7 @@ cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 
 cleanexocom:
-	-rm -f $(LIBDIR)/MatParser.o
+	-rm -f $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
 
 cleangeneral:
 	-rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \

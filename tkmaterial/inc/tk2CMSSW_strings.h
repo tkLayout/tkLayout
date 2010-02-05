@@ -179,5 +179,8 @@ namespace insur {
     static const std::string xml_apv_number = "SiliconAPVNumber";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
+    static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
+    static const std::string xml_forward = "Fw";
+    static const std::string xml_backward = "Bw";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
