@@ -7,29 +7,37 @@ namespace insur {
      * geometry elements.
      */
     Vizard::Vizard() {
+        // internal flag
         geometry_created = false;
+        // ROOT geometry manager
         gm = new TGeoManager("display", "Tracker");
+        // dummy material definitions for each category
         matvac = new TGeoMaterial("Vacuum", 0, 0, 0);
         matact = new TGeoMaterial("Si", a_silicon, z_silicon, d_silicon);
         matserf = new TGeoMaterial("C ", a_carbon, z_carbon, d_carbon);
         matlazy = new TGeoMaterial("Cu", a_copper, z_copper, d_copper);
+        // dummy medium definitions for each category
         medvac = new TGeoMedium("Vacuum", 0, matvac);
         medact = new TGeoMedium("Silicon", 1, matact);
         medserf = new TGeoMedium("Copper", 2, matserf);
         medlazy = new TGeoMedium("Carbon", 3, matlazy);
+        // hierarchy definitions to group individual volumes
         barrels = new TGeoVolumeAssembly("Barrels");
         endcaps = new TGeoVolumeAssembly("Endcaps");
         services = new TGeoVolumeAssembly("Services");
         supports = new TGeoVolumeAssembly("Supports");
         active = new TGeoVolumeAssembly("Active Modules");
         inactive = new TGeoVolumeAssembly("Inactive Surfaces");
+        // top-level volume definition
         top = gm->MakeBox("WORLD", medvac, outer_radius + top_volume_pad, outer_radius + top_volume_pad, max_length + top_volume_pad);
+        // definition of tree hierarchy for visualisation
         active->AddNode(barrels, 0);
         active->AddNode(endcaps, 0);
         inactive->AddNode(services, 0);
         inactive->AddNode(supports, 0);
         top->AddNode(active, 0);
         top->AddNode(inactive, 0);
+        // declaration of top volume within ROOT geometry manager
         gm->SetTopVolume(top);
     }
     
@@ -66,14 +74,17 @@ namespace insur {
         std::vector<Module*> templates;
         // barrels
         if (simplified) {
+            // layer loop, one tube per layer
             for (unsigned int i = 0; i < am.getBarrelLayers()->size(); i++) {
                 current = am.getBarrelLayers()->at(i);
+                // short layers
                 if ((current->getMinZ() > 0) || (current->getMaxZ() < 0)) {
                     vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(), (current->getMaxZ() - current->getMinZ()) / 2.0);
                     vol->SetLineColor(kRed);
                     trans = new TGeoTranslation(0, 0, current->getMaxZ() - (current->getMaxZ() - current->getMinZ()) / 2.0);
                     barrels->AddNode(vol, c, trans);
                 }
+                // regular layers
                 else {
                     vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(), current->getMaxZ());
                     vol->SetLineColor(kRed);
@@ -85,6 +96,7 @@ namespace insur {
         else c = detailedModules(am.getBarrelLayers(), vol, trafo, barrels, c);
         // endcaps
         if (simplified) {
+            // disc loop, one (very short) tube per disc
             for (unsigned int i = 0; i < am.getEndcapLayers()->size(); i++) {
                 current = am.getEndcapLayers()->at(i);
                 vol = gm->MakeTube("", medact, current->getMinRho(), current->getMaxRho(),
@@ -99,6 +111,7 @@ namespace insur {
         
         // services
         int skip = is.getBarrelServices().size() / 2;
+        // barrel services loop using symmetries with respect to z=0
         for (int i = 0; i < skip; i++) {
             vol = gm->MakeTube("", medserf, is.getBarrelServicePart(i).getInnerRadius(),
                     is.getBarrelServicePart(i).getInnerRadius() + is.getBarrelServicePart(i).getRWidth(),
@@ -112,6 +125,7 @@ namespace insur {
         }
         c = c + skip;
         skip = is.getEndcapServices().size() / 2;
+        // endcap services loop using symmetries with respect to z=0
         for (int i = 0; i < skip; i++) {
             vol = gm->MakeTube("", medserf, is.getEndcapServicePart(i).getInnerRadius(),
                     is.getEndcapServicePart(i).getInnerRadius() + is.getEndcapServicePart(i).getRWidth(),
@@ -127,7 +141,9 @@ namespace insur {
         
         // supports
         skip = is.getSupports().size();
+        // support parts loop, using all entries
         for (int i = 0; i < skip; i++) {
+            // process entry if its rightmost point is in z+ - this includes tubes that cross z=0 but not disc supports in z-
             if ((is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength()) > 0) {
                 vol = gm->MakeTube("", medlazy, is.getSupportPart(i).getInnerRadius(),
                         is.getSupportPart(i).getInnerRadius() + is.getSupportPart(i).getRWidth(),
@@ -136,6 +152,7 @@ namespace insur {
                 trans = new TGeoTranslation(0, 0, (is.getSupportPart(i).getZOffset() + is.getSupportPart(i).getZLength() / 2.0));
                 supports->AddNode(vol, c, trans);
                 c++;
+                // use symmetries with respect to z=0: if volume is completely in z+, it will have a twin in z-
                 if (is.getSupportPart(i).getZOffset() > 0) {
                     trans = new TGeoTranslation(0, 0, (0.0 - is.getSupportPart(i).getZOffset() - is.getSupportPart(i).getZLength() / 2.0));
                     supports->AddNode(vol, c, trans);
@@ -216,6 +233,7 @@ namespace insur {
         try {
             std::ofstream outstream(filename.c_str());
             if (outstream) {
+                // barrel services loop
                 outstream << "BARREL SERVICES:" << std::endl << std::endl;
                 for (unsigned int i = 0; i < is.getBarrelServices().size(); i++) {
                     outstream << "Barrel element " << i << ": service is ";
@@ -251,6 +269,7 @@ namespace insur {
                     outstream << "neighbour index = " << is.getBarrelServicePart(i).getNeighbourIndex() << ".";
                     outstream << std::endl << std::endl;
                 }
+                // endcap services
                 outstream << "ENDCAP SERVICES:" << std::endl << std::endl;
                 for (unsigned int i = 0; i < is.getEndcapServices().size(); i++) {
                     outstream << "Endcap element " << i << ": service is ";
@@ -476,7 +495,7 @@ namespace insur {
         c.SaveAs(svgpath.c_str());
         c.SaveAs(Cpath.c_str());
         htmlstream << "<img src=\"" << pngout << "\" /><br>";
-        // average values by active, serving and passive
+        // average values by active, service and passive
         htmlstream << "<br><p><small><b>Average radiation length in modules ";
         htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*acr, etaMaxAvg) << "</b></small></p>";
         htmlstream << "<p><small><b>Average radiation length in services ";
@@ -558,15 +577,18 @@ namespace insur {
         Layer* current;
         Module* mod;
         if (!layers->empty()) {
-            std::cout << "detailedModules(): layers vector is not empty." << std::endl;
+            //  init of volume object for modules
             v = gm->MakeArb8("", medact, 0);
             v->SetLineColor(kRed);
+            // layer loop
             for (unsigned int i = 0; i < layers->size(); i++) {
-                std::cout << "detailedModules(): layer " << i << std::endl;
                 current = layers->at(i);
+                // module loop
                 for (unsigned int j = 0; j < current->getModuleVector()->size(); j++) {
                     mod = current->getModuleVector()->at(j);
+                    // place volume v according to information in module mod
                     t = modulePlacement(mod, v);
+                    // add volume v to scene graph using translation t
                     a->AddNode(v, counter, t);
                     counter++;
                 }
@@ -588,14 +610,17 @@ namespace insur {
         TGeoArb8* arb;
         TGeoRotation* rot;
         TGeoCombiTrans* tr;
+        // copy of module placement parameters in Module class
         b = m->getCorner(1) - m->getCorner(0);
         c = m->getCorner(2) - m->getCorner(0);
         d = m->getCorner(3) - m->getCorner(0);
         ex = b / b.R();
         p = (d.Dot(ex) * ex);
+        // unit vectors for module coordinate system
         ey = d - p;
         ey = ey / ey.R();
         ez = ex.Cross(ey);
+        // set vertices in volume v according to extracted module measurements
         arb = (TGeoArb8*)(v->GetShape());
         for (int i = 0; i < 5; i = i + 4) {
             arb->SetVertex(i, 0, 0);
@@ -603,6 +628,7 @@ namespace insur {
             arb->SetVertex(i + 2, c.Dot(ex), c.Dot(ey));
             arb->SetVertex(i + 3, d.Dot(ex), d.Dot(ey));
         }
+        // set position of module within the tracker volume
         double matrix[9];
         matrix[0] = ex.X();
         matrix[1] = ey.X();
@@ -615,6 +641,7 @@ namespace insur {
         matrix[8] = ez.Z();
         rot = new TGeoRotation();
         rot->SetMatrix(matrix);
+        // save position in transformation object
         tr = new TGeoCombiTrans(m->getCorner(0).X(), m->getCorner(0).Y(), m->getCorner(0).Z(), rot);
         return tr;
     }
@@ -629,7 +656,9 @@ namespace insur {
     double Vizard::averageHistogramValues(TH1D& histo, double cutoff) {
         double avg = 0.0;
         int cobin = 1;
+        // find last relevant bin
         while ((cobin < histo.GetNbinsX()) && (histo.GetBinLowEdge(cobin) < cutoff)) cobin++;
+        // calculate average
         if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
         else {
             for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;

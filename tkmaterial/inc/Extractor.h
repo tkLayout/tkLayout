@@ -23,11 +23,17 @@
 #include <MaterialBudget.h>
 
 namespace insur {
+    /**
+     * @class Extractor
+     * @brief This class bundles the analysis functions that prepare an existing material budget and table for output to CMSSW XML.
+     *
+     * The only public function of the class receives the material budget and table that make up the input, as well as a series of vectors
+     * of internal data types that will store the analysis results. The information in those vectors is ready to be formatted and written
+     * to file.
+     */
     class Extractor {
     public:
-        void analyse(MaterialTable& mt, MaterialBudget& mb, std::vector<Element>& e,
-                             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                             std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
+        void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d);
     protected:
         void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
         void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
@@ -38,12 +44,12 @@ namespace insur {
                                                                                             std::vector<std::pair<double, double> >& down);
         void analyseEndcapContainer(std::vector<Layer*>& el, int start, int stop, std::vector<std::pair<double, double> >& up,
                                                                                                                                 std::vector<std::pair<double, double> >& down);
-        void analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
-                                        std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                                        std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
-        void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
-                                      std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                                      std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::vector<SpecParInfo>& t);
+        void analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr, std::vector<Composite>& c,
+                                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
+                                        std::vector<Rotation>& r, std::vector<SpecParInfo>& t);
+        void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
+                                      std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
+                                      std::vector<Rotation>& r, std::vector<SpecParInfo>& t);
         void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                                     std::vector<PosInfo>& p, std::vector<SpecParInfo>& t);
         void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,

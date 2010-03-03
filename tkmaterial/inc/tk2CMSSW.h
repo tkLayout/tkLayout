@@ -25,21 +25,25 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/fstream.hpp>
 
+/**
+ * A shorter alias for the filesystem library namespace
+ */
 namespace bfs = boost::filesystem;
 namespace insur {
+    /**
+     * @class tk2CMSSW
+     * @brief This class is the main translator interface for generating XML output for CMSSW from an existing material budget and table.
+     *
+     * It deals directly with setting up output paths and buffers for output files, while it delegates analysis and XML formatting of the material 
+     * budget to an internal instance of <i>Extractor</i> and <i>XMLWriter</i>, respectively.
+     */
     class tk2CMSSW {
     public:
         tk2CMSSW() {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
     protected:
-        std::vector<Element> elements;
-        std::vector<Composite> composites;
-        std::vector<LogicalInfo> logic;
-        std::vector<ShapeInfo> shapes;
-        std::vector<PosInfo> positions;
-        std::vector<AlgoInfo> algos;
-        std::vector<SpecParInfo> specs;
+        CMSSWBundle data;
         Extractor ex;
         XMLWriter wr;
     private:

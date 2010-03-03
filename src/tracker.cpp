@@ -2290,8 +2290,8 @@ void Tracker::setModuleTypes(std::string sectionName,
                 << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
                 warningDistance[myIndex]=true;
             }
-            if ((dsRotation[myIndex]>2*M_PI)&&(!warningRotation[myIndex])) {
-                std::cerr << "WARNING: rotation for stereo sensors is greater than 2*PI: \"" << dsRotation[myIndex] << "\" "
+            if ((dsRotation[myIndex]>360.0)&&(!warningRotation[myIndex])) {
+                std::cerr << "WARNING: rotation for stereo sensors is greater than 360*deg: \"" << dsRotation[myIndex] << "\" "
                 << "for tracker section " << sectionName << "[" << myIndex << "]" << std::endl;
                 warningRotation[myIndex]=true;
             }

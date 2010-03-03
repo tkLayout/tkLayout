@@ -15,12 +15,12 @@ namespace insur {
         }
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
-        ex.analyse(mt, mb, elements, composites, logic, shapes, positions, algos, specs);
+        ex.analyse(mt, mb, data);
         // translate collected information to XML and write to buffers
         std::ostringstream gbuffer, tbuffer, pbuffer, sbuffer, mbuffer;
         gbuffer << xml_preamble << xml_const_section;
         tbuffer << xml_preamble;
-        wr.writeXML(elements, composites, logic, shapes, positions, algos, specs, gbuffer, tbuffer, pbuffer, sbuffer, mbuffer);
+        wr.writeXML(data, gbuffer, tbuffer, pbuffer, sbuffer, mbuffer);
         gbuffer << xml_defclose;
         tbuffer << xml_defclose;
         // write contents of buffer to top-level file
@@ -29,7 +29,7 @@ namespace insur {
         std::ofstream goutstream((outpath + xml_trackerfile).c_str());
         goutstream << gbuffer.str() << std::endl;
         goutstream.close();
-        std::cout << "CMSSW XML output has been written to " << outpath << xml_trackerfile << std::endl;
+        std::cout << "CMSSW tracker geometry output has been written to " << outpath << xml_trackerfile << std::endl;
         std::ofstream toutstream((outpath + xml_topologyfile).c_str());
         toutstream << tbuffer.str() << std::endl;
         toutstream.close();
@@ -49,17 +49,17 @@ namespace insur {
     }
     
     // private
-    void tk2CMSSW::print() { //TODO: complete
+    void tk2CMSSW::print() {
         std::cout << "tm2CMSSW internal status:" << std::endl;
-        std::cout << "elements: " << elements.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < elements.size(); i++) {
-            std::cout << "entry " << i << ": tag = " << elements.at(i).tag << ", density = " << elements.at(i).density << ", atomic number = ";
-            std::cout << elements.at(i).atomic_number << ", atomic weight = " << elements.at(i).atomic_weight << std::endl;
+        std::cout << "elements: " << data.elements.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.elements.size(); i++) {
+            std::cout << "entry " << i << ": tag = " << data.elements.at(i).tag << ", density = " << data.elements.at(i).density << ", atomic number = ";
+            std::cout << data.elements.at(i).atomic_number << ", atomic weight = " << data.elements.at(i).atomic_weight << std::endl;
         }
-        std::cout << "composites: " << composites.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < composites.size(); i++) {
-            std::cout << "entry " << i << ": name = " << composites.at(i).name << ", density = " << composites.at(i).density << ", method = ";
-            switch (composites.at(i).method) {
+        std::cout << "composites: " << data.composites.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.composites.size(); i++) {
+            std::cout << "entry " << i << ": name = " << data.composites.at(i).name << ", density = " << data.composites.at(i).density << ", method = ";
+            switch (data.composites.at(i).method) {
                 case wt: std::cout << "fraction by weight";
                 break;
                 case vl: std::cout << "fraction by volume";
@@ -69,40 +69,57 @@ namespace insur {
                 default: std::cout << "unknown method";
             }
             std::cout << std::endl << "elements: ";
-            std::vector<std::pair<std::string, double> >& elems = composites.at(i).elements;
+            std::vector<std::pair<std::string, double> >& elems = data.composites.at(i).elements;
             for (unsigned int j = 0; j < elems.size(); j++) std::cout << "(" << elems.at(j).first << ", " << elems.at(j).second << ") ";
             std::cout << std::endl;
         }
-        std::cout << "logic: " << logic.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < logic.size(); i++) {
-            std::cout << "name_tag = " << logic.at(i).name_tag << ", shape_tag = " << logic.at(i).shape_tag;
-            std::cout << ", material_tag = " << logic.at(i).material_tag << std::endl;
+        std::cout << "rotations: " << data.rots.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.rots.size(); i++) {
+            std::cout << "name = " << data.rots.at(i).name << ", thetax = " << data.rots.at(i).thetax << ", phix = ";
+            std::cout << data.rots.at(i).phix << ", thetay = " << data.rots.at(i).thetay << ", phiy = " << data.rots.at(i).phiy;
+            std::cout << ", thetaz = " << data.rots.at(i).thetaz << ", phiz = " << data.rots.at(i).phiz << std::endl;
         }
-        std::cout << "shapes: " << shapes.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < shapes.size(); i++) {
-            std::cout << "name_tag = " << shapes.at(i).name_tag << ", type = ";
-            switch (shapes.at(i).type) {
-                case bx: std::cout << "box, dx = " << shapes.at(i).dx << ", dy = " << shapes.at(i).dy << ", dz = ";
-                std::cout << shapes.at(i).dz;
+        std::cout << "logic: " << data.logic.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.logic.size(); i++) {
+            std::cout << "name_tag = " << data.logic.at(i).name_tag << ", shape_tag = " << data.logic.at(i).shape_tag;
+            std::cout << ", material_tag = " << data.logic.at(i).material_tag << std::endl;
+        }
+        std::cout << "shapes: " << data.shapes.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.shapes.size(); i++) {
+            std::cout << "name_tag = " << data.shapes.at(i).name_tag << ", type = ";
+            switch (data.shapes.at(i).type) {
+                case bx: std::cout << "box, dx = " << data.shapes.at(i).dx << ", dy = " << data.shapes.at(i).dy << ", dz = ";
+                std::cout << data.shapes.at(i).dz;
                 break;
-                case tb: std::cout << "tube, rmin = " << shapes.at(i).rmin << ", rmax = " << shapes.at(i).rmax;
-                std::cout << ", dz = " << shapes.at(i).dz;
+                case tb: std::cout << "tube, rmin = " << data.shapes.at(i).rmin << ", rmax = " << data.shapes.at(i).rmax;
+                std::cout << ", dz = " << data.shapes.at(i).dz;
                 break;
-                case tp: std::cout << "trapezoid, dx = " << shapes.at(i).dx << ", dxx = " << shapes.at(i).dxx;
-                std::cout << ", dy = " << shapes.at(i).dy << ", dz = " << shapes.at(i).dz;
+                case tp: std::cout << "trapezoid, dx = " << data.shapes.at(i).dx << ", dy = " << data.shapes.at(i).dy;
+                std::cout << ", dyy = " << data.shapes.at(i).dyy << ", dz = " << data.shapes.at(i).dz;
                 break;
                 default: std::cout << "unknown shape";
             }
             std::cout << std::endl;
         }
-        std::cout << "positions: " << positions.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < positions.size(); i++) {
-            std::cout << "parent_tag = " << positions.at(i).parent_tag << ", child_tag = " << positions.at(i).child_tag;
-            std::cout << ", rotation = (" << (positions.at(i).rot.name.empty() ? "[no name]": positions.at(i).rot.name) << ", ";
-            std::cout  << positions.at(i).rot.phix << ", " << positions.at(i).rot.phiy << ", " << positions.at(i).rot.phiz << ", ";
-            std::cout << positions.at(i).rot.thetax << ", " << positions.at(i).rot.thetay << ", " << positions.at(i).rot.thetaz;
-            std::cout << "), translation = (" << positions.at(i).trans.dx << ", " << positions.at(i).trans.dy << ", ";
-            std::cout << positions.at(i).trans.dz << ")" << std::endl;
+        std::cout << "positions: " << data.positions.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.positions.size(); i++) {
+            std::cout << "parent_tag = " << data.positions.at(i).parent_tag << ", child_tag = " << data.positions.at(i).child_tag;
+            std::cout << ", rotref = " << (data.positions.at(i).rotref.empty() ? "[no name]": data.positions.at(i).rotref) << ", ";
+            std::cout << ", translation = (" << data.positions.at(i).trans.dx << ", " << data.positions.at(i).trans.dy << ", ";
+            std::cout << data.positions.at(i).trans.dz << ")" << std::endl;
+        }
+        std::cout << "algorithms: " << data.algos.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.algos.size(); i++ ) {
+            std::cout << "name = " << data.algos.at(i).name << ", parent = " << data.algos.at(i).parent << std::endl;
+            std::cout << "parameters:" << std::endl;
+            for (unsigned int j = 0; j < data.algos.at(i).parameters.size(); j++) std::cout << data.algos.at(i).parameters.at(j) << std::endl;
+        }
+        SpecParInfo spec;
+        std::cout << "topology: " << data.specs.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.specs.size(); i++) {
+            std::cout << "name = " << data.specs.at(i).name << std::endl << "partselectors:" << std::endl;
+            for (unsigned int j = 0; j < data.specs.at(i).partselectors.size(); j++) std::cout << data.specs.at(i).partselectors.at(j) << std::endl;
+            std::cout << "parameter = (" << data.specs.at(i).parameter.first << ", " << data.specs.at(i).parameter.second << ")" << std::endl;
         }
     }
 }

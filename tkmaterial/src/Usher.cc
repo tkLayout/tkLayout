@@ -952,22 +952,28 @@ namespace insur {
      */
     std::pair<int, int> Usher::findBarrelSupportParams(TrackerIntRep& tracker, bool up) {
         std::pair<int, int> res(0, 0);
+        // UP configuration - complex case
         if (up) {
+            // further investigations needed if there are endcaps
             if (tracker.nOfEndcaps() > 0) {
+                // no cut layers, straightforward barrel definition
                 if (tracker.nOfBarrels() == tracker.nOfEndcaps()) {
                     res.first = 0;
                     res.second = tracker.nOfBarrels();
                 }
+                // cut layers, complex barrel definition
                 else {
                     res.first = tracker.nOfBarrels() - tracker.nOfEndcaps() + 1;
                     res.second = tracker.nOfBarrels() - res.first + 1;
                 }
             }
+            // straightforward case: barrel-only
             else {
                 res.first = tracker.nOfBarrels();
                 res.second = 1;
             }
         }
+        // DOWN configuration - simple case
         else {
             res.first = tracker.nOfBarrels() - 1;
             res.second = 2;
@@ -989,6 +995,7 @@ namespace insur {
         std::pair<int, int> startstop(0, 0);
         // UP configuration
         if (up) {
+            // only one barrel, or first barrel
             if (udef.first == 1) {
                 int i = 0;
                 startstop.first = 0;
@@ -1000,6 +1007,7 @@ namespace insur {
                 for (int i = 0; i < aux.first; i++) startstop.second = startstop.second + tracker.nOfLayers(i);
                 if ((tracker.nOfEndcaps() > 0) && (tracker.nOfBarrels() == tracker.nOfEndcaps())) startstop.second--;
             }
+            // last barrel
             else if (udef.first == aux.second) {
                 if (tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) < z) {
                     startstop.first = 0;
@@ -1011,6 +1019,7 @@ namespace insur {
                     startstop.second--;
                 }
             }
+            // intermediate barrel
             else {
                 if (tracker.zOffsetBarrel(udef.first - 1) < z) {
                     startstop.first = 0;
@@ -1026,6 +1035,7 @@ namespace insur {
         }
         // DOWN configuration
         else {
+            // first barrel
             if (udef.first == 1) {
                 int i = 0;
                 startstop.first = 0;
@@ -1035,6 +1045,7 @@ namespace insur {
                 }
                 startstop.second = tracker.totalLayers() - tracker.nOfLayers(aux.first) - 1;
             }
+            // second (and last) barrel
             else {
                 startstop.first = tracker.totalLayers() - tracker.nOfLayers(aux.first);
                 startstop.second = tracker.totalLayers() - 1;

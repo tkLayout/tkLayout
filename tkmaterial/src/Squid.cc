@@ -29,7 +29,7 @@ namespace insur {
      * registered one, if such an object existed. It remains in the squid until it is overwritten by a second call
      * to this function or by another one that creates a new tracker object.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildTracker(std::string geomfile) {
         if (tr) delete tr;
@@ -46,7 +46,7 @@ namespace insur {
      * previously registered one, if such an object existed. It remains in the squid until it is overwritten by a
      * second call to this function or by another one that creates a new tracker object.
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::dressTracker(std::string settingsfile) {
         if (tr) {
@@ -63,7 +63,7 @@ namespace insur {
      * Build a geometry of active modules using both geometry constraints and module settings.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildTrackerSystem(std::string geomfile, std::string settingsfile) {
         if (tr) delete tr;
@@ -84,7 +84,7 @@ namespace insur {
      * squid until it is overwritten by a second call to this function or by another one that creates a new
      * collection of inactive surfaces.
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildInactiveSurfaces(bool verbose) {
         if (!g.empty()) {
@@ -112,7 +112,7 @@ namespace insur {
      * function or by another one that creates a new tracker object and collection of inactive surfaces. 
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildInactiveSurfaces(std::string geomfile, bool verbose) {
         if (is) delete is;
@@ -134,7 +134,7 @@ namespace insur {
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose) {
         if (is) delete is;
@@ -155,7 +155,7 @@ namespace insur {
      * both the tracker and the inactive surfaces exist.
      * @param matfile The name and - if necessary - path of the materials configuration file
      * @param verbose A flag that turns the final status summary of the material budget on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::createMaterialBudget(std::string matfile, bool verbose) {
         if (fileExists(matfile)) {
@@ -197,7 +197,7 @@ namespace insur {
      * @param matfile The name and - if necessary - path of the materials configuration file
      * @param usher_verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @param mat_verbose A flag that turns the final status summary of the material budget on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose, bool mat_verbose) {
         if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, mat_verbose);
@@ -209,12 +209,12 @@ namespace insur {
      * that were filled during analysis of the material budget, ROOT for the geometry visualisation and plain text for
      * the feeder/neighbour relations. The tracker object, the collection of inactive surfaces and the material budget
      * must all exist already for this function to succeed.
-     * @param htmlout The name - without path - of the designated HTML output file.
-     * @param rootout The name - without path - of the designated ROOT output file.
-     * @param graphout The name - without path - of the designated plain text output file.
+     * @param htmlout The name - without path - of the designated HTML output file
+     * @param rootout The name - without path - of the designated ROOT output file
+     * @param graphout The name - without path - of the designated plain text output file
      * @param tracks The number of tracks that should be fanned out across the analysed region
      * @param simplified A flag that turns bounding boxes instead of individual modules in the ROOT output file on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeFullSystem(std::string htmlout, std::string rootout, std::string graphout, int tracks, bool simplified) {
         if (analyzeGeometry(rootout, graphout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
@@ -224,11 +224,11 @@ namespace insur {
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the geometry
      * visualisation to a ROOT file.
-     * @param htmlout The name - without path - of the designated HTML output file.
-     * @param rootout The name - without path - of the designated ROOT output file.
+     * @param htmlout The name - without path - of the designated HTML output file
+     * @param rootout The name - without path - of the designated ROOT output file
      * @param tracks The number of tracks that should be fanned out across the analysed region
      * @param simplified A flag that turns bounding boxes instead of individual modules in the ROOT output file on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeGeoMat(std::string htmlout, std::string rootout, int tracks, bool simplified) {
         if (analyzeGeometry(rootout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
@@ -238,10 +238,10 @@ namespace insur {
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the feeder/neighbour
      * graph to a plain text file.
-     * @param htmlout The name - without path - of the designated HTML output file.
-     * @param graphout The name - without path - of the designated plain text output file.
+     * @param htmlout The name - without path - of the designated HTML output file
+     * @param graphout The name - without path - of the designated plain text output file
      * @param tracks The number of tracks that should be fanned out across the analysed region
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeGraphMat(std::string htmlout, std::string graphout, int tracks) {
         if (analyzeNeighbours(graphout)) return analyzeMaterialBudget(htmlout, tracks);
@@ -253,10 +253,10 @@ namespace insur {
      * in a ROOT viewer later as well as the feeder/neighbour graph of the collection of inactive surfaces
      *  if it exists, and save both results to file. This function succeeds if either the tracker or both the 
      * tracker and the inactive surfaces exist, but the graph file will only be created for a full geometry.
-     * @param rootout The name - without path - of the designated ROOT output file.
-     * @param graphout The name - without path - of the designated plain text output file.
+     * @param rootout The name - without path - of the designated ROOT output file
+     * @param graphout The name - without path - of the designated plain text output file
      * @param simplified A flag that turns bounding boxes instead of individual modules in the ROOT output file on or off
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeGeometry(std::string rootout, std::string graphout, bool simplified) {
         if (tr) {
@@ -283,8 +283,8 @@ namespace insur {
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
      * in a ROOT viewer later and save the result to a ROOT file. This function succeeds if either the
      * tracker or both the tracker and the inactive surfaces exist.
-     * @param rootout The name - without path - of the designated output file.
-     * @return True if there were no errors during processing, false otherwise.
+     * @param rootout The name - without path - of the designated output file
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeGeometry(std::string rootout, bool simplified) {
         if (tr) {
@@ -306,8 +306,8 @@ namespace insur {
     /**
      * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
      * save the results in a plain text file.
-     * @param graphout The name - without path - of the designated output file.
-     * @return True if there were no errors during processing, false otherwise.
+     * @param graphout The name - without path - of the designated output file
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeNeighbours(std::string graphout) {
         if (is) {
@@ -322,9 +322,9 @@ namespace insur {
     
     /**
      * Analyze the previously created material budget and save the results in an HTML file.
-     * @param htmlout The name - without path - of the designated output file.
+     * @param htmlout The name - without path - of the designated output file
      * @param tracks The number of tracks that should be fanned out across the analysed region
-     * @return True if there were no errors during processing, false otherwise.
+     * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeMaterialBudget(std::string htmlout, int tracks) {
         if (mb) {
@@ -338,6 +338,11 @@ namespace insur {
         }
     }
     
+    /**
+     * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
+     * @param xmlout The name - without path - of the designated output subdirectory
+     * @return True if there were no errors during processing, false otherwise
+     */
     bool Squid::translateFullSystemToXML(std::string xmlout) {
         if (mb) {
             t2c.translate(c.getMaterialTable(), *mb, xmlout);
