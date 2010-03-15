@@ -1,5 +1,7 @@
 Tested for CMSSW_2_2_6
 
+IGUANA:
+
 Given a CMSSW workspace and environment:
 1. Check out Geometry/CMSCommonData/python and 
 Geometry/TrackerCommonData/data from the CMSSW repository to your 
@@ -35,3 +37,31 @@ your workspace.
 
 10. Switch to the directory containing the file geometry_cfg.py and 
 start Iguana with it (iguana geometry_cfg.py) to display the result.
+
+CMSSW:
+
+The -x option of tkmaterial produces five different files: tracker.xml,
+trackersens.xml, trackerProdCuts.xml, trackerStructureTopology.xml and
+trackerRecoMaterial.xml
+
+1) tracker.xml and trackerStructureTopology.xml replace existing files
+in [anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerCommonData/data/ - make
+sure to back the original up first. It may be necessary to copy those
+blocks describing the pixel detector from the original to the replacement.
+
+2) Back up copies of the original trackersens.xml and trackerProdCuts.xml
+(both in [anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerSimData/data/).
+Replace the blocks describing tracker barrel properties in those two files.
+If there are endcaps in the new geometry, replace those blocks as well.
+If not, delete the blocks describing tracker endcaps.
+
+3) Back up a copy of the original trackerRecoMaterial.xml
+(in [anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerRecoData/data/).
+As in 2), replace all blocks describing tracker barrel properties and
+delete those describing tracker endcaps.
+
+4) Comment out all lines related to the TIB and TEC in those .py
+files that load XML resources. Comment out the TID lines as well if
+the geometry does not have endcaps at all.
+
+5) [More here...]
