@@ -98,11 +98,11 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
 
     // Analysis
     //myTracker->analyze(2000, Layer::YZSection);
-    myTracker->analyze(6000);
+    myTracker->analyze(2000);
 
     // Summary and save
     myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
-    myTracker->printBarrelModuleZ();
+    //myTracker->printBarrelModuleZ();
     myTracker->save();
 
     myDirectory = myTracker->getActiveDirectory();
