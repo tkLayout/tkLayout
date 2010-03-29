@@ -85,7 +85,10 @@ bool configParser::parseTracker(string myName, istream& inStream) {
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
-            if (parameterName=="zError") {
+            if (parameterName=="nMB") { // Number of minimum bias events per BX
+                doubleValue=atof(parameterValue.c_str());
+                myTracker_->setNMB(doubleValue);
+            } else if (parameterName=="zError") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setZError(doubleValue);
             } else if (parameterName=="smallDelta") {

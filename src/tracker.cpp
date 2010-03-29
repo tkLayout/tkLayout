@@ -59,6 +59,7 @@ Tracker::Tracker(std::string trackerName) {
 }
 
 void Tracker::setDefaultParameters() {
+    nMB_ = defaultNMB_;
     zError_ = defaultZError_;
     smallDelta_ = defaultSmallDelta_;
     bigDelta_ = defaultBigDelta_;
@@ -1188,11 +1189,10 @@ void Tracker::writeSummary(bool configFiles,
             aSensorTag=(*modIt)->getSensorTag();
             typeMapCount[aSensorTag]++;
             typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
-            // TODO: implement a smarter way to introduce the multiplicity
-            if (((*modIt)->getOccupancyPerEvent()*400)>typeMapMaxOccupancy[aSensorTag]) {
-                typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*400;
+            if (((*modIt)->getOccupancyPerEvent()*nMB_)>typeMapMaxOccupancy[aSensorTag]) {
+                typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB_;
             }
-            typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*400;
+            typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB_;
             totCountMod++;
             totCountSens+=(*modIt)->getNFaces();
             if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1472,10 +1472,12 @@ void Tracker::writeSummary(bool configFiles,
         myfile << "<a href=\"../\">Summaries</a>" << std::endl;
         myfile << "<h1><a href=\"../../"<< storeDirectory_ << "/" << trackerName_ << ".root\">"<<trackerName_<<"</a></h1>" << std::endl;
         if (configFiles) {
-            myfile << clearStart << emphStart << "Geometry configuration file:" << emphEnd
-                    << " <a href=\".//" << configFile << "\">" << configFile << "</a>" << clearEnd << "<br/>" << std::endl;
-            myfile << clearStart << emphStart << "Module types configuration file:" << emphEnd
-                    << " <a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << std::endl;
+            myfile << clearStart << emphStart << "Geometry configuration file:     " << emphEnd
+                    << "<a href=\".//" << configFile << "\">" << configFile << "</a>" << clearEnd << "<br/>" << std::endl;
+            myfile << clearStart << emphStart << "Module types configuration file: " << emphEnd
+                    << "<a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << "<br/>" << std::endl;
+            myfile << clearStart << emphStart << "Minimum bias per bunch crossing: " << emphEnd
+                    << nMB_ << clearEnd << std::endl;
         } else {
             myfile << clearStart << emphStart << "Options: " << emphEnd << getArguments() << clearEnd << std::endl;
         }
@@ -1532,7 +1534,7 @@ void Tracker::writeSummary(bool configFiles,
         myfile << "<p>(Pt modules: ignored)</p>" << std::endl
                 << "<p>Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit</p>" << std::endl
                 << "<p>Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel</p>" << std::endl
-                << "<p>100 kHz trigger, 400 minimum bias events assumed</p>" << std::endl;
+                << "<p>100 kHz trigger, " << nMB_ << " minimum bias events assumed</p>" << std::endl;
         myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
         myfile << "</body></html>" << std::endl;
     }
@@ -2519,8 +2521,7 @@ void Tracker::computeBandwidth() {
         aLay = (*layIt)->getModuleVector();
         for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
             if ((*modIt)->getReadoutType()==Module::Strip) {
-                // TODO: remove explicit "400" here
-                hitChannels = (*modIt)->getOccupancyPerEvent()*400*((*modIt)->getNChannelsPerFace());
+                hitChannels = (*modIt)->getOccupancyPerEvent()*nMB_*((*modIt)->getNChannelsPerFace());
                 chanHitDist_->Fill(hitChannels);
                 
                 for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {

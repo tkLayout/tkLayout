@@ -41,7 +41,8 @@ protected:
   LayerVector barrelLayerSet_;
   LayerVector endcapLayerSet_;
   ModuleVector endcapSample_;
-  SectionMap sectionMap_;  
+  SectionMap sectionMap_;
+  double nMB_;
 
   std::map<int, double> mapTypeToCost_;
   std::map<int, double> mapTypeToPower_;  
@@ -56,7 +57,7 @@ protected:
   static const double defaultSmallDelta_ = 2.; // Space between overlapping modules
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
-
+  static const double defaultNMB_ = 400;
   
 private:
   void setDefaultParameters();
@@ -205,6 +206,7 @@ public:
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
   void setComment(const std::string &newComment) {comment_=newComment;};
+  void setNMB(const int nMB) {nMB_=nMB;};
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); };
@@ -231,6 +233,7 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
   std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
+  int getNMB() {return nMB_;};
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {
     layerSet_.push_back(aLayer);
