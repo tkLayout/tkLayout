@@ -7,16 +7,73 @@
 namespace insur {
     //public
     /**
-     * 
-     * @param d 
-     * @param gb 
-     * @param tb 
-     * @param pb 
-     * @param sb 
-     * @param mb 
+     *
+     * @param s
+     * @param in
+     * @param out
      */
-    void XMLWriter::writeXML(CMSSWBundle& d, std::ostringstream& gb, std::ostringstream& tb,
-            std::ostringstream& pb, std::ostringstream& sb, std::ostringstream& mb) {
+    void XMLWriter::pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
+        unsigned int pos = 0;
+        std::string line;
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (s.size() > 0) {
+            while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tob) == std::string::npos)) pos++;
+            if ((pos < s.size()) && (s.at(pos).rzup.size() > 0)) {
+                out << xml_rzpoint_open << s.at(pos).rzup.at(0).first << xml_rzpoint_inter;
+                out << "-" << xml_zv3 << xml_general_endline;
+                for (unsigned int i = 0; i < s.at(pos).rzup.size(); i++) {
+                    out << xml_rzpoint_open << s.at(pos).rzup.at(i).first << xml_rzpoint_inter;
+                    out << s.at(pos).rzup.at(i).second << xml_rzpoint_close;
+                }
+                for (unsigned int i = s.at(pos).rzdown.size(); i > 0; i--) {
+                    out << xml_rzpoint_open << s.at(pos).rzdown.at(i - 1).first << xml_rzpoint_inter;
+                    out << s.at(pos).rzdown.at(i - 1).second << xml_rzpoint_close;
+                }
+                out << xml_rzpoint_open << s.at(pos).rzup.at(0).first << xml_rzpoint_inter;
+                out << xml_zv3 << xml_general_endline;
+            }
+        }
+        while (std::getline(in, line)) out << line << std::endl;
+    }
+    
+    /**
+     *
+     * @param s
+     * @param in
+     * @param out
+     */
+    void XMLWriter::pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
+        unsigned pos = 0;
+        std::string line;
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (s.size() > 0) {
+            while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tid) == std::string::npos)) pos++;
+            if ((pos < s.size()) && (s.at(pos).rzup.size() > 0)) {
+                //TODO: add extra (connecting) points
+                //TODO: align all points with pixfwd offsets/coordinate system
+                //out << xml_rzpoint_open << /*radius, first entry or constant*/ << xml_rzpoint_inter;
+                //out << /*z, second entry or constant*/ << xml_rzpoint_close;
+                for (unsigned int i = 0; i < s.at(pos).rzup.size(); i++) {
+                    out << xml_rzpoint_open << s.at(pos).rzup.at(i).first << xml_rzpoint_inter;
+                    out << s.at(pos).rzup.at(i).second << xml_rzpoint_close;
+                }
+                for (unsigned int i = s.at(pos).rzdown.size(); i > 0; i--) {
+                    out << xml_rzpoint_open << s.at(pos).rzdown.at(i - 1).first << xml_rzpoint_inter;
+                    out << s.at(pos).rzdown.at(i - 1).second << xml_rzpoint_close;
+                }
+                //out << xml_rzpoint_open << /*radius, first entry or constant*/ << xml_rzpoint_inter;
+                //out << /*z, second entry or constant*/ << xml_rzpoint_close;
+            }
+        }
+        while (std::getline(in, line)) out << line << std::endl;
+    }
+    
+    /**
+     *
+     * @param d
+     * @param out
+     */
+    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out) {
         std::vector<Element>& e = d.elements;
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
@@ -24,97 +81,216 @@ namespace insur {
         std::vector<PosInfo>& p = d.positions;
         std::vector<AlgoInfo>& a = d.algos;
         std::vector<Rotation>& r = d.rots;
-        std::vector<SpecParInfo>& t = d.specs;
-        materialSection(xml_trackerfile, e, c, gb);
-        rotationSection(r, xml_trackerfile, gb);
-        logicalPartSection(l, xml_trackerfile, gb);
-        solidSection(s, xml_trackerfile, gb);
-        posPartSection(p, a, xml_trackerfile, gb);
-        specParSection(t, xml_specpars_label, tb);
-        prodcuts(t, pb);
-        trackersens(t, sb);
-        recomaterial(t, mb);
+        std::ostringstream buffer;
+        buffer << xml_preamble << xml_const_section;
+        materialSection(xml_trackerfile, e, c, buffer);
+        rotationSection(r, xml_trackerfile, buffer);
+        logicalPartSection(l, xml_trackerfile, buffer);
+        solidSection(s, xml_trackerfile, buffer, true);
+        posPartSection(p, a, xml_trackerfile, buffer);
+        buffer << xml_defclose;
+        out << buffer.str();
+    }
+    
+    void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+        std::ostringstream strm;
+        std::string line;
+        unsigned int i;
+        int pos;
+        //find PixelBarrelLayerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all TOB layers
+        pos = findEntry(t, xml_subdet_layer + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelBarrelLadderPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all rods
+        pos = findEntry(t, xml_subdet_rod + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelBarrelModulePar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all BModule...active
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelEndcapDiskPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ discs ONCE (for now)
+        pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelEndcapPanelPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ rings ONCE
+        pos = findEntry(t, xml_subdet_ring + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelEndcapDetPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ EModule...active
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelROCRowsTrackerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelROCColsTrackerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find final marker
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add one SpecPar block for every entry in t where parameter.first == PixelROC_X
+        for (i = 0; i < t.size(); i++) {
+            if (t.at(i).parameter.first.compare(xml_roc_x) == 0) {
+                specPar(t.at(i).name, t.at(i).parameter, t.at(i).partselectors, strm);
+            }
+        }
+        //      add one SpecPar block for every entry in t where parameter.first == PixelROC_Y
+        for (i = 0; i < t.size(); i++) {
+            if (t.at(i).parameter.first.compare(xml_roc_y) == 0)
+                specPar(t.at(i).name, t.at(i).parameter, t.at(i).partselectors, strm);
+        }
+        out << strm.str();
+        //copy rest of skeleton file unchanged
+        while (std::getline(in, line)) out << line << std::endl;
+    }
+    
+    /**
+     *
+     * @param t
+     * @param in
+     * @param out
+     */
+    void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+        unsigned int pos = 0;
+        std::string line;
+        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (pos < t.size()) {
+            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+        pos = 0;
+        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
+        if (pos < t.size()) {
+            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+        while (std::getline(in, line)) out << line << std::endl;
+    }
+    
+    /**
+     *
+     * @param t
+     * @param in
+     * @param out
+     */
+    void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+        unsigned int pos = 0;
+        std::string line;
+        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (pos < t.size()) {
+            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+        pos = 0;
+        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (pos < t.size()) {
+            for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+        while (std::getline(in, line)) out << line << std::endl;
+    }
+    
+    /**
+     *
+     * @param t
+     * @param in
+     * @param out
+     */
+    void XMLWriter::recomaterial(std::vector<SpecParInfo>& t,
+            std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out) {
+        std::vector<PathInfo> b;
+        b = buildPaths(t, b);
+        if (!b.empty()) {
+            std::string line;
+            while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+            std::vector<PathInfo>::iterator iter, guard = b.end();
+            for (iter = b.begin(); iter != guard; iter++) {
+                unsigned int id;
+                for (id = 0; id < ri.size(); id++) {
+                    if ((ri.at(id).index == iter->layer) && (ri.at(id).barrel == iter->barrel)) break;
+                }
+                if ((!iter->block_name.empty()) && (!iter->paths.empty())) {
+                    std::vector<std::string>::iterator iiter, iguard = iter->paths.end();
+                    out << xml_spec_par_open << iter->block_name << xml_eval_true;
+                    for (iiter = iter->paths.begin(); iiter != iguard; iiter++) {
+                        out << xml_spec_par_selector << *iiter << xml_general_endline;
+                    }
+                    if (id < ri.size()) {
+                        out << xml_spec_par_parameter_first << xml_recomat_radlength << xml_spec_par_parameter_second;
+                        out << ri.at(id).rlength << xml_general_endline << xml_spec_par_parameter_first << xml_recomat_xi;
+                        out << xml_spec_par_parameter_second << ri.at(id).ilength;
+                    }
+                    else {
+                        std::cerr << "WARNING: no RILengthInfo entry found for SpecPar block " << iter->block_name;
+                        std::cerr << " in XMLWriter::recomaterial(). Using default dummy values." << std::endl;
+                        out << xml_recomat_parameters;
+                    }
+                    out << xml_spec_par_close << std::endl;
+                }
+            }
+            while (std::getline(in, line)) out << line << std::endl;
+        }
     }
     
     //protected
     /**
-     * 
-     * @param t
-     * @param stream 
-     */
-    void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ostringstream& stream) {
-        stream << xml_preamble << xml_prodcuts_open;
-        for (unsigned int i = 0; i < t.size(); i++) {
-            if ((t.at(i).name.substr(0, xml_subdet_tobdet.size()).compare(xml_subdet_tobdet) == 0)
-                    || (t.at(i).name.substr(0, xml_subdet_tiddet.size()).compare(xml_subdet_tiddet) == 0)) {
-                for (unsigned int j = 0; j < t.at(i).partselectors.size(); j++) {
-                    stream << xml_spec_par_selector << t.at(i).partselectors.at(j) << xml_general_endline;
-                }
-            }
-        }
-        stream << xml_prodcuts_close << xml_spec_par_close << xml_spec_par_section_close << xml_defclose;
-    }
-    
-    /**
-     * 
-     * @param t 
-     * @param stream 
-     */
-    void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ostringstream& stream) {
-        stream << xml_preamble << xml_trackersens_open;
-        for (unsigned int i = 0; i < t.size(); i++) {
-            if (t.at(i).name.compare(xml_subdet_tobdet + xml_par_tail) == 0) {
-                for (unsigned int j = 0; j < t.at(i).partselectors.size(); j++) {
-                    stream << xml_spec_par_selector << t.at(i).partselectors.at(j) << xml_general_endline;
-                }
-            }
-        }
-        stream << xml_trackersens_endtob << xml_spec_par_close;
-        if (endcapsInTopology(t)) {
-            stream << xml_trackersens_inter;
-            for (unsigned int i = 0; i < t.size(); i++) {
-                if (t.at(i).name.compare(xml_subdet_tiddet + xml_par_tail) == 0) {
-                    for (unsigned int j = 0; j < t.at(i).partselectors.size(); j++) {
-                        stream << xml_spec_par_selector << t.at(i).partselectors.at(j) << xml_general_endline;
-                    }
-                }
-            }
-            stream << xml_trackersens_endtid << xml_spec_par_close;
-        }
-        stream << xml_spec_par_section_close << xml_defclose;
-    }
-    
-    /**
-     * 
-     * @param t 
-     * @param stream 
-     */
-    void XMLWriter::recomaterial(std::vector<SpecParInfo>& t, std::ostringstream& stream) {
-        std::vector<std::pair<std::string, std::vector<std::string> > > b;
-        b = buildPaths(t, b);
-        if (!b.empty()) {
-            std::vector<std::pair<std::string, std::vector<std::string> > >::iterator iter, guard = b.end();
-            stream << xml_preamble << xml_spec_par_section_open << xml_specpars_label << xml_general_inter;
-            for (iter = b.begin(); iter != guard; iter++) {
-                if ((!iter->first.empty()) && (!iter->second.empty())) {
-                    std::vector<std::string>::iterator iiter, iguard = iter->second.end();
-                    stream << xml_spec_par_open << iter->first << xml_eval_true;
-                    for (iiter = iter->second.begin(); iiter != iguard; iiter++) {
-                        stream << xml_spec_par_selector << *iiter << xml_general_endline;
-                    }
-                    stream << xml_recomat_parameters << xml_spec_par_close;
-                }
-            }
-            stream << xml_spec_par_section_close << xml_defclose;
-        }
-    }
-    
-    /**
-     * 
-     * @param name 
-     * @param e 
-     * @param c 
-     * @param stream 
+     *
+     * @param name
+     * @param e
+     * @param c
+     * @param stream
      */
     void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream) {
         stream << xml_material_section_open << name << xml_general_inter;
@@ -124,10 +300,10 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param r 
-     * @param label 
-     * @param stream 
+     *
+     * @param r
+     * @param label
+     * @param stream
      */
     void XMLWriter::rotationSection(std::vector<Rotation>& r, std::string label, std::ostringstream& stream) {
         if (!r.empty()) {
@@ -139,49 +315,55 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param l 
-     * @param label 
-     * @param stream 
+     *
+     * @param l
+     * @param label
+     * @param stream
      */
     void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
+        logicalPart(xml_tracker, xml_fileident + ":" + xml_tracker, xml_material_air, stream);
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
     
     /**
-     * 
-     * @param s 
-     * @param label 
-     * @param stream 
+     *
+     * @param s
+     * @param label
+     * @param stream
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream) {
+    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid) {
         stream << xml_solid_section_open << label << xml_general_inter;
+        tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream);
         for (unsigned int i = 0; i < s.size(); i++) {
-            switch (s.at(i).type) {
-                case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
-                break;
-                case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream);
-                break;
-                case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
-                break;
-                case pc : polycone(s.at(i).name_tag, s.at(i).rzup, s.at(i).rzdown, stream);
-                break;
-                default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
-                box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
+            if ((notobtid) &&
+                    ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;
+            else {
+                switch (s.at(i).type) {
+                    case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
+                    break;
+                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream);
+                    break;
+                    case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
+                    break;
+                    case pc : polycone(s.at(i).name_tag, s.at(i).rzup, s.at(i).rzdown, stream);
+                    break;
+                    default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
+                    box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
+                }
             }
         }
         stream << xml_solid_section_close;
     }
     
     /**
-     * 
-     * @param p 
-     * @param a 
-     * @param label 
-     * @param stream 
+     *
+     * @param p
+     * @param a
+     * @param label
+     * @param stream
      */
     void XMLWriter::posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream) {
         std::vector<PosInfo>::iterator piter, pguard = p.end();
@@ -193,10 +375,10 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param t 
-     * @param label 
-     * @param stream 
+     *
+     * @param t
+     * @param label
+     * @param stream
      */
     void XMLWriter::specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream) {
         std::vector<SpecParInfo>::iterator titer, tguard = t.end();
@@ -206,11 +388,11 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param parent 
-     * @param params 
-     * @param stream 
+     *
+     * @param name
+     * @param parent
+     * @param params
+     * @param stream
      */
     void XMLWriter::algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream) {
         stream << xml_algorithm_open << name << xml_algorithm_parent << parent << xml_general_endline;
@@ -219,12 +401,12 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param tag 
-     * @param density 
-     * @param a_number 
-     * @param a_weight 
-     * @param stream 
+     *
+     * @param tag
+     * @param density
+     * @param a_number
+     * @param a_weight
+     * @param stream
      */
     void XMLWriter::elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream) {
         stream << xml_elementary_material_open << tag << xml_elementary_material_first_inter << tag;
@@ -234,12 +416,12 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
+     *
+     * @param name
      * @param density
-     * @param method 
-     * @param es 
-     * @param stream 
+     * @param method
+     * @param es
+     * @param stream
      */
     void XMLWriter::compositeMaterial(std::string name,
             double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
@@ -264,11 +446,11 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param solid 
-     * @param material 
-     * @param stream 
+     *
+     * @param name
+     * @param solid
+     * @param material
+     * @param stream
      */
     void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream) {
         stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
@@ -276,12 +458,12 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param dx 
-     * @param dy 
-     * @param dz 
-     * @param stream 
+     *
+     * @param name
+     * @param dx
+     * @param dy
+     * @param dz
+     * @param stream
      */
     void XMLWriter::box(std::string name, double dx, double dy, double dz, std::ostringstream& stream) {
         stream << xml_box_open << name << xml_box_first_inter << dx << xml_box_second_inter << dy;
@@ -289,13 +471,13 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param dx 
-     * @param dy 
-     * @param dyy 
-     * @param dz 
-     * @param stream 
+     *
+     * @param name
+     * @param dx
+     * @param dy
+     * @param dyy
+     * @param dz
+     * @param stream
      */
     void XMLWriter::trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream) {
         stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
@@ -305,12 +487,12 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param rmin 
-     * @param rmax 
-     * @param dz 
-     * @param stream 
+     *
+     * @param name
+     * @param rmin
+     * @param rmax
+     * @param dz
+     * @param stream
      */
     void XMLWriter::tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream) {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
@@ -318,11 +500,11 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param rzu 
-     * @param rzd 
-     * @param stream 
+     *
+     * @param name
+     * @param rzu
+     * @param rzd
+     * @param stream
      */
     void XMLWriter::polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
             std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream) {
@@ -337,13 +519,13 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param parent 
-     * @param child 
-     * @param rotref 
-     * @param trans 
-     * @param copy 
-     * @param stream 
+     *
+     * @param parent
+     * @param child
+     * @param rotref
+     * @param trans
+     * @param copy
+     * @param stream
      */
     void XMLWriter::posPart(std::string parent, std::string child, std::string rotref, Translation& trans, int copy, std::ostringstream& stream) {
         stream << xml_pos_part_open << copy << xml_pos_part_first_inter << parent;
@@ -354,15 +536,15 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param thetax 
-     * @param phix 
-     * @param thetay 
-     * @param phiy 
-     * @param thetaz 
-     * @param phiz 
-     * @param stream 
+     *
+     * @param name
+     * @param thetax
+     * @param phix
+     * @param thetay
+     * @param phiy
+     * @param thetaz
+     * @param phiz
+     * @param stream
      */
     void XMLWriter::rotation(std::string name, double thetax, double phix,
             double thetay, double phiy, double thetaz, double phiz, std::ostringstream& stream) {
@@ -372,11 +554,11 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param x 
-     * @param y 
-     * @param z 
-     * @param stream 
+     *
+     * @param x
+     * @param y
+     * @param z
+     * @param stream
      */
     void XMLWriter::translation(double x, double y, double z, std::ostringstream& stream) {
         stream << xml_translation_open << x << xml_translation_first_inter << y << xml_translation_second_inter << z;
@@ -384,11 +566,11 @@ namespace insur {
     }
     
     /**
-     * 
-     * @param name 
-     * @param param 
-     * @param partsel 
-     * @param stream 
+     *
+     * @param name
+     * @param param
+     * @param partsel
+     * @param stream
      */
     void XMLWriter::specPar(std::string name,
             std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
@@ -407,12 +589,11 @@ namespace insur {
      * @param blocks A container for a string representation of <i>SpecPar</i> blocks and their <i>PartSelector</i> path entries
      * @return The completed collection of blocks in string representation
      */
-    std::vector<std::pair<std::string, std::vector<std::string> > >& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs,
-            std::vector<std::pair<std::string, std::vector<std::string> > >& blocks) {
-        std::vector<std::pair<std::string, std::vector<std::string> > >::iterator existing;
+    std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks) { //TODO: adjust to pixel layout
+        std::vector<PathInfo>::iterator existing;
         std::string prefix, postfix, spname;
         std::vector<std::string> paths;
-        int dindex, rindex, mindex;
+        int dindex, rindex, mindex, layer = 0;
         blocks.clear();
         //TOB
         rindex = findEntry(specs, xml_subdet_rod + xml_par_tail);
@@ -430,8 +611,9 @@ namespace insur {
                     plusminus = rcurrent.substr(rcurrent.size() - xml_minus.size());
                 rnumber = rcurrent.substr(xml_rod.size());
                 rnumber = rnumber.substr(0, rnumber.size() - plusminus.size());
-                spname = xml_tob_prefix + xml_layer + rnumber;
-                prefix = xml_tob + "/" + xml_layer + rnumber + "/" + rcurrent;
+                spname = xml_tob_prefix + xml_pixbar + xml_layer + rnumber;
+                layer = atoi(rnumber.c_str());
+                prefix = xml_pixbar + "/" + xml_layer + rnumber + "/" + rcurrent;
                 // module loop
                 for (unsigned int j = 0; j < specs.at(mindex).partselectors.size(); j++) {
                     mnumber = specs.at(mindex).partselectors.at(j).substr(xml_barrel_module.size());
@@ -446,8 +628,15 @@ namespace insur {
                     }
                 }
                 existing = findEntry(spname, blocks);
-                if (existing != blocks.end()) existing->second.insert(existing->second.end(), paths.begin(), paths.end());
-                else blocks.push_back(std::pair<std::string, std::vector<std::string> >(spname, paths));
+                if (existing != blocks.end()) existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
+                else {
+                    PathInfo pi;
+                    pi.block_name = spname;
+                    pi.layer = layer;
+                    pi.barrel = true;
+                    pi.paths = paths;
+                    blocks.push_back(pi);
+                }
                 paths.clear();
             }
         }
@@ -456,37 +645,45 @@ namespace insur {
         rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
         if ((dindex >= 0) && (rindex >= 0)) {
             // disc loop
-            for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
-                std::string dnumber, rnumber;
-                bool plus;
-                dnumber = specs.at(dindex).partselectors.at(i).substr(xml_disc.size());
-                if ((int)specs.at(dindex).partselectors.size() / 2 < atoi(dnumber.c_str())) plus = true;
-                else plus = false;
-                spname = xml_tid_prefix + dnumber;
-                if (plus) spname = spname + xml_forward;
-                else spname = spname + xml_backward;
-                if (plus) prefix = xml_tidf;
-                else prefix = xml_tidb;
-                prefix = prefix + "/" + xml_disc + dnumber;
-                // ring loop
-                for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
-                    std::string compstr = specs.at(rindex).partselectors.at(j);
-                    compstr = compstr.substr(compstr.size() - specs.at(dindex).partselectors.at(i).size());
-                    // matching discs
-                    if (specs.at(dindex).partselectors.at(i).compare(compstr) == 0) {
-                        rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
-                        rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
-                        postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
-                        postfix = postfix + "/" + postfix + xml_base_waf + "/" + postfix + xml_base_act;
-                        postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
-                        paths.push_back(prefix + "/" + postfix);
-                    }
-                }
-                existing = findEntry(spname, blocks);
-                if (existing != blocks.end()) existing->second.insert(existing->second.end(), paths.begin(), paths.end());
-                else blocks.push_back(std::pair<std::string, std::vector<std::string> >(spname, paths));
-                paths.clear();
-            }
+            /*for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
+             * std::string dnumber, rnumber;
+             * bool plus;
+             * dnumber = specs.at(dindex).partselectors.at(i).substr(xml_disc.size());
+             * if ((int)specs.at(dindex).partselectors.size() / 2 < atoi(dnumber.c_str())) plus = true;
+             * else plus = false;
+             * layer = atoi(dnumber.c_str());
+             * spname = xml_tid_prefix + dnumber;
+             * if (plus) spname = spname + xml_forward;
+             * else spname = spname + xml_backward;
+             * if (plus) prefix = xml_tidf;
+             * else prefix = xml_tidb;
+             * prefix = prefix + "/" + xml_disc + dnumber;
+             * // ring loop
+             * for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
+             * std::string compstr = specs.at(rindex).partselectors.at(j);
+             * compstr = compstr.substr(compstr.size() - specs.at(dindex).partselectors.at(i).size());
+             * // matching discs
+             * if (specs.at(dindex).partselectors.at(i).compare(compstr) == 0) {
+             * rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
+             * rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
+             * postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+             * postfix = postfix + "/" + postfix + xml_base_waf + "/" + postfix + xml_base_act;
+             * postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
+             * paths.push_back(prefix + "/" + postfix);
+             * }
+             * }
+             * existing = findEntry(spname, blocks);
+             * if (existing != blocks.end()) existing->second.insert(existing->second.end(), paths.begin(), paths.end());
+             * else {
+             * PathInfo pi;
+             * pi.block_name = spname;
+             * pi.layer = layer;
+             * pi.barrel = false;
+             * pi.paths = paths;
+             * blocks.push_back(pi);
+             *}
+             * paths.clear();
+             * }*/
         }
         return blocks;
     }
@@ -544,15 +741,14 @@ namespace insur {
     /**
      * This is a custom function to find the name of a <i>SpecPar</i> block in a nested string representation of a series of such blocks.
      * @param name The name of the requested <i>SpecPar</i> block
-     * @param data The collection of available blocks 
+     * @param data The collection of available blocks
      * @return An iterator pointing to the matching entry, or to <i>data.end()</i> if no such entry exists
      */
-    std::vector<std::pair<std::string, std::vector<std::string> > >::iterator XMLWriter::findEntry(std::string name,
-            std::vector<std::pair<std::string, std::vector<std::string> > >& data) {
-        std::vector<std::pair<std::string, std::vector<std::string> > >::iterator result = data.begin();
-        std::vector<std::pair<std::string, std::vector<std::string> > >::iterator guard = data.end();
+    std::vector<PathInfo>::iterator XMLWriter::findEntry(std::string name, std::vector<PathInfo>& data) {
+        std::vector<PathInfo>::iterator result = data.begin();
+        std::vector<PathInfo>::iterator guard = data.end();
         while (result != guard) {
-            if ((result->first).compare(name) == 0) return result;
+            if ((result->block_name).compare(name) == 0) return result;
             result++;
         }
         return result;

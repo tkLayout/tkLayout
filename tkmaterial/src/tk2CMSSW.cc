@@ -14,41 +14,104 @@ namespace insur {
             else outpath = outpath + "/" + outsubdir;
         }
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
+        std::string tmppath = default_xmlpath + "/" + xml_tmppath + "/";
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         ex.analyse(mt, mb, data);
         // translate collected information to XML and write to buffers
-        std::ostringstream gbuffer, tbuffer, pbuffer, sbuffer, mbuffer;
-        gbuffer << xml_preamble << xml_const_section;
-        tbuffer << xml_preamble;
-        wr.writeXML(data, gbuffer, tbuffer, pbuffer, sbuffer, mbuffer);
-        gbuffer << xml_defclose;
-        tbuffer << xml_defclose;
-        // write contents of buffer to top-level file
-        bfs::remove_all(outpath.c_str());
-        bfs::create_directory(outpath);
-        std::ofstream goutstream((outpath + xml_trackerfile).c_str());
-        goutstream << gbuffer.str() << std::endl;
-        goutstream.close();
-        std::cout << "CMSSW tracker geometry output has been written to " << outpath << xml_trackerfile << std::endl;
-        std::ofstream toutstream((outpath + xml_topologyfile).c_str());
-        toutstream << tbuffer.str() << std::endl;
-        toutstream.close();
-        std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
-        std::ofstream poutstream((outpath + xml_prodcutsfile).c_str());
-        poutstream << pbuffer.str() << std::endl;
-        poutstream.close();
-        std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
-        std::ofstream soutstream((outpath + xml_trackersensfile).c_str());
-        soutstream << sbuffer.str() << std::endl;
-        soutstream.close();
-        std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
-        std::ofstream moutstream((outpath + xml_recomatfile).c_str());
-        moutstream << mbuffer.str() << std::endl;
-        moutstream.close();
-        std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
+        std::ifstream instream;
+        std::ofstream outstream;
+        // replace by calls to pixbar(), pixfwd() (if endcapsInTopology()), tracker(),
+        // topology(), prodcuts(), trackersens(), recomaterial() - probably in that order
+        //TODO: improve error handling! Rename original outpath directory, if it exists.
+        //            Then create new directory and start writing files. If all goes well, remove
+        //            temp directory. If not, remove new directory and restore original.
+        // use try-catch block for error handling: throw runtime error if one of the output
+        // streams comes back in fail state, handle rollback in catch block
+        try {
+            if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
+            bfs::create_directory(outpath);
+            //TODO: use instream and outstream instead, in a series of inits and re-inits until all files have been written.
+            instream.open((default_xmlpath + "/" + xml_pixbarfile).c_str());
+            outstream.open((outpath + xml_pixbarfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
+            wr.pixbar(data.shapes, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+            instream.open((default_xmlpath + "/" + xml_pixfwdfile).c_str());
+            outstream.open((outpath + xml_pixfwdfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
+            wr.pixfwd(data.shapes, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
+            outstream.open((outpath + xml_trackerfile).c_str());
+            if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
+            wr.tracker(data, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW tracker geometry output has been written to " << outpath << xml_trackerfile << std::endl;
+            instream.open((default_xmlpath + "/" + xml_topologyfile).c_str());
+            outstream.open((outpath + xml_topologyfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
+            wr.topology(data.specs, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing to topology file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
+            instream.open((default_xmlpath + "/" + xml_prodcutsfile).c_str());
+            outstream.open((outpath + xml_prodcutsfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
+            wr.prodcuts(data.specs, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing to prodcuts file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
+            instream.open((default_xmlpath + "/" + xml_trackersensfile).c_str());
+            outstream.open((outpath + xml_trackersensfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
+            wr.trackersens(data.specs, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing trackersens to file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
+            instream.open((default_xmlpath + "/" + xml_recomatfile).c_str());
+            outstream.open((outpath + xml_recomatfile).c_str());
+            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
+            wr.recomaterial(data.specs, data.lrilength, instream, outstream);
+            if (outstream.fail()) throw std::runtime_error("Error writing recomaterial to file.");
+            instream.close();
+            instream.clear();
+            outstream.close();
+            outstream.clear();
+            std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
+            bfs::remove_all(tmppath);
+        }
+        catch (std::runtime_error& e) {
+            std::cerr << "Error writing files: " << e.what() << std::endl;
+            if (bfs::exists(outpath)) bfs::remove_all(outpath);
+            if (bfs::exists(tmppath)) bfs::rename(tmppath, outpath);
+            std::cerr << "No files were changed." <<std::endl;
+        }
     }
     
     // private
+    /**
+     * This prints the contents of the internal CMSSWBundle collection; used for debugging.
+     */
     void tk2CMSSW::print() {
         std::cout << "tm2CMSSW internal status:" << std::endl;
         std::cout << "elements: " << data.elements.size() << " entries." << std::endl;

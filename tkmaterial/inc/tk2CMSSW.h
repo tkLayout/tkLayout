@@ -17,6 +17,7 @@
 #include <tk2CMSSW_strings.h>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <Extractor.h>
 #include <XMLWriter.h>
 #include <MaterialTable.h>

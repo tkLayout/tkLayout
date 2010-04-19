@@ -38,18 +38,14 @@ namespace insur {
         void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
         void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                                                            std::vector<std::pair<double, double> >& down);
-        void analyseBackwardEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                                                                              std::vector<std::pair<double, double> >& down);
-        void analyseForwardEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                                                                            std::vector<std::pair<double, double> >& down);
-        void analyseEndcapContainer(std::vector<Layer*>& el, int start, int stop, std::vector<std::pair<double, double> >& up,
-                                                                                                                                std::vector<std::pair<double, double> >& down);
+        void analyseEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+                                                                             std::vector<std::pair<double, double> >& down);
         void analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr, std::vector<Composite>& c,
                                         std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                                        std::vector<Rotation>& r, std::vector<SpecParInfo>& t);
+                                        std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri);
         void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
                                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                                      std::vector<Rotation>& r, std::vector<SpecParInfo>& t);
+                                      std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri);
         void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                                     std::vector<PosInfo>& p, std::vector<SpecParInfo>& t);
         void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,

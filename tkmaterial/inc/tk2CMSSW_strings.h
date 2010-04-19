@@ -13,6 +13,8 @@ namespace insur {
      * Numeric constants
      */
     static const int xml_prec = 3;
+    static const int xml_roc_rows = 128;
+    static const int xml_roc_cols = 1;
     /**
      * XML tags and attributes
      */
@@ -21,13 +23,9 @@ namespace insur {
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
     static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
-    static const std::string xml_prodcuts_open = "<SpecParSection label=\"trackerProdCuts.xml\" eval=\"true\">\n<SpecPar name=\"tracker-dead\">\n<PartSelector path=\"//Tracker\"/>\n<Parameter name=\"CMSCutsRegion\" value=\"TrackerDeadRegion\" eval=\"false\"/>\n<Parameter name=\"ProdCutsForElectrons\" value=\"10*cm\"/>\n<Parameter name=\"ProdCutsForPositrons\" value=\"10*cm\"/>\n<Parameter name=\"ProdCutsForGamma\" value=\"10*cm\"/>\n</SpecPar>\n<SpecPar name=\"tracker-sens\">\n";
-    static const std::string xml_prodcuts_close = "<Parameter name=\"CMSCutsRegion\" value=\"TrackerSensRegion\" eval=\"false\"/>\n<Parameter name=\"ProdCutsForElectrons\" value=\"0.1*mm\"/>\n<Parameter name=\"ProdCutsForPositrons\" value=\"0.1*mm\"/>\n<Parameter name=\"ProdCutsForGamma\" value=\"0.1*mm";
-    static const std::string xml_trackersens_open = "<SpecParSection label=\"spec-pars.xml\">\n<SpecPar name=\"ROUHitsTrackerTOB\">\n";
-    static const std::string xml_trackersens_endtob = "<Parameter name=\"SensitiveDetector\" value=\"TkAccumulatingSensitiveDetector\"/>\n<Parameter name=\"ReadOutName\" value=\"TrackerHitsTOB";
-    static const std::string xml_trackersens_inter = "<SpecPar name=\"ROUHitsTrackerTID\">\n";
-    static const std::string xml_trackersens_endtid = "<Parameter name=\"SensitiveDetector\" value=\"TkAccumulatingSensitiveDetector\"/>\n<Parameter name=\"ReadOutName\" value=\"TrackerHitsTID";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
+    static const std::string xml_recomat_radlength = "TrackerRadLength";
+    static const std::string xml_recomat_xi = "TrackerXi";
     static const std::string xml_eval_true = "\" eval=\"true\">\n";
     static const std::string xml_material_section_open = "<MaterialSection label=\"";
     static const std::string xml_material_section_close = "</MaterialSection>\n";
@@ -115,13 +113,17 @@ namespace insur {
      * Output filenames
      */
     static const std::string xml_trackerfile = "tracker.xml";
+    static const std::string xml_pixbarfile = "pixbar.xml";
+    static const std::string xml_pixfwdfile = "pixfwd.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
     static const std::string xml_prodcutsfile = "trackerProdCuts.xml";
     static const std::string xml_trackersensfile = "trackersens.xml";
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
+    static const std::string xml_tmppath = "tmp";
     /**
      * Naming conventions and variable names
      */
+    static const std::string xml_insert_marker = "<!--mid point marker-->";
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_waf = "wafer";
@@ -140,12 +142,14 @@ namespace insur {
     static const std::string xml_base_lazycomp = "supportcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_sensor_silicon = "SenSi";
+    static const std::string xml_pixbarident = "pixbar";
+    static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
+    static const std::string xml_pixbar = "PixelBarrel";
+    //TODO: define pixel forward root name
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
-    static const std::string xml_tidf = "TIDF";
-    static const std::string xml_tidb = "TIDB";
     static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
     static const std::string xml_ecalgo = "track:DDTrackerAngular";
     static const std::string xml_param_string = "String";
@@ -163,27 +167,33 @@ namespace insur {
     static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
-    static const std::string xml_full_tracker = "FullTracker";
+    static const std::string xml_full_tracker = "FullTracker";//maz be obsolete
     static const std::string xml_det_layer = "TOBLayer";
     static const std::string xml_det_rod = "TOBRod";
     static const std::string xml_det_tobdet = "TOBDet";
     static const std::string xml_tob_subdet = "TOBSubDet";
-    static const std::string xml_subdet_layer = "TOBSubDetLayer";
-    static const std::string xml_subdet_rod = "TOBSubDetRod";
-    static const std::string xml_subdet_tobdet = "TOBSubDetDet";
+    static const std::string xml_subdet_layer = "PixelBarrelLayer";
+    static const std::string xml_subdet_rod = "PixelBarrelLadder";
+    static const std::string xml_subdet_tobdet = "PixelBarrelModule";
     static const std::string xml_det_wheel = "TIDWheel";
     static const std::string xml_det_ring = "TIDRing";
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
-    static const std::string xml_subdet_wheel = "TIDSubDetWheel";
-    static const std::string xml_subdet_ring = "TIDSubDetRing";
-    static const std::string xml_subdet_tiddet = "TIDSubDetDet";
+    static const std::string xml_subdet_wheel = "PixelEndcapDisk";
+    static const std::string xml_subdet_ring = "PixelEndcapPanel";
+    static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
-    static const std::string xml_apv_number = "SiliconAPVNumber";
+    static const std::string xml_roc_x = "PixelROC_X";
+    static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
+    static const std::string xml_barrel_tilt = "HCZ2YX";
+    /**
+     * CMSSW constants
+     */
+    static const std::string xml_zv3 = "[Zv3]";
 }
 #endif /* _TK2CMSSW_STRINGS_H */

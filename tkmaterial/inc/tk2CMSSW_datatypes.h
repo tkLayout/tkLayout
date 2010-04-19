@@ -181,6 +181,31 @@ namespace insur {
         std::vector<std::string> partselectors;
     };
     /**
+     * @struct RILengthInfo
+     * @brief 
+     * @param barrel 
+     * @param index 
+     * @param rlength 
+     * @param ilength 
+     */
+    struct RILengthInfo {
+        bool barrel;
+        int index;
+        double rlength;
+        double ilength;
+    };
+    /**
+     * @struct PathInfo 
+     * @brief 
+     * @param 
+     */
+    struct PathInfo {
+        std::string block_name;
+        int layer;
+        bool barrel;
+        std::vector<std::string> paths;
+    };
+    /**
      * @struct CMSSWBundle
      * @brief 
      * @param elements 
@@ -201,6 +226,7 @@ namespace insur {
         std::vector<AlgoInfo> algos;
         std::vector<Rotation> rots;
         std::vector<SpecParInfo> specs;
+        std::vector<RILengthInfo> lrilength;
     };
 }
 #endif /* _TK2CMSSW_DATATYPES_H */
