@@ -145,6 +145,10 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     bool aspectRatioManual = false;
     int phiSegments = 4;
     std::pair<double, double> size; size.first=0; size.second=0; // width, length
+
+    // Fetch the generic Delta of the tracker
+    double genericSmallDelta = myTracker_->getSmallDelta();
+    double genericBigDelta = myTracker_->getBigDelta();
     
     // Directives (this are communicated to the Tracker object)
     std::map<int, double> layerDirectives;
@@ -163,6 +167,10 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             if (parameterName=="nLayers") {
                 nBarrelLayers=atoi(parameterValue.c_str());
+            } else if (parameterName=="smallDelta") {
+	      myTracker_->setSmallDelta(atoi(parameterValue.c_str()));
+            } else if (parameterName=="bigDelta") {
+	      myTracker_->setBigDelta(atoi(parameterValue.c_str()));
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="minimumZ") {
@@ -327,6 +335,10 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         cout << "Missing mandatory parameter for barrel " << myName << endl;
         throw parsingException();
     }
+
+    // Set back the generic small and big deltas
+    myTracker_->setSmallDelta(genericSmallDelta);
+    myTracker_->setBigDelta(genericBigDelta);
     
     return true;
 }
@@ -347,6 +359,10 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     int shapeType = Module::Wedge;
     double aspectRatio = 1.;
     int phiSegments = 4;
+
+    // Fetch the generic Delta of the tracker
+    double genericSmallDelta = myTracker_->getSmallDelta();
+    double genericBigDelta = myTracker_->getBigDelta();
     
     map<pair<int, int>, bool> mapDiskRingRemoveToOuter;
     map<pair<int, int>, bool>::iterator mapDiskRingRemoveToOuterIt;
@@ -365,6 +381,10 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             if (parameterName=="nDisks") {
                 nDisks=atoi(parameterValue.c_str());
+            } else if (parameterName=="smallDelta") {
+	      myTracker_->setSmallDelta(atoi(parameterValue.c_str()));
+            } else if (parameterName=="bigDelta") {
+	      myTracker_->setBigDelta(atoi(parameterValue.c_str()));
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="innerEta") {
@@ -533,6 +553,10 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         cout << "Missing mandatory parameter for endcap " << myName << endl;
         throw parsingException();
     }
+
+    // Set back the generic small and big deltas
+    myTracker_->setSmallDelta(genericSmallDelta);
+    myTracker_->setBigDelta(genericBigDelta);
     
     return true;
 }
