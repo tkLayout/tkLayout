@@ -32,6 +32,7 @@ using namespace ROOT::Math;
 
 typedef std::vector<Layer*> LayerVector;
 typedef std::map<std::string, LayerVector> SectionMap;
+typedef std::map<int, double> SpecialDelta;
 
 class Tracker {
 public:
@@ -45,7 +46,10 @@ protected:
   double nMB_;
 
   std::map<int, double> mapTypeToCost_;
-  std::map<int, double> mapTypeToPower_;  
+  std::map<int, double> mapTypeToPower_;
+
+  SpecialDelta specialSmallDelta_;
+  SpecialDelta specialBigDelta_;
 
   double maxL_;
   double maxR_;
@@ -191,6 +195,13 @@ public:
   void setZError(const double& newError) { zError_ = newError; };
   void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; };
   void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; };
+  void setSpecialSmallDelta(const int& specialIndex, const double& newSpecialSmallDelta) { specialSmallDelta_[specialIndex]=newSpecialSmallDelta; };
+  void setSpecialBigDelta(const int& specialIndex, const double& newSpecialBigDelta) { specialBigDelta_[specialIndex]=newSpecialBigDelta; };
+  double getSpecialSmallDelta(const int& specialIndex) { return specialSmallDelta_[specialIndex]; };
+  double getSpecialBigDelta(const int& specialIndex) { return specialBigDelta_[specialIndex]; };
+  void resetSpecialSmallDelta() { while (!specialSmallDelta_.empty()) specialSmallDelta_.erase(specialSmallDelta_.begin()); };
+  void resetSpecialBigDelta() { while (!specialBigDelta_.empty()) specialBigDelta_.erase(specialBigDelta_.begin()); };
+  void resetSpecialDeltas() { resetSpecialSmallDelta(); resetSpecialBigDelta(); };
   void setOverlap(const double& newOverlap) { overlap_ = newOverlap; };
   void setEtaCut(const double& newEta) { etaCut_ = newEta; };
 
@@ -216,8 +227,10 @@ public:
 
   // Overlaps / error
   double getZError() { return zError_; };
-  double getBigDelta() { return bigDelta_; };
   double getSmallDelta() { return smallDelta_; };
+  double getBigDelta() { return bigDelta_; };
+  double getSmallDelta(const int& index);
+  double getBigDelta(const int& index);
   double getOverlap() { return overlap_; };
   double getEtaCut() { return etaCut_; };
 

@@ -133,6 +133,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 bool configParser::parseBarrel(string myName, istream& inStream) {
     string parameterName;
     string parameterValue;
+    string parameterNameCopy;
+    int mainIndex, secondaryIndex;
+    bool correctlyBroken;
     
     int nBarrelLayers = 0;
     double minZ=0;
@@ -165,12 +168,32 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
+            parameterNameCopy = parameterName;
+            correctlyBroken = breakParameterName(parameterNameCopy, mainIndex, secondaryIndex);
             if (parameterName=="nLayers") {
-                nBarrelLayers=atoi(parameterValue.c_str());
+	      nBarrelLayers=atoi(parameterValue.c_str());
             } else if (parameterName=="smallDelta") {
-	      myTracker_->setSmallDelta(atoi(parameterValue.c_str()));
+	      myTracker_->setSmallDelta(atof(parameterValue.c_str()));
             } else if (parameterName=="bigDelta") {
-	      myTracker_->setBigDelta(atoi(parameterValue.c_str()));
+	      myTracker_->setBigDelta(atof(parameterValue.c_str()));
+	    } else if ((correctlyBroken)&&((parameterNameCopy=="smallDelta")||(parameterNameCopy=="bigDelta"))) {
+	      double deltaValue =  atof(parameterValue.c_str());
+	      if ((mainIndex==0)||(secondaryIndex!=0)||(deltaValue==0)) {
+		cerr << "Error: parameter setting for " << parameterNameCopy << " must have the following structure: "
+		     << "parameter[ring] = value , with non-zero ring index and non-zero value" << endl;
+		throw parsingException();
+	      } else {
+		if (parameterNameCopy=="smallDelta") {
+		  // put smallDelta [layer] as a special option
+		  myTracker_->setSpecialSmallDelta(mainIndex, deltaValue);
+		} else if (parameterNameCopy=="bigDelta") {
+		  // put bigDelta [layer] as a special option
+		  myTracker_->setSpecialBigDelta(mainIndex, deltaValue);
+		} else {
+		  cerr << "BAD error: this should never happen. contact the developers..." << endl;
+		  throw parsingException();
+		}
+	      }
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="minimumZ") {
@@ -339,6 +362,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     // Set back the generic small and big deltas
     myTracker_->setSmallDelta(genericSmallDelta);
     myTracker_->setBigDelta(genericBigDelta);
+    myTracker_->resetSpecialDeltas();
     
     return true;
 }
@@ -347,6 +371,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 bool configParser::parseEndcap(string myName, istream &inStream) {
     string parameterName;
     string parameterValue;
+    string parameterNameCopy;
+    int mainIndex, secondaryIndex;
+    bool correctlyBroken;
     
     int nDisks = 0;       // nDisks (per side)
     double barrelToEndcap = 0;  // gap between barrel and endcap
@@ -379,93 +406,116 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
-            if (parameterName=="nDisks") {
-                nDisks=atoi(parameterValue.c_str());
-            } else if (parameterName=="smallDelta") {
-	      myTracker_->setSmallDelta(atoi(parameterValue.c_str()));
-            } else if (parameterName=="bigDelta") {
-	      myTracker_->setBigDelta(atoi(parameterValue.c_str()));
-            } else if (parameterName=="phiSegments") {
-                phiSegments=atoi(parameterValue.c_str());
-            } else if (parameterName=="innerEta") {
-                innerEta=atof(parameterValue.c_str());
-            } else if (parameterName=="innerRadius") {
-                rhoIn=atof(parameterValue.c_str());
-            } else if (parameterName=="outerRadius") {
-                rhoOut=atof(parameterValue.c_str());
-            } else if (parameterName=="barrelGap") {
-                barrelToEndcap=atof(parameterValue.c_str());
-            } else if (parameterName=="minimumZ") {
-                minZ=atof(parameterValue.c_str());
-            } else if (parameterName=="maximumZ") {
-                maxZ=atof(parameterValue.c_str());
-            } else if (parameterName=="diskParity") {
-                diskParity=atoi(parameterValue.c_str());
-                if (diskParity>0) diskParity=1; else diskParity=-1;
-            } else if (parameterName=="aspectRatio") {
-                aspectRatio=atof(parameterValue.c_str());
-                if (aspectRatio<=0) {
-                    cout << "Parsing endcap " << myName << endl
-                            << "Wrong aspect ratio (height/width): " << parameterValue
-                            << " should be a positive number" << endl;
-                    throw parsingException();
-                }
-            } else if (parameterName=="shape") {
-                bool syntaxOk=true;
-                if (parameterValue=="wedge") {
-                    shapeType=Module::Wedge;
-                } else if (parameterValue=="rectangular") {
-                    shapeType=Module::Rectangular;
-                } else {
-                    syntaxOk=false;
-                }
-                if (!syntaxOk) {
-                    cout << "Parsing endcap " << myName << endl
-                            << "Wrong syntax for a shape: \"" << parameterValue
-                            << "\" should be \"rectangular\" or \"wedge\"" << endl;
-                    throw parsingException();
-                }
-            } else if (parameterName=="directive") {
-                int ringNum; int increment;
-                if (sscanf(parameterValue.c_str(), "%d%d", &ringNum, &increment)==2) {
-                    if (increment!=0) ringDirective[ringNum]=increment;
-                } else {
-                    cout << "Parsing endcap " << myName << endl
-                            << "Wrong syntax for a ring directive: \"" << parameterValue
-                            << "\" should be ring+increment or ring-decrement )" << endl;
-                    throw parsingException();
-                }
-            } else if (parameterName=="removeRings") {
-                // Example of the syntax "D1R4+"
-                int diskNum, ringNum;
-                char plusMinus;
-                bool parseError=false;
-                pair <int, int> diskRing;
-                if (sscanf(parameterValue.c_str(), "D%dR%d%c", &diskNum, &ringNum, &plusMinus)==3) {
-                    if ((plusMinus=='+')||(plusMinus=='-')) {
-                        diskRing.first=diskNum;
-                        diskRing.second=ringNum;
-                        bool outer;
-                        outer=(plusMinus=='+');
-                        mapDiskRingRemoveToOuter[diskRing]=outer;
-                    } else {
-                        parseError=true;
-                    }
-                } else {
-                    parseError=true;
-                }
-                
-                if (parseError) {
-                    cout << "Parsing endcap " << myName << endl
-                            << "Wrong syntax for a ring directive: \"" << parameterValue
-                            << "\" should be like D1R4+ (to remove rings 4 or more from disk 1)" << endl;
-                    throw parsingException();
-                }
-            } else {
-                cout << "Unknown parameter \"" << parameterName << "\"" << endl;
-                throw parsingException();
-            }
-            cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
+	  parameterNameCopy = parameterName;
+	  correctlyBroken = breakParameterName(parameterNameCopy, mainIndex, secondaryIndex);
+	  if (parameterName=="nDisks") {
+	    nDisks=atoi(parameterValue.c_str());
+	  } else if (parameterName=="smallDelta") {
+	    myTracker_->setSmallDelta(atof(parameterValue.c_str()));
+	  } else if (parameterName=="bigDelta") {
+	    myTracker_->setBigDelta(atof(parameterValue.c_str()));
+	  } else if ((correctlyBroken)&&((parameterNameCopy=="smallDelta")||(parameterNameCopy=="bigDelta"))) {
+	    double deltaValue =  atof(parameterValue.c_str());
+	    if ((mainIndex==0)||(secondaryIndex!=0)||(deltaValue==0)) {
+	      cerr << "Error: parameter setting for " << parameterNameCopy << " must have the following structure: "
+		   << "parameter[ring] = value , with non-zero ring index and non-zero value" << endl;
+	      throw parsingException();
+	    } else {
+	      if (parameterNameCopy=="smallDelta") {
+		// put smallDelta [layer] as a special option
+		myTracker_->setSpecialSmallDelta(mainIndex, deltaValue);
+	      } else if (parameterNameCopy=="bigDelta") {
+		// put bigDelta [layer] as a special option
+		myTracker_->setSpecialBigDelta(mainIndex, deltaValue);
+	      } else {
+		cerr << "BAD error: this should never happen. contact the developers..." << endl;
+		throw parsingException();
+	      }
+              // TODO: fix this	
+              cout << "WARNING: per-ring small and big deltas are not yet imlpemented" << endl;
+	      throw parsingException();
+	    }
+	  } else if (parameterName=="phiSegments") {
+	    phiSegments=atoi(parameterValue.c_str());
+	  } else if (parameterName=="innerEta") {
+	    innerEta=atof(parameterValue.c_str());
+	  } else if (parameterName=="innerRadius") {
+	    rhoIn=atof(parameterValue.c_str());
+	  } else if (parameterName=="outerRadius") {
+	    rhoOut=atof(parameterValue.c_str());
+	  } else if (parameterName=="barrelGap") {
+	    barrelToEndcap=atof(parameterValue.c_str());
+	  } else if (parameterName=="minimumZ") {
+	    minZ=atof(parameterValue.c_str());
+	  } else if (parameterName=="maximumZ") {
+	    maxZ=atof(parameterValue.c_str());
+	  } else if (parameterName=="diskParity") {
+	    diskParity=atoi(parameterValue.c_str());
+	    if (diskParity>0) diskParity=1; else diskParity=-1;
+	  } else if (parameterName=="aspectRatio") {
+	    aspectRatio=atof(parameterValue.c_str());
+	    if (aspectRatio<=0) {
+	      cout << "Parsing endcap " << myName << endl
+		   << "Wrong aspect ratio (height/width): " << parameterValue
+		   << " should be a positive number" << endl;
+	      throw parsingException();
+	    }
+	  } else if (parameterName=="shape") {
+	    bool syntaxOk=true;
+	    if (parameterValue=="wedge") {
+	      shapeType=Module::Wedge;
+	    } else if (parameterValue=="rectangular") {
+	      shapeType=Module::Rectangular;
+	    } else {
+	      syntaxOk=false;
+	    }
+	    if (!syntaxOk) {
+	      cout << "Parsing endcap " << myName << endl
+		   << "Wrong syntax for a shape: \"" << parameterValue
+		   << "\" should be \"rectangular\" or \"wedge\"" << endl;
+	      throw parsingException();
+	    }
+	  } else if (parameterName=="directive") {
+	    int ringNum; int increment;
+	    if (sscanf(parameterValue.c_str(), "%d%d", &ringNum, &increment)==2) {
+	      if (increment!=0) ringDirective[ringNum]=increment;
+	    } else {
+	      cout << "Parsing endcap " << myName << endl
+		   << "Wrong syntax for a ring directive: \"" << parameterValue
+		   << "\" should be ring+increment or ring-decrement )" << endl;
+	      throw parsingException();
+	    }
+	  } else if (parameterName=="removeRings") {
+	    // Example of the syntax "D1R4+"
+	    int diskNum, ringNum;
+	    char plusMinus;
+	    bool parseError=false;
+	    pair <int, int> diskRing;
+	    if (sscanf(parameterValue.c_str(), "D%dR%d%c", &diskNum, &ringNum, &plusMinus)==3) {
+	      if ((plusMinus=='+')||(plusMinus=='-')) {
+		diskRing.first=diskNum;
+		diskRing.second=ringNum;
+		bool outer;
+		outer=(plusMinus=='+');
+		mapDiskRingRemoveToOuter[diskRing]=outer;
+	      } else {
+		parseError=true;
+	      }
+	    } else {
+	      parseError=true;
+	    }
+            
+	    if (parseError) {
+	      cout << "Parsing endcap " << myName << endl
+		   << "Wrong syntax for a ring directive: \"" << parameterValue
+		   << "\" should be like D1R4+ (to remove rings 4 or more from disk 1)" << endl;
+	      throw parsingException();
+	    }
+	  } else {
+	    cout << "Unknown parameter \"" << parameterName << "\"" << endl;
+	    throw parsingException();
+	  }
+	  cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
         }
     }
     
@@ -553,10 +603,11 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         cout << "Missing mandatory parameter for endcap " << myName << endl;
         throw parsingException();
     }
-
+    
     // Set back the generic small and big deltas
     myTracker_->setSmallDelta(genericSmallDelta);
     myTracker_->setBigDelta(genericBigDelta);
+    myTracker_->resetSpecialDeltas();
     
     return true;
 }

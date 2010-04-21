@@ -293,9 +293,10 @@ void Tracker::buildBarrel(int nLayer,
 	aBarrelLayer->setContainerName(barrelName);
         
         std::cout << "Desired radius: " << radius << std::endl;
+
         if (minZ==0) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
-                    smallDelta_ ,
+                    getSmallDelta(i+1) ,
                     bigDelta_,
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
@@ -309,7 +310,7 @@ void Tracker::buildBarrel(int nLayer,
             thisBarrelLayerSet.push_back(aBarrelLayer);
         } else { // Mezzanine Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
-                    smallDelta_ ,
+                    getSmallDelta(i+1) ,
                     bigDelta_,
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
@@ -2556,3 +2557,20 @@ void Tracker::computeBandwidth() {
     savingV_.push_back(bandWidthDist_);
     savingV_.push_back(bandWidthDistSp_);
 }
+
+double Tracker::getSmallDelta(const int& index) {
+  if (specialSmallDelta_[index]==0) {
+    return smallDelta_;
+  } else {
+    return specialSmallDelta_[index];
+  }
+}
+
+double Tracker::getBigDelta(const int& index) {
+  if (specialBigDelta_[index]==0) {
+    return bigDelta_;
+  } else {
+    return specialBigDelta_[index];
+  }
+}
+
