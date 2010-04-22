@@ -297,7 +297,7 @@ void Tracker::buildBarrel(int nLayer,
         if (minZ==0) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
                     getSmallDelta(i+1) ,
-                    bigDelta_,
+                    getBigDelta(i+1),
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
@@ -311,7 +311,7 @@ void Tracker::buildBarrel(int nLayer,
         } else { // Mezzanine Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
                     getSmallDelta(i+1) ,
-                    bigDelta_,
+                    getBigDelta(i+1),
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
