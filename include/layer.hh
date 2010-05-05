@@ -43,6 +43,7 @@ public:
   double getMinRho();
   virtual double getTilt() { return 0.0; }
   virtual double getStartAngle() { return 0.0; }
+  virtual double getMaxModuleThickness() { return 0.0; }
 
   virtual int cutOverEta(double etaCut) { return 0; }
 
@@ -178,6 +179,7 @@ public:
   void reflectZ();
   void shiftRho(double Delta);
 
+  double getMaxModuleThickness() { if (sampleModule_ != NULL) return sampleModule_->getModuleThickness(); return 0.0; }
 };
 
 
@@ -243,6 +245,7 @@ public:
   void rotateY_PI();
   double getAverageZ() {return averageZ_;};
   
+  double getMaxModuleThickness();
 };
 
 
