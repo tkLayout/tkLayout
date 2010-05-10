@@ -384,7 +384,9 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     double innerEta = 0;
     int diskParity = 0;
     int shapeType = Module::Wedge;
+    bool explicitShapeType = false;
     double aspectRatio = 1.;
+    bool explicitAspectRatio = false;
     int phiSegments = 4;
 
     // Fetch the generic Delta of the tracker
@@ -454,6 +456,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	    if (diskParity>0) diskParity=1; else diskParity=-1;
 	  } else if (parameterName=="aspectRatio") {
 	    aspectRatio=atof(parameterValue.c_str());
+            explicitAspectRatio = true;
 	    if (aspectRatio<=0) {
 	      cout << "Parsing endcap " << myName << endl
 		   << "Wrong aspect ratio (height/width): " << parameterValue
@@ -464,8 +467,10 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	    bool syntaxOk=true;
 	    if (parameterValue=="wedge") {
 	      shapeType=Module::Wedge;
+              explicitShapeType = true;
 	    } else if (parameterValue=="rectangular") {
 	      shapeType=Module::Rectangular;
+              explicitShapeType = true;
 	    } else {
 	      syntaxOk=false;
 	    }
@@ -538,7 +543,16 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     if (minZ==0) {
         minZ=myTracker_->getMaxBarrelZ(+1)+barrelToEndcap;
     }
-    
+   
+    // Check consistency in module shape type assigned
+    if (explicitShapeType) {
+      if ((shapeType==Module::Wedge)&&(explicitAspectRatio)) {
+        cout << "Parsing endcap " << myName
+                << " I see module shape 'wedge' ans aspect ratio assigned. This is inconsistent. I quit." << endl;
+        throw parsingException();
+      }
+    }
+ 
     // Actually creating the endcap if all the mandatory parameters were set
     if ( (nDisks != 0) &&
     ((rhoIn != 0)||(innerEta!=0)) &&
