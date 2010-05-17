@@ -71,6 +71,7 @@ namespace insur {
         bool analyzeNeighbours(std::string graphout = "");
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
         bool translateFullSystemToXML(std::string xmlout = "");
+        bool trackerSummary(std::string configFileName, std::string dressFileName);
     private:
         std::string g;
         Tracker* tr;
@@ -84,6 +85,7 @@ namespace insur {
         Vizard v;
         tk2CMSSW t2c;
         bool fileExists(std::string filename);
+        std::string extractFileName(const std::string& full);
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
     };

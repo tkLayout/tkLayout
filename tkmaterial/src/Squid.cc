@@ -80,7 +80,7 @@ namespace insur {
     
     /**
      * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
-     * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the 
+     * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the
      * squid until it is overwritten by a second call to this function or by another one that creates a new
      * collection of inactive surfaces.
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
@@ -106,10 +106,10 @@ namespace insur {
     }
     
     /**
-    * Build up a bare-bones geometry of active modules, then arrange the inactive surfaces around it. The 
-     * resulting tracker object and collection of inactive surfaces replace the previously registered ones, if 
+     * Build up a bare-bones geometry of active modules, then arrange the inactive surfaces around it. The
+     * resulting tracker object and collection of inactive surfaces replace the previously registered ones, if
      * such objects existed. They remain in the squid until they are overwritten by a second call to this
-     * function or by another one that creates a new tracker object and collection of inactive surfaces. 
+     * function or by another one that creates a new tracker object and collection of inactive surfaces.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @return True if there were no errors during processing, false otherwise
@@ -126,11 +126,11 @@ namespace insur {
     }
     
     /**
-    * Build a geometry of active modules using both geometry constraints and module settings, then 
+     * Build a geometry of active modules using both geometry constraints and module settings, then
      * arrange the inactive surfaces around it. The resulting tracker object and collection of inactive
-     * surfaces replace the previously registered ones, if such objects existed. They remain in the squid  
+     * surfaces replace the previously registered ones, if such objects existed. They remain in the squid
      * until they are overwritten by a second call to this function or by another one that creates a new
-     * tracker object and collection of inactive surfaces. 
+     * tracker object and collection of inactive surfaces.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
@@ -188,7 +188,7 @@ namespace insur {
     }
     
     /**
-     * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the 
+     * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
      * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
      * in the squid  until they are overwritten by a second call to this function or by another one that creates new
      * instances of them.
@@ -251,7 +251,7 @@ namespace insur {
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
      * in a ROOT viewer later as well as the feeder/neighbour graph of the collection of inactive surfaces
-     *  if it exists, and save both results to file. This function succeeds if either the tracker or both the 
+     *  if it exists, and save both results to file. This function succeeds if either the tracker or both the
      * tracker and the inactive surfaces exist, but the graph file will only be created for a full geometry.
      * @param rootout The name - without path - of the designated ROOT output file
      * @param graphout The name - without path - of the designated plain text output file
@@ -354,6 +354,38 @@ namespace insur {
         }
     }
     
+    bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
+        if (tr) {
+            std::string myDirectory;
+            std::string destConfigFile;
+            std::string destDressFile;
+            // Optical transmission
+            tr->computeBandwidth();
+            
+            // Analysis
+            tr->analyze(2000);
+            
+            // Summary and save
+            tr->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
+            tr->printBarrelModuleZ();
+            tr->save();
+            
+            myDirectory = tr->getActiveDirectory();
+            destConfigFile = myDirectory + "/" + extractFileName(configFileName);
+            destDressFile = myDirectory + "/" + extractFileName(dressFileName);
+            
+            bfs::remove(destConfigFile);
+            bfs::remove(destDressFile);
+            bfs::copy_file(configFileName, destConfigFile);
+            bfs::copy_file(dressFileName, destDressFile);
+            return true;
+        }
+        else {
+            std::cout << "Squid::trackerSummary(): " << err_no_tracker << std::endl;
+            return false;
+        }
+    }
+    
     // private
     /**
      * Check if a given configuration file actually exists.
@@ -364,5 +396,12 @@ namespace insur {
         bfs::path p(filename);
         if (bfs::exists(p)) return true;
         return false;
+    }
+    
+    std::string Squid::extractFileName(const std::string& full) {
+        std::string::size_type idx = full.find_last_of("/");
+        if (idx != std::string::npos)
+            return full.substr(idx+1);
+        else return full;
     }
 }

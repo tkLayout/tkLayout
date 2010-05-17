@@ -15,6 +15,8 @@ namespace insur {
     static const int xml_prec = 3;
     static const int xml_roc_rows = 128;
     static const int xml_roc_cols = 1;
+    static const int xml_reco_material_disc_offset = 3;
+    static const double xml_z_pixfwd = 325.0;
     /**
      * XML tags and attributes
      */
@@ -146,7 +148,8 @@ namespace insur {
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_pixbar = "PixelBarrel";
-    //TODO: define pixel forward root name
+    static const std::string xml_pixfwd_plus = "PixelForwardZPlus";
+    static const std::string xml_pixfwd_minus = "PixelForwardZMinus";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
@@ -167,7 +170,7 @@ namespace insur {
     static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
-    static const std::string xml_full_tracker = "FullTracker";//maz be obsolete
+    static const std::string xml_full_tracker = "FullTracker";//may be obsolete
     static const std::string xml_det_layer = "TOBLayer";
     static const std::string xml_det_rod = "TOBRod";
     static const std::string xml_det_tobdet = "TOBDet";
@@ -195,5 +198,7 @@ namespace insur {
      * CMSSW constants
      */
     static const std::string xml_zv3 = "[Zv3]";
+    static const std::string xml_root_radius = "[RootRadius]";
+    static const std::string xml_track_beam_r2 = "[cms:TrackBeamR2]";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
