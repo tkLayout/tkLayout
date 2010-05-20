@@ -451,7 +451,7 @@ namespace insur {
     int MaterialProperties::findExitingIndex(std::string tag) {
         bool found = false;
         int index = 0;
-        while ((index < (int)exitingmasses.size()) && !found) {
+        while (!found && (index < (int)exitingmasses.size())) {
             if (tag.compare(exitingmasses.at(index).first) == 0) found = true;
             else index++;
         }

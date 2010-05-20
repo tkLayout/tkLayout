@@ -49,7 +49,7 @@ namespace insur {
         /**
          * @enum Modtype A list of the possible types (including <i>none</i>) for active volumes
          */
-        enum Modtype { un_mod, rphi, stereo, pt };
+        //enum Modtype { un_mod, rphi, stereo, pt };
         /**
          * @enum Matunit The allowed measurement units for the quantities of material that the config file defines
          */
@@ -59,23 +59,23 @@ namespace insur {
         bool initDone();
         void initDone(bool yes);
         void reset();
-        int getStripsAcross(Modtype type); // throws exception
-        int getSegmentsAlong(Modtype type); // throws exception
-        std::pair<int, int> getDefaultDimensions(Modtype type); // throws exception
-        void addTypeInfo(Modtype type, int strips, int segments);
-        void updateTypeInfoStrips(Modtype type, int strips);
-        void updateTypeInfoSegments(Modtype type, int segments);
-        void addModuleParameters(std::string tag, Modtype type,
+        int getStripsAcross(std::string type); // throws exception
+        int getSegmentsAlong(std::string type); // throws exception
+        std::pair<int, int> getDefaultDimensions(std::string type); // throws exception
+        void addTypeInfo(std::string type, int strips, int segments);
+        void updateTypeInfoStrips(std::string type, int strips);
+        void updateTypeInfoSegments(std::string type, int segments);
+        void addModuleParameters(std::string tag, std::string type,
                 double A, Matunit uA, double B, Matunit uB, double C, Matunit uC, double D, Matunit uD, bool local);
         void addServiceParameters(std::string tag, double Q, Matunit uQ);
         void addServiceParameters(std::string tagIn, double In, Matunit uIn, std::string tagOut, double Out, Matunit uOut, bool local);
         void addSupportParameters(std::string tag, double M, Matunit uM, MaterialProperties::Category cM);
         void clearTypeVector();
         void clearModVectors();
-        void clearModVector(Modtype type);
-        void copyContents(Modtype source, Modtype dest);
-        void appendContents(Modtype source, Modtype dest);
-        bool typeRegistered(Modtype type);
+        void clearModVector(std::string type);
+        void copyContents(std::string source, std::string dest);
+        void appendContents(std::string source, std::string dest);
+        bool typeRegistered(std::string type);
         unsigned int registeredTypes();
         MaterialTable& getMaterialTable();
         virtual bool calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps);
@@ -96,7 +96,7 @@ namespace insur {
          * @param segments_along The number of segments along the module
          */
         struct TypeInfo {
-            Modtype type;
+            std::string type;
             int strips_across;
             int segments_along;
         };
@@ -176,9 +176,10 @@ namespace insur {
          */
         struct MatInfo {
             std::vector<TypeInfo> typeinfo;
-            std::vector<SingleMod> modinforphi;
-            std::vector<SingleMod> modinfostereo;
-            std::vector<SingleMod> modinfopt;
+            //std::vector<SingleMod> modinforphi;
+            //std::vector<SingleMod> modinfostereo;
+            //std::vector<SingleMod> modinfopt;
+            std::map<std::string, std::vector<SingleMod> > modinfo;
             std::vector<SingleSerLocal> serlocalinfo;
             std::vector<SingleSerExit> serexitinfo;
             std::vector<SingleSup> supinfo;
@@ -186,15 +187,15 @@ namespace insur {
         bool init_done;
         MaterialTable mt;
         MatInfo internals;
-        std::vector<SingleMod>& getModVector(Modtype type); // throws exception
-        TypeInfo& getTypeInfoByType(Modtype type); // throws exception
-        SingleMod& getSingleMod(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local); // throws exception
+        std::vector<SingleMod>& getModVector(std::string type); // throws exception
+        TypeInfo& getTypeInfoByType(std::string type); // throws exception
+        SingleMod& getSingleMod(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local); // throws exception
         SingleSerLocal& getSingleSer(std::string tag, Matunit u); // throws exception
         SingleSerExit& getSingleSer(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local); // throws exception
         SingleSup& getSingleSup(std::string tag, Matunit uM, MaterialProperties::Category cM); // throws exception
     private:
-        bool entryExists(Modtype type);
-        bool entryExists(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local);
+        bool entryExists(std::string type);
+        bool entryExists(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local);
         bool entryExists(std:: string tag, Matunit uQ);
         bool entryExists(std::string tag1, std::string tag2, Matunit uIn, Matunit uOut, bool local);
         bool entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM);

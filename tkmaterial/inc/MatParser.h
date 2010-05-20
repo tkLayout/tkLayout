@@ -62,6 +62,7 @@ namespace insur {
     static const std::string msg_invalid_type = "Invalid type description found. Skipping line.";
     static const std::string msg_unknown_type = "Unknown type description found.";
     static const std::string msg_unexpected_type = "Unexpected type description found.";
+    static const std::string msg_type_exists = "Type already registered.";
     static const std::string msg_unknown_unit = "Unknown unit found.";
     static const std::string msg_readparam_failure = "Error reading parameter.";
     static const std::string msg_m_line_err = "Error parsing M entry. Skipping line.";

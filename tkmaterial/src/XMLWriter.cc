@@ -48,11 +48,9 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (s.size() > 0) {
             while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tid) == std::string::npos)) pos++;
-            if ((pos < s.size()) && (s.at(pos).rzup.size() > 0)) {
-                //TODO: add extra (connecting) points
-                //TODO: align all points with pixfwd offsets/coordinate system
-                //out << xml_rzpoint_open << /*radius, first entry or constant*/ << xml_rzpoint_inter;
-                //out << /*z, second entry or constant*/ << xml_rzpoint_close;
+            if ((pos < s.size()) && (s.at(pos).rzup.size() > 0) && (s.at(pos).rzdown.size() > 0)) {
+                out << xml_rzpoint_open << xml_root_radius << xml_rzpoint_inter;
+                out << s.at(pos).rzup.at(0).second << xml_rzpoint_close;
                 for (unsigned int i = 0; i < s.at(pos).rzup.size(); i++) {
                     out << xml_rzpoint_open << s.at(pos).rzup.at(i).first << xml_rzpoint_inter;
                     out << s.at(pos).rzup.at(i).second << xml_rzpoint_close;
@@ -61,8 +59,8 @@ namespace insur {
                     out << xml_rzpoint_open << s.at(pos).rzdown.at(i - 1).first << xml_rzpoint_inter;
                     out << s.at(pos).rzdown.at(i - 1).second << xml_rzpoint_close;
                 }
-                //out << xml_rzpoint_open << /*radius, first entry or constant*/ << xml_rzpoint_inter;
-                //out << /*z, second entry or constant*/ << xml_rzpoint_close;
+                out << xml_rzpoint_open << xml_track_beam_r2 << xml_rzpoint_inter;
+                out << s.at(pos).rzdown.at(0).second << xml_rzpoint_close;
             }
         }
         while (std::getline(in, line)) out << line << std::endl;
@@ -198,20 +196,24 @@ namespace insur {
     void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
-        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
+        // head of file
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        // TOB
+        while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         pos = 0;
+        // TID
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
+        // tail of file
         while (std::getline(in, line)) out << line << std::endl;
     }
     
@@ -224,6 +226,7 @@ namespace insur {
     void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
+        // TOB
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
@@ -232,6 +235,7 @@ namespace insur {
             }
         }
         pos = 0;
+        // TID
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
@@ -239,6 +243,7 @@ namespace insur {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
+        // tail of file
         while (std::getline(in, line)) out << line << std::endl;
     }
     
@@ -592,8 +597,9 @@ namespace insur {
     std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks) { //TODO: adjust to pixel layout
         std::vector<PathInfo>::iterator existing;
         std::string prefix, postfix, spname;
-        std::vector<std::string> paths;
+        std::vector<std::string> paths, tpaths;
         int dindex, rindex, mindex, layer = 0;
+        std::vector<PathInfo> tblocks;
         blocks.clear();
         //TOB
         rindex = findEntry(specs, xml_subdet_rod + xml_par_tail);
@@ -645,46 +651,69 @@ namespace insur {
         rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
         if ((dindex >= 0) && (rindex >= 0)) {
             // disc loop
-            /*for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
-             * std::string dnumber, rnumber;
-             * bool plus;
-             * dnumber = specs.at(dindex).partselectors.at(i).substr(xml_disc.size());
-             * if ((int)specs.at(dindex).partselectors.size() / 2 < atoi(dnumber.c_str())) plus = true;
-             * else plus = false;
-             * layer = atoi(dnumber.c_str());
-             * spname = xml_tid_prefix + dnumber;
-             * if (plus) spname = spname + xml_forward;
-             * else spname = spname + xml_backward;
-             * if (plus) prefix = xml_tidf;
-             * else prefix = xml_tidb;
-             * prefix = prefix + "/" + xml_disc + dnumber;
-             * // ring loop
-             * for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
-             * std::string compstr = specs.at(rindex).partselectors.at(j);
-             * compstr = compstr.substr(compstr.size() - specs.at(dindex).partselectors.at(i).size());
-             * // matching discs
-             * if (specs.at(dindex).partselectors.at(i).compare(compstr) == 0) {
-             * rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
-             * rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
-             * postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
-             * postfix = postfix + "/" + postfix + xml_base_waf + "/" + postfix + xml_base_act;
-             * postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
-             * paths.push_back(prefix + "/" + postfix);
-             * }
-             * }
-             * existing = findEntry(spname, blocks);
-             * if (existing != blocks.end()) existing->second.insert(existing->second.end(), paths.begin(), paths.end());
-             * else {
-             * PathInfo pi;
-             * pi.block_name = spname;
-             * pi.layer = layer;
-             * pi.barrel = false;
-             * pi.paths = paths;
-             * blocks.push_back(pi);
-             *}
-             * paths.clear();
-             * }*/
+            for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
+                std::string& dcurrent = specs.at(dindex).partselectors.at(i);
+                bool plus = (dcurrent.size() >= xml_plus.size())
+                && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
+                std::string dnumber, rnumber;
+                dnumber = dcurrent.substr(xml_disc.size());
+                if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
+                else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
+                std::ostringstream index;
+                index << (xml_reco_material_disc_offset + i / 2);
+                layer = atoi(dnumber.c_str());
+                spname = xml_tid_prefix + index.str();
+                if (plus) spname = spname + xml_forward;
+                else spname = spname + xml_backward;
+                if (plus) prefix = xml_pixfwd_plus;
+                else prefix = xml_pixfwd_minus;
+                prefix = prefix + "/" + dcurrent + "[" + index.str() +"]";
+                // ring loop
+                for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
+                    std::string compstr = specs.at(rindex).partselectors.at(j);
+                    compstr = compstr.substr(compstr.size() - dnumber.size());
+                    // matching discs
+                    if (dnumber.compare(compstr) == 0) {
+                        rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
+                        rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
+                        postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+                        postfix = postfix + "/" + postfix + xml_base_waf + "/" + postfix + xml_base_act;
+                        postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
+                        if (plus) paths.push_back(prefix + "/" + postfix);
+                        else tpaths.push_back(prefix + "/" + postfix);
+                    }
+                }
+                if (plus) {
+                    existing = findEntry(spname, blocks);
+                }
+                else {
+                    existing = findEntry(spname, tblocks);
+                }
+                if (plus && (existing != blocks.end())) {
+                    existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
+                }
+                else if (!plus && (existing != tblocks.end())) {
+                    existing->paths.insert(existing->paths.end(), tpaths.begin(), tpaths.end());
+                }
+                else {
+                    PathInfo pi;
+                    pi.block_name = spname;
+                    pi.layer = layer;
+                    pi.barrel = false;
+                    if (plus) {
+                        pi.paths = paths;
+                        blocks.push_back(pi);
+                    }
+                    else {
+                        pi.paths = tpaths;
+                        tblocks.push_back(pi);
+                    }
+                }
+                paths.clear();
+                tpaths.clear();
+            }
         }
+        blocks.insert(blocks.end(), tblocks.begin(), tblocks.end());
         return blocks;
     }
     

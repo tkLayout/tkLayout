@@ -367,7 +367,7 @@ namespace insur {
             
             // Summary and save
             tr->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
-            tr->printBarrelModuleZ();
+            //tr->printBarrelModuleZ();
             tr->save();
             
             myDirectory = tr->getActiveDirectory();

@@ -97,37 +97,20 @@ namespace insur {
                     else if (word.compare(type_marker) == 0) {
                         // extract module type
                         word = getValue(line, false);
-                        // set module type to single sided
-                        if (word.compare(type_rphi) == 0) {
-                            if (type.empty() || ((calc.registeredTypes() == 1) && (type.compare(type_pt)))) {
+                        // set module type is stereo (special case)
+                        if (word.compare(type_stereo) == 0) {
+                            if (calc.typeRegistered(type_rphi)) {
                                 type = word;
-                                // extract the number of strips and segments from the type definition
-                                std::string strips, segs;
-                                if (parseStripsSegs(infilestream, strips, segs)) {
-                                    int chips, segments;
-                                    chips = atoi(strips.c_str());
-                                    segments = atoi(segs.c_str());
-                                    // record type, strips and segments in an internal data structure
-                                    calc.addTypeInfo(MatCalc::rphi, chips, segments);
-                                }
-                                else std::cerr << msg_readparam_failure << std::endl;
-                            }
-                            else std::cerr << msg_unexpected_type << std::endl;
-                        }
-                        // set module type to double sided
-                        else if (word.compare(type_stereo) == 0) {
-                            if (((calc.registeredTypes() > 1) && (type.compare(type_pt) == 0)) || (type.compare(type_rphi) == 0)) {
-                                type = word;
-                                // copy the existing material information from single sided to double sided as it forms the basis
-                                calc.copyContents(MatCalc::rphi, MatCalc::stereo);
                                 // record type, strips and segments in an internal data structure
-                                calc.addTypeInfo(MatCalc::stereo, calc.getStripsAcross(MatCalc::rphi), calc.getSegmentsAlong(MatCalc::rphi));
+                                calc.addTypeInfo(type, calc.getStripsAcross(type_rphi), calc.getSegmentsAlong(type_rphi));
+                                // copy the existing material information from single sided to double sided as it forms the basis
+                                calc.copyContents(type_rphi, type);
                             }
-                            else std::cerr << msg_unexpected_type << std::endl;
+                            else std::cerr << "MatParser::readParameters(): " << msg_unexpected_type << std::endl;
                         }
-                        // set module type to pt
-                        else if (word.compare(type_pt) == 0) {
-                            if (!calc.typeRegistered(MatCalc::pt)) {
+                        // independent module type
+                        else {
+                            if (!calc.typeRegistered(word)) {
                                 type = word;
                                 // extract the number of strips and segments from the type definition
                                 std::string strips, segs;
@@ -136,18 +119,11 @@ namespace insur {
                                     chips = atoi(strips.c_str());
                                     segments = atoi(segs.c_str());
                                     // record type, strips and segments in an internal data structure
-                                    calc.addTypeInfo(MatCalc::pt, chips, segments);
+                                    calc.addTypeInfo(type, chips, segments);
                                 }
-                                else std::cerr << msg_readparam_failure << std::endl;
+                                else std::cerr << "MatParser::readParameters(): " << msg_readparam_failure << std::endl;
                             }
-                            else std::cerr << msg_unexpected_type << std::endl;
-                        }
-                        // unknown module type
-                        else {
-                            std::cerr << msg_unknown_type << std::endl;
-                            calc.clearTypeVector();
-                            calc.clearModVectors();
-                            return false;
+                            else std::cerr << "MatParser::readParameters(): " << msg_type_exists << std::endl;
                         }
                     }
                     // line defining a module material
@@ -184,7 +160,7 @@ namespace insur {
                     }
                     // confusing line
                     else if (!line.empty()) {
-                        std::cerr << "Confusion detected...skipping line '" << line << "'." << std::endl;
+                        std::cerr << "MatParser::readParameters(): Confusion detected...skipping line '" << line << "'." << std::endl;
                         break;
                     }
                     word.clear();
@@ -193,19 +169,19 @@ namespace insur {
                 return true;
             }
             catch (bfs::filesystem_error& bfe) {
-                std::cerr << bfe.what() << std::endl;
+                std::cerr << "MatParser::readParameters(): " << bfe.what() << std::endl;
                 calc.clearTypeVector();
                 calc.clearModVectors();
                 return false;
             }
             catch (std::bad_alloc& ba) {
-                std::cerr << ba.what() << std::endl;
+                std::cerr << "MatParser::readParameters(): " << ba.what() << std::endl;
                 calc.clearTypeVector();
                 calc.clearModVectors();
                 return false;
             }
         }
-        else std::cerr << msg_no_mat_file << std::endl;
+        else std::cerr << "MatParser::readParameters(): " << msg_no_mat_file << std::endl;
         calc.clearTypeVector();
         calc.clearModVectors();
         return false;
@@ -329,13 +305,13 @@ namespace insur {
         else if (tmp.compare(exit_marker) == 0) local = false;
         else return false;
         // convert module type from input parameter
-        MatCalc::Modtype tp;
-        if (type.compare(type_rphi) == 0) tp = MatCalc::rphi;
-        else if (type.compare(type_stereo) == 0) tp = MatCalc::stereo;
-        else if (type.compare(type_pt) == 0) tp = MatCalc::pt;
-        else return false;
+        /*MatCalc::Modtype tp;
+         * if (type.compare(type_rphi) == 0) tp = MatCalc::rphi;
+         * else if (type.compare(type_stereo) == 0) tp = MatCalc::stereo;
+         * else if (type.compare(type_pt) == 0) tp = MatCalc::pt;
+         * else return false;*/
         // record material parameters, units and marker in an internal data structure
-        calc.addModuleParameters(tag, tp, A, uA, B, uB, C, uC, D, uD, local);
+        calc.addModuleParameters(tag, type, A, uA, B, uB, C, uC, D, uD, local);
         return true;
     }
     

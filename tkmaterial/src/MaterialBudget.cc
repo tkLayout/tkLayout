@@ -168,7 +168,7 @@ namespace insur {
         std::cout << "Average module radiation length in barrels: " << (ar / (double)d) << std::endl;
         std::cout << "Average module interaction length in barrels: " << (ai / (double)d) << std::endl;
         for (unsigned int i = 0; i < capsbarrelmods.size(); i++) {
-            std::cout << "Sample boundary module in layer " << i << ":" << std::endl;
+            std::cout << "Sample boundary module in layer " << (i + 1) << ":" << std::endl;
             try {
                 capsbarrelmods.at(i).at(onBoundary(capsbarrelmods, i)).print();
             }

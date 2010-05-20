@@ -23,9 +23,10 @@ namespace insur {
      */
     void MatCalc::reset() {
         internals.typeinfo.clear();
-        internals.modinforphi.clear();
-        internals.modinfostereo.clear();
-        internals.modinfopt.clear();
+        //internals.modinforphi.clear();
+        //internals.modinfostereo.clear();
+        //internals.modinfopt.clear();
+        internals.modinfo.clear();
         internals.serlocalinfo.clear();
         internals.serexitinfo.clear();
         internals.supinfo.clear();
@@ -38,7 +39,7 @@ namespace insur {
      * @param type The module type for the requested value
      * @return The default number of strips across a module
      */
-    int MatCalc::getStripsAcross(Modtype type) {
+    int MatCalc::getStripsAcross(std::string type) {
         try {
             TypeInfo& info = getTypeInfoByType(type);
             return info.strips_across;
@@ -55,7 +56,7 @@ namespace insur {
      * @param type The module type for the requested value
      * @return The default number of segments along a module
      */
-    int MatCalc::getSegmentsAlong(Modtype type) {
+    int MatCalc::getSegmentsAlong(std::string type) {
         try {
             TypeInfo& info = getTypeInfoByType(type);
             return info.segments_along;
@@ -72,7 +73,7 @@ namespace insur {
      * @param type The module type for the requested value
      * @return The default number of strips across and segments along a module, bundled into a <i>std::pair</i>
      */
-    std::pair<int, int> MatCalc::getDefaultDimensions(Modtype type) {
+    std::pair<int, int> MatCalc::getDefaultDimensions(std::string type) {
         try {
             std::pair<int, int> result;
             TypeInfo& info = getTypeInfoByType(type);
@@ -92,13 +93,17 @@ namespace insur {
      * @param strips The default number of strips across the module
      * @param segments The default number of segments along the module
      */
-    void MatCalc::addTypeInfo(Modtype type, int strips, int segments) {
+    void MatCalc::addTypeInfo(std::string type, int strips, int segments) {
         if (!entryExists(type)) {
             TypeInfo info;
             info.type = type;
             info.strips_across = strips;
             info.segments_along = segments;
             internals.typeinfo.push_back(info);
+            if (internals.modinfo.find(type) == internals.modinfo.end()) {
+                std::vector<SingleMod> tmp;
+                internals.modinfo.insert(std::pair<std::string, std::vector<SingleMod> >(type, tmp));
+            }
         }
     }
     
@@ -107,7 +112,7 @@ namespace insur {
      * @param type The type of the module that needs to be changed
      * @param strips The new default number of strips across a module
      */
-    void MatCalc::updateTypeInfoStrips(Modtype type, int strips) {
+    void MatCalc::updateTypeInfoStrips(std::string type, int strips) {
         if (entryExists(type)) {
             try {
                 TypeInfo& info = getTypeInfoByType(type);
@@ -124,7 +129,7 @@ namespace insur {
      * @param type The type of the module that needs to be changed
      * @param segments The new default number of segments along a module
      */
-    void MatCalc::updateTypeInfoSegments(Modtype type, int segments) {
+    void MatCalc::updateTypeInfoSegments(std::string type, int segments) {
         if (entryExists(type)) {
             try {
                 TypeInfo& info = getTypeInfoByType(type);
@@ -152,7 +157,7 @@ namespace insur {
      *@param uD The unit of parameter <i>D</i>
      * @param local A flag indicating whether the amounts as a whole will be treated as local or as exiting the module later
      */
-    void MatCalc::addModuleParameters(std::string tag, Modtype type,
+    void MatCalc::addModuleParameters(std::string tag, std::string type,
             double A, Matunit uA, double B, Matunit uB, double C, Matunit uC, double D, Matunit uD, bool local) {
         try {
             if (!entryExists(tag, type, uA, uB, uC, uD, local)) {
@@ -272,16 +277,20 @@ namespace insur {
      * Reset the vectors containing the material information for the three module types.
      */
     void MatCalc::clearModVectors() {
-        internals.modinforphi.clear();
-        internals.modinfostereo.clear();
-        internals.modinfopt.clear();
+        std::map<std::string, std::vector<SingleMod> >::iterator iter, guard = internals.modinfo.end();
+        for (iter = internals.modinfo.begin(); iter != guard; iter++) {
+            iter->second.clear();
+        }
+        //internals.modinforphi.clear();
+        //internals.modinfostereo.clear();
+        //internals.modinfopt.clear();
     }
     
     /**
      * Reset a module info vector of a given type.
      * @param type The type indentifier of the vector that needs to be cleared
      */
-    void MatCalc::clearModVector(Modtype type) {
+    void MatCalc::clearModVector(std::string type) {
         try {
             std::vector<SingleMod>& vect = getModVector(type);
             vect.clear();
@@ -296,7 +305,7 @@ namespace insur {
      * @param source The type of the source vector
      * @param dest The type of the destination vector
      */
-    void MatCalc::copyContents(Modtype source, Modtype dest) {
+    void MatCalc::copyContents(std::string source, std::string dest) {
         clearModVector(dest);
         appendContents(source, dest);
     }
@@ -306,15 +315,15 @@ namespace insur {
      * @param source The type of the source vector
      * @param dest The type of the destination vector
      */
-    void MatCalc::appendContents(Modtype source, Modtype dest) {
-        if (source != dest) {
+    void MatCalc::appendContents(std::string source, std::string dest) {
+        if (source.compare(dest) != 0) {
             try {
                 std::vector<SingleMod>& in = getModVector(source);
                 std::vector<SingleMod>& out = getModVector(dest);
                 std::copy(in.begin(), in.end(), std::back_inserter(out));
             }
             catch(std::range_error& re) {
-                std::cout << "MatCalc::appendContents(): " << re.what() << std::endl;
+                std::cerr << "MatCalc::appendContents(): " << re.what() << std::endl;
             }
         }
     }
@@ -324,11 +333,11 @@ namespace insur {
      * @param type The identifier used to query the collection of type info entries
      * @return True if the given module type appears in the <i>typeinfo</i> vector, false otherwise
      */
-    bool MatCalc::typeRegistered(Modtype type) {
+    bool MatCalc::typeRegistered(std::string type) {
         std::vector<TypeInfo>::const_iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::const_iterator guard = internals.typeinfo.end();
         while (iter != guard) {
-            if (iter->type == type) return true;
+            if (type.compare(iter->type) == 0) return true;
             else iter++;
         }
         return false;
@@ -360,15 +369,16 @@ namespace insur {
         // layer loop
         for (unsigned int i = 0; i < barrelcaps.size(); i++) {
             if (barrelcaps.at(i).size() > 0) {
-                Modtype mtype;
+                std::string mtype;
                 // determine layer type
-                if (barrelcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtype = rphi;
-                else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtype = stereo;
-                else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtype = pt;
-                else {
-                    std::cerr << err_unknown_type << " " << msg_abort << std::endl;
-                    return false;
-                }
+                /*if (barrelcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtype = rphi;
+                 * else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtype = stereo;
+                 * else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtype = pt;
+                 * else {
+                 * std::cerr << err_unknown_type << " " << msg_abort << std::endl;
+                 * return false;
+                 * }*/
+                mtype = barrelcaps.at(i).at(0).getModule().getType();
                 try {
                     // calculate multipliers for strips and segments
                     double stripseg_scalar = (double)barrelcaps.at(i).at(0).getModule().getNStripsAcross() / (double)getStripsAcross(mtype);
@@ -436,7 +446,7 @@ namespace insur {
                     int rindex;
                     std::vector<int> mods;
                     std::vector<double> stripseg_scalars;
-                    std::vector<Modtype> mtypes;
+                    std::vector<std::string> mtypes;
                     std::vector<std::list<int> > modinrings;
                     // module loop for ring types and multipliers for strips and segments
                     for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
@@ -448,23 +458,24 @@ namespace insur {
                         mods.at(rindex - 1) = mods.at(rindex - 1) + 1;
                         // collect ring types
                         if ((int)mtypes.size() < rindex) {
-                            while ((int)mtypes.size() < rindex) mtypes.push_back(un_mod);
+                            while ((int)mtypes.size() < rindex) mtypes.push_back("");
                         }
-                        if (mtypes.at(rindex - 1) == un_mod) {
-                            if (endcapcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtypes.at(rindex - 1) = rphi;
-                            else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtypes.at(rindex - 1) = stereo;
-                            else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtypes.at(rindex - 1) = pt;
-                            else {
-                                std::cerr << err_unknown_type << " Encountered type value '" << endcapcaps.at(i).at(j).getModule().getType() << "'" << std::endl;
-                                return false;
-                            }
+                        if (mtypes.at(rindex - 1).empty()) {
+                            /*if (endcapcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtypes.at(rindex - 1) = rphi;
+                             * else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtypes.at(rindex - 1) = stereo;
+                             * else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtypes.at(rindex - 1) = pt;
+                             * else {
+                             * std::cerr << err_unknown_type << " Encountered type value '" << endcapcaps.at(i).at(j).getModule().getType() << "'" << std::endl;
+                             * return false;
+                             * }*/
+                            mtypes.at(rindex - 1) = endcapcaps.at(i).at(0).getModule().getType();
                         }
                         // collect multipliers for strips and segments
                         if ((int)stripseg_scalars.size() < rindex) {
                             while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
                         }
                         if (stripseg_scalars.at(rindex - 1) == 0.0) {
-                            if (mtypes.at(rindex - 1) != un_mod) {
+                            if (!mtypes.at(rindex - 1).empty()) {
                                 stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNSegments();
@@ -758,23 +769,32 @@ namespace insur {
                 std::cout << "Type " << iter->type << ": " << iter->strips_across << " strips across, ";
                 std::cout << iter->segments_along << " segments along." << std::endl;
             }
-            std::cout << std::endl << "Number of rphi materials found: " << internals.modinforphi.size() << std::endl;
-            for (std::vector<SingleMod>::const_iterator iter = internals.modinforphi.begin(); iter != internals.modinforphi.end(); iter++) {
-                std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-                std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-                std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-            }
-            std::cout << std::endl << "Number of stereo materials found: " << internals.modinfostereo.size() << std::endl;
-            for (std::vector<SingleMod>::const_iterator iter = internals.modinfostereo.begin(); iter != internals.modinfostereo.end(); iter++) {
-                std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-                std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-                std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-            }
-            std::cout << std::endl << "Number of pt materials found: " << internals.modinfopt.size() << std::endl;
-            for (std::vector<SingleMod>::const_iterator iter = internals.modinfopt.begin(); iter != internals.modinfopt.end(); iter++) {
-                std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-                std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-                std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+            /*std::cout << std::endl << "Number of rphi materials found: " << internals.modinforphi.size() << std::endl;
+             * for (std::vector<SingleMod>::const_iterator iter = internals.modinforphi.begin(); iter != internals.modinforphi.end(); iter++) {
+             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
+             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
+             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+             * }
+             * std::cout << std::endl << "Number of stereo materials found: " << internals.modinfostereo.size() << std::endl;
+             * for (std::vector<SingleMod>::const_iterator iter = internals.modinfostereo.begin(); iter != internals.modinfostereo.end(); iter++) {
+             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
+             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
+             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+             * }
+             * std::cout << std::endl << "Number of pt materials found: " << internals.modinfopt.size() << std::endl;
+             * for (std::vector<SingleMod>::const_iterator iter = internals.modinfopt.begin(); iter != internals.modinfopt.end(); iter++) {
+             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
+             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
+             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+             * }*/
+            std::map<std::string, std::vector<SingleMod> >::const_iterator i, g = internals.modinfo.end();
+            for (i = internals.modinfo.begin(); i != g; i++) {
+                std::cout << "Number of type " << i->first << " materials found: " << i->second.size() << std::endl;
+                for (std::vector<SingleMod>::const_iterator iter = i->second.begin(); iter != i->second.end(); iter++) {
+                    std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
+                    std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
+                    std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+                }
             }
             std::cout << std::endl << "Number of parsed entries for local services: " << internals.serlocalinfo.size() << std::endl;
             for (std::vector<SingleSerLocal>::const_iterator iter = internals.serlocalinfo.begin(); iter != internals.serlocalinfo.end(); iter++) {
@@ -800,12 +820,13 @@ namespace insur {
      * @param type The module type of the requested info vector
      * @return A reference to the requested module info vector
      */
-    std::vector<MatCalc::SingleMod>& MatCalc::getModVector(Modtype type) { // throws exception
-        switch(type) {
-            case rphi : return internals.modinforphi;
-            case stereo : return internals.modinfostereo;
-            case pt : return internals.modinfopt;
-            default : throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
+    std::vector<MatCalc::SingleMod>& MatCalc::getModVector(std::string type) { // throws exception
+        std::map<std::string, std::vector<SingleMod> >::iterator res = internals.modinfo.find(type);
+        if (res != internals.modinfo.end()) {
+            return res->second;
+        }
+        else {
+            throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
         }
     }
     
@@ -815,7 +836,7 @@ namespace insur {
      * @param type The module type of the requested vector entry
      * @return A reference to the requested module type information
      */
-    MatCalc::TypeInfo& MatCalc::getTypeInfoByType(Modtype type) { // throws exception
+    MatCalc::TypeInfo& MatCalc::getTypeInfoByType(std::string type) { // throws exception
         std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
         while (iter != guard) {
@@ -837,7 +858,8 @@ namespace insur {
      * @param local A flag indicating whether the material in question is local or exiting
      * @return A reference to the requested entry
      */
-    MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
+    MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag,
+            std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
         std::vector<SingleMod>& vect = getModVector(type);
         std::vector<SingleMod>::iterator iter = vect.begin();
         while (iter != vect.end()) {
@@ -916,11 +938,11 @@ namespace insur {
      * @param type The requested module type
      * @return True if such an entry exists, false otherwise
      */
-    bool MatCalc::entryExists(Modtype type) {
+    bool MatCalc::entryExists(std::string type) {
         std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
         std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
         while (iter != guard) {
-            if (iter->type == type) return true;
+            if (type.compare(iter->type) == 0) return true;
             iter++;
         }
         return false;
@@ -937,7 +959,7 @@ namespace insur {
      * @param local A flag indicating whether the material in question is local or exiting
      * @return True if such an entry exists, false otherwise
      */
-    bool MatCalc::entryExists(std::string tag, Modtype type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
+    bool MatCalc::entryExists(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
         try {
             std::vector<SingleMod>& vect = getModVector(type);
             std::vector<SingleMod>::const_iterator iter = vect.begin();
@@ -1109,8 +1131,8 @@ namespace insur {
                 else dest.addExitingMass(eiter->tagOut, r * Out);
             }
             catch (std::runtime_error& re) {
-                std::cout << "MatCalc::adjacentDifferentCategory(): " << err_no_material << msg_ignore_tag << eiter->tagIn << "." << std::endl;
-                std::cout << "MatCalc::adjacentDifferentCategory(): exception was: " << re.what() << std::endl;
+                std::cerr << "MatCalc::adjacentDifferentCategory(): " << err_no_material << msg_ignore_tag << eiter->tagIn << "." << std::endl;
+                std::cerr << "MatCalc::adjacentDifferentCategory(): exception was: " << re.what() << std::endl;
             }
         }
     }
