@@ -369,55 +369,119 @@ namespace insur {
         // layer loop
         for (unsigned int i = 0; i < barrelcaps.size(); i++) {
             if (barrelcaps.at(i).size() > 0) {
-                std::string mtype;
-                // determine layer type
-                /*if (barrelcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtype = rphi;
-                 * else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtype = stereo;
-                 * else if(barrelcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtype = pt;
-                 * else {
-                 * std::cerr << err_unknown_type << " " << msg_abort << std::endl;
-                 * return false;
-                 * }*/
-                mtype = barrelcaps.at(i).at(0).getModule().getType();
                 try {
-                    // calculate multipliers for strips and segments
-                    double stripseg_scalar = (double)barrelcaps.at(i).at(0).getModule().getNStripsAcross() / (double)getStripsAcross(mtype);
-                    stripseg_scalar = stripseg_scalar * (double)barrelcaps.at(i).at(0).getModule().getNSegments() / (double)getSegmentsAlong(mtype);
-                    // module loop
+                    int rindex;
+                    std::vector<double> stripseg_scalars;
+                    std::vector<std::string> mtypes;
+                    std::vector<std::list<int> > modinrings;
+                    // module loop for ring types and multipliers for strips and segments
                     for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
-                        std::vector<SingleMod>& vect = getModVector(mtype);
-                        std::vector<SingleMod>::const_iterator guard = vect.end();
-                        std::vector<SingleMod>::const_iterator iter;
-                        int index = barrelcaps.at(i).at(j).getModule().getRing(); // assuming physicists' counting scheme: starting at 1!!!
-                        // materials loop
-                        for (iter = vect.begin(); iter != guard; iter++) {
+                        // ring index of current module
+                        rindex = barrelcaps.at(i).at(j).getModule().getRing();
+                        // collect ring types
+                        if ((int)mtypes.size() < rindex) {
+                            while ((int)mtypes.size() < rindex) mtypes.push_back("");
+                        }
+                        if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().getType();
+                        // collect multipliers for strips and segments
+                        if ((int)stripseg_scalars.size() < rindex) {
+                            while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
+                        }
+                        if (stripseg_scalars.at(rindex - 1) == 0.0) {
+                            if (!mtypes.at(rindex - 1).empty()) {
+                                stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
+                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
+                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNSegments();
+                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
+                            }
+                        }
+                        // record module indices per ring
+                        if ((int)modinrings.size() < rindex) {
+                            while ((int)modinrings.size() < rindex) {
+                                std::list<int> tmp;
+                                modinrings.push_back(tmp);
+                            }
+                        }
+                        modinrings.at(rindex - 1).push_back(j);
+                    }
+                    // ring loop
+                    for (int j = 0; j < rindex; j++) {
+                        if (!modinrings.at(j).empty()) {
                             double A, B, C, D;
                             double density, surface, length;
-                            // measurements for unit conversion
-                            density = mt.getMaterial(iter->tag).density;
-                            surface = barrelcaps.at(i).at(j).getSurface();
-                            length = barrelcaps.at(i).at(j).getModule().getHeight();
-                            // unit conversion per parameter (internal unit is grams)
-                            if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
-                            else A = convert(iter->A, iter->uA, density, surface);
-                            if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
-                            else B = convert(iter->B, iter->uB, density, surface);
-                            if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
-                            else C = convert(iter->C, iter->uC, density, surface);
-                            if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
-                            else D = convert(iter->D, iter->uD, density, surface);
-                            // parameter scaling
-                            A = A * stripseg_scalar * (double)(index - 1);
-                            B = B * stripseg_scalar;
-                            C = C * (double)(index - 1);
-                            // save converted and scaled material
-                            if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, A + B + C + D);
-                            else barrelcaps.at(i).at(j).addExitingMass(iter->tag, A + B + C + D);
+                            std::list<int>::iterator first = modinrings.at(j).begin();
+                            std::list<int>::iterator start = modinrings.at(j).begin(); start++;
+                            std::list<int>::iterator stop = modinrings.at(j).end();
+                            surface = barrelcaps.at(i).at(*first).getSurface();
+                            if (surface < 0) {
+                                std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << j;
+                                std::cerr << " with index " << *first << " within the layer. " << msg_abort << std::endl;
+                                return false;
+                            }
+                            else {
+                                length = barrelcaps.at(i).at(*first).getModule().getHeight();
+                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                                std::vector<SingleMod>::const_iterator guard = vect.end();
+                                std::vector<SingleMod>::const_iterator iter;
+                                // materials loop
+                                for (iter = vect.begin(); iter != guard; iter++) {
+                                    // measurement for unit conversion
+                                    density = mt.getMaterial(iter->tag).density;
+                                    // unit conversion per parameter (internal unit is grammes)
+                                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
+                                    else B = convert(iter->B, iter->uB, density, surface);
+                                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
+                                    else D = convert(iter->D, iter->uD, density, surface);
+                                    // parameter scaling
+                                    B = B * stripseg_scalars.at(j);
+                                    // save converted and scaled material
+                                    if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, B + D);
+                                    else barrelcaps.at(i).at(j).addExitingMass(iter->tag, B + D);
+                                }
+                                //accumulation of travelling parameters for outer rings
+                                if (j > 0) {
+                                    // inner rings accumulation loop
+                                    for (int k = 0; k < j; k++) {
+                                        surface = barrelcaps.at(i).at(modinrings.at(k).front()).getSurface();
+                                        if (surface < 0) {
+                                            std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << k;
+                                            std::cerr << " with index " << modinrings.at(k).front() << " within the layer. " << msg_abort << std::endl;
+                                            return false;
+                                        }
+                                        else {
+                                            length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                                            std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
+                                            std::vector<SingleMod>::const_iterator iter, guard = vect.end();
+                                            for (iter = vect.begin(); iter != guard; iter++) {
+                                                // measurement for unit conversion
+                                                density = mt.getMaterial(iter->tag).density;
+                                                // unit conversion per parameter (internal unit is grammes)
+                                                if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
+                                                else A = convert(iter->A, iter->uA, density, surface);
+                                                if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
+                                                else C = convert(iter->C, iter->uC, density, surface);
+                                                // parameter scaling
+                                                A = A * stripseg_scalars.at(k);
+                                                // save converted and scaled material
+                                                if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, A + C);
+                                                else barrelcaps.at(i).at(j).addExitingMass(iter->tag, A + C);
+                                            }
+                                        }
+                                    }
+                                }
+                                // use recorded materials to calculate material properties for every module in current ring
+                                barrelcaps.at(i).at(*first).calculateTotalMass();
+                                barrelcaps.at(i).at(*first).calculateRadiationLength(mt);
+                                barrelcaps.at(i).at(*first).calculateInteractionLength(mt);
+                                while (start != stop) {
+                                    barrelcaps.at(i).at(*first).copyMassVectors(barrelcaps.at(i).at(*start));
+                                    barrelcaps.at(i).at(*start).calculateTotalMass();
+                                    barrelcaps.at(i).at(*start).calculateRadiationLength(mt);
+                                    barrelcaps.at(i).at(*start).calculateInteractionLength(mt);
+                                    start++;
+                                }
+                            }
                         }
-                        // use recorded materials to calculate material properties
-                        barrelcaps.at(i).at(j).calculateTotalMass();
-                        barrelcaps.at(i).at(j).calculateRadiationLength(mt);
-                        barrelcaps.at(i).at(j).calculateInteractionLength(mt);
                     }
                 }
                 catch(std::range_error& re) {
@@ -460,16 +524,7 @@ namespace insur {
                         if ((int)mtypes.size() < rindex) {
                             while ((int)mtypes.size() < rindex) mtypes.push_back("");
                         }
-                        if (mtypes.at(rindex - 1).empty()) {
-                            /*if (endcapcaps.at(i).at(0).getModule().getType().compare(type_rphi) == 0) mtypes.at(rindex - 1) = rphi;
-                             * else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_stereo) == 0) mtypes.at(rindex - 1) = stereo;
-                             * else if(endcapcaps.at(i).at(0).getModule().getType().compare(type_pt) == 0) mtypes.at(rindex - 1) = pt;
-                             * else {
-                             * std::cerr << err_unknown_type << " Encountered type value '" << endcapcaps.at(i).at(j).getModule().getType() << "'" << std::endl;
-                             * return false;
-                             * }*/
-                            mtypes.at(rindex - 1) = endcapcaps.at(i).at(0).getModule().getType();
-                        }
+                        if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().getType();
                         // collect multipliers for strips and segments
                         if ((int)stripseg_scalars.size() < rindex) {
                             while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
@@ -510,11 +565,10 @@ namespace insur {
                             else {
                                 length = endcapcaps.at(i).at(*first).getModule().getHeight();
                                 std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
-                                std::vector<SingleMod>::const_iterator guard = vect.end();
-                                std::vector<SingleMod>::const_iterator iter;
+                                std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                                 // materials loop
                                 for (iter = vect.begin(); iter != guard; iter++) {
-                                    // unit conversion per parameter (internal unit is grams)
+                                    // unit conversion per parameter (internal unit is grammes)
                                     density = mt.getMaterial(iter->tag).density;
                                     if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
                                     else B = convert(iter->B, iter->uB, density, surface);
@@ -534,17 +588,17 @@ namespace insur {
                                             surface = endcapcaps.at(i).at(modinrings.at(k).front()).getSurface();
                                             if (surface < 0) {
                                                 std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << k;
-                                                std::cerr << " with index " << *first << " within the disc. " << msg_abort << std::endl;
+                                                std::cerr << " with index " << modinrings.at(k).front() << " within the disc. " << msg_abort << std::endl;
                                                 return false;
                                             }
                                             else {
                                                 length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
-                                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                                                std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                                                 std::vector<SingleMod>::const_iterator guard = vect.end();
                                                 std::vector<SingleMod>::const_iterator iter;
                                                 // materials loop
                                                 for (iter = vect.begin(); iter != guard; iter++) {
-                                                    // unit conversion per parameter (internal unit is grams)
+                                                    // unit conversion per parameter (internal unit is grammes)
                                                     density = mt.getMaterial(iter->tag).density;
                                                     if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
                                                     else A = convert(iter->A, iter->uA, density, surface);
@@ -737,7 +791,7 @@ namespace insur {
                 // materials loop
                 for (iter = internals.supinfo.begin(); iter != guard; iter++) {
                     if (iter->cM == supports.at(i).getCategory()) {
-                        // unit conversion (internal unit is grams)
+                        // unit conversion (internal unit is grammes)
                         double M;
                         if (iter->uM == grpm) M = convert(iter->M, iter->uM, length);
                         else M = convert(iter->M, iter->uM, mt.getMaterial(iter->tag).density, surface);
@@ -1097,7 +1151,7 @@ namespace insur {
         std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
         // materials loop
         for (liter = internals.serlocalinfo.begin(); liter != lguard; liter++) {
-            // unit conversion (internal unit is grams)
+            // unit conversion (internal unit is grammes)
             double Q;
             if (liter->uQ == grpm) Q = convert(liter->Q, liter->uQ, l);
             else Q = convert(liter->Q, liter->uQ, mt.getMaterial(liter->tag).density, s);
@@ -1119,7 +1173,7 @@ namespace insur {
         // materials loop
         for (eiter = internals.serexitinfo.begin(); eiter != eguard; eiter++) {
             try {
-                // unit conversion per parameter (internal unit is grams)
+                // unit conversion per parameter (internal unit is grammes)
                 double In, Out;
                 if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
                 else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
