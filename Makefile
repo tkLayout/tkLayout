@@ -10,10 +10,13 @@ LIBDIR=lib
 
 COMP=g++ -Wall $(INCLUDEFLAGS)
 
-all: tkLayout testObj Gui 
+all: tkLayout testObj
 
 Gui:
 	cd gui && qmake tkgeomgui.pro && make && cd ..
+
+$(LIBDIR)/hit.o:	src/hit.cpp include/hit.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o src/hit.cpp
 
 $(LIBDIR)/configparser.o:	src/configparser.cpp include/configparser.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/configparser.o src/configparser.cpp

@@ -1226,6 +1226,9 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     std::ostringstream tag;
     
     for (nRing=1; lastRho<maxRadius; nRing++) {
+        // Ring parity is 1, -1, 1, -1 for
+        //      nRing=    1,  2, 3,  4
+        // if diskParity==1 and the opposite, otherwise
         ringParity = diskParity*(((nRing%2)*2)-1);
         
         sampleModule->setRing(nRing);

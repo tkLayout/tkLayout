@@ -36,6 +36,35 @@ double diffclock(clock_t clock1, clock_t clock2) {
 // comparators
 bool smallerRho(Layer* l1, Layer* l2) { return l1->getMinRho() < l2->getMinRho(); }
 bool smallerZ(Layer* l1, Layer* l2) { return l1->getMinZ() < l2->getMinZ(); }
+// Endcap Module sorting for vectors
+// Returns true if m1 is "lower" than m2
+bool moduleSortEndcapStyle(const Module* m1, const Module* m2) {
+  XYZVector position[2];
+  int radius_mm[2];
+  int phi_deg[2];
+
+  // Put position in a comfortable array
+  position[0] = m1->getMeanPoint();
+  position[1] = m2->getMeanPoint();
+
+  // First sort on radius (mm precision)
+  for (int i=0; i<2; ++i) {
+    radius_mm[i] = int(position[i].Rho());
+  }
+  if (radius_mm[0]<radius_mm[1]) return true;
+  if (radius_mm[0]>radius_mm[1]) return false;
+
+  // If radius iis equal, then sort on phi (degree precision)
+  for (int i=0; i<2; ++i) {
+    phi_deg[i] = int(position[i].Phi()/M_PI*180);
+  }
+  if (phi_deg[0]<phi_deg[1]) return true;
+  if (phi_deg[0]>phi_deg[1]) return false;
+
+  // Otherwise use Z (double precision) to sort
+  return (position[0].Z()<position[1].Z());
+}
+
 
 using namespace ROOT::Math;
 
@@ -1084,8 +1113,10 @@ void Tracker::writeSummary(std::string fileType /* = "html" */) {
 }
 
 void Tracker::writeSummary(bool configFiles,
-        std::string configFile,
-        std::string dressFile, std::string fileType /*= "html"*/) {
+			   std::string configFile,
+			   std::string dressFile, std::string fileType /*= "html"*/,
+			   std::string barrelModuleCoordinatesFile /*=""*/,
+			   std::string endcapModuleCoordinatesFile /*=""*/) {
     
     // Just to start with
     createDirectories();
@@ -1213,7 +1244,7 @@ void Tracker::writeSummary(bool configFiles,
     
     EndcapModule* anEC;
     int aRing;
-    // Look into the endcap sample in order to indentyfy and measure rings
+    // Look into the endcap sample in order to indentify and measure rings
     for (ModuleVector::iterator moduleIt=endcapSample_.begin(); moduleIt!=endcapSample_.end(); moduleIt++) {
         if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
             aRing=anEC->getRing();
@@ -1479,6 +1510,12 @@ void Tracker::writeSummary(bool configFiles,
                     << "<a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << "<br/>" << std::endl;
             myfile << clearStart << emphStart << "Minimum bias per bunch crossing: " << emphEnd
                     << nMB_ << clearEnd << std::endl;
+	    if (barrelModuleCoordinatesFile!="")
+	      myfile << "<br/>" << clearStart << emphStart << "Barrel modules coordinate file:  " << emphEnd
+		     << "<a href=\".//" << barrelModuleCoordinatesFile << "\">" << barrelModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
+	    if (endcapModuleCoordinatesFile!="")
+	      myfile << "<br/>" << clearStart << emphStart << "End-cap modules coordinate file:  " << emphEnd
+		     << "<a href=\".//" << endcapModuleCoordinatesFile << "\">" << endcapModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
         } else {
             myfile << clearStart << emphStart << "Options: " << emphEnd << getArguments() << clearEnd << std::endl;
         }
@@ -1551,8 +1588,9 @@ void Tracker::createPackageLayout(std::string dirName) {
     
 }
 
-void Tracker::printBarrelModuleZ() {
 
+// Prints the positions of barrel modules to file or cout
+void Tracker::printBarrelModuleZ(ostream& outfile) {
   ModuleVector* myModules;
   ModuleVector::iterator itModule;
   LayerVector* myBarrels;
@@ -1565,9 +1603,9 @@ void Tracker::printBarrelModuleZ() {
   for (itLayer = myBarrels->begin();
        itLayer != myBarrels->end();
        itLayer++) {
-    std::cout << "Barrel layer name: \""
-	      << (*itLayer)->getContainerName() << "-"
-	      << (*itLayer)->getName() << "\"" << std::endl;
+    outfile << "Barrel layer name: \""
+	    << (*itLayer)->getContainerName() << "-"
+	    << (*itLayer)->getName() << "\"" << std::endl;
 
     std::map< std::pair<int,int>, int > posCount;
     
@@ -1587,14 +1625,72 @@ void Tracker::printBarrelModuleZ() {
     for (itPos = posCount.begin();
 	 itPos != posCount.end();
 	 itPos++) {
-      std::cout << "r=" << (*itPos).first.first
+      outfile << "r=" << (*itPos).first.first
 		<< ", z=" << (*itPos).first.second
 		<< " (" << (*itPos).second << " modules)"
 		<< std::endl;
     }
   }
-
 }
+
+// Prints the positions of endcap modules to file or cout
+void Tracker::printEndcapModuleRPhiZ(ostream& outfile) {
+  ModuleVector::iterator itModule;
+  XYZVector meanPoint;
+  double base_inner, base_outer, height;
+  
+  EndcapModule* anEC;
+  int aRing;
+  // Sort the endcap module vector to have it ordered by
+  // rings (order by r, then phi, then z)
+  std::sort(endcapSample_.begin(), endcapSample_.end(), moduleSortEndcapStyle);
+  
+  // Compute the average Z as the mean between max and min Z
+  double maxZ=0;
+  double minZ=0;
+  bool first=true;
+  for (ModuleVector::iterator moduleIt=endcapSample_.begin(); moduleIt!=endcapSample_.end(); moduleIt++) {
+    if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
+      if (first) {
+	first=false;
+	minZ=anEC->getMeanPoint().Z();
+	maxZ=minZ;
+      } else {
+	if (anEC->getMeanPoint().Z()<minZ) minZ=anEC->getMeanPoint().Z();
+	if (anEC->getMeanPoint().Z()>maxZ) maxZ=anEC->getMeanPoint().Z();
+      }
+    } else {
+      std::cerr << "ERROR: found a non-Endcap module in the map of ring types. This should not happen. Contact the developers." << std::endl;
+    }
+  }
+  double averageZ = (minZ+maxZ)/2.;
+
+  // Look into the endcap sample to get modules' positions 
+  outfile << "Ring, r(mm), phi(deg), z(mm), base_inner(mm), base_outer(mm), height(mm)" <<std::endl;
+  for (ModuleVector::iterator moduleIt=endcapSample_.begin(); moduleIt!=endcapSample_.end(); moduleIt++) {
+    if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
+      aRing=anEC->getRing();
+      meanPoint = anEC->getMeanPoint();
+      base_inner = anEC->getWidthLo();
+      base_outer = anEC->getWidthHi();
+      height = anEC->getHeight();
+
+      // Print the data in fixed-precision
+      // Limit the precision to one micron for lengths and 1/1000 degree for angles
+      std::cout << std::fixed;
+      outfile << aRing << ", " 
+	      << std::fixed << std::setprecision(3) << meanPoint.Rho() << ", "
+	      << std::fixed << std::setprecision(3) << meanPoint.Phi()/M_PI*180. << ", "
+	      << std::fixed << std::setprecision(3) << meanPoint.Z()-averageZ << ", "
+	      << std::fixed << std::setprecision(3) << base_inner << ", "
+	      << std::fixed << std::setprecision(3) << base_outer << ", "
+	      << std::fixed << std::setprecision(3) << height << std::endl;
+    } else {
+      std::cerr << "ERROR: found a non-Endcap module in the map of ring types. This should not happen. Contact the developers." << std::endl;
+    }
+  }
+}
+
 
 void Tracker::printHtmlTableRow(ofstream *output, std::vector<std::string> myRow) {
     std::vector<std::string>::iterator strIt;

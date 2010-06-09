@@ -4,6 +4,9 @@
  */
 
 #include <XMLWriter.h>
+#include <stdlib.h> // Because atoi() is used 
+
+
 namespace insur {
     //public
     /**

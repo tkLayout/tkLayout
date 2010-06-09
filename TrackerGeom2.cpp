@@ -5,6 +5,8 @@
 #include "tracker.hh"
 #include <string>
 #include <boost/filesystem/operations.hpp>
+#include <iostream>
+#include <fstream>
 using namespace boost::filesystem;
 
 using namespace std;
@@ -89,6 +91,7 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
   std::string myDirectory;
   std::string destConfigFile;
   std::string destDressFile;
+  std::string endcapModuleCoordinatesFile = "endcapCoordinates.csv";
 
   if (myTracker) {
     myTracker->createGeometry(true);
@@ -101,13 +104,21 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
     myTracker->analyze(2000);
 
     // Summary and save
-    myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
-    //myTracker->printBarrelModuleZ();
+    //myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName), endcapModuleCoordinatesFile);
+    myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName), "html", "", endcapModuleCoordinatesFile);
     myTracker->save();
 
     myDirectory = myTracker->getActiveDirectory();
     destConfigFile = myDirectory + "/" + extractFileName(configFileName);
     destDressFile = myDirectory + "/" + extractFileName(dressFileName);
+
+    // File(s) with module positions
+    endcapModuleCoordinatesFile = myDirectory + "/" + extractFileName(endcapModuleCoordinatesFile);
+    ofstream endcapFile;
+    endcapFile.open(endcapModuleCoordinatesFile.c_str());
+    myTracker->printEndcapModuleRPhiZ(endcapFile);
+    endcapFile.close();
+    //myTracker->printBarrelModuleZ(std::cout);
 
     remove(destConfigFile);
     remove(destDressFile);

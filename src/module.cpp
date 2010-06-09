@@ -449,7 +449,7 @@ void Module::shapeVolume(TGeoVolume* container,
         TGeoManager* geom) {
     
     
-    // Fist of all: find the local coordinates of the module
+    // First of all: find the local coordinates of the module
     XYZVector ex, ey, ez;
     XYZVector b, c, d, p;
     
@@ -643,7 +643,7 @@ int Module::setEdgeRhoSide(double newRho, int direction) {
     return 1;
 }
 
-double Module::getMinTheta() {
+const double Module::getMinTheta() const {
     double result, aTheta;
     result = corner_[0].Theta();
     for (int i=1; i<4; i++) {
@@ -653,7 +653,7 @@ double Module::getMinTheta() {
     return result;
 }
 
-double Module::getMaxTheta() {
+const double Module::getMaxTheta() const {
     double result, aTheta;
     result = corner_[0].Theta();
     for (int i=1; i<4; i++) {
@@ -663,10 +663,8 @@ double Module::getMaxTheta() {
     return result;
 }
 
-double Module::getMeanTheta() {
-    
+const double Module::getMeanTheta() const {
     XYZVector meanPoint(0, 0, 0);
-    
     for (int i=0; i<4; i++) {
         meanPoint += corner_[i];
     }
@@ -675,7 +673,7 @@ double Module::getMeanTheta() {
     return meanPoint.Theta();
 }
 
-double Module::getMaxRho() {
+const double Module::getMaxRho() const {
     double maxRho=-1;
     for (uint i = 0; i < 4 ; i++) {
         if (corner_[i].Rho()>maxRho) maxRho=corner_[i].Rho();
@@ -683,7 +681,7 @@ double Module::getMaxRho() {
     return maxRho;
 }
 
-double Module::getMinRho() {
+const double Module::getMinRho() const {
     double minRho=corner_[0].Rho();
     unsigned int i1 = 0, i2 = 0;
     for (uint i = 1; i < 4 ; i++) {
@@ -699,7 +697,7 @@ double Module::getMinRho() {
     return minRho;
 }
 
-double Module::getMaxZ() {
+const double Module::getMaxZ() const {
     double maxZ=corner_[0].Z();
     for (uint i = 1; i < 4 ; i++) {
         if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
@@ -707,7 +705,7 @@ double Module::getMaxZ() {
     return maxZ;
 }
 
-double Module::getMinZ()  {
+const double Module::getMinZ() const {
     double minZ=corner_[0].Z();
     for (uint i = 1; i < 4 ; i++) {
         if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
@@ -716,7 +714,7 @@ double Module::getMinZ()  {
 }
 
 
-XYZVector Module::getMeanPoint() {
+const XYZVector Module::getMeanPoint() const {
     
     XYZVector meanPoint(0, 0, 0);
     
@@ -958,7 +956,6 @@ bool Module::couldHit(double eta, double phi) {
     return (withinPhi||withinPhiSub||withinPhiAdd);
     
 }
-
 
 /******************/
 /*                */

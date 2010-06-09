@@ -264,10 +264,13 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
   void createGeometry(bool lite = false);
 
   // Summary output
-  void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html");
+  void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html",
+		    std::string barrelModuleCoordinatesFile ="",
+		    std::string endcapModuleCoordinatesFile ="");
   void writeSummary(std::string fileType = "html");
   void createPackageLayout(std::string dirName);
-  void printBarrelModuleZ();
+  void printBarrelModuleZ(ostream& outfile);
+  void printEndcapModuleRPhiZ(ostream& outfile);
 
   // Save everything
   void save();

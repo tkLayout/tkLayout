@@ -69,7 +69,7 @@ class Module {
   static const double  defaultWaferDiameter_ = 131.; // Wafer diameter 131 mm
   static const double  defaultAspectRatio_ = 1.;
   static const double  defaultThickness_ = 0.3; // Wafer thickness: 300 um
-  static const double defaultModuleThickness_ = 1.0; //total module thickness
+  static const double  defaultModuleThickness_ = 1.0; //total module thickness
   static const Color_t defaultColor_ = kBlack;
   static const int     defaultNHits_ = 0;
   static const int     defaultHeight_ = 0;
@@ -169,15 +169,14 @@ class Module {
   int setEdgeRho(double destRho, int direction);
   int setEdgeRhoSide(double destRho, int direction);
 
-  double getMinTheta();
-  double getMaxTheta();
-  double getMeanTheta();
-  double getMaxRho();
-  double getMinRho();
-  double getMaxZ();
-  double getMinZ();
-
-  XYZVector getMeanPoint();
+  const double getMinTheta() const;
+  const double getMaxTheta() const;
+  const double getMeanTheta() const;
+  const double getMaxRho() const;
+  const double getMinRho() const;
+  const double getMaxZ() const;
+  const double getMinZ() const;
+  const XYZVector getMeanPoint() const;
 
   virtual std::string getSensorTag() {  return std::string("");  };
 
@@ -218,6 +217,7 @@ class Module {
   static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
 };
+
 
 
 // Barrel Module
@@ -301,18 +301,17 @@ public:
 
   std::string getSensorTag();
 
-  bool wasCut() {return cut_ ; };
-  double getLost(){if (cut_) return lost_; return 0;};
-  double getDist(){return dist_;};
+  bool wasCut() const { return cut_ ; };
+  double getLost() const { if (cut_) return lost_; return 0;};
+  double getDist() const { return dist_;};
 
-  double getWidthLo() { return widthLo_ ; };
-  double getWidthHi() { return widthHi_ ; };
+  double getWidthLo() const { return widthLo_ ; };
+  double getWidthHi() const { return widthHi_ ; };
 
-  int getDisk() {return disk_;};
+  int getDisk() const {return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
 
   double getOccupancyPerEvent();
 };
-
 
 #endif

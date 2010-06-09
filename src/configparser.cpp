@@ -614,7 +614,12 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         }
         
     } else {
-        cout << "Missing mandatory parameter for endcap " << myName << endl;
+        cout << "Missing mandatory parameter for endcap " << myName << endl ;
+        cout << "Mandatory parameters are: nDisks" << endl
+             << "                          [ innerRadius | innerEta ]" << endl
+             << "                          outerRadius" << endl
+             << "                          [ minimumZ | barrelGap ]" << endl
+             << "                          diskParity" << endl;
         throw parsingException();
     }
     

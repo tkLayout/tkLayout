@@ -26,8 +26,8 @@ mkdir -p "$store_dir"
 mkdir -p matsum
 mkdir -p xml 
 
-../tkLayout "$1.cfg" "$1_Types.cfg"
-./tkmaterial -um "$1.cfg" "$1_Types.cfg" "$1_Materials.cfg" -t $tks -h -x "$tkn"
+echo ../tkLayout "$1.cfg" "$1_Types.cfg"
+echo ./tkmaterial -um "$1.cfg" "$1_Types.cfg" "$1_Materials.cfg" -t $tks -h -x "$tkn"
 
 # Moving the entire directories named after the tracker
 mv xml/"$tkn"/* "$cmssw_dir"
