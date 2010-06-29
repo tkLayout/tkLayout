@@ -1,0 +1,81 @@
+Tested for CMSSW_2_2_6
+
+IGUANA:
+
+Given a CMSSW workspace and environment:
+1. Check out Geometry/CMSCommonData/python and 
+Geometry/TrackerCommonData/data from the CMSSW repository to your 
+workspace (CMSSW_x_x_x/src).
+
+2. Rename the file Geometry/CMSCommonData/python/cmsIdealGeometryXML_cfi.py to 
+back it up.
+
+3. Copy the altered file cmsIdealGeometryXML_cfi.py provided in this 
+folder ([somepath]/tkgeometry/tkmaterial/xml/) to 
+CMSSW_x_x_x/src/Geometry/CMSCommonData/python to replace the renamed 
+.py file.
+
+4. Rename the file Geometry/TrackerCommonData/data/tracker.xml to back 
+it up.
+
+5. Run tkmaterial with 3 config files and the -x option: 
+./tkmaterial geometryfile settingsfile materialfile -x [outname]
+from directory [somepath]/tkgeometry/tkmaterial
+
+6. Go to xml/[outname] or xml/[geometryfile_without_extension], 
+depending on whether you specified a name for the output subfolder or 
+not.
+
+7. Copy the file tracker.xml to 
+[anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerCommonData/data/ to 
+replace the renamed .xml file.
+
+8. If necessary, copy the file xml/geometry_cfg.py to a directory within 
+your workspace.
+
+9. If necessary, set up the environment by running cmsenv.
+
+10. Switch to the directory containing the file geometry_cfg.py and 
+start Iguana with it (iguana geometry_cfg.py) to display the result.
+
+11. Once that displays, rename the file trackerStructureTopology.xml in
+Geometry/TrackerCommonData/data/ to back it up.
+
+12. Copy file trackerStructureTopology.xml from xml/[outname] or 
+xml/[geometryfile_without_extension] to
+CMSSW_x_x_x/src/Geometry/TrackerCommonData/data/ to replace the
+renamed .xml file.
+
+13. Rerun Iguana as described in (10.) to check for errors in the
+topology.
+
+CMSSW:
+
+The -x option of tkmaterial produces seven different files: pixbar.xml,
+pixfwd.xml, tracker.xml, trackersens.xml, trackerProdCuts.xml,
+trackerStructureTopology.xml and trackerRecoMaterial.xml; if the tracker
+layout has no endcaps, pixfwd.xml will be copied without changes and does
+not need to be replaced.
+
+1) pixbar.xml, pixfwd.xml (only if necessary), tracker.xml and
+trackerStructureTopology.xml replace existing files in
+[anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerCommonData/data/ - make
+sure to back the originals up first. It may be necessary to copy those
+blocks describing the pixel detector from the original to the replacement.
+
+2) Back up copies of the original trackersens.xml and trackerProdCuts.xml
+(both in [anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerSimData/data/).
+Replace the blocks describing tracker barrel properties in those two files.
+If there are endcaps in the new geometry, replace those blocks as well.
+If not, delete the blocks describing tracker endcaps.
+
+3) Back up a copy of the original trackerRecoMaterial.xml
+(in [anotherpath]/CMSSW_x_x_x/src/Geometry/TrackerRecoData/data/).
+As in 2), replace all blocks describing tracker barrel properties and
+delete those describing tracker endcaps.
+
+4) The file cmsIdealGeometryXML_cfi.py in the xml/ base directory of
+tkmaterial needs to be copied to [anotherpath]/Geometry/CMSCommonData/python/
+after the original has been backed up under a different name.
+
+5) [More here if needed...]
