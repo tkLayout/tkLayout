@@ -36,6 +36,7 @@ double diffclock(clock_t clock1, clock_t clock2) {
 // comparators
 bool smallerRho(Layer* l1, Layer* l2) { return l1->getMinRho() < l2->getMinRho(); }
 bool smallerZ(Layer* l1, Layer* l2) { return l1->getMinZ() < l2->getMinZ(); }
+
 // Endcap Module sorting for vectors
 // Returns true if m1 is "lower" than m2
 bool moduleSortEndcapStyle(const Module* m1, const Module* m2) {
@@ -1599,13 +1600,11 @@ void Tracker::printBarrelModuleZ(ostream& outfile) {
   int myR, myZ;
   XYZVector meanPoint;
 
+  outfile << "BarrelLayer name, r(mm), z(mm), number of modules" <<std::endl;
   myBarrels = getBarrelLayers();
   for (itLayer = myBarrels->begin();
        itLayer != myBarrels->end();
        itLayer++) {
-    outfile << "Barrel layer name: \""
-	    << (*itLayer)->getContainerName() << "-"
-	    << (*itLayer)->getName() << "\"" << std::endl;
 
     std::map< std::pair<int,int>, int > posCount;
     
@@ -1625,10 +1624,14 @@ void Tracker::printBarrelModuleZ(ostream& outfile) {
     for (itPos = posCount.begin();
 	 itPos != posCount.end();
 	 itPos++) {
-      outfile << "r=" << (*itPos).first.first
-		<< ", z=" << (*itPos).first.second
-		<< " (" << (*itPos).second << " modules)"
-		<< std::endl;
+      // BarrelLayer name
+      outfile << (*itLayer)->getContainerName() << "-"
+	      << (*itLayer)->getName() << ", ";
+      
+      outfile << (*itPos).first.first << ", " // r
+	      << (*itPos).first.second << ", "   // z
+	      << (*itPos).second // number of modules
+	      << std::endl;
     }
   }
 }

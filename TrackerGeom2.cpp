@@ -91,6 +91,7 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
   std::string myDirectory;
   std::string destConfigFile;
   std::string destDressFile;
+  std::string barrelModuleCoordinatesFile = "barrelCoordinates.csv";
   std::string endcapModuleCoordinatesFile = "endcapCoordinates.csv";
 
   if (myTracker) {
@@ -105,7 +106,7 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
 
     // Summary and save
     //myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName), endcapModuleCoordinatesFile);
-    myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName), "html", "", endcapModuleCoordinatesFile);
+    myTracker->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName), "html", barrelModuleCoordinatesFile, endcapModuleCoordinatesFile);
     myTracker->save();
 
     myDirectory = myTracker->getActiveDirectory();
@@ -113,12 +114,15 @@ Tracker* analyzeGeometryPackage(string configFileName, string dressFileName) {
     destDressFile = myDirectory + "/" + extractFileName(dressFileName);
 
     // File(s) with module positions
+    barrelModuleCoordinatesFile = myDirectory + "/" + extractFileName(barrelModuleCoordinatesFile);
     endcapModuleCoordinatesFile = myDirectory + "/" + extractFileName(endcapModuleCoordinatesFile);
-    ofstream endcapFile;
-    endcapFile.open(endcapModuleCoordinatesFile.c_str());
-    myTracker->printEndcapModuleRPhiZ(endcapFile);
-    endcapFile.close();
-    //myTracker->printBarrelModuleZ(std::cout);
+    ofstream coordinateFile;
+    coordinateFile.open(barrelModuleCoordinatesFile.c_str());
+    myTracker->printBarrelModuleZ(coordinateFile);
+    coordinateFile.close();
+    coordinateFile.open(endcapModuleCoordinatesFile.c_str());
+    myTracker->printEndcapModuleRPhiZ(coordinateFile);
+    coordinateFile.close();
 
     remove(destConfigFile);
     remove(destDressFile);
