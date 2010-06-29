@@ -174,7 +174,7 @@ tkmaterial: $(LIBDIR)/tkmaterial.o
 	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
 	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o tkmat
+	-o tkmaterial
 
 $(LIBDIR)/tkmaterial.o: tkmaterial.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
@@ -183,6 +183,7 @@ testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp \
 	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
+#CLEANUP
 cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 
@@ -209,6 +210,6 @@ cleannaly:
 	-rm -r $(LIBDIR)/Analyzer.o
 	
 cleantkmaine:
-	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmat ./tkLayout ./testObj
+	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial ./tkLayout ./testObj
 	
 clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaine
