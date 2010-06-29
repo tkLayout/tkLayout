@@ -166,7 +166,12 @@ tkLayout: TrackerGeom2.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracke
 	$(LIBDIR)/configparser.o TrackerGeom2.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o tkLayout
 
-tkmaterial: $(LIBDIR)/tkmaterial.o
+tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
+        $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
+        $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
+        $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
+        $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
+        $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o
 	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
 	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
