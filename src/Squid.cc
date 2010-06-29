@@ -360,6 +360,7 @@ namespace insur {
             std::string destConfigFile;
             std::string destDressFile;
             // Optical transmission
+            tr->createGeometry(true);
             tr->computeBandwidth();
             
             // Analysis
