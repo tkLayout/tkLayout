@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
+<SpecParSection label="spec-pars.xml">
+  <SpecPar name="ROUHitsTrackerPixelBarrel">
+    <PartSelector path="//PixelBarrelActiveFull" />
+    <PartSelector path="//PixelBarrelActiveHalf" />
+    <!--mid point marker-->
+    <Parameter name="SensitiveDetector" value="TkAccumulatingSensitiveDetector" />
+    <Parameter name="ReadOutName" value="TrackerHitsPixelBarrel" />
+  </SpecPar>
+
+  <SpecPar name="ROUHitsTrackerPixelEndcap">
+    <PartSelector path="//PixelForwardActive1x2" />
+    <PartSelector path="//PixelForwardActive1x5" />
+    <PartSelector path="//PixelForwardActive2x3" />
+    <PartSelector path="//PixelForwardActive2x4" />
+    <PartSelector path="//PixelForwardActive2x5" />
+    <!--mid point marker-->
+    <Parameter name="SensitiveDetector" value="TkAccumulatingSensitiveDetector" />
+    <Parameter name="ReadOutName" value="TrackerHitsPixelEndcap" />
+  </SpecPar>
+</SpecParSection>
+</DDDefinition>
+ 

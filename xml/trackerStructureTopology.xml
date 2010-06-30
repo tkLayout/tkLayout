@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<DDDefinition xmlns="http://www.cern.ch/cms/DDL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd">
+<SpecParSection label="spec-pars2.xml">
+     <SpecPar name="FullTrackerPar">
+       <PartSelector path="//Tracker" />
+       <Parameter name="TkDDDStructure" value="FullTracker"/>
+     </SpecPar>
+     <SpecPar name="PixelBarrelSubDetPar">
+       <PartSelector path="//PixelBarrel" />
+       <Parameter name="TkDDDStructure" value="PixelBarrel"/>
+     </SpecPar>
+     <SpecPar name="PixelBarrelLayerPar">
+       <PartSelector path="//PixelBarrelLayer0" />
+       <PartSelector path="//PixelBarrelLayer1" />
+       <PartSelector path="//PixelBarrelLayer2" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelBarrelLayer"/>
+     </SpecPar>
+     <SpecPar name="PixelBarrelLadderPar">
+       <PartSelector path="//PixelBarrelLadderHalf" />
+       <PartSelector path="//PixelBarrelLadderFull" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelBarrelLadder"/>
+     </SpecPar>
+     <SpecPar name="PixelBarrelModulePar">
+       <PartSelector path="//PixelBarrelActiveFull" />
+       <PartSelector path="//PixelBarrelActiveHalf" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelBarrelDet"/>
+     </SpecPar>
+    <SpecPar name="PixelEndcapSubDetPar">
+       <PartSelector path="//PixelForwardZPlus" />
+       <PartSelector path="//PixelForwardZMinus" />
+       <Parameter name="TkDDDStructure" value="PixelEndcapSubDet"/>
+     </SpecPar>
+     <SpecPar name="PixelEndcapDiskPar">
+       <PartSelector path="//PixelForwardDiskZMinus" />
+       <PartSelector path="//PixelForwardDiskZPlus" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelEndcapDisk"/>
+     </SpecPar>
+      <SpecPar name="PixelEndcapPanelPar">
+       <PartSelector path="//PixelForwardPanel3Left" />
+       <PartSelector path="//PixelForwardPanel3Right" />
+       <PartSelector path="//PixelForwardPanel4Right" />
+       <PartSelector path="//PixelForwardPanel4Left" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelEndcapPanel"/>
+     </SpecPar>
+     <SpecPar name="PixelEndcapDetPar">
+       <PartSelector path="//PixelForwardActive1x2" />
+       <PartSelector path="//PixelForwardActive1x5" />
+       <PartSelector path="//PixelForwardActive2x3" />
+       <PartSelector path="//PixelForwardActive2x4" />
+       <PartSelector path="//PixelForwardActive2x5" />
+       <!--mid point marker-->
+       <Parameter name="TkDDDStructure" value="PixelEndcapDet"/>
+     </SpecPar>
+   <SpecPar name="PixelROCRowsPar">
+       <PartSelector path="//PixelBarrelActiveFull" />
+       <PartSelector path="//PixelBarrelActiveHalf" />
+       <PartSelector path="//PixelForwardActive1x2" />
+       <PartSelector path="//PixelForwardActive1x5" />
+       <PartSelector path="//PixelForwardActive2x3" />
+       <PartSelector path="//PixelForwardActive2x4" />
+       <PartSelector path="//PixelForwardActive2x5" />
+       <Parameter name="PixelROCRows" value="80"/>
+   </SpecPar>
+   <SpecPar name="PixelROCRowsTrackerPar">
+       <!--mid point marker-->
+       <Parameter name="PixelROCRows" value="128"/>
+   </SpecPar>
+   <SpecPar name="PixelROCColsPar">
+       <PartSelector path="//PixelBarrelActiveFull" />
+       <PartSelector path="//PixelBarrelActiveHalf" />
+       <PartSelector path="//PixelForwardActive1x2" />
+       <PartSelector path="//PixelForwardActive1x5" />
+       <PartSelector path="//PixelForwardActive2x3" />
+       <PartSelector path="//PixelForwardActive2x4" />
+       <PartSelector path="//PixelForwardActive2x5" />
+       <Parameter name="PixelROCCols" value="52"/>
+   </SpecPar>
+   <SpecPar name="PixelROCColsTrackerPar">
+       <!--mid point marker-->
+       <Paramter name="PixelROCCols" value="1"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_XPar">
+       <PartSelector path="//PixelBarrelActiveFull" />
+       <PartSelector path="//PixelForwardActive2x3" />
+       <PartSelector path="//PixelForwardActive2x4" />
+       <PartSelector path="//PixelForwardActive2x5" />
+       <Parameter name="PixelROC_X" value="2"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_X_HalfPar">
+       <PartSelector path="//PixelBarrelActiveHalf" />
+       <PartSelector path="//PixelForwardActive1x2" />
+       <PartSelector path="//PixelForwardActive1x5" />
+       <Parameter name="PixelROC_X" value="1"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_YPar">
+       <PartSelector path="//PixelBarrelActiveFull" />
+       <PartSelector path="//PixelBarrelActiveHalf" />
+       <Parameter name="PixelROC_Y" value="8"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_Y2Par">
+       <PartSelector path="//PixelForwardActive1x2" />
+       <Parameter name="PixelROC_Y" value="2"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_Y3Par">
+       <PartSelector path="//PixelForwardActive2x3" />
+       <Parameter name="PixelROC_Y" value="3"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_Y4Par">
+       <PartSelector path="//PixelForwardActive2x4" />
+       <Parameter name="PixelROC_Y" value="4"/>
+   </SpecPar>
+   <SpecPar name="PixelROC_Y5Par">
+       <PartSelector path="//PixelForwardActive1x5" />
+       <PartSelector path="//PixelForwardActive2x5" />
+       <Parameter name="PixelROC_Y" value="5"/>
+   </SpecPar> 
+   <!--mid point marker-->
+</SpecParSection>
+</DDDefinition>
+
