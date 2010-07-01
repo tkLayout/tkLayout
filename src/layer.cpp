@@ -1435,16 +1435,23 @@ double EndcapLayer::buildRing(double minRadius,
     n = 2*M_PI / effectiveAlpha;
     
     std::cout << "Number of modules: " << n << std::endl;
-    
-    // We round to the nearest multiple of base
-    int nOpt = int(floor((n/double(base))+.5)) * base;
+   
+    // Optimal number of modules 
+    int nOpt;
     
     if (wedges) {
+        // We round to the nearest multiple of base
+        nOpt = int(floor((n/double(base))+.5)) * base;
         std::cout << "I would use " << nOpt << " modules (optimized)" << std::endl;
         nOpt += (addModules*base);
+        std::cout << "I will use " << nOpt << " modules (user request)" << std::endl;
+    } else {
+        // For square modules we can only increase the number of sensors to
+        // cover the whole area
+        nOpt = int(ceil(n/double(base))) * base;
+        std::cout << "I will use " << nOpt << " modules" << std::endl;
     }
     
-    std::cout << "I will use " << nOpt << " modules (user request)" << std::endl;
     
     double goodAlpha;
     goodAlpha = 2*M_PI/double(nOpt);
