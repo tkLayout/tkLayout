@@ -1,3 +1,8 @@
+# Define the REVISIONNUMBER variable to have it
+# apearing in the root web page output
+# -DREVISIONNUMBER=555
+REVISION=$(which svnversion > /dev/null && svnversion)
+DEFINES=`./getVersionDefine`
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
@@ -10,9 +15,9 @@ SRCDIR=src
 INCDIR=include
 LIBDIR=lib
 
-COMP=g++ -Wall $(INCLUDEFLAGS)
+COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObj tkmaterial
+all: tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObj tkmaterial rootwebTest 
 	@echo "Full build successful."
 
 #TKGEOMETRY
@@ -160,6 +165,11 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Squid.o $(SRCDIR)/Squid.cc
 	@echo "Built target Squid.o"
 
+#ROOTWEB
+$(LIBDIR)/rootweb.o:	src/rootweb.cpp include/rootweb.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootweb.o src/rootweb.cpp
+
+
 #FINAL
 tkLayout: TrackerGeom2.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
@@ -188,6 +198,9 @@ testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp \
 	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
+rootwebTest: rootwebTest.cpp $(LIBDIR)/rootweb.o
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/rootweb.o rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o rootwebTest
+
 #CLEANUP
 cleantkgeometry:
 	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
@@ -213,8 +226,15 @@ cleanviz:
 	
 cleannaly:
 	-rm -r $(LIBDIR)/Analyzer.o
+
+cleanrootweb:
+	rm -f $(LIBDIR)/rootweb.o 
 	
 cleantkmaine:
-	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial ./tkLayout ./testObj
+	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial ./tkLayout ./testObj ./rootwebTest
 	
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleantkmaine
+clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine
+
+
+
+
