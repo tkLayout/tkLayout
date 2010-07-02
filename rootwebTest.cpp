@@ -8,12 +8,13 @@
 #include <TCanvas.h>
 #include <boost/filesystem/operations.hpp>
 
-#define STYLEDIRECTORY "TKG_STYLE_DIR"
-#define TARGETDIRECTORY "TKG_TARGET_DIR"
+//#define STYLEDIRECTORY "TKG_STYLE_DIR"
+//#define TARGETDIRECTORY "TKG_TARGET_DIR"
 
 using namespace std;
 using namespace boost::filesystem;
 
+#include <mainConfigHandler.h>
 
 int main(int argc, char** argv) {
   RootWItemCollection myCollection;
@@ -93,16 +94,19 @@ int main(int argc, char** argv) {
   //myPage->dump(cout);
   //myPage2->dump(cout);
 
-  string styleDirectory = string(getenv(STYLEDIRECTORY));
+  string styleDirectory;
+  string targetDirectory;
+
+  /* if you want to use the environment variables: 
+  styleDirectory = string(getenv(STYLEDIRECTORY));
   if (!exists(styleDirectory)) {
     cerr << "Warning: cannot find the style directory " << styleDirectory 
          << " defined by the environment variable " << STYLEDIRECTORY << endl
          << "Using current directory as style directory (probably you will see the site without formatting)" << endl;
     styleDirectory=".";
   }
-  mySite->setStyleDirectory(styleDirectory);
 
-  string targetDirectory = string(getenv(TARGETDIRECTORY));
+  targetDirectory = string(getenv(TARGETDIRECTORY));
   if (targetDirectory=="") {
     cerr << "Warning: cannot find the definition of target directory "
          << "by the environment variable " << STYLEDIRECTORY << endl
@@ -114,9 +118,13 @@ int main(int argc, char** argv) {
       cerr << "Couldn't create directory " << targetDirectory << endl;
       return 0;
     }
-  }
-  targetDirectory+="/trackerName";
+  } */
 
+  mainConfigHandler myConfigHandler;
+  myConfigHandler.getConfiguration(styleDirectory, targetDirectory);
+
+  targetDirectory+="/trackerName"; 
+  mySite->setStyleDirectory(styleDirectory);
   mySite->setTargetDirectory(targetDirectory);
   mySite->makeSite();
 

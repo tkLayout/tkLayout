@@ -7,7 +7,7 @@ DEFINES=`./getVersionDefine`
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-BOOSTLIBFLAGS=-lboost_filesystem
+BOOSTLIBFLAGS=-lboost_filesystem -lboost_regex
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS=-Iinclude/
@@ -169,6 +169,9 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 $(LIBDIR)/rootweb.o:	src/rootweb.cpp include/rootweb.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootweb.o src/rootweb.cpp
 
+# Main (program) configuration file handler
+$(LIBDIR)/mainConfigHandler.o: src/mainConfigHandler.cpp include/mainConfigHandler.h
+	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o src/mainConfigHandler.cpp
 
 #FINAL
 tkLayout: TrackerGeom2.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
@@ -198,8 +201,8 @@ testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp \
 	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
 
-rootwebTest: rootwebTest.cpp $(LIBDIR)/rootweb.o
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/rootweb.o rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o rootwebTest
+rootwebTest: rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o rootwebTest
 
 #CLEANUP
 cleantkgeometry:
