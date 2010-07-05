@@ -34,7 +34,7 @@ hit: src/hit.cpp include/hit.hh
 tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/mainConfigHandler.o
 	@echo "Built target 'tkgeometry'."
 
-$(LIBDIR)/configparser.o:	$(SRCDIR)/configparser.cpp $(INCDIR)/configparser.hh
+$(LIBDIR)/configparser.o: $(SRCDIR)/configparser.cpp $(INCDIR)/configparser.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/configparser.o $(SRCDIR)/configparser.cpp
 
 $(LIBDIR)/module.o: $(SRCDIR)/module.cpp $(INCDIR)/module.hh
