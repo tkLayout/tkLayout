@@ -2,10 +2,23 @@
  * @file Analyzer.cc
  * @brief This is the implementation of the class that analyses a material budget
  */
-
+#include <TH1D.h>
+#include <TH2D.h>
 #include <Analyzer.h>
+#include <TProfile.h>
+
 namespace insur {
-    // public
+  
+  Analyzer::Analyzer () {
+    // Not strictly necessary, but it's useful to keep
+    // the color the same for the most used module types
+    lastPickedColor_ = STARTCOLOR;
+    colorPicker("pt");
+    colorPicker("rphi");
+    colorPicker("stereo");
+  }
+  
+  // public
     /**
      * A comparison function for the first elements in two pairs of integers.
      * @param p The first pair
@@ -147,7 +160,7 @@ namespace insur {
         // transformation from (eta, r) to (z, r) coordinates
         transformEtaToZ();
     }
-    
+  
     // protected
     /**
      * The layer-level analysis function for modules forms the frame for sending a single track through the active modules.
@@ -428,6 +441,10 @@ namespace insur {
         isor.SetNameTitle("isor", "Radiation Length Contours");
         isoi.Reset();
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
+	// geometry analysis
+	mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;phi;eta");
+	etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
+	hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
     }
     
     /**
@@ -487,6 +504,10 @@ namespace insur {
         // isolines
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+	// Geometry analysis
+	// mapPhiEta : the number of bins is actually set in analyzeTracker (depends on numebr of tracks)
+	// etaProfileCanvas : does not need to have the size specified now
+	// hitDistribution : sets the number of bins accoding to the number of tracks
     }
     /**
      * This convenience function sets the number of bins and the lower and upper range for their contents for
@@ -647,4 +668,303 @@ namespace insur {
         }
         return index;
     }
+
+  // public
+  /**
+   * Creates the histograms to analyze the tracker coverage
+   * @param tracker the tracker to be analyzed
+   * @param nTracker the number of tracks to be used to analyze the coverage (defaults to 1000)
+   */
+  void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
+    // A bunch of pointers
+    std::map <std::string, int> moduleTypeCount;
+    std::map <std::string, TH2D*> etaProfileByType;
+    TH2D* aPlot;
+    std::string aType;
+
+    
+    // Optimize the track creation on the real tracker
+    std::pair <double, double> etaMinMax = tracker.getEtaMinMax();
+    double absMinEta = fabs(etaMinMax.first);
+    double absMaxEta = fabs(etaMinMax.second);
+    double maxEta = (absMinEta>absMaxEta) ? absMinEta : absMaxEta;
+    
+    // Computing the margin of the tracks to shoot
+    double randomPercentMargin = 0.1;
+    double randomSpan = (etaMinMax.second - etaMinMax.first)*(1. + randomPercentMargin);
+    double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
+    
+    // Initialize random number generator, counters and histograms
+    myDice_.SetSeed(MY_RANDOM_SEED);
+    createResetCounters(tracker, moduleTypeCount);
+
+    for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
+	 it!=etaProfileByType.end(); it++) {
+      aPlot = (*it).second;
+      if (aPlot) delete aPlot;
+    }
+    etaProfileByType.clear();
+
+    for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
+	 it!=moduleTypeCount.end(); it++) {
+      // std::cerr << "Creating plot for module type " << (*it).first << std::endl; //debug
+      aPlot = new TH2D( (*it).first.c_str(), (*it).first.c_str(),
+			100, 0., maxEta*1.1,
+			1000, 0., 10.);
+      etaProfileByType[(*it).first]=aPlot;
+    }
+    
+    LayerVector::iterator layIt;
+    ModuleVector* moduleV;
+    ModuleVector::iterator modIt;
+    ModuleVector allModules;
+    LayerVector& layerSet = tracker.getLayers();
+    double zError = tracker.getZError();
+    
+    // Build the proper list of modules
+    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+      moduleV = (*layIt)->getModuleVector();
+      for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+	// I pre-compute the boxes to reduce the calculations
+	(*modIt)->computeBoundaries(zError);
+	allModules.push_back(*modIt);
+      }
+    }
+    
+    // The real simulation
+    std::pair <XYZVector, double> aLine;
+    ModuleVector hitModules;
+    
+#define debug_simulation_time
+#ifdef debug_simulation_time
+    std::cerr << "debug_simulation_time" << std::endl;
+    struct tm *localt; // timing: debug
+    time_t t;          // timing: debug
+    t = time(NULL);
+    localt = localtime(&t);
+    std::cerr << asctime(localt) << std::endl;
+    clock_t starttime = clock();
+#endif
+
+    std::cout << "Shooting tracks: ";
+    int nTrackHits;
+    int nTracksPerSide = int(pow(nTracks, 0.5));
+    int nBlocks = int(nTracksPerSide/2.);
+    nTracks = nTracksPerSide*nTracksPerSide;
+    mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
+    TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
+    TH2D total2D("total2d", "Total 2D",100, 0., maxEta*1.2, 1000 ,0., 10.);
+    
+    // Shoot nTracksPerSide^2 tracks
+    for (int i=0; i<nTracksPerSide; i++) {
+      for (int j=0; j<nTracksPerSide; j++) {
+	// Reset the hit counter
+	nTrackHits=0;
+	// Generate a straight track and collect the list of hit modules
+	aLine = shootDirection(randomBase, randomSpan);
+	hitModules = trackHit( XYZVector(0, 0, myDice_.Gaus(0, zError)), aLine.first, &allModules);
+	// Reset the per-type hit counter and fill it
+	resetTypeCounter(moduleTypeCount);
+	for (ModuleVector::iterator it = hitModules.begin(); it!=hitModules.end(); it++) {
+	  moduleTypeCount[(*it)->getType()]++;
+	  nTrackHits++;
+	}
+	// Fill the module type hit plot
+	for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
+	  etaProfileByType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
+	}
+	// Fill other plots
+	total2D.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
+	mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
+	mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
+      }
+    }
+    
+    // Create and archive for saving our 2D map of hits
+    double hitCount;
+    int trackCount;
+    for (int nx=0; nx<=mapPhiEtaCount.GetNbinsX()+1; nx++) {
+      for (int ny=0; ny<=mapPhiEtaCount.GetNbinsY()+1; ny++) {
+	trackCount=mapPhiEtaCount.GetBinContent(nx, ny);
+	if (trackCount>0) {
+	  hitCount=mapPhiEta.GetBinContent(nx, ny);
+	  mapPhiEta.SetBinContent(nx, ny, hitCount/trackCount);
+	}
+      }
+    }
+
+    savingV_.push_back(&mapPhiEta);
+    
+#ifdef debug_simulation_time
+    std::cerr << " done!" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+    clock_t endtime = clock();
+    std::cerr << asctime(localt) << std::endl;
+    std::cerr << "Elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+    std::cerr << asctime(localt) << std::endl;
+#endif
+    
+    // Eta profile compute
+    TProfile *myProfile;
+
+    etaProfileCanvas.cd();
+    savingV_.push_back(&etaProfileCanvas);
+    int plotCount=0;
+    
+    TProfile* total = total2D.ProfileX("etaProfileTotal");
+    savingV_.push_back(total);
+    total->SetMarkerStyle(8);
+    total->SetMarkerColor(1);
+    total->SetMarkerSize(1.5);
+    total->SetTitle("Number of hit modules");
+    if (total->GetMaximum()<9) total->SetMaximum(9.);
+    total->Draw();
+    std::string profileName;
+    for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
+	 it!=etaProfileByType.end(); it++) {
+      plotCount++;
+      myProfile=(*it).second->ProfileX();
+      savingV_.push_back(myProfile);
+      myProfile->SetMarkerStyle(8);
+      myProfile->SetMarkerColor(colorPicker((*it).first));
+      myProfile->SetMarkerSize(1);
+      myProfile->SetName((*it).first.c_str());
+      profileName = "etaProfile-"+(*it).first;
+      myProfile->SetTitle((*it).first.c_str());
+      myProfile->Draw("same");
+    }
+
+    // Record the fraction of hits per module
+    hitDistribution.SetBins(nTracks, 0 , 1);
+    savingV_.push_back(&hitDistribution);
+    for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+      hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
+    }
+    
+    return;
+  }
+  
+
+  // private
+  /**
+   * Creates a module type map
+   * It sets a different integer for each one
+   * @param tracker the tracker to be analyzed
+   * @param moduleTypeCount the map to count the different module types
+   * @return the total number of module types
+   */
+  int Analyzer::createResetCounters(Tracker& tracker, std::map <std::string, int> &moduleTypeCount) {
+    ModuleVector result;
+    LayerVector::iterator layIt;
+    ModuleVector* moduleV;
+    ModuleVector::iterator modIt;
+    
+    std::string aType;
+    int typeCounter=0;
+    
+    LayerVector& layerSet = tracker.getLayers();
+    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+      moduleV = (*layIt)->getModuleVector();
+      for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+	aType = (*modIt)->getType();
+	(*modIt)->resetNHits();
+	if (moduleTypeCount.find(aType)==moduleTypeCount.end()) {
+	  moduleTypeCount[aType]=typeCounter++;
+	}
+      }
+    }
+    
+    return(typeCounter);
+  }
+
+  // private
+  /**
+   * Shoots directions with random (flat) phi, random (flat) pseudorapidity
+   * gives also the direction's eta
+   * @param minEta minimum eta to shoot tracks
+   * @param spanEta difference between minimum and maximum eta
+   * @return the pair of value: pointing XYZVector and eta of the track
+   */
+  std::pair <XYZVector, double > Analyzer::shootDirection(double minEta, double spanEta) {
+    std::pair <XYZVector, double> result;
+    
+    double eta;
+    double phi;
+    double theta;
+    
+    // phi is random [0, 2pi)
+    phi = myDice_.Rndm() * 2 * M_PI; // debug
+    
+    // eta is random (-4, 4]
+    eta = myDice_.Rndm() * spanEta + minEta;
+    theta=2*atan(exp(-1*eta));
+    
+    // Direction
+    result.first  = XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
+    result.second = eta;
+    return result;
+  }
+
+  // private
+  /**
+   * Checks whether a track would hit a module
+   * @param origin XYZVector of origin of the track 
+   * @param direction pointing XYZVector of the track 
+   * @param moduleV vector of modules to be checked
+   * @return the vector of hit modules
+   */
+  ModuleVector Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* moduleV) {
+    ModuleVector result;
+    ModuleVector::iterator modIt;
+    double distance;
+    
+    for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+      // A module can be hit if it fits the phi (precise) contraints
+      // and the eta constaints (taken assuming origin within 5 sigma)
+      if ((*modIt)->couldHit(direction.Eta(), direction.Phi())) {
+	distance=(*modIt)->trackCross(origin, direction);
+	if (distance>0) {
+	  result.push_back(*modIt);
+	}
+      }
+    }
+    return result;
+  }
+
+  // Resets a module type counter
+  void Analyzer::resetTypeCounter(std::map <std::string, int> &modTypes) {
+    for (std::map <std::string, int>::iterator it = modTypes.begin();
+	 it!=modTypes.end(); it++) {
+      (*it).second = 0;
+    }
+  }
+  
+  double Analyzer::diffclock(clock_t clock1, clock_t clock2) {
+    double diffticks=clock1-clock2;
+    double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
+    return diffms;
+  }
+
+  // private
+  /**
+   * Returns the same color for the same module type across
+   * all the program
+   * @param type string containing the type identifier
+   * @return a color
+   */
+
+  Color_t Analyzer::colorPicker(std::string type) {
+    if (type=="") return COLOR_INVALID_MODULE;
+    if (colorPickMap_[type]==0) {
+      // New type! I'll pick a new color
+      colorPickMap_[type]=++lastPickedColor_;
+    }
+    return colorPickMap_[type];
+  }
+
+  
 }
+

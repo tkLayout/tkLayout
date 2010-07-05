@@ -13,6 +13,8 @@
 #ifndef _ANALYZER_H
 #define	_ANALYZER_H
 
+#define MY_RANDOM_SEED 0xcaffe
+
 #include <cmath>
 #include <string>
 #include <vector>
@@ -22,6 +24,8 @@
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
 #include  <MaterialBudget.h>
+#include "TRandom3.h"
+
 namespace insur {
     /**
      * A warning that may occur during processing
@@ -46,7 +50,7 @@ namespace insur {
      */
     class Analyzer {
     public:
-        Analyzer() {}
+        Analyzer();
         virtual ~Analyzer() {}
         TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
         TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
@@ -85,6 +89,7 @@ namespace insur {
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
+	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
     protected:
         /**
          * @struct Cell
@@ -106,10 +111,16 @@ namespace insur {
         TH1D iextraservices, iextrasupports;
         TH1D rglobal, iglobal;
         TH2D isor, isoi;
+	TH2D mapPhiEta;
+	TCanvas etaProfileCanvas;
+	TH1D hitDistribution;
+
+	std::vector<TObject*> savingV_; // Vector of ROOT objects to be saved
+
         virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi);
         virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-                                                                                                       double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
+								  double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
         void clearHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
@@ -119,6 +130,17 @@ namespace insur {
     private:
         int findCellIndexR(double r);
         int findCellIndexEta(double eta);
+	int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
+	std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
+	// A random number generator
+	TRandom3 myDice_; 
+	ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
+	void resetTypeCounter(std::map<std::string, int> &modTypes);
+	double diffclock(clock_t clock1, clock_t clock2);
+	Color_t colorPicker(std::string);
+	std::map<std::string, Color_t> colorPickMap_;
+	Color_t lastPickedColor_;
+
     };
 }
 #endif	/* _ANALYZER_H */
