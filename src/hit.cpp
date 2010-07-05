@@ -1,5 +1,7 @@
 #include "hit.hh"
 #include "module.hh"
+#include <vector>
+#include <algorithm>
 
 using namespace ROOT::Math;
 using namespace std;
@@ -12,7 +14,8 @@ Hit::Hit() {
   objectKind_ = Undefined;
   hitModule_ = NULL;
   orientation_ = Undefined;
-  trackTheta_ = 0;
+  //trackTheta_ = 0;
+  myTrack_ = NULL;
 }
 
 Hit::Hit(double myDistance) {
@@ -20,7 +23,8 @@ Hit::Hit(double myDistance) {
   objectKind_ = Undefined;
   hitModule_ = NULL;
   orientation_ = Undefined;
-  trackTheta_ = 0;
+  //trackTheta_ = 0;
+  myTrack_ = NULL;
 }
 
 Hit::Hit(double myDistance, Module* myModule) {
@@ -28,18 +32,12 @@ Hit::Hit(double myDistance, Module* myModule) {
   objectKind_ = Active;
   hitModule_ = myModule;
   orientation_ = Undefined;
-  trackTheta_ = 0;
+  //trackTheta_ = 0;
   setHitModule(myModule);
+  myTrack_ = NULL;
 }
 
-Hit::Hit(double myDistance, Module* myModule, double newTrackTheta) {
-  distance_ = myDistance;
-  objectKind_ = Active;
-  hitModule_ = myModule;
-  orientation_ = Undefined;
-  trackTheta_ = newTrackTheta;
-  setHitModule(myModule);
-}
+
 
 void Hit::setHitModule(Module* myModule) {
   if (myModule) {
@@ -57,6 +55,12 @@ void Hit::setHitModule(Module* myModule) {
 //pair<double, double> Hit::getBareMaterial() {
 //  return material_;
 //}
+
+double Hit::getTrackTheta() {
+  if (myTrack_==NULL)
+    return 0;
+  return (myTrack_->getTheta());
+};
 
 pair<double, double> Hit::getCorrectedMaterial() {
  return correctedMaterial_;
@@ -79,4 +83,8 @@ pair<double, double> Hit::getCorrectedMaterial() {
   correctedMaterial.second = material_.second * factor;
 
   return correctedMaterial; */
+}
+
+void Track::sort() {
+  std::sort(hitV_.begin(), hitV_.end(), sortSmallerR);
 }

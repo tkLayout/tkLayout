@@ -14,14 +14,24 @@ INCLUDEFLAGS=-Iinclude/
 SRCDIR=src
 INCDIR=include
 LIBDIR=lib
+BINDIR=bin
+TESTDIR=test
 
 COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObj tkmaterial rootwebTest 
+bin: tkmaterial
+	@echo Executable built.
+
+all: tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObjects tkmaterial rootwebTest 
 	@echo "Full build successful."
 
+#TEST
+hit: src/hit.cpp include/hit.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o src/hit.cpp
+
+
 #TKGEOMETRY
-tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o
+tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/mainConfigHandler.o
 	@echo "Built target 'tkgeometry'."
 
 $(LIBDIR)/configparser.o:	$(SRCDIR)/configparser.cpp $(INCDIR)/configparser.hh
@@ -41,6 +51,9 @@ $(LIBDIR)/tracker.o: $(SRCDIR)/tracker.cpp $(INCDIR)/tracker.hh
 	@echo "Building target tracker.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tracker.o $(SRCDIR)/tracker.cpp 	
 	@echo "Built target tracker.o"
+
+$(LIBDIR)/mainConfigHandler.o: src/mainConfigHandler.cpp include/mainConfigHandler.h
+	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o src/mainConfigHandler.cpp
 
 #EXOCOM
 exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
@@ -169,22 +182,25 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 $(LIBDIR)/rootweb.o:	src/rootweb.cpp include/rootweb.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootweb.o src/rootweb.cpp
 
-# Main (program) configuration file handler
-$(LIBDIR)/mainConfigHandler.o: src/mainConfigHandler.cpp include/mainConfigHandler.h
-	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o src/mainConfigHandler.cpp
-
 #FINAL
-tkLayout: TrackerGeom2.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
+tkLayout: $(BINDIR)/tkLayout
+	@echo Building tkLayout...
+
+$(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
 	$(LIBDIR)/configparser.o TrackerGeom2.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o tkLayout
+	-o $(BINDIR)/tkLayout
 
-tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-        $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
-        $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o  \
-        $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
-        $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
-        $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o
+tkmaterial: $(BINDIR)/tkmaterial
+	@echo Building tkmaterial...
+ 
+$(BINDIR)/tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
+	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
+	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
+	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
+	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
+	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o
 	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
 	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
@@ -192,51 +208,53 @@ tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR
 	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
 	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o tkmaterial
+	-o $(BINDIR)/tkmaterial
 
 $(LIBDIR)/tkmaterial.o: tkmaterial.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
 
-testObj: testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o testObjects.cpp \
-	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o testObj
+testObjects: $(TESTDIR)/testObjects
+$(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(TESTDIR)/testObjects.cpp \
+	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o $(TESTDIR)/testObjects
 
-rootwebTest: rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o rootwebTest
+rootwebTest: $(TESTDIR)/rootwebTest
+$(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
 #CLEANUP
 cleantkgeometry:
-	-rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o
+	@rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/mainConfigHandler.o
 
 cleanexocom:
-	-rm -f $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
+	@rm -f $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
 
 cleangeneral:
-	-rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
+	@rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/InactiveSurfaces.o
 
 cleanelements:
-	-rm -f $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
+	@rm -f $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
 
 cleanushers:
-	-rm -f $(LIBDIR)/Usher.o
+	@rm -f $(LIBDIR)/Usher.o
 
 cleandressers:
-	-rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
+	@rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
 	
 cleanviz:
-	-rm -r $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
+	@rm -f $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
 	
 cleannaly:
-	-rm -r $(LIBDIR)/Analyzer.o
+	@rm -f $(LIBDIR)/Analyzer.o
 
 cleanrootweb:
-	rm -f $(LIBDIR)/rootweb.o 
+	@rm -f $(LIBDIR)/rootweb.o 
 	
 cleantkmaine:
-	-rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o ./tkmaterial ./tkLayout ./testObj ./rootwebTest
+	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o $(BINDIR)/tkmaterial $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest
 	
-clean: cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine
+clean: cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine
 
 
 
