@@ -11,17 +11,31 @@ using namespace std;
 #define STYLEDIRECTORYDEFINITIONLOWERCASE "styledirectory"
 #define LAYOUTDIRECTORYDEFINITION "layoutDirectory" 
 #define LAYOUTDIRECTORYDEFINITIONLOWERCASE "layoutdirectory" 
+#define XMLDIRECTORYDEFINITION "xmlDirectory" 
+#define XMLDIRECTORYDEFINITIONLOWERCASE "xmldirectory" 
+
+// This object wil read the configuration only once
+// If the configuration file is not present, wuations will
+// be asked directly through std::cin and the corresponding
+// configuration file will be saved in the home directory
 
 class mainConfigHandler {
  public:
-  mainConfigHandler() {} ;
+  mainConfigHandler() {goodConfigurationRead_ = false;} ;
   ~mainConfigHandler() {};
+  bool getConfiguration();
+  bool getConfiguration(string& styleDirectory, string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& styleDirectory, string& layoutDirectory);
  private:
+  bool goodConfigurationRead_;
+  string styleDirectory_;
+  string layoutDirectory_;
+  string xmlDirectory_;
   bool checkDirectory(string dirName) ;
-  bool createConfigurationFileFromQuestions(string& configFileName, string& styleDirectory, string& layoutDirectory);
+  bool createConfigurationFileFromQuestions(string& configFileName);
   bool parseLine(const char* codeLine, string& parameter, string& value);
-  bool readConfigurationFile(ifstream& configFile, string& styleDirectory, string& layoutDirectory);
+  bool readConfigurationFile(ifstream& configFile);
+  bool readConfiguration();
 };
 
 #endif

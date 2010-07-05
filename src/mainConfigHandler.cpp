@@ -29,7 +29,7 @@ bool mainConfigHandler::checkDirectory(string dirName) {
   return true;
 }
 
-bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName,  string& styleDirectory, string& layoutDirectory) {
+bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
   // Clear screen
   cout << "\033[2J"; // Clears the screen
   cout << "\033[1;1H"; // Places cursor on line 1
@@ -45,16 +45,25 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
        << "    if you want the pages to be readable from the web"<< endl
        << "    ( Usually this directory is called 'style' and it is in" << endl
        << "    the main program's directory, but you can copy it anywhere you like.)" << endl
-       << "    Example: /home/username/tkLayout/style : ";
-  cin >> styleDirectory ;
-  if (!checkDirectory(styleDirectory)) return false;
+       << "    Example: /home/username/tkgeometry/style : ";
+  cin >> styleDirectory_ ;
+  if (!checkDirectory(styleDirectory_)) return false;
   cout << endl;
 
   cout << "*** What is the web server directory where you want to" << endl
        << "    place your output?" << endl
        << "    Example: /home/username/www/layouts : ";
-  cin >> layoutDirectory;
-  if (!checkDirectory(layoutDirectory)) return false;
+  cin >> layoutDirectory_;
+  if (!checkDirectory(layoutDirectory_)) return false;
+  cout << endl;
+
+  // TODO: Specify better here
+  cout << "*** What is the xml directory for CMSSW?" << endl
+       << "    ( it should be the directory created by the install" << endl
+       << "    or a similar one )" << endl
+       << "    Example: /home/username/tkgeometry/xml : ";
+  cin >> xmlDirectory_;
+  if (!checkDirectory(xmlDirectory_)) return false;
   cout << endl;
 
   ofstream configFile;
@@ -64,8 +73,9 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
     return false;
   } else {
-    configFile << STYLEDIRECTORYDEFINITION << " = \"" <<  styleDirectory << "\"" << endl;
-    configFile << LAYOUTDIRECTORYDEFINITION << " = \"" << layoutDirectory << "\"" << endl;
+    configFile << STYLEDIRECTORYDEFINITION << " = \"" <<  styleDirectory_ << "\"" << endl;
+    configFile << LAYOUTDIRECTORYDEFINITION << " = \"" << layoutDirectory_ << "\"" << endl;
+    configFile << XMLDIRECTORYDEFINITION << " = \"" << xmlDirectory_ << "\"" << endl;
     configFile.close();
   }
 
@@ -97,54 +107,82 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
 }
 
 
-bool mainConfigHandler::readConfigurationFile(ifstream& configFile, string& styleDirectory, string& layoutDirectory) {
+bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   char myLine[1024];
   string parameter, value;
   bool styleFound=false;
   bool layoutFound=false;
+  bool xmlFound=false;
 
   // Parsing all the lines of the configuration file
   while (configFile.good()) {
     configFile.getline(myLine, 1024);
     if (parseLine(myLine, parameter, value)) {
       std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
-      // If he's defining the style directory, then we map it to styleDirectory
+      // If he's defining the style directory, then we map it to styleDirectory_
       if (parameter==STYLEDIRECTORYDEFINITIONLOWERCASE) {
-	styleDirectory = value;
+	styleDirectory_ = value;
 	styleFound=true;
       } else if (parameter==LAYOUTDIRECTORYDEFINITIONLOWERCASE) {
-	layoutDirectory = value;
+	layoutDirectory_ = value;
 	layoutFound = true;
+      } else if (parameter==XMLDIRECTORYDEFINITIONLOWERCASE) {
+	xmlDirectory_ = value;
+	xmlFound = true;
       } else {
 	cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
   }
 
-  return (styleFound&&layoutFound);
+  return (styleFound&&layoutFound&&xmlFound);
+}
+
+bool mainConfigHandler::getConfiguration() {
+  return readConfiguration();
+}
+
+bool mainConfigHandler::getConfiguration(string& styleDirectory, string& layoutDirectory, string& xmlDirectory) {
+  bool result = readConfiguration();
+  if (result) {
+    styleDirectory = styleDirectory_;
+    layoutDirectory = layoutDirectory_;
+    xmlDirectory = xmlDirectory_;
+  }
+  return result;
 }
 
 bool mainConfigHandler::getConfiguration(string& styleDirectory, string& layoutDirectory) {
-  ifstream configFile;
+  bool result = readConfiguration();
+  if (result) {
+    styleDirectory = styleDirectory_;
+    layoutDirectory = layoutDirectory_;
+  }
+  return result;
+}
 
+bool mainConfigHandler::readConfiguration() {
+  if (goodConfigurationRead_) return true;
+
+  ifstream configFile;
   string homeDirectory = string(getenv(HOMEDIRECTORY));
   string configFileName = homeDirectory+"/"+CONFIGURATIONFILENAME;
-  bool goodConfig;
+  bool goodConfig=false;
 
   configFile.open(configFileName.c_str(), ifstream::in);
   if (!configFile.good()) {
     configFile.close();
-    goodConfig = createConfigurationFileFromQuestions(configFileName, styleDirectory, layoutDirectory);
+    goodConfig = createConfigurationFileFromQuestions(configFileName);
   } else {
     // I will read the configuration out of that
-    goodConfig = readConfigurationFile(configFile, styleDirectory, layoutDirectory);
+    goodConfig = readConfigurationFile(configFile);
     configFile.close();
     if (goodConfig) {
-      if (!checkDirectory(styleDirectory)) {
+      if (!checkDirectory(styleDirectory_)) {
 	cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
 	return false;
       }
-      if (!checkDirectory(layoutDirectory)) {
+      if (!checkDirectory(layoutDirectory_)) {
 	cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
 	return false;
       }
@@ -154,5 +192,6 @@ bool mainConfigHandler::getConfiguration(string& styleDirectory, string& layoutD
     }
   }
 
+  goodConfigurationRead_ = goodConfig;
   return goodConfig;
 }

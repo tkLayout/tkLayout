@@ -126,12 +126,12 @@ int main(int argc, char** argv) {
   } */
 
   mainConfigHandler myConfigHandler;
-  myConfigHandler.getConfiguration(styleDirectory, targetDirectory);
-
-  targetDirectory+="/trackerName"; 
-  mySite->setStyleDirectory(styleDirectory);
-  mySite->setTargetDirectory(targetDirectory);
-  mySite->makeSite();
+  if (myConfigHandler.getConfiguration(styleDirectory, targetDirectory)) {
+    targetDirectory+="/trackerName"; 
+    mySite->setStyleDirectory(styleDirectory);
+    mySite->setTargetDirectory(targetDirectory);
+    mySite->makeSite();
+  }
 
   //myContent.dump(cout);
   //myContent2.dump(cout);
