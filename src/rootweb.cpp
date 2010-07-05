@@ -6,6 +6,7 @@
 #include <TError.h>
 #include <time.h>
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/exception.hpp>
 
 //*******************************************//
 // RootWTable                                //
@@ -686,9 +687,11 @@ ostream& RootWBinaryFile::dump(ostream& output) {
 
   if (boost::filesystem::exists(originalFileName_)) {
     try {
+      if (boost::filesystem::exists(destinationFileName))
+	boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
-    } catch (...) {
-      cerr << "Problem copying the file '" << originalFileName_ << "' to '" << destinationFileName << "'" << endl;
+    } catch (boost::filesystem::filesystem_error e) {
+      cerr << e.what() << endl;
       return output;
     }
   }
