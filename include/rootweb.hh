@@ -178,6 +178,18 @@ public:
   ostream& dump(ostream& output);
 };
 
+class RootWBinaryFile : public RootWFile {
+private:
+  string originalFile_;
+public:
+  RootWBinaryFile() {};
+  ~RootWBinaryFile() {};
+  RootWBinaryFile(string newFileName) {setOriginalFile(""); setFileName(newFileName); setDescription(""); };
+  RootWBinaryFile(string newFileName, string newDescription) {setOriginalFile(""); setFileName(newFileName); setDescription(newDescription); };
+  void setOriginalFile(string newFile) {originalFile_ = newFile ; };
+  ostream& dump(ostream& output);
+};
+
 class RootWPage {
 private:
   string title_;

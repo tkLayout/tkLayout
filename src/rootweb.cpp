@@ -645,8 +645,53 @@ vector<RootWItem*> RootWItemCollection::getOtherItems() {
 //*******************************************//
 
 ostream& RootWTextFile::dump(ostream& output) {
+
+  if (fileName_=="") {
+    cerr << "Warning: RootWTextFile::dump() was called without prior setting the destination file name" << endl;
+    return output;
+  }
+
   std::ofstream outputFile;
   string destinationFileName = targetDirectory_ +"/" + fileName_;
+  outputFile.open(destinationFileName.c_str());
+  // TODO: add a check heer if the file was correctly opened
+  //outputFile << myText_.str();
+  //myText_ >> outputFile;
+  outputFile << myText_.str() << endl;
+  outputFile.close();
+
+  output << "<b>" << description_ << ":</b> <a href=\""
+         << fileName_ << "\">"
+         << fileName_ << "</a></tt><br/>";
+  return output;
+};
+
+
+//*******************************************//
+// RootWBinaryFile                           //
+//*******************************************//
+
+ostream& RootWBinaryFile::dump(ostream& output) {
+  if (originalFile_=="") {
+    cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
+    return output;
+  } 
+  if (fileName_=="") {
+    cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the destination file name" << endl;
+    return output;
+  }
+
+  std::ofstream outputFile;
+  string destinationFileName = targetDirectory_ +"/" + fileName_;
+
+  if (boost::filesystem::exists(originalFile_)) {
+    try {
+      boost::filesystem::copy_file(configFileName, destConfigFile);
+    } catch (...) {
+      cerr << "Problem copying the file '" << originalFile_ << "' to '" << destinationFileName << "'" << endl;
+    }
+  }
+
   outputFile.open(destinationFileName.c_str());
   // TODO: add a check heer if the file was correctly opened
   //outputFile << myText_.str();

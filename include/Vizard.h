@@ -60,6 +60,7 @@ namespace insur {
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
+	//void histogramSummary(Analyzer& a, RootWSite outSite);
     protected:
         TGeoManager* gm;
         TGeoVolume* top;
