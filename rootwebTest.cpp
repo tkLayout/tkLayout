@@ -43,6 +43,11 @@ int main(int argc, char** argv) {
   TCanvas* myCanvas = new TCanvas();
   myCanvas->cd();
   pippo->Draw();
+  
+  // This is to test the binary file linking:
+  RootWBinaryFile *myBinaryFile = new RootWBinaryFile("testFile.png", "A test binary file", "/tmp/testme.png");
+  myCanvas->SaveAs("/tmp/testme.png");
+  myCollection.addItem(myBinaryFile, "Abinaryfile");
 
   RootWImage* myPlot = new RootWImage(myCanvas, 1024, 600);
   myPlot->setComment("This is the best plot ever seen...");

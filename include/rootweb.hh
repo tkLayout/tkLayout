@@ -184,8 +184,10 @@ private:
 public:
   RootWBinaryFile() {};
   ~RootWBinaryFile() {};
-  RootWBinaryFile(string newFileName) {setOriginalFile(""); setFileName(newFileName); setDescription(""); };
-  RootWBinaryFile(string newFileName, string newDescription) {setOriginalFile(""); setFileName(newFileName); setDescription(newDescription); };
+  RootWBinaryFile(string newFileName) {setFileName(newFileName); setDescription(""); setOriginalFile(""); };
+  RootWBinaryFile(string newFileName, string newDescription) {setFileName(newFileName); setDescription(newDescription); setOriginalFile("");};
+  RootWBinaryFile(string newFileName, string newDescription, string newOriginalFile) {
+    setFileName(newFileName); setDescription(newDescription); setOriginalFile(newOriginalFile);};
   void setOriginalFile(string newFile) {originalFileName_ = newFile ; };
   ostream& dump(ostream& output);
 };
