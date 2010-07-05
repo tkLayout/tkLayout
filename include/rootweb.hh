@@ -180,13 +180,13 @@ public:
 
 class RootWBinaryFile : public RootWFile {
 private:
-  string originalFile_;
+  string originalFileName_;
 public:
   RootWBinaryFile() {};
   ~RootWBinaryFile() {};
   RootWBinaryFile(string newFileName) {setOriginalFile(""); setFileName(newFileName); setDescription(""); };
   RootWBinaryFile(string newFileName, string newDescription) {setOriginalFile(""); setFileName(newFileName); setDescription(newDescription); };
-  void setOriginalFile(string newFile) {originalFile_ = newFile ; };
+  void setOriginalFile(string newFile) {originalFileName_ = newFile ; };
   ostream& dump(ostream& output);
 };
 

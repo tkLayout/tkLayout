@@ -672,7 +672,7 @@ ostream& RootWTextFile::dump(ostream& output) {
 //*******************************************//
 
 ostream& RootWBinaryFile::dump(ostream& output) {
-  if (originalFile_=="") {
+  if (originalFileName_=="") {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
     return output;
   } 
@@ -684,20 +684,14 @@ ostream& RootWBinaryFile::dump(ostream& output) {
   std::ofstream outputFile;
   string destinationFileName = targetDirectory_ +"/" + fileName_;
 
-  if (boost::filesystem::exists(originalFile_)) {
+  if (boost::filesystem::exists(originalFileName_)) {
     try {
-      boost::filesystem::copy_file(configFileName, destConfigFile);
+      boost::filesystem::copy_file(originalFileName_, destinationFileName);
     } catch (...) {
-      cerr << "Problem copying the file '" << originalFile_ << "' to '" << destinationFileName << "'" << endl;
+      cerr << "Problem copying the file '" << originalFileName_ << "' to '" << destinationFileName << "'" << endl;
+      return output;
     }
   }
-
-  outputFile.open(destinationFileName.c_str());
-  // TODO: add a check heer if the file was correctly opened
-  //outputFile << myText_.str();
-  //myText_ >> outputFile;
-  outputFile << myText_.str() << endl;
-  outputFile.close();
 
   output << "<b>" << description_ << ":</b> <a href=\""
          << fileName_ << "\">"
