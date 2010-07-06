@@ -1,0 +1,95 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{hyphenat}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+% Fancy header and footer to have my name everywhere
+\lhead{\textbf{Multiple scattering}}
+\chead{}
+\rhead{\thepage /\pageref{LastPage}}
+\lfoot{}
+\cfoot{}
+\rfoot{}
+\renewcommand{\headrulewidth}{0.4pt}
+%\renewcommand{\footrulewidth}{0.4pt}
+
+% Page formatting (A4)
+\pdfpagewidth 210mm
+\pdfpageheight 297mm
+
+% Margins and other stuff
+% Vertical
+\setlength\voffset{4.6mm}          % 1 in is automatically added (25.4mm)
+\setlength\topmargin{0mm}
+\setlength\headheight{0pt}
+\setlength\headsep{24pt}
+%\setlength\textheight{237mm}
+\setlength\textheight{225mm}
+\setlength\footskip{36pt}
+% Horizontal
+\setlength\hoffset{0mm}
+\setlength\oddsidemargin{-12.9mm}  % 1 in is automatically added (25.4mm)
+\setlength\evensidemargin{-12.9mm} % 1 in is automatically added (25.4mm)
+\setlength\textwidth{18.5cm}
+\setlength\headwidth{18.5cm}
+\setlength\marginparsep{6pt}
+\setlength\marginparwidth{0mm}
+% Paragraph stuff
+\setlength\parindent{0mm}
+\setlength\parskip{10pt}
+
+\begin{document}
+Given the layer radii $x_n = x_1, x_2, \ldots, x_N$ with scattering angles $\theta_1, \theta_2, \ldots, \theta_3$, then
+the deviation from the ideal path $y_n$ is
+\begin{equation}
+y_n=\sum_{i=1}^{n-1} \left (  x_n - x_i \right ) \theta_i
+\end{equation}
+The angles $\theta_i$ are distributed as a Gaussian, with r.m.s. such that
+\begin{equation}
+\left < \theta^2 \right > =
+    \left ( \frac {13.6\,\mathrm{MeV}} {p} \right )^2
+    \frac x {X_0}
+    \left [ 1+ 0.038 \log \left ( \frac x {X_0} \right ) \right ] ^2
+\end{equation}
+The correlation between two deviations $y_n, y_m$ is (we will assume without loss of generality that $m \geq n$)
+\begin{equation}
+C_{n,m}\left < y_n y_m \right > =
+      \left <
+      \sum_{i=1}^{m-1} \left (  x_m - x_i \right ) \theta_i
+      \times
+      \sum_{i=1}^{n-1} \left (  x_n - x_i \right ) \theta_i
+      \right >
+\end{equation}
+Since the angles $\theta_i$ are uncorrelated, any term containing in $\left < \theta_i \theta_j \right >$ with $i\neq j$ will be zero, thus
+\begin{eqnarray}
+C_{n,m}\left < y_n y_m \right > & = &
+      \left <
+      \sum_{i=1}^{m-1} \sum_{i=1}^{n-1}
+      \left (  x_m - x_i \right )
+      \left (  x_n - x_i \right ) \theta_i \theta_j \delta_{i,j}
+      \right > \nonumber \\
+      & = &
+      \sum_{i=1}^{n-1} 
+      \left (  x_m - x_i \right )
+      \left (  x_n - x_i \right )  \left < \theta_i^2 \right > 
+\end{eqnarray}
+The measurement ``error'' depends both on the scattering of the real track with respect to the ideal case
+and also on the intrinsic measurement error $\sigma_i$, which depends approximately on the strip pitch $p_i$
+according to $\sigma_i = p_i / \sqrt{12}$, or $\sigma_i^2 = p_i^2 / 12$, thus the covariance matrix $c_{n,m}$ is
+\begin{equation}
+c_{n,m}= \left \{
+\begin{array}{cl}
+ \sum_{i=1}^{n-1} \left (  x_m - x_i \right ) \left (  x_n - x_i \right )  \left < \theta_i^2 \right > & n<m \\
+ p_i^2 / 12 + \sum_{i=1}^{n-1} \left (  x_n - x_i \right )^2  \left < \theta_i^2 \right > & n=m \\
+ c_{m,n}  & n>m
+\end{array}
+\right .
+\end{equation}
+
+
+
+\label{LastPage}
+\end{document}
