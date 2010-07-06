@@ -56,7 +56,7 @@ The angles $\theta_i$ are distributed as a Gaussian, with r.m.s. such that
 \end{equation}
 The correlation between two deviations $y_n, y_m$ is (we will assume without loss of generality that $m \geq n$)
 \begin{equation}
-C_{n,m}\left < y_n y_m \right > =
+a_{n,m}\left < y_n y_m \right > =
       \left <
       \sum_{i=1}^{m-1} \left (  x_m - x_i \right ) \theta_i
       \times
@@ -65,7 +65,7 @@ C_{n,m}\left < y_n y_m \right > =
 \end{equation}
 Since the angles $\theta_i$ are uncorrelated, any term containing in $\left < \theta_i \theta_j \right >$ with $i\neq j$ will be zero, thus
 \begin{eqnarray}
-C_{n,m}\left < y_n y_m \right > & = &
+a_{n,m}\left < y_n y_m \right > & = &
       \left <
       \sum_{i=1}^{m-1} \sum_{i=1}^{n-1}
       \left (  x_m - x_i \right )
@@ -78,9 +78,9 @@ C_{n,m}\left < y_n y_m \right > & = &
 \end{eqnarray}
 The measurement ``error'' depends both on the scattering of the real track with respect to the ideal case
 and also on the intrinsic measurement error $\sigma_i$, which depends approximately on the strip pitch $p_i$
-according to $\sigma_i = p_i / \sqrt{12}$, or $\sigma_i^2 = p_i^2 / 12$, thus the covariance matrix $c_{n,m}$ is
+according to $\sigma_i = p_i / \sqrt{12}$, or $\sigma_i^2 = p_i^2 / 12$, thus the covariance matrix $b_{n,m}$ is
 \begin{equation}
-c_{n,m}= \left \{
+b_{n,m}= \left \{
 \begin{array}{cl}
  \sum_{i=1}^{n-1} \left (  x_m - x_i \right ) \left (  x_n - x_i \right )  \left < \theta_i^2 \right > & n<m \\
  p_i^2 / 12 + \sum_{i=1}^{n-1} \left (  x_n - x_i \right )^2  \left < \theta_i^2 \right > & n=m \\
@@ -88,7 +88,11 @@ c_{n,m}= \left \{
 \end{array}
 \right .
 \end{equation}
-
+Let's suppose we have $N$ hits, but in these $N$ only $M$ are measurement points and $N-M$ are hits
+on inactive surfaces. In this matrix $b_{n,m}$ is computed exactly in the same way, but the rows
+and columns corresponding to the inactive hits are removed. We thus start from a $N\times N$ square matrix
+of correlations $b_{n,m}$ and we end up with a $M\times M$ measurement point covariance matrix $\c_{n,m}$,
+or in matrix notation $C$.
 
 
 \label{LastPage}
