@@ -27,6 +27,7 @@
 // Date and time
 #include <ctime> // for debug
 
+// obsolete
 double diffclock(clock_t clock1, clock_t clock2) {
     double diffticks=clock1-clock2;
     double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
@@ -101,8 +102,8 @@ void Tracker::setDefaultParameters() {
     maxL_ = 0;
     maxR_ = 0;
     phiSegments_=4;
-    lastPickedColor_ = STARTCOLOR;
-    colorPicker("pt");
+    lastPickedColor_ = STARTCOLOR; // remove (obsolete)
+    colorPicker("pt"); // remove these three from here
     colorPicker("rphi");
     colorPicker("stereo");
 }
@@ -828,31 +829,6 @@ void Tracker::resetTypeCounter(std::map <std::string, int> &modTypes) {
     }
 }
 
-// Creates a module type map
-// It sets a different integer for each one
-// Returns: the total number of module types
-int Tracker::createResetCounters(std::map <std::string, int> &modTypes) {
-    ModuleVector result;
-    LayerVector::iterator layIt;
-    ModuleVector* moduleV;
-    ModuleVector::iterator modIt;
-    
-    std::string aType;
-    int typeCounter=0;
-    
-    for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
-        moduleV = (*layIt)->getModuleVector();
-        for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
-            aType = (*modIt)->getType();
-            (*modIt)->resetNHits();
-            if (modTypes.find(aType)==modTypes.end()) {
-                modTypes[aType]=typeCounter++;
-            }
-        }
-    }
-    
-    return(typeCounter);
-}
 
 // Shoots directions with random (flat) phi, random (flat) pseudorapidity
 // gives also the direction's eta
@@ -907,9 +883,7 @@ std::pair <XYZVector, double > Tracker::shootDirectionFixedPhi(double minEta, do
     return result;
 }
 
-// TODO TODO TODO
-// Use the information on the xysection stored in the modules to
-// limit the number of modules used for the simulation
+
 void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection */ ) {
     // A bunch of pointers
     std::map <std::string, int> modTypes;
@@ -1067,10 +1041,10 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     savingV_.push_back(etaProfileCanvas_);
     int plotCount=0;
     
-    for (std::map <std::string, TH2D*>::iterator it = etaType.begin();
-    it!=etaType.end(); it++) {
-        (*it).second->Clone();
-    }
+    //for (std::map <std::string, TH2D*>::iterator it = etaType.begin();
+    //    it!=etaType.end(); it++) {
+    //        (*it).second->Clone();
+    //    }
     TProfile* total = total2D->ProfileX("etaProfileTotal");
     savingV_.push_back(total);
     std::cout << plotCount << ": " << total->GetMaximum() << std::endl;
@@ -2208,17 +2182,14 @@ void Tracker::setModuleTypes() {
     }
 }
 
+// Returns the same color for the same module type across
+// all the program
 Color_t Tracker::colorPicker(std::string type) {
-    //  std::cerr << "PICKING a color for type " << type << ": " << std::endl; // debug
-    
     if (type=="") return COLOR_INVALID_MODULE;
-    
     if (colorPickMap_[type]==0) {
-        //std::cerr << "New type! I'll pick a new color: "; // debug
+        // New type! I'll pick a new color
         colorPickMap_[type]=++lastPickedColor_;
     }
-    //  std::cerr << colorPickMap_[type] << std::endl; //debug
-    
     return colorPickMap_[type];
 }
 
@@ -2672,4 +2643,36 @@ double Tracker::getBigDelta(const int& index) {
     return specialBigDelta_[index];
   }
 }
+
+
+// private
+/**
+ * Creates a module type map
+ * It sets a different integer for each one
+ * @param tracker the tracker to be analyzed
+ * @param moduleTypeCount the map to count the different module types
+ * @return the total number of module types
+ */
+int Tracker::createResetCounters(std::map <std::string, int> &moduleTypeCount) {
+    ModuleVector result;
+    LayerVector::iterator layIt;
+    ModuleVector* moduleV;
+    ModuleVector::iterator modIt;
+    
+    std::string aType;
+    int typeCounter=0;
+    
+    for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
+      moduleV = (*layIt)->getModuleVector();
+      for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+	aType = (*modIt)->getType();
+	(*modIt)->resetNHits();
+	if (moduleTypeCount.find(aType)==moduleTypeCount.end()) {
+	  moduleTypeCount[aType]=typeCounter++;
+	}
+      }
+    }
+    
+    return(typeCounter);
+  }
 

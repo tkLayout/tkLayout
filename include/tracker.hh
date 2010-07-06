@@ -75,14 +75,14 @@ private:
   void placeModuleLite(Module* aModule);
 
   // Color picking according to type
-  std::map<std::string, Color_t> colorPickMap_;
-  Color_t lastPickedColor_;
+  std::map<std::string, Color_t> colorPickMap_; // obsolete
+  Color_t lastPickedColor_;                     // obsolete
 
   int iModule_;
 
   std::string comment_;
 
-  TRandom3 myDice_;
+  TRandom3 myDice_; // obsolete
 
   TGeoVolume* myVolume_;
   TGeoMedium* myMed_;
@@ -92,17 +92,16 @@ private:
   TCanvas* geomLiteXY_;
   TCanvas* geomLiteYZ_;
   TCanvas* geomLiteEC_;
-  TCanvas* etaProfileCanvas_;
-  TCanvas* etaProfileCanvas2_;
+  TCanvas* etaProfileCanvas_; // obsolete
   TCanvas* bandWidthCanvas_;
 
   TH1F* bandWidthDist_;
   TH1F* bandWidthDistSp_;
   TH1F* chanHitDist_;
 
-  TH2D* mapPhiEta_;
+  TH2D* mapPhiEta_; // obsolete
 
-  std::vector<TObject* > savingV_;
+  std::vector<TObject* > savingV_; // (partly?) obsolete: check
 
   double zError_;
   double smallDelta_;
@@ -121,19 +120,19 @@ private:
   std::map<int,LayerOption> layerOptions_;
 
   // Color picking
-  Color_t colorPicker(std::string);
+  Color_t colorPicker(std::string); // obsolete
 
   // Internal stats
   std::vector<int> LpB_, DpE_;
   std::vector<double> rMinpB_, rMaxpB_, dZpB_, rMinpE_, rMaxpE_, dZpE_;
 
   // Geometry validation functions
-  ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
-  void resetTypeCounter(std::map <std::string, int> &modTypes);
-  int createResetCounters(std::map <std::string, int> &modTypes);
-  std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-  std::pair <XYZVector, double > shootFixedDirection(double phi, double eta);
-  std::pair <XYZVector, double > shootDirectionFixedPhi(double minEta, double maxEta);
+  ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules); // obsolete
+  void resetTypeCounter(std::map <std::string, int> &modTypes); // obsolete
+  int createResetCounters(std::map <std::string, int> &modTypes); // obsolete
+  std::pair <XYZVector, double > shootDirection(double minEta, double maxEta); // obsolete
+  std::pair <XYZVector, double > shootFixedDirection(double phi, double eta);  // obsolete
+  std::pair <XYZVector, double > shootDirectionFixedPhi(double minEta, double maxEta); // obsolete
   
   // Formatted output
   void printHtmlTableRow(std::ofstream *output, std::vector<std::string> myRow);
@@ -234,9 +233,10 @@ public:
   double getOverlap() { return overlap_; };
   double getEtaCut() { return etaCut_; };
 
-// Access to layer vectors
-LayerVector* getBarrelLayers() { return &barrelLayerSet_; }
-LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
+  // Access to layer vectors
+  LayerVector* getBarrelLayers() { return &barrelLayerSet_; }
+  LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
+  LayerVector& getLayers() { return layerSet_; }
 
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };
@@ -277,7 +277,7 @@ LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
 
   // Geometry validation
   std::pair<double, double> getEtaMinMax();
-  void analyze(int nTracks = 1000, int section = Layer::NoSection);
+  void analyze(int nTracks = 1000, int section = Layer::NoSection); // obsolete
   int cutOverEta(double etaCut);
   double getMaxBarrelZ(int direction);
   //  void compressBarrelLayers();
