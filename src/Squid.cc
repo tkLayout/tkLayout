@@ -42,11 +42,11 @@ namespace insur {
     }
     
     /**
-     * Dress the previously created geometry with module options. The resulting tracker object replaces the
-     * previously registered one, if such an object existed. It remains in the squid until it is overwritten by a
-     * second call to this function or by another one that creates a new tracker object.
+     * Dress the previously created geometry with module options. The modified tracker object remains
+     * in the squid as the current tracker until it is overwritten by a call to another function that creates
+     * a new one. If the tracker object has not been created yet, the function fails.
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
-     * @return True if there were no errors during processing, false otherwise
+     * @return True if there was an existing tracker to dress, false otherwise
      */
     bool Squid::dressTracker(std::string settingsfile) {
         if (tr) {
@@ -60,7 +60,9 @@ namespace insur {
     }
     
     /**
-     * Build a geometry of active modules using both geometry constraints and module settings.
+     * Build a geometry of active modules using both geometry constraints and module settings. If there
+     * was an existing tracker object, it is destroyed and replaced by a new one as described in the geometry
+     * and settings configuration files.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @return True if there were no errors during processing, false otherwise
@@ -170,7 +172,7 @@ namespace insur {
                     return true;
                 }
                 else {
-                    delete mb;
+                    if (mb) delete mb;
                     mb = NULL;
                     std::cout << "Squid::createMaterialBudget(): " << err_init_failed << std::endl;
                     return false;
@@ -205,10 +207,15 @@ namespace insur {
     }
     
     /**
-     * Analyse the previously created full system, writing to the full series of output files: HTML for the histograms
-     * that were filled during analysis of the material budget, ROOT for the geometry visualisation and plain text for
-     * the feeder/neighbour relations. The tracker object, the collection of inactive surfaces and the material budget
-     * must all exist already for this function to succeed.
+     * Analyse the previously created full system, writing the full series of output files: HTML for the histograms that
+     * were filled during analysis of the material budget, ROOT for the geometry visualisation and plain text for the
+     * feeder/neighbour relations. The tracker object, the collection of inactive surfaces and the material budget must
+     * all exist already for this function to succeed.
+     *
+     * WARNING: do <i>not</i> turn the <i>simplified</i> flag off unless you have a very small number of modules,
+     * or another very good reason! In most cases, loading a geometry with individual modules into one of the geometry 
+     * viewers will simply crash ROOT because the number of volumes is too large. So once again - use with caution!
+     *
      * @param htmlout The name - without path - of the designated HTML output file
      * @param rootout The name - without path - of the designated ROOT output file
      * @param graphout The name - without path - of the designated plain text output file
@@ -250,9 +257,10 @@ namespace insur {
     
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
-     * in a ROOT viewer later as well as the feeder/neighbour graph of the collection of inactive surfaces
-     *  if it exists, and save both results to file. This function succeeds if either the tracker or both the
-     * tracker and the inactive surfaces exist, but the graph file will only be created for a full geometry.
+     * in a ROOT viewer later. In addition, build the feeder/neighbour graph of the collection of inactive 
+     *  surfaces if it exists, and save both results to file. This function succeeds if either the tracker or
+     * both the tracker and the inactive surfaces exist, but the graph file will only be created for a full
+     * geometry.
      * @param rootout The name - without path - of the designated ROOT output file
      * @param graphout The name - without path - of the designated plain text output file
      * @param simplified A flag that turns bounding boxes instead of individual modules in the ROOT output file on or off
@@ -281,7 +289,7 @@ namespace insur {
     
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
-     * in a ROOT viewer later and save the result to a ROOT file. This function succeeds if either the
+     * in a ROOT viewer later, and save the result to a ROOT file. This function succeeds if either the
      * tracker or both the tracker and the inactive surfaces exist.
      * @param rootout The name - without path - of the designated output file
      * @return True if there were no errors during processing, false otherwise
@@ -354,6 +362,13 @@ namespace insur {
         }
     }
     
+    /**
+     * Create the geometry summary page for an existing tracker. Unless specified otherwise in an <i>Output</i>
+     * block in the geometry file, the page will be written to a subfolder based on the tracker name.
+     * @configFileName The name - preferably without the path - of the geometry configuration file
+     * @dressFileName The name - preferably without the path - of the module settings configuration file
+     * @return True if there is an existing tracker to summarise, false otherwise.
+     */
     bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
         if (tr) {
             std::string myDirectory;
@@ -399,6 +414,11 @@ namespace insur {
         return false;
     }
     
+    /**
+     * Extract the filename from a path. If there is nothing to extract, a copy of the input is returned.
+     * @full The source string
+     * @return A string containing everything after the last slash character, or the entire input if there were no slashes
+     */
     std::string Squid::extractFileName(const std::string& full) {
         std::string::size_type idx = full.find_last_of("/");
         if (idx != std::string::npos)

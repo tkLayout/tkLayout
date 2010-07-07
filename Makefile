@@ -22,13 +22,15 @@ COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 bin: tkmaterial
 	@echo Executable built.
 
-all: tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObjects tkmaterial rootwebTest 
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid tkLayout testObjects tkmaterial rootwebTest 
 	@echo "Full build successful."
 
-#TEST
-hit: src/hit.cpp include/hit.hh
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o src/hit.cpp
-
+#TRACKS
+hit: $(LIBDIR)/hit.o
+	@echo "Built target 'hit'."
+	
+$(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o $(SRCDIR)/hit.cpp
 
 #TKGEOMETRY
 tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/mainConfigHandler.o
@@ -194,19 +196,18 @@ $(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
 tkmaterial: $(BINDIR)/tkmaterial
 	@echo Building tkmaterial...
  
-$(BINDIR)/tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
-	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
-	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
-	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
-	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
-	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o
-	$(COMP) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o \
-	$(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  \
-	$(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o \
-	$(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o \
-	$(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
+$(BINDIR)/tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
+	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
+	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o
+	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
+	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
+	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
+	$(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
+	$(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tkmaterial
 
@@ -223,6 +224,9 @@ $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
 #CLEANUP
+cleanhit:
+	@rm -f $(LIBDIR)/hit.o
+	
 cleantkgeometry:
 	@rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/mainConfigHandler.o
 
@@ -254,7 +258,7 @@ cleanrootweb:
 cleantkmaine:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o $(BINDIR)/tkmaterial $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest
 	
-clean: cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine
+clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine
 
 
 

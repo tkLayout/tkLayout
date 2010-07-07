@@ -36,7 +36,9 @@ namespace insur {
      * @brief This class is the main translator interface for generating XML output for CMSSW from an existing material budget and table.
      *
      * It deals directly with setting up output paths and buffers for output files, while it delegates analysis and XML formatting of the material 
-     * budget to an internal instance of <i>Extractor</i> and <i>XMLWriter</i>, respectively.
+     * budget to an internal instance of <i>Extractor</i> and <i>XMLWriter</i>, respectively. Existing files are not overwritten until analysis
+     * and XML formatting have been completed successfully. Should any of them fail, any existing older files are restored; preliminary
+     * results for the new files are discarded.
      */
     class tk2CMSSW {
     public:

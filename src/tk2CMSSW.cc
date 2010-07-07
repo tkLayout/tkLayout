@@ -6,6 +6,18 @@
 #include <tk2CMSSW.h>
 namespace insur {
     // public
+    /**
+     * This is the main translation function if a tkgeometry tracker model needs to be represented in an XML form that CMSSW
+     * can understand. It splits the work into three main parts: filesystem gymnastics related to input and output, analysis of the
+     * tkgeometry model, and generation of XML output. Analysis and output generation are delegated to internal instances of
+     * <i>Extractor</i> and <i>XMLWriter</i>, respectively. This function deals mainly with the file system and makes sure
+     * that the generated output files go where they are supposed to go. The user may specify the name of a subdirectory for the
+     * output files. If that directory exists, all of its contents will be overwritten by the new files. If no name is given, a default is
+     * used instead.
+     * @mt A refernce to the global material table
+     * @mb A reference to an existing material budget that serves as input to the translation
+     * @outsubdir A string with the name of a subfolder for the output; empty by default.
+     */
     void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir) {
         std::string outpath = default_xmlpath;
         if (outsubdir.empty()) outpath = outpath + "/" + default_xml;
@@ -20,17 +32,9 @@ namespace insur {
         // translate collected information to XML and write to buffers
         std::ifstream instream;
         std::ofstream outstream;
-        // replace by calls to pixbar(), pixfwd() (if endcapsInTopology()), tracker(),
-        // topology(), prodcuts(), trackersens(), recomaterial() - probably in that order
-        //TODO: improve error handling! Rename original outpath directory, if it exists.
-        //            Then create new directory and start writing files. If all goes well, remove
-        //            temp directory. If not, remove new directory and restore original.
-        // use try-catch block for error handling: throw runtime error if one of the output
-        // streams comes back in fail state, handle rollback in catch block
         try {
             if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
             bfs::create_directory(outpath);
-            //TODO: use instream and outstream instead, in a series of inits and re-inits until all files have been written.
             instream.open((default_xmlpath + "/" + xml_pixbarfile).c_str());
             outstream.open((outpath + xml_pixbarfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");

@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <hit.hh>
 #include <module.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
@@ -88,6 +89,7 @@ namespace insur {
         TH1D& getHistoGlobalI() { return iglobal; }
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
+        std::vector<Track>& getTracks() { return tv; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
     protected:
@@ -114,6 +116,7 @@ namespace insur {
 	TH2D mapPhiEta;
 	TCanvas etaProfileCanvas;
 	TH1D hitDistribution;
+        std::vector<Track> tv;
 
 	std::vector<TObject*> savingV_; // Vector of ROOT objects to be saved
 
@@ -128,12 +131,12 @@ namespace insur {
         void fillCell(double r, double eta, double rl, double il);
         void transformEtaToZ();
     private:
+        // A random number generator
+	TRandom3 myDice_; 
         int findCellIndexR(double r);
         int findCellIndexEta(double eta);
 	int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
 	std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-	// A random number generator
-	TRandom3 myDice_; 
 	ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
 	void resetTypeCounter(std::map<std::string, int> &modTypes);
 	double diffclock(clock_t clock1, clock_t clock2);

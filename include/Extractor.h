@@ -27,9 +27,9 @@ namespace insur {
      * @class Extractor
      * @brief This class bundles the analysis functions that prepare an existing material budget and table for output to CMSSW XML.
      *
-     * The only public function of the class receives the material budget and table that make up the input, as well as a series of vectors
-     * of internal data types that will store the analysis results. The information in those vectors is ready to be formatted and written
-     * to file.
+     * The only public function of the class receives the material budget and table that make up the input. The output goes into an instance
+     * of a struct - provided as a reference - that bundles a series of vectors of internal datatypes. ons of internal data types. The analysis
+     * results will be stored in those, ready to be formatted and written to file.
      */
     class Extractor {
     public:

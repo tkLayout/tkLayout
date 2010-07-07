@@ -25,12 +25,10 @@ namespace insur {
      * @class XMLWriter
      * @brief This class bundles the output functions that write tracker information from a series of internal collections to CMSSW XML files.
      *
-     * The only public function of the class produces the five files <i>tracker.xml</i>, <i>trackerStructureTopology.xml</i>,
-     * <i>trackerProdCuts.xml</i>, <i>trackersens.xml</i> and <i>trackerRecoMaterial.xml</i> from a series of data
-     * collections and writes them to the provided output streams. Internally, the work is divided up per-file in the cases of
-     * <i>trackerProdCuts.xml</i>, <i>trackersens.xml</i> and <i>trackerRecoMaterial.xml</i>, while <i>tracker.xml</i>
-     * and <i>trackerStructureTopology.xml</i> use a more fine-grained approach. These last two are explicitly made up 
-     * of a series of XML sections, each of which is then filled with the appropriate blocks.
+     * The public functions of the class produce the files <i>pixbar.xml, pixfwd.xml, tracker.xml, trackerStructureTopology.xml,
+     * trackerProdCuts.xml, trackersens.xml</i> and <i>trackerRecoMaterial.xml</i> from a series of data collections and
+     * writes them to the provided output streams. The file <i>tracker.xml</i> is created from scratch while the others use skeleton
+     * files that they add to.
      */
     class XMLWriter {
     public:
