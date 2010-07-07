@@ -6,6 +6,10 @@
 using namespace ROOT::Math;
 using namespace std;
 
+bool sortSmallerR(Hit* h1, Hit* h2) {
+  return (h1->getDistance() < h2->getDistance());
+}
+
 Hit::~Hit() {
 }
 
@@ -16,6 +20,16 @@ Hit::Hit() {
   orientation_ = Undefined;
   //trackTheta_ = 0;
   myTrack_ = NULL;
+}
+
+Hit::Hit(const Hit& h) {
+    distance_ = h.distance_;
+    orientation_ = h.orientation_;
+    objectKind_ = h.objectKind_;
+    hitModule_ = h.hitModule_;
+    correctedMaterial_ = h.correctedMaterial_;
+    myTrack_ = NULL;
+    //TODO: rphiError_ ???
 }
 
 Hit::Hit(double myDistance) {
@@ -68,6 +82,15 @@ pair<double, double> Hit::getCorrectedMaterial() {
 
 Track::Track() {
   theta_ = 0;
+}
+
+Track::Track(const Track& t) {
+    theta_ = t.theta_;
+    vector<Hit*>::const_iterator iter, guard = t.hitV_.end();
+    for (iter = t.hitV_.begin(); iter != guard; iter++) {
+        Hit* h = new Hit(*(*iter));
+        addHit(h);
+    }
 }
 
 Track::~Track() {

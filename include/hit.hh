@@ -32,6 +32,7 @@ private:
 public:
   ~Hit();
   Hit();
+  Hit(const Hit& h);
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule);
   void setHitModule(Module* myModule);
@@ -51,9 +52,7 @@ public:
   void setError(double rphiError, momentum p) { rphiError_[p] = rphiError; };
 };
 
-bool sortSmallerR(Hit* h1, Hit* h2) {
-  return (h1->getDistance() < h2->getDistance());
-}
+bool sortSmallerR(Hit* h1, Hit* h2);
 
 class Track {
 protected:
@@ -63,12 +62,13 @@ protected:
   std::map<momentum, double> resolution_;
 public:
   Track();
+  Track(const Track& t);
   ~Track();
   double setTheta(double& newTheta) {theta_ = newTheta; return theta_;};
   double getTheta() {return theta_;};
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList) {};
+  vector<Hit*>& getHits() { return hitV_; } //TODO: TEMPORARY
 };
-
 #endif
