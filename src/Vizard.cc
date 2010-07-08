@@ -1,5 +1,6 @@
 #include <Vizard.h>
 #include <TStyle.h>
+#include <TColor.h>
 
 namespace insur {
     // public
@@ -41,6 +42,18 @@ namespace insur {
         top->AddNode(inactive, 0);
         // declaration of top volume within ROOT geometry manager
         gm->SetTopVolume(top);
+	// Some stylish option
+	gStyle->SetOptStat(0);
+	const UInt_t numberOfSteps = 5;
+	Double_t stops[numberOfSteps] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
+	Double_t red[numberOfSteps]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
+	Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
+	Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
+	Int_t myPalette[temperature_levels];
+    
+	Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
+	for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
+	gStyle->SetPalette(temperature_levels, myPalette);
     }
     
     /**
@@ -745,8 +758,6 @@ namespace insur {
       myPad = myCanvas->GetPad(1);
       myPad->cd();
 
-      gStyle->SetPalette(1);
-      gStyle->SetOptStat(0);
       // Countour plots
       myContent = new RootWContent("Contours", true);
       myPage->addContent(myContent);

@@ -13,8 +13,9 @@ namespace insur {
         tr = NULL;
         is = NULL;
         mb = NULL;
+	sitePrepared = false;
     }
-    
+
     /**
      * The destructor deletes the heap-allocated internal objects if they exist.
      */
@@ -23,7 +24,7 @@ namespace insur {
         if (is) delete is;
         if (tr) delete tr;
     }
-    
+
     /**
      * Build a bare-bones geometry of active modules. The resulting tracker object replaces the previously
      * registered one, if such an object existed. It remains in the squid until it is overwritten by a second call
@@ -40,7 +41,7 @@ namespace insur {
         }
         return false;
     }
-    
+
     /**
      * Dress the previously created geometry with module options. The modified tracker object remains
      * in the squid as the current tracker until it is overwritten by a call to another function that creates
@@ -58,7 +59,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build a geometry of active modules using both geometry constraints and module settings. If there
      * was an existing tracker object, it is destroyed and replaced by a new one as described in the geometry
@@ -79,7 +80,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
      * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the
@@ -106,7 +107,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build up a bare-bones geometry of active modules, then arrange the inactive surfaces around it. The
      * resulting tracker object and collection of inactive surfaces replace the previously registered ones, if
@@ -126,7 +127,7 @@ namespace insur {
         is = NULL;
         return false;
     }
-    
+
     /**
      * Build a geometry of active modules using both geometry constraints and module settings, then
      * arrange the inactive surfaces around it. The resulting tracker object and collection of inactive
@@ -148,7 +149,7 @@ namespace insur {
         is = NULL;
         return false;
     }
-    
+
     /**
      * Calculate a material budget for the previously created tracker object and collection of inactive
      * surfaces. The resulting material budget replaces the previously registered one, if such an object
@@ -188,7 +189,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
      * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
@@ -205,7 +206,7 @@ namespace insur {
         if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, mat_verbose);
         return false;
     }
-    
+
     /**
      * Analyse the previously created full system, writing the full series of output files: HTML for the histograms that
      * were filled during analysis of the material budget, ROOT for the geometry visualisation and plain text for the
@@ -213,7 +214,7 @@ namespace insur {
      * all exist already for this function to succeed.
      *
      * WARNING: do <i>not</i> turn the <i>simplified</i> flag off unless you have a very small number of modules,
-     * or another very good reason! In most cases, loading a geometry with individual modules into one of the geometry 
+     * or another very good reason! In most cases, loading a geometry with individual modules into one of the geometry
      * viewers will simply crash ROOT because the number of volumes is too large. So once again - use with caution!
      *
      * @param htmlout The name - without path - of the designated HTML output file
@@ -227,7 +228,7 @@ namespace insur {
         if (analyzeGeometry(rootout, graphout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-    
+
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the geometry
      * visualisation to a ROOT file.
@@ -241,7 +242,7 @@ namespace insur {
         if (analyzeGeometry(rootout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-    
+
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the feeder/neighbour
      * graph to a plain text file.
@@ -254,10 +255,10 @@ namespace insur {
         if (analyzeNeighbours(graphout)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-    
+
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
-     * in a ROOT viewer later. In addition, build the feeder/neighbour graph of the collection of inactive 
+     * in a ROOT viewer later. In addition, build the feeder/neighbour graph of the collection of inactive
      *  surfaces if it exists, and save both results to file. This function succeeds if either the tracker or
      * both the tracker and the inactive surfaces exist, but the graph file will only be created for a full
      * geometry.
@@ -286,7 +287,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
      * in a ROOT viewer later, and save the result to a ROOT file. This function succeeds if either the
@@ -310,7 +311,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
      * save the results in a plain text file.
@@ -327,7 +328,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Analyze the previously created material budget and save the results in an HTML file.
      * @param htmlout The name - without path - of the designated output file
@@ -345,7 +346,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
      * @param xmlout The name - without path - of the designated output subdirectory
@@ -361,7 +362,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     /**
      * Create the geometry summary page for an existing tracker. Unless specified otherwise in an <i>Output</i>
      * block in the geometry file, the page will be written to a subfolder based on the tracker name.
@@ -377,19 +378,19 @@ namespace insur {
             // Optical transmission
             tr->createGeometry(true);
             tr->computeBandwidth();
-            
+
             // Analysis
             tr->analyze(2000);
-            
+
             // Summary and save
             tr->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
             //tr->printBarrelModuleZ();
             tr->save();
-            
+
             myDirectory = tr->getActiveDirectory();
             destConfigFile = myDirectory + "/" + extractFileName(configFileName);
             destDressFile = myDirectory + "/" + extractFileName(dressFileName);
-            
+
             bfs::remove(destConfigFile);
             bfs::remove(destDressFile);
             bfs::copy_file(configFileName, destConfigFile);
@@ -401,7 +402,7 @@ namespace insur {
             return false;
         }
     }
-    
+
     // private
     /**
      * Check if a given configuration file actually exists.
@@ -413,7 +414,7 @@ namespace insur {
         if (bfs::exists(p)) return true;
         return false;
     }
-    
+
     /**
      * Extract the filename from a path. If there is nothing to extract, a copy of the input is returned.
      * @full The source string
@@ -425,4 +426,62 @@ namespace insur {
             return full.substr(idx+1);
         else return full;
     }
+
+  // Private
+  /**
+   * Prepare the website object (if not done yet) from the configuration file
+   * it needs the tracker object to be already there
+   * @return a boolean with the operation success
+   */
+  bool Squid::prepareWebsite() {
+    if (sitePrepared) return true;
+    string trackerName;
+    if (tr) trackerName = tr->getName();
+    else trackerName = default_trackername;
+    string styleDirectory, layoutDirectory;
+    styleDirectory=mainConfiguration.getStyleDirectory();
+    layoutDirectory=mainConfiguration.getLayoutDirectory();
+    layoutDirectory+="/"+trackerName;
+    if ((styleDirectory!="")&&(layoutDirectory!="")) {
+      site.setStyleDirectory(styleDirectory);
+      site.setTargetDirectory(layoutDirectory);
+    } else return false;
+    site.setTitle(trackerName);
+    site.setComment("layout summary");
+    site.addAuthor("Nicoletta De Maio");
+    site.addAuthor("Stefano Mersi");
+#ifdef REVISIONNUMBER
+    site.setRevision(REVISIONNUMBER);
+#endif
+    return true;
+  }
+  
+  /**
+   * Actually creates the website where it was supposed to be
+   * @return a boolean with the operation success
+   */
+  bool Squid::makeSite() {
+    if (!prepareWebsite()) return false;
+    return site.makeSite();
+  }
+
+  /**
+   * Analyze the previously created material budget and save the results in an HTML file.
+   * @param htmlout The name - without path - of the designated output file
+   * @param tracks The number of tracks that should be fanned out across the analysed region
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::analyzeMaterialBudgetSite(int tracks) {
+    if (mb) {
+      a.analyzeMaterialBudget(*mb, tracks);
+      v.histogramSummary(a, site);
+      return true;
+    }
+    else {
+      std::cout << "Squid::analyzeMaterialBudget(): " << err_no_matbudget << std::endl;
+      return false;
+    }
+  }
+
+
 }

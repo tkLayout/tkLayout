@@ -75,8 +75,11 @@ function getNextSibling(startObject) {
 }
 
 function toggleDisplay(content) {
-    var expand = (content.style.display=="none");
-    content.style.display = (expand ? "block" : "none");
+    var styleSet = (content.style.display!="");
+    var isHidden;
+    if (styleSet) isHidden = (content.style.display=="none");
+    if (!styleSet) isHidden = (content.className=="hidden");
+    content.style.display = (isHidden ? "block" : "none");
     //var chevron = content.parentNode
     //    .firstChild.childNodes[1].childNodes[0];
     //chevron.src = chevron.src

@@ -53,7 +53,7 @@ namespace insur {
     static const double z_carbon = 6;
     static const double d_carbon = 1.9;
     static const double top_volume_pad = 200;
-    static const double temperature_levels = 10;
+    static const int temperature_levels = 512;
     
     /**
      * Internal string constants

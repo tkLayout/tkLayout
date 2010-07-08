@@ -25,6 +25,9 @@
 #include <Vizard.h>
 #include <tk2CMSSW.h>
 #include <boost/filesystem/operations.hpp>
+#include <rootweb.hh>
+#include <mainConfigHandler.h>
+
 /**
  * A shorter alias for the filesystem library namespace
  */
@@ -40,6 +43,8 @@ namespace insur {
     static const std::string err_no_inacsurf = "Error: the collection of inactive surfaces does not exist. It must be created before calling this function";
     static const std::string err_no_matbudget = "Error: the material budget does not exist. It must be created before calling this function.";
     static const std::string warning_rootonly = "Warning: the collection of inactive surfaces does not exist. Only the .root file will be written.";
+    static const std::string default_trackername = "defaultTrackerName";
+
     
     /**
      * @class Squid
@@ -72,6 +77,9 @@ namespace insur {
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
         bool translateFullSystemToXML(std::string xmlout = "");
         bool trackerSummary(std::string configFileName, std::string dressFileName);
+	// Functions using rootweb
+	bool analyzeMaterialBudgetSite(int tracks = 50);
+	bool makeSite();
     private:
         std::string g;
         Tracker* tr;
@@ -88,6 +96,10 @@ namespace insur {
         std::string extractFileName(const std::string& full);
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
+	mainConfigHandler mainConfiguration;
+	RootWSite site;
+	bool prepareWebsite();
+	bool sitePrepared;
     };
 }
 #endif	/* _SQUID_H */

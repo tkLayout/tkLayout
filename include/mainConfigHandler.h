@@ -29,10 +29,10 @@ class mainConfigHandler {
   bool getConfiguration();
   bool getConfiguration(string& styleDirectory, string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& styleDirectory, string& layoutDirectory);
-  string getStyleDirectory() { return styleDirectory_;} ;
-  string getLayoutDirectory() { return layoutDirectory_;} ;
-  string getXmlDirectory() { return xmlDirectory_;} ;
-  vector<double> getMomenta() { return momenta_; } ;
+  string getStyleDirectory() { getConfiguration(); return styleDirectory_;} ;
+  string getLayoutDirectory() { getConfiguration(); return layoutDirectory_;} ;
+  string getXmlDirectory() { getConfiguration(); return xmlDirectory_;} ;
+  vector<double> getMomenta() { getConfiguration(); return momenta_; } ;
  private:
   bool goodConfigurationRead_;
   string styleDirectory_;
