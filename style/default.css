@@ -134,7 +134,19 @@ background: white;
 	margin-top: 0.2em;
 }
 
+#content div.hidden {
+        display: none;
+	padding: 0.5em;
+        line-height:105%;
+        background-color: #FFFFFF;
+        background-image: url('images/a6.png');
+        background-repeat: repeat-y;
+	height: auto;
+	margin-bottom: 1em;
+}
+
 #content div.hideable {
+        display: block;
 	padding: 0.5em;
         line-height:105%;
         background-color: #FFFFFF;

@@ -25,6 +25,7 @@
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
 #include  <MaterialBudget.h>
+#include <TProfile.h>
 #include "TRandom3.h"
 
 namespace insur {
@@ -92,6 +93,12 @@ namespace insur {
         std::vector<Track>& getTracks() { return tv; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
+	TH2D& getMapPhiEta() { return mapPhiEta; }
+        TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
+        TH1D& getHitDistribution() {return hitDistribution;};
+        TProfile& getTotalEtaProfile() {return totalEtaProfile;}
+        std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;}
+        std::vector<TObject> getSavingVector();
     protected:
         /**
          * @struct Cell
@@ -118,7 +125,11 @@ namespace insur {
 	TH1D hitDistribution;
         std::vector<Track> tv;
 
-	std::vector<TObject*> savingV_; // Vector of ROOT objects to be saved
+        TProfile totalEtaProfile;
+        std::vector<TProfile> typeEtaProfile;
+  
+        std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
+        std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
         virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi);
         virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi);
@@ -132,7 +143,7 @@ namespace insur {
         void transformEtaToZ();
     private:
         // A random number generator
-	TRandom3 myDice_; 
+	TRandom3 myDice; 
         int findCellIndexR(double r);
         int findCellIndexEta(double eta);
 	int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
@@ -141,8 +152,8 @@ namespace insur {
 	void resetTypeCounter(std::map<std::string, int> &modTypes);
 	double diffclock(clock_t clock1, clock_t clock2);
 	Color_t colorPicker(std::string);
-	std::map<std::string, Color_t> colorPickMap_;
-	Color_t lastPickedColor_;
+	std::map<std::string, Color_t> colorPickMap;
+	Color_t lastPickedColor;
 
     };
 }

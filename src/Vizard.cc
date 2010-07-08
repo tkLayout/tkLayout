@@ -1,4 +1,6 @@
 #include <Vizard.h>
+#include <TStyle.h>
+
 namespace insur {
     // public
     /**
@@ -67,10 +69,10 @@ namespace insur {
      */
     void Vizard::buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified) {
         int c = 0;
-        TGeoVolume* vol;
-        TGeoTranslation* trans;
-        TGeoCombiTrans* trafo;
-        Layer* current;
+        TGeoVolume* vol=NULL;
+        TGeoTranslation* trans=NULL;
+        TGeoCombiTrans* trafo=NULL;
+        Layer* current=NULL;
         std::vector<Module*> templates;
         // barrels
         if (simplified) {
@@ -340,7 +342,7 @@ namespace insur {
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
      * @param outfilename The name of the output file that will be written to the application's default directory for material budget summaries
      */
-    void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
+  void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
         THStack rcontainer("rstack", "Radiation Length by Category");
         THStack icontainer("istack", "Interaction Length by Category");
         TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
@@ -558,6 +560,218 @@ namespace insur {
         outstream.close();
         std::cout << "HTML file written to " << outfile << std::endl;
     }
+
+    /**
+     * This function draws some of the histograms that were filled during material budget analysis and
+     * embeds the resulting image in an HTML file for easy access. If no name is given for the output file,
+     * a default filename is used.
+     * @param a A reference to the analysing class that examined the material budget and filled the histograms
+     * @param outfilename The name of the output file that will be written to the application's default directory for material budget summaries
+     */
+    void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
+      // Initialize the page with the material budget
+      RootWPage* myPage;
+      RootWContent* myContent;
+      RootWTable* myTable;
+      RootWImage* myImage;
+      TCanvas* myCanvas;
+      TVirtualPad* myPad;
+      myPage = new RootWPage("Material");
+      myPage->setAddress("material.html");
+      site.addPage(myPage);
+
+      // 1D Overview
+      myContent = new RootWContent("1D Overview");
+      myPage->addContent(myContent);
+
+      // Book histograms
+      THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
+      THStack* icontainer = new THStack("istack", "Interaction Length by Category");
+      TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
+      TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+      TH2D *ir = NULL, *ii = NULL;
+
+      // Output initialisation and headers
+      myCanvas = new TCanvas("overviewMaterial");
+      myCanvas->SetFillColor(kWhite);
+      myCanvas->Divide(2,1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(kGray);
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      // Total tracking volume rlength
+      cr = (TH1D*)a.getHistoGlobalR().Clone();
+      fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+      fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+      fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+      fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+      cr->Add(fr1);
+      cr->Add(fr2);
+      cr->SetFillColor(kGray + 2);
+      cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
+      cr->SetXTitle("Eta");
+      cr->Draw();
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      // Total Tracking volume ilength
+      ci = (TH1D*)a.getHistoGlobalI().Clone();
+      fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+      fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+      fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+      fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+      ci->Add(fi1);
+      ci->Add(fi2);
+      ci->SetFillColor(kGray + 1);
+      ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
+      ci->SetXTitle("Eta");
+      ci->Draw();
+      // Put the total plots to the site
+      myImage = new RootWImage(myCanvas, 900, 400);
+      myImage->setComment("Material in full volume");
+      myTable = new RootWTable();
+      // TODO: put etaMaxAvg correctly in the string :)
+      myTable->setContent(1,1,"Average radiation length in full volume (eta = [0, 2.4])");
+      myTable->setContent(2,1,"Average interaction length in full volume (eta = [0, 2.4])");
+      myTable->setContent(1,2,averageHistogramValues(*cr, etaMaxAvg), 5);
+      myTable->setContent(2,2,averageHistogramValues(*ci, etaMaxAvg), 5);
+      myContent->addItem(myTable);
+      myContent->addItem(myImage);
+      
+      // Detailed plots
+      myContent = new RootWContent("Tracking volume", false);
+      myPage->addContent(myContent);
+      // Work area re-init
+      myCanvas = new TCanvas("materialInTrackingVolume");
+      myCanvas->SetFillColor(kWhite);
+      myCanvas->Divide(2,1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(kGray);
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      // global plots in tracking volume: radiation length
+      cr = (TH1D*)a.getHistoGlobalR().Clone();
+      cr->SetFillColor(kGray + 2);
+      cr->SetNameTitle("rglobal", "Overall Radiation Length");
+      cr->SetXTitle("Eta");
+      cr->Draw();
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      // global plots in tracking volume: interaction length
+      ci = (TH1D*)a.getHistoGlobalI().Clone();
+      ci->SetFillColor(kGray + 1);
+      ci->SetNameTitle("iglobal", "Overall Interaction Length");
+      ci->SetXTitle("Eta");
+      ci->Draw();
+      // Write global tracking volume plots to web pag
+      myImage = new RootWImage(myCanvas, 900, 400);
+      myImage->setComment("Material in tracking volume");
+      myTable = new RootWTable();
+      myTable->setContent(1,1,"Average radiation length in tracking volume (eta = [0, 2.4])");
+      myTable->setContent(2,1,"Average interaction length in tracking volume (eta = [0, 2.4])");
+      myTable->setContent(1,2,averageHistogramValues(*cr, etaMaxAvg), 5);
+      myTable->setContent(2,2,averageHistogramValues(*ci, etaMaxAvg), 5);
+      myContent->addItem(myTable);
+      myContent->addItem(myImage);
+
+      // Detailed plots
+      myContent = new RootWContent("Detailed", false);
+      myPage->addContent(myContent);
+      // Work area re-init
+      myCanvas = new TCanvas("detailedMaterial");
+      myCanvas->SetFillColor(kWhite);
+      myCanvas->Divide(2,1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(kGray);
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      // radiation length in tracking volume by active, serving or passive
+      sur = (TH1D*)a.getHistoSupportsAllR().Clone();
+      sur->SetFillColor(kOrange + 4);
+      sur->SetXTitle("Eta");
+      rcontainer->Add(sur);
+      ser = (TH1D*)a.getHistoServicesAllR().Clone();
+      ser->SetFillColor(kBlue);
+      ser->SetXTitle("Eta");
+      rcontainer->Add(ser);
+      acr = (TH1D*)a.getHistoModulesAllR().Clone();
+      acr->SetFillColor(kRed);
+      acr->SetXTitle("Eta");
+      rcontainer->Add(acr);
+      rcontainer->Draw();
+      // interaction length in tracking volume by active, serving or passive
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      sui = (TH1D*)a.getHistoSupportsAllI().Clone();
+      sui->SetFillColor(kOrange + 2);
+      sui->SetXTitle("Eta");
+      icontainer->Add(sui);
+      sei = (TH1D*)a.getHistoServicesAllI().Clone();
+      sei->SetFillColor(kAzure - 2);
+      sei->SetXTitle("Eta");
+      icontainer->Add(sei);
+      aci = (TH1D*)a.getHistoModulesAllI().Clone();
+      aci->SetFillColor(kRed - 3);
+      aci->SetXTitle("Eta");
+      icontainer->Add(aci);
+      icontainer->Draw();
+
+      // Write asl category plots to web page
+      myImage = new RootWImage(myCanvas, 900, 400);
+      myImage->setComment("Detailed");
+      myTable = new RootWTable();
+      // Average values by active, service and passive      
+      myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
+      myTable->setContent(1, 0, "modules");
+      myTable->setContent(2, 0, "services");
+      myTable->setContent(3, 0, "supports");
+      myTable->setContent(0, 1, "Radiation length");
+      myTable->setContent(0, 2, "Interaction length");
+      myTable->setContent(1, 1, averageHistogramValues(*acr, etaMaxAvg), 5);
+      myTable->setContent(2, 1, averageHistogramValues(*ser, etaMaxAvg), 5);
+      myTable->setContent(3, 1, averageHistogramValues(*sur, etaMaxAvg), 5);
+      myTable->setContent(1, 2, averageHistogramValues(*aci, etaMaxAvg), 5);
+      myTable->setContent(2, 2, averageHistogramValues(*sei, etaMaxAvg), 5);
+      myTable->setContent(3, 2, averageHistogramValues(*sui, etaMaxAvg), 5);
+      myContent->addItem(myTable);
+      myContent->addItem(myImage);
+
+
+      // Work area re-init
+      myCanvas = new TCanvas("countourMaterial");
+      myCanvas->SetFillColor(kWhite);
+      myCanvas->Divide(2,1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(kGray);
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+
+      gStyle->SetPalette(1);
+      gStyle->SetOptStat(0);
+      // Countour plots
+      myContent = new RootWContent("Contours", true);
+      myPage->addContent(myContent);
+      // radiation length in isolines
+      ir = (TH2D*)a.getHistoIsoR().Clone();
+      ir->SetNameTitle("isor", "Radiation Length Contours");
+      ir->SetContour(temperature_levels, NULL);
+      ir->SetXTitle("z");
+      ir->SetYTitle("r");
+      ir->Draw("COLZ");
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      // interaction length in isolines
+      ii = (TH2D*)a.getHistoIsoI().Clone();
+      ii->SetNameTitle("isoi", "Interaction Length Contours");
+      ii->SetContour(temperature_levels, NULL);
+      ii->SetXTitle("z");
+      ii->SetYTitle("r");
+      ii->Draw("COLZ");
+      // Write isoline plots to web page
+      myImage = new RootWImage(myCanvas, 900, 400);
+      myImage->setComment("Material 2D distributions");
+      myContent->addItem(myImage);
+    }
+
     
     // private
     /**

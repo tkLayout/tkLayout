@@ -17,7 +17,7 @@ RootWTable::RootWTable() {
 }
 
 ostream& RootWTable::dump(ostream& output) {
-  RootWTable myRootWTable = (*this);
+  RootWTable& myRootWTable = (*this);
 
   int minRow, maxRow;
   int minCol, maxCol;
@@ -25,7 +25,7 @@ ostream& RootWTable::dump(ostream& output) {
 
   pair<int, int> myIndex;
   rootWTableContent::iterator tableContentIt;
-  rootWTableContent myTableContent = myRootWTable.tableContent_;
+  rootWTableContent& myTableContent = myRootWTable.tableContent_;
 
   for (tableContentIt = myTableContent.begin();
        tableContentIt != myTableContent.end(); ++tableContentIt) {
@@ -39,8 +39,8 @@ ostream& RootWTable::dump(ostream& output) {
     } else {
       minRow = ( myIndex.first < minRow ) ? myIndex.first : minRow;
       maxRow = ( myIndex.first > maxRow ) ? myIndex.first : maxRow;
-      minCol = ( myIndex.first < minCol ) ? myIndex.first : minCol;
-      maxCol = ( myIndex.first > maxCol ) ? myIndex.first : maxCol;
+      minCol = ( myIndex.first < minCol ) ? myIndex.second : minCol;
+      maxCol = ( myIndex.first > maxCol ) ? myIndex.second : maxCol;
     }
   }
 
@@ -205,16 +205,16 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   string largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + ".png";
 
   gErrorIgnoreLevel = 1500;
-
+  myCanvas_->cd();
   myCanvas_->SetCanvasSize(canW, canH);
-  myCanvas_->SaveAs(smallCanvasCompleteFileName.c_str());
+  myCanvas_->Print(smallCanvasCompleteFileName.c_str());
   myCanvas_->SetCanvasSize(zoomedWidth_, zoomedHeight_);
-  myCanvas_->SaveAs(largeCanvasCompleteFileName.c_str());
+  myCanvas_->Print(largeCanvasCompleteFileName.c_str());
 
   string fileTypeList;
   for (vector<string>::iterator it=fileTypeV_.begin(); it!=fileTypeV_.end(); ++it) {
     largeCanvasCompleteFileName = targetDirectory_+"/"+largeCanvasFileBaseName + "." + (*it);
-    myCanvas_->SaveAs(largeCanvasCompleteFileName.c_str());
+    myCanvas_->Print(largeCanvasCompleteFileName.c_str());
     if (it!=fileTypeV_.begin()) fileTypeList+="|";
     fileTypeList+=(*it);
   }
@@ -267,11 +267,13 @@ bool RootWImage::addExtension(string myExtension) {
 RootWContent::RootWContent() {
   title_ = "Untitled";
   targetDirectory_ = "";
+  visible_ = true;
 }
 
-RootWContent::RootWContent(string title) {
+RootWContent::RootWContent(string title, bool visible /*=true*/) {
   title_ = title;
   targetDirectory_ = "";
+  visible_ = visible;
 }
 
 void RootWContent::setTargetDirectory(string newTargetDirectory) {
@@ -318,7 +320,11 @@ ostream& RootWContent::dump(ostream& output) {
   RootWImage* myImage;
   RootWFile* myFile;
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
-  output << "<div class=\"hideable\"> ";
+  if (visible_) {
+    output << "<div class=\"hideable\"> ";
+  } else {
+    output << "<div class=\"hidden\"> ";
+  }
   for (it = itemList_.begin(); it != itemList_.end(); ++it) {
     myItem =(*it);
     if (myItem->isImage()) {

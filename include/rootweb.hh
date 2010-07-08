@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define THUMBSMALLSIZE 200
+#define THUMBSMALLSIZE 300
 #define DEFAULTPROGRAMNAME "tkGeometry"
 #define DEFAULTPROGRAMSITE "http://code.google.com/p/tkgeometry/"
 // The following is a list of allowed file etensions for TCanvas::SaveAs
@@ -99,13 +99,14 @@ class RootWContent {
 public:
   ~RootWContent();
   RootWContent();
-  RootWContent(string title);
+  RootWContent(string title, bool visible=true);
   void setTargetDirectory(string newTargetDirectory);
   void addParagraph(string parText) ;
   void setTitle(string newTitle) ;
   void addItem(RootWItem* newItem);
   ostream& dump(ostream& output);
 private:
+  bool visible_;
   string title_;
   //void setDefaultParameters();
   vector<RootWItem*> itemList_;

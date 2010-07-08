@@ -12,7 +12,7 @@ namespace insur {
   Analyzer::Analyzer () {
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
-    lastPickedColor_ = STARTCOLOR;
+    lastPickedColor = STARTCOLOR;
     colorPicker("pt");
     colorPicker("rphi");
     colorPicker("stereo");
@@ -442,8 +442,10 @@ namespace insur {
         isoi.Reset();
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
 	// geometry analysis
+	mapPhiEta.Reset();
 	mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;phi;eta");
 	etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
+	hitDistribution.Reset();
 	hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
     }
     
@@ -676,9 +678,11 @@ namespace insur {
    * @param nTracker the number of tracks to be used to analyze the coverage (defaults to 1000)
    */
   void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
+    savingGeometryV.clear();
+
     // A bunch of pointers
     std::map <std::string, int> moduleTypeCount;
-    std::map <std::string, TH2D*> etaProfileByType;
+    std::map <std::string, TH2D> etaProfileByType;
     TH2D* aPlot;
     std::string aType;
 
@@ -695,14 +699,14 @@ namespace insur {
     double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
     
     // Initialize random number generator, counters and histograms
-    myDice_.SetSeed(MY_RANDOM_SEED);
+    myDice.SetSeed(MY_RANDOM_SEED);
     createResetCounters(tracker, moduleTypeCount);
 
-    for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
+    /*for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
 	 it!=etaProfileByType.end(); it++) {
       aPlot = (*it).second;
       if (aPlot) delete aPlot;
-    }
+      }*/
     etaProfileByType.clear();
 
     for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
@@ -711,7 +715,8 @@ namespace insur {
       aPlot = new TH2D( (*it).first.c_str(), (*it).first.c_str(),
 			100, 0., maxEta*1.1,
 			1000, 0., 10.);
-      etaProfileByType[(*it).first]=aPlot;
+      etaProfileByType[(*it).first]=(*aPlot);
+      delete aPlot;
     }
     
     LayerVector::iterator layIt;
@@ -762,7 +767,7 @@ namespace insur {
 	nTrackHits=0;
 	// Generate a straight track and collect the list of hit modules
 	aLine = shootDirection(randomBase, randomSpan);
-	hitModules = trackHit( XYZVector(0, 0, myDice_.Gaus(0, zError)), aLine.first, &allModules);
+	hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, &allModules);
 	// Reset the per-type hit counter and fill it
 	resetTypeCounter(moduleTypeCount);
 	for (ModuleVector::iterator it = hitModules.begin(); it!=hitModules.end(); it++) {
@@ -771,7 +776,7 @@ namespace insur {
 	}
 	// Fill the module type hit plot
 	for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
-	  etaProfileByType[(*it).first]->Fill(fabs(aLine.second), (*it).second);
+	  etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
 	}
 	// Fill other plots
 	total2D.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
@@ -793,7 +798,7 @@ namespace insur {
       }
     }
 
-    savingV_.push_back(&mapPhiEta);
+    savingGeometryV.push_back(mapPhiEta);
     
 #ifdef debug_simulation_time
     std::cerr << " done!" << std::endl;
@@ -808,38 +813,40 @@ namespace insur {
 #endif
     
     // Eta profile compute
-    TProfile *myProfile;
+    //TProfile *myProfile;
 
     etaProfileCanvas.cd();
-    savingV_.push_back(&etaProfileCanvas);
+    savingGeometryV.push_back(etaProfileCanvas);
     int plotCount=0;
     
-    TProfile* total = total2D.ProfileX("etaProfileTotal");
-    savingV_.push_back(total);
-    total->SetMarkerStyle(8);
-    total->SetMarkerColor(1);
-    total->SetMarkerSize(1.5);
-    total->SetTitle("Number of hit modules");
-    if (total->GetMaximum()<9) total->SetMaximum(9.);
-    total->Draw();
+    //TProfile* total = total2D.ProfileX("etaProfileTotal");
+    totalEtaProfile = TProfile(*total2D.ProfileX("etaProfileTotal"));
+    savingGeometryV.push_back(totalEtaProfile);
+    totalEtaProfile.SetMarkerStyle(8);
+    totalEtaProfile.SetMarkerColor(1);
+    totalEtaProfile.SetMarkerSize(1.5);
+    totalEtaProfile.SetTitle("Number of hit modules");
+    if (totalEtaProfile.GetMaximum()<9) totalEtaProfile.SetMaximum(9.);
+    totalEtaProfile.Draw();
     std::string profileName;
-    for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
+    for (std::map <std::string, TH2D>::iterator it = etaProfileByType.begin();
 	 it!=etaProfileByType.end(); it++) {
       plotCount++;
-      myProfile=(*it).second->ProfileX();
-      savingV_.push_back(myProfile);
-      myProfile->SetMarkerStyle(8);
-      myProfile->SetMarkerColor(colorPicker((*it).first));
-      myProfile->SetMarkerSize(1);
-      myProfile->SetName((*it).first.c_str());
+      TProfile myProfile=TProfile(*((*it).second.ProfileX()));
+      savingGeometryV.push_back(myProfile);
+      myProfile.SetMarkerStyle(8);
+      myProfile.SetMarkerColor(colorPicker((*it).first));
+      myProfile.SetMarkerSize(1);
       profileName = "etaProfile-"+(*it).first;
-      myProfile->SetTitle((*it).first.c_str());
-      myProfile->Draw("same");
+      myProfile.SetName(profileName.c_str());
+      myProfile.SetTitle((*it).first.c_str());
+      myProfile.Draw("same");
+      typeEtaProfile.push_back(myProfile);
     }
 
     // Record the fraction of hits per module
     hitDistribution.SetBins(nTracks, 0 , 1);
-    savingV_.push_back(&hitDistribution);
+    savingGeometryV.push_back(hitDistribution);
     for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
       hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
     }
@@ -896,10 +903,10 @@ namespace insur {
     double theta;
     
     // phi is random [0, 2pi)
-    phi = myDice_.Rndm() * 2 * M_PI; // debug
+    phi = myDice.Rndm() * 2 * M_PI; // debug
     
     // eta is random (-4, 4]
-    eta = myDice_.Rndm() * spanEta + minEta;
+    eta = myDice.Rndm() * spanEta + minEta;
     theta=2*atan(exp(-1*eta));
     
     // Direction
@@ -958,13 +965,26 @@ namespace insur {
 
   Color_t Analyzer::colorPicker(std::string type) {
     if (type=="") return COLOR_INVALID_MODULE;
-    if (colorPickMap_[type]==0) {
+    if (colorPickMap[type]==0) {
       // New type! I'll pick a new color
-      colorPickMap_[type]=++lastPickedColor_;
+      colorPickMap[type]=++lastPickedColor;
     }
-    return colorPickMap_[type];
+    return colorPickMap[type];
   }
 
-  
+
+  std::vector<TObject> Analyzer::getSavingVector() {
+    std::vector<TObject> result;
+    std::vector<TObject>::iterator it;
+
+    for (it=savingGeometryV.begin(); it!=savingGeometryV.end(); ++it) {
+      result.push_back(*it);
+    }
+    for (it=savingMaterialV.begin(); it!=savingMaterialV.end(); ++it) {
+      result.push_back(*it);
+    }
+    return result;
+
+  }
 }
 

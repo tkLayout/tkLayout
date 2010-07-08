@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
+#include <vector>
+#include <iomanip>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +19,20 @@
 using namespace std;
 using namespace boost;
 
+template <class T> bool from_string(T& t, const std::string& s, 
+				    std::ios_base& (*f)(std::ios_base&)) {
+  std::istringstream iss(s);
+  return !(iss >> f >> t).fail();
+}
+
+
+mainConfigHandler::mainConfigHandler() {
+  goodConfigurationRead_ = false;
+  styleDirectory_ = "";
+  layoutDirectory_ = "";
+  xmlDirectory_ = "";
+}
+
 bool mainConfigHandler::checkDirectory(string dirName) {
   if (! filesystem::exists(dirName)) {
     cout << "Directory '" << dirName << "' does not exist!" << endl;
@@ -30,6 +47,8 @@ bool mainConfigHandler::checkDirectory(string dirName) {
 }
 
 bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
+  string tempString;
+
   // Clear screen
   cout << "\033[2J"; // Clears the screen
   cout << "\033[1;1H"; // Places cursor on line 1
@@ -66,6 +85,15 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   if (!checkDirectory(xmlDirectory_)) return false;
   cout << endl;
 
+  cout << "*** Specify the list of transverse momenta to be used for the?" << endl
+       << "    tracking performance test (in GeV/c)" << endl
+       << "    Example: 1, 10, 100 : ";
+  cin >> tempString;
+  string tempString2;
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  momenta_ = parseDoubleList(tempString);
+
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
   if (!configFile.good()) {
@@ -76,6 +104,14 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << STYLEDIRECTORYDEFINITION << " = \"" <<  styleDirectory_ << "\"" << endl;
     configFile << LAYOUTDIRECTORYDEFINITION << " = \"" << layoutDirectory_ << "\"" << endl;
     configFile << XMLDIRECTORYDEFINITION << " = \"" << xmlDirectory_ << "\"" << endl;
+
+    configFile << MOMENTADEFINITION << " = \"";
+    for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
+      if (it!=momenta_.begin()) configFile << ", ";
+      configFile << std::fixed << std::setprecision(2) << (*it);
+    }
+    configFile << "\"" << std::endl;
+
     configFile.close();
   }
 
@@ -106,6 +142,25 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
   }
 }
 
+vector<double> mainConfigHandler::parseDoubleList(string inString) {
+  cmatch what;
+  double myDouble;
+  vector<double> result;
+  regex parseExpression("[^0-9\\.]*([0-9\\.]*)(.*)");
+
+  int escapeCounter=100;
+  while ((regex_match(inString.c_str(), what, parseExpression)&&(escapeCounter))) {
+    escapeCounter--;
+    if (from_string<double>(myDouble, string(what[1]), std::dec)) {
+      result.push_back(myDouble);
+      inString = what[2];
+    } else {
+      escapeCounter=0;
+    }
+  }
+
+  return result;
+}
 
 bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   char myLine[1024];
@@ -113,6 +168,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   bool styleFound=false;
   bool layoutFound=false;
   bool xmlFound=false;
+  bool momentaFound=false;
 
   // Parsing all the lines of the configuration file
   while (configFile.good()) {
@@ -129,13 +185,16 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       } else if (parameter==XMLDIRECTORYDEFINITIONLOWERCASE) {
 	xmlDirectory_ = value;
 	xmlFound = true;
+      } else if (parameter==MOMENTADEFINITIONLOWERCASE) {
+	momenta_ = parseDoubleList(value);
+	momentaFound = true;
       } else {
 	cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
   }
 
-  return (styleFound&&layoutFound&&xmlFound);
+  return (styleFound&&layoutFound&&xmlFound&&momentaFound);
 }
 
 bool mainConfigHandler::getConfiguration() {

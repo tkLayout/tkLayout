@@ -42,6 +42,67 @@
 \setlength\parskip{10pt}
 
 \begin{document}
+\section{Helix equation fit}
+The points will lay on a helix, or (for our purposes) on a circle (we will neglect the z axis).
+The error $\varepsilon_i$ of the measurement point $i$ will be given by:w
+\begin{equation}
+\varepsilon_i = \frac 1 2 \rho r_i^2 - (1 + \rho d) r_i \sin(\phi_i-\phi_0) + \frac 1 2 \rho d^2 + d
+\end{equation}
+there $r_i$ is the layer radius, $\phi_0$ is the initial track's polar angle in the transverse plane, $\phi_i$ is
+the polar angle of each hit, $\rho$ is the curvature of the track ($\rho=1/R$, with $R$ radius of curvature)
+and $d$ is the distance of closest approach of the track to the $z$ axis.
+The curvature $\rho$ is related to the transverse momentum accoding to
+\begin{equation}
+\rho (\mathrm{m}) = \frac {0.3 B} {p_T} 
+\end{equation}
+assuming a single-charged particle, with $B$ measured in Tesla and $p_T$ in GeV/$c$. Assuming the
+CMS magnet field of 3.8~T, this becomes
+\begin{equation}
+\rho (\mathrm{mm}) = \frac {1.14\times 10^3} {p_T} 
+\end{equation}
+
+We have a set of measurement points, where the only error is baically on the $y$ position of hit
+$y_i = d \sin (\phi-\phi_0)$. For momenta high enough,
+fitting the helix reduces to minimzing the $\chi^2$ defined as follows:w
+\begin{equation}
+\label{eq:helix}
+\chi^2 = \sum_{i,j} \varepsilon_j C^{-1}_{i,j} \varepsilon_i
+\end{equation}
+with $C_{i,j}$ the correlation between the measurement points' 
+The covariance matrix $W$ on the estimated parameters will be:
+\begin{equation}
+W_{k,l} = \sum_{i,j} \frac { \partial \varepsilon_i} {\partial \alpha_k} C^{-1}_{i,j}  \frac { \partial \varepsilon_j} {\partial \alpha_l}
+\end{equation}
+with $\alpha_1 = \rho$, $\alpha_2 = \phi$, $\alpha_3 = d$. The measurement errors will thus beT
+\begin{eqnarray}
+\Delta \rho &=& \sqrt{W_{1,1}^{-1}} \nonumber \\
+\Delta \alpha &=& \sqrt{W_{2,2}^{-1}} \nonumber \\
+\Delta d &=& \sqrt{W_{3,3}^{-1}} \nonumber
+\end{eqnarray}
+The derivatives of (\ref{eq:helix}) are:
+\begin{eqnarray}
+\frac { \partial \varepsilon_i} {\partial \alpha_1} =
+\frac { \partial \varepsilon_i} {\partial \rho} &=& \frac 1 2 r_i^2 + d (d+y_i) \nonumber \\
+\frac { \partial \varepsilon_i} {\partial \alpha_2} =
+\frac { \partial \varepsilon_i} {\partial \phi} &=& - x_i (1+\rho d) \nonumber \\
+\frac { \partial \varepsilon_i} {\partial \alpha_3} =
+\frac { \partial \varepsilon_i} {\partial \rho} &=& 1 + \rho (d - y_i) \nonumber 
+\end{eqnarray}
+If we take into account that $d \ll r_i$, $d \ll 1/\rho$, $y_i \ll 1/\rho$, $r_i \simeq x_i$ we can approximate the previous set of equations as
+\begin{eqnarray}
+\frac { \partial \varepsilon_i} {\partial \alpha_1} =
+\frac { \partial \varepsilon_i} {\partial \rho} &=& \frac 1 2 r_i^2 \nonumber \\
+\frac { \partial \varepsilon_i} {\partial \alpha_2} =
+\frac { \partial \varepsilon_i} {\partial \phi} &=& - r_i  \nonumber \\
+\frac { \partial \varepsilon_i} {\partial \alpha_3} =
+\frac { \partial \varepsilon_i} {\partial \rho} &=& 1 \nonumber 
+\end{eqnarray}
+If we have $M$ measurement points, the partial derivatives matrix $D$ will be $M\times 3$ and defined by
+\begin{equation}
+D_{i,j} = \frac { \partial \varepsilon_i} {\partial \alpha_j}
+\end{equation}
+and the $3\times 3$ covariance matrix $W$ will be (in matrix notation) $W=D^{T}C^{-1}D$.
+\section{Error estimate}
 Given the layer radii $x_n = x_1, x_2, \ldots, x_N$ with scattering angles $\theta_1, \theta_2, \ldots, \theta_3$, then
 the deviation from the ideal path $y_n$ is
 \begin{equation}
@@ -91,7 +152,7 @@ b_{n,m}= \left \{
 Let's suppose we have $N$ hits, but in these $N$ only $M$ are measurement points and $N-M$ are hits
 on inactive surfaces. In this matrix $b_{n,m}$ is computed exactly in the same way, but the rows
 and columns corresponding to the inactive hits are removed. We thus start from a $N\times N$ square matrix
-of correlations $b_{n,m}$ and we end up with a $M\times M$ measurement point covariance matrix $\c_{n,m}$,
+of correlations $b_{n,m}$ and we end up with a $M\times M$ measurement point covariance matrix $C_{n,m}$,
 or in matrix notation $C$.
 
 

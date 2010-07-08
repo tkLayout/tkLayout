@@ -25,8 +25,10 @@
 #include <THStack.h>
 #include <global_constants.h>
 #include <tracker.hh>
-#include<Analyzer.h>
+#include <Analyzer.h>
 #include <InactiveSurfaces.h>
+#include <rootweb.hh>
+
 namespace insur {
     /*
      * Assorted messages that may pop up
@@ -60,7 +62,7 @@ namespace insur {
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
-	//void histogramSummary(Analyzer& a, RootWSite outSite);
+	void histogramSummary(Analyzer& a, RootWSite& site);
     protected:
         TGeoManager* gm;
         TGeoVolume* top;
