@@ -845,6 +845,7 @@ int main(int argc, char** argv) {
     if (h || x) {
         if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
         if (h) {
+	    s.analyzeGeometrySite();
             if (tracks != 0) {
                 std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
                 if (!s.analyzeMaterialBudgetSite(tracks)) return (EXIT_FAILURE);

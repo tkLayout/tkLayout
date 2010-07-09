@@ -47,6 +47,14 @@ namespace insur {
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
+#ifdef DEBUG_PERFORMANCE
+    struct tm *localt; // timing: debug
+    time_t t;          // timing: debug
+    t = time(NULL);
+    localt = localtime(&t);
+    //std::cerr << asctime(localt) << std::endl;
+    clock_t starttime = clock();
+#endif
         int nTracks;
         double etaStep, eta, theta, phi;
         clearHistograms();
@@ -150,6 +158,15 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
         }
+#ifdef DEBUG_PERFORMANCE
+    std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeMaterialBudget(): "; 
+    t = time(NULL);
+    localt = localtime(&t);
+    clock_t endtime = clock();
+    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+#endif
         // integration over eta
         for (unsigned int i = 0; i < cells.size(); i++) {
             for (unsigned int j = 1; j < cells.at(i).size(); j++) {
@@ -740,9 +757,7 @@ namespace insur {
     std::pair <XYZVector, double> aLine;
     ModuleVector hitModules;
     
-#define debug_simulation_time
-#ifdef debug_simulation_time
-    std::cerr << "debug_simulation_time" << std::endl;
+#ifdef DEBUG_PERFORMANCE
     struct tm *localt; // timing: debug
     time_t t;          // timing: debug
     t = time(NULL);
@@ -751,7 +766,7 @@ namespace insur {
     clock_t starttime = clock();
 #endif
 
-    std::cout << "Shooting tracks: ";
+    std::cout << "Shooting tracks..." << std::endl;
     int nTrackHits;
     int nTracksPerSide = int(pow(nTracks, 0.5));
     int nBlocks = int(nTracksPerSide/2.);
@@ -799,17 +814,14 @@ namespace insur {
     }
 
     savingGeometryV.push_back(mapPhiEta);
-    
-#ifdef debug_simulation_time
-    std::cerr << " done!" << std::endl;
+#ifdef DEBUG_PERFORMANCE
+    std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeGeometry(): ";
     t = time(NULL);
     localt = localtime(&t);
     clock_t endtime = clock();
-    std::cerr << asctime(localt) << std::endl;
-    std::cerr << "Elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
     t = time(NULL);
     localt = localtime(&t);
-    std::cerr << asctime(localt) << std::endl;
 #endif
     
     // Eta profile compute

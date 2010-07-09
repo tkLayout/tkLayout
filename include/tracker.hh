@@ -237,6 +237,7 @@ public:
   LayerVector* getBarrelLayers() { return &barrelLayerSet_; }
   LayerVector* getEndcapLayers() { return &endcapLayerSet_; }
   LayerVector& getLayers() { return layerSet_; }
+  ModuleVector& getEndcapSample() { return endcapSample_ ; }
 
   // Other
   std::string getStoreDirectory() { return storeDirectory_; };
@@ -267,7 +268,7 @@ public:
   void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html",
 		    std::string barrelModuleCoordinatesFile ="",
 		    std::string endcapModuleCoordinatesFile ="");
-  void writeSummary(std::string fileType = "html");
+  void writeSummary(std::string fileType = "html"); // obsolete
   void createPackageLayout(std::string dirName);
   void printBarrelModuleZ(ostream& outfile);
   void printEndcapModuleRPhiZ(ostream& outfile);

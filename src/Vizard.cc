@@ -575,11 +575,10 @@ namespace insur {
     }
 
     /**
-     * This function draws some of the histograms that were filled during material budget analysis and
-     * embeds the resulting image in an HTML file for easy access. If no name is given for the output file,
-     * a default filename is used.
+     * This function draws some of the histograms that were filled during material budget analysis
+     * with the rootweb library
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
-     * @param outfilename The name of the output file that will be written to the application's default directory for material budget summaries
+     * @param site the RootWSite object for the output
      */
     void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
       // Initialize the page with the material budget
@@ -890,4 +889,410 @@ namespace insur {
         }
         return avg;
     }
+
+  /**
+   * This function draws the profile of hits obtained by the analysis of the geometry
+   * together with the summaries in tables with the rootweb library. It also actually does a couple of
+   * calculations to count modules and such, to put the results in the tables.
+   * @param a A reference to the analysing class that examined the material budget and filled the histograms
+   * @param site the RootWSite object for the output
+   */
+  bool Vizard::geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+    // Formatting parameters
+    int coordPrecision = 0;
+    int areaPrecision = 1;
+    int occupancyPrecision = 1;
+    int pitchPrecision = 0;
+    int stripLengthPrecision = 1;
+    int millionChannelPrecision = 2;
+    int powerPrecision = 1;
+    int costPrecision  = 1;
+    int powerPerUnitPrecision = 2;
+    int costPerUnitPrecision  = 1;
+    
+    // A bunch of indexes
+    std::map<std::string, Module*> typeMap;
+    std::map<std::string, int> typeMapCount;
+    std::map<std::string, long> typeMapCountChan;
+    std::map<std::string, double> typeMapMaxOccupancy;
+    std::map<std::string, double> typeMapAveOccupancy;
+    std::map<std::string, Module*>::iterator typeMapIt;
+    std::map<int, Module*> ringTypeMap;
+    std::string aSensorTag;
+    LayerVector::iterator layIt;
+    ModuleVector::iterator modIt;
+    ModuleVector* aLay;
+    double totAreaPts=0;
+    double totAreaStrips=0;
+    int totCountMod=0;
+    int totCountSens=0;
+    long totChannelStrips=0;
+    long totChannelPts=0;
+
+    RootWPage* myPage = new RootWPage("Geometry");
+    // TODO: the web site should decide which page to call index.html
+    myPage->setAddress("index.html");
+    site.addPage(myPage);
+    RootWContent* myContent;
+
+    // Grab a list of layers from teh tracker object
+    LayerVector& layerSet = tracker.getLayers();
+    int nMB = tracker.getNMB();
+    ModuleVector& endcapSample = tracker.getEndcapSample();
+
+
+    //********************************//
+    //*                              *//
+    //*       Layers and disks       *//
+    //*                              *//
+    //********************************//
+    myContent = new RootWContent("Layers and disks");
+    myPage->addContent(myContent);
+    RootWTable* layerTable = new RootWTable(); myContent->addItem(layerTable);
+    RootWTable* diskTable = new RootWTable(); myContent->addItem(diskTable);
+    RootWTable* ringTable = new RootWTable(); myContent->addItem(ringTable);
+    
+    
+    std::vector<std::string> layerNames;
+    std::vector<double> layerRho;
+    std::vector<std::string> diskNames;
+    std::vector<double> diskZ;
+    std::vector<std::string> ringNames;
+    std::vector<double> ringRho1;
+    std::vector<double> ringRho2;
+    
+    Layer* aLayer;
+    BarrelLayer* aBarrelLayer;
+    EndcapLayer* anEndcapDisk;
+    double aRingRho;
+    
+    layerTable->setContent(0,0, "Layer");
+    layerTable->setContent(1,0, "r");
+    diskTable->setContent(0,0, "Disk");
+    diskTable->setContent(1,0, "z");
+    ringTable->setContent(0,0, "Ring");
+    ringTable->setContent(1,0, "r"+subStart+"min"+subEnd);
+    ringTable->setContent(2,0, "r"+subStart+"max"+subEnd);
+    
+    // Build the module type maps
+    // with a pointer to a sample module
+    // Build the layer summary BTW
+    int nBarrelLayers=0;
+    int nDisks=0;
+    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+      aLayer = (*layIt);
+      if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
+	if (aBarrelLayer->getMaxZ(+1)>0) {
+	  ++nBarrelLayers;
+	  //std::cerr << "Layer number " << nBarrelLayers << std::endl;
+	  layerTable->setContent(0,nBarrelLayers, aBarrelLayer->getName());
+	  layerTable->setContent(1,nBarrelLayers, aBarrelLayer->getAverageRadius(), coordPrecision);
+	}
+      }
+      if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
+	if (anEndcapDisk->getAverageZ()>0) {
+	  ++nDisks;
+	  diskTable->setContent(0,nDisks, anEndcapDisk->getName());
+	  diskTable->setContent(1,nDisks, anEndcapDisk->getAverageZ(), coordPrecision);
+	}
+      }
+      aLay = (*layIt)->getModuleVector();
+      for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+	aSensorTag=(*modIt)->getSensorTag();
+	typeMapCount[aSensorTag]++;
+	typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
+	if (((*modIt)->getOccupancyPerEvent()*nMB)>typeMapMaxOccupancy[aSensorTag]) {
+	  typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
+	}
+	typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
+	totCountMod++;
+	totCountSens+=(*modIt)->getNFaces();
+	if ((*modIt)->getReadoutType()==Module::Strip) {
+	  totChannelStrips+=(*modIt)->getNChannels();
+	  totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
+	}
+	if ((*modIt)->getReadoutType()==Module::Pt) {
+	  totChannelPts+=(*modIt)->getNChannels();
+	  totAreaPts+=(*modIt)->getArea()*(*modIt)->getNFaces();
+	}
+	if (typeMap.find(aSensorTag)==typeMap.end()){
+	  // We have a new sensor geometry
+	  typeMap[aSensorTag]=(*modIt);
+	}
+      }
+    }
+    
+    EndcapModule* anEC;
+    int aRing;
+    // Look into the endcap sample in order to indentify and measure rings
+    for (ModuleVector::iterator moduleIt=endcapSample.begin(); moduleIt!=endcapSample.end(); moduleIt++) {
+      if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
+	aRing=anEC->getRing();
+	if (ringTypeMap.find(aRing)==ringTypeMap.end()){
+	  // We have a new sensor geometry
+	  ringTypeMap[aRing]=(*moduleIt);
+	}
+      } else {
+	std::cout << "ERROR: found a non-Endcap module in the map of ring types" << std::endl;
+      }
+    }
+    
+    std::ostringstream myName;
+    for (std::map<int, Module*>::iterator typeIt = ringTypeMap.begin();
+	 typeIt!=ringTypeMap.end(); typeIt++) {
+      if ( (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) ) {
+	aRing=(*typeIt).first;
+	ringTable->setContent(0,aRing,aRing);
+	ringTable->setContent(1,aRing, aRingRho = anEC->getDist(), coordPrecision);
+	ringTable->setContent(2,aRing, aRingRho = anEC->getDist()+anEC->getHeight(), coordPrecision);
+      } else {
+	std::cout << "ERROR: found a non-Endcap module in the map of ring types (twice...)" << std::endl;
+      }
+    }
+    
+
+    // A bit of variables
+    std::vector<std::string> names;
+    std::vector<std::string> tags;
+    std::vector<std::string> types;
+    std::vector<std::string> areastrips;
+    std::vector<std::string> areapts;
+    std::vector<std::string> occupancies;
+    std::vector<std::string> pitchpairs;
+    std::vector<std::string> striplengths;
+    std::vector<std::string> segments;
+    std::vector<std::string> nstrips;
+    std::vector<std::string> numbermods;
+    std::vector<std::string> numbersens;
+    std::vector<std::string> channelstrips;
+    std::vector<std::string> channelpts;
+    std::vector<std::string> powers;
+    std::vector<std::string> costs;
+    
+    double totalPower=0;
+    double totalCost=0;
+    
+    std::ostringstream aName;
+    std::ostringstream aTag;
+    std::ostringstream aType;
+    std::ostringstream anArea;
+    std::ostringstream anOccupancy;
+    std::ostringstream aPitchPair;
+    std::ostringstream aStripLength;
+    std::ostringstream aSegment;
+    std::ostringstream anNstrips;
+    std::ostringstream aNumberMod;
+    std::ostringstream aNumberSens;
+    std::ostringstream aChannel;
+    std::ostringstream aPower;
+    std::ostringstream aCost;
+    int barrelCount=0;
+    int endcapCount=0;
+    Module* aModule;
+    
+
+
+    //********************************//
+    //*                              *//
+    //*       Modules                *//
+    //*                              *//
+    //********************************//
+    myContent = new RootWContent("Modules", false);
+    myPage->addContent(myContent);
+    RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
+
+    static const int tagRow = 1;
+    static const int typeRow = 2;
+    static const int areastripRow = 3;
+    static const int areaptRow = 4;
+    static const int occupancyRow = 5;
+    static const int pitchpairsRow = 6;
+    static const int striplengthRow = 7;
+    static const int segmentsRow = 8;
+    static const int nstripsRow = 9;
+    static const int numbermodsRow = 10;
+    static const int numbersensRow = 11;
+    static const int channelstripRow = 12;
+    static const int channelptRow = 13;
+    static const int powerRow = 14;
+    static const int costRow = 15;
+
+    // Row names
+    moduleTable->setContent(tagRow,0,"Tag");
+    moduleTable->setContent(typeRow,0,"Type");
+    moduleTable->setContent(areastripRow,0,"Area (mm"+superStart+"2"+superEnd+")");
+    moduleTable->setContent(areaptRow,0,"Area (mm"+superStart+"2"+superEnd+")");
+    moduleTable->setContent(occupancyRow,0,"Occup (max/av)");
+    moduleTable->setContent(pitchpairsRow,0,"Pitch (min/max)");
+    moduleTable->setContent(striplengthRow,0,"Strip length");
+    moduleTable->setContent(segmentsRow,0,"Segments x Chips");
+    moduleTable->setContent(nstripsRow,0,"Chan/Sensor");
+    moduleTable->setContent(numbermodsRow,0,"N. mod");
+    moduleTable->setContent(numbersensRow,0,"N. sens");
+    moduleTable->setContent(channelstripRow,0,"Channels (M)");
+    moduleTable->setContent(channelptRow,0,"Channels (M)");
+    moduleTable->setContent(powerRow,0,"Power (kW)");
+    moduleTable->setContent(costRow,0,"Cost (MCHF)");
+    
+    int loPitch;
+    int hiPitch;
+    
+    // Summary cycle: prepares the rows cell by cell
+    int iType=0;
+    for (typeMapIt=typeMap.begin(); typeMapIt!=typeMap.end(); typeMapIt++) {
+      ++iType;
+      // Name
+      aName.str("");
+      aModule=(*typeMapIt).second;
+      if (dynamic_cast<BarrelModule*>(aModule)) {
+	aName << std::dec << "B" << subStart << ++barrelCount << subEnd;
+      }
+      if (dynamic_cast<EndcapModule*>(aModule)) {
+	aName << std::dec << "E" << subStart << ++endcapCount << subEnd;
+      }
+      // Tag
+      aTag.str("");
+      aTag << smallStart << aModule->getTag() << smallEnd;
+      // Type
+      aType.str("");
+      aType << (*typeMapIt).second->getType();
+      // Area
+      anArea.str("");
+      anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+      if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
+      // Occupancy
+      anOccupancy.str("");
+      anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+      // Pitches
+      aPitchPair.str("");
+      loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
+      hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
+      if (loPitch==hiPitch) {
+	aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
+      } else {
+	aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
+		   << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
+      }
+      // Strip Lengths
+      aStripLength.str("");
+      aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+		   << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
+      // Segments
+      aSegment.str("");
+      aSegment << std::dec << (*typeMapIt).second->getNSegments()
+	       << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+      // Nstrips
+      anNstrips.str("");
+      anNstrips << std::dec << (*typeMapIt).second->getNChannelsPerFace();
+      // Number Mod
+      aNumberMod.str("");
+      aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
+      // Number Sensor
+      aNumberSens.str("");
+      aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
+      // Channels
+      aChannel.str("");
+      aChannel << std::fixed << std::setprecision(millionChannelPrecision)
+	       << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
+      // Power and cost
+      aPower.str("");
+      aCost.str("");
+      aPower << std::fixed << std::setprecision(powerPrecision) <<
+        typeMapCountChan[(*typeMapIt).first] *           // number of channels in type
+        1e-3 *                                           // conversion from W to kW
+        tracker.getPower((*typeMapIt).second->getReadoutType()); // power consumption in W/channel
+      totalPower += typeMapCountChan[(*typeMapIt).first] * 1e-3 * tracker.getPower((*typeMapIt).second->getReadoutType());
+      aCost  << std::fixed << std::setprecision(costPrecision) <<
+        (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
+        (*typeMapIt).second->getNFaces() *               // number of faces
+        tracker.getCost((*typeMapIt).second->getReadoutType()) * // price in CHF*cm^-2
+        1e-6 *                                           // conversion CHF-> MCHF
+        typeMapCount[(*typeMapIt).first];                // Number of modules
+      totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
+      
+
+      moduleTable->setContent(0,iType,aName.str());
+      moduleTable->setContent(tagRow,iType,aTag.str());
+      moduleTable->setContent(typeRow,iType,aType.str());
+      moduleTable->setContent(occupancyRow,iType,anOccupancy.str());
+      moduleTable->setContent(pitchpairsRow,iType,aPitchPair.str());
+      moduleTable->setContent(striplengthRow,iType,aStripLength.str());
+      moduleTable->setContent(segmentsRow,iType,aSegment.str());
+      moduleTable->setContent(nstripsRow,iType,anNstrips.str());
+      moduleTable->setContent(numbermodsRow,iType,aNumberMod.str());
+      moduleTable->setContent(numbersensRow,iType,aNumberSens.str());
+      moduleTable->setContent(powerRow,iType,aPower.str());
+      moduleTable->setContent(costRow,iType,aCost.str());
+      
+      if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
+	moduleTable->setContent(channelstripRow,iType,aChannel.str());
+	moduleTable->setContent(areastripRow,iType,anArea.str());
+	moduleTable->setContent(channelptRow,iType,"--");
+	moduleTable->setContent(areaptRow,iType,"--");
+      } else {
+	moduleTable->setContent(channelstripRow,iType,"--");
+	moduleTable->setContent(areastripRow,iType,"--");
+	moduleTable->setContent(channelptRow,iType,aChannel.str());
+	moduleTable->setContent(areaptRow,iType,anArea.str());
+      }
+    }
+
+    // Score totals
+    ++iType;
+    moduleTable->setContent(0,iType,"Total");
+    moduleTable->setContent(tagRow,iType,"");
+    moduleTable->setContent(typeRow,iType,"");
+    anArea.str("");
+    anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
+	   << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+    moduleTable->setContent(areastripRow,iType,anArea.str());
+    anArea.str("");
+    anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
+	   << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+    moduleTable->setContent(areaptRow,iType,anArea.str());
+    moduleTable->setContent(occupancyRow,iType,"");
+    moduleTable->setContent(pitchpairsRow,iType,"");
+    moduleTable->setContent(striplengthRow,iType,"");
+    moduleTable->setContent(segmentsRow,iType,"");
+    moduleTable->setContent(nstripsRow,iType,"");
+    aNumberMod.str("");
+    aNumberMod << emphStart << totCountMod << emphEnd;
+    aNumberSens.str("");
+    aNumberSens << emphStart << totCountSens << emphEnd;
+    moduleTable->setContent(numbermodsRow,iType,aNumberMod.str());
+    moduleTable->setContent(numbersensRow,iType,aNumberSens.str());
+    aChannel.str("");
+    aChannel << emphStart << std::fixed
+	     << std::setprecision(millionChannelPrecision)
+	     << totChannelStrips / 1e6 << emphEnd;
+    moduleTable->setContent(channelstripRow,iType,aChannel.str());
+    aChannel.str("");
+    aChannel << emphStart << std::fixed
+	     << std::setprecision(millionChannelPrecision)
+	     << totChannelPts / 1e6 << emphEnd;
+    moduleTable->setContent(channelptRow,iType,aChannel.str());
+    aPower.str("");
+    aCost.str("");
+    aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
+    aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
+    moduleTable->setContent(powerRow,iType,aPower.str());
+    moduleTable->setContent(costRow,iType,aCost.str());
+
+    /*
+    myfile << "<h3>Plots</h3>" << std::endl;
+    myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
+    myfile << "<img src=\"summaryPlots_nhitplot.png\" />" << std::endl;
+    myfile << "<img src=\"summaryPlots_hitmap.png\" />" << std::endl;
+    myfile << "<img src=\"summaryPlotsYZ.png\" />" << std::endl;
+    // TODO: make an object that handles this properly:
+    myfile << "<h5>Bandwidth useage estimate:</h5>" << std::endl;
+    myfile << "<p>(Pt modules: ignored)</p>" << std::endl
+	   << "<p>Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit</p>" << std::endl
+	   << "<p>Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel</p>" << std::endl
+	   << "<p>100 kHz trigger, " << nMB << " minimum bias events assumed</p>" << std::endl;
+    myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
+    myfile << "</body></html>" << std::endl;
+    */
+  }
+
 }

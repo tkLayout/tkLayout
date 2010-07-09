@@ -27,9 +27,11 @@ ostream& RootWTable::dump(ostream& output) {
   rootWTableContent::iterator tableContentIt;
   rootWTableContent& myTableContent = myRootWTable.tableContent_;
 
-  for (tableContentIt = myTableContent.begin();
-       tableContentIt != myTableContent.end(); ++tableContentIt) {
+  //std::cerr << "Table: "; // debug
+  for (tableContentIt = tableContent_.begin();
+       tableContentIt != tableContent_.end(); ++tableContentIt) {
     myIndex = (*tableContentIt).first;
+    //std::cerr << "(" << myIndex.first << ", " << myIndex.second << ")" << std::endl; // debug
     if (firstNotFound) {
       firstNotFound = false;
       minRow = myIndex.first;
@@ -39,11 +41,11 @@ ostream& RootWTable::dump(ostream& output) {
     } else {
       minRow = ( myIndex.first < minRow ) ? myIndex.first : minRow;
       maxRow = ( myIndex.first > maxRow ) ? myIndex.first : maxRow;
-      minCol = ( myIndex.first < minCol ) ? myIndex.second : minCol;
-      maxCol = ( myIndex.first > maxCol ) ? myIndex.second : maxCol;
+      minCol = ( myIndex.second < minCol ) ? myIndex.second : minCol;
+      maxCol = ( myIndex.second > maxCol ) ? myIndex.second : maxCol;
     }
   }
-
+  //std::cerr << "Size:" << tableContent_.size() << "; Rows: " << minRow << "-" << maxRow <<"; Cols: " << minCol << "-" << maxCol << endl; // debug
   if (firstNotFound) return output;
 
   output << "<table>";
@@ -60,10 +62,12 @@ ostream& RootWTable::dump(ostream& output) {
 }
 
 void RootWTable::setContent(int row, int column, string content) {
+  // std::cerr << "setContent("<<row<<", "<<column<<", "<<content<<")"<<endl; // debug
   tableContent_[make_pair(row, column)] = content;
 }
 
 void RootWTable::setContent(int row, int column, int number) {
+  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << number;
@@ -71,6 +75,7 @@ void RootWTable::setContent(int row, int column, int number) {
 }
 
 void RootWTable::setContent(int row, int column, double number, int precision) {
+  // std::cerr << "setContent("<<row<<", "<<column<<", "<<number<<")"<<endl; // debug
   stringstream myNum_;
   myNum_.clear();
   myNum_ << dec << fixed << setprecision(precision) << number;
@@ -319,6 +324,7 @@ ostream& RootWContent::dump(ostream& output) {
   RootWItem* myItem;
   RootWImage* myImage;
   RootWFile* myFile;
+  //std::cerr << "Content: " << title_ <<endl; //debug 
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
   if (visible_) {
     output << "<div class=\"hideable\"> ";

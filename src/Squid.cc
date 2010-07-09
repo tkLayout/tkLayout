@@ -466,8 +466,7 @@ namespace insur {
   }
 
   /**
-   * Analyze the previously created material budget and save the results in an HTML file.
-   * @param htmlout The name - without path - of the designated output file
+   * Analyze the previously created material budget and save the results through rootweb
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
@@ -478,7 +477,22 @@ namespace insur {
       return true;
     }
     else {
-      std::cout << "Squid::analyzeMaterialBudget(): " << err_no_matbudget << std::endl;
+      std::cout << "Squid::analyzeMaterialBudgetSite(): " << err_no_matbudget << std::endl;
+      return false;
+    }
+  }
+
+  /**
+   * Analyze the previously created geometry and produces the html ouput through rootweb
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::analyzeGeometrySite(int tracks /* = 1000 */ ) {
+    if (tr) {
+      std::cout << "Squid::analyzeGeometrySite()" << std::endl;
+      a.analyzeGeometry(*tr, tracks);
+      return v.geometrySummary(a,*tr,site);
+    } else {
+      std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
       return false;
     }
   }

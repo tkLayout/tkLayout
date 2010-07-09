@@ -78,6 +78,7 @@ namespace insur {
         bool translateFullSystemToXML(std::string xmlout = "");
         bool trackerSummary(std::string configFileName, std::string dressFileName);
 	// Functions using rootweb
+	bool analyzeGeometrySite(int tracks = 1000);
 	bool analyzeMaterialBudgetSite(int tracks = 50);
 	bool makeSite();
     private:

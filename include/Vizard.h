@@ -38,6 +38,19 @@ namespace insur {
     static const std::string graph_wrong = "File stream reported error state: neighbour graph not written to file.";
     static const std::string exc_badalloc_graph = "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
     static const std::string graph_nowrite = "Neighbour graph was not written to file.";
+
+    // Some strings for the html formatting
+    static const std::string subStart = "<sub>";      // These only should be needed
+    static const std::string subEnd = "</sub>";
+    static const std::string superStart = "<sup>";
+    static const std::string superEnd = "</sup>";
+    static const std::string smallStart = "<small>";
+    static const std::string smallEnd = "</small>";
+    static const std::string emphStart="<b>";
+    static const std::string emphEnd="</b>";
+    //clearStart="<tt>";
+    //clearEnd="</tt>";
+
     
     /**
      * @class Vizard
@@ -63,6 +76,7 @@ namespace insur {
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
 	void histogramSummary(Analyzer& a, RootWSite& site);
+	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     protected:
         TGeoManager* gm;
         TGeoVolume* top;

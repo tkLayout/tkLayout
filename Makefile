@@ -3,6 +3,7 @@
 # -DREVISIONNUMBER=555
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
+DEFINES+=-DDEBUG_PERFORMANCE
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
