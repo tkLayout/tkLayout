@@ -12,9 +12,10 @@
 
 #ifndef _VIZARD_H
 #define	_VIZARD_H
-
+// Standard includes
 #include <fstream>
 #include <sstream>
+// ROOT objects
 #include <TGeoManager.h>
 #include <TGeoMedium.h>
 #include <TGeoMaterial.h>
@@ -23,7 +24,13 @@
 #include <TGeoMatrix.h>
 #include <TFile.h>
 #include <THStack.h>
+#include <TStyle.h>
+#include <TText.h>
+#include <TColor.h>
+#include <TView.h>
+// Program constants
 #include <global_constants.h>
+// Custom objects
 #include <tracker.hh>
 #include <Analyzer.h>
 #include <InactiveSurfaces.h>
@@ -51,6 +58,20 @@ namespace insur {
     //clearStart="<tt>";
     //clearEnd="</tt>";
 
+    // Colors for plot background and such
+    static const int color_plot_background = kWhite;
+    static const int color_pad_background = kGray;
+    static const int color_grid = kGreen-10;
+    static const int color_hard_grid = kGray;
+
+
+    // Pads to plot the tracker ortho views
+    static const unsigned int padYZ = 1;
+    static const unsigned int padXY = 2;
+    static const unsigned int padProfile = 3;
+    static const unsigned int padEC = 4;
+
+
     
     /**
      * @class Vizard
@@ -75,8 +96,10 @@ namespace insur {
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
+#ifdef USING_ROOTWEB
 	void histogramSummary(Analyzer& a, RootWSite& site);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+#endif
     protected:
         TGeoManager* gm;
         TGeoVolume* top;
@@ -100,6 +123,10 @@ namespace insur {
                 TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
         double averageHistogramValues(TH1D& histo, double cutoff);
+	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas* summaryCanvas, TCanvas* YZCanvas);
+	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
+	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
+	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     };
 }
 #endif	/* _VIZARD_H */

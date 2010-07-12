@@ -171,9 +171,7 @@ void Tracker::createGeometry(bool lite /*= false*/ ) {
         geomLiteEC_->cd();
         shapeModuleVolumesEndcapSample(true);
         savingV_.push_back(geomLiteEC_);
-        
     }
-    
 }
 
 void Tracker::shapeModuleVolumesEndcapSample(bool lite /* = false */) {
@@ -2424,8 +2422,7 @@ void Tracker::drawSummary(double maxZ, double maxRho, std::string fileName) {
         myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
         drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
         
-        
-        YZCanvas->cd();
+	YZCanvas->cd();
         myPad = YZCanvas->GetPad(0);
         myPad->SetFillColor(COLOR_PLOT_BACKGROUND);
         drawGrid(maxZ, maxRho, ViewSectionYZ);

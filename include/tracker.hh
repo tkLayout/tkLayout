@@ -88,10 +88,10 @@ private:
   TGeoMedium* myMed_;
   TGeoManager* myGeom_;
 
-  TCanvas* geomLite_;
-  TCanvas* geomLiteXY_;
-  TCanvas* geomLiteYZ_;
-  TCanvas* geomLiteEC_;
+  TCanvas* geomLite_;   // should be made obsolete
+  TCanvas* geomLiteXY_; // should be made obsolete
+  TCanvas* geomLiteYZ_; // should be made obsolete
+  TCanvas* geomLiteEC_; // should be made obsolete
   TCanvas* etaProfileCanvas_; // obsolete
   TCanvas* bandWidthCanvas_;
 
@@ -140,11 +140,11 @@ private:
   void compressBarrelLayers(LayerVector aLayerSet, bool oneSided);
   void createDirectories();
 
-  enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
-  void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same");
-  void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same");
-  void drawSummary(double maxZ, double maxRho, std::string fileName);
-  void drawLayout(double maxZ, double maxRho, std::string fileName);
+  enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2}; // obsolete
+  void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
+  void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
+  void drawSummary(double maxZ, double maxRho, std::string fileName); // obsolete
+  void drawLayout(double maxZ, double maxRho, std::string fileName);  // obsolete
 
 public:
   ~Tracker();
@@ -248,6 +248,14 @@ public:
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
   int getNMB() {return nMB_;};
+  double getMaxL() {return maxL_;};
+  double getMaxR() {return maxR_;};
+  TCanvas* getGeomLite() {return geomLite_;};
+  TCanvas* getGeomLiteXY() {return geomLiteXY_;};
+  TCanvas* getGeomLiteYZ() {return geomLiteYZ_;};
+  TCanvas* getGeomLiteEC() {return geomLiteEC_;};
+  
+
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {
     layerSet_.push_back(aLayer);
@@ -262,7 +270,7 @@ public:
   };
   
   // 3D geometry output preparation
-  void createGeometry(bool lite = false);
+  void createGeometry(bool lite = false); // should be made obsolete (currently used by analyzer)  or be restricted in use: no canvases
 
   // Summary output
   void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html",

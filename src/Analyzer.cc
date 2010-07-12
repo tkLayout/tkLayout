@@ -16,6 +16,10 @@ namespace insur {
     colorPicker("pt");
     colorPicker("rphi");
     colorPicker("stereo");
+    geomLite = NULL;   geomLiteCreated=false;
+    geomLiteXY = NULL; geomLiteXYCreated=false;
+    geomLiteYZ = NULL; geomLiteYZCreated=false;
+    geomLiteEC = NULL; geomLiteECCreated=false;
   }
   
   // public
@@ -464,6 +468,10 @@ namespace insur {
 	etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
 	hitDistribution.Reset();
 	hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
+	//geomLite->SetName("geometryLite");   geomLite->SetTitle("Modules geometry");
+	//geomLiteXY->SetName("geometryLiteXY"); geomLiteXY->SetTitle("Modules geometry (XY Section)");
+	//geomLiteYZ->SetName("geometryLiteYZ"); geomLiteYZ->SetTitle("Modules geometry (EC Section)");
+	//geomLiteEC->SetName("geometryLiteEC"); geomLiteEC->SetTitle("Modules geometry (Endcap)");
     }
     
     /**
@@ -527,6 +535,11 @@ namespace insur {
 	// mapPhiEta : the number of bins is actually set in analyzeTracker (depends on numebr of tracks)
 	// etaProfileCanvas : does not need to have the size specified now
 	// hitDistribution : sets the number of bins accoding to the number of tracks
+	// geomLite : does not need to have the size specified now
+	// geomLiteXY : does not need to have the size specified now
+	// geomLiteYZ : does not need to have the size specified now
+	// geomLiteEC : does not need to have the size specified now
+
     }
     /**
      * This convenience function sets the number of bins and the lower and upper range for their contents for
@@ -862,10 +875,34 @@ namespace insur {
     for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
       hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
     }
+
+    // Create the simlpified geometry objects
+    
     
     return;
   }
   
+  // public
+  // TODO!!!
+  // creates the geomLite objects (now they are canvases, but in the future
+  // they could be just lists of 3d poly objects
+  // Moreover now we create them by calling the tracker object, which seems improper
+  void Analyzer::createGeometryLite(Tracker& tracker) {
+    if (!(geomLiteCreated &&
+	  geomLiteXYCreated &&
+	  geomLiteYZCreated && 
+	  geomLiteECCreated)) {
+      tracker.createGeometry(true);
+      geomLiteCreated=true;
+      geomLiteXYCreated=true;
+      geomLiteYZCreated=true;
+      geomLiteECCreated=true;
+    }
+    geomLite = tracker.getGeomLite();
+    geomLiteXY = tracker.getGeomLiteXY();
+    geomLiteYZ = tracker.getGeomLiteYZ();
+    geomLiteEC = tracker.getGeomLiteEC();
+  }
 
   // private
   /**
@@ -898,7 +935,7 @@ namespace insur {
     
     return(typeCounter);
   }
-
+  
   // private
   /**
    * Shoots directions with random (flat) phi, random (flat) pseudorapidity

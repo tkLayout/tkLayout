@@ -93,12 +93,17 @@ namespace insur {
         std::vector<Track>& getTracks() { return tv; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
+	void createGeometryLite(Tracker& tracker);
 	TH2D& getMapPhiEta() { return mapPhiEta; }
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
         TH1D& getHitDistribution() {return hitDistribution;};
         TProfile& getTotalEtaProfile() {return totalEtaProfile;}
         std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;}
         std::vector<TObject> getSavingVector();
+	TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
+	TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
+	TCanvas* getGeomLiteYZ() {if (geomLiteYZCreated) return geomLiteYZ; else return NULL; };
+	TCanvas* getGeomLiteEC() {if (geomLiteECCreated) return geomLiteEC; else return NULL; };
     protected:
         /**
          * @struct Cell
@@ -122,6 +127,12 @@ namespace insur {
         TH2D isor, isoi;
 	TH2D mapPhiEta;
 	TCanvas etaProfileCanvas;
+	TCanvas* geomLite; bool geomLiteCreated;
+	TCanvas* geomLiteXY; bool geomLiteXYCreated;
+	TCanvas* geomLiteYZ; bool geomLiteYZCreated;
+	TCanvas* geomLiteEC; bool geomLiteECCreated;
+
+
 	TH1D hitDistribution;
         std::vector<Track> tv;
 

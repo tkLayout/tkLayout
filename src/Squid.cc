@@ -13,7 +13,9 @@ namespace insur {
         tr = NULL;
         is = NULL;
         mb = NULL;
+#ifdef USING_ROOTWEB
 	sitePrepared = false;
+#endif
     }
 
     /**
@@ -427,6 +429,7 @@ namespace insur {
         else return full;
     }
 
+#ifdef USING_ROOTWEB
   // Private
   /**
    * Prepare the website object (if not done yet) from the configuration file
@@ -455,6 +458,7 @@ namespace insur {
 #endif
     return true;
   }
+
   
   /**
    * Actually creates the website where it was supposed to be
@@ -490,12 +494,12 @@ namespace insur {
     if (tr) {
       std::cout << "Squid::analyzeGeometrySite()" << std::endl;
       a.analyzeGeometry(*tr, tracks);
-      return v.geometrySummary(a,*tr,site);
+      return v.geometrySummary(a,*tr,site); // TODO: is not really meaningful
     } else {
       std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
       return false;
     }
   }
-
+#endif
 
 }

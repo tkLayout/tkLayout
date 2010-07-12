@@ -1,6 +1,5 @@
 #include <Vizard.h>
-#include <TStyle.h>
-#include <TColor.h>
+
 
 namespace insur {
     // public
@@ -385,10 +384,10 @@ namespace insur {
         htmlstream << "<html><title>" << outfilename << "</title><body>";
         htmlstream << "<p><big><b>1D Overview</b></big></p>";
         TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 900, 400);
-        c.SetFillColor(kWhite);
+        c.SetFillColor(color_plot_background);
         c.Divide(2,1);
         pad = c.GetPad(0);
-        pad->SetFillColor(kGray);
+        pad->SetFillColor(color_pad_background);
         pad = c.GetPad(1);
         pad->cd();
         // total tracking volume rlength
@@ -574,6 +573,7 @@ namespace insur {
         std::cout << "HTML file written to " << outfile << std::endl;
     }
 
+#ifdef USING_ROOTWEB
     /**
      * This function draws some of the histograms that were filled during material budget analysis
      * with the rootweb library
@@ -605,10 +605,10 @@ namespace insur {
 
       // Output initialisation and headers
       myCanvas = new TCanvas("overviewMaterial");
-      myCanvas->SetFillColor(kWhite);
+      myCanvas->SetFillColor(color_plot_background);
       myCanvas->Divide(2,1);
       myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(kGray);
+      myPad->SetFillColor(color_pad_background);
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       // Total tracking volume rlength
@@ -654,10 +654,10 @@ namespace insur {
       myPage->addContent(myContent);
       // Work area re-init
       myCanvas = new TCanvas("materialInTrackingVolume");
-      myCanvas->SetFillColor(kWhite);
+      myCanvas->SetFillColor(color_plot_background);
       myCanvas->Divide(2,1);
       myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(kGray);
+      myPad->SetFillColor(color_pad_background);
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       // global plots in tracking volume: radiation length
@@ -690,10 +690,10 @@ namespace insur {
       myPage->addContent(myContent);
       // Work area re-init
       myCanvas = new TCanvas("detailedMaterial");
-      myCanvas->SetFillColor(kWhite);
+      myCanvas->SetFillColor(color_plot_background);
       myCanvas->Divide(2,1);
       myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(kGray);
+      myPad->SetFillColor(color_pad_background);
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       // radiation length in tracking volume by active, serving or passive
@@ -750,10 +750,10 @@ namespace insur {
 
       // Work area re-init
       myCanvas = new TCanvas("countourMaterial");
-      myCanvas->SetFillColor(kWhite);
+      myCanvas->SetFillColor(color_plot_background);
       myCanvas->Divide(2,1);
       myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(kGray);
+      myPad->SetFillColor(color_pad_background);
       myPad = myCanvas->GetPad(1);
       myPad->cd();
 
@@ -782,6 +782,7 @@ namespace insur {
       myContent->addItem(myImage);
     }
 
+#endif
     
     // private
     /**
@@ -885,19 +886,21 @@ namespace insur {
         // calculate average
         if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
         else {
-            for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
+	  for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
         }
         return avg;
     }
+  
 
+#ifdef USING_ROOTWEB
   /**
    * This function draws the profile of hits obtained by the analysis of the geometry
    * together with the summaries in tables with the rootweb library. It also actually does a couple of
    * calculations to count modules and such, to put the results in the tables.
-   * @param a A reference to the analysing class that examined the material budget and filled the histograms
+   * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     // Formatting parameters
     int coordPrecision = 0;
     int areaPrecision = 1;
@@ -1278,21 +1281,480 @@ namespace insur {
     moduleTable->setContent(powerRow,iType,aPower.str());
     moduleTable->setContent(costRow,iType,aCost.str());
 
+    //********************************//
+    //*                              *//
+    //*       Plots                  *//
+    //*                              *//
+    //********************************//
+    RootWImage* myImage;
+    TCanvas *summaryCanvas = NULL;
+    TCanvas *YZCanvas = NULL;
+    TCanvas *myCanvas = NULL;
+    createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
+    //TVirtualPad* myPad;
+    myContent = new RootWContent("Plots");
+    myPage->addContent(myContent);
+
+    if (summaryCanvas) {
+      myImage = new RootWImage(summaryCanvas, 800, 800);
+      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
+      myContent->addItem(myImage);
+    }
+
+    if (YZCanvas) {
+      myImage = new RootWImage(YZCanvas, 800, 800);
+      myImage->setComment("YZ Section of the tracker barrel");
+      myContent->addItem(myImage);
+    }
+
     /*
-    myfile << "<h3>Plots</h3>" << std::endl;
-    myfile << "<img src=\"summaryPlots.png\" />" << std::endl;
-    myfile << "<img src=\"summaryPlots_nhitplot.png\" />" << std::endl;
-    myfile << "<img src=\"summaryPlots_hitmap.png\" />" << std::endl;
-    myfile << "<img src=\"summaryPlotsYZ.png\" />" << std::endl;
-    // TODO: make an object that handles this properly:
+    myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 800, 800);
+    myCanvas->cd();
+    myPad = summaryCanvas->GetPad(padXY);
+    if (myPad) {
+      myPad->DrawClonePad();
+      myImage = new RootWImage(myCanvas, 800, 800);
+      myImage->setComment("XY Section of the tracker barrel");
+      myContent->addItem(myImage);
+    }
+
+    myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 800, 800);
+    myCanvas->cd();
+    myPad = summaryCanvas->GetPad(padEC);
+    if (myPad) {
+      myPad->DrawClonePad();
+      myImage = new RootWImage(myCanvas, 800, 800);
+      myImage->setComment("XY View of the tracker endcap");
+      myContent->addItem(myImage);
+    }
+    */
+
+    myCanvas = new TCanvas("EtaProfile", "Eta profile", 800, 800);
+    myCanvas->cd();
+    analyzer.getEtaProfileCanvas().DrawClonePad();
+    myImage = new RootWImage(myCanvas, 800, 800);
+    myImage->setComment("Hit coverage in eta");
+    myContent->addItem(myImage);
+
+    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 800, 800);
+    int prevStat = gStyle->GetOptStat();
+    gStyle->SetOptStat(0);
+    hitMapCanvas->cd();
+    gStyle->SetPalette(1);
+    hitMapCanvas->SetFillColor(color_plot_background);
+    hitMapCanvas->SetBorderMode(0);
+    hitMapCanvas->SetBorderSize(0);
+    analyzer.getMapPhiEta().Draw("colz");
+    hitMapCanvas->Modified();
+    gStyle->SetOptStat(prevStat);
+    myImage = new RootWImage(hitMapCanvas, 800, 800);
+    myImage->setComment("Hit coverage in eta, phi");
+    myContent->addItem(myImage);
+
+    // TODO: bandwidth
+    // (also todo: handle this properly)
+    /*
+    if (bandWidthCanvas_) {
+      pngFileName = fileName+"_bandwidth.png";
+      svgFileName = fileName+"_bandwidth.svg";
+      bandWidthCanvas_->DrawClonePad();
+      bandWidthCanvas_->SaveAs(pngFileName.c_str());
+      bandWidthCanvas_->SaveAs(svgFileName.c_str());
+    }
     myfile << "<h5>Bandwidth useage estimate:</h5>" << std::endl;
     myfile << "<p>(Pt modules: ignored)</p>" << std::endl
 	   << "<p>Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit</p>" << std::endl
 	   << "<p>Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel</p>" << std::endl
-	   << "<p>100 kHz trigger, " << nMB << " minimum bias events assumed</p>" << std::endl;
+	   << "<p>100 kHz trigger, " << nMB_ << " minimum bias events assumed</p>" << std::endl;
     myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
-    myfile << "</body></html>" << std::endl;
-    */
+    myfile << "</body></html>" << std::endl; */
+
+    // TODO: Conditions and files
+    /* 
+       myfile << clearStart << emphStart << "Geometry configuration file:     " << emphEnd
+       << "<a href=\".//" << configFile << "\">" << configFile << "</a>" << clearEnd << "<br/>" << std::endl;
+       myfile << clearStart << emphStart << "Module types configuration file: " << emphEnd
+       << "<a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << "<br/>" << std::endl;
+       myfile << clearStart << emphStart << "Minimum bias per bunch crossing: " << emphEnd
+       << nMB_ << clearEnd << std::endl;
+       if (barrelModuleCoordinatesFile!="")
+       myfile << "<br/>" << clearStart << emphStart << "Barrel modules coordinate file:  " << emphEnd
+       << "<a href=\".//" << barrelModuleCoordinatesFile << "\">" << barrelModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
+       if (endcapModuleCoordinatesFile!="")
+       myfile << "<br/>" << clearStart << emphStart << "End-cap modules coordinate file:  " << emphEnd
+       << "<a href=\".//" << endcapModuleCoordinatesFile << "\">" << endcapModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
+       
+       // TODO: make an object that handles this properly:
+       myfile << "<h5>Cost estimates:</h5>" << std::endl;
+       myfile << "<p>Pt modules: "
+       << std::fixed << std::setprecision(costPerUnitPrecision)
+       << getCost(Module::Pt) << " CFH/cm2 - Strip modules: "
+       << std::fixed << std::setprecision(costPerUnitPrecision)
+       << getCost(Module::Strip) << " CHF/cm2</p>" << std::endl;
+       myfile << "<h5>Power estimates:</h5>" << std::endl;
+       myfile << "<p>Pt modules: "
+       << std::fixed << std::setprecision(powerPerUnitPrecision)
+       << getPower(Module::Pt)*1e3 << " mW/chan - Strip modules: "
+       << std::fixed << std::setprecision(powerPerUnitPrecision)
+       << getPower(Module::Strip)*1e3 << " mW/chan</p>" << std::endl;
+  */
+
+
+    //summaryCanvas->SaveAs(epsFileName.c_str());
+    //summaryCanvas->SaveAs(gifFileName.c_str());
+
+    // TODO: make this meaningful!
+    return true;
+    
   }
 
+#endif
+
+
+  // private
+  // Draws tickmarks on 3d canvases
+  // @param myView the TView where to draw ticks
+  // @param maxL maximum tracker length in z
+  // @param maxR maximum tracker radius in rho
+  // @param noAxis number of the axis: Enumerate sections by axis
+  //        index normal to draw plane (if x=1, y=2, z=3)
+  // @param spacing grid tick spacing
+  // @param option the options to pass to the Draw() method
+  void Vizard::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
+    TPolyLine3D* aLine;
+    Color_t gridColor_hard = color_hard_grid;
+    int gridStyle_solid = 1;
+    std::string theOption(option);
+    
+    int i;
+    int j;
+    int k;
+    
+    double topMax = (maxL > maxR) ? maxL : maxR;
+    topMax = ceil(topMax/spacing)*spacing;
+    
+    double aValue[3];
+    double minValue[3];
+    double maxValue[3];
+    
+    i=(noAxis)%3;
+    j=(noAxis+1)%3;
+    k=(noAxis+2)%3;
+    
+    maxL *= 1.1;
+    maxR *= 1.1;
+    
+    if (noAxis==1) {
+        minValue[0]=0;
+        maxValue[0]=+maxR;
+        minValue[1]=0;
+        maxValue[1]=+maxR;
+        minValue[2]=0;
+        maxValue[2]=+maxL;
+    } else {
+        minValue[0]=-maxR;
+        maxValue[0]=+maxR;
+        minValue[1]=-maxR;
+        maxValue[1]=+maxR;
+        minValue[2]=0;
+        maxValue[2]=+maxL;
+    }
+    
+    aValue[k]=-topMax;
+    
+    if (noAxis==1) {
+      double etaStep=.2;
+      double etaMax = 2.1;
+      // Add the eta ticks
+      double theta;
+      double tickLength = 2 * spacing;
+      double tickDistance = spacing;
+      double startR = maxR + tickDistance;
+      double startL = maxL + tickDistance;
+      double endR = maxR + tickDistance + tickLength;
+      double endL = maxL + tickDistance + tickLength;
+      XYZVector startTick;
+      XYZVector endTick;
+      Double_t pw[3];
+      Double_t pn[3];
+      TText* aLabel;
+      char labelChar[10];
+      for (double eta=0; eta<etaMax; eta+=etaStep) {
+	aLine = new TPolyLine3D(2);
+	theta = 2 * atan(exp(-eta));
+	startTick = XYZVector(0, sin(theta), cos(theta));
+	startTick *= startR/startTick.Rho();
+	endTick = startTick / startTick.Rho() * endR;
+	if (startTick.Z()>startL) {
+	  startTick *= startL/startTick.Z();
+	  endTick *=  endL/endTick.Z();
+	}
+	pw[0]=0.;
+	pw[1]=endTick.Y();
+	pw[2]=endTick.Z();
+	myView->WCtoNDC(pw, pn);
+	sprintf(labelChar, "%.01f", eta);
+	aLabel = new TText(pn[0], pn[1], labelChar);
+	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+	aLabel->SetTextAlign(21);
+	aLabel->Draw(theOption.c_str());
+	theOption="same";
+	endTick = (endTick+startTick)/2.;
+	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+	aLine->SetLineStyle(gridStyle_solid);
+	aLine->SetLineColor(gridColor_hard);
+	aLine->Draw("same");
+      }
+      aLine = new TPolyLine3D(2);
+      theta = 2 * atan(exp(-2.5));
+      startTick = XYZVector(0, sin(theta), cos(theta));
+      startTick *= startR/startTick.Rho();
+      endTick = startTick / startTick.Rho() * endR;
+      if (startTick.Z()>startL) {
+	startTick *= startL/startTick.Z();
+	endTick *=  endL/endTick.Z();
+      }
+      pw[0]=0.;
+      pw[1]=endTick.Y();
+      pw[2]=endTick.Z();
+      myView->WCtoNDC(pw, pn);
+      sprintf(labelChar, "%.01f", 2.5);
+      aLabel = new TText(pn[0], pn[1], labelChar);
+      aLabel->SetTextSize(aLabel->GetTextSize()*.8);
+      aLabel->SetTextAlign(21);
+      aLabel->Draw(theOption.c_str());
+      theOption="same";
+      endTick = (endTick+startTick)/2.;
+      aLine->SetPoint(0, 0., 0., 0.);
+      aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+      aLine->SetLineStyle(gridStyle_solid);
+      aLine->SetLineColor(gridColor_hard);
+      aLine->Draw("same");
+      
+      
+      
+      for (double z=0; z<=maxL ; z+=(4*spacing)) {
+	aLine = new TPolyLine3D(2);
+	startTick = XYZVector(0, 0, z);
+	endTick = XYZVector(0, -(tickLength/2), z);
+	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+	pw[0]=0.;
+	pw[1]=-tickLength;
+	pw[2]=endTick.Z();
+	myView->WCtoNDC(pw, pn);
+	sprintf(labelChar, "%.0f", z);
+	aLabel = new TText(pn[0], pn[1], labelChar);
+	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+	aLabel->SetTextAlign(23);
+	aLabel->Draw(theOption.c_str());
+	theOption="same";
+	aLine->SetLineStyle(gridStyle_solid);
+	aLine->SetLineColor(gridColor_hard);
+	aLine->Draw("same");
+      }
+      
+      for (double y=0; y<=maxR ; y+=(2*spacing)) {
+	aLine = new TPolyLine3D(2);
+	startTick = XYZVector(0, y, 0);
+	endTick = XYZVector(0, y, -(tickLength/2));
+	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+	pw[0]=0.;
+	pw[1]=endTick.Y();
+	pw[2]=-tickLength;
+	myView->WCtoNDC(pw, pn);
+	sprintf(labelChar, "%.0f", y);
+	aLabel = new TText(pn[0], pn[1], labelChar);
+	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+	aLabel->SetTextAlign(32);
+	aLabel->Draw(theOption.c_str());
+	theOption="same";
+	aLine->SetLineStyle(gridStyle_solid);
+	aLine->SetLineColor(gridColor_hard);
+	aLine->Draw("same");
+      }
+    }
+  }
+
+  // private
+  // Draws a grid on the current canvas
+  // @param maxL maximum tracker length in z
+  // @param maxR maximum tracker radius in rho
+  // @param noAxis number of the axis: Enumerate sections by axis
+  //        index normal to draw plane (if x=1, y=2, z=3)
+  // @param spacing grid tick spacing
+  // @param option the options to pass to the Draw() method
+  void Vizard::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
+    TPolyLine3D* aLine;
+    Color_t gridColor = color_grid;
+    Color_t gridColor_hard = color_hard_grid;
+    Color_t thisLineColor;
+    
+    std::string theOption(option);
+    
+    int i;
+    int j;
+    int k;
+    
+    double topMax = (maxL > maxR) ? maxL : maxR;
+    topMax = ceil(topMax/spacing)*spacing;
+    
+    double aValue[3];
+    double minValue[3];
+    double maxValue[3];
+    double runValue;
+    int thisLineStyle;
+    
+    i=(noAxis)%3;
+    j=(noAxis+1)%3;
+    k=(noAxis+2)%3;
+    
+    maxL *= 1.1;
+    maxR *= 1.1;
+    
+    if (noAxis==1) {
+        minValue[0]=0;
+        maxValue[0]=+maxR;
+        minValue[1]=0;
+        maxValue[1]=+maxR;
+        minValue[2]=0;
+        maxValue[2]=+maxL;
+    } else {
+        minValue[0]=-maxR;
+        maxValue[0]=+maxR;
+        minValue[1]=-maxR;
+        maxValue[1]=+maxR;
+        minValue[2]=0;
+        maxValue[2]=+maxL;
+    }
+    
+    aValue[k]=-topMax;
+    for(runValue = -topMax; runValue<=topMax; runValue+=spacing) {
+      
+      // Special line for axis
+      if (runValue==0) {
+	thisLineStyle=1;
+	thisLineColor=gridColor_hard;
+      } else {
+	thisLineStyle=2;
+	thisLineColor=gridColor;
+      }
+      
+      // Parallel to j
+      if ((runValue<=maxValue[i])&&(runValue>=minValue[i])) {
+	aValue[i] = runValue;
+	aLine = new TPolyLine3D(2);
+	aValue[j] = minValue[j];
+	aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
+	aValue[j] = maxValue[j];
+	aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
+	aLine->SetLineStyle(thisLineStyle);
+	aLine->SetLineColor(thisLineColor);
+	aLine->Draw(theOption.c_str());
+	theOption="same";
+      };
+      
+      // Parallel to i
+      if ((runValue<=maxValue[j])&&(runValue>=minValue[j])) {
+	aValue[j] = runValue;
+	aLine = new TPolyLine3D(2);
+	aValue[i] = minValue[i];
+	aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
+	aValue[i] = maxValue[i];
+	aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
+	aLine->SetLineStyle(thisLineStyle);
+	aLine->SetLineColor(thisLineColor);
+	aLine->Draw(theOption.c_str());
+	theOption="same";
+      };
+      
+    } 
+  }
+  
+  // private
+  // Creates a new 4-pad canvas with XY and YZ views with all the useful details, like the axis ticks
+  // and the eta reference. The fourth pad contains a miniature of the eta profile coverage
+  // if you need any of these you can get them with GetPad()
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms 
+  // @return a pointer to the new TCanvas
+  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas* summaryCanvas, TCanvas* YZCanvas) {
+    Int_t irep;
+    TVirtualPad* myPad;
+
+    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 800, 800 );
+    summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 800, 800);
+    summaryCanvas->SetFillColor(color_pad_background);
+    summaryCanvas->Divide(2, 2);
+
+    for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetFillColor(color_plot_background);  }
+
+    // First pad
+    // YZView
+    myPad = summaryCanvas->GetPad(padYZ);
+    myPad->SetFillColor(color_plot_background);
+    myPad->cd();
+    if (analyzer.getGeomLiteYZ()) {
+      drawGrid(maxZ, maxRho, ViewSectionYZ);
+      analyzer.getGeomLiteYZ()->DrawClonePad();
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+      myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+      drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);      
+
+      YZCanvas->cd();
+      myPad = YZCanvas->GetPad(0);
+      myPad->SetFillColor(color_plot_background);
+      drawGrid(maxZ, maxRho, ViewSectionYZ);
+      analyzer.getGeomLiteYZ()->DrawClonePad();
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+      myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+      drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+    }
+
+    // Second pad
+    // XYView (barrel)
+    myPad = summaryCanvas->GetPad(padXY);
+    myPad->cd();
+    myPad->SetFillColor(color_plot_background);
+    if (analyzer.getGeomLiteXY()) {
+      drawGrid(maxZ, maxRho, ViewSectionXY);
+      analyzer.getGeomLiteXY()->DrawClonePad();
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    }
+    
+    // Third pad
+    // Plots
+    myPad = summaryCanvas->GetPad(padProfile);
+    myPad->cd();
+    myPad->SetFillColor(color_plot_background);
+    analyzer.getEtaProfileCanvas().DrawClonePad();
+    
+    // Fourth pad
+    // XYView (EndCap)
+    myPad = summaryCanvas->GetPad(padEC);
+    myPad->cd();
+    myPad->SetFillColor(color_plot_background);
+    if (analyzer.getGeomLiteEC()) {
+      drawGrid(maxZ, maxRho, ViewSectionXY);
+      analyzer.getGeomLiteEC()->DrawClonePad();
+      myPad->GetView()->SetParallel();
+      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    }
+    
+    for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
+    summaryCanvas->Modified();   
+    //return summaryCanvas;
+  }
+  
+  
+
 }
+

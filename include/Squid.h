@@ -25,7 +25,9 @@
 #include <Vizard.h>
 #include <tk2CMSSW.h>
 #include <boost/filesystem/operations.hpp>
+#ifdef USING_ROOTWEB
 #include <rootweb.hh>
+#endif
 #include <mainConfigHandler.h>
 
 /**
@@ -77,10 +79,12 @@ namespace insur {
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
         bool translateFullSystemToXML(std::string xmlout = "");
         bool trackerSummary(std::string configFileName, std::string dressFileName);
+#ifdef USING_ROOTWEB
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);
 	bool analyzeMaterialBudgetSite(int tracks = 50);
 	bool makeSite();
+#endif
     private:
         std::string g;
         Tracker* tr;
@@ -98,9 +102,11 @@ namespace insur {
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
 	mainConfigHandler mainConfiguration;
+#ifdef USING_ROOTWEB
 	RootWSite site;
 	bool prepareWebsite();
 	bool sitePrepared;
+#endif
     };
 }
 #endif	/* _SQUID_H */

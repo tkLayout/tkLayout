@@ -968,7 +968,6 @@ int main(int argc, char** argv) {
             return (EXIT_FAILURE);
         }
     }
-    s.trackerSummary(geomfile, settingsfile);
     std::cout << "Done." << std::endl;
     return (EXIT_SUCCESS);
 }
