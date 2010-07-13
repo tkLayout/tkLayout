@@ -61,7 +61,7 @@ namespace insur {
 #endif
         int nTracks;
         double etaStep, eta, theta, phi;
-        clearHistograms();
+        clearMaterialBudgetHistograms();
         clearCells();
         // prepare etaStep, phiStep, nTracks, nScans
         if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
@@ -386,9 +386,10 @@ namespace insur {
     }
     
     /**
-     * This convenience function resets and empties all histograms so they are ready for a new round of analysis.
+     * This convenience function resets and empties all histograms for the
+     * material budget, so they are ready for a new round of analysis.
      */
-    void Analyzer::clearHistograms() {
+    void Analyzer::clearMaterialBudgetHistograms() {
         // single category
         ractivebarrel.Reset();
         ractivebarrel.SetNameTitle("ractivebarrels", "Barrel Modules Radiation Length");
@@ -462,6 +463,13 @@ namespace insur {
         isor.SetNameTitle("isor", "Radiation Length Contours");
         isoi.Reset();
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
+    }
+
+    /**
+     * This convenience function resets and empties all histograms for the
+     * geometry so they are ready for a new round of analysis.
+     */
+    void Analyzer::clearGeometryHistograms() {
 	// geometry analysis
 	mapPhiEta.Reset();
 	mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;phi;eta");
@@ -531,15 +539,6 @@ namespace insur {
         // isolines
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
-	// Geometry analysis
-	// mapPhiEta : the number of bins is actually set in analyzeTracker (depends on numebr of tracks)
-	// etaProfileCanvas : does not need to have the size specified now
-	// hitDistribution : sets the number of bins accoding to the number of tracks
-	// geomLite : does not need to have the size specified now
-	// geomLiteXY : does not need to have the size specified now
-	// geomLiteYZ : does not need to have the size specified now
-	// geomLiteEC : does not need to have the size specified now
-
     }
     /**
      * This convenience function sets the number of bins and the lower and upper range for their contents for
@@ -709,6 +708,8 @@ namespace insur {
    */
   void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
     savingGeometryV.clear();
+    clearGeometryHistograms();
+
 
     // A bunch of pointers
     std::map <std::string, int> moduleTypeCount;
@@ -822,6 +823,8 @@ namespace insur {
 	if (trackCount>0) {
 	  hitCount=mapPhiEta.GetBinContent(nx, ny);
 	  mapPhiEta.SetBinContent(nx, ny, hitCount/trackCount);
+	  //hitCount=mapPhiEta.GetBinContent(nx, ny); //debug
+	  //std::cerr << "hitCount " << hitCount << std::endl; //debug
 	}
       }
     }
@@ -854,19 +857,20 @@ namespace insur {
     if (totalEtaProfile.GetMaximum()<9) totalEtaProfile.SetMaximum(9.);
     totalEtaProfile.Draw();
     std::string profileName;
+    TProfile* myProfile;
     for (std::map <std::string, TH2D>::iterator it = etaProfileByType.begin();
 	 it!=etaProfileByType.end(); it++) {
       plotCount++;
-      TProfile myProfile=TProfile(*((*it).second.ProfileX()));
-      savingGeometryV.push_back(myProfile);
-      myProfile.SetMarkerStyle(8);
-      myProfile.SetMarkerColor(colorPicker((*it).first));
-      myProfile.SetMarkerSize(1);
-      profileName = "etaProfile-"+(*it).first;
-      myProfile.SetName(profileName.c_str());
-      myProfile.SetTitle((*it).first.c_str());
-      myProfile.Draw("same");
-      typeEtaProfile.push_back(myProfile);
+      myProfile=(*it).second.ProfileX();
+      savingGeometryV.push_back(*myProfile);
+      myProfile->SetMarkerStyle(8);
+      myProfile->SetMarkerColor(colorPicker((*it).first));
+      myProfile->SetMarkerSize(1);
+      profileName = "etaProfile"+(*it).first;
+      myProfile->SetName(profileName.c_str());
+      myProfile->SetTitle((*it).first.c_str());
+      myProfile->Draw("same");
+      typeEtaProfile.push_back(*myProfile);
     }
 
     // Record the fraction of hits per module
@@ -876,16 +880,14 @@ namespace insur {
       hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
     }
 
-    // Create the simlpified geometry objects
-    
-    
     return;
   }
   
   // public
   // TODO!!!
-  // creates the geomLite objects (now they are canvases, but in the future
-  // they could be just lists of 3d poly objects
+  // Creates the geometry objects geomLite
+  // (now they are canvases, but in the future
+  // they could be just lists of 3d poly objects)
   // Moreover now we create them by calling the tracker object, which seems improper
   void Analyzer::createGeometryLite(Tracker& tracker) {
     if (!(geomLiteCreated &&
@@ -1035,5 +1037,58 @@ namespace insur {
     return result;
 
   }
+
+
+  void Analyzer::computeBandwidth(Tracker& tracker) {
+    LayerVector::iterator layIt;
+    ModuleVector::iterator modIt;
+    ModuleVector* aLay;
+    double hitChannels;
+    
+    // Clear and reset the histograms
+    chanHitDistribution.Reset();
+    bandwidthDistribution.Reset();
+    bandwidthDistributionSparsified.Reset();
+    chanHitDistribution.SetNameTitle("NHitChannels","Number of hit channels;Hit Channels;Modules");
+    bandwidthDistribution.SetNameTitle("BandWidthDist", "Module Needed Bandwidth;Bandwidth (bps);Modules");
+    bandwidthDistributionSparsified.SetNameTitle("BandWidthDistSp", "Module Needed Bandwidth (sparsified);Bandwidth (bps);Modules");
+    chanHitDistribution.SetBins(200, 0., 400);
+    bandwidthDistribution.SetBins(100, 0., 6E+8);
+    bandwidthDistributionSparsified.SetBins(100, 0., 6E+8);
+    bandwidthDistribution.SetLineColor(kBlack);
+    bandwidthDistributionSparsified.SetLineColor(kRed);
+    
+    int nChips;
+    LayerVector layerSet = tracker.getLayers();
+    double nMB = tracker.getNMB();
+    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+      aLay = (*layIt)->getModuleVector();
+      for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+	if ((*modIt)->getReadoutType()==Module::Strip) {
+	  hitChannels = (*modIt)->getOccupancyPerEvent()*nMB*((*modIt)->getNChannelsPerFace());
+	  chanHitDistribution.Fill(hitChannels);
+	  
+	  for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
+	    nChips=int(ceil((*modIt)->getNChannelsPerFace()/128.));
+            
+	    // TODO: place the computing model choice here
+            
+	    // ACHTUNG!!!! whenever you change the numbers here, you have to change
+	    // also the numbers in the summary
+            
+	    // Binary unsparsified (bps)
+	    bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
+	    // Binary sparsified
+	    bandwidthDistributionSparsified.Fill((23*nChips+hitChannels*9)*100E3);
+	  }
+	}
+      }
+    }
+
+    savingGeometryV.push_back(chanHitDistribution);
+    savingGeometryV.push_back(bandwidthDistribution);
+    savingGeometryV.push_back(bandwidthDistributionSparsified);
+  }
+
 }
 

@@ -93,6 +93,7 @@ namespace insur {
         std::vector<Track>& getTracks() { return tv; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
+	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
 	TH2D& getMapPhiEta() { return mapPhiEta; }
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
@@ -104,6 +105,9 @@ namespace insur {
 	TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
 	TCanvas* getGeomLiteYZ() {if (geomLiteYZCreated) return geomLiteYZ; else return NULL; };
 	TCanvas* getGeomLiteEC() {if (geomLiteECCreated) return geomLiteEC; else return NULL; };
+	TH1D& getChanHitDistribution() { return chanHitDistribution; };
+	TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
+	TH1D& getBandwidthDistributionSparsified() {return bandwidthDistributionSparsified; } ;
     protected:
         /**
          * @struct Cell
@@ -131,6 +135,9 @@ namespace insur {
 	TCanvas* geomLiteXY; bool geomLiteXYCreated;
 	TCanvas* geomLiteYZ; bool geomLiteYZCreated;
 	TCanvas* geomLiteEC; bool geomLiteECCreated;
+	TH1D chanHitDistribution;
+	TH1D bandwidthDistribution;
+	TH1D bandwidthDistributionSparsified;
 
 
 	TH1D hitDistribution;
@@ -146,7 +153,8 @@ namespace insur {
         virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
 								  double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
-        void clearHistograms();
+        void clearMaterialBudgetHistograms();
+        void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);

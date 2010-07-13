@@ -1291,83 +1291,67 @@ namespace insur {
     TCanvas *YZCanvas = NULL;
     TCanvas *myCanvas = NULL;
     createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
+
     //TVirtualPad* myPad;
     myContent = new RootWContent("Plots");
     myPage->addContent(myContent);
 
     if (summaryCanvas) {
-      myImage = new RootWImage(summaryCanvas, 800, 800);
+      myImage = new RootWImage(summaryCanvas, 600, 600);
       myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
       myContent->addItem(myImage);
     }
 
     if (YZCanvas) {
-      myImage = new RootWImage(YZCanvas, 800, 800);
+      myImage = new RootWImage(YZCanvas, 600, 600);
       myImage->setComment("YZ Section of the tracker barrel");
       myContent->addItem(myImage);
     }
 
     /*
-    myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 800, 800);
+    myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
     myCanvas->cd();
     myPad = summaryCanvas->GetPad(padXY);
     if (myPad) {
       myPad->DrawClonePad();
-      myImage = new RootWImage(myCanvas, 800, 800);
+      myImage = new RootWImage(myCanvas, 600, 600);
       myImage->setComment("XY Section of the tracker barrel");
       myContent->addItem(myImage);
     }
 
-    myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 800, 800);
+    myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 600, 600);
     myCanvas->cd();
     myPad = summaryCanvas->GetPad(padEC);
     if (myPad) {
       myPad->DrawClonePad();
-      myImage = new RootWImage(myCanvas, 800, 800);
+      myImage = new RootWImage(myCanvas, 600, 600);
       myImage->setComment("XY View of the tracker endcap");
       myContent->addItem(myImage);
     }
     */
 
-    myCanvas = new TCanvas("EtaProfile", "Eta profile", 800, 800);
+    myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
     myCanvas->cd();
     analyzer.getEtaProfileCanvas().DrawClonePad();
-    myImage = new RootWImage(myCanvas, 800, 800);
+    myImage = new RootWImage(myCanvas, 600, 600);
     myImage->setComment("Hit coverage in eta");
     myContent->addItem(myImage);
 
-    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 800, 800);
+    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
     int prevStat = gStyle->GetOptStat();
     gStyle->SetOptStat(0);
     hitMapCanvas->cd();
-    gStyle->SetPalette(1);
+    //gStyle->SetPalette(1);
     hitMapCanvas->SetFillColor(color_plot_background);
     hitMapCanvas->SetBorderMode(0);
     hitMapCanvas->SetBorderSize(0);
     analyzer.getMapPhiEta().Draw("colz");
     hitMapCanvas->Modified();
     gStyle->SetOptStat(prevStat);
-    myImage = new RootWImage(hitMapCanvas, 800, 800);
+    myImage = new RootWImage(hitMapCanvas, 600, 600);
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
-    // TODO: bandwidth
-    // (also todo: handle this properly)
-    /*
-    if (bandWidthCanvas_) {
-      pngFileName = fileName+"_bandwidth.png";
-      svgFileName = fileName+"_bandwidth.svg";
-      bandWidthCanvas_->DrawClonePad();
-      bandWidthCanvas_->SaveAs(pngFileName.c_str());
-      bandWidthCanvas_->SaveAs(svgFileName.c_str());
-    }
-    myfile << "<h5>Bandwidth useage estimate:</h5>" << std::endl;
-    myfile << "<p>(Pt modules: ignored)</p>" << std::endl
-	   << "<p>Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit</p>" << std::endl
-	   << "<p>Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel</p>" << std::endl
-	   << "<p>100 kHz trigger, " << nMB_ << " minimum bias events assumed</p>" << std::endl;
-    myfile << "<img src=\"summaryPlots_bandwidth.png\" />" << std::endl;
-    myfile << "</body></html>" << std::endl; */
 
     // TODO: Conditions and files
     /* 
@@ -1407,6 +1391,59 @@ namespace insur {
     return true;
     
   }
+
+  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    RootWPage* myPage = new RootWPage("Band width");
+    myPage->setAddress("bandwidth.html");
+    site.addPage(myPage);
+    RootWContent* myContent;
+
+    //********************************//
+    //*                              *//
+    //*       Bandwidth              *//
+    //*                              *//
+    //********************************//
+    // (also todo: handle this properly: with a not-hardcoded model)
+    myContent = new RootWContent("Distributions and models");
+    myPage->addContent(myContent);
+    TCanvas* bandWidthCanvas = new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", 600, 400); // TODO: put all these numbers somewhere
+    TCanvas* moduleHitCanvas = new TCanvas("ModuleHitC", "Module hit countC", 600, 400);
+    bandWidthCanvas->SetLogy(1);
+    moduleHitCanvas->SetLogy(1);
+    
+    bandWidthCanvas->cd();
+    TH1D& bandwidthDistribution = analyzer.getBandwidthDistribution();
+    TH1D& bandwidthDistributionSparsified = analyzer.getBandwidthDistributionSparsified();
+    bandwidthDistribution.Draw();
+    bandwidthDistributionSparsified.Draw("same");
+    TLegend* myLegend = new TLegend(0.75, 0.5, 1, .75);
+    myLegend->AddEntry(&bandwidthDistribution, "Unsparsified", "l");
+    myLegend->AddEntry(&bandwidthDistributionSparsified, "Sparsified", "l");
+    myLegend->Draw();
+    RootWImage* myImage = new RootWImage(bandWidthCanvas, 600, 600);
+    myImage->setComment("Module bandwidth distribution in the sparsified and unsparsified model");
+    myContent->addItem(myImage);
+
+    moduleHitCanvas->cd();
+    TH1D& chanHitDistribution = analyzer.getChanHitDistribution();
+    chanHitDistribution.Draw();
+    myImage = new RootWImage(moduleHitCanvas, 600, 600);
+    myImage->setComment("Number of hits per module per BX distribution");
+    myContent->addItem(myImage);
+
+    RootWText* myDescription = new RootWText();
+    myContent->addItem(myDescription);
+    myDescription->addText( "Bandwidth useage estimate:<br/>");
+    myDescription->addText( "(Pt modules: ignored)<br/>");
+    myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
+    myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
+    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << tracker.getNMB();
+    aStringStream <<" minimum bias events assumed</br>";
+    myDescription->addText( aStringStream.str() );
+    
+    return true;
+  }    
+
 
 #endif
 
@@ -1531,7 +1568,6 @@ namespace insur {
       aLine->SetLineStyle(gridStyle_solid);
       aLine->SetLineColor(gridColor_hard);
       aLine->Draw("same");
-      
       
       
       for (double z=0; z<=maxL ; z+=(4*spacing)) {
@@ -1681,12 +1717,12 @@ namespace insur {
   // @param maxRho maximum tracker's Rho coordinate to be shown
   // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms 
   // @return a pointer to the new TCanvas
-  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas* summaryCanvas, TCanvas* YZCanvas) {
+  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
     Int_t irep;
     TVirtualPad* myPad;
 
-    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 800, 800 );
-    summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 800, 800);
+    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
+    summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
     summaryCanvas->SetFillColor(color_pad_background);
     summaryCanvas->Divide(2, 2);
 

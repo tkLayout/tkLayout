@@ -183,20 +183,21 @@ background: white;
 #content table
 {
 	margin-bottom: 0em;
+	font-size: 100%;
 }
 #content table th
 {
 	text-align: left;
 	font-weight: bold;
-	padding: 0.5em;
+	padding: 0.1em;
 }
 #content table td
 {
-	padding: 0.5em;
+	padding: 0.1em;
 }
 #content table tr.rowA
 {
-	background-color: #EAEFE0;
+/*	background-color: #EAEFE0; */
 	color: inherit;
 }
 #content table tr.rowB
@@ -205,12 +206,10 @@ background: white;
 	color: inherit;
 }
 #content table tr.rowA:hover {
-	background-color: #000385;
-	color: #FFFFFF;
+	background-color: #F9FFEF;
 }
 #content table tr.rowB:hover {
-        background-color: #000385;
-        color: #FFFFFF;
+        background-color: #F9FFEF;
 }
 
 /*#content table tr.rowOver

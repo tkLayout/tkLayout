@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define THUMBSMALLSIZE 300
+#define THUMBSMALLSIZE 200
 #define DEFAULTPROGRAMNAME "tkGeometry"
 #define DEFAULTPROGRAMSITE "http://code.google.com/p/tkgeometry/"
 // The following is a list of allowed file etensions for TCanvas::SaveAs

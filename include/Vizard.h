@@ -28,6 +28,7 @@
 #include <TText.h>
 #include <TColor.h>
 #include <TView.h>
+#include <TLegend.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
@@ -97,8 +98,11 @@ namespace insur {
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
 #ifdef USING_ROOTWEB
+	// TODO: all these functions should check if the corresponding data is present
+	// and return true or false, depending if they created the output or not
 	void histogramSummary(Analyzer& a, RootWSite& site);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
+	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 #endif
     protected:
         TGeoManager* gm;
@@ -123,7 +127,7 @@ namespace insur {
                 TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
         double averageHistogramValues(TH1D& histo, double cutoff);
-	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas* summaryCanvas, TCanvas* YZCanvas);
+	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas);
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete

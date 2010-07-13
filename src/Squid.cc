@@ -494,7 +494,11 @@ namespace insur {
     if (tr) {
       std::cout << "Squid::analyzeGeometrySite()" << std::endl;
       a.analyzeGeometry(*tr, tracks);
-      return v.geometrySummary(a,*tr,site); // TODO: is not really meaningful
+      a.createGeometryLite(*tr);
+      v.geometrySummary(a,*tr,site);
+      a.computeBandwidth(*tr);
+      v.bandwidthSummary(a, *tr, site);
+      return true; // TODO: is not really meaningful
     } else {
       std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
       return false;

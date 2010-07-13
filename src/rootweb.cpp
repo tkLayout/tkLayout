@@ -52,7 +52,10 @@ ostream& RootWTable::dump(ostream& output) {
   for (int iRow = minRow; iRow<=maxRow; ++iRow) { 
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
-      output << "<td>" << myTableContent[make_pair(iRow, iCol)]  << "</td>" << " ";
+      if ((iRow==minRow)&&(iRow==0))
+	output << "<th>" << myTableContent[make_pair(iRow, iCol)]  << "</th>" << " ";
+      else
+	output << "<td>" << myTableContent[make_pair(iRow, iCol)]  << "</td>" << " ";
     }
     output << "</tr>";
   }

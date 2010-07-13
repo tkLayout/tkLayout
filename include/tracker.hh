@@ -216,7 +216,7 @@ public:
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
   void setComment(const std::string &newComment) {comment_=newComment;};
-  void setNMB(const int nMB) {nMB_=nMB;};
+  void setNMB(const double nMB) {nMB_=nMB;};
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); };
@@ -247,7 +247,7 @@ public:
   std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
-  int getNMB() {return nMB_;};
+  double getNMB() {return nMB_;};
   double getMaxL() {return maxL_;};
   double getMaxR() {return maxR_;};
   TCanvas* getGeomLite() {return geomLite_;};
