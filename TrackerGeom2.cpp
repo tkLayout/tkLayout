@@ -19,7 +19,6 @@ Tracker* createGeometry(string configFileName) {
   configParser myParser;
 
   return myParser.parseFile(configFileName);
-
 }
 
 // This function only takes a geometry configuration files and creates

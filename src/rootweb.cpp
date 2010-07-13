@@ -203,7 +203,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   double hScale = double(smallHeight) / double(zoomedHeight_);
   double myScale;
 
-  myScale =  (hScale < wScale) ? hScale : wScale;
+  myScale =  (hScale > wScale) ? hScale : wScale;
   int imgW = int (zoomedWidth_ * myScale);
   int imgH = int (zoomedHeight_ * myScale);
   int canW = int(imgW * thumb_compression_);
@@ -717,3 +717,33 @@ ostream& RootWBinaryFile::dump(ostream& output) {
   return output;
 };
 
+//*******************************************//
+// RootWInfo                                 //
+//*******************************************//
+
+string RootWInfo::setValue(string newText) {
+  value_ = newText;
+  return newText;
+}
+
+string RootWInfo::setValue(int number) {  
+  stringstream myNum_;
+  myNum_.clear();
+  myNum_ << dec << number;
+  return(setValue(myNum_.str()));
+}
+
+string RootWInfo::setValue(double number, int precision) {
+  stringstream myNum_;
+  myNum_.clear();
+  myNum_ << dec << fixed << setprecision(precision) << number;
+  return(setValue(myNum_.str()));
+}
+
+ostream& RootWInfo::dump(ostream& output) {
+  std::ofstream outputFile;
+
+  output << "<b>" << description_ << ":</b> "
+         << value_ << "</a></tt><br/>";
+  return output;
+}

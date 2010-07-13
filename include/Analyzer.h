@@ -108,6 +108,8 @@ namespace insur {
 	TH1D& getChanHitDistribution() { return chanHitDistribution; };
 	TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
 	TH1D& getBandwidthDistributionSparsified() {return bandwidthDistributionSparsified; } ;
+	int getGeometryTracksUsed() {return geometryTracksUsed; };
+	int getMaterialTracksUsed() {return materialTracksUsed; };
     protected:
         /**
          * @struct Cell
@@ -173,7 +175,8 @@ namespace insur {
 	Color_t colorPicker(std::string);
 	std::map<std::string, Color_t> colorPickMap;
 	Color_t lastPickedColor;
-
+	int geometryTracksUsed;
+	int materialTracksUsed;
     };
 }
 #endif	/* _ANALYZER_H */

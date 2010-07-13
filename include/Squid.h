@@ -83,6 +83,7 @@ namespace insur {
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);
 	bool analyzeMaterialBudgetSite(int tracks = 50);
+	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile);
 	bool makeSite();
 #endif
     private:

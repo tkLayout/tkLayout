@@ -219,10 +219,10 @@ public:
   void setNMB(const double nMB) {nMB_=nMB;};
 
   // Summary parameters
-  double getCost(const int& type) { return(mapTypeToCost_[type]); };
-  double getPower(const int& type) { return(mapTypeToPower_[type]); };
-  void setCost(const int& type, const double& newCost) { mapTypeToCost_[type]=newCost; };
-  void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; };
+  double getCost(const int& type) { return(mapTypeToCost_[type]); }; // should be made obsolete (should go into Analyzer)
+  double getPower(const int& type) { return(mapTypeToPower_[type]); }; // should be made obsolete (should go into Analyzer)
+  void setCost(const int& type, const double& newCost) { mapTypeToCost_[type]=newCost; }; // should be made obsolete (should go into Analyzer)
+  void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; }; // should be made obsolete (should go into Analyzer)
 
   // Overlaps / error
   double getZError() { return zError_; };
@@ -278,8 +278,8 @@ public:
 		    std::string endcapModuleCoordinatesFile ="");
   void writeSummary(std::string fileType = "html"); // obsolete
   void createPackageLayout(std::string dirName);
-  void printBarrelModuleZ(ostream& outfile);
-  void printEndcapModuleRPhiZ(ostream& outfile);
+  void printBarrelModuleZ(ostream& outfile); // to be made obsolete
+  void printEndcapModuleRPhiZ(ostream& outfile); // to be made obsolete
 
   // Save everything
   void save();

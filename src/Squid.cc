@@ -492,7 +492,6 @@ namespace insur {
    */
   bool Squid::analyzeGeometrySite(int tracks /* = 1000 */ ) {
     if (tr) {
-      std::cout << "Squid::analyzeGeometrySite()" << std::endl;
       a.analyzeGeometry(*tr, tracks);
       a.createGeometryLite(*tr);
       v.geometrySummary(a,*tr,site);
@@ -504,6 +503,18 @@ namespace insur {
       return false;
     }
   }
+
+  bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile) {
+    if (!tr) {
+      std::cout << "Squid::additionalInfoSite(): " << err_no_tracker << std::endl;      
+      return false;
+    } else {
+      v.additionalInfoSite(geomfile,settingsfile,matfile, a, *tr, site);
+      return true;
+    }
+  }
+
+  
 #endif
 
 }

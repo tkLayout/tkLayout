@@ -148,7 +148,7 @@ background: white;
 #content div.hideable {
         display: block;
 	padding: 0.5em;
-        line-height:105%;
+        line-height:120%;
         background-color: #FFFFFF;
         background-image: url('images/a6.png');
         background-repeat: repeat-y;

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-#define THUMBSMALLSIZE 200
+#define THUMBSMALLSIZE 120
 #define DEFAULTPROGRAMNAME "tkGeometry"
 #define DEFAULTPROGRAMSITE "http://code.google.com/p/tkgeometry/"
 // The following is a list of allowed file etensions for TCanvas::SaveAs
@@ -36,8 +36,25 @@ public:
   void addText(string newText) { myText_ << newText; };
   ostream& dump(ostream& output) {output << myText_.str(); return output;};
   bool isText() {return true;};
-private:
+protected:
   stringstream myText_;
+};
+
+class RootWInfo: public RootWItem {
+public:
+  RootWInfo() {description_="missing_description";value_="missing_value";};
+  RootWInfo(string description) {description_=description; value_="missing_value";};
+  RootWInfo(string description, string value) {description_=description;value_=value;};
+  ~RootWInfo() {};
+  string setDescription(string newText) { description_ = newText; return newText; };
+  string setValue(string newText);
+  string setValue(int number);
+  string setValue(double number, int precision);
+  string addValueText(string newText) {value_+=newText; return value_;};
+  ostream& dump(ostream& output);
+protected:
+  string description_;
+  string value_;
 };
 
 typedef std::map<pair<int,int>, string> rootWTableContent;

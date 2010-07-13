@@ -20,6 +20,8 @@ namespace insur {
     geomLiteXY = NULL; geomLiteXYCreated=false;
     geomLiteYZ = NULL; geomLiteYZCreated=false;
     geomLiteEC = NULL; geomLiteECCreated=false;
+    geometryTracksUsed = 0;
+    materialTracksUsed = 0;
   }
   
   // public
@@ -51,6 +53,7 @@ namespace insur {
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
+      materialTracksUsed = etaSteps;
 #ifdef DEBUG_PERFORMANCE
     struct tm *localt; // timing: debug
     time_t t;          // timing: debug
@@ -707,6 +710,7 @@ namespace insur {
    * @param nTracker the number of tracks to be used to analyze the coverage (defaults to 1000)
    */
   void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
+    geometryTracksUsed = nTracks;
     savingGeometryV.clear();
     clearGeometryHistograms();
 

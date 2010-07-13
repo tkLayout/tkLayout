@@ -901,17 +901,6 @@ namespace insur {
    * @param site the RootWSite object for the output
    */
   bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-    // Formatting parameters
-    int coordPrecision = 0;
-    int areaPrecision = 1;
-    int occupancyPrecision = 1;
-    int pitchPrecision = 0;
-    int stripLengthPrecision = 1;
-    int millionChannelPrecision = 2;
-    int powerPrecision = 1;
-    int costPrecision  = 1;
-    int powerPerUnitPrecision = 2;
-    int costPerUnitPrecision  = 1;
     
     // A bunch of indexes
     std::map<std::string, Module*> typeMap;
@@ -1352,45 +1341,88 @@ namespace insur {
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
-
-    // TODO: Conditions and files
-    /* 
-       myfile << clearStart << emphStart << "Geometry configuration file:     " << emphEnd
-       << "<a href=\".//" << configFile << "\">" << configFile << "</a>" << clearEnd << "<br/>" << std::endl;
-       myfile << clearStart << emphStart << "Module types configuration file: " << emphEnd
-       << "<a href=\".//" << dressFile << "\">" << dressFile << "</a>" << clearEnd << "<br/>" << std::endl;
-       myfile << clearStart << emphStart << "Minimum bias per bunch crossing: " << emphEnd
-       << nMB_ << clearEnd << std::endl;
-       if (barrelModuleCoordinatesFile!="")
-       myfile << "<br/>" << clearStart << emphStart << "Barrel modules coordinate file:  " << emphEnd
-       << "<a href=\".//" << barrelModuleCoordinatesFile << "\">" << barrelModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
-       if (endcapModuleCoordinatesFile!="")
-       myfile << "<br/>" << clearStart << emphStart << "End-cap modules coordinate file:  " << emphEnd
-       << "<a href=\".//" << endcapModuleCoordinatesFile << "\">" << endcapModuleCoordinatesFile << "</a>" << clearEnd << std::endl;
-       
-       // TODO: make an object that handles this properly:
-       myfile << "<h5>Cost estimates:</h5>" << std::endl;
-       myfile << "<p>Pt modules: "
-       << std::fixed << std::setprecision(costPerUnitPrecision)
-       << getCost(Module::Pt) << " CFH/cm2 - Strip modules: "
-       << std::fixed << std::setprecision(costPerUnitPrecision)
-       << getCost(Module::Strip) << " CHF/cm2</p>" << std::endl;
-       myfile << "<h5>Power estimates:</h5>" << std::endl;
-       myfile << "<p>Pt modules: "
-       << std::fixed << std::setprecision(powerPerUnitPrecision)
-       << getPower(Module::Pt)*1e3 << " mW/chan - Strip modules: "
-       << std::fixed << std::setprecision(powerPerUnitPrecision)
-       << getPower(Module::Strip)*1e3 << " mW/chan</p>" << std::endl;
-  */
-
-
-    //summaryCanvas->SaveAs(epsFileName.c_str());
-    //summaryCanvas->SaveAs(gifFileName.c_str());
-
     // TODO: make this meaningful!
     return true;
     
   }
+
+  bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    RootWPage* myPage = new RootWPage("Info");
+    myPage->setAddress("info.html");
+    site.addPage(myPage);
+    RootWContent *simulationContent, *filesContent;
+    RootWBinaryFile* myBinaryFile;
+    std::string trackerName = tracker.getName();
+
+    int materialTracksUsed = analyzer.getMaterialTracksUsed();
+    int geometryTracksUsed = analyzer.getGeometryTracksUsed();
+
+    //********************************//
+    //*                              *//
+    //*  Simulation and files        *//
+    //*                              *//
+    //********************************//
+    // (also todo: handle this properly: with a not-hardcoded model)
+    simulationContent = new RootWContent("Simulation parameters");
+    myPage->addContent(simulationContent);
+    filesContent = new RootWContent("Geometry files");
+    myPage->addContent(filesContent);
+
+    if (geomfile!="") {
+      std::string destinationFilename = trackerName + ".cfg";
+      myBinaryFile = new RootWBinaryFile(destinationFilename, "Geometry configuration file", geomfile);
+      simulationContent->addItem(myBinaryFile);
+    }
+    if (settingsfile!="") {
+      std::string destinationFilename = trackerName + "_Types.cfg";
+      myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
+      simulationContent->addItem(myBinaryFile);
+    }
+    if (matfile!="") {
+      std::string destinationFilename = trackerName + "_Materials.cfg";
+      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file", matfile);
+      simulationContent->addItem(myBinaryFile);
+    }
+    
+    RootWInfo* myInfo;
+    myInfo = new RootWInfo("Minimum bias per bunch crossing");
+    myInfo->setValue(tracker.getNMB(), minimumBiasPrecision);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for material");
+    myInfo->setValue(materialTracksUsed);
+    simulationContent->addItem(myInfo);
+    myInfo = new RootWInfo("Number of tracks used for geometry");
+    myInfo->setValue(geometryTracksUsed);
+    simulationContent->addItem(myInfo);
+
+    ostringstream barrelModuleCoordinates, endcapModuleCoordinates;
+    RootWTextFile* myTextFile;
+    tracker.printBarrelModuleZ(barrelModuleCoordinates);
+    tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
+    // Barrel coordinates
+    myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
+    myTextFile->addText(barrelModuleCoordinates.str());
+    filesContent->addItem(myTextFile);
+    // Endcap coordinates
+    myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
+    myTextFile->addText(endcapModuleCoordinates.str());
+    filesContent->addItem(myTextFile);
+
+       // TODO: make an object that handles this properly:
+    RootWTable* myTable = new RootWTable();
+    myTable->setContent(1,0,"CHF/cm"+superStart+"2"+superEnd);
+    myTable->setContent(2,0,"mW/channel");
+    myTable->setContent(0,1,"Pt modules");
+    myTable->setContent(0,2,"Strip modules");
+    myTable->setContent(1,1,tracker.getCost(Module::Pt), costPerUnitPrecision);
+    myTable->setContent(1,2,tracker.getCost(Module::Strip), costPerUnitPrecision);
+    myTable->setContent(2,1,tracker.getPower(Module::Pt)*1e3, powerPerUnitPrecision);
+    myTable->setContent(2,2,tracker.getPower(Module::Strip)*1e3, powerPerUnitPrecision);
+    simulationContent->addItem(myTable);
+
+    return true; // TODO: make this meaningful
+  }
+
 
   bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Band width");

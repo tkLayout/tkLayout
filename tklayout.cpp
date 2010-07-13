@@ -845,7 +845,9 @@ int main(int argc, char** argv) {
     if (h || x) {
         if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
         if (h) {
-	    s.analyzeGeometrySite();
+   	    int geometryTracks = 2000; // TODO: make this configurable
+	    if  (geometryTracks!=0) s.analyzeGeometrySite(geometryTracks);
+	    else s.analyzeGeometrySite();
             if (tracks != 0) {
                 std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
                 if (!s.analyzeMaterialBudgetSite(tracks)) return (EXIT_FAILURE);
@@ -854,6 +856,7 @@ int main(int argc, char** argv) {
                 std::cout << "Calling analyzer with the default number of tracks." << std::endl;
                 if (!s.analyzeMaterialBudgetSite()) return (EXIT_FAILURE);
             }
+	    s.additionalInfoSite(geomfile, settingsfile, matfile);
             s.makeSite();
         }
         if (r) {

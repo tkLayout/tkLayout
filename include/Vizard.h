@@ -72,7 +72,18 @@ namespace insur {
     static const unsigned int padProfile = 3;
     static const unsigned int padEC = 4;
 
-
+    // Formatting parameters
+    static const int coordPrecision = 0;
+    static const int areaPrecision = 1;
+    static const int occupancyPrecision = 1;
+    static const int pitchPrecision = 0;
+    static const int stripLengthPrecision = 1;
+    static const int millionChannelPrecision = 2;
+    static const int powerPrecision = 1;
+    static const int costPrecision  = 1;
+    static const int powerPerUnitPrecision = 2;
+    static const int costPerUnitPrecision  = 1;
+    static const int minimumBiasPrecision = 0;
     
     /**
      * @class Vizard
@@ -103,6 +114,7 @@ namespace insur {
 	void histogramSummary(Analyzer& a, RootWSite& site);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 #endif
     protected:
         TGeoManager* gm;
