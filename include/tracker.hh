@@ -14,6 +14,8 @@
 #include "TProfile.h"
 #include "TFile.h"
 
+#include <messageLogger.h>
+
 #define RANDOM_SEED 0xcaffe
 
 #define DEFAULTBARRELNAME "defaultBarrel"
@@ -34,7 +36,7 @@ typedef std::vector<Layer*> LayerVector;
 typedef std::map<std::string, LayerVector> SectionMap;
 typedef std::map<int, double> SpecialDelta;
 
-class Tracker {
+class Tracker : public MessageLogger {
 public:
   enum {TypeBarrel, TypeEndcap};
 protected:

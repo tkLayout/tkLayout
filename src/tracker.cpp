@@ -70,7 +70,7 @@ bool moduleSortEndcapStyle(const Module* m1, const Module* m2) {
 
 using namespace ROOT::Math;
 
-Tracker::~Tracker() {
+Tracker::~Tracker()  {
     LayerVector::iterator layIt;
     for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
         if ((*layIt)!=NULL) {
@@ -80,11 +80,11 @@ Tracker::~Tracker() {
     layerSet_.clear();
 }
 
-Tracker::Tracker() {
+Tracker::Tracker() : MessageLogger("Tracker") {
     setDefaultParameters();
 }
 
-Tracker::Tracker(std::string trackerName) {
+Tracker::Tracker(std::string trackerName) :  MessageLogger("Tracker") {
     setDefaultParameters();
     setName(trackerName);
 }
@@ -293,6 +293,7 @@ void Tracker::buildBarrel(int nLayer,
         aDirective = layerDirectives_.find(i+1);
         if (aDirective!=layerDirectives_.end()) {
             if  ((i==0)||(i==(nLayer-1))) {
+	      addMessage("We just read a directive for the first or last layer. This will be ignored", WARNING);
                 std::cout << "*******************************" << std::endl;
                 std::cout << "*                             *" << std::endl;
                 std::cout << "* WARNING:              /\\    *" << std::endl;
@@ -303,16 +304,18 @@ void Tracker::buildBarrel(int nLayer,
                 std::cout << "*                             *" << std::endl;
                 std::cout << "*******************************" << std::endl;
             }
-            std::cout << "Found a directive: " << layerDirectives_[i+1] << std::endl;
+	    tempString.str(""); tempString << "Found a directive: " << layerDirectives_[i+1];
+	    addMessage(tempString.str(), INFO);
             if (layerDirectives_[i+1]>0) {
                 radius = layerDirectives_[i+1];
                 push   = Layer::FIXED;
-                std::cout << "Fixing radius of layer " << i+1 << " to " << radius << std::endl;
+                tempString.str(""); tempString << "Fixing radius of layer " << i+1 << " to " << radius;
+                addMessage(tempString.str(), INFO);
             } else {
                 push = int(layerDirectives_[i+1]);
             }
         } else {
-            std::cout << "Found no directive: auto adjusting layer" << std::endl;
+            addMessage("Found no directive: auto adjusting layer", INFO);
         }
         
         aBarrelLayer = new BarrelLayer(sampleModule);
@@ -320,8 +323,9 @@ void Tracker::buildBarrel(int nLayer,
         layerName << "L" << std::dec << i+1;
         aBarrelLayer->setName(layerName.str());
 	aBarrelLayer->setContainerName(barrelName);
-        
-        std::cout << "Desired radius: " << radius << std::endl;
+       
+        tempString.str(""); tempString << "Desired radius: " << radius << std::endl;
+        addMessage(tempString.str(), INFO);
 
         if (minZ==0) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
@@ -413,7 +417,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
         if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
             aZp = aBarrelLayer->getMaxZ(+1);
             aZm = aBarrelLayer->getMaxZ(-1);
-            // std::cout << "it's a barrel layer in the range " << aZm << ".." << aZp; // debug
+            // std::cerr << "it's a barrel layer in the range " << aZm << ".." << aZp; // debug
             if (layIt==aLayerSet.begin()) {
                 minZp=aZp;
                 minZm=aZm;
@@ -426,11 +430,11 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
                 }
             }
         }
-        std::cout << std::endl;
+        // std::cerr << std::endl; //debug
     }
     
-    // std::cout << "Shortest layer on minus is " << minZm << std::endl; // debug
-    // std::cout << "Shortest layer on plus  is " << minZp << std::endl; // debug
+    // std::cerr << "Shortest layer on minus is " << minZm << std::endl; // debug
+    // std::cerr << "Shortest layer on plus  is " << minZp << std::endl; // debug
     
     double minZt;
     double compactOrigin;
@@ -449,8 +453,8 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
         }
     }
     
-    // std::cout << "compact origin : " << compactOrigin << std::endl; // debug
-    // std::cout << "compact to z   : " << minZt << std::endl; // debug
+    // std::cerr << "compact origin : " << compactOrigin << std::endl; // debug
+    // std::cerr << "compact to z   : " << minZt << std::endl; // debug
     
     for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
         if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
@@ -881,7 +885,7 @@ std::pair <XYZVector, double > Tracker::shootDirectionFixedPhi(double minEta, do
     return result;
 }
 
-
+// won't fix messages here: it is obsolete anyway
 void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection */ ) {
     // A bunch of pointers
     std::map <std::string, int> modTypes;
@@ -1555,10 +1559,8 @@ void Tracker::writeSummary(bool configFiles,
 }
 
 void Tracker::createPackageLayout(std::string dirName) {
-    
     std::string layoutFile = dirName + "/layout.png";
     drawLayout(maxL_, maxR_, layoutFile);
-    
 }
 
 
@@ -1652,7 +1654,7 @@ void Tracker::printEndcapModuleRPhiZ(ostream& outfile) {
 
       // Print the data in fixed-precision
       // Limit the precision to one micron for lengths and 1/1000 degree for angles
-      std::cout << std::fixed;
+      outfile << std::fixed;
       outfile << aRing << ", " 
 	      << std::fixed << std::setprecision(3) << meanPoint.Rho() << ", "
 	      << std::fixed << std::setprecision(3) << meanPoint.Phi()/M_PI*180. << ", "
