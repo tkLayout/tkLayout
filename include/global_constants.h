@@ -76,6 +76,8 @@ namespace insur {
      * @param default_xmlpath Output base directory for CMSSW XML output
      * @param default_xml Default subdirectory name for CMSSW XML output
      */
+    // TODO: make sure the following constants are only used in
+    // mainConfigHandler
     static const std::string default_mattabdir = "config";
     static const std::string default_mattabfile = "mattab.list";
     static const std::string default_rootfiledir = "rootfiles";
@@ -86,5 +88,6 @@ namespace insur {
     static const std::string default_summary = "profiles.html";
     static const std::string default_xmlpath = "xml";
     static const std::string default_xml = "tk2CMSSWxml";
+    static const std::string default_styledir = "style";
 }
 #endif /* _GLOBAL_CONSTANTS_H */

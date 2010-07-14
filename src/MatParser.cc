@@ -17,7 +17,8 @@ namespace insur {
      * @return True if the config file was successfully parsed, false otherwise
      */
     bool MatParser::fillTable(std::string materialfile, MaterialTable& mattab) {
-        // material file name gymnastics
+        // Material file name gymnastics
+        std::cerr << "Trying to read material file "<<materialfile << std::endl;
         if (materialfile.empty()) materialfile = default_mattabfile;
         bfs::path mpath(materialfile);
         if (bfs::exists(mpath)) {
@@ -66,7 +67,7 @@ namespace insur {
             }
             return true;
         }
-        else std::cerr << msg_no_mat_file << std::endl;
+        else std::cerr << "MatParser::fillTable()" << msg_no_mat_file << std::endl;
         return false;
     }
     
@@ -193,10 +194,11 @@ namespace insur {
      * @param calc A reference to an uninitialised material calculator
      * @return True if the config file was successfully parsed, false otherwise
      */
-    bool MatParser::initMatCalc(std::string configfile, MatCalc& calc) {
+  bool MatParser::initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir ) {
         // fill up the global material table if necessary
         if (calc.getMaterialTable().empty()) {
-            std::string filename(default_mattabdir + "/" + default_mattabfile);
+  	    if (mattabdir.empty()) mattabdir = default_mattabdir;
+            std::string filename(mattabdir + "/" + default_mattabfile);
             if(!fillTable(filename, calc.getMaterialTable())) return false;
         }
         // read the material config file provided by the user

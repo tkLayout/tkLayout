@@ -193,9 +193,10 @@ $(LIBDIR)/rootweb.o:	src/rootweb.cpp $(INCDIR)/rootweb.hh
 
 # UTILITIES
 setup: $(BINDIR)/setup.bin
+	@echo Building setup...
 
-$(BINDIR)/setup.bin: configFileCreate.cpp $(LIBDIR)/mainConfigHandler.o
-	$(COMP) $(BOOSTLIBFLAGS) $(LIBDIR)/mainConfigHandler.o configFileCreate.cpp -o $(BINDIR)/setup.bin
+$(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
+	$(COMP) $(BOOSTLIBFLAGS) $(LIBDIR)/mainConfigHandler.o setup.cpp -o $(BINDIR)/setup.bin
 
 #FINAL
 #(obsolete)

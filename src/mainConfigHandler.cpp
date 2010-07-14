@@ -25,12 +25,11 @@ template <class T> bool from_string(T& t, const std::string& s,
   return !(iss >> f >> t).fail();
 }
 
-
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
   //styleDirectory_ = "";
   layoutDirectory_ = "";
-  xmlDirectory_ = "";
+  standardDirectory_ = "";
 }
 
 bool mainConfigHandler::checkDirectory(string dirName) {
@@ -59,31 +58,18 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
-  /*
-  cout << "*** What is the tkLayout installation style directory?" << endl
-       << "    This directory must be visible by the web server" << endl
-       << "    if you want the pages to be readable from the web"<< endl
-       << "    ( Usually this directory is called 'style' and it is in" << endl
-       << "    the main program's directory, but you can copy it anywhere you like.)" << endl
-       << "    Example: /home/username/tkgeometry/style : ";
-  cin >> styleDirectory_ ;
-  if (!checkDirectory(styleDirectory_)) return false;
-  cout << endl; */
 
   cout << "*** What is the web server directory where you want to" << endl
        << "    place your output?" << endl
-       << "    Example: /home/username/www/layouts : ";
+       << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
   cin >> layoutDirectory_;
   if (!checkDirectory(layoutDirectory_)) return false;
   cout << endl;
 
-  // TODO: Specify better here
-  cout << "*** What is the xml directory for CMSSW?" << endl
-       << "    ( it should be the directory created by the install" << endl
-       << "    or a similar one )" << endl
-       << "    Example: /home/username/tkgeometry/xml : ";
-  cin >> xmlDirectory_;
-  if (!checkDirectory(xmlDirectory_)) return false;
+  cout << "*** What is the standard output directory?" << endl
+       << "    xml files and other various output will be put here" << endl
+       << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
+  cin >> standardDirectory_;
   cout << endl;
 
   cout << "*** Specify the list of transverse momenta to be used for the?" << endl
@@ -102,9 +88,8 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
     return false;
   } else {
-    //configFile << STYLEDIRECTORYDEFINITION << "=\"" <<  styleDirectory_ << "\"" << endl;
     configFile << LAYOUTDIRECTORYDEFINITION << "=\"" << layoutDirectory_ << "\"" << endl;
-    configFile << XMLDIRECTORYDEFINITION << "=\"" << xmlDirectory_ << "\"" << endl;
+    configFile << STANDARDDIRECTORYDEFINITION << "=\"" << standardDirectory_ << "\"" << endl;
 
     configFile << MOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
@@ -122,8 +107,6 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
 
 bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, string& value) {
   cmatch what;
-  //regex parseLineExpression("^[ \\t]*([a-zA-Z0-9]*)[ \\t]*=[ \\t]*\"([^\"]+)\".*");
-  // shell-style variable assign
   regex parseLineExpression("^[ \\t]*([a-zA-Z0-9_]*)=\"([^\"]+)\".*");
   regex parseLineEmpty("^[ \\t]*");
 
@@ -187,8 +170,8 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       if (parameter==LAYOUTDIRECTORYDEFINITION) {
 	layoutDirectory_ = value;
 	layoutFound = true;
-      } else if (parameter==XMLDIRECTORYDEFINITION) {
-	xmlDirectory_ = value;
+      } else if (parameter==STANDARDDIRECTORYDEFINITION) {
+	standardDirectory_ = value;
 	xmlFound = true;
       } else if (parameter==MOMENTADEFINITION) {
 	momenta_ = parseDoubleList(value);
@@ -203,22 +186,12 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   return (layoutFound&&xmlFound&&momentaFound);
 }
 
-bool mainConfigHandler::getConfiguration() {
-  return readConfiguration();
-}
-
-bool mainConfigHandler::getConfiguration(string& layoutDirectory, string& xmlDirectory) {
-  bool result = readConfiguration();
-  if (result) {
-    //styleDirectory = styleDirectory_;
-    layoutDirectory = layoutDirectory_;
-    xmlDirectory = xmlDirectory_;
-  }
-  return result;
+bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
+  return readConfiguration(checkDirExists);
 }
 
 bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
-  bool result = readConfiguration();
+  bool result = readConfiguration(true);
   if (result) {
     //styleDirectory = styleDirectory_;
     layoutDirectory = layoutDirectory_;
@@ -226,12 +199,17 @@ bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
   return result;
 }
 
-bool mainConfigHandler::readConfiguration() {
+string mainConfigHandler::getConfigFileName() {  
+  string homeDirectory = string(getenv(HOMEDIRECTORY));
+  return homeDirectory+"/"+CONFIGURATIONFILENAME;
+}
+
+bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   if (goodConfigurationRead_) return true;
 
   ifstream configFile;
   string homeDirectory = string(getenv(HOMEDIRECTORY));
-  string configFileName = homeDirectory+"/"+CONFIGURATIONFILENAME;
+  string configFileName = getConfigFileName();
   bool goodConfig=false;
 
   configFile.open(configFileName.c_str(), ifstream::in);
@@ -243,9 +221,22 @@ bool mainConfigHandler::readConfiguration() {
     goodConfig = readConfigurationFile(configFile);
     configFile.close();
     if (goodConfig) {
-      if (!checkDirectory(layoutDirectory_)) {
-	cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
-	return false;
+      if (checkDirExists) {
+	// Check the basic configuration directories
+	if (!checkDirectory(layoutDirectory_)) {
+	  cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
+	  return false;
+	}
+	if (!checkDirectory(standardDirectory_)) {
+	  cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
+	  return false;
+	}
+	// Check the mandatory subdirectories in the main
+	if (!checkDirectory(getXmlDirectory_())) return false;
+	if (!checkDirectory(getMattabDirectory_())) return false;
+	if (!checkDirectory(getRootfileDirectory_())) return false;
+	if (!checkDirectory(getGraphDirectory_())) return false;
+	if (!checkDirectory(getSummaryDirectory_())) return false;
       }
     } else { // not good config read
       cout << "Configuration file '" << configFileName << "' not properly formatted. You probably need to edit or delete it" << endl;
@@ -256,3 +247,58 @@ bool mainConfigHandler::readConfiguration() {
   goodConfigurationRead_ = goodConfig;
   return goodConfig;
 }
+
+vector<double> mainConfigHandler::getMomenta() {
+  getConfiguration();
+  return momenta_;
+}
+
+string mainConfigHandler::getLayoutDirectory() {
+  getConfiguration();
+  return getLayoutDirectory_();
+}
+
+string mainConfigHandler::getStandardDirectory() {
+  getConfiguration();
+  return getStandardDirectory_();
+}
+
+string mainConfigHandler::getStyleDirectory() {
+  getConfiguration();
+  return getStyleDirectory_();
+}
+
+string mainConfigHandler::getXmlDirectory() {
+  getConfiguration();
+  return getXmlDirectory_();
+}
+
+string mainConfigHandler::getMattabDirectory() {
+  getConfiguration();
+  return getMattabDirectory_();
+}
+
+string mainConfigHandler::getRootfileDirectory() {
+  getConfiguration();
+  return getRootfileDirectory_();
+}
+
+string mainConfigHandler::getGraphDirectory() {
+  getConfiguration();
+  return getGraphDirectory_();
+}
+
+string mainConfigHandler::getSummaryDirectory() {
+  getConfiguration();
+  return getSummaryDirectory_();
+}
+
+string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
+string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
+string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
+string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; } 
+string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
+string mainConfigHandler::getRootfileDirectory_() { return standardDirectory_+"/"+insur::default_rootfiledir; }
+string mainConfigHandler::getGraphDirectory_() { return standardDirectory_+"/"+insur::default_graphdir; }
+string mainConfigHandler::getSummaryDirectory_() { return standardDirectory_+"/"+insur::default_summarypath; }
+

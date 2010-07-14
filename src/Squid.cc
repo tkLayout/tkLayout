@@ -169,7 +169,7 @@ namespace insur {
                 if (mb) delete mb;
                 mb  = new MaterialBudget(*tr, *is);
                 if (c.initDone()) c.reset();
-                if (mp.initMatCalc(matfile, c)) {
+                if (mp.initMatCalc(matfile, c, mainConfiguration.getMattabDirectory())) {
                     mb->materialsAll(c);
                     if (verbose) mb->print();
                     return true;
