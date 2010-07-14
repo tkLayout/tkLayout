@@ -99,7 +99,6 @@ int main(int argc, char** argv) {
   //myPage->dump(cout);
   //myPage2->dump(cout);
 
-  string styleDirectory;
   string targetDirectory;
 
   /* if you want to use the environment variables: 
@@ -126,9 +125,8 @@ int main(int argc, char** argv) {
   } */
 
   mainConfigHandler myConfigHandler;
-  if (myConfigHandler.getConfiguration(styleDirectory, targetDirectory)) {
+  if (myConfigHandler.getConfiguration(targetDirectory)) {
     targetDirectory+="/trackerName"; 
-    mySite->setStyleDirectory(styleDirectory);
     mySite->setTargetDirectory(targetDirectory);
     mySite->makeSite();
   }

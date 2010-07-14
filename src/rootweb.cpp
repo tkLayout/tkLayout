@@ -454,7 +454,7 @@ RootWSite::RootWSite() {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  styleDirectory_ = ".";
+  //styleDirectory_ = ".";
 }
 
 RootWSite::RootWSite(string title) {
@@ -464,7 +464,7 @@ RootWSite::RootWSite(string title) {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  styleDirectory_ = ".";
+  //styleDirectory_ = ".";
 }
 
 RootWSite::RootWSite(string title, string comment) {
@@ -474,7 +474,7 @@ RootWSite::RootWSite(string title, string comment) {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  styleDirectory_ = ".";
+  //styleDirectory_ = ".";
 }
 
 RootWSite::~RootWSite() {
@@ -555,10 +555,10 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "    <title>"<< title_ << " - " << thisPage->getTitle() <<"</title>" << endl
 	 << "    <meta name=\"keywords\" content=\"CERN CMS tracker upgrade\" />" << endl
 	 << "    <meta name=\"description\" content=\"CMS Tracker upgrade summary page\" />" << endl
-	 << "    <link href=\"style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << endl
-	 << "    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"style/images/favicon.ico\">" << endl
+	 << "    <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << endl
+	 << "    <link rel=\"shortcut icon\" type=\"image/x-icon\" href=\"../style/images/favicon.ico\">" << endl
 	 << " </head>" << endl
-	 << "  <script type=\"text/javascript\" src=\"style/functions.js\"></script>" << endl
+	 << "  <script type=\"text/javascript\" src=\"../style/functions.js\"></script>" << endl
 	 << "  <body onload=\"preparePageGoodies();\">" << endl
 	 << "    <div id=\"outer\">" << endl
 	 << "      <div id=\"header\">" << endl
@@ -589,7 +589,7 @@ bool RootWSite::makeSite() {
   ofstream myPageFile;
   RootWPage* myPage;
   string myPageFileName;
-  string targetStyleDirectory = targetDirectory_ + "/style";
+  //string targetStyleDirectory = targetDirectory_ + "/style";
 
 
   // Check if the directory already exists
@@ -607,10 +607,10 @@ bool RootWSite::makeSite() {
   }
   
   // Recreate the style symlink
-  if (boost::filesystem::exists( targetStyleDirectory )) {
-    boost::filesystem::remove_all( targetStyleDirectory );
-  }
-  boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
+  //if (boost::filesystem::exists( targetStyleDirectory )) {
+  //boost::filesystem::remove_all( targetStyleDirectory );
+  //}
+  //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
   
   vector<RootWPage*>::iterator it;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {

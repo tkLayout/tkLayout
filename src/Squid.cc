@@ -441,14 +441,12 @@ namespace insur {
     string trackerName;
     if (tr) trackerName = tr->getName();
     else trackerName = default_trackername;
-    string styleDirectory, layoutDirectory;
-    styleDirectory=mainConfiguration.getStyleDirectory();
+    string layoutDirectory;
+    //styleDirectory=mainConfiguration.getStyleDirectory();
     layoutDirectory=mainConfiguration.getLayoutDirectory();
     layoutDirectory+="/"+trackerName;
-    if ((styleDirectory!="")&&(layoutDirectory!="")) {
-      site.setStyleDirectory(styleDirectory);
-      site.setTargetDirectory(layoutDirectory);
-    } else return false;
+    if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
+    else return false;
     site.setTitle(trackerName);
     site.setComment("layout summary");
     site.addAuthor("Nicoletta De Maio");

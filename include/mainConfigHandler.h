@@ -8,14 +8,14 @@ using namespace std;
 
 #define HOMEDIRECTORY "HOME"
 #define CONFIGURATIONFILENAME ".tkgeometryrc"
-#define STYLEDIRECTORYDEFINITION "styleDirectory"
-#define STYLEDIRECTORYDEFINITIONLOWERCASE "styledirectory"
-#define LAYOUTDIRECTORYDEFINITION "layoutDirectory" 
-#define LAYOUTDIRECTORYDEFINITIONLOWERCASE "layoutdirectory" 
-#define XMLDIRECTORYDEFINITION "xmlDirectory" 
-#define XMLDIRECTORYDEFINITIONLOWERCASE "xmldirectory" 
-#define MOMENTADEFINITION "momenta" 
-#define MOMENTADEFINITIONLOWERCASE "momenta" 
+//#define STYLEDIRECTORYDEFINITION "TKG_STYLEDIRECTORY"
+//#define STYLEDIRECTORYDEFINITIONLOWERCASE "tkg_styledirectory"
+#define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
+#define LAYOUTDIRECTORYDEFINITIONLOWERCASE "tkg_layoutdirectory" 
+#define XMLDIRECTORYDEFINITION "TKG_XMLDIRECTORY" 
+#define XMLDIRECTORYDEFINITIONLOWERCASE "tkg_xmldirectory" 
+#define MOMENTADEFINITION "TKG_MOMENTA" 
+#define MOMENTADEFINITIONLOWERCASE "tkg_momenta" 
 
 // This object wil read the configuration only once
 // If the configuration file is not present, wuations will
@@ -27,15 +27,15 @@ class mainConfigHandler {
   mainConfigHandler();
   ~mainConfigHandler() {};
   bool getConfiguration();
-  bool getConfiguration(string& styleDirectory, string& layoutDirectory, string& xmlDirectory);
-  bool getConfiguration(string& styleDirectory, string& layoutDirectory);
-  string getStyleDirectory() { getConfiguration(); return styleDirectory_;} ;
+  bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
+  bool getConfiguration(string& layoutDirectory);
+  //string getStyleDirectory() { getConfiguration(); return styleDirectory_;} ;
   string getLayoutDirectory() { getConfiguration(); return layoutDirectory_;} ;
   string getXmlDirectory() { getConfiguration(); return xmlDirectory_;} ;
   vector<double> getMomenta() { getConfiguration(); return momenta_; } ;
  private:
   bool goodConfigurationRead_;
-  string styleDirectory_;
+  //string styleDirectory_;
   string layoutDirectory_;
   string xmlDirectory_;
   vector<double> momenta_;

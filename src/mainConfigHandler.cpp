@@ -28,7 +28,7 @@ template <class T> bool from_string(T& t, const std::string& s,
 
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
-  styleDirectory_ = "";
+  //styleDirectory_ = "";
   layoutDirectory_ = "";
   xmlDirectory_ = "";
 }
@@ -59,6 +59,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
+  /*
   cout << "*** What is the tkLayout installation style directory?" << endl
        << "    This directory must be visible by the web server" << endl
        << "    if you want the pages to be readable from the web"<< endl
@@ -67,7 +68,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
        << "    Example: /home/username/tkgeometry/style : ";
   cin >> styleDirectory_ ;
   if (!checkDirectory(styleDirectory_)) return false;
-  cout << endl;
+  cout << endl; */
 
   cout << "*** What is the web server directory where you want to" << endl
        << "    place your output?" << endl
@@ -101,11 +102,11 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
     return false;
   } else {
-    configFile << STYLEDIRECTORYDEFINITION << " = \"" <<  styleDirectory_ << "\"" << endl;
-    configFile << LAYOUTDIRECTORYDEFINITION << " = \"" << layoutDirectory_ << "\"" << endl;
-    configFile << XMLDIRECTORYDEFINITION << " = \"" << xmlDirectory_ << "\"" << endl;
+    //configFile << STYLEDIRECTORYDEFINITION << "=\"" <<  styleDirectory_ << "\"" << endl;
+    configFile << LAYOUTDIRECTORYDEFINITION << "=\"" << layoutDirectory_ << "\"" << endl;
+    configFile << XMLDIRECTORYDEFINITION << "=\"" << xmlDirectory_ << "\"" << endl;
 
-    configFile << MOMENTADEFINITION << " = \"";
+    configFile << MOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
       if (it!=momenta_.begin()) configFile << ", ";
       configFile << std::fixed << std::setprecision(2) << (*it);
@@ -121,7 +122,9 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
 
 bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, string& value) {
   cmatch what;
-  regex parseLineExpression("^[ \\t]*([a-zA-Z0-9]*)[ \\t]*=[ \\t]*\"([^\"]+)\".*");
+  //regex parseLineExpression("^[ \\t]*([a-zA-Z0-9]*)[ \\t]*=[ \\t]*\"([^\"]+)\".*");
+  // shell-style variable assign
+  regex parseLineExpression("^[ \\t]*([a-zA-Z0-9_]*)=\"([^\"]+)\".*");
   regex parseLineEmpty("^[ \\t]*");
 
   if (regex_match(codeLine, what, parseLineExpression)) {
@@ -165,7 +168,7 @@ vector<double> mainConfigHandler::parseDoubleList(string inString) {
 bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   char myLine[1024];
   string parameter, value;
-  bool styleFound=false;
+  //bool styleFound=false;
   bool layoutFound=false;
   bool xmlFound=false;
   bool momentaFound=false;
@@ -174,18 +177,20 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   while (configFile.good()) {
     configFile.getline(myLine, 1024);
     if (parseLine(myLine, parameter, value)) {
-      std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
+      // Case insensitive: the configuration file should be a shell script too
+      //std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
       // If he's defining the style directory, then we map it to styleDirectory_
-      if (parameter==STYLEDIRECTORYDEFINITIONLOWERCASE) {
-	styleDirectory_ = value;
-	styleFound=true;
-      } else if (parameter==LAYOUTDIRECTORYDEFINITIONLOWERCASE) {
+      //if (parameter==STYLEDIRECTORYDEFINITION) {
+      //styleDirectory_ = value;
+      //styleFound=true;
+      //} 
+      if (parameter==LAYOUTDIRECTORYDEFINITION) {
 	layoutDirectory_ = value;
 	layoutFound = true;
-      } else if (parameter==XMLDIRECTORYDEFINITIONLOWERCASE) {
+      } else if (parameter==XMLDIRECTORYDEFINITION) {
 	xmlDirectory_ = value;
 	xmlFound = true;
-      } else if (parameter==MOMENTADEFINITIONLOWERCASE) {
+      } else if (parameter==MOMENTADEFINITION) {
 	momenta_ = parseDoubleList(value);
 	momentaFound = true;
       } else {
@@ -194,27 +199,28 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
     }
   }
 
-  return (styleFound&&layoutFound&&xmlFound&&momentaFound);
+  //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
+  return (layoutFound&&xmlFound&&momentaFound);
 }
 
 bool mainConfigHandler::getConfiguration() {
   return readConfiguration();
 }
 
-bool mainConfigHandler::getConfiguration(string& styleDirectory, string& layoutDirectory, string& xmlDirectory) {
+bool mainConfigHandler::getConfiguration(string& layoutDirectory, string& xmlDirectory) {
   bool result = readConfiguration();
   if (result) {
-    styleDirectory = styleDirectory_;
+    //styleDirectory = styleDirectory_;
     layoutDirectory = layoutDirectory_;
     xmlDirectory = xmlDirectory_;
   }
   return result;
 }
 
-bool mainConfigHandler::getConfiguration(string& styleDirectory, string& layoutDirectory) {
+bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
   bool result = readConfiguration();
   if (result) {
-    styleDirectory = styleDirectory_;
+    //styleDirectory = styleDirectory_;
     layoutDirectory = layoutDirectory_;
   }
   return result;
@@ -237,10 +243,6 @@ bool mainConfigHandler::readConfiguration() {
     goodConfig = readConfigurationFile(configFile);
     configFile.close();
     if (goodConfig) {
-      if (!checkDirectory(styleDirectory_)) {
-	cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
-	return false;
-      }
       if (!checkDirectory(layoutDirectory_)) {
 	cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
 	return false;

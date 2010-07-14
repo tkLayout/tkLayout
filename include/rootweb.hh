@@ -1,6 +1,8 @@
 #ifndef _ROOTWEB_HH_
 #define _ROOTWEB_HH_
 
+#define USING_ROOTWEB // TODO: remove this everywhere
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -143,7 +145,7 @@ private:
   string programSite_;
   string revision_;
   string targetDirectory_;
-  string styleDirectory_;
+  //string styleDirectory_;
 
 public:
   ~RootWSite();
@@ -161,7 +163,7 @@ public:
   void addPage(RootWPage* newPage);
   void addAuthor(string newAuthor);
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
-  void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
+  //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
   bool makeSite();
 };
 

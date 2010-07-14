@@ -25,9 +25,7 @@
 #include <Vizard.h>
 #include <tk2CMSSW.h>
 #include <boost/filesystem/operations.hpp>
-#ifdef USING_ROOTWEB
 #include <rootweb.hh>
-#endif
 #include <mainConfigHandler.h>
 
 /**
