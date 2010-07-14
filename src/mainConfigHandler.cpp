@@ -50,8 +50,8 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   string tempString;
 
   // Clear screen
-  cout << "\033[2J"; // Clears the screen
-  cout << "\033[1;1H"; // Places cursor on line 1
+  //cout << "\033[2J"; // Clears the screen
+  //cout << "\033[1;1H"; // Places cursor on line 1
 
   // I have no configuration, so I must create it
   cout << "Could not find the configuration file "  << configFileName 

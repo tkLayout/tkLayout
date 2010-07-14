@@ -24,7 +24,7 @@ if [ ! -f $TKG_SETUP_BIN ]; then
 fi
 
 echo "Where should I install the binary?"
-echo -n "(Choose a directory in you PATH) [ ~/bin ]: "
+echo -n "(Choose a directory in you PATH) [ $HOME/bin ]: "
 read TKG_BIN_TARGET
 if [ "${TKG_BIN_TARGET}" == "" ] ; then TKG_BIN_TARGET="$HOME/bin" ; fi
 
@@ -34,7 +34,7 @@ if [ ! -d $TKG_BIN_TARGET ] ; then
 fi
 
 if $TKG_SETUP_BIN ; then
-  source ~/.tkgeometryrc
+  source $HOME/.tkgeometryrc
   cp -rf  $TKG_STYLEDIRECTORY $TKG_LAYOUTDIRECTORY \
     && echo Style directory created/updated \
     || echo Failed copying the style directory $TKG_STYLEDIRECTORY to $TKG_LAYOUTDIRECTORY
@@ -42,5 +42,5 @@ if $TKG_SETUP_BIN ; then
     && echo Main program installed/updated \
     || echo Failed copying the style directory $TKG_MAIN to $TKG_BIN_TARGET
 else
-  echo The setup program could not read/create the configuration file ~/.tkgeometryrc properly
+  echo The setup program could not read/create the configuration file $HOME/.tkgeometryrc properly
 fi
