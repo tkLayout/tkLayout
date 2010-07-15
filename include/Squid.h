@@ -96,11 +96,11 @@ namespace insur {
         Analyzer a;
         Vizard v;
         tk2CMSSW t2c;
+        mainConfigHandler mainConfiguration;
         bool fileExists(std::string filename);
         std::string extractFileName(const std::string& full);
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
-	mainConfigHandler mainConfiguration;
 #ifdef USING_ROOTWEB
 	RootWSite site;
 	bool prepareWebsite();

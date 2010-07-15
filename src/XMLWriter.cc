@@ -10,10 +10,12 @@
 namespace insur {
     //public
     /**
-     *
-     * @param s
-     * @param in
-     * @param out
+     * This creates a custom file <i>pixbar.xml</i> from a skeleton file using the list of previously collected shapes.
+     * It identifies, by name tag, the vector of <i>(r, z)</i>-points that describe the volume addition to the pixel barrel.
+     * It then writes those new coordinates into the skeleton file at the appropriate position.
+     * @param s The vector containing the list of individual shapes that make up the tracker
+     * @param in A reference to a file stream that is bound to the skeleton file
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
@@ -40,10 +42,14 @@ namespace insur {
     }
     
     /**
-     *
-     * @param s
-     * @param in
-     * @param out
+     * This creates a custom file <i>pixfwd.xml</i> from a skeleton file using the list of previously collected shapes.
+     * It identifies, by name tag, the vector of <i>(r, z)</i>-points that describe the volume addition to the pixel endcap.
+     * If such an entry exists, it writes those new coordinates into the skeleton file at the appropriate position. If the tracker
+     * above the pixel detector has no endcaps, the skeleton file remains unchanged but is nevertheless copied to a new
+     * output file (minus the comment that serves as a position marker in the skeleton file).
+     * @param s The vector containing the list of individual shapes that make up the tracker
+     * @param in A reference to a file stream that is bound to the skeleton file
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned pos = 0;
@@ -70,9 +76,16 @@ namespace insur {
     }
     
     /**
-     *
-     * @param d
-     * @param out
+     * This function creates the file <i>tracker.xml</i> from scratch from the information that is available in struct
+     * <i>d</i>. It does this by iterating over the contents of the various vectors in the struct, formatting the information
+     * within according to what CMSSW will expect to find, and writing the result to the output file. The tracker file also
+     * includes the material descriptions for the various modules and inactive surfaces since most of those will be non-
+     * standard mixtures not available in CMSSW elsewhere. Formatting of the data in <i>d</i> is actually delegated to
+     * a number of protected functions depending on the type of information that needs to be processed. This function
+     * makes sure they are called in the right order and at the right time. Additionally, it writes the opening and closing
+     * tags of the file itself.
+     * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out) {
         std::vector<Element>& e = d.elements;
@@ -93,6 +106,18 @@ namespace insur {
         out << buffer.str();
     }
     
+    /**
+     * The modified topology file <i>trackerStructureTopology.xml</i> is created from a skeleton file in this
+     * function. The additions are spread out over many places within the file, and stand for a number of different
+     * things. First, hierarchical information is added to those <i>SpecPar</i> blocks listing layers, rods (ladders)
+     * and active surfaces of the barrel. The same is done for the endcaps in the blocks listing discs, rings (panels)
+     * and, again, active surfaces. Then, all active modules, from the barrels as well as from any endcaps, are
+     * listed in blocks that specify 128 channels per row and one channel per colums for a ROC. Last, a <i>SpecPar</i>
+     * block is added for each multiple of those channels (row and column) that occur on the modules.
+     * @t A reference to the collection of tracker topology information
+     * @in A reference to a file stream that is bound to the input file
+     * @out A reference to a file stream that is bound to the output file
+     */
     void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         std::ostringstream strm;
         std::string line;
@@ -191,10 +216,11 @@ namespace insur {
     }
     
     /**
-     *
-     * @param t
-     * @param in
-     * @param out
+     * This function modifies the skeleton file <i>trackerProdCuts.xml</i> and writes the result to a new file
+     * of the same name. Effectively, it simply adds to a long list of entries for active surfaces.
+     * @param t A reference to the collection of tracker topology information
+     * @param in A reference to a file stream that is bound to the input file
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
@@ -221,10 +247,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param t
-     * @param in
-     * @param out
+     * This function modifies the skeleton file <i>trackersens.xml</i> and writes the result to a new file of the
+     * same name. Effectively, it simply adds to two long lists of entries for active surfaces, one for those in the
+     * barrel and one for those in endcap if there is one.
+     * @param t A reference to the collection of tracker topology information
+     * @param in A reference to a file stream that is bound to the input file
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
@@ -251,10 +279,14 @@ namespace insur {
     }
     
     /**
-     *
-     * @param t
-     * @param in
-     * @param out
+     * This function modifies the skeleton file <i>trackerRecoMaterial.xml</i> and writes the result to a new file of the
+     * same name. Unlike the other files that use the topology information, this one lists the full paths from the top of the
+     * hierarchy (using either the pixel barrel or the pixel endcap as the root) to the active surfaces. The assembly of these
+     * path strings from the available topology information is delegated to a private function. Once that returns, formatting
+     * and output to file are taken care of in here.
+     * @param t A reference to the collection of tracker topology information
+     * @param in A reference to a file stream that is bound to the input file
+     * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::recomaterial(std::vector<SpecParInfo>& t,
             std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out) {
@@ -294,11 +326,14 @@ namespace insur {
     
     //protected
     /**
-     *
-     * @param name
-     * @param e
-     * @param c
-     * @param stream
+     * This function writes the opening and closing tags for a material section in a CMSSW XML file. It also loops through
+     * the list of elementary materials and that of the composites to generate one entry each for the material section. Actual
+     * XML formatting of those list elements is left to two other functions, though. All generated output is sent to an
+     * <i>ostringstream</i> that serves as a buffer for the output file contents.
+     * @param name The label of the material section, typically the name of the output file
+     * @param e A reference to the vector containing a series of elementary material definitions
+     * @param c A reference to the vector containing a series of composite material definitions
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream) {
         stream << xml_material_section_open << name << xml_general_inter;
@@ -308,10 +343,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param r
-     * @param label
-     * @param stream
+     * This function writes the opening and closing tags for a rotation section in a CMSSW XML file, if such a block is
+     * necessary. It also loops through the list of rotations, but leaves XML formatting of the individual entries to another
+     * function. All generated output is sent to an <i>ostringstream</i> that serves as a buffer for the output file contents.
+     * @param r A reference to the vector containing a series of rotation definitions
+     * @param label The label of the rotation section, typically the name of the output file
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::rotationSection(std::vector<Rotation>& r, std::string label, std::ostringstream& stream) {
         if (!r.empty()) {
@@ -323,10 +360,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param l
-     * @param label
-     * @param stream
+     * This function writes the opening and closing tags for the logical part section in a CMSSW XML file that describes
+     * a volume hierachy. It writes an entry for the root volume <i>Tracker</i> before looping through the list of logical
+     * volumes within it. XML formatting of the those entries is left to another function, though. All generated output is sent
+     * to an <i>ostringstream</i> that serves as a buffer for the output file contents.
+     * @param l A reference to the vector containing a series of logical volume definitions
+     * @param label The label of the logical part section, typically the name of the output file
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
@@ -337,10 +377,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param s
-     * @param label
-     * @param stream
+     * This function writes the opening and closing tags for the solid section in a CMSSW XML file. It writes an entry for the
+     * root volume <i>Tracker</i> before looping through the list of physical shapes within it. XML formatting of all entries
+     * is left to another function, though. All generated output is sent to an <i>ostringstream</i> that serves as a buffer for
+     * the output file contents.
+     * @param s A reference to the vector containing a series of physical volume definitions
+     * @param label The label of the solid section, typically the name of the output file
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid) {
         stream << xml_solid_section_open << label << xml_general_inter;
@@ -367,11 +410,14 @@ namespace insur {
     }
     
     /**
-     *
-     * @param p
-     * @param a
-     * @param label
-     * @param stream
+     * This function writes the opening and closing tags for the positioning section in a CMSSW XML file. It loops first through the
+     * collection of explicit volume placements and then through those of the required placement algorithms, while leaving XML
+     * formatting of the individual entries to two other functions. All generated output is sent to an <i>ostringstream</i> that serves
+     * as a buffer for the output file contents.
+     * @param p A reference to the vector containing a series of placement definitions
+     * @param a A reference to the vector containing a series of algorithm names and parameters
+     * @param label The label of the position section, typically the name of the output file
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream) {
         std::vector<PosInfo>::iterator piter, pguard = p.end();
@@ -383,10 +429,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param t
-     * @param label
-     * @param stream
+     * This function writes the opening and closing tags for a section specifying additional parameters for various detector parts in a
+     * CMSSW XML file. It also loops through the collection of parameter information but leaves formatting of the individual entries
+     * to another function. All generated output is sent to an <i>ostringstream</i> that serves as a buffer for the output file contents.
+     * @param t A reference to the collection of tracker topology information
+     * @param label The label of the <i>SpecPar</i> section, typically the name of the output file
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream) {
         std::vector<SpecParInfo>::iterator titer, tguard = t.end();
@@ -396,11 +444,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param parent
-     * @param params
-     * @param stream
+     * This formatter writes an XML entry describing a call to a volume placement algorithm to the stream that serves as a
+     * buffer for the output file contents.
+     * @param name The name of the chosen algorithm as defined elsewhere in CMSSW
+     * @param parent The name of the parent volume in which the duplicated volumes will be placed
+     * @param params A pre-formatted list of arguments for the algorithm
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream) {
         stream << xml_algorithm_open << name << xml_algorithm_parent << parent << xml_general_endline;
@@ -409,12 +458,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param tag
-     * @param density
-     * @param a_number
-     * @param a_weight
-     * @param stream
+     * This formatter writes an XML entry describing an elementary material to the stream that serves as a buffer for the
+     * output file contents.
+     * @param tag The material name; must be unique
+     * @param density The density of the element, in g/cm3
+     * @param a_number The atomic number of the element
+     * @param a_weight The atomic weight of the element, in g/mole
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::elementaryMaterial(std::string tag, double density, int a_number, double a_weight, std::ostringstream& stream) {
         stream << xml_elementary_material_open << tag << xml_elementary_material_first_inter << tag;
@@ -424,12 +474,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param density
-     * @param method
-     * @param es
-     * @param stream
+     * This formatter writes an XML entry describing a composite material to the stream that serves as a buffer for the
+     * output file contents.
+     * @param name The name of the composite material; must be unique
+     * @param density The overall density of the composite material, in g/cm3
+     * @param method An enumeration value denoting the material mixing method
+     * @param es A reference to a list of elementary material names and their fractions in the composite mixture, stored in instances of <i>std::pair</i>
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::compositeMaterial(std::string name,
             double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
@@ -454,11 +505,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param solid
-     * @param material
-     * @param stream
+     * This formatter writes an XML entry describing a logical volume to the stream that serves as a buffer for the
+     * output file contents.
+     * @param name The name of the logical volume; must be unique
+     * @param solid The name of the physical shape entry that this logical volume describes further
+     * @param material The name of the material that this volume is made of
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream) {
         stream << xml_logical_part_open << name << xml_logical_part_first_inter << solid;
@@ -466,12 +518,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param dx
-     * @param dy
-     * @param dz
-     * @param stream
+     * This formatter writes an XML entry describing a box shape to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the box shape; must be unique
+     * @param dx Half the volume length along x
+     * @param dy Half the volume length along y
+     * @param dz Half the volume length along z
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::box(std::string name, double dx, double dy, double dz, std::ostringstream& stream) {
         stream << xml_box_open << name << xml_box_first_inter << dx << xml_box_second_inter << dy;
@@ -479,13 +532,14 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param dx
-     * @param dy
-     * @param dyy
-     * @param dz
-     * @param stream
+     * This formatter writes an XML entry describing an isosceles trapezium shape to the stream that serves as a buffer
+     * for the output file contents.
+     * @param name The name of the trapezium shape; must be unique 
+     * @param dx Half the volume length along x
+     * @param dy Half the volume length along the lower y
+     * @param dyy Half the volume length along the upper y
+     * @param dz Half the volume length along z
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream) {
         stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
@@ -495,12 +549,13 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param rmin
-     * @param rmax
-     * @param dz
-     * @param stream
+     * This formatter writes an XML entry describing a tube shape to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the tube shape; must be unique
+     * @param rmin The inner radius of the tube
+     * @param rmax The outer radius of the tube
+     * @param dz Half the length of the tube
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream) {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
@@ -508,11 +563,16 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param rzu
-     * @param rzd
-     * @param stream
+     * This formatter writes an XML entry describing a polycone to the stream that serves as a buffer for the output
+     * file contents. Since the list of points describing the polycone must be in the order in which they will be connected,
+     * it is provided in two halves: one from the lowest possible starting point on the left side to the topmost point on the
+     * same side, the other from the lowest possible starting point on the right side to the topmost point on the same side.
+     * The two halved are then combined by looping through the two lists, in ascending order for the first and in descending
+     * order for the second.
+     * @param name The name of the polycone; must be unique
+     * @param rzu A reference to the list of ascending points in <i>r, z</i> coordinates
+     * @param rzd A reference to the list of descending points in <i>r, z</i> coordinates
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
             std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream) {
@@ -527,13 +587,15 @@ namespace insur {
     }
     
     /**
-     *
-     * @param parent
-     * @param child
-     * @param rotref
-     * @param trans
-     * @param copy
-     * @param stream
+     * This formatter writes an XML entry describing a volume placement in space to the stream that serves as a buffer for the
+     * output file contents. Namely, a child volume is placed at its appropriate position within a parent volume. The coordinate
+     * system used is that of the parent volume, so rotations and translations have to be given in this context.
+     * @param parent The name of the logical part describing the parent volume
+     * @param child The name of the logical part describing the child volume
+     * @param rotref The name of a rotation that will be applied to the child volume; an empty string (the default) means none
+     * @param trans A reference to a struct describing a translation that will be applied to the child volume
+     * @param copy The number of the child volume copy allowing different copies of the same child to be identified; <i>starts at 1</i>
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::posPart(std::string parent, std::string child, std::string rotref, Translation& trans, int copy, std::ostringstream& stream) {
         stream << xml_pos_part_open << copy << xml_pos_part_first_inter << parent;
@@ -544,15 +606,15 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param thetax
-     * @param phix
-     * @param thetay
-     * @param phiy
-     * @param thetaz
-     * @param phiz
-     * @param stream
+     * This formatter writes an XML entry describing a rotation in 3D to the stream that servers as a buffer for the output file contents.
+     * @param name The name of the rotation definition; must be unique
+     * @param thetax The angle theta with respect to the x-axis
+     * @param phix The angle phi with respect to the x-axis
+     * @param thetay The angle theta with respect to the y-axis
+     * @param phiy The angle phi with respect to the y-axis
+     * @param thetaz The angle theta with respect to the z-axis
+     * @param phiz The angle phi with respect to the z-axis
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::rotation(std::string name, double thetax, double phix,
             double thetay, double phiy, double thetaz, double phiz, std::ostringstream& stream) {
@@ -562,11 +624,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param x
-     * @param y
-     * @param z
-     * @param stream
+     * This formatter writes an XML entry describing a translation in three dimensions to the stream that serves as a buffer for
+     * the output file contents.
+     * @param x The displacement along the x axis
+     * @param y The displacement along the y axis
+     * @param z The displacement along the z axis
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::translation(double x, double y, double z, std::ostringstream& stream) {
         stream << xml_translation_open << x << xml_translation_first_inter << y << xml_translation_second_inter << z;
@@ -574,11 +637,12 @@ namespace insur {
     }
     
     /**
-     *
-     * @param name
-     * @param param
-     * @param partsel
-     * @param stream
+     * This formatter writes an XML entry describing an additional parameter and the detector parts it is relevant for to the stream
+     * that serves as a buffer for the output file contents.
+     * @param name The name of the <i>SpecPar</i> block; must be unique
+     * @param param The name and value of the additional parameter, given as instances of <i>std::string</i> and packaged into a <i>std::pair</i>
+     * @param partsel A list of logical volume names that the additional parameter applies to
+     * @param stream A reference to the output buffer
      */
     void XMLWriter::specPar(std::string name,
             std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
@@ -597,7 +661,7 @@ namespace insur {
      * @param blocks A container for a string representation of <i>SpecPar</i> blocks and their <i>PartSelector</i> path entries
      * @return The completed collection of blocks in string representation
      */
-    std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks) { //TODO: adjust to pixel layout
+    std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks) {
         std::vector<PathInfo>::iterator existing;
         std::string prefix, postfix, spname;
         std::vector<std::string> paths, tpaths;

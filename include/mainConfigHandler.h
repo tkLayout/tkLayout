@@ -34,7 +34,7 @@ class mainConfigHandler {
   string getGraphDirectory();
   string getSummaryDirectory();
   string getConfigFileName();
-  vector<double> getMomenta();
+  vector<double>& getMomenta();
  private:
   bool goodConfigurationRead_;
   //string styleDirectory_;

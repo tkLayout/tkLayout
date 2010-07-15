@@ -91,7 +91,7 @@ namespace insur {
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
         std::vector<Track>& getTracks() { return tv; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, int etaSteps = 50);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -151,10 +151,10 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi);
-        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi);
+        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi, Track& t);
+        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-								  double theta, MaterialProperties::Category cat = MaterialProperties::no_cat);
+								  double theta, Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat);
         void clearMaterialBudgetHistograms();
         void clearGeometryHistograms();
         void clearCells();

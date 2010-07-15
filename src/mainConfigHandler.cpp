@@ -248,7 +248,7 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   return goodConfig;
 }
 
-vector<double> mainConfigHandler::getMomenta() {
+vector<double>& mainConfigHandler::getMomenta() {
   getConfiguration();
   return momenta_;
 }

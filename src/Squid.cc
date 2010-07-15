@@ -339,7 +339,7 @@ namespace insur {
      */
     bool Squid::analyzeMaterialBudget(std::string htmlout, int tracks) {
         if (mb) {
-            a.analyzeMaterialBudget(*mb, tracks);
+            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks);
             v.histogramSummary(a, htmlout);
             return true;
         }
@@ -474,7 +474,7 @@ namespace insur {
    */
   bool Squid::analyzeMaterialBudgetSite(int tracks) {
     if (mb) {
-      a.analyzeMaterialBudget(*mb, tracks);
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks);
       v.histogramSummary(a, site);
       return true;
     }

@@ -52,7 +52,7 @@ namespace insur {
      * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      */
-    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, int etaSteps) {
+    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps) {
       materialTracksUsed = etaSteps;
 #ifdef DEBUG_PERFORMANCE
     struct tm *localt; // timing: debug
@@ -73,15 +73,19 @@ namespace insur {
         // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
         setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
         setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, etaMax);
+        // reset the list of tracks
+        tv.clear();
         // used fixed phi
         phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
         for (int i_eta = 0; i_eta < nTracks; i_eta++) {
             std::pair<double, double> tmp;
+            Track track;
             eta = i_eta * etaStep;
             theta = 2 * atan(pow(E, -1 * eta));
+            track.setTheta(theta);
             //      active volumes, barrel
-            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi);
+            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
             ractivebarrel.Fill(eta, tmp.first);
             iactivebarrel.Fill(eta, tmp.second);
             rbarrelall.Fill(eta, tmp.first);
@@ -91,7 +95,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      active volumes, endcap
-            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi);
+            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
             ractiveendcap.Fill(eta, tmp.first);
             iactiveendcap.Fill(eta, tmp.second);
             rendcapall.Fill(eta, tmp.first);
@@ -101,7 +105,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, barrel
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
             rserfbarrel.Fill(eta, tmp.first);
             iserfbarrel.Fill(eta, tmp.second);
             rbarrelall.Fill(eta, tmp.first);
@@ -111,7 +115,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      services, endcap
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
             rserfendcap.Fill(eta, tmp.first);
             iserfendcap.Fill(eta, tmp.second);
             rendcapall.Fill(eta, tmp.first);
@@ -121,7 +125,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, barrel
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::b_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
             rlazybarrel.Fill(eta, tmp.first);
             ilazybarrel.Fill(eta, tmp.second);
             rbarrelall.Fill(eta, tmp.first);
@@ -131,7 +135,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, endcap
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::e_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
             rlazyendcap.Fill(eta, tmp.first);
             ilazyendcap.Fill(eta, tmp.second);
             rendcapall.Fill(eta, tmp.first);
@@ -141,7 +145,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, tubes
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::o_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
             rlazytube.Fill(eta, tmp.first);
             ilazytube.Fill(eta, tmp.second);
             rlazyall.Fill(eta, tmp.first);
@@ -149,7 +153,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, barrel tubes
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::t_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
             rlazybtube.Fill(eta, tmp.first);
             ilazybtube.Fill(eta, tmp.second);
             rlazyall.Fill(eta, tmp.first);
@@ -157,13 +161,16 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             //      supports, user defined
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, MaterialProperties::u_sup);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
             rlazyuserdef.Fill(eta, tmp.first);
             ilazyuserdef.Fill(eta, tmp.second);
             rlazyall.Fill(eta, tmp.first);
             ilazyall.Fill(eta, tmp.second);
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
+            track.sort();
+            track.computeCorrelationMatrix(momenta);
+            tv.push_back(track);
         }
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeMaterialBudget(): "; 
@@ -192,16 +199,18 @@ namespace insur {
      * @param tr A reference to the <i>ModuleCap</i> vector of vectors that sits on top of the tracker modules
      * @param theta The track angle in the yz-plane
      * @param phi The track angle in the xy-plane
+     * @param t A reference to the current track object
      * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
      */
-    std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi) {
+    std::pair<double, double> Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
+            double eta, double theta, double phi, Track& t) {
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
         std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
         std::pair<double, double> res, tmp;
         res.first = 0.0;
         res.second = 0.0;
         while (iter != guard) {
-            tmp = findModuleLayerRI(*iter, eta, theta, phi);
+            tmp = findModuleLayerRI(*iter, eta, theta, phi, t);
             res.first = res.first + tmp.first;
             res.second = res.second + tmp.second;
             iter++;
@@ -217,9 +226,11 @@ namespace insur {
      * @param layer A reference to the <i>ModuleCap</i> vector linking the collection of material properties to the current layer
      * @param theta The track angle in the yz-plane
      * @param phi The track angle in the xy-plane
+     * @param t A reference to the current track object
      * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
      */
-    std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi) {
+    std::pair<double, double> Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
+            double eta, double theta, double phi, Track& t) {
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
         std::pair<double, double> res, tmp;
@@ -260,6 +271,13 @@ namespace insur {
                         fillCell(r, eta, tmp.first, tmp.second);
                         res.first = res.first + tmp.first;
                         res.second = res.second + tmp.second;
+                        // create Hit object with appropriate parameters, add to Track t
+                        Hit* hit = new Hit(distance, &(iter->getModule()));
+                        if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal);
+                        else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical);
+                        hit->setObjectKind(Hit::Active);
+                        hit->setCorrectedMaterial(tmp);
+                        t.addHit(hit);
                     }
                 }
                 else std::cout << msg_module_warning << std::endl;
@@ -277,14 +295,15 @@ namespace insur {
      * @param elements A reference to the collection of inactive surfaces that is to be checked for collisions with the track
      * @param eta The pseudorapidity value of the current track
      * @param theta The track angle in the yz-plane
+     * @param t A reference to the current track object
      * @param cat The category of inactive surfaces that need to be considered within the collection; none if the function is to look at all of them
      * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
      */
     std::pair<double, double> Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-            double theta, MaterialProperties::Category cat) {
+            double theta, Track& t, MaterialProperties::Category cat) {
         std::vector<InactiveElement>::iterator iter = elements.begin();
         std::vector<InactiveElement>::iterator guard = elements.end();
-        std::pair<double, double> res, tmp;
+        std::pair<double, double> res, corr, tmp;
         double s = 0.0;
         res.first = 0.0;
         res.second = 0.0;
@@ -295,6 +314,7 @@ namespace insur {
                     && ((cat == MaterialProperties::no_cat) || (cat == iter->getCategory()))) {
                 // collision detection: check eta range
                 tmp = iter->getEtaMinMax();
+                // volume was hit
                 if ((tmp.first < eta) && (tmp.second > eta)) {
                     double r, z;
                     // radiation and interaction lenth scaling for vertical volumes
@@ -307,8 +327,10 @@ namespace insur {
                             if (s > (iter->getRWidth() / sin(theta))) s = iter->getRWidth() / sin(theta);
                             // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
-                                res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
-                                res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                                corr.first = iter->getRadiationLength() * s / iter->getZLength();
+                                res.first = res.first + corr.first;
+                                corr.second = iter->getInteractionLength() * s / iter->getZLength();
+                                res.second = res.second + corr.second;
                                 fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                             }
                             else {
@@ -319,8 +341,10 @@ namespace insur {
                         else {
                             // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
-                                res.first = res.first + iter->getRadiationLength() / cos(theta);
-                                res.second = res.second + iter->getInteractionLength() / cos(theta);
+                                corr.first = iter->getRadiationLength() / cos(theta);
+                                res.first = res.first + corr.first;
+                                corr.second = iter->getInteractionLength() / cos(theta);
+                                res.second = res.second + corr.second;
                                 fillCell(r, eta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
                             }
                             else {
@@ -349,8 +373,10 @@ namespace insur {
                             if (s > (iter->getRWidth() / cos(theta))) s = iter->getRWidth() / cos(theta);
                             // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
-                                res.first = res.first + iter->getRadiationLength() * s / iter->getZLength();
-                                res.second = res.second + iter->getInteractionLength() * s / iter->getZLength();
+                                corr.first = iter->getRadiationLength() * s / iter->getZLength();
+                                res.first = res.first + corr.first;
+                                corr.second = iter->getInteractionLength() * s / iter->getZLength();
+                                res.second = res.second + corr.second;
                                 fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                             }
                             else {
@@ -361,8 +387,10 @@ namespace insur {
                         else {
                             // add the hit if it's declared as inside the tracking volume, add it to 'others' if not
                             if (iter->track()) {
-                                res.first = res.first + iter->getRadiationLength() / sin(theta);
-                                res.second = res.second + iter->getInteractionLength() / sin(theta);
+                                corr.first = iter->getRadiationLength() / sin(theta);
+                                res.first = res.first + corr.first;
+                                corr.second = iter->getInteractionLength() / sin(theta);
+                                res.second = res.second + corr.second;
                                 fillCell(r, eta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
                             }
                             else {
@@ -381,6 +409,13 @@ namespace insur {
                             }
                         }
                     }
+                    // create Hit object with appropriate parameters, add to Track t
+                    Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+                    if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+                    else hit->setOrientation(Hit::Horizontal);
+                    hit->setObjectKind(Hit::Inactive);
+                    hit->setCorrectedMaterial(corr);
+                    t.addHit(hit);
                 }
             }
             iter++;

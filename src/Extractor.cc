@@ -6,6 +6,12 @@
 #include <Extractor.h>
 namespace insur {
     //public
+    /**
+     * TODO
+     * @param mt 
+     * @param mb 
+     * @param d 
+     */
     void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d) {
         std::cout << "Starting analysis..." << std::endl;
         Tracker& tr = mb.getTracker();
@@ -85,7 +91,13 @@ namespace insur {
         std::cout << "Support structures done." << std::endl;
         std::cout << "Analysis done." << std::endl;
     }
+    
     //protected
+    /**
+     * TODO
+     * @param mattab 
+     * @param elems 
+     */
     void Extractor::analyseElements(MaterialTable&mattab, std::vector<Element>& elems) {
         for (unsigned int i = 0; i < mattab.rowCount(); i++) {
             Element e;
@@ -98,6 +110,12 @@ namespace insur {
         }
     }
     
+    /**
+     * TODO
+     * @param t 
+     * @param up 
+     * @param down 
+     */
     void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
             std::vector<std::pair<double, double> >& down) {
         bool is_short, previous_short = false;
@@ -210,6 +228,12 @@ namespace insur {
         }
     }
     
+    /**
+     * TODO
+     * @param t 
+     * @param up 
+     * @param down 
+     */
     void Extractor::analyseEndcapContainer(Tracker& t,
             std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
         int first, last;
@@ -278,6 +302,20 @@ namespace insur {
         }
     }
     
+    /**
+     * TODO
+     * @param mt 
+     * @param bc 
+     * @param tr 
+     * @param c 
+     * @param l 
+     * @param s 
+     * @param p 
+     * @param a 
+     * @param r 
+     * @param t 
+     * @param ri 
+     */
     void Extractor::analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
             std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri) {
@@ -590,6 +628,20 @@ namespace insur {
         if (!mspec.partselectors.empty()) t.push_back(mspec);
     }
     
+    /**
+     * TODO
+     * @param mt 
+     * @param ec 
+     * @param tr 
+     * @param c 
+     * @param l 
+     * @param s 
+     * @param p 
+     * @param a 
+     * @param r 
+     * @param t 
+     * @param ri 
+     */
     void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
             std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri) {
@@ -864,6 +916,15 @@ namespace insur {
         if (!mspec.partselectors.empty()) t.push_back(mspec);
     }
     
+    /**
+     * TODO
+     * @param is 
+     * @param c 
+     * @param l 
+     * @param s 
+     * @param p 
+     * @param t 
+     */
     void Extractor::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
@@ -903,6 +964,15 @@ namespace insur {
         }
     }
     
+    /**
+     * TODO
+     * @param is 
+     * @param c 
+     * @param l 
+     * @param s 
+     * @param p 
+     * @param t 
+     */
     void Extractor::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
@@ -942,6 +1012,15 @@ namespace insur {
         }
     }
     
+    /**
+     * TODO
+     * @param is 
+     * @param c 
+     * @param l 
+     * @param s 
+     * @param p 
+     * @param t 
+     */
     void Extractor::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
         // container inits
@@ -988,7 +1067,16 @@ namespace insur {
             p.push_back(pos);
         }
     }
+    
     //private
+    /**
+     * TODO
+     * @param name 
+     * @param density 
+     * @param mp 
+     * @param nosensors 
+     * @return 
+     */
     Composite Extractor::createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors) {
         Composite comp;
         comp.name = name;
@@ -1027,6 +1115,14 @@ namespace insur {
         return comp;
     }
     
+    /**
+     * TODO
+     * @param i 
+     * @param g 
+     * @param ponrod 
+     * @param find_first 
+     * @return 
+     */
     std::vector<ModuleCap>::iterator Extractor::findPartnerModule(std::vector<ModuleCap>::iterator i,
             std::vector<ModuleCap>::iterator g, int ponrod, bool find_first) {
         std::vector<ModuleCap>::iterator res = i;
@@ -1047,6 +1143,13 @@ namespace insur {
         return res;
     }
     
+    /**
+     * TODO
+     * @param start 
+     * @param stop 
+     * @param middle 
+     * @return 
+     */
     double Extractor::findDeltaR(std::vector<Module*>::iterator start,
             std::vector<Module*>::iterator stop, double middle) {
         std::vector<Module*>::iterator iter, mod1, mod2;
@@ -1077,6 +1180,13 @@ namespace insur {
         return dr;
     }
     
+    /**
+     * TODO
+     * @param start 
+     * @param stop 
+     * @param middle 
+     * @return 
+     */
     double Extractor::findDeltaZ(std::vector<Module*>::iterator start,
             std::vector<Module*>::iterator stop, double middle) {
         std::vector<Module*>::iterator iter, mod1, mod2;
@@ -1107,6 +1217,12 @@ namespace insur {
         return dz;
     }
     
+    /**
+     * TODO
+     * @param specs 
+     * @param label 
+     * @return 
+     */
     int Extractor::findSpecParIndex(std::vector<SpecParInfo>& specs, std::string label) {
         int idx = 0, size = (int)(specs.size());
         while (idx < size) {
@@ -1116,6 +1232,13 @@ namespace insur {
         return -1;
     }
     
+    /**
+     * Calculate the thickness of the sensor material in a module from the amount of sensor silicon <i>SenSi</i>
+     * and the dimensions of the module.
+     * @param mc A reference to the module materials
+     * @param mt A reference to the global list of material properties
+     * @return The resulting sensor thickness
+     */
     double Extractor::calculateSensorThickness(ModuleCap& mc, MaterialTable& mt) {
         double t = 0.0;
         double m = 0.0, d = 0.0;
@@ -1131,24 +1254,50 @@ namespace insur {
         return t;
     }
     
+    /**
+     * Pre-format a named string type parameter as a CMSSW XML string.
+     * @param name The name of the string parameter
+     * @param value The value of the string parameter, i.e. the string itself
+     * @return The formatted XML tag
+     */
     std::string Extractor::stringParam(std::string name, std::string value) {
         std::string res;
         res = xml_algorithm_string + name + xml_algorithm_value + value + xml_general_endline;
         return res;
     }
     
+    /**
+     * Pre-format a named numeric parameter as a CMSSW XML string.
+     * @param name The name of the parameter
+     * @param value The value of the parameter in string form
+     * @return The formatted numeric parameter tag
+     */
     std::string Extractor::numericParam(std::string name, std::string value) {
         std::string res;
         res = xml_algorithm_numeric + name + xml_algorithm_value + value + xml_general_endline;
         return res;
     }
     
+    /**
+     * Pre-format a 3D vector parameter as a CMSSW XML string.
+     * @param x The coordinate along x
+     * @param y The coordinate along y
+     * @param z The coordinate along z
+     * @return The formatted vector parameter tag
+     */
     std::string Extractor::vectorParam(double x, double y, double z) {
         std::ostringstream res;
         res << xml_algorithm_vector_open << x << "," << y << "," << z << xml_algorithm_vector_close;
         return res.str();
     }
     
+    /**
+     * Calculate the composite density of the material mix in a module. A boolean flag controls whether the sensor silicon
+     * <i>SenSi</i> should be added to or excluded from the overall mix.
+     * @param mc A reference to the module materials
+     * @param nosensors Then sensor silicon flag; true if that material should be excluded, false otherwise
+     * @return The calculated overall density in <i>g/cm3</i>
+     */
     double Extractor::compositeDensity(ModuleCap& mc, bool nosensors) {
         double d = mc.getSurface() * mc.getModule().getModuleThickness();
         if (nosensors) {
@@ -1165,6 +1314,11 @@ namespace insur {
         return d;
     }
     
+    /**
+     * Compute the overall density of the materials in an inactive element.
+     * @param ie A reference to the inactive surface
+     * @return The calculated material density in <i>g/cm3</i>
+     */
     double Extractor::compositeDensity(InactiveElement& ie) {
         double d = ie.getRWidth() + ie.getInnerRadius();
         d = d * d - ie.getInnerRadius() * ie.getInnerRadius();
@@ -1172,6 +1326,12 @@ namespace insur {
         return d;
     }
     
+    /**
+     * Calculate the radial distance of an outer rod surface from the outer limit of its layer.
+     * @param r The outer radius of the layer
+     * @param w Half the width of the rod
+     * @return The distance of the rod surface from the layer arc
+     */
     double Extractor::fromRim(double r, double w) {
         double s = asin(w / r);
         s = 1 - cos(s);
@@ -1179,6 +1339,12 @@ namespace insur {
         return s;
     }
     
+    /**
+     * Calculate the atomic number of an elementary material from its radiation length and atomic weight.
+     * @param x0 The radiation length
+     * @param A The atomic weight
+     * @return The atomic number
+     */
     int Extractor::Z(double x0, double A) {
         double d = 4 - 4 * (1.0 - 181.0 * A / x0);
         if (d > 0) return floor((sqrt(d) - 2.0) / 2.0 + 0.5);
