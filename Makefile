@@ -21,10 +21,13 @@ TESTDIR=test
 COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
 bin: tkmaterial tklayout setup
-	@echo Executable built.
+	@echo "Executable built."
 
 all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tkmaterial tklayout rootwebTest 
 	@echo "Full build successful."
+
+install:
+	./install.sh
 
 #TRACKS
 hit: $(LIBDIR)/hit.o
