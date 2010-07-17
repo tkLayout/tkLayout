@@ -54,3 +54,14 @@ MessageLogger::~MessageLogger() {
     }
   }
 }
+
+string MessageLogger::getLevelName(int level) {
+  switch (level) {
+  case UNKNOWN: return "Unknown";
+  case ERROR: return "Error";
+  case WARNING: return "Warning";
+  case INFO: return "Info";
+  case DEBUG: return "Debug";
+  default: return "InvalidCode";
+  }
+}

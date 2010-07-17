@@ -34,6 +34,7 @@ public:
 class RootWText: public RootWItem {
 public:
   RootWText() {myText_.clear();};
+  RootWText(string newText) {myText_.str(newText); };
   ~RootWText() {};
   void addText(string newText) { myText_ << newText; };
   ostream& dump(ostream& output) {output << myText_.str(); return output;};
@@ -170,6 +171,7 @@ public:
   void addItem(RootWItem* newItem);
   ostream& dump(ostream& output);
   RootWText& addText();
+  RootWText& addText(string newText);
   RootWInfo& addInfo();
   RootWInfo& addInfo(string description);
   RootWInfo& addInfo(string description, string value);

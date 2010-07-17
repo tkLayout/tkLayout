@@ -19,6 +19,9 @@ class MessageLogger {
   string getLatestLog(int level);
   // NumberOfLevels should always be the last here
   enum {UNKNOWN, ERROR, WARNING, INFO, DEBUG, NumberOfLevels};
+  static string getLevelName(int level);
+  bool hasEmptyLog(int level) { return (!wasModified[level]); };
+  string getObjectName() { return objectName; };
  protected:
   ostringstream tempString;
  private:

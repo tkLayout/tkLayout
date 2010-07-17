@@ -27,6 +27,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
+#include <messageLogger.h>
 
 /**
  * A shorter alias for the filesystem library namespace
@@ -82,7 +83,7 @@ namespace insur {
 	bool analyzeGeometrySite(int tracks = 1000);
 	bool analyzeMaterialBudgetSite(int tracks = 50);
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile);
-	bool makeSite();
+	bool makeSite(bool addLogPage = true);
 #endif
     private:
         std::string g;

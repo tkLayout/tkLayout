@@ -328,6 +328,12 @@ RootWText& RootWContent::addText() {
   return (*newText);
 }
 
+RootWText& RootWContent::addText(string newText) {
+  RootWText* newTextItem = new RootWText(newText);
+  addItem(newTextItem);
+  return (*newTextItem);
+}
+
 RootWInfo& RootWContent::addInfo() {
   RootWInfo* newInfo = new RootWInfo();
   addItem(newInfo);

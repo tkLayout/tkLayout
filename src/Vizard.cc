@@ -1476,6 +1476,34 @@ namespace insur {
     return true;
   }    
 
+  // public
+  // creates a page with all the logs taken from the messagelogger objects
+  // @param site a reference to the site we want to work onto
+  // @param loggerVector a vector of references to some messageLogger objects
+  // @return true if any log was written
+  bool Vizard::makeLogPage(RootWSite& site, std::vector<MessageLogger*> loggerVector) {
+    RootWContent* newContent;
+    RootWPage& myPage = site.addPage("Log page");
+    bool anythingFound=false;
+    for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
+      bool somethingFound=false;
+      newContent = new RootWContent(MessageLogger::getLevelName(iLevel));
+      std::vector<MessageLogger*>::iterator it;
+      it = loggerVector.begin();
+      for (std::vector<MessageLogger*>::iterator it=loggerVector.begin(); it!=loggerVector.end(); ++it){
+	if (!(*it)->hasEmptyLog(iLevel)) {
+	  somethingFound=true;
+	  anythingFound=true;
+	  newContent->addText("<h3>"+(*it)->getObjectName()+"</h3>");
+	  newContent->addParagraph("<pre>"+(*it)->getLatestLog(iLevel)+"</pre>");
+	}
+      }
+      if (somethingFound) myPage.addContent(newContent);
+      else delete newContent;
+    }
+    return anythingFound;
+  }
+
 
 #endif
 
