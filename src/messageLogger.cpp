@@ -50,7 +50,7 @@ MessageLogger::~MessageLogger() {
   for (unsigned int level=0; level<NumberOfLevels; ++level) {
     if (wasModified[level]) {
       std::cerr << "Warning: unread messages for object " << objectName << " at level " << level << std::endl;
-      std::cerr << logStringStream[level].str() << std::endl;
+      std::cerr << partialLogStringStream[level].str() << std::endl;
     }
   }
 }
