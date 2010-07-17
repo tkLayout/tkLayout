@@ -322,6 +322,97 @@ void RootWContent::addParagraph(string parText) {
   addItem(newText);
 }
 
+RootWText& RootWContent::addText() {
+  RootWText* newText = new RootWText();
+  addItem(newText);
+  return (*newText);
+}
+
+RootWInfo& RootWContent::addInfo() {
+  RootWInfo* newInfo = new RootWInfo();
+  addItem(newInfo);
+  return (*newInfo);
+}
+
+RootWInfo& RootWContent::addInfo(string description)  {
+  RootWInfo* newInfo = new RootWInfo(description);
+  addItem(newInfo);
+  return (*newInfo);
+}
+
+RootWInfo& RootWContent::addInfo(string description, string value)  {
+  RootWInfo* newInfo = new RootWInfo(description, value);
+  addItem(newInfo);
+  return (*newInfo);
+}
+
+RootWTable& RootWContent::addTable() {
+  RootWTable* newTable = new RootWTable();
+  addItem(newTable);
+  return (*newTable);
+}
+
+RootWImage& RootWContent::addImage() {
+  RootWImage* newImage = new RootWImage();
+  addItem(newImage);
+  return (*newImage);
+}
+
+RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
+  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
+  addItem(newImage);
+  return (*newImage);
+}
+
+RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
+  addItem(newImage);
+  return (*newImage);
+}
+
+RootWTextFile& RootWContent::addTextFile() {
+  RootWTextFile* newTextFile = new RootWTextFile();
+  addItem(newTextFile);
+  return (*newTextFile);
+}
+
+RootWTextFile& RootWContent::addTextFile(string newFileName) {
+  RootWTextFile* newTextFile = new RootWTextFile(newFileName);
+  addItem(newTextFile);
+  return (*newTextFile);
+}
+
+RootWTextFile& RootWContent::addTextFile(string newFileName, string newDescription) {
+  RootWTextFile* newTextFile = new RootWTextFile(newFileName, newDescription);
+  addItem(newTextFile);
+  return (*newTextFile);
+}
+
+RootWBinaryFile& RootWContent::addBinaryFile() {
+  RootWBinaryFile* newBinaryFile = new RootWBinaryFile();
+  addItem(newBinaryFile);
+  return (*newBinaryFile);
+}
+
+RootWBinaryFile& RootWContent::addBinaryFile(string newFileName) {
+  RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName);
+  addItem(newBinaryFile);
+  return (*newBinaryFile);
+}
+
+RootWBinaryFile& RootWContent::addBinaryFile(string newFileName, string newDescription) {
+  RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName, newDescription);
+  addItem(newBinaryFile);
+  return (*newBinaryFile);
+}
+
+RootWBinaryFile& RootWContent::addBinaryFile(string newFileName, string newDescription, string newOriginalFile) {
+  RootWBinaryFile* newBinaryFile = new RootWBinaryFile(newFileName, newDescription, newOriginalFile);
+  addItem(newBinaryFile);
+  return (*newBinaryFile);
+}
+
+
 ostream& RootWContent::dump(ostream& output) {
   vector<RootWItem*>::iterator it;
   RootWItem* myItem;
@@ -403,12 +494,18 @@ void RootWPage::setSite(RootWSite* newSite) {
   site_ = newSite;
 }
 
-
 void RootWPage::addContent(RootWContent* newContent) {
   if (newContent) {
     contentList_.push_back(newContent);
   }
 }
+
+RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {
+  RootWContent* newContent = new RootWContent(title, visible);
+  addContent(newContent);
+  return (*newContent);
+}
+
 
 ostream& RootWPage::dump(ostream& output) {
   bool fakeSite=false;
@@ -507,6 +604,12 @@ void RootWSite::setRevision(string newRevision) {
 void RootWSite::addPage(RootWPage* newPage) {
   pageList_.push_back(newPage);
   newPage->setSite(this);
+}
+
+RootWPage& RootWSite::addPage(string newTitle) {
+  RootWPage* newPage = new RootWPage(newTitle);
+  addPage(newPage);
+  return (*newPage);
 }
 
 void RootWSite::addAuthor(string newAuthor) {

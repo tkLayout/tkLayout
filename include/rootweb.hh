@@ -85,7 +85,7 @@ public:
   ~RootWImage() {};
   RootWImage();
   RootWImage(TCanvas* myCanvas, int witdh, int height);
-  RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory);
+  RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   void setCanvas(TCanvas* myCanvas);
   void setComment(string newComment);
   void setZoomedSize(int witdh, int height);
@@ -112,59 +112,6 @@ private:
   static const double thumb_compression_ = 2.;
   string allowedExtensions_; // Will be initialized in the constructor
   void setDefaultExtensions();
-};
-
-class RootWContent {
-public:
-  ~RootWContent();
-  RootWContent();
-  RootWContent(string title, bool visible=true);
-  void setTargetDirectory(string newTargetDirectory);
-  void addParagraph(string parText) ;
-  void setTitle(string newTitle) ;
-  void addItem(RootWItem* newItem);
-  ostream& dump(ostream& output);
-private:
-  bool visible_;
-  string title_;
-  //void setDefaultParameters();
-  vector<RootWItem*> itemList_;
-  string targetDirectory_;
-};
-
-class RootWPage;
-
-class RootWSite {
-protected:
-private:
-  vector<RootWPage*> pageList_;
-  string title_;
-  string comment_;
-  vector<string> authorList_;
-  string programName_;
-  string programSite_;
-  string revision_;
-  string targetDirectory_;
-  //string styleDirectory_;
-
-public:
-  ~RootWSite();
-  RootWSite();
-  RootWSite(string title);
-  RootWSite(string title, string comment);
-  void setTitle(string newTitle);
-  void setComment(string newComment);
-  string getTitle();
-  string getComment();
-  string getRevision();
-  void setRevision (string newRevision);
-  ostream& dumpHeader(ostream& output, RootWPage* thisPage);
-  ostream& dumpFooter(ostream& output);
-  void addPage(RootWPage* newPage);
-  void addAuthor(string newAuthor);
-  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
-  //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
-  bool makeSite();
 };
 
 class RootWFile : public RootWItem {
@@ -212,6 +159,75 @@ public:
   ostream& dump(ostream& output);
 };
 
+class RootWContent {
+public:
+  ~RootWContent();
+  RootWContent();
+  RootWContent(string title, bool visible=true);
+  void setTargetDirectory(string newTargetDirectory);
+  void addParagraph(string parText) ;
+  void setTitle(string newTitle) ;
+  void addItem(RootWItem* newItem);
+  ostream& dump(ostream& output);
+  RootWText& addText();
+  RootWInfo& addInfo();
+  RootWInfo& addInfo(string description);
+  RootWInfo& addInfo(string description, string value);
+  RootWTable& addTable();
+  RootWImage& addImage();
+  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height);
+  RootWImage& addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  RootWTextFile& addTextFile();
+  RootWTextFile& addTextFile(string newFileName);
+  RootWTextFile& addTextFile(string newFileName, string newDescription);
+  RootWBinaryFile& addBinaryFile();
+  RootWBinaryFile& addBinaryFile(string newFileName);
+  RootWBinaryFile& addBinaryFile(string newFileName, string newDescription);
+  RootWBinaryFile& addBinaryFile(string newFileName, string newDescription, string newOriginalFile);
+private:
+  bool visible_;
+  string title_;
+  //void setDefaultParameters();
+  vector<RootWItem*> itemList_;
+  string targetDirectory_;
+};
+
+class RootWPage;
+
+class RootWSite {
+protected:
+private:
+  vector<RootWPage*> pageList_;
+  string title_;
+  string comment_;
+  vector<string> authorList_;
+  string programName_;
+  string programSite_;
+  string revision_;
+  string targetDirectory_;
+  //string styleDirectory_;
+
+public:
+  ~RootWSite();
+  RootWSite();
+  RootWSite(string title);
+  RootWSite(string title, string comment);
+  void setTitle(string newTitle);
+  void setComment(string newComment);
+  string getTitle();
+  string getComment();
+  string getRevision();
+  void setRevision (string newRevision);
+  ostream& dumpHeader(ostream& output, RootWPage* thisPage);
+  ostream& dumpFooter(ostream& output);
+  void addPage(RootWPage* newPage); // TODO: deprecate this
+  RootWPage& addPage(string title);
+  void addAuthor(string newAuthor);
+  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
+  //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
+  bool makeSite();
+};
+
 class RootWPage {
 private:
   string title_;
@@ -232,6 +248,7 @@ public:
   void setSite(RootWSite* newSite);
   ostream& dump(ostream& output);
   void addContent(RootWContent* newContent);
+  RootWContent& addContent(string title, bool visible=true);
 };
 
 class RootWItemCollection {
