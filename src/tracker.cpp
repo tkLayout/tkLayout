@@ -324,7 +324,7 @@ void Tracker::buildBarrel(int nLayer,
         aBarrelLayer->setName(layerName.str());
 	aBarrelLayer->setContainerName(barrelName);
        
-        tempString.str(""); tempString << "Desired radius: " << radius << std::endl;
+        tempString.str(""); tempString << "Desired radius: " << radius;
         addMessage(tempString.str(), INFO);
 
         if (minZ==0) { // Standard Barrel

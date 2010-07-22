@@ -121,16 +121,16 @@ a_{n,m}\left < y_n y_m \right > =
       \left <
       \sum_{i=1}^{m-1} \left (  x_m - x_i \right ) \theta_i
       \times
-      \sum_{i=1}^{n-1} \left (  x_n - x_i \right ) \theta_i
+      \sum_{j=1}^{n-1} \left (  x_n - x_j \right ) \theta_j
       \right >
 \end{equation}
 Since the angles $\theta_i$ are uncorrelated, any term containing in $\left < \theta_i \theta_j \right >$ with $i\neq j$ will be zero, thus
 \begin{eqnarray}
 a_{n,m}\left < y_n y_m \right > & = &
       \left <
-      \sum_{i=1}^{m-1} \sum_{i=1}^{n-1}
+      \sum_{i=1}^{m-1} \sum_{j=1}^{n-1}
       \left (  x_m - x_i \right )
-      \left (  x_n - x_i \right ) \theta_i \theta_j \delta_{i,j}
+      \left (  x_n - x_j \right ) \theta_i \theta_j \delta_{i,j}
       \right > \nonumber \\
       & = &
       \sum_{i=1}^{n-1} 

@@ -465,11 +465,7 @@ namespace insur {
   bool Squid::makeSite(bool addLogPage /* = true */) {
     if (!prepareWebsite()) return false;
     if (addLogPage) {
-      std::vector<MessageLogger*> loggerVector;
-      if (tr) {
-	loggerVector.push_back(tr); // TODO: add all the relevant objects here
-      }
-      v.makeLogPage(site, loggerVector);
+      v.makeLogPage(site);
     }
 
     return site.makeSite();
