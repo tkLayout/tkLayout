@@ -63,7 +63,7 @@ CMS magnet field of 3.8~T, this becomes
 
 We have a set of measurement points, where the only error is baically on the $y$ position of hit
 $y_i = d \sin (\phi-\phi_0)$. For momenta high enough,
-fitting the helix reduces to minimzing the $\chi^2$ defined as follows:w
+fitting the helix reduces to minimzing the $\chi^2$ defined as follows
 \begin{equation}
 \label{eq:helix}
 \chi^2 = \sum_{i,j} \varepsilon_j C^{-1}_{i,j} \varepsilon_i
@@ -73,10 +73,10 @@ The covariance matrix $W$ on the estimated parameters will be:
 \begin{equation}
 W_{k,l} = \sum_{i,j} \frac { \partial \varepsilon_i} {\partial \alpha_k} C^{-1}_{i,j}  \frac { \partial \varepsilon_j} {\partial \alpha_l}
 \end{equation}
-with $\alpha_1 = \rho$, $\alpha_2 = \phi$, $\alpha_3 = d$. The measurement errors will thus beT
+with $\alpha_1 = \rho$, $\alpha_2 = \phi$, $\alpha_3 = d$. The measurement errors will thus be
 \begin{eqnarray}
 \Delta \rho &=& \sqrt{W_{1,1}^{-1}} \nonumber \\
-\Delta \alpha &=& \sqrt{W_{2,2}^{-1}} \nonumber \\
+\Delta \phi &=& \sqrt{W_{2,2}^{-1}} \nonumber \\
 \Delta d &=& \sqrt{W_{3,3}^{-1}} \nonumber
 \end{eqnarray}
 The derivatives of (\ref{eq:helix}) are:
@@ -145,7 +145,7 @@ b_{n,m}= \left \{
 \begin{array}{cl}
  \sum_{i=1}^{n-1} \left (  x_m - x_i \right ) \left (  x_n - x_i \right )  \left < \theta_i^2 \right > & n<m \\
  p_n^2 / 12 + \sum_{i=1}^{n-1} \left (  x_n - x_i \right )^2  \left < \theta_i^2 \right > & n=m \\
- c_{m,n}  & n>m
+ b_{m,n}  & n>m
 \end{array}
 \right .
 \end{equation}
