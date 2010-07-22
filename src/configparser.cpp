@@ -10,7 +10,7 @@
 
 using namespace std;
 
-configParser::configParser() {
+configParser::configParser() : MessageLogger("configParser") {
     myTracker_= NULL;
 }
 
@@ -56,7 +56,8 @@ bool configParser::parseParameter(string &parameterName, string &parameterValue,
             if (myLineStr >> parameterValue) {
                 string dummy;
                 if (myLineStr >> dummy) {
-                    cerr << "WARNING: ignoring extra parameter value " << dummy << endl;
+		  tempString.str(""); tempString << "Ignoring extra parameter value " << dummy;
+		  addMessage(tempString, WARNING);
                 }
                 return true;
             }
@@ -76,8 +77,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
     
     // Tracker is a singleton. Declare just one, please
     if (myTracker_) {
-        cout << "Error: tracker is not NULL when declaring tracker " << myName << endl;
-        cout << "Double declaration of a Tracker object?" << endl;
+        cerr << "ERROR: tracker is not NULL when declaring tracker " << myName << endl;
+        cerr << "Double declaration of a Tracker object?" << endl;
         throw parsingException();
     }
     
@@ -116,10 +117,10 @@ bool configParser::parseTracker(string myName, istream& inStream) {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setPower(Module::Strip, doubleValue*1e-3);
             } else {
-                cout << "Unknown parameter name: " << parameterName << endl;
+                cerr << "ERROR: Unknown parameter name: " << parameterName << endl;
                 throw parsingException();
             }
-            cout << "\t" << parameterName << " = " << doubleValue << ";" << endl; // debug
+            // cout << "\t" << parameterName << " = " << doubleValue << ";" << endl; // debug
         }
     }
     
@@ -160,8 +161,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     // Tracker shoujld be already there
     if (!myTracker_) {
-        cout << "Error: tracker is NULL when declaring barrel " << myName << endl;
-        cout << "Missing declaration of a Tracker object?" << endl;
+        cerr << "ERROR: tracker is NULL when declaring barrel " << myName << endl;
+        cerr << "Missing declaration of a Tracker object?" << endl;
         throw parsingException();
     }
     
@@ -202,9 +203,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 aspectRatio=atof(parameterValue.c_str());
 		aspectRatioManual = true;
                 if (aspectRatio<=0) {
-                    cout << "Parsing barrel " << myName << endl
-                            << "Wrong aspect ratio (height/width): " << parameterValue
-                            << " should be a positive number" << endl;
+                    cerr << "ERROR: Parsing barrel \"" << myName
+			 << "\": wrong aspect ratio (height/width): " << parameterValue
+			 << " should be a positive number" << endl;
                     throw parsingException();
                 }
             } else if (parameterName=="size") {
@@ -214,13 +215,13 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 		  size.first=widthValue;
 		  size.second=lengthValue;
 		} else {
-		  cout << "Error: parsing the module size for barrel " << myName
+		  cerr << "ERROR: parsing the module size for barrel " << myName
 		       << ": \"" << parameterValue.c_str() << "\"I got a negative width or length." << endl;
 		  throw parsingException();
 		}
 	      } else {
-		cout << "Parsing size of modules for barrel " << myName
-		     << ": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
+		cerr << "ERROR: Parsing size of modules for barrel \"" << myName
+		     << "\": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
 		throw parsingException();
               }
             } else if (parameterName=="nModules") {
@@ -244,25 +245,26 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                     if (aString.find("Stacked")==0) {
                         aVal=atof(aString.substr(7, aString.length()).c_str());
                         if (aVal<0) {
-                            layerOptions[layerNum].first=Layer::Stacked;
-                            layerOptions[layerNum].second=aVal;
-                            gotIt=true;
-                            std::cout << "Option: stacked for layer " << layerNum << " at " << aVal << std::endl; // debug
+			  layerOptions[layerNum].first=Layer::Stacked;
+			  layerOptions[layerNum].second=aVal;
+			  gotIt=true;
+			  tempString.str(""); tempString << "Option: stacked for layer " << layerNum << " at " << aVal;
+			  addMessage(tempString, DEBUG);
                         } else {
-                            cout << "Wrong stack distance: (" << aVal << ") must be negative." << std::endl;
-                            throw parsingException();
+			  cerr << "ERROR: Wrong stack distance: (" << aVal << ") must be negative." << std::endl;
+			  throw parsingException();
                         }
                     }
                     if (!gotIt) {
-                        cout << "Parsing layer option for barrel " << myName
-                                << ": unknown/nonsense option \"" << aString << "\"" << endl;
-                        throw parsingException();
+		      cerr << "ERROR: Parsing layer option for barrel \"" << myName
+			   << "\': unknown/nonsense option \"" << aString << "\"" << endl;
+		      throw parsingException();
                     }
                 } else {
-                    cout << "Parsing barrel " << myName << endl
-                            << "Wrong syntax for a layer option: \"" << parameterValue
-                            << "\" should be layer/option" << endl;
-                    throw parsingException();
+		  cerr << "ERROR: Parsing barrel \"" << myName
+		       << "\": Wrong syntax for a layer option: \"" << parameterValue
+		       << "\" should be layer/option" << endl;
+		  throw parsingException();
                 }
             } else if (parameterName=="directive") {
                 char charBuf[100];
@@ -293,21 +295,21 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                         }
                     }
                     if (!gotIt) {
-                        cout << "Parsing layer directive for barrel " << myName
-                                << ": unknown/nonsense directive \"" << aString << "\"" << endl;
-                        throw parsingException();
+		      cerr << "ERROR: Parsing layer directive for barrel \"" << myName
+			   << "\": unknown/nonsense directive \"" << aString << "\"" << endl;
+		      throw parsingException();
                     }
                 } else {
-                    cout << "Parsing barrel " << myName << endl
-                            << "Wrong syntax for a layer directive: \"" << parameterValue
-                            << "\" should be layer/command" << endl;
-                    throw parsingException();
+		  cerr << "ERROR: Parsing barrel \"" << myName << endl
+		       << "\": wrong syntax for a layer directive: \"" << parameterValue
+		       << "\" should be layer/command" << endl;
+		  throw parsingException();
                 }
             } else {
-                cout << "Unknown parameter \"" << parameterName << "\"" << endl;
+                cerr << "ERROR: Unknown parameter \"" << parameterName << "\"" << endl;
                 throw parsingException();
             }
-            cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
+            // cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
         }
     }
     
@@ -320,20 +322,20 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 
 
       if ((size.first==0)||(size.second==0)) {
-	cout << "mersidebug: normal module" << endl;
+	// cout << "mersidebug: normal module" << endl; // debug
         sampleBarrelModule = new BarrelModule(aspectRatio);   // Square modules of kind rphi
       } else {
-	cout << "mersidebug: normal special size module" << endl;
+	// cout << "mersidebug: normal special size module" << endl; //debug
 	if (aspectRatioManual) { // You set the size manually and also specify the aspect ratio!
-	  cout << "mersidebug: special size, but also manual aspect ratio" << endl;
-	  cout << "Parting barrel " << myName << " found both the size and the aspect ratio specified!" << endl
+	  // cout << "mersidebug: special size, but also manual aspect ratio" << endl; // debug
+	  cerr << "ERROR: Parsing barrel \"" << myName << "\" found both the size and the aspect ratio specified!" << endl
 	       << "Please remove one of the two settings" << endl;
 	  throw parsingException();
 	} else {
 	  double waferDiameter = pow((pow(size.first,2) + pow(size.second,2)), 0.5);
 	  aspectRatio = size.second/size.first; // heigth/width
 	  sampleBarrelModule = new BarrelModule(waferDiameter, aspectRatio);
-	  cout << "mersidebug: sampleBarrelModule = new BarrelModule(" << waferDiameter << ", " << aspectRatio << ");" <<  endl;
+	  // cout << "mersidebug: sampleBarrelModule = new BarrelModule(" << waferDiameter << ", " << aspectRatio << ");" <<  endl; // debug
 	}
       }
       
@@ -355,7 +357,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         
         delete sampleBarrelModule; // Dispose of the sample module
     } else {
-        cout << "Missing mandatory parameter for barrel " << myName << endl;
+        cerr << "ERROR: Missing mandatory parameter for barrel " << myName << endl;
         throw parsingException();
     }
 
@@ -401,8 +403,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     
     // Tracker should be already there
     if (!myTracker_) {
-        cout << "Error: tracker is NULL when declaring endcap " << myName << endl;
-        cout << "Missing declaration of a Tracker object?" << endl;
+      cerr << "ERROR: tracker is NULL when declaring endcap \"" << myName
+	   << "\": missing declaration of a Tracker object?" << endl;
         throw parsingException();
     }
     
@@ -419,7 +421,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	  } else if ((correctlyBroken)&&((parameterNameCopy=="smallDelta")||(parameterNameCopy=="bigDelta"))) {
 	    double deltaValue =  atof(parameterValue.c_str());
 	    if ((mainIndex==0)||(secondaryIndex!=0)||(deltaValue==0)) {
-	      cerr << "Error: parameter setting for " << parameterNameCopy << " must have the following structure: "
+	      cerr << "ERROR: parameter setting for " << parameterNameCopy << " must have the following structure: "
 		   << "parameter[ring] = value , with non-zero ring index and non-zero value" << endl;
 	      throw parsingException();
 	    } else {
@@ -434,7 +436,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 		throw parsingException();
 	      }
               // TODO: fix this	
-              cout << "WARNING: per-ring small and big deltas are not yet imlpemented" << endl;
+              cerr << "ERROR: per-ring small and big deltas are not yet imlpemented" << endl;
 	      throw parsingException();
 	    }
 	  } else if (parameterName=="phiSegments") {
@@ -458,8 +460,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	    aspectRatio=atof(parameterValue.c_str());
             explicitAspectRatio = true;
 	    if (aspectRatio<=0) {
-	      cout << "Parsing endcap " << myName << endl
-		   << "Wrong aspect ratio (height/width): " << parameterValue
+	      cerr << "ERROR: Parsing endcap \"" << myName
+		   << "\": wrong aspect ratio (height/width): " << parameterValue
 		   << " should be a positive number" << endl;
 	      throw parsingException();
 	    }
@@ -475,8 +477,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	      syntaxOk=false;
 	    }
 	    if (!syntaxOk) {
-	      cout << "Parsing endcap " << myName << endl
-		   << "Wrong syntax for a shape: \"" << parameterValue
+	      cerr << "ERROR: Parsing endcap \"" << myName
+		   << "\": wrong syntax for a shape: \"" << parameterValue
 		   << "\" should be \"rectangular\" or \"wedge\"" << endl;
 	      throw parsingException();
 	    }
@@ -485,8 +487,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	    if (sscanf(parameterValue.c_str(), "%d%d", &ringNum, &increment)==2) {
 	      if (increment!=0) ringDirective[ringNum]=increment;
 	    } else {
-	      cout << "Parsing endcap " << myName << endl
-		   << "Wrong syntax for a ring directive: \"" << parameterValue
+	      cerr << "ERROR: Parsing endcap \"" << myName
+		   << "\": wrong syntax for a ring directive: \"" << parameterValue
 		   << "\" should be ring+increment or ring-decrement )" << endl;
 	      throw parsingException();
 	    }
@@ -511,33 +513,33 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 	    }
             
 	    if (parseError) {
-	      cout << "Parsing endcap " << myName << endl
-		   << "Wrong syntax for a ring directive: \"" << parameterValue
+	      cerr << "ERROR: Parsing endcap \"" << myName
+		   << "\": wrong syntax for a ring directive: \"" << parameterValue
 		   << "\" should be like D1R4+ (to remove rings 4 or more from disk 1)" << endl;
 	      throw parsingException();
 	    }
 	  } else {
-	    cout << "Unknown parameter \"" << parameterName << "\"" << endl;
+	    cerr << "ERROR: Unknown parameter \"" << parameterName << "\"" << endl;
 	    throw parsingException();
 	  }
-	  cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
+	  // cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
         }
     }
     
     // Chose the proper endcap minimum Z according to the parsed parameters
     if ((innerEta!=0)&&(rhoIn!=0)) {
-        cout << "Parsing endcap " << myName << endl
-                << " I got both innerEta = " << innerEta << " and innerRadius = " << rhoIn << endl
-                << "This is inconsistent: please choose one of the two methods to place the endcap" << endl;
-        throw parsingException();
+      cerr << "ERROR: Parsing endcap \"" << myName
+	   << "\": I got both innerEta = " << innerEta << " and innerRadius = " << rhoIn << endl
+	   << "This is inconsistent: please choose one of the two methods to place the endcap" << endl;
+      throw parsingException();
     }
     
     // Chose the proper endcap minimum Z according to the parsed parameters
     if ((minZ!=0)&&(barrelToEndcap!=0)) {
-        cout << "Parsing endcap " << myName << endl
-                << " I got both minimumZ = " << minZ << " and barrelGap = " << barrelToEndcap << endl
-                << "This is inconsistent: please choose one of the two methods to place the endcap" << endl;
-        throw parsingException();
+      cerr << "Parsing endcap \"" << myName
+	   << "\": I got both minimumZ = " << minZ << " and barrelGap = " << barrelToEndcap << endl
+	   << "This is inconsistent: please choose one of the two methods to place the endcap" << endl;
+      throw parsingException();
     }
     
     if (minZ==0) {
@@ -547,8 +549,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     // Check consistency in module shape type assigned
     if (explicitShapeType) {
       if ((shapeType==Module::Wedge)&&(explicitAspectRatio)) {
-        cout << "Parsing endcap " << myName
-                << " I see module shape 'wedge' ans aspect ratio assigned. This is inconsistent. I quit." << endl;
+        cerr << "Parsing endcap \"" << myName
+                << "\": I see module shape 'wedge' ans aspect ratio assigned. This is inconsistent. I quit." << endl;
         throw parsingException();
       }
     }
@@ -567,8 +569,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         } else if (shapeType==Module::Rectangular) {
             sampleModule = new EndcapModule(aspectRatio);
         } else {
-            std::cout << "ERROR: an unknown module shape type was generated inside the configuration parser"
-            << std::endl << "this should never happen!" << std::endl;
+            cerr << "ERROR: an unknown module shape type was generated inside the configuration parser."
+		 << "this should never happen!" << std::endl;
             throw parsingException();
         }
         // Important: if no directive was given, the following line will clear
@@ -609,13 +611,13 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             int iRing = ((*mapDiskRingRemoveToOuterIt).first).second;
             bool directionOuter = (*mapDiskRingRemoveToOuterIt).second;
             
-            cout << "myTracker_->removeDiskRings("<<myName<<","<<iDisk<<", "<<iRing<<", "<<directionOuter<<");" << endl; // debug
+            // cerr << "myTracker_->removeDiskRings("<<myName<<","<<iDisk<<", "<<iRing<<", "<<directionOuter<<");" << endl; // debug
             myTracker_->removeDiskRings(myName, iDisk, iRing, directionOuter);
         }
         
     } else {
-        cout << "Missing mandatory parameter for endcap " << myName << endl ;
-        cout << "Mandatory parameters are: nDisks" << endl
+        cerr << "ERROR: Missing mandatory parameter for endcap " << myName << endl ;
+        cerr << "Mandatory parameters are: nDisks" << endl
              << "                          [ innerRadius | innerEta ]" << endl
              << "                          outerRadius" << endl
              << "                          [ minimumZ | barrelGap ]" << endl
@@ -696,7 +698,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     
     // Tracker should be already there
     if (!myTracker_) {
-        cout << "Error: tracker is NULL when trying to assign types to a barrel " << myName << endl;
+        cerr << "ERROR: tracker is NULL when trying to assign types to a barrel " << myName << endl;
         return false;
     }
     
@@ -704,7 +706,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             if (!breakParameterName(parameterName, mainIndex, secondaryIndex)) {
-                cerr << "Error: parameter name " << parameterName << " must have the following structure: "
+                cerr << "ERROR: parameter name " << parameterName << " must have the following structure: "
                         << "parameter[ring] or parameter[layer] or parameter[ring,disk] e.g. nModules[2]" << endl;
                 throw parsingException();
             } else {
@@ -724,7 +726,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                     } else if (parameterName == "dsRotation") {
                         dsRotation[mainIndex]=atof(parameterValue.c_str());
                     }
-                    cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
+                    // cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
                 } else { // Special assignment per disk/ring
                     specialIndex.first = mainIndex;
                     specialIndex.second = secondaryIndex;
@@ -768,13 +770,14 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         }
                     }
                     if (!isSpecial) {
-                        cerr << "WARNING: the special parameter "
-                                << parameterName << "[" << mainIndex << "," << secondaryIndex << "] is setting the same "
-                                << "values as the default parameter "
-                                << parameterName << "[" << mainIndex << "]. Ignoring it." << endl;
-                    } else {
-                        cout << "\t" << parameterName << "[" << mainIndex << ","<<secondaryIndex<<"] = " << parameterValue << ";" << endl; // debug
-                    }
+		      tempString.str(""); tempString << "The special parameter "
+						     << parameterName << "[" << mainIndex << "," << secondaryIndex << "] is setting the same "
+						     << "values as the default parameter "
+						     << parameterName << "[" << mainIndex << "]. Ignoring it.";
+		      addMessage(tempString, WARNING);
+                    } // else {
+		      // cout << "\t" << parameterName << "[" << mainIndex << ","<<secondaryIndex<<"] = " << parameterValue << ";" << endl; // debug
+                    // }
                 }
             }
         }
@@ -798,7 +801,7 @@ bool configParser::parseOutput(istream& inStream) {
     
     // Tracker should be already there
     if (!myTracker_) {
-        cout << "Error: tracker is NULL when trying to assign output options" << endl;
+        cerr << "ERROR: tracker is NULL when trying to assign output options" << endl;
         return false;
     }
     
@@ -808,7 +811,7 @@ bool configParser::parseOutput(istream& inStream) {
             if (parameterName=="Path") {
                 outPath=parameterValue;
             } else {
-                cerr << "While parting output parameters, I got an unrecognized parameter: " << parameterName << endl;
+                cerr << "ERROR: While parting output parameters, I got an unrecognized parameter: " << parameterName << endl;
                 throw parsingException();
             }
         }
@@ -851,43 +854,43 @@ bool configParser::parseObjectType(string myType) {
     string typeConfig;
     
     if (myType=="Tracker") {
-        cout << "Reading tracker main parameters and name: ";
-        str=getTill(configFile_, '{', true);
-        if (str!="") {
-            cout << str << endl;
-            typeConfig=getTill(configFile_, '}', false);
-            if (typeConfig!="") {
-                istringstream typeStream(typeConfig);
-                parseTracker(str, typeStream);
-            }
-        }
+      // cout << "Reading tracker main parameters and name: "; // debug
+      str=getTill(configFile_, '{', true);
+      if (str!="") {
+	// cout << str << endl; // debug
+	typeConfig=getTill(configFile_, '}', false);
+	if (typeConfig!="") {
+	  istringstream typeStream(typeConfig);
+	  parseTracker(str, typeStream);
+	}
+      }
     } else if (myType=="Barrel") {
-        cout << "CREATING BARREL:\t";
-        str=getTill(configFile_, '{', true);
-        if (str!="") {
-            cout << str << endl;
-            typeConfig=getTill(configFile_, '}', false);
-            if (typeConfig!="") {
-                istringstream typeStream(typeConfig);
-                parseBarrel(str, typeStream);
-            }
-        }
+      cout << "Creating barrel ";
+      str=getTill(configFile_, '{', true);
+      if (str!="") {
+	cout << str << endl;
+	typeConfig=getTill(configFile_, '}', false);
+	if (typeConfig!="") {
+	  istringstream typeStream(typeConfig);
+	  parseBarrel(str, typeStream);
+	}
+      }
     } else if (myType=="Endcap") {
-        cout << "CREATING ENDCAP:\t";
-        str=getTill(configFile_, '{', true);
-        if (str!="") {
-            cout << str << endl;
-            typeConfig=getTill(configFile_, '}', false);
-            if (typeConfig!="") {
-                istringstream typeStream(typeConfig);
-                parseEndcap(str, typeStream);
-            }
-        }
+      cout << "Creating endcap ";
+      str=getTill(configFile_, '{', true);
+      if (str!="") {
+	cout << str << endl;
+	typeConfig=getTill(configFile_, '}', false);
+	if (typeConfig!="") {
+	  istringstream typeStream(typeConfig);
+	  parseEndcap(str, typeStream);
+	}
+      }
     } else if (myType=="Support") {
-        getTill(configFile_, '}', false, true);
+      getTill(configFile_, '}', false, true);
     } else {
-        cerr << "Error: unknown piece of tracker " << myType;
-        return false;
+      cerr << "ERROR: unknown piece of tracker " << myType;
+      return false;
     }
     
     return true;
@@ -901,7 +904,7 @@ bool configParser::parseDressType(string myType) {
     string typeConfig;
     
     if (myType=="BarrelType") {
-        cout << "ASSIGNING MODULE TYPES TO BARREL:\t";
+        cout << "Assigning module types to barrel ";
         str=getTill(configFile_, '{', true);
         if (str!="") {
             cout << str << endl;
@@ -912,7 +915,7 @@ bool configParser::parseDressType(string myType) {
             }
         }
     } else if (myType=="EndcapType") {
-        cout << "ASSIGNING MODULE TYPES TO ENDCAP:\t";
+        cout << "Assigning module types to endcap ";
         str=getTill(configFile_, '{', true);
         if (str!="") {
             cout << str << endl;
@@ -930,7 +933,7 @@ bool configParser::parseDressType(string myType) {
             parseOutput(typeStream);
         }
     } else {
-        cerr << "Error: unknown module type assignment keyword: " << myType;
+        cerr << "ERROR: unknown module type assignment keyword: " << myType;
         return false;
     }
     
@@ -949,7 +952,7 @@ Tracker* configParser::parseFile(string configFileName) {
     Tracker* result = NULL;
     
     if (rawConfigFile_.is_open()) {
-        cerr << "Tracker config file is already open" << endl;
+        cerr << "ERROR: Tracker config file is already open" << endl;
         return result;
     }
     
@@ -990,7 +993,7 @@ Tracker* configParser::parseFile(string configFileName) {
         
         rawConfigFile_.close();
     } else {
-        cerr << "Error: could not open tracker config file " << configFileName << endl;
+        cerr << "ERROR: could not open tracker config file " << configFileName << endl;
         if (myTracker_) delete myTracker_; myTracker_ = NULL;
         return NULL;
     }
@@ -1000,16 +1003,17 @@ Tracker* configParser::parseFile(string configFileName) {
     // Eta cut and other post-operations
     std::pair<double, double> minMaxEta;
     minMaxEta = myTracker_->getEtaMinMax();
-    std::cout << "Eta coverage of the tracker (prior to module purging): " << std::endl
-    << "etaMin: " << minMaxEta.first << std::endl
-    << "etaMax: " << minMaxEta.second << std::endl;
+    tempString.str("");
+    tempString << "Eta coverage (min, max) of the tracker (prior to module purging): ("
+	       << minMaxEta.first << ", " << minMaxEta.second << ")";
+    addMessage(tempString, INFO);
     myTracker_->cutOverEta(myTracker_->getEtaCut());
     minMaxEta = myTracker_->getEtaMinMax();
-    std::cout << "Eta coverage of the tracker (after module purging at eta "
-    << myTracker_->getEtaCut() << " ): " << std::endl
-    << "etaMin: " << minMaxEta.first << std::endl
-    << "etaMax: " << minMaxEta.second << std::endl;
-    
+    tempString.str("");
+    tempString << "Eta coverage (min, max) of the tracker (after module purging at eta "
+	       << myTracker_->getEtaCut() << "): ("
+	       << minMaxEta.first << ", " << minMaxEta.second << ")";
+    addMessage(tempString, INFO);
     result = myTracker_;
     myTracker_ = NULL;
     return result;
@@ -1027,7 +1031,7 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
     myTracker_=aTracker;
     
     if (rawConfigFile_.is_open()) {
-        cerr << "Module type config file is already open" << endl;
+        cerr << "ERROR: Module type config file is already open" << endl;
         myTracker_=NULL; return false;
     }
     
@@ -1067,7 +1071,7 @@ bool configParser::dressTracker(Tracker* aTracker, string configFileName) {
         
         rawConfigFile_.close();
     } else {
-        cerr << "Error: could not open module type config file " << configFileName << endl;
+        cerr << "ERROR: could not open module type config file " << configFileName << endl;
         myTracker_=NULL; return false;
     }
     

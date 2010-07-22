@@ -1,18 +1,24 @@
 #ifndef _LAYER_HH_
 #define _LAYER_HH_
 
+// Standard stuff
 #include <vector>
-#include "Math/Vector3D.h"
 #include <string>
-#include "TGeoManager.h"
-#include "module.hh"
+
+// ROOT stuff
+#include <Math/Vector3D.h>
+#include <TGeoManager.h>
+
+// Our stuff
+#include <module.hh>
+#include <messageLogger.h>
 
 using namespace ROOT::Math;
 
 typedef std::vector<Module* > ModuleVector;
 typedef std::pair<int,double> LayerOption;
 
-class Layer {
+class Layer : public MessageLogger {
 
 protected:
   ModuleVector moduleSet_;
@@ -34,7 +40,7 @@ public:
 
   std::string getName() {return layerName_; };
   std::string getContainerName() {return containerName_; };
-  void setName(const std::string newName ) { layerName_ = newName; };
+  void setName(const std::string newName ) { layerName_ = newName; setObjectName(layerName_); };
   void setContainerName(const std::string newName ) { containerName_ = newName; };
   
   double getMaxZ();

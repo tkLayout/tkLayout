@@ -294,7 +294,7 @@ void Tracker::buildBarrel(int nLayer,
         if (aDirective!=layerDirectives_.end()) {
             if  ((i==0)||(i==(nLayer-1))) {
 	      addMessage("We just read a directive for the first or last layer. This will be ignored", WARNING);
-                std::cout << "*******************************" << std::endl;
+	      /*std::cout << "*******************************" << std::endl;
                 std::cout << "*                             *" << std::endl;
                 std::cout << "* WARNING:              /\\    *" << std::endl;
                 std::cout << "*                      /!!\\   *" << std::endl;
@@ -302,7 +302,7 @@ void Tracker::buildBarrel(int nLayer,
                 std::cout << "* directive for the   ^^^^^^  *" << std::endl;
                 std::cout << "* first or last layer...      *" << std::endl;
                 std::cout << "*                             *" << std::endl;
-                std::cout << "*******************************" << std::endl;
+                std::cout << "*******************************" << std::endl;*/
             }
 	    tempString.str(""); tempString << "Found a directive: " << layerDirectives_[i+1];
 	    addMessage(tempString.str(), INFO);

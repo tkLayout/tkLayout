@@ -1,12 +1,18 @@
 #ifndef _MODULE_HH_
 #define _MODULE_HH_
 
+// Standard stuff
 #include <vector>
 #include <time.h>
-#include "Math/Vector3D.h"
 #include <string>
+
+// ROOT objects
+#include "Math/Vector3D.h"
 #include "TGeoManager.h"
 #include "TPolyLine3D.h"
+
+// Our objects
+#include <messageLogger.h>
 
 /*****************************/
 /*                           */

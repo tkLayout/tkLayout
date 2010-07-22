@@ -815,7 +815,7 @@ namespace insur {
     time_t t;          // timing: debug
     t = time(NULL);
     localt = localtime(&t);
-    std::cerr << asctime(localt) << std::endl;
+    //std::cerr << asctime(localt) << std::endl;
     clock_t starttime = clock();
 #endif
 

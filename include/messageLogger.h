@@ -24,6 +24,7 @@ class MessageLogger {
   MessageLogger();
   MessageLogger(string newObjectName);
   bool addMessage(string message, int level=UNKNOWN);
+  bool addMessage(ostringstream& message, int level=UNKNOWN);
   //string getCompleteLog(int level);
   static string getLatestLog(int level);
   // NumberOfLevels should always be the last here
@@ -31,6 +32,7 @@ class MessageLogger {
   static string getLevelName(int level);
   static bool hasEmptyLog(int level);
   string getObjectName() { return objectName; };
+  string setObjectName(string newObjectName) { return objectName=newObjectName; };
  protected:
   ostringstream tempString;
  private:

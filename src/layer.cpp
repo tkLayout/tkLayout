@@ -23,12 +23,12 @@ Layer::~Layer() {
     moduleSet_.clear();
 }
 
-Layer::Layer() {
+Layer::Layer() : MessageLogger("Layer") {
     setDefaultParameters();
 }
 
 void Layer::setDefaultParameters() {
-    layerName_ = "NoNamedLayer";
+    layerName_ = "Layer";
 }
 
 void Layer::translate(XYZVector Delta) {
@@ -162,7 +162,7 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
     BarrelModule* aModule;
     BarrelModule* stdModule;
     
-    layerName_     = inputLayer.layerName_;
+    setName(inputLayer.layerName_);
     averageRadius_ = inputLayer.averageRadius_;
     nOfRods_ = inputLayer.getRods();
     nModsOnString_ = inputLayer.getModulesOnRod();
@@ -176,7 +176,7 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
             aModule = new BarrelModule(*stdModule);
             moduleSet_.push_back(aModule);
         } else {
-            std::cerr << "ERROR: in BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) I found a non-barrel module in the source" << std::endl;
+	  addMessage("In BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) I found a non-barrel module in the source", ERROR);
         }
     }
 }
@@ -209,10 +209,7 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
         double maxZ,
         BarrelModule* sampleModule) {
     
-    std::cout << "WARNING: buildString with maxZ option is an obsolete function: no more mantained" << std::endl;
-    std::cout << "You should not be using this function!" << std::endl;
-    std::cout << "Missing features (al least): ring accounting for layer modules" << std::endl;
-    
+    addMessage("buildString() with maxZ option is an obsolete function: no more mantained, you should not be using this function", ERROR);
     
     int parity;
     int nModules;
@@ -297,7 +294,7 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
         }
         
         // Debug output
-        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl;
+        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
         
         // Now we just keep the safest, while we delete the others
         for (int i=0; i<3; i++) {
@@ -414,7 +411,7 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
         }
         
         // Debug output
-        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl;
+        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
         
         // Now we just keep the safest, while we delete the others
         for (int i=0; i<3; i++) {
@@ -448,17 +445,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     n1 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, maxZ, sampleModule);
     n2 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, -1*maxZ, sampleModule);
     
-    if (n1!=n2) {
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "* Warning! Asymmetric layer! *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "******************************" << std::endl;
-    }
+    if (n1!=n2) addMessage("Building an asymmetric layer. This should not happen", ERROR);
 }
 
 void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
@@ -473,17 +460,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     n1 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, nModules, sampleModule);
     n2 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, -1*nModules, sampleModule);
     
-    if (n1!=n2) {
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "* Warning! Asymmetric layer! *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "*                            *" << std::endl;
-        std::cerr << "******************************" << std::endl;
-        std::cerr << "******************************" << std::endl;
-    }
+    if (n1!=n2) addMessage("Building an asymmetric layer. This should not happen", ERROR);
 }
 
 // Computes the optimal radius of the inner of two
@@ -655,13 +632,13 @@ void BarrelLayer::buildLayer(double averageRadius,
     nStrings = optimalBarrel.second;
     averageRadius_ = goodRadius;
     
-    std::cout << "goodRadius: " << goodRadius << std::endl;
-    std::cout << "nStrings:   " << nStrings << std::endl;
+    tempString.str(""); tempString << "GoodRadius: " << goodRadius
+				   << ", nStrings:   " << nStrings;
+    addMessage(tempString, INFO);
     
     
     if (nStrings%2!=0) {
-        std::cerr << "WARNING: you just asked for a layer "
-        << "with a number of strings not multiple of 2" << std::endl;
+      addMessage("WARNING: you just asked for a layer with a number of strings not multiple of 2", WARNING);
     }
     
     double stringPhiShift = 2*M_PI/double(nStrings);
@@ -675,7 +652,7 @@ void BarrelLayer::buildLayer(double averageRadius,
         } else {
             stringSmallParity = -1 * stringParity;
         }
-        // std::cout << "Building a string" << std::endl;
+        // std::cout << "Building a string" << std::endl; // debug
         
         std::vector<Module*> aString;
         if (minZ==0) { // Build a standard (double) string
@@ -697,7 +674,7 @@ void BarrelLayer::buildLayer(double averageRadius,
         }
         
         if (i==0) {
-            //std::cerr << "Computing min edge: ";
+            //std::cerr << "Computing min edge: "; // debug
             edge phiEdge;
             BarrelModule* stdBarrelMod;
             for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
@@ -705,17 +682,17 @@ void BarrelLayer::buildLayer(double averageRadius,
                     phiEdge=((BarrelModule*)(*itMod))->getEdgePhiSide(-1);
                     if (itMod==aString.begin()) {
                         rightAngle=phiEdge.first;
-                        //std::cerr << "first angle is " << rightAngle << " and then: ";
+                        //std::cerr << "first angle is " << rightAngle << " and then: "; // debug
                     } else {
-                        //std::cerr << phiEdge.first << " ";
+                        //std::cerr << phiEdge.first << " ";// debug
                         if (phiEdge.first<rightAngle) rightAngle=phiEdge.first;
                     }
                 } else {
-                    // This should never happen
-                    std::cerr << "ERROR in build string: found a non-barrel module" << std::endl;
+		  // This should never happen
+		  addMessage("In building a string: found a non-barrel module", ERROR);
                 }
             }
-            //std::cerr << "done. The best is: " << rightAngle << std::endl;
+            //std::cerr << "done. The best is: " << rightAngle << std::endl; // debug
         }
         
         bool firstOnes;
@@ -742,7 +719,7 @@ void BarrelLayer::buildLayer(double averageRadius,
             }
             if (firstOnes) {
                 aSection |= XYSection;
-                // 	std::cout << "it's one of the first: it belongs to section" << XYSection << std::endl;
+                // 	std::cout << "it's one of the first: it belongs to section" << XYSection << std::endl; // debug
             }
             
             switch (sectioned) {
@@ -765,7 +742,7 @@ void BarrelLayer::buildLayer(double averageRadius,
             (*itMod)->setSection(aSection);
             
             //  if (firstOnes)
-            // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl;
+            // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl; //debug
         }
     }
     nOfRods_ = nStrings;
@@ -812,45 +789,22 @@ void BarrelLayer::neededModulesPlot(double smallDelta, // Half distance between 
         maxnOppd = (OppdOuter.second > OppdInner.second) ? OppdOuter.second : OppdInner.second ;
         
         if (SameOuter.second > SameInner.second) {
-            std::cerr << "SameOuter is bigger than SameInner" << std::endl;
+	  addMessage("SameOuter is bigger than SameInner", DEBUG);
         }
         if (SameOuter.second < SameInner.second) {
-            std::cerr << "SameInner is bigger than SameOuter" << std::endl;
+	  addMessage("SameInner is bigger than SameOuter", DEBUG);
         }
         
         if (OppdOuter.second > OppdInner.second) {
-            std::cerr << "OppdOuter is bigger than OppdInner" << std::endl;
+	  addMessage("OppdOuter is bigger than OppdInner", DEBUG);
         }
         if (OppdOuter.second < OppdInner.second) {
-            std::cerr << "OppdInner is bigger than OppdOuter" << std::endl;
+	  addMessage("OppdInner is bigger than OppdOuter", DEBUG);
         }
         
-        if (maxnSame>maxnOppd)  std::cerr << "Same is bigger than Oppd" << std::endl;
-        if (maxnSame<maxnOppd)  std::cerr << "Oppd is bigger than Same" << std::endl;
-        
-        //     nmod[0]->Fill(x, maxnSame);
-        //     nmod[1]->Fill(x, maxnOppd);
+        if (maxnSame>maxnOppd) addMessage("Same is bigger than Oppd", DEBUG);
+        if (maxnSame<maxnOppd) addMessage("Oppd is bigger than Same", DEBUG);
     }
-    
-    
-    
-    //   TCanvas* c1 = new TCanvas;
-    //   c1->Divide(2);
-    //   c1->GetPad(1)->cd();
-    //   radius[0]->Draw();
-    //   for (int i=1; i<4; i++) {
-    //     radius[i]->Draw("same");
-    //   }
-    
-    //   c1->GetPad(2)->cd();
-    //   nmod[0]->Draw();
-    //   nmod[1]->Draw("same");
-    
-    //   c1->SaveAs("ParityNMods.C");
-    
-    //   delete nmod[0];
-    //   delete nmod[1];
-    //   delete c1;
     
     return;
 }
@@ -906,8 +860,8 @@ double BarrelLayer::getMaxZ(int direction) {
     bool firstModule=true;
     
     if (direction==0) {
-        std::cerr << "BarrelLayer::getMaxZ was called with direction==0" << std::endl;
-        return 0;
+      addMessage("BarrelLayer::getMaxZ was called with direction == 0", ERROR);
+      return 0;
     }
     direction/=int(fabs(direction));
     
@@ -963,8 +917,8 @@ void BarrelLayer::compressToZ(double newMaxZ) {
     maxZ=fabs(maxZ);
     minZ=fabs(minZ);
     
-    //   std::cout << "The layer's highest z+ is " << maxZ << std::endl;
-    //   std::cout << "The layer's highest z- is " << minZ << std::endl;
+    //   std::cout << "The layer's highest z+ is " << maxZ << std::endl; //debug
+    //   std::cout << "The layer's highest z- is " << minZ << std::endl; //debug
     
     // Measure the Delta of the farthest module
     double Deltap;
@@ -972,8 +926,8 @@ void BarrelLayer::compressToZ(double newMaxZ) {
     Deltap = fabs(newMaxZ) - maxZ;
     Deltam = -1*fabs(newMaxZ) + minZ;
     
-    // std::cerr << "Delta-: " << Deltam << std::endl;
-    // std::cerr << "Delta+: " << Deltap << std::endl;
+    // std::cerr << "Delta-: " << Deltam << std::endl; // debug
+    // std::cerr << "Delta+: " << Deltap << std::endl; // debug
     // TODO: raise an alarm if Delta > 0
     
     // delta is the ratio between Delta and the module's position
@@ -984,8 +938,8 @@ void BarrelLayer::compressToZ(double newMaxZ) {
     if (maxBarrelModule!=NULL) {
         deltam=Deltam/((minBarrelModule->getMeanPoint()).Z());
         deltap=Deltap/((maxBarrelModule->getMeanPoint()).Z());
-        // std::cerr << "delta-: " << deltam << std::endl;
-        // std::cerr << "delta+: " << deltap << std::endl
+        // std::cerr << "delta-: " << deltam << std::endl; // debug
+        // std::cerr << "delta+: " << deltap << std::endl; // debug
         
         for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
             if ( (aBarrelModule=dynamic_cast<BarrelModule*>(*modIt)) ) {
@@ -999,7 +953,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
             }
         }
     } else {
-        std::cerr << "ERROR! int BarrelLayer::compactToZ couldn't find the maxZ module" << std::endl;
+      addMessage("int BarrelLayer::compactToZ couldn't find the maxZ module", ERROR);
     }
     
     
@@ -1053,7 +1007,7 @@ void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
             }
         }
     } else {
-        std::cerr << "ERROR! int BarrelLayer::compressExceeding couldn't find the maxZ module" << std::endl;
+      addMessage("int BarrelLayer::compressExceeding couldn't find the maxZ module", ERROR);
     }
     
     
@@ -1098,7 +1052,7 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
     EndcapModule* aModule;
     EndcapModule* stdModule;
     
-    layerName_ = inputLayer.layerName_;
+    setName(inputLayer.layerName_);
     averageZ_  = inputLayer.averageZ_;
     nOfRings_ = inputLayer.getRings();
     nModsOnRing_.clear();
@@ -1115,7 +1069,7 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
             aModule = new EndcapModule(*stdModule);
             moduleSet_.push_back(aModule);
         } else {
-            std::cerr << "ERROR: in EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) I found a non-endcap module in the source" << std::endl;
+	  addMessage("in EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) I found a non-endcap module in the source", ERROR);
         }
     }
 }
@@ -1191,17 +1145,17 @@ double EndcapLayer::compute_d(double x, double y, double l) {
 }
 
 void EndcapLayer::buildSingleDisk(double minRadius,
-        double maxRadius,
-        double smallDelta,
-        double bigDelta,
-        double diskZ,
-        double overlap,
-        double zError,
-        int base,
-        EndcapModule* sampleModule,
-        std::map<int, int> ringDirectives,
-        int diskParity, /*=-1*/
-        int sectioned /*=NoSection*/) {
+				  double maxRadius,
+				  double smallDelta,
+				  double bigDelta,
+				  double diskZ,
+				  double overlap,
+				  double zError,
+				  int base,
+				  EndcapModule* sampleModule,
+				  std::map<int, int> ringDirectives,
+				  int diskParity, /*=-1*/
+				  int sectioned /*=NoSection*/) {
     
     averageZ_=diskZ;
     
@@ -1234,15 +1188,16 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         sampleModule->setRing(nRing);
         
         // Debug
-        std::cout << "Looking for directives of ring " << nRing << std::endl;
+	tempString.str(""); tempString  << "Looking for directives of ring " << nRing;
+	addMessage(tempString, INFO);
         
         aDirective = ringDirectives.find(nRing);
         if (aDirective!=ringDirectives.end()) {
             addModules = ringDirectives[nRing];
-            std::cout << "Found a directive" << std::endl;
+            addMessage("Found a directive", INFO);
         } else {
             addModules = 0;
-            std::cout << "Found no directive" << std::endl;
+            addMessage("Found no directive", INFO);
         }
         
         // ringParity = 1 means the ring is nearer to the interaction point
@@ -1258,8 +1213,10 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                 addModules,
                 sectioned);
         
-        std::cout << "maxRadius: " << maxRadius << std::endl;
-        std::cout << "lastrho: " << lastRho << std::endl;
+	tempString.str(""); tempString << "maxRadius: " << maxRadius;
+	addMessage(tempString, INFO);
+	tempString.str(""); tempString << "lastrho: " << lastRho;
+	addMessage(tempString, INFO);
         aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho);
         aRingModule->setRing(nRing);
         
@@ -1273,14 +1230,13 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         destZ = diskZ + nearDirection*smallDelta + -1*ringParity*nearDirection*bigDelta;
         
         aRingModule->translate(shiftThis);
-        std::cout << "Pushing from z=" << diskZ + -1*nearDirection*smallDelta + ringParity*nearDirection*bigDelta
-        << " to z=" << destZ << std::endl;
-        
+	tempString.str(""); tempString << "Pushing from z=" << diskZ + -1*nearDirection*smallDelta + ringParity*nearDirection*bigDelta
+				       << " to z=" << destZ;
+	addMessage(tempString, INFO);
         
         for (int i=0; i<3; i++) {
             trialModule[i] = new EndcapModule(*aRingModule);
         }
-        
         delete aRingModule;
         
         // Three tests: with a border and projecting form +- zError
@@ -1291,7 +1247,8 @@ void EndcapLayer::buildSingleDisk(double minRadius,
             direct=i-1;
             aSide = trialModule[i]->getEdgeRhoSide(-1);
             trialModule[i]->projectSideZ(aSide.second, destZ, direct*zError);
-            std::cout << "Fake module base: " << trialModule[i]->getEdgeRhoSide(-1).first << std::endl;
+	    tempString.str(""); tempString << "Fake module base: " << trialModule[i]->getEdgeRhoSide(-1).first;
+	    addMessage(tempString, INFO);
             
             if (i==1) {
                 // trialModule[1] is the one with no zError, but overlap
@@ -1307,10 +1264,11 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         
         // Debug:
         for (int i=0; i<3; i++) {
-            std::cout << "safetyEdge["
-            << i << "]="
-            << trialModule[i]->getEdgeRhoSide(-1).first
-            << std::endl;
+	  tempString.str("");
+	  tempString << "safetyEdge["
+		     << i << "]="
+		     << trialModule[i]->getEdgeRhoSide(-1).first;
+	  addMessage(tempString, INFO);
         }
         for (int i=1; i<3; i++) {
             aSide = trialModule[i]->getEdgeRhoSide(-1);
@@ -1320,17 +1278,15 @@ void EndcapLayer::buildSingleDisk(double minRadius,
             }
         }
         
-        
         // Now we just keep the safest, while we delete the others
         for (int i=0; i<3; i++) {
             delete trialModule[i];
         }
         
-        std::cerr << "Using safety rule #" << minSafetyEdge.second << std::endl;
-        
+        tempString.str(""); tempString << "Ring computation: using safety rule #" << minSafetyEdge.second;
         nextRho = minSafetyEdge.first;
-        std::cerr << "Next radius at rho: " << nextRho << std::endl;
-        std::cerr << "************END OF RING COMPUTATION**************" << std::endl << std::endl;
+        tempString << " next radius at rho: " << nextRho;
+	addMessage(tempString, INFO);
     }
     nOfRings_ = nRing - 1;
     
@@ -1360,24 +1316,22 @@ double EndcapLayer::buildRing(double minRadius,
         wedges=true;
         double r = sampleModule->getDiameter()/2.;
         
-        std::cout << "Desired distance: " << minRadius << std::endl;
-        std::cout << "Desired overlap: " << overlap << std::endl;
-        std::cout << std::endl;
-        
+	tempString.str("");
+        tempString << "Desired distance: " << minRadius << std::endl;
+        tempString << "Desired overlap: " << overlap << std::endl;
         double l=(minRadius-r);
-        std::cout << "l: " << l << std::endl;
-        std::cout << "r: " << r << std::endl;
+        tempString << "l: " << l << std::endl;
+        tempString << "r: " << r << std::endl;
         double y=pow(r/l, 2);
-        std::cout << "y: " << y << std::endl;
+        tempString << "y: " << y << std::endl;
         double x=solvex(y);
-        std::cout << "x: " << x << std::endl;
-        std::cout << "gamma1: " << gamma1(x, y, r) << std::endl;
-        std::cout << "gamma2: " << gamma2(x, y, r) << std::endl;
+        tempString << "x: " << x << std::endl;
+        tempString << "gamma1: " << gamma1(x, y, r) << std::endl;
+        tempString << "gamma2: " << gamma2(x, y, r) << std::endl;
         
         // Max area
-        std::cout << "Area : " << Area(x, y, r) << std::endl;
-        
-        std::cout << "Optimization: " << std::endl;
+        tempString << "Area : " << Area(x, y, r) << std::endl;
+        tempString << "Optimization: " << std::endl;
         
         
         double tempd;
@@ -1398,21 +1352,24 @@ double EndcapLayer::buildRing(double minRadius,
         }
         
         if (!computeFinish) {
-            std::cerr << "Computation not finished" << std::endl;
-            std::cerr << "Delta_d is now: " << minRadius-tempd << std::endl;
+	  tempString << "Computation not finished" << std::endl;
+          tempString << "Delta_d is now: " << minRadius-tempd << std::endl;
         }
-        std::cout << "x: " << x << std::endl;
-        std::cout << "Area : " << Area(x, y, r) << std::endl;
+        tempString << "x: " << x << std::endl;
+        tempString << "Area : " << Area(x, y, r) << std::endl;
         
         alpha=asin(sqrt(x))*2;
         
-        std::cout << "mod aperture: " << alpha*180./M_PI << std::endl;
+        tempString << "mod aperture: " << alpha*180./M_PI;
+	addMessage(tempString, INFO);
     } else if ( sampleModule->getShape()==Module::Rectangular ) { // it's a barrel module
         modMaxRadius=minRadius + sampleModule->getHeight();
         // widthHi or widthLo would give the same number: it's a square module!
         alpha=2*asin(sampleModule->getWidthHi()/2. / modMaxRadius);
     } else { // It's not a barrel or an endcap module
-        std::cout << "ERROR: the sample EndcapModule was not Barrel nor Endcap... this should never happen!" << std::endl;
+      tempString.str("");
+      tempString << "The sample EndcapModule was not Barrel nor Endcap... this should never happen!";
+      addMessage(tempString, ERROR);
     }
     
     // The needed overlap becomes an angle delta by
@@ -1427,14 +1384,17 @@ double EndcapLayer::buildRing(double minRadius,
     effectiveAlpha = alpha - delta;
     
     
-    std::cout << "overlap delta: " << delta*180./M_PI << std::endl;
-    std::cout << "mod aperture (effective): " << effectiveAlpha*180./M_PI << std::endl;
+    tempString.str(""); tempString << "overlap delta: " << delta*180./M_PI;
+    addMessage(tempString, INFO);
+    tempString.str(""); tempString << "mod aperture (effective): " << effectiveAlpha*180./M_PI;
+    addMessage(tempString, INFO);
     
     
     double n;
     n = 2*M_PI / effectiveAlpha;
     
-    std::cout << "Number of modules: " << n << std::endl;
+    tempString.str(""); tempString << "Number of modules: " << n;
+    addMessage(tempString, INFO);
    
     // Optimal number of modules 
     int nOpt;
@@ -1442,21 +1402,20 @@ double EndcapLayer::buildRing(double minRadius,
     if (wedges) {
         // We round to the nearest multiple of base
         nOpt = int(floor((n/double(base))+.5)) * base;
-        std::cout << "I would use " << nOpt << " modules (optimized)" << std::endl;
-        nOpt += (addModules*base);
-        std::cout << "I will use " << nOpt << " modules (user request)" << std::endl;
+	tempString.str(""); tempString << "I would use " << nOpt << " modules (optimized), ";
+	nOpt += (addModules*base);
+        tempString << "i will use " << nOpt << " modules (user request)";
     } else {
         // For square modules we can only increase the number of sensors to
         // cover the whole area
         nOpt = int(ceil(n/double(base))) * base;
-        std::cout << "I will use " << nOpt << " modules" << std::endl;
+        tempString.str(""); tempString << "I will use " << nOpt << " modules";
     }
-    
+    addMessage(tempString, INFO);
     
     double goodAlpha;
     goodAlpha = 2*M_PI/double(nOpt);
     goodAlpha += delta;
-    
     
     //   XYZVector diskShift   = XYZVector(0, 0, diskZ);
     //   XYZVector petalShift  = XYZVector(0, 0, smallDelta);
@@ -1497,11 +1456,13 @@ double EndcapLayer::buildRing(double minRadius,
     if (wedges) {
         EndcapModule* aRingModule = new EndcapModule(*sampleModule, goodAlpha, minRadius, maxRadius);
         lastRho = minRadius + aRingModule->getHeight();
-        std::cout << "Actual module area: " << aRingModule->getArea() << std::endl;
+	tempString.str(""); tempString << "Actual module area: " << aRingModule->getArea();
+	addMessage(tempString, INFO);
         // Just to be sure...!
         if (aRingModule->wasCut()) {
-            std::cout << "The ring Module was cut, losing: " << aRingModule->getLost() << std::endl;
-            lastRho=maxRadius;
+	  tempString.str(""); tempString << "The ring Module was cut, losing: " << aRingModule->getLost();
+	  addMessage(tempString, INFO);
+	  lastRho=maxRadius;
         }
         delete aRingModule;
     } else {

@@ -1486,8 +1486,10 @@ namespace insur {
     RootWPage& myPage = site.addPage("Log page");
     for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
       if (!MessageLogger::hasEmptyLog(iLevel)) {
+	bool defaultOpen=false;
+	if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
 	anythingFound=true;
-	RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel));
+	RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
 	newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
 	MessageLogger::getLatestLog(iLevel);
       }
