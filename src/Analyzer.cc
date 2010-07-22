@@ -169,7 +169,7 @@ namespace insur {
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
             track.sort();
-            track.computeCorrelationMatrix(momenta);
+            track.computeErrors(momenta);
             tv.push_back(track);
         }
 #ifdef DEBUG_PERFORMANCE

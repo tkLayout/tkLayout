@@ -71,6 +71,8 @@ protected:
   map<momentum, double> deltarho_;
   map<momentum, double> deltaphi_;
   map<momentum, double> deltad_;
+  void computeCorrelationMatrix(const vector<double>& momenta);
+  void computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations);
 public:
   Track();
   Track(const Track& t);
@@ -84,8 +86,6 @@ public:
   map<momentum, double>& getDeltaD() { return deltad_; };
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
   void sort();
-  void computeCorrelationMatrix(const vector<double>& momenta); //TODO: move to private after testing
-  void computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations); //TODO: move to private after testing
-  void computeErrors(const std::vector<momentum>& momentaList); //TODO: should call computeCorrelationMatrix() and computeCovarianceMatrix() internally
+  void computeErrors(const std::vector<momentum>& momentaList);
 };
 #endif

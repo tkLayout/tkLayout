@@ -130,7 +130,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
         for (int i = 0; i < n - 1; i++) {
-            double th = hitV_.at(i)->getCorrectedMaterial().first;
+            double th = hitV_.at(i)->getCorrectedMaterial().second;
             th = (13.6 * 13.6) / (momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
             thetasq.push_back(th);
         }
@@ -148,13 +148,14 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                     // correlations between two active surfaces
                     else {
                         double sum = 0.0;
-                        for (int i = 0; i < r - 1; i++)
+                        for (int i = 0; i < r; i++)
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
-                            double pitch = (hitV_.at(r)->getHitModule()->getLowPitch() + hitV_.at(r)->getHitModule()->getHighPitch()) / 2;
-                            sum = sum + pitch * pitch / 12;
+                            double pitch = (hitV_.at(r)->getHitModule()->getLowPitch() + hitV_.at(r)->getHitModule()->getHighPitch()) / 2.0;
+                            sum = sum + pitch * pitch / 12.0;
                         }
                         corr(r, c) = sum;
+                        if (r != c) corr(c, r) = sum;
                     }
                 }
             }
@@ -168,7 +169,10 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                 look_for_active = true;
             }
             else if ((hitV_.at(i)->getObjectKind() == Hit::Active) && (look_for_active)) {
-                for (int j = 0; j < i; j++) corr(ia, j) = corr(i, j);
+                for (int j = 0; j < n; j++) {
+                    corr(ia, j) = corr(i, j);
+                    corr(j, ia) = corr(j, i);
+                }
                 corr(ia, ia) = corr(i, i);
                 ia++;
             }
@@ -185,8 +189,11 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
         unsigned int offset = 0;
         unsigned int nhits = hitV_.size();
         int n = iter->second.GetNrows();
-        TMatrixT<double> cov(correlations_[iter->first].Invert());
+        TMatrixT<double> C(correlations_[iter->first]);
+        TMatrixT<double> diffsT(3, n);
         TMatrixT<double> diffs(n, 3);
+        TMatrixT<double> cov(3, 3);
+        // set up partial derivative matrices diffs and diffsT
         for (unsigned int i = 0; i < nhits; i++) {
             if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
                 diffs(i - offset, 0) = 0.5 * hitV_.at(i)->getRadius() * hitV_.at(i)->getRadius();
@@ -195,9 +202,9 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
             }
             else offset++;
         }
-        // compute cov from diff and correlations iterator
-        cov = cov * diffs;
-        cov = diffs.Transpose(diffs) * cov;
+        diffsT.Transpose(diffs);
+        // compute cov from diffsT, the correlation matrix and diffs
+        cov = diffsT * C.Invert() * diffs;
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariances_.insert(par);
     }
@@ -209,6 +216,9 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
     computeCovarianceMatrix(correlations_);
     // calculate delta rho, delta phi and delta d maps from covariances_ matrix
     map<momentum, TMatrixT<double> >::const_iterator iter, guard = covariances_.end();
+    deltarho_.clear();
+    deltaphi_.clear();
+    deltad_.clear();
     for (iter = covariances_.begin(); iter != guard; iter++) {
         TMatrixT<double> data(iter->second);
         pair<momentum, double> err;
