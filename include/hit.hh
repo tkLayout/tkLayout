@@ -77,6 +77,7 @@ public:
   Track();
   Track(const Track& t);
   ~Track();
+  bool noHits() { return hitV_.empty(); };
   double setTheta(double& newTheta);
   double getTheta() {return theta_;};
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; };

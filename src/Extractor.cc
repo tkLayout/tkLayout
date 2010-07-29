@@ -7,10 +7,14 @@
 namespace insur {
     //public
     /**
-     * TODO
-     * @param mt 
-     * @param mb 
-     * @param d 
+     * This is the public analysis function that extracts the information that is necessary to convert a given material budget to a
+     * series of CMSSW XML files. None of this information is written to file, though. Instead, it is stored in a custom struct that
+     * consists of a series of vectors listing different types of information chunks. Those can then be used later to write the specific
+     * XML blocks in the output files. The function itself does bookkeeping of the input and output data, not actual analysis. It
+     * delegates that to a series of internal custom functions, making sure that each of them gets the correct parameters to run.
+     * @param mt A reference to the global material table; used as input
+     * @param mb A reference to the material budget that is to be analysed; used as input
+     * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
      */
     void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d) {
         std::cout << "Starting analysis..." << std::endl;
@@ -94,9 +98,12 @@ namespace insur {
     
     //protected
     /**
-     * TODO
-     * @param mattab 
-     * @param elems 
+     * This is one of the smaller analysis functions that provide the core functionality of this class. It goes through
+     * the global material table, treating each entry as an elementary material and copying or converting the information
+     * for that material (density, standard radiation length, standard interaction length) to the properties (density,
+     * atomic weight and atomic number) used by CMSSW to describe elementary materials.
+     * @param mattab A reference to the global material table; used as input
+     * @param elems A reference to the collection of elementary material information; used as output
      */
     void Extractor::analyseElements(MaterialTable&mattab, std::vector<Element>& elems) {
         for (unsigned int i = 0; i < mattab.rowCount(); i++) {
@@ -111,10 +118,16 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param t 
-     * @param up 
-     * @param down 
+     * This is one of the smaller analysis functions that provide the core functionality of this class. Its main purpose is that
+     * of extracting a series of (r, z) points that will be used later to extend the polycone volume enclosing the entire pixel
+     * and tracker barrels. Since those points need to be in order around the enclosing polygon, they are grouped into two
+     * different vectors, one for z- and one for z+. Because of the way the points are extracted, mirroring points in z- and
+     * z+ will be extracted bottom-to-top and placed in vectors <i>up</i> and <i>down</i>, respectively. The idea is
+     * that these two vectors should be traversed in opposite directions later: <i>up</i> from first to last element, <i>down</i>
+     * from last to first.
+     * @param t A reference to the collection of topology information
+     * @param up A reference to a vector listing polygon points by increasing radius
+     * @param down A reference to a vector listing polygon points by decreasing radius
      */
     void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
             std::vector<std::pair<double, double> >& down) {
@@ -229,10 +242,17 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param t 
-     * @param up 
-     * @param down 
+     *This is one of the smaller analysis functions that provide the core functionality of this class. Its main purpose is that
+     * of extracting a series of (r, z) points that will be used later to extend the polycone volume enclosing one of the pixel
+     * and tracker endcaps, namely those in z+. Since those points need to be in order around the enclosing polygon, they
+     * are grouped into two different vectors, one for for those lying to the left of an imaginary line vertically bisecting the
+     * endcaps, the other for those lying to the right of it. Because of the way the points are extracted, mirroring points to
+     * the left and right will be extracted bottom-to-top and placed in vectors <i>up</i> and <i>down</i>, respectively.
+     * The idea is that these two vectors should be traversed in opposite directions later: <i>up</i> from first to last element,
+     * <i>down</i> from last to first.
+     * @param t A reference to the collection of topology information
+     * @param up A reference to a vector listing polygon points by increasing radius
+     * @param down A reference to a vector listing polygon points by decreasing radius
      */
     void Extractor::analyseEndcapContainer(Tracker& t,
             std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
@@ -303,18 +323,25 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param mt 
-     * @param bc 
-     * @param tr 
-     * @param c 
-     * @param l 
-     * @param s 
-     * @param p 
-     * @param a 
-     * @param r 
-     * @param t 
-     * @param ri 
+     * This is one of the two main analysis functions that provide the core functionality of this class. It examines the barrel layers
+     * and the modules within, extracting a great range of different pieces of information from the geometry layout. These are shapes
+     * for individual modules, but also for their enclosing volumes, divided into rods and the layers themselves. They form hierarchies
+     * of volumes, one inside the other, and are placed within their parent volumes according to individual placement rules or algorithms,
+     *  sometimes using globally defined rotations. They also include some topology, such as which volumes contain the active surfaces,
+     * and how those active surfaces are subdivided and connected to the readout electronics. Last but not least, overall radiation and
+     * interaction lengths for each layer are calculated and stored; those are used as approximative values for certain CMSSW functions
+     * later on. Short layers are treated according to some specialised rules, but also processed in here.
+     * @param mt A reference to the global material table; used as input
+     * @param bc A reference to the collection of material properties of the barrel modules; used as input
+     * @param tr A reference to the tracker object; used as input
+     * @param c A reference to the collection of composite material information; used for output
+     * @param l A reference to the collection of volume hierarchy information; used for output
+     * @param s A reference to the collection of shape parameters; used for output
+     * @param p A reference to the collection of volume positionings; used for output
+     * @param a A reference to the collection of algorithm calls and their parameters; used for output
+     * @param r A reference to the collection of rotations; used for output
+     * @param t A reference to the collection of topology information; used for output
+     * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
      */
     void Extractor::analyseLayers(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& bc, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
@@ -629,18 +656,25 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param mt 
-     * @param ec 
-     * @param tr 
-     * @param c 
-     * @param l 
-     * @param s 
-     * @param p 
-     * @param a 
-     * @param r 
-     * @param t 
-     * @param ri 
+     * This is one of the two main analysis functions that provide the core functionality of this class. It examines the endcap discs in z+
+     * and the rings and modules within, extracting a great range of different pieces of information from the geometry layout. These
+     * are shapes for individual modules, but also for their enclosing volumes, divided into rings and then discs. They form hierarchies
+     * of volumes, one inside the other, and are placed within their parent volumes according to individual placement rules or algorithms,
+     *  sometimes using globally defined rotations. They also include some topology, such as which volumes contain the active surfaces,
+     * and how those active surfaces are subdivided and connected to the readout electronics. Last but not least, overall radiation and
+     * interaction lengths for each disc are calculated and stored; those are used as approximative values for certain CMSSW functions
+     * later on.
+     * @param mt A reference to the global material table; used as input
+     * @param ec A reference to the collection of material properties of the endcap modules; used as input
+     * @param tr A reference to the tracker object; used as input
+     * @param c A reference to the collection of composite material information; used for output
+     * @param l A reference to the collection of volume hierarchy information; used for output
+     * @param s A reference to the collection of shape parameters; used for output
+     * @param p A reference to the collection of volume positionings; used for output
+     * @param a A reference to the collection of algorithm calls and their parameters; used for output
+     * @param r A reference to the collection of rotations; used for output
+     * @param t A reference to the collection of topology information; used for output
+     * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
      */
     void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
@@ -917,13 +951,16 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param is 
-     * @param c 
-     * @param l 
-     * @param s 
-     * @param p 
-     * @param t 
+     * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
+     * it creates a composite material information struct for each barrel service, and it adds the remaining information about
+     * the volume to the collections of hierarchy, shape, position and topology information. All of these future CMSSW XML
+     * blocks are given unique names based on the properties of the barrel service they came from.
+     * @param is A reference to the collection of inactive surfaces that the barrel services are a part of; used as input
+     * @param c A reference to the collection of composite material information; used for output
+     * @param l A reference to the collection of volume hierarchy information; used for output
+     * @param s A reference to the collection of shape parameters; used for output
+     * @param p A reference to the collection of volume positionings; used for output
+     * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
@@ -965,13 +1002,16 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param is 
-     * @param c 
-     * @param l 
-     * @param s 
-     * @param p 
-     * @param t 
+     * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
+     * it creates a composite material information struct for each endcap service, and it adds the remaining information about
+     * the volume to the collections of hierarchy, shape, position and topology information. All of these future CMSSW XML
+     * blocks are given unique names based on the properties of the encap service they came from.
+     * @param is A reference to the collection of inactive surfaces that the endcap services are a part of; used as input
+     * @param c A reference to the collection of composite material information; used for output
+     * @param l A reference to the collection of volume hierarchy information; used for output
+     * @param s A reference to the collection of shape parameters; used for output
+     * @param p A reference to the collection of volume positionings; used for output
+     * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
@@ -1013,13 +1053,16 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param is 
-     * @param c 
-     * @param l 
-     * @param s 
-     * @param p 
-     * @param t 
+     * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
+     * it creates a composite material information struct for each support volume, and it adds the remaining information about
+     * that volume to the collections of hierarchy, shape, position and topology information. All of these future CMSSW XML
+     * blocks are given unique names based on the properties of the support structures they came from.
+     * @param is A reference to the collection of inactive surfaces that the supports are a part of; used as input
+     * @param c A reference to the collection of composite material information; used for output
+     * @param l A reference to the collection of volume hierarchy information; used for output
+     * @param s A reference to the collection of shape parameters; used for output
+     * @param p A reference to the collection of volume positionings; used for output
+     * @param t A reference to the collection of topology information; used for output
      */
     void Extractor::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
             std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t) {
@@ -1041,6 +1084,7 @@ namespace insur {
         std::vector<InactiveElement>::iterator iter, guard;
         std::vector<InactiveElement>& sp = is.getSupports();
         guard = sp.end();
+        // support volume loop
         for (iter = sp.begin(); iter != guard; iter++) {
             std::ostringstream matname, shapename;
             matname << xml_base_lazycomp << iter->getCategory();
@@ -1070,12 +1114,16 @@ namespace insur {
     
     //private
     /**
-     * TODO
-     * @param name 
-     * @param density 
-     * @param mp 
-     * @param nosensors 
-     * @return 
+     * Bundle the information for a composite material from a list of components into an instance of a <i>Composite</i> struct.
+     * The function includes an option to skip the sensor silicon in the list of elementary materials, omitting it completely when
+     * assembling the information for the <i>Composite</i> struct. This is useful for active volumes, where the sensor silicon
+     * is assigned to a separate volume during the tranlation to CMSSW XML. On the other hand, an inactive volume will want
+     * to include all of its material components - regardless of what they're labelled.
+     * @param name The name of the new composite material
+     * @param density The overall density of the new composite material
+     * @param mp A reference to the material properties object that provides the list of elementary materials
+     * @param nosensors A flag to include or exclude sensor silicon from the material list; true if it is excluded, false otherwise
+     * @return A new instance of a <i>Composite</i> struct that bundles the material information for further processing
      */
     Composite Extractor::createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors) {
         Composite comp;
@@ -1116,12 +1164,12 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param i 
-     * @param g 
-     * @param ponrod 
-     * @param find_first 
-     * @return 
+     * Find the partner module of a given one in a layer, i.e. a module that is on the same rod but on the opposite side of z=0.
+     * @param i An iterator pointing to the start of the search range
+     * @param g An iterator pointing to one past the end of the search range
+     * @param ponrod The position along the rod of the original module
+     * @param find_first A flag indicating whether to stop the search at the first module with the desired position, regardless of which side of z=0 it is on; default is false
+     * @return An iterator pointing to the partner module, or to one past the end of the range if no partner is found
      */
     std::vector<ModuleCap>::iterator Extractor::findPartnerModule(std::vector<ModuleCap>::iterator i,
             std::vector<ModuleCap>::iterator g, int ponrod, bool find_first) {
@@ -1144,11 +1192,11 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param start 
-     * @param stop 
-     * @param middle 
-     * @return 
+     * Find the total width in r of the volume enclosing a layer.
+     * @param start An iterator pointing to the start of a range of modules in a vector
+     * @param stop An iterator pointing to one past the end of a range of modules in a vector
+     * @param middle The midpoint of the layer radius range
+     * @return The thickness of the layer, or zero if the layer is degenerate
      */
     double Extractor::findDeltaR(std::vector<Module*>::iterator start,
             std::vector<Module*>::iterator stop, double middle) {
@@ -1181,11 +1229,11 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param start 
-     * @param stop 
-     * @param middle 
-     * @return 
+     * Find half the width in z of the volume enclosing an endcap ring.
+     * @param start An iterator pointing to the start of a range of modules in a vector
+     * @param stop An iterator pointing to one past the end of a range of modules in a vector
+     * @param middle The midpoint in z of the disc that the ring in question belongs to
+     * @return Half the thickness of the ring volume, or zero if the module collection is degenerate
      */
     double Extractor::findDeltaZ(std::vector<Module*>::iterator start,
             std::vector<Module*>::iterator stop, double middle) {
@@ -1218,10 +1266,10 @@ namespace insur {
     }
     
     /**
-     * TODO
-     * @param specs 
-     * @param label 
-     * @return 
+     * Given the name of a <i>SpecPar</i> block, find the corresponding index in the vector of <i>SpecParInfo</i> structs.
+     * @param specs The list of <i>SpecParInfo</i> structs collecting topological information for the tracker
+     * @param label The name of the requested <i>SpecPar</i> block
+     * @return The index of the requested struct, or <i>-1</i> if the name was not found in the collection
      */
     int Extractor::findSpecParIndex(std::vector<SpecParInfo>& specs, std::string label) {
         int idx = 0, size = (int)(specs.size());

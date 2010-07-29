@@ -13,6 +13,7 @@ namespace insur {
     static const double E = 2.71828182845904523536;
     static const double etaMaxAvg = 2.4;
     static const double etaMax = 3.0;
+    static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
     /**
      * Geometry constants; all length measurements are in mm
      * @param epsilon The standard distance between one solid object and the next
@@ -56,11 +57,10 @@ namespace insur {
     static const int temperature_levels = 512;
     
     /**
-     * Internal string constants
+     * Internal string constants for standard one-sided and specialised double-sided, rotated types
      */
     static const std::string type_rphi = "rphi";
     static const std::string type_stereo = "stereo";
-    static const std::string type_pt = "pt";
     
     
     /**
