@@ -26,6 +26,7 @@
 #include <InactiveSurfaces.h>
 #include  <MaterialBudget.h>
 #include <TProfile.h>
+#include <TGraph.h>
 #include "TRandom3.h"
 
 namespace insur {
@@ -91,6 +92,7 @@ namespace insur {
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
         std::vector<Track>& getTracks() { return tv; }
+        std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
@@ -144,6 +146,7 @@ namespace insur {
 
 	TH1D hitDistribution;
         std::vector<Track> tv;
+        std::map<double, TGraph> rhoprofiles;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
@@ -155,6 +158,7 @@ namespace insur {
         virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t);
         virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
 								  double theta, Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat);
+        void calculateProfiles(std::vector<double> p);
         void clearMaterialBudgetHistograms();
         void clearGeometryHistograms();
         void clearCells();

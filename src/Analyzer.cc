@@ -168,9 +168,11 @@ namespace insur {
             ilazyall.Fill(eta, tmp.second);
             rglobal.Fill(eta, tmp.first);
             iglobal.Fill(eta, tmp.second);
-            track.sort();
-            track.computeErrors(momenta);
-            tv.push_back(track);
+            if (!track.noHits()) {
+                track.sort();
+                track.computeErrors(momenta);
+                tv.push_back(track);
+            }
         }
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeMaterialBudget(): "; 
@@ -190,6 +192,8 @@ namespace insur {
         }
         // transformation from (eta, r) to (z, r) coordinates
         transformEtaToZ();
+        // fill TGraph map
+        calculateProfiles(momenta);
     }
   
     // protected
@@ -423,6 +427,35 @@ namespace insur {
         return res;
     }
     
+    void Analyzer::calculateProfiles(std::vector<double> p) {
+        std::map<double, double>::const_iterator miter, mguard;
+        std::vector<double>::const_iterator iter, guard = p.end();
+        int n = tv.size();
+        double eta, rho;
+        rhoprofiles.clear();
+        // momentum loop
+        for (iter = p.begin(); iter != guard; iter++) {
+            std::pair<double, TGraph> elem;
+            TGraph graph(n);
+            //TODO: graph.SetTitle() -> find sensible name...
+            elem.first = *iter;
+            elem.second = graph;
+            rhoprofiles.insert(elem);
+        }
+        // track loop
+        for (int i = 0; i < n; i++) {
+            std::map<double, double>& drho = tv.at(i).getDeltaRho();
+            eta = - log(tan(tv.at(i).getTheta() / 2));
+            mguard = drho.end();
+            for (miter = drho.begin(); miter != mguard; miter++) {
+                if (rhoprofiles.find(miter->first) != rhoprofiles.end()) {
+                    rho = miter->first / magnetic_field / 0.3;
+                    rhoprofiles[miter->first].SetPoint(i, eta, (miter->second / rho));
+                }
+            }
+        }
+    }
+    
     /**
      * This convenience function resets and empties all histograms for the
      * material budget, so they are ready for a new round of analysis.
@@ -578,6 +611,7 @@ namespace insur {
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
     }
+    
     /**
      * This convenience function sets the number of bins and the lower and upper range for their contents for
      * each of the cells that make up the basis for the 2D histograms.
