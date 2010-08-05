@@ -1472,6 +1472,70 @@ namespace insur {
     ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << tracker.getNMB();
     aStringStream <<" minimum bias events assumed</br>";
     myDescription->addText( aStringStream.str() );
+
+    //********************************//
+    //*                              *//
+    //*    Resolution estimate       *//
+    //*                              *//
+    //********************************//
+    
+    // Here you should check if the TGraph
+    // list is empty
+    // if (!isempty)
+    {
+      // Create a page for the errors
+      RootWPage& myPage = site.addPage("Resolution");
+      myPage.setAddress("errors.html");
+      
+      // Create the contents
+      RootWContent& resolutionContent = myPage.addContent("Track resolution (dummy plots)");
+      
+      bool firstPlot = true;
+      TCanvas* momentumCanvas;
+      TCanvas* distanceCanvas;
+      TCanvas* angleCanvas;
+      std::string plotOption = "Alp";
+      // Loop over the momenta (replace with real code)
+      for (double i=1; i<4; i=i+1) {
+	// Get the TGraphs of momentum, distance and angle
+	// for momentum i: replace with real code
+	TGraph* fakeMomentumGraph = new TGraph(2);
+	fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
+	TGraph* fakeDistanceGraph = new TGraph(2);
+	fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
+	TGraph* fakeAngleGraph = new TGraph(2);
+	fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
+
+	if (firstPlot) {
+	  // Only for the first time
+	  firstPlot=false;
+	  // Create the canvases
+	  momentumCanvas = new TCanvas();
+	  distanceCanvas = new TCanvas();
+	  angleCanvas = new TCanvas();
+	} else {
+	  plotOption = "lp same";
+	}
+	
+	std::cerr << plotOption <<std::endl;
+
+	// Actually draw the plots on the cavases
+	// with the right plot options
+	momentumCanvas->cd();
+	fakeMomentumGraph->Draw(plotOption.c_str());
+	distanceCanvas->cd();
+	fakeDistanceGraph->Draw(plotOption.c_str());
+	angleCanvas->cd();
+	fakeAngleGraph->Draw(plotOption.c_str());
+      }
+
+      RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
+      momentumImage.setComment("Momentum resolution vs. eta");
+      RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
+      distanceImage.setComment("Distance of closest approach resolution vs. eta");
+      RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
+      angleImage.setComment("Angle resolution vs. eta");
+    }
     
     return true;
   }    

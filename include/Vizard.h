@@ -29,6 +29,7 @@
 #include <TColor.h>
 #include <TView.h>
 #include <TLegend.h>
+#include <TGraph.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
