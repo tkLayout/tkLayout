@@ -175,7 +175,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
         // check if matrix is sane and worth keeping
-        if (corr.Determinant() != 0.0) {
+        if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
             pair<double, TMatrixTSym<double> > par(momenta.at(p), corr);
             correlations_.insert(par);
         }

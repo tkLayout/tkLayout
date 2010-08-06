@@ -41,18 +41,18 @@ namespace insur {
         top->AddNode(inactive, 0);
         // declaration of top volume within ROOT geometry manager
         gm->SetTopVolume(top);
-	// Some stylish option
-	gStyle->SetOptStat(0);
-	const UInt_t numberOfSteps = 5;
-	Double_t stops[numberOfSteps] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
-	Double_t red[numberOfSteps]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
-	Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
-	Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-	Int_t myPalette[temperature_levels];
-    
-	Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
-	for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
-	gStyle->SetPalette(temperature_levels, myPalette);
+        // Some stylish option
+        gStyle->SetOptStat(0);
+        const UInt_t numberOfSteps = 5;
+        Double_t stops[numberOfSteps] = { 0.00, 0.34, 0.61, 0.84, 1.00 };
+        Double_t red[numberOfSteps]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
+        Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
+        Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
+        Int_t myPalette[temperature_levels];
+        
+        Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
+        for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
+        gStyle->SetPalette(temperature_levels, myPalette);
     }
     
     /**
@@ -181,7 +181,7 @@ namespace insur {
     
     /**
      * This function writes the previously created geometry tree (including the geometry manager) to a ROOT
-     * file. If it finds that the internal representation using ROOT shapes has not been initialised, it prints an 
+     * file. If it finds that the internal representation using ROOT shapes has not been initialised, it prints an
      * error message and does nothing.
      * @param rootfilename The name of the output file that will be written to the application's default directory for root files
      */
@@ -210,7 +210,7 @@ namespace insur {
     }
     
     /**
-     * This convenience function provides a frame for creation of a geometry tree from a tracker object and a 
+     * This convenience function provides a frame for creation of a geometry tree from a tracker object and a
      * collection of inactive surfaces and for writing them to a ROOT file in a single step.
      * @param am A reference to the tracker object that contains the collection of active surfaces
      * @param is A reference to the collection of inactive surfaces
@@ -354,7 +354,7 @@ namespace insur {
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
      * @param outfilename The name of the output file that will be written to the application's default directory for material budget summaries
      */
-  void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
+    void Vizard::histogramSummary(Analyzer& a, std::string outfilename) {
         THStack rcontainer("rstack", "Radiation Length by Category");
         THStack icontainer("istack", "Interaction Length by Category");
         TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
@@ -385,7 +385,7 @@ namespace insur {
         htmlstream << "<p><big><b>1D Overview</b></big></p>";
         TCanvas c("matbudgetcanvas", "Material Budgets over Eta", 900, 400);
         c.SetFillColor(color_plot_background);
-        c.Divide(2,1);
+        c.Divide(2, 1);
         pad = c.GetPad(0);
         pad->SetFillColor(color_pad_background);
         pad = c.GetPad(1);
@@ -572,7 +572,7 @@ namespace insur {
         outstream.close();
         std::cout << "HTML file written to " << outfile << std::endl;
     }
-
+    
 #ifdef USING_ROOTWEB
     /**
      * This function draws some of the histograms that were filled during material budget analysis
@@ -581,212 +581,212 @@ namespace insur {
      * @param site the RootWSite object for the output
      */
     void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
-      // Initialize the page with the material budget
-      RootWPage* myPage;
-      RootWContent* myContent;
-      RootWTable* myTable;
-      RootWImage* myImage;
-      TCanvas* myCanvas;
-      TVirtualPad* myPad;
-      myPage = new RootWPage("Material");
-      myPage->setAddress("material.html");
-      site.addPage(myPage);
-
-      // 1D Overview
-      myContent = new RootWContent("1D Overview");
-      myPage->addContent(myContent);
-
-      // Book histograms
-      THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
-      THStack* icontainer = new THStack("istack", "Interaction Length by Category");
-      TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
-      TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
-      TH2D *ir = NULL, *ii = NULL;
-
-      // Output initialisation and headers
-      myCanvas = new TCanvas("overviewMaterial");
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2,1);
-      myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(color_pad_background);
-      myPad = myCanvas->GetPad(1);
-      myPad->cd();
-      // Total tracking volume rlength
-      cr = (TH1D*)a.getHistoGlobalR().Clone();
-      fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-      fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-      fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-      fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-      cr->Add(fr1);
-      cr->Add(fr2);
-      cr->SetFillColor(kGray + 2);
-      cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-      cr->SetXTitle("Eta");
-      cr->Draw();
-      myPad = myCanvas->GetPad(2);
-      myPad->cd();
-      // Total Tracking volume ilength
-      ci = (TH1D*)a.getHistoGlobalI().Clone();
-      fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-      fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-      fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-      fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-      ci->Add(fi1);
-      ci->Add(fi2);
-      ci->SetFillColor(kGray + 1);
-      ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-      ci->SetXTitle("Eta");
-      ci->Draw();
-      // Put the total plots to the site
-      myImage = new RootWImage(myCanvas, 900, 400);
-      myImage->setComment("Material in full volume");
-      myTable = new RootWTable();
-      // TODO: put etaMaxAvg correctly in the string :)
-      myTable->setContent(1,1,"Average radiation length in full volume (eta = [0, 2.4])");
-      myTable->setContent(2,1,"Average interaction length in full volume (eta = [0, 2.4])");
-      myTable->setContent(1,2,averageHistogramValues(*cr, etaMaxAvg), 5);
-      myTable->setContent(2,2,averageHistogramValues(*ci, etaMaxAvg), 5);
-      myContent->addItem(myTable);
-      myContent->addItem(myImage);
-      
-      // Detailed plots
-      myContent = new RootWContent("Tracking volume", false);
-      myPage->addContent(myContent);
-      // Work area re-init
-      myCanvas = new TCanvas("materialInTrackingVolume");
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2,1);
-      myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(color_pad_background);
-      myPad = myCanvas->GetPad(1);
-      myPad->cd();
-      // global plots in tracking volume: radiation length
-      cr = (TH1D*)a.getHistoGlobalR().Clone();
-      cr->SetFillColor(kGray + 2);
-      cr->SetNameTitle("rglobal", "Overall Radiation Length");
-      cr->SetXTitle("Eta");
-      cr->Draw();
-      myPad = myCanvas->GetPad(2);
-      myPad->cd();
-      // global plots in tracking volume: interaction length
-      ci = (TH1D*)a.getHistoGlobalI().Clone();
-      ci->SetFillColor(kGray + 1);
-      ci->SetNameTitle("iglobal", "Overall Interaction Length");
-      ci->SetXTitle("Eta");
-      ci->Draw();
-      // Write global tracking volume plots to web pag
-      myImage = new RootWImage(myCanvas, 900, 400);
-      myImage->setComment("Material in tracking volume");
-      myTable = new RootWTable();
-      myTable->setContent(1,1,"Average radiation length in tracking volume (eta = [0, 2.4])");
-      myTable->setContent(2,1,"Average interaction length in tracking volume (eta = [0, 2.4])");
-      myTable->setContent(1,2,averageHistogramValues(*cr, etaMaxAvg), 5);
-      myTable->setContent(2,2,averageHistogramValues(*ci, etaMaxAvg), 5);
-      myContent->addItem(myTable);
-      myContent->addItem(myImage);
-
-      // Detailed plots
-      myContent = new RootWContent("Detailed", false);
-      myPage->addContent(myContent);
-      // Work area re-init
-      myCanvas = new TCanvas("detailedMaterial");
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2,1);
-      myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(color_pad_background);
-      myPad = myCanvas->GetPad(1);
-      myPad->cd();
-      // radiation length in tracking volume by active, serving or passive
-      sur = (TH1D*)a.getHistoSupportsAllR().Clone();
-      sur->SetFillColor(kOrange + 4);
-      sur->SetXTitle("Eta");
-      rcontainer->Add(sur);
-      ser = (TH1D*)a.getHistoServicesAllR().Clone();
-      ser->SetFillColor(kBlue);
-      ser->SetXTitle("Eta");
-      rcontainer->Add(ser);
-      acr = (TH1D*)a.getHistoModulesAllR().Clone();
-      acr->SetFillColor(kRed);
-      acr->SetXTitle("Eta");
-      rcontainer->Add(acr);
-      rcontainer->Draw();
-      // interaction length in tracking volume by active, serving or passive
-      myPad = myCanvas->GetPad(2);
-      myPad->cd();
-      sui = (TH1D*)a.getHistoSupportsAllI().Clone();
-      sui->SetFillColor(kOrange + 2);
-      sui->SetXTitle("Eta");
-      icontainer->Add(sui);
-      sei = (TH1D*)a.getHistoServicesAllI().Clone();
-      sei->SetFillColor(kAzure - 2);
-      sei->SetXTitle("Eta");
-      icontainer->Add(sei);
-      aci = (TH1D*)a.getHistoModulesAllI().Clone();
-      aci->SetFillColor(kRed - 3);
-      aci->SetXTitle("Eta");
-      icontainer->Add(aci);
-      icontainer->Draw();
-
-      // Write asl category plots to web page
-      myImage = new RootWImage(myCanvas, 900, 400);
-      myImage->setComment("Detailed");
-      myTable = new RootWTable();
-      // Average values by active, service and passive      
-      myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
-      myTable->setContent(1, 0, "modules");
-      myTable->setContent(2, 0, "services");
-      myTable->setContent(3, 0, "supports");
-      myTable->setContent(0, 1, "Radiation length");
-      myTable->setContent(0, 2, "Interaction length");
-      myTable->setContent(1, 1, averageHistogramValues(*acr, etaMaxAvg), 5);
-      myTable->setContent(2, 1, averageHistogramValues(*ser, etaMaxAvg), 5);
-      myTable->setContent(3, 1, averageHistogramValues(*sur, etaMaxAvg), 5);
-      myTable->setContent(1, 2, averageHistogramValues(*aci, etaMaxAvg), 5);
-      myTable->setContent(2, 2, averageHistogramValues(*sei, etaMaxAvg), 5);
-      myTable->setContent(3, 2, averageHistogramValues(*sui, etaMaxAvg), 5);
-      myContent->addItem(myTable);
-      myContent->addItem(myImage);
-
-
-      // Work area re-init
-      myCanvas = new TCanvas("countourMaterial");
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2,1);
-      myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(color_pad_background);
-      myPad = myCanvas->GetPad(1);
-      myPad->cd();
-
-      // Countour plots
-      myContent = new RootWContent("Contours", true);
-      myPage->addContent(myContent);
-      // radiation length in isolines
-      ir = (TH2D*)a.getHistoIsoR().Clone();
-      ir->SetNameTitle("isor", "Radiation Length Contours");
-      ir->SetContour(temperature_levels, NULL);
-      ir->SetXTitle("z");
-      ir->SetYTitle("r");
-      ir->Draw("COLZ");
-      myPad = myCanvas->GetPad(2);
-      myPad->cd();
-      // interaction length in isolines
-      ii = (TH2D*)a.getHistoIsoI().Clone();
-      ii->SetNameTitle("isoi", "Interaction Length Contours");
-      ii->SetContour(temperature_levels, NULL);
-      ii->SetXTitle("z");
-      ii->SetYTitle("r");
-      ii->Draw("COLZ");
-      // Write isoline plots to web page
-      myImage = new RootWImage(myCanvas, 900, 400);
-      myImage->setComment("Material 2D distributions");
-      myContent->addItem(myImage);
+        // Initialize the page with the material budget
+        RootWPage* myPage;
+        RootWContent* myContent;
+        RootWTable* myTable;
+        RootWImage* myImage;
+        TCanvas* myCanvas;
+        TVirtualPad* myPad;
+        myPage = new RootWPage("Material");
+        myPage->setAddress("material.html");
+        site.addPage(myPage);
+        
+        // 1D Overview
+        myContent = new RootWContent("1D Overview");
+        myPage->addContent(myContent);
+        
+        // Book histograms
+        THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
+        THStack* icontainer = new THStack("istack", "Interaction Length by Category");
+        TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
+        TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+        TH2D *ir = NULL, *ii = NULL;
+        
+        // Output initialisation and headers
+        myCanvas = new TCanvas("overviewMaterial");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->Divide(2, 1);
+        myPad = myCanvas->GetPad(0);
+        myPad->SetFillColor(color_pad_background);
+        myPad = myCanvas->GetPad(1);
+        myPad->cd();
+        // Total tracking volume rlength
+        cr = (TH1D*)a.getHistoGlobalR().Clone();
+        fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+        fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+        fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+        fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+        cr->Add(fr1);
+        cr->Add(fr2);
+        cr->SetFillColor(kGray + 2);
+        cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
+        cr->SetXTitle("Eta");
+        cr->Draw();
+        myPad = myCanvas->GetPad(2);
+        myPad->cd();
+        // Total Tracking volume ilength
+        ci = (TH1D*)a.getHistoGlobalI().Clone();
+        fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+        fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+        fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+        fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+        ci->Add(fi1);
+        ci->Add(fi2);
+        ci->SetFillColor(kGray + 1);
+        ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
+        ci->SetXTitle("Eta");
+        ci->Draw();
+        // Put the total plots to the site
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Material in full volume");
+        myTable = new RootWTable();
+        // TODO: put etaMaxAvg correctly in the string :)
+        myTable->setContent(1, 1, "Average radiation length in full volume (eta = [0, 2.4])");
+        myTable->setContent(2, 1, "Average interaction length in full volume (eta = [0, 2.4])");
+        myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
+        myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
+        myContent->addItem(myTable);
+        myContent->addItem(myImage);
+        
+        // Detailed plots
+        myContent = new RootWContent("Tracking volume", false);
+        myPage->addContent(myContent);
+        // Work area re-init
+        myCanvas = new TCanvas("materialInTrackingVolume");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->Divide(2, 1);
+        myPad = myCanvas->GetPad(0);
+        myPad->SetFillColor(color_pad_background);
+        myPad = myCanvas->GetPad(1);
+        myPad->cd();
+        // global plots in tracking volume: radiation length
+        cr = (TH1D*)a.getHistoGlobalR().Clone();
+        cr->SetFillColor(kGray + 2);
+        cr->SetNameTitle("rglobal", "Overall Radiation Length");
+        cr->SetXTitle("Eta");
+        cr->Draw();
+        myPad = myCanvas->GetPad(2);
+        myPad->cd();
+        // global plots in tracking volume: interaction length
+        ci = (TH1D*)a.getHistoGlobalI().Clone();
+        ci->SetFillColor(kGray + 1);
+        ci->SetNameTitle("iglobal", "Overall Interaction Length");
+        ci->SetXTitle("Eta");
+        ci->Draw();
+        // Write global tracking volume plots to web pag
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Material in tracking volume");
+        myTable = new RootWTable();
+        myTable->setContent(1, 1, "Average radiation length in tracking volume (eta = [0, 2.4])");
+        myTable->setContent(2, 1, "Average interaction length in tracking volume (eta = [0, 2.4])");
+        myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
+        myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
+        myContent->addItem(myTable);
+        myContent->addItem(myImage);
+        
+        // Detailed plots
+        myContent = new RootWContent("Detailed", false);
+        myPage->addContent(myContent);
+        // Work area re-init
+        myCanvas = new TCanvas("detailedMaterial");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->Divide(2, 1);
+        myPad = myCanvas->GetPad(0);
+        myPad->SetFillColor(color_pad_background);
+        myPad = myCanvas->GetPad(1);
+        myPad->cd();
+        // radiation length in tracking volume by active, serving or passive
+        sur = (TH1D*)a.getHistoSupportsAllR().Clone();
+        sur->SetFillColor(kOrange + 4);
+        sur->SetXTitle("Eta");
+        rcontainer->Add(sur);
+        ser = (TH1D*)a.getHistoServicesAllR().Clone();
+        ser->SetFillColor(kBlue);
+        ser->SetXTitle("Eta");
+        rcontainer->Add(ser);
+        acr = (TH1D*)a.getHistoModulesAllR().Clone();
+        acr->SetFillColor(kRed);
+        acr->SetXTitle("Eta");
+        rcontainer->Add(acr);
+        rcontainer->Draw();
+        // interaction length in tracking volume by active, serving or passive
+        myPad = myCanvas->GetPad(2);
+        myPad->cd();
+        sui = (TH1D*)a.getHistoSupportsAllI().Clone();
+        sui->SetFillColor(kOrange + 2);
+        sui->SetXTitle("Eta");
+        icontainer->Add(sui);
+        sei = (TH1D*)a.getHistoServicesAllI().Clone();
+        sei->SetFillColor(kAzure - 2);
+        sei->SetXTitle("Eta");
+        icontainer->Add(sei);
+        aci = (TH1D*)a.getHistoModulesAllI().Clone();
+        aci->SetFillColor(kRed - 3);
+        aci->SetXTitle("Eta");
+        icontainer->Add(aci);
+        icontainer->Draw();
+        
+        // Write asl category plots to web page
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Detailed");
+        myTable = new RootWTable();
+        // Average values by active, service and passive
+        myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
+        myTable->setContent(1, 0, "modules");
+        myTable->setContent(2, 0, "services");
+        myTable->setContent(3, 0, "supports");
+        myTable->setContent(0, 1, "Radiation length");
+        myTable->setContent(0, 2, "Interaction length");
+        myTable->setContent(1, 1, averageHistogramValues(*acr, etaMaxAvg), 5);
+        myTable->setContent(2, 1, averageHistogramValues(*ser, etaMaxAvg), 5);
+        myTable->setContent(3, 1, averageHistogramValues(*sur, etaMaxAvg), 5);
+        myTable->setContent(1, 2, averageHistogramValues(*aci, etaMaxAvg), 5);
+        myTable->setContent(2, 2, averageHistogramValues(*sei, etaMaxAvg), 5);
+        myTable->setContent(3, 2, averageHistogramValues(*sui, etaMaxAvg), 5);
+        myContent->addItem(myTable);
+        myContent->addItem(myImage);
+        
+        
+        // Work area re-init
+        myCanvas = new TCanvas("countourMaterial");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->Divide(2, 1);
+        myPad = myCanvas->GetPad(0);
+        myPad->SetFillColor(color_pad_background);
+        myPad = myCanvas->GetPad(1);
+        myPad->cd();
+        
+        // Countour plots
+        myContent = new RootWContent("Contours", true);
+        myPage->addContent(myContent);
+        // radiation length in isolines
+        ir = (TH2D*)a.getHistoIsoR().Clone();
+        ir->SetNameTitle("isor", "Radiation Length Contours");
+        ir->SetContour(temperature_levels, NULL);
+        ir->SetXTitle("z");
+        ir->SetYTitle("r");
+        ir->Draw("COLZ");
+        myPad = myCanvas->GetPad(2);
+        myPad->cd();
+        // interaction length in isolines
+        ii = (TH2D*)a.getHistoIsoI().Clone();
+        ii->SetNameTitle("isoi", "Interaction Length Contours");
+        ii->SetContour(temperature_levels, NULL);
+        ii->SetXTitle("z");
+        ii->SetYTitle("r");
+        ii->Draw("COLZ");
+        // Write isoline plots to web page
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Material 2D distributions");
+        myContent->addItem(myImage);
     }
-
+    
 #endif
     
     // private
     /**
-     * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for 
+     * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for
      * visualisation. It loops through the provided module vectors, determining their modules' corners and position
      * in space. Using that information, it adds a ROOT shape and a 3D transformation to a volume assembly
      * note from the geometry tree for each module found in the vectors.
@@ -886,418 +886,418 @@ namespace insur {
         // calculate average
         if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
         else {
-	  for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
+            for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
         }
         return avg;
     }
-  
-
+    
+    
 #ifdef USING_ROOTWEB
-  /**
-   * This function draws the profile of hits obtained by the analysis of the geometry
-   * together with the summaries in tables with the rootweb library. It also actually does a couple of
-   * calculations to count modules and such, to put the results in the tables.
-   * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
-   * @param site the RootWSite object for the output
-   */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-    
-    // A bunch of indexes
-    std::map<std::string, Module*> typeMap;
-    std::map<std::string, int> typeMapCount;
-    std::map<std::string, long> typeMapCountChan;
-    std::map<std::string, double> typeMapMaxOccupancy;
-    std::map<std::string, double> typeMapAveOccupancy;
-    std::map<std::string, Module*>::iterator typeMapIt;
-    std::map<int, Module*> ringTypeMap;
-    std::string aSensorTag;
-    LayerVector::iterator layIt;
-    ModuleVector::iterator modIt;
-    ModuleVector* aLay;
-    double totAreaPts=0;
-    double totAreaStrips=0;
-    int totCountMod=0;
-    int totCountSens=0;
-    long totChannelStrips=0;
-    long totChannelPts=0;
-
-    RootWPage* myPage = new RootWPage("Geometry");
-    // TODO: the web site should decide which page to call index.html
-    myPage->setAddress("index.html");
-    site.addPage(myPage);
-    RootWContent* myContent;
-
-    // Grab a list of layers from teh tracker object
-    LayerVector& layerSet = tracker.getLayers();
-    int nMB = tracker.getNMB();
-    ModuleVector& endcapSample = tracker.getEndcapSample();
-
-
-    //********************************//
-    //*                              *//
-    //*       Layers and disks       *//
-    //*                              *//
-    //********************************//
-    myContent = new RootWContent("Layers and disks");
-    myPage->addContent(myContent);
-    RootWTable* layerTable = new RootWTable(); myContent->addItem(layerTable);
-    RootWTable* diskTable = new RootWTable(); myContent->addItem(diskTable);
-    RootWTable* ringTable = new RootWTable(); myContent->addItem(ringTable);
-    
-    
-    std::vector<std::string> layerNames;
-    std::vector<double> layerRho;
-    std::vector<std::string> diskNames;
-    std::vector<double> diskZ;
-    std::vector<std::string> ringNames;
-    std::vector<double> ringRho1;
-    std::vector<double> ringRho2;
-    
-    Layer* aLayer;
-    BarrelLayer* aBarrelLayer;
-    EndcapLayer* anEndcapDisk;
-    double aRingRho;
-    
-    layerTable->setContent(0,0, "Layer");
-    layerTable->setContent(1,0, "r");
-    diskTable->setContent(0,0, "Disk");
-    diskTable->setContent(1,0, "z");
-    ringTable->setContent(0,0, "Ring");
-    ringTable->setContent(1,0, "r"+subStart+"min"+subEnd);
-    ringTable->setContent(2,0, "r"+subStart+"max"+subEnd);
-    
-    // Build the module type maps
-    // with a pointer to a sample module
-    // Build the layer summary BTW
-    int nBarrelLayers=0;
-    int nDisks=0;
-    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
-      aLayer = (*layIt);
-      if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
-	if (aBarrelLayer->getMaxZ(+1)>0) {
-	  ++nBarrelLayers;
-	  //std::cerr << "Layer number " << nBarrelLayers << std::endl;
-	  layerTable->setContent(0,nBarrelLayers, aBarrelLayer->getName());
-	  layerTable->setContent(1,nBarrelLayers, aBarrelLayer->getAverageRadius(), coordPrecision);
-	}
-      }
-      if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
-	if (anEndcapDisk->getAverageZ()>0) {
-	  ++nDisks;
-	  diskTable->setContent(0,nDisks, anEndcapDisk->getName());
-	  diskTable->setContent(1,nDisks, anEndcapDisk->getAverageZ(), coordPrecision);
-	}
-      }
-      aLay = (*layIt)->getModuleVector();
-      for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-	aSensorTag=(*modIt)->getSensorTag();
-	typeMapCount[aSensorTag]++;
-	typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
-	if (((*modIt)->getOccupancyPerEvent()*nMB)>typeMapMaxOccupancy[aSensorTag]) {
-	  typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
-	}
-	typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
-	totCountMod++;
-	totCountSens+=(*modIt)->getNFaces();
-	if ((*modIt)->getReadoutType()==Module::Strip) {
-	  totChannelStrips+=(*modIt)->getNChannels();
-	  totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
-	}
-	if ((*modIt)->getReadoutType()==Module::Pt) {
-	  totChannelPts+=(*modIt)->getNChannels();
-	  totAreaPts+=(*modIt)->getArea()*(*modIt)->getNFaces();
-	}
-	if (typeMap.find(aSensorTag)==typeMap.end()){
-	  // We have a new sensor geometry
-	  typeMap[aSensorTag]=(*modIt);
-	}
-      }
-    }
-    
-    EndcapModule* anEC;
-    int aRing;
-    // Look into the endcap sample in order to indentify and measure rings
-    for (ModuleVector::iterator moduleIt=endcapSample.begin(); moduleIt!=endcapSample.end(); moduleIt++) {
-      if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
-	aRing=anEC->getRing();
-	if (ringTypeMap.find(aRing)==ringTypeMap.end()){
-	  // We have a new sensor geometry
-	  ringTypeMap[aRing]=(*moduleIt);
-	}
-      } else {
-	std::cout << "ERROR: found a non-Endcap module in the map of ring types" << std::endl;
-      }
-    }
-    
-    std::ostringstream myName;
-    for (std::map<int, Module*>::iterator typeIt = ringTypeMap.begin();
-	 typeIt!=ringTypeMap.end(); typeIt++) {
-      if ( (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) ) {
-	aRing=(*typeIt).first;
-	ringTable->setContent(0,aRing,aRing);
-	ringTable->setContent(1,aRing, aRingRho = anEC->getDist(), coordPrecision);
-	ringTable->setContent(2,aRing, aRingRho = anEC->getDist()+anEC->getHeight(), coordPrecision);
-      } else {
-	std::cout << "ERROR: found a non-Endcap module in the map of ring types (twice...)" << std::endl;
-      }
-    }
-    
-
-    // A bit of variables
-    std::vector<std::string> names;
-    std::vector<std::string> tags;
-    std::vector<std::string> types;
-    std::vector<std::string> areastrips;
-    std::vector<std::string> areapts;
-    std::vector<std::string> occupancies;
-    std::vector<std::string> pitchpairs;
-    std::vector<std::string> striplengths;
-    std::vector<std::string> segments;
-    std::vector<std::string> nstrips;
-    std::vector<std::string> numbermods;
-    std::vector<std::string> numbersens;
-    std::vector<std::string> channelstrips;
-    std::vector<std::string> channelpts;
-    std::vector<std::string> powers;
-    std::vector<std::string> costs;
-    
-    double totalPower=0;
-    double totalCost=0;
-    
-    std::ostringstream aName;
-    std::ostringstream aTag;
-    std::ostringstream aType;
-    std::ostringstream anArea;
-    std::ostringstream anOccupancy;
-    std::ostringstream aPitchPair;
-    std::ostringstream aStripLength;
-    std::ostringstream aSegment;
-    std::ostringstream anNstrips;
-    std::ostringstream aNumberMod;
-    std::ostringstream aNumberSens;
-    std::ostringstream aChannel;
-    std::ostringstream aPower;
-    std::ostringstream aCost;
-    int barrelCount=0;
-    int endcapCount=0;
-    Module* aModule;
-    
-
-
-    //********************************//
-    //*                              *//
-    //*       Modules                *//
-    //*                              *//
-    //********************************//
-    myContent = new RootWContent("Modules", false);
-    myPage->addContent(myContent);
-    RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
-
-    static const int tagRow = 1;
-    static const int typeRow = 2;
-    static const int areastripRow = 3;
-    static const int areaptRow = 4;
-    static const int occupancyRow = 5;
-    static const int pitchpairsRow = 6;
-    static const int striplengthRow = 7;
-    static const int segmentsRow = 8;
-    static const int nstripsRow = 9;
-    static const int numbermodsRow = 10;
-    static const int numbersensRow = 11;
-    static const int channelstripRow = 12;
-    static const int channelptRow = 13;
-    static const int powerRow = 14;
-    static const int costRow = 15;
-
-    // Row names
-    moduleTable->setContent(tagRow,0,"Tag");
-    moduleTable->setContent(typeRow,0,"Type");
-    moduleTable->setContent(areastripRow,0,"Area (mm"+superStart+"2"+superEnd+")");
-    moduleTable->setContent(areaptRow,0,"Area (mm"+superStart+"2"+superEnd+")");
-    moduleTable->setContent(occupancyRow,0,"Occup (max/av)");
-    moduleTable->setContent(pitchpairsRow,0,"Pitch (min/max)");
-    moduleTable->setContent(striplengthRow,0,"Strip length");
-    moduleTable->setContent(segmentsRow,0,"Segments x Chips");
-    moduleTable->setContent(nstripsRow,0,"Chan/Sensor");
-    moduleTable->setContent(numbermodsRow,0,"N. mod");
-    moduleTable->setContent(numbersensRow,0,"N. sens");
-    moduleTable->setContent(channelstripRow,0,"Channels (M)");
-    moduleTable->setContent(channelptRow,0,"Channels (M)");
-    moduleTable->setContent(powerRow,0,"Power (kW)");
-    moduleTable->setContent(costRow,0,"Cost (MCHF)");
-    
-    int loPitch;
-    int hiPitch;
-    
-    // Summary cycle: prepares the rows cell by cell
-    int iType=0;
-    for (typeMapIt=typeMap.begin(); typeMapIt!=typeMap.end(); typeMapIt++) {
-      ++iType;
-      // Name
-      aName.str("");
-      aModule=(*typeMapIt).second;
-      if (dynamic_cast<BarrelModule*>(aModule)) {
-	aName << std::dec << "B" << subStart << ++barrelCount << subEnd;
-      }
-      if (dynamic_cast<EndcapModule*>(aModule)) {
-	aName << std::dec << "E" << subStart << ++endcapCount << subEnd;
-      }
-      // Tag
-      aTag.str("");
-      aTag << smallStart << aModule->getTag() << smallEnd;
-      // Type
-      aType.str("");
-      aType << (*typeMapIt).second->getType();
-      // Area
-      anArea.str("");
-      anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
-      if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
-      // Occupancy
-      anOccupancy.str("");
-      anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
-      // Pitches
-      aPitchPair.str("");
-      loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
-      hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
-      if (loPitch==hiPitch) {
-	aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
-      } else {
-	aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
-		   << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
-      }
-      // Strip Lengths
-      aStripLength.str("");
-      aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-		   << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
-      // Segments
-      aSegment.str("");
-      aSegment << std::dec << (*typeMapIt).second->getNSegments()
-	       << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
-      // Nstrips
-      anNstrips.str("");
-      anNstrips << std::dec << (*typeMapIt).second->getNChannelsPerFace();
-      // Number Mod
-      aNumberMod.str("");
-      aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
-      // Number Sensor
-      aNumberSens.str("");
-      aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
-      // Channels
-      aChannel.str("");
-      aChannel << std::fixed << std::setprecision(millionChannelPrecision)
-	       << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
-      // Power and cost
-      aPower.str("");
-      aCost.str("");
-      aPower << std::fixed << std::setprecision(powerPrecision) <<
-        typeMapCountChan[(*typeMapIt).first] *           // number of channels in type
-        1e-3 *                                           // conversion from W to kW
-        tracker.getPower((*typeMapIt).second->getReadoutType()); // power consumption in W/channel
-      totalPower += typeMapCountChan[(*typeMapIt).first] * 1e-3 * tracker.getPower((*typeMapIt).second->getReadoutType());
-      aCost  << std::fixed << std::setprecision(costPrecision) <<
-        (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
-        (*typeMapIt).second->getNFaces() *               // number of faces
-        tracker.getCost((*typeMapIt).second->getReadoutType()) * // price in CHF*cm^-2
-        1e-6 *                                           // conversion CHF-> MCHF
-        typeMapCount[(*typeMapIt).first];                // Number of modules
-      totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
-      
-
-      moduleTable->setContent(0,iType,aName.str());
-      moduleTable->setContent(tagRow,iType,aTag.str());
-      moduleTable->setContent(typeRow,iType,aType.str());
-      moduleTable->setContent(occupancyRow,iType,anOccupancy.str());
-      moduleTable->setContent(pitchpairsRow,iType,aPitchPair.str());
-      moduleTable->setContent(striplengthRow,iType,aStripLength.str());
-      moduleTable->setContent(segmentsRow,iType,aSegment.str());
-      moduleTable->setContent(nstripsRow,iType,anNstrips.str());
-      moduleTable->setContent(numbermodsRow,iType,aNumberMod.str());
-      moduleTable->setContent(numbersensRow,iType,aNumberSens.str());
-      moduleTable->setContent(powerRow,iType,aPower.str());
-      moduleTable->setContent(costRow,iType,aCost.str());
-      
-      if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
-	moduleTable->setContent(channelstripRow,iType,aChannel.str());
-	moduleTable->setContent(areastripRow,iType,anArea.str());
-	moduleTable->setContent(channelptRow,iType,"--");
-	moduleTable->setContent(areaptRow,iType,"--");
-      } else {
-	moduleTable->setContent(channelstripRow,iType,"--");
-	moduleTable->setContent(areastripRow,iType,"--");
-	moduleTable->setContent(channelptRow,iType,aChannel.str());
-	moduleTable->setContent(areaptRow,iType,anArea.str());
-      }
-    }
-
-    // Score totals
-    ++iType;
-    moduleTable->setContent(0,iType,"Total");
-    moduleTable->setContent(tagRow,iType,"");
-    moduleTable->setContent(typeRow,iType,"");
-    anArea.str("");
-    anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
-	   << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-    moduleTable->setContent(areastripRow,iType,anArea.str());
-    anArea.str("");
-    anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
-	   << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-    moduleTable->setContent(areaptRow,iType,anArea.str());
-    moduleTable->setContent(occupancyRow,iType,"");
-    moduleTable->setContent(pitchpairsRow,iType,"");
-    moduleTable->setContent(striplengthRow,iType,"");
-    moduleTable->setContent(segmentsRow,iType,"");
-    moduleTable->setContent(nstripsRow,iType,"");
-    aNumberMod.str("");
-    aNumberMod << emphStart << totCountMod << emphEnd;
-    aNumberSens.str("");
-    aNumberSens << emphStart << totCountSens << emphEnd;
-    moduleTable->setContent(numbermodsRow,iType,aNumberMod.str());
-    moduleTable->setContent(numbersensRow,iType,aNumberSens.str());
-    aChannel.str("");
-    aChannel << emphStart << std::fixed
-	     << std::setprecision(millionChannelPrecision)
-	     << totChannelStrips / 1e6 << emphEnd;
-    moduleTable->setContent(channelstripRow,iType,aChannel.str());
-    aChannel.str("");
-    aChannel << emphStart << std::fixed
-	     << std::setprecision(millionChannelPrecision)
-	     << totChannelPts / 1e6 << emphEnd;
-    moduleTable->setContent(channelptRow,iType,aChannel.str());
-    aPower.str("");
-    aCost.str("");
-    aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
-    aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
-    moduleTable->setContent(powerRow,iType,aPower.str());
-    moduleTable->setContent(costRow,iType,aCost.str());
-
-    //********************************//
-    //*                              *//
-    //*       Plots                  *//
-    //*                              *//
-    //********************************//
-    RootWImage* myImage;
-    TCanvas *summaryCanvas = NULL;
-    TCanvas *YZCanvas = NULL;
-    TCanvas *myCanvas = NULL;
-    createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
-
-    //TVirtualPad* myPad;
-    myContent = new RootWContent("Plots");
-    myPage->addContent(myContent);
-
-    if (summaryCanvas) {
-      myImage = new RootWImage(summaryCanvas, 600, 600);
-      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
-      myContent->addItem(myImage);
-    }
-
-    if (YZCanvas) {
-      myImage = new RootWImage(YZCanvas, 600, 600);
-      myImage->setComment("YZ Section of the tracker barrel");
-      myContent->addItem(myImage);
-    }
-
-    /*
+    /**
+     * This function draws the profile of hits obtained by the analysis of the geometry
+     * together with the summaries in tables with the rootweb library. It also actually does a couple of
+     * calculations to count modules and such, to put the results in the tables.
+     * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+     * @param site the RootWSite object for the output
+     */
+    bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+        
+        // A bunch of indexes
+        std::map<std::string, Module*> typeMap;
+        std::map<std::string, int> typeMapCount;
+        std::map<std::string, long> typeMapCountChan;
+        std::map<std::string, double> typeMapMaxOccupancy;
+        std::map<std::string, double> typeMapAveOccupancy;
+        std::map<std::string, Module*>::iterator typeMapIt;
+        std::map<int, Module*> ringTypeMap;
+        std::string aSensorTag;
+        LayerVector::iterator layIt;
+        ModuleVector::iterator modIt;
+        ModuleVector* aLay;
+        double totAreaPts=0;
+        double totAreaStrips=0;
+        int totCountMod=0;
+        int totCountSens=0;
+        long totChannelStrips=0;
+        long totChannelPts=0;
+        
+        RootWPage* myPage = new RootWPage("Geometry");
+        // TODO: the web site should decide which page to call index.html
+        myPage->setAddress("index.html");
+        site.addPage(myPage);
+        RootWContent* myContent;
+        
+        // Grab a list of layers from teh tracker object
+        LayerVector& layerSet = tracker.getLayers();
+        int nMB = tracker.getNMB();
+        ModuleVector& endcapSample = tracker.getEndcapSample();
+        
+        
+        //********************************//
+        //*                              *//
+        //*       Layers and disks       *//
+        //*                              *//
+        //********************************//
+        myContent = new RootWContent("Layers and disks");
+        myPage->addContent(myContent);
+        RootWTable* layerTable = new RootWTable(); myContent->addItem(layerTable);
+        RootWTable* diskTable = new RootWTable(); myContent->addItem(diskTable);
+        RootWTable* ringTable = new RootWTable(); myContent->addItem(ringTable);
+        
+        
+        std::vector<std::string> layerNames;
+        std::vector<double> layerRho;
+        std::vector<std::string> diskNames;
+        std::vector<double> diskZ;
+        std::vector<std::string> ringNames;
+        std::vector<double> ringRho1;
+        std::vector<double> ringRho2;
+        
+        Layer* aLayer;
+        BarrelLayer* aBarrelLayer;
+        EndcapLayer* anEndcapDisk;
+        double aRingRho;
+        
+        layerTable->setContent(0, 0, "Layer");
+        layerTable->setContent(1, 0, "r");
+        diskTable->setContent(0, 0, "Disk");
+        diskTable->setContent(1, 0, "z");
+        ringTable->setContent(0, 0, "Ring");
+        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
+        
+        // Build the module type maps
+        // with a pointer to a sample module
+        // Build the layer summary BTW
+        int nBarrelLayers=0;
+        int nDisks=0;
+        for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+            aLayer = (*layIt);
+            if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
+                if (aBarrelLayer->getMaxZ(+1)>0) {
+                    ++nBarrelLayers;
+                    //std::cerr << "Layer number " << nBarrelLayers << std::endl;
+                    layerTable->setContent(0, nBarrelLayers, aBarrelLayer->getName());
+                    layerTable->setContent(1, nBarrelLayers, aBarrelLayer->getAverageRadius(), coordPrecision);
+                }
+            }
+            if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
+                if (anEndcapDisk->getAverageZ()>0) {
+                    ++nDisks;
+                    diskTable->setContent(0, nDisks, anEndcapDisk->getName());
+                    diskTable->setContent(1, nDisks, anEndcapDisk->getAverageZ(), coordPrecision);
+                }
+            }
+            aLay = (*layIt)->getModuleVector();
+            for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+                aSensorTag=(*modIt)->getSensorTag();
+                typeMapCount[aSensorTag]++;
+                typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
+                if (((*modIt)->getOccupancyPerEvent()*nMB)>typeMapMaxOccupancy[aSensorTag]) {
+                    typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
+                }
+                typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
+                totCountMod++;
+                totCountSens+=(*modIt)->getNFaces();
+                if ((*modIt)->getReadoutType()==Module::Strip) {
+                    totChannelStrips+=(*modIt)->getNChannels();
+                    totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
+                }
+                if ((*modIt)->getReadoutType()==Module::Pt) {
+                    totChannelPts+=(*modIt)->getNChannels();
+                    totAreaPts+=(*modIt)->getArea()*(*modIt)->getNFaces();
+                }
+                if (typeMap.find(aSensorTag)==typeMap.end()){
+                    // We have a new sensor geometry
+                    typeMap[aSensorTag]=(*modIt);
+                }
+            }
+        }
+        
+        EndcapModule* anEC;
+        int aRing;
+        // Look into the endcap sample in order to indentify and measure rings
+        for (ModuleVector::iterator moduleIt=endcapSample.begin(); moduleIt!=endcapSample.end(); moduleIt++) {
+            if ( (anEC=dynamic_cast<EndcapModule*>(*moduleIt)) ) {
+                aRing=anEC->getRing();
+                if (ringTypeMap.find(aRing)==ringTypeMap.end()){
+                    // We have a new sensor geometry
+                    ringTypeMap[aRing]=(*moduleIt);
+                }
+            } else {
+                std::cout << "ERROR: found a non-Endcap module in the map of ring types" << std::endl;
+            }
+        }
+        
+        std::ostringstream myName;
+        for (std::map<int, Module*>::iterator typeIt = ringTypeMap.begin();
+        typeIt!=ringTypeMap.end(); typeIt++) {
+            if ( (anEC=dynamic_cast<EndcapModule*>((*typeIt).second)) ) {
+                aRing=(*typeIt).first;
+                ringTable->setContent(0, aRing, aRing);
+                ringTable->setContent(1, aRing, aRingRho = anEC->getDist(), coordPrecision);
+                ringTable->setContent(2, aRing, aRingRho = anEC->getDist()+anEC->getHeight(), coordPrecision);
+            } else {
+                std::cout << "ERROR: found a non-Endcap module in the map of ring types (twice...)" << std::endl;
+            }
+        }
+        
+        
+        // A bit of variables
+        std::vector<std::string> names;
+        std::vector<std::string> tags;
+        std::vector<std::string> types;
+        std::vector<std::string> areastrips;
+        std::vector<std::string> areapts;
+        std::vector<std::string> occupancies;
+        std::vector<std::string> pitchpairs;
+        std::vector<std::string> striplengths;
+        std::vector<std::string> segments;
+        std::vector<std::string> nstrips;
+        std::vector<std::string> numbermods;
+        std::vector<std::string> numbersens;
+        std::vector<std::string> channelstrips;
+        std::vector<std::string> channelpts;
+        std::vector<std::string> powers;
+        std::vector<std::string> costs;
+        
+        double totalPower=0;
+        double totalCost=0;
+        
+        std::ostringstream aName;
+        std::ostringstream aTag;
+        std::ostringstream aType;
+        std::ostringstream anArea;
+        std::ostringstream anOccupancy;
+        std::ostringstream aPitchPair;
+        std::ostringstream aStripLength;
+        std::ostringstream aSegment;
+        std::ostringstream anNstrips;
+        std::ostringstream aNumberMod;
+        std::ostringstream aNumberSens;
+        std::ostringstream aChannel;
+        std::ostringstream aPower;
+        std::ostringstream aCost;
+        int barrelCount=0;
+        int endcapCount=0;
+        Module* aModule;
+        
+        
+        
+        //********************************//
+        //*                              *//
+        //*       Modules                *//
+        //*                              *//
+        //********************************//
+        myContent = new RootWContent("Modules", false);
+        myPage->addContent(myContent);
+        RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
+        
+        static const int tagRow = 1;
+        static const int typeRow = 2;
+        static const int areastripRow = 3;
+        static const int areaptRow = 4;
+        static const int occupancyRow = 5;
+        static const int pitchpairsRow = 6;
+        static const int striplengthRow = 7;
+        static const int segmentsRow = 8;
+        static const int nstripsRow = 9;
+        static const int numbermodsRow = 10;
+        static const int numbersensRow = 11;
+        static const int channelstripRow = 12;
+        static const int channelptRow = 13;
+        static const int powerRow = 14;
+        static const int costRow = 15;
+        
+        // Row names
+        moduleTable->setContent(tagRow, 0, "Tag");
+        moduleTable->setContent(typeRow, 0, "Type");
+        moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
+        moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
+        moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
+        moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
+        moduleTable->setContent(striplengthRow, 0, "Strip length");
+        moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
+        moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
+        moduleTable->setContent(numbermodsRow, 0, "N. mod");
+        moduleTable->setContent(numbersensRow, 0, "N. sens");
+        moduleTable->setContent(channelstripRow, 0, "Channels (M)");
+        moduleTable->setContent(channelptRow, 0, "Channels (M)");
+        moduleTable->setContent(powerRow, 0, "Power (kW)");
+        moduleTable->setContent(costRow, 0, "Cost (MCHF)");
+        
+        int loPitch;
+        int hiPitch;
+        
+        // Summary cycle: prepares the rows cell by cell
+        int iType=0;
+        for (typeMapIt=typeMap.begin(); typeMapIt!=typeMap.end(); typeMapIt++) {
+            ++iType;
+            // Name
+            aName.str("");
+            aModule=(*typeMapIt).second;
+            if (dynamic_cast<BarrelModule*>(aModule)) {
+                aName << std::dec << "B" << subStart << ++barrelCount << subEnd;
+            }
+            if (dynamic_cast<EndcapModule*>(aModule)) {
+                aName << std::dec << "E" << subStart << ++endcapCount << subEnd;
+            }
+            // Tag
+            aTag.str("");
+            aTag << smallStart << aModule->getTag() << smallEnd;
+            // Type
+            aType.str("");
+            aType << (*typeMapIt).second->getType();
+            // Area
+            anArea.str("");
+            anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+            if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
+            // Occupancy
+            anOccupancy.str("");
+            anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+            // Pitches
+            aPitchPair.str("");
+            loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
+            hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
+            if (loPitch==hiPitch) {
+                aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
+            } else {
+                aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
+                << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
+            }
+            // Strip Lengths
+            aStripLength.str("");
+            aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+            << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
+            // Segments
+            aSegment.str("");
+            aSegment << std::dec << (*typeMapIt).second->getNSegments()
+            << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+            // Nstrips
+            anNstrips.str("");
+            anNstrips << std::dec << (*typeMapIt).second->getNChannelsPerFace();
+            // Number Mod
+            aNumberMod.str("");
+            aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
+            // Number Sensor
+            aNumberSens.str("");
+            aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
+            // Channels
+            aChannel.str("");
+            aChannel << std::fixed << std::setprecision(millionChannelPrecision)
+            << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
+            // Power and cost
+            aPower.str("");
+            aCost.str("");
+            aPower << std::fixed << std::setprecision(powerPrecision) <<
+            typeMapCountChan[(*typeMapIt).first] *           // number of channels in type
+            1e-3 *                                           // conversion from W to kW
+            tracker.getPower((*typeMapIt).second->getReadoutType()); // power consumption in W/channel
+            totalPower += typeMapCountChan[(*typeMapIt).first] * 1e-3 * tracker.getPower((*typeMapIt).second->getReadoutType());
+            aCost  << std::fixed << std::setprecision(costPrecision) <<
+            (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
+            (*typeMapIt).second->getNFaces() *               // number of faces
+            tracker.getCost((*typeMapIt).second->getReadoutType()) * // price in CHF*cm^-2
+            1e-6 *                                           // conversion CHF-> MCHF
+            typeMapCount[(*typeMapIt).first];                // Number of modules
+            totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
+            
+            
+            moduleTable->setContent(0, iType, aName.str());
+            moduleTable->setContent(tagRow, iType, aTag.str());
+            moduleTable->setContent(typeRow, iType, aType.str());
+            moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
+            moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
+            moduleTable->setContent(striplengthRow, iType, aStripLength.str());
+            moduleTable->setContent(segmentsRow, iType, aSegment.str());
+            moduleTable->setContent(nstripsRow, iType, anNstrips.str());
+            moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
+            moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
+            moduleTable->setContent(powerRow, iType, aPower.str());
+            moduleTable->setContent(costRow, iType, aCost.str());
+            
+            if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
+                moduleTable->setContent(channelstripRow, iType, aChannel.str());
+                moduleTable->setContent(areastripRow, iType, anArea.str());
+                moduleTable->setContent(channelptRow, iType, "--");
+                moduleTable->setContent(areaptRow, iType, "--");
+            } else {
+                moduleTable->setContent(channelstripRow, iType, "--");
+                moduleTable->setContent(areastripRow, iType, "--");
+                moduleTable->setContent(channelptRow, iType, aChannel.str());
+                moduleTable->setContent(areaptRow, iType, anArea.str());
+            }
+        }
+        
+        // Score totals
+        ++iType;
+        moduleTable->setContent(0, iType, "Total");
+        moduleTable->setContent(tagRow, iType, "");
+        moduleTable->setContent(typeRow, iType, "");
+        anArea.str("");
+        anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
+        << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+        moduleTable->setContent(areastripRow, iType, anArea.str());
+        anArea.str("");
+        anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
+        << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+        moduleTable->setContent(areaptRow, iType, anArea.str());
+        moduleTable->setContent(occupancyRow, iType, "");
+        moduleTable->setContent(pitchpairsRow, iType, "");
+        moduleTable->setContent(striplengthRow, iType, "");
+        moduleTable->setContent(segmentsRow, iType, "");
+        moduleTable->setContent(nstripsRow, iType, "");
+        aNumberMod.str("");
+        aNumberMod << emphStart << totCountMod << emphEnd;
+        aNumberSens.str("");
+        aNumberSens << emphStart << totCountSens << emphEnd;
+        moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
+        moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
+        aChannel.str("");
+        aChannel << emphStart << std::fixed
+        << std::setprecision(millionChannelPrecision)
+        << totChannelStrips / 1e6 << emphEnd;
+        moduleTable->setContent(channelstripRow, iType, aChannel.str());
+        aChannel.str("");
+        aChannel << emphStart << std::fixed
+        << std::setprecision(millionChannelPrecision)
+        << totChannelPts / 1e6 << emphEnd;
+        moduleTable->setContent(channelptRow, iType, aChannel.str());
+        aPower.str("");
+        aCost.str("");
+        aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
+        aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
+        moduleTable->setContent(powerRow, iType, aPower.str());
+        moduleTable->setContent(costRow, iType, aCost.str());
+        
+        //********************************//
+        //*                              *//
+        //*       Plots                  *//
+        //*                              *//
+        //********************************//
+        RootWImage* myImage;
+        TCanvas *summaryCanvas = NULL;
+        TCanvas *YZCanvas = NULL;
+        TCanvas *myCanvas = NULL;
+        createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
+        
+        //TVirtualPad* myPad;
+        myContent = new RootWContent("Plots");
+        myPage->addContent(myContent);
+        
+        if (summaryCanvas) {
+            myImage = new RootWImage(summaryCanvas, 600, 600);
+            myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
+            myContent->addItem(myImage);
+        }
+        
+        if (YZCanvas) {
+            myImage = new RootWImage(YZCanvas, 600, 600);
+            myImage->setComment("YZ Section of the tracker barrel");
+            myContent->addItem(myImage);
+        }
+        
+        /*
     myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
     myCanvas->cd();
     myPad = summaryCanvas->GetPad(padXY);
@@ -1307,7 +1307,7 @@ namespace insur {
       myImage->setComment("XY Section of the tracker barrel");
       myContent->addItem(myImage);
     }
-
+     
     myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 600, 600);
     myCanvas->cd();
     myPad = summaryCanvas->GetPad(padEC);
@@ -1317,597 +1317,617 @@ namespace insur {
       myImage->setComment("XY View of the tracker endcap");
       myContent->addItem(myImage);
     }
-    */
-
-    myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
-    myCanvas->cd();
-    analyzer.getEtaProfileCanvas().DrawClonePad();
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Hit coverage in eta");
-    myContent->addItem(myImage);
-
-    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
-    int prevStat = gStyle->GetOptStat();
-    gStyle->SetOptStat(0);
-    hitMapCanvas->cd();
-    //gStyle->SetPalette(1);
-    hitMapCanvas->SetFillColor(color_plot_background);
-    hitMapCanvas->SetBorderMode(0);
-    hitMapCanvas->SetBorderSize(0);
-    analyzer.getMapPhiEta().Draw("colz");
-    hitMapCanvas->Modified();
-    gStyle->SetOptStat(prevStat);
-    myImage = new RootWImage(hitMapCanvas, 600, 600);
-    myImage->setComment("Hit coverage in eta, phi");
-    myContent->addItem(myImage);
-
-    // TODO: make this meaningful!
-    return true;
-    
-  }
-
-  bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-    RootWPage* myPage = new RootWPage("Info");
-    myPage->setAddress("info.html");
-    site.addPage(myPage);
-    RootWContent *simulationContent, *filesContent;
-    RootWBinaryFile* myBinaryFile;
-    std::string trackerName = tracker.getName();
-
-    int materialTracksUsed = analyzer.getMaterialTracksUsed();
-    int geometryTracksUsed = analyzer.getGeometryTracksUsed();
-
-    //********************************//
-    //*                              *//
-    //*  Simulation and files        *//
-    //*                              *//
-    //********************************//
-    // (also todo: handle this properly: with a not-hardcoded model)
-    simulationContent = new RootWContent("Simulation parameters");
-    myPage->addContent(simulationContent);
-    filesContent = new RootWContent("Geometry files");
-    myPage->addContent(filesContent);
-
-    if (geomfile!="") {
-      std::string destinationFilename = trackerName + ".cfg";
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Geometry configuration file", geomfile);
-      simulationContent->addItem(myBinaryFile);
-    }
-    if (settingsfile!="") {
-      std::string destinationFilename = trackerName + "_Types.cfg";
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
-      simulationContent->addItem(myBinaryFile);
-    }
-    if (matfile!="") {
-      std::string destinationFilename = trackerName + "_Materials.cfg";
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file", matfile);
-      simulationContent->addItem(myBinaryFile);
+         */
+        
+        myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
+        myCanvas->cd();
+        analyzer.getEtaProfileCanvas().DrawClonePad();
+        myImage = new RootWImage(myCanvas, 600, 600);
+        myImage->setComment("Hit coverage in eta");
+        myContent->addItem(myImage);
+        
+        TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
+        int prevStat = gStyle->GetOptStat();
+        gStyle->SetOptStat(0);
+        hitMapCanvas->cd();
+        //gStyle->SetPalette(1);
+        hitMapCanvas->SetFillColor(color_plot_background);
+        hitMapCanvas->SetBorderMode(0);
+        hitMapCanvas->SetBorderSize(0);
+        analyzer.getMapPhiEta().Draw("colz");
+        hitMapCanvas->Modified();
+        gStyle->SetOptStat(prevStat);
+        myImage = new RootWImage(hitMapCanvas, 600, 600);
+        myImage->setComment("Hit coverage in eta, phi");
+        myContent->addItem(myImage);
+        
+        // TODO: make this meaningful!
+        return true;
+        
     }
     
-    RootWInfo* myInfo;
-    myInfo = new RootWInfo("Minimum bias per bunch crossing");
-    myInfo->setValue(tracker.getNMB(), minimumBiasPrecision);
-    simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for material");
-    myInfo->setValue(materialTracksUsed);
-    simulationContent->addItem(myInfo);
-    myInfo = new RootWInfo("Number of tracks used for geometry");
-    myInfo->setValue(geometryTracksUsed);
-    simulationContent->addItem(myInfo);
-
-    ostringstream barrelModuleCoordinates, endcapModuleCoordinates;
-    RootWTextFile* myTextFile;
-    tracker.printBarrelModuleZ(barrelModuleCoordinates);
-    tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
-    // Barrel coordinates
-    myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
-    myTextFile->addText(barrelModuleCoordinates.str());
-    filesContent->addItem(myTextFile);
-    // Endcap coordinates
-    myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
-    myTextFile->addText(endcapModuleCoordinates.str());
-    filesContent->addItem(myTextFile);
-
-       // TODO: make an object that handles this properly:
-    RootWTable* myTable = new RootWTable();
-    myTable->setContent(1,0,"CHF/cm"+superStart+"2"+superEnd);
-    myTable->setContent(2,0,"mW/channel");
-    myTable->setContent(0,1,"Pt modules");
-    myTable->setContent(0,2,"Strip modules");
-    myTable->setContent(1,1,tracker.getCost(Module::Pt), costPerUnitPrecision);
-    myTable->setContent(1,2,tracker.getCost(Module::Strip), costPerUnitPrecision);
-    myTable->setContent(2,1,tracker.getPower(Module::Pt)*1e3, powerPerUnitPrecision);
-    myTable->setContent(2,2,tracker.getPower(Module::Strip)*1e3, powerPerUnitPrecision);
-    simulationContent->addItem(myTable);
-
-    return true; // TODO: make this meaningful
-  }
-
-
-  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-    RootWPage* myPage = new RootWPage("Band width");
-    myPage->setAddress("bandwidth.html");
-    site.addPage(myPage);
-    RootWContent* myContent;
-
-    //********************************//
-    //*                              *//
-    //*       Bandwidth              *//
-    //*                              *//
-    //********************************//
-    // (also todo: handle this properly: with a not-hardcoded model)
-    myContent = new RootWContent("Distributions and models");
-    myPage->addContent(myContent);
-    TCanvas* bandWidthCanvas = new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", 600, 400); // TODO: put all these numbers somewhere
-    TCanvas* moduleHitCanvas = new TCanvas("ModuleHitC", "Module hit countC", 600, 400);
-    bandWidthCanvas->SetLogy(1);
-    moduleHitCanvas->SetLogy(1);
-    
-    bandWidthCanvas->cd();
-    TH1D& bandwidthDistribution = analyzer.getBandwidthDistribution();
-    TH1D& bandwidthDistributionSparsified = analyzer.getBandwidthDistributionSparsified();
-    bandwidthDistribution.Draw();
-    bandwidthDistributionSparsified.Draw("same");
-    TLegend* myLegend = new TLegend(0.75, 0.5, 1, .75);
-    myLegend->AddEntry(&bandwidthDistribution, "Unsparsified", "l");
-    myLegend->AddEntry(&bandwidthDistributionSparsified, "Sparsified", "l");
-    myLegend->Draw();
-    RootWImage* myImage = new RootWImage(bandWidthCanvas, 600, 600);
-    myImage->setComment("Module bandwidth distribution in the sparsified and unsparsified model");
-    myContent->addItem(myImage);
-
-    moduleHitCanvas->cd();
-    TH1D& chanHitDistribution = analyzer.getChanHitDistribution();
-    chanHitDistribution.Draw();
-    myImage = new RootWImage(moduleHitCanvas, 600, 600);
-    myImage->setComment("Number of hits per module per BX distribution");
-    myContent->addItem(myImage);
-
-    RootWText* myDescription = new RootWText();
-    myContent->addItem(myDescription);
-    myDescription->addText( "Bandwidth useage estimate:<br/>");
-    myDescription->addText( "(Pt modules: ignored)<br/>");
-    myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
-    myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
-    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << tracker.getNMB();
-    aStringStream <<" minimum bias events assumed</br>";
-    myDescription->addText( aStringStream.str() );
-
-    //********************************//
-    //*                              *//
-    //*    Resolution estimate       *//
-    //*                              *//
-    //********************************//
-    
-    // Here you should check if the TGraph
-    // list is empty
-    // if (!isempty)
-    {
-      // Create a page for the errors
-      RootWPage& myPage = site.addPage("Resolution");
-      myPage.setAddress("errors.html");
-      
-      // Create the contents
-      RootWContent& resolutionContent = myPage.addContent("Track resolution (dummy plots)");
-      
-      bool firstPlot = true;
-      TCanvas* momentumCanvas;
-      TCanvas* distanceCanvas;
-      TCanvas* angleCanvas;
-      std::string plotOption = "Alp";
-      // Loop over the momenta (replace with real code)
-      for (double i=1; i<4; i=i+1) {
-	// Get the TGraphs of momentum, distance and angle
-	// for momentum i: replace with real code
-	TGraph* fakeMomentumGraph = new TGraph(2);
-	fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
-	TGraph* fakeDistanceGraph = new TGraph(2);
-	fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
-	TGraph* fakeAngleGraph = new TGraph(2);
-	fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
-
-	if (firstPlot) {
-	  // Only for the first time
-	  firstPlot=false;
-	  // Create the canvases
-	  momentumCanvas = new TCanvas();
-	  distanceCanvas = new TCanvas();
-	  angleCanvas = new TCanvas();
-	} else {
-	  plotOption = "lp same";
-	}
-	
-	std::cerr << plotOption <<std::endl;
-
-	// Actually draw the plots on the cavases
-	// with the right plot options
-	momentumCanvas->cd();
-	fakeMomentumGraph->Draw(plotOption.c_str());
-	distanceCanvas->cd();
-	fakeDistanceGraph->Draw(plotOption.c_str());
-	angleCanvas->cd();
-	fakeAngleGraph->Draw(plotOption.c_str());
-      }
-
-      RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
-      momentumImage.setComment("Momentum resolution vs. eta");
-      RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
-      distanceImage.setComment("Distance of closest approach resolution vs. eta");
-      RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
-      angleImage.setComment("Angle resolution vs. eta");
+    bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+        RootWPage* myPage = new RootWPage("Info");
+        myPage->setAddress("info.html");
+        site.addPage(myPage);
+        RootWContent *simulationContent, *filesContent;
+        RootWBinaryFile* myBinaryFile;
+        std::string trackerName = tracker.getName();
+        
+        int materialTracksUsed = analyzer.getMaterialTracksUsed();
+        int geometryTracksUsed = analyzer.getGeometryTracksUsed();
+        
+        //********************************//
+        //*                              *//
+        //*  Simulation and files        *//
+        //*                              *//
+        //********************************//
+        // (also todo: handle this properly: with a not-hardcoded model)
+        simulationContent = new RootWContent("Simulation parameters");
+        myPage->addContent(simulationContent);
+        filesContent = new RootWContent("Geometry files");
+        myPage->addContent(filesContent);
+        
+        if (geomfile!="") {
+            std::string destinationFilename = trackerName + ".cfg";
+            myBinaryFile = new RootWBinaryFile(destinationFilename, "Geometry configuration file", geomfile);
+            simulationContent->addItem(myBinaryFile);
+        }
+        if (settingsfile!="") {
+            std::string destinationFilename = trackerName + "_Types.cfg";
+            myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
+            simulationContent->addItem(myBinaryFile);
+        }
+        if (matfile!="") {
+            std::string destinationFilename = trackerName + "_Materials.cfg";
+            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file", matfile);
+            simulationContent->addItem(myBinaryFile);
+        }
+        
+        RootWInfo* myInfo;
+        myInfo = new RootWInfo("Minimum bias per bunch crossing");
+        myInfo->setValue(tracker.getNMB(), minimumBiasPrecision);
+        simulationContent->addItem(myInfo);
+        myInfo = new RootWInfo("Number of tracks used for material");
+        myInfo->setValue(materialTracksUsed);
+        simulationContent->addItem(myInfo);
+        myInfo = new RootWInfo("Number of tracks used for geometry");
+        myInfo->setValue(geometryTracksUsed);
+        simulationContent->addItem(myInfo);
+        
+        ostringstream barrelModuleCoordinates, endcapModuleCoordinates;
+        RootWTextFile* myTextFile;
+        tracker.printBarrelModuleZ(barrelModuleCoordinates);
+        tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
+        // Barrel coordinates
+        myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
+        myTextFile->addText(barrelModuleCoordinates.str());
+        filesContent->addItem(myTextFile);
+        // Endcap coordinates
+        myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
+        myTextFile->addText(endcapModuleCoordinates.str());
+        filesContent->addItem(myTextFile);
+        
+        // TODO: make an object that handles this properly:
+        RootWTable* myTable = new RootWTable();
+        myTable->setContent(1, 0, "CHF/cm"+superStart+"2"+superEnd);
+        myTable->setContent(2, 0, "mW/channel");
+        myTable->setContent(0, 1, "Pt modules");
+        myTable->setContent(0, 2, "Strip modules");
+        myTable->setContent(1, 1, tracker.getCost(Module::Pt), costPerUnitPrecision);
+        myTable->setContent(1, 2, tracker.getCost(Module::Strip), costPerUnitPrecision);
+        myTable->setContent(2, 1, tracker.getPower(Module::Pt)*1e3, powerPerUnitPrecision);
+        myTable->setContent(2, 2, tracker.getPower(Module::Strip)*1e3, powerPerUnitPrecision);
+        simulationContent->addItem(myTable);
+        
+        return true; // TODO: make this meaningful
     }
     
-    return true;
-  }    
-
-  // public
-  // creates a page with all the logs taken from the messagelogger objects
-  // @param site a reference to the site we want to work onto
-  // @param loggerVector a vector of references to some messageLogger objects
-  // @return true if any log was written
-  bool Vizard::makeLogPage(RootWSite& site) {
-    bool anythingFound=false;
-    RootWPage& myPage = site.addPage("Log page");
-    for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
-      if (!MessageLogger::hasEmptyLog(iLevel)) {
-	bool defaultOpen=false;
-	if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
-	anythingFound=true;
-	RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
-	newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
-	MessageLogger::getLatestLog(iLevel);
-      }
+    
+    bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+        RootWPage* myPage = new RootWPage("Band width");
+        myPage->setAddress("bandwidth.html");
+        site.addPage(myPage);
+        RootWContent* myContent;
+        
+        //********************************//
+        //*                              *//
+        //*       Bandwidth              *//
+        //*                              *//
+        //********************************//
+        // (also todo: handle this properly: with a not-hardcoded model)
+        myContent = new RootWContent("Distributions and models");
+        myPage->addContent(myContent);
+        TCanvas* bandWidthCanvas = new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", 600, 400); // TODO: put all these numbers somewhere
+        TCanvas* moduleHitCanvas = new TCanvas("ModuleHitC", "Module hit countC", 600, 400);
+        bandWidthCanvas->SetLogy(1);
+        moduleHitCanvas->SetLogy(1);
+        
+        bandWidthCanvas->cd();
+        TH1D& bandwidthDistribution = analyzer.getBandwidthDistribution();
+        TH1D& bandwidthDistributionSparsified = analyzer.getBandwidthDistributionSparsified();
+        bandwidthDistribution.Draw();
+        bandwidthDistributionSparsified.Draw("same");
+        TLegend* myLegend = new TLegend(0.75, 0.5, 1, .75);
+        myLegend->AddEntry(&bandwidthDistribution, "Unsparsified", "l");
+        myLegend->AddEntry(&bandwidthDistributionSparsified, "Sparsified", "l");
+        myLegend->Draw();
+        RootWImage* myImage = new RootWImage(bandWidthCanvas, 600, 600);
+        myImage->setComment("Module bandwidth distribution in the sparsified and unsparsified model");
+        myContent->addItem(myImage);
+        
+        moduleHitCanvas->cd();
+        TH1D& chanHitDistribution = analyzer.getChanHitDistribution();
+        chanHitDistribution.Draw();
+        myImage = new RootWImage(moduleHitCanvas, 600, 600);
+        myImage->setComment("Number of hits per module per BX distribution");
+        myContent->addItem(myImage);
+        
+        RootWText* myDescription = new RootWText();
+        myContent->addItem(myDescription);
+        myDescription->addText( "Bandwidth useage estimate:<br/>");
+        myDescription->addText( "(Pt modules: ignored)<br/>");
+        myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
+        myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
+        ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << tracker.getNMB();
+        aStringStream <<" minimum bias events assumed</br>";
+        myDescription->addText( aStringStream.str() );
+        
+        //********************************//
+        //*                              *//
+        //*    Resolution estimate       *//
+        //*                              *//
+        //********************************//
+        
+        // Here you should check if the TGraph
+        // list is empty => maybe not?
+        // if (!isempty)
+        {
+            // Create a page for the errors
+            RootWPage& myPage = site.addPage("Resolution");
+            myPage.setAddress("errors.html");
+            
+            // Create the contents
+            RootWContent& resolutionContent = myPage.addContent("Track resolution (dummy plots)");
+            
+            //bool firstPlot = true;
+            TCanvas* momentumCanvas = NULL;
+            TCanvas* distanceCanvas = NULL;
+            TCanvas* angleCanvas = NULL;
+            std::string plotOption = "Alp";
+            std::map<double, TGraph>::iterator g_iter, g_guard;
+            // momentum canvas loop
+            std::cout << "Vizard: plotting rho profiles..." << std::flush;
+            g_guard = analyzer.getRhoProfiles().end();
+            for (g_iter = analyzer.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
+                TGraph& momentumGraph = g_iter->second;
+                if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
+                else plotOption = "lp same";
+                momentumCanvas->cd();
+                momentumGraph.Draw(plotOption.c_str());
+            }
+            std::cout << "done." << std::endl;
+            // TODO: add loops for distanceCanvas and angleCanvas (reuse iterators g_iter and g_guard, and reset plotOption)
+            // Loop over the momenta (replace with real code)
+            /*for (double i=1; i<4; i=i+1) {
+        // Get the TGraphs of momentum, distance and angle
+        // for momentum i: replace with real code
+        TGraph* fakeMomentumGraph = new TGraph(2);
+        fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
+        TGraph* fakeDistanceGraph = new TGraph(2);
+        fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
+        TGraph* fakeAngleGraph = new TGraph(2);
+        fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
+       
+        if (firstPlot) {
+          // Only for the first time
+          firstPlot=false;
+          // Create the canvases
+          momentumCanvas = new TCanvas();
+          distanceCanvas = new TCanvas();
+          angleCanvas = new TCanvas();
+        } else {
+          plotOption = "lp same";
+        }
+       
+        std::cerr << plotOption <<std::endl;
+       
+        // Actually draw the plots on the cavases
+        // with the right plot options
+        momentumCanvas->cd();
+        fakeMomentumGraph->Draw(plotOption.c_str());
+        distanceCanvas->cd();
+        fakeDistanceGraph->Draw(plotOption.c_str());
+        angleCanvas->cd();
+        fakeAngleGraph->Draw(plotOption.c_str());
+      }*/
+            
+            if (momentumCanvas != NULL) {
+                std::cout << "Vizard: momentumCanvas is not NULL." << std::endl;
+                RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
+                momentumImage.setComment("Momentum resolution vs. eta");
+            }
+            if (distanceCanvas != NULL) {
+                RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
+                distanceImage.setComment("Distance of closest approach resolution vs. eta");
+            }
+            if (angleCanvas != NULL) {
+                RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
+                angleImage.setComment("Angle resolution vs. eta");
+            }
+        }
+        
+        return true;
     }
-    return anythingFound;
-  }
-
-
+    
+    // public
+    // creates a page with all the logs taken from the messagelogger objects
+    // @param site a reference to the site we want to work onto
+    // @param loggerVector a vector of references to some messageLogger objects
+    // @return true if any log was written
+    bool Vizard::makeLogPage(RootWSite& site) {
+        bool anythingFound=false;
+        RootWPage& myPage = site.addPage("Log page");
+        for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
+            if (!MessageLogger::hasEmptyLog(iLevel)) {
+                bool defaultOpen=false;
+                if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
+                anythingFound=true;
+                RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
+                newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
+                MessageLogger::getLatestLog(iLevel);
+            }
+        }
+        return anythingFound;
+    }
+    
+    
 #endif
-
-
-  // private
-  // Draws tickmarks on 3d canvases
-  // @param myView the TView where to draw ticks
-  // @param maxL maximum tracker length in z
-  // @param maxR maximum tracker radius in rho
-  // @param noAxis number of the axis: Enumerate sections by axis
-  //        index normal to draw plane (if x=1, y=2, z=3)
-  // @param spacing grid tick spacing
-  // @param option the options to pass to the Draw() method
-  void Vizard::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
-    TPolyLine3D* aLine;
-    Color_t gridColor_hard = color_hard_grid;
-    int gridStyle_solid = 1;
-    std::string theOption(option);
     
-    int i;
-    int j;
-    int k;
     
-    double topMax = (maxL > maxR) ? maxL : maxR;
-    topMax = ceil(topMax/spacing)*spacing;
-    
-    double aValue[3];
-    double minValue[3];
-    double maxValue[3];
-    
-    i=(noAxis)%3;
-    j=(noAxis+1)%3;
-    k=(noAxis+2)%3;
-    
-    maxL *= 1.1;
-    maxR *= 1.1;
-    
-    if (noAxis==1) {
-        minValue[0]=0;
-        maxValue[0]=+maxR;
-        minValue[1]=0;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
-    } else {
-        minValue[0]=-maxR;
-        maxValue[0]=+maxR;
-        minValue[1]=-maxR;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
+    // private
+    // Draws tickmarks on 3d canvases
+    // @param myView the TView where to draw ticks
+    // @param maxL maximum tracker length in z
+    // @param maxR maximum tracker radius in rho
+    // @param noAxis number of the axis: Enumerate sections by axis
+    //        index normal to draw plane (if x=1, y=2, z=3)
+    // @param spacing grid tick spacing
+    // @param option the options to pass to the Draw() method
+    void Vizard::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
+        TPolyLine3D* aLine;
+        Color_t gridColor_hard = color_hard_grid;
+        int gridStyle_solid = 1;
+        std::string theOption(option);
+        
+        int i;
+        int j;
+        int k;
+        
+        double topMax = (maxL > maxR) ? maxL : maxR;
+        topMax = ceil(topMax/spacing)*spacing;
+        
+        double aValue[3];
+        double minValue[3];
+        double maxValue[3];
+        
+        i=(noAxis)%3;
+        j=(noAxis+1)%3;
+        k=(noAxis+2)%3;
+        
+        maxL *= 1.1;
+        maxR *= 1.1;
+        
+        if (noAxis==1) {
+            minValue[0]=0;
+            maxValue[0]=+maxR;
+            minValue[1]=0;
+            maxValue[1]=+maxR;
+            minValue[2]=0;
+            maxValue[2]=+maxL;
+        } else {
+            minValue[0]=-maxR;
+            maxValue[0]=+maxR;
+            minValue[1]=-maxR;
+            maxValue[1]=+maxR;
+            minValue[2]=0;
+            maxValue[2]=+maxL;
+        }
+        
+        aValue[k]=-topMax;
+        
+        if (noAxis==1) {
+            double etaStep=.2;
+            double etaMax = 2.1;
+            // Add the eta ticks
+            double theta;
+            double tickLength = 2 * spacing;
+            double tickDistance = spacing;
+            double startR = maxR + tickDistance;
+            double startL = maxL + tickDistance;
+            double endR = maxR + tickDistance + tickLength;
+            double endL = maxL + tickDistance + tickLength;
+            XYZVector startTick;
+            XYZVector endTick;
+            Double_t pw[3];
+            Double_t pn[3];
+            TText* aLabel;
+            char labelChar[10];
+            for (double eta=0; eta<etaMax; eta+=etaStep) {
+                aLine = new TPolyLine3D(2);
+                theta = 2 * atan(exp(-eta));
+                startTick = XYZVector(0, sin(theta), cos(theta));
+                startTick *= startR/startTick.Rho();
+                endTick = startTick / startTick.Rho() * endR;
+                if (startTick.Z()>startL) {
+                    startTick *= startL/startTick.Z();
+                    endTick *=  endL/endTick.Z();
+                }
+                pw[0]=0.;
+                pw[1]=endTick.Y();
+                pw[2]=endTick.Z();
+                myView->WCtoNDC(pw, pn);
+                sprintf(labelChar, "%.01f", eta);
+                aLabel = new TText(pn[0], pn[1], labelChar);
+                aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+                aLabel->SetTextAlign(21);
+                aLabel->Draw(theOption.c_str());
+                theOption="same";
+                endTick = (endTick+startTick)/2.;
+                aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+                aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+                aLine->SetLineStyle(gridStyle_solid);
+                aLine->SetLineColor(gridColor_hard);
+                aLine->Draw("same");
+            }
+            aLine = new TPolyLine3D(2);
+            theta = 2 * atan(exp(-2.5));
+            startTick = XYZVector(0, sin(theta), cos(theta));
+            startTick *= startR/startTick.Rho();
+            endTick = startTick / startTick.Rho() * endR;
+            if (startTick.Z()>startL) {
+                startTick *= startL/startTick.Z();
+                endTick *=  endL/endTick.Z();
+            }
+            pw[0]=0.;
+            pw[1]=endTick.Y();
+            pw[2]=endTick.Z();
+            myView->WCtoNDC(pw, pn);
+            sprintf(labelChar, "%.01f", 2.5);
+            aLabel = new TText(pn[0], pn[1], labelChar);
+            aLabel->SetTextSize(aLabel->GetTextSize()*.8);
+            aLabel->SetTextAlign(21);
+            aLabel->Draw(theOption.c_str());
+            theOption="same";
+            endTick = (endTick+startTick)/2.;
+            aLine->SetPoint(0, 0., 0., 0.);
+            aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+            aLine->SetLineStyle(gridStyle_solid);
+            aLine->SetLineColor(gridColor_hard);
+            aLine->Draw("same");
+            
+            
+            for (double z=0; z<=maxL ; z+=(4*spacing)) {
+                aLine = new TPolyLine3D(2);
+                startTick = XYZVector(0, 0, z);
+                endTick = XYZVector(0, -(tickLength/2), z);
+                aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+                aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+                pw[0]=0.;
+                pw[1]=-tickLength;
+                pw[2]=endTick.Z();
+                myView->WCtoNDC(pw, pn);
+                sprintf(labelChar, "%.0f", z);
+                aLabel = new TText(pn[0], pn[1], labelChar);
+                aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+                aLabel->SetTextAlign(23);
+                aLabel->Draw(theOption.c_str());
+                theOption="same";
+                aLine->SetLineStyle(gridStyle_solid);
+                aLine->SetLineColor(gridColor_hard);
+                aLine->Draw("same");
+            }
+            
+            for (double y=0; y<=maxR ; y+=(2*spacing)) {
+                aLine = new TPolyLine3D(2);
+                startTick = XYZVector(0, y, 0);
+                endTick = XYZVector(0, y, -(tickLength/2));
+                aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
+                aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
+                pw[0]=0.;
+                pw[1]=endTick.Y();
+                pw[2]=-tickLength;
+                myView->WCtoNDC(pw, pn);
+                sprintf(labelChar, "%.0f", y);
+                aLabel = new TText(pn[0], pn[1], labelChar);
+                aLabel->SetTextSize(aLabel->GetTextSize()*.6);
+                aLabel->SetTextAlign(32);
+                aLabel->Draw(theOption.c_str());
+                theOption="same";
+                aLine->SetLineStyle(gridStyle_solid);
+                aLine->SetLineColor(gridColor_hard);
+                aLine->Draw("same");
+            }
+        }
     }
     
-    aValue[k]=-topMax;
-    
-    if (noAxis==1) {
-      double etaStep=.2;
-      double etaMax = 2.1;
-      // Add the eta ticks
-      double theta;
-      double tickLength = 2 * spacing;
-      double tickDistance = spacing;
-      double startR = maxR + tickDistance;
-      double startL = maxL + tickDistance;
-      double endR = maxR + tickDistance + tickLength;
-      double endL = maxL + tickDistance + tickLength;
-      XYZVector startTick;
-      XYZVector endTick;
-      Double_t pw[3];
-      Double_t pn[3];
-      TText* aLabel;
-      char labelChar[10];
-      for (double eta=0; eta<etaMax; eta+=etaStep) {
-	aLine = new TPolyLine3D(2);
-	theta = 2 * atan(exp(-eta));
-	startTick = XYZVector(0, sin(theta), cos(theta));
-	startTick *= startR/startTick.Rho();
-	endTick = startTick / startTick.Rho() * endR;
-	if (startTick.Z()>startL) {
-	  startTick *= startL/startTick.Z();
-	  endTick *=  endL/endTick.Z();
-	}
-	pw[0]=0.;
-	pw[1]=endTick.Y();
-	pw[2]=endTick.Z();
-	myView->WCtoNDC(pw, pn);
-	sprintf(labelChar, "%.01f", eta);
-	aLabel = new TText(pn[0], pn[1], labelChar);
-	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
-	aLabel->SetTextAlign(21);
-	aLabel->Draw(theOption.c_str());
-	theOption="same";
-	endTick = (endTick+startTick)/2.;
-	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
-	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
-	aLine->SetLineStyle(gridStyle_solid);
-	aLine->SetLineColor(gridColor_hard);
-	aLine->Draw("same");
-      }
-      aLine = new TPolyLine3D(2);
-      theta = 2 * atan(exp(-2.5));
-      startTick = XYZVector(0, sin(theta), cos(theta));
-      startTick *= startR/startTick.Rho();
-      endTick = startTick / startTick.Rho() * endR;
-      if (startTick.Z()>startL) {
-	startTick *= startL/startTick.Z();
-	endTick *=  endL/endTick.Z();
-      }
-      pw[0]=0.;
-      pw[1]=endTick.Y();
-      pw[2]=endTick.Z();
-      myView->WCtoNDC(pw, pn);
-      sprintf(labelChar, "%.01f", 2.5);
-      aLabel = new TText(pn[0], pn[1], labelChar);
-      aLabel->SetTextSize(aLabel->GetTextSize()*.8);
-      aLabel->SetTextAlign(21);
-      aLabel->Draw(theOption.c_str());
-      theOption="same";
-      endTick = (endTick+startTick)/2.;
-      aLine->SetPoint(0, 0., 0., 0.);
-      aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
-      aLine->SetLineStyle(gridStyle_solid);
-      aLine->SetLineColor(gridColor_hard);
-      aLine->Draw("same");
-      
-      
-      for (double z=0; z<=maxL ; z+=(4*spacing)) {
-	aLine = new TPolyLine3D(2);
-	startTick = XYZVector(0, 0, z);
-	endTick = XYZVector(0, -(tickLength/2), z);
-	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
-	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
-	pw[0]=0.;
-	pw[1]=-tickLength;
-	pw[2]=endTick.Z();
-	myView->WCtoNDC(pw, pn);
-	sprintf(labelChar, "%.0f", z);
-	aLabel = new TText(pn[0], pn[1], labelChar);
-	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
-	aLabel->SetTextAlign(23);
-	aLabel->Draw(theOption.c_str());
-	theOption="same";
-	aLine->SetLineStyle(gridStyle_solid);
-	aLine->SetLineColor(gridColor_hard);
-	aLine->Draw("same");
-      }
-      
-      for (double y=0; y<=maxR ; y+=(2*spacing)) {
-	aLine = new TPolyLine3D(2);
-	startTick = XYZVector(0, y, 0);
-	endTick = XYZVector(0, y, -(tickLength/2));
-	aLine->SetPoint(0, 0., startTick.Y(), startTick.Z());
-	aLine->SetPoint(1, 0., endTick.Y(), endTick.Z());
-	pw[0]=0.;
-	pw[1]=endTick.Y();
-	pw[2]=-tickLength;
-	myView->WCtoNDC(pw, pn);
-	sprintf(labelChar, "%.0f", y);
-	aLabel = new TText(pn[0], pn[1], labelChar);
-	aLabel->SetTextSize(aLabel->GetTextSize()*.6);
-	aLabel->SetTextAlign(32);
-	aLabel->Draw(theOption.c_str());
-	theOption="same";
-	aLine->SetLineStyle(gridStyle_solid);
-	aLine->SetLineColor(gridColor_hard);
-	aLine->Draw("same");
-      }
-    }
-  }
-
-  // private
-  // Draws a grid on the current canvas
-  // @param maxL maximum tracker length in z
-  // @param maxR maximum tracker radius in rho
-  // @param noAxis number of the axis: Enumerate sections by axis
-  //        index normal to draw plane (if x=1, y=2, z=3)
-  // @param spacing grid tick spacing
-  // @param option the options to pass to the Draw() method
-  void Vizard::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
-    TPolyLine3D* aLine;
-    Color_t gridColor = color_grid;
-    Color_t gridColor_hard = color_hard_grid;
-    Color_t thisLineColor;
-    
-    std::string theOption(option);
-    
-    int i;
-    int j;
-    int k;
-    
-    double topMax = (maxL > maxR) ? maxL : maxR;
-    topMax = ceil(topMax/spacing)*spacing;
-    
-    double aValue[3];
-    double minValue[3];
-    double maxValue[3];
-    double runValue;
-    int thisLineStyle;
-    
-    i=(noAxis)%3;
-    j=(noAxis+1)%3;
-    k=(noAxis+2)%3;
-    
-    maxL *= 1.1;
-    maxR *= 1.1;
-    
-    if (noAxis==1) {
-        minValue[0]=0;
-        maxValue[0]=+maxR;
-        minValue[1]=0;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
-    } else {
-        minValue[0]=-maxR;
-        maxValue[0]=+maxR;
-        minValue[1]=-maxR;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
+    // private
+    // Draws a grid on the current canvas
+    // @param maxL maximum tracker length in z
+    // @param maxR maximum tracker radius in rho
+    // @param noAxis number of the axis: Enumerate sections by axis
+    //        index normal to draw plane (if x=1, y=2, z=3)
+    // @param spacing grid tick spacing
+    // @param option the options to pass to the Draw() method
+    void Vizard::drawGrid(double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
+        TPolyLine3D* aLine;
+        Color_t gridColor = color_grid;
+        Color_t gridColor_hard = color_hard_grid;
+        Color_t thisLineColor;
+        
+        std::string theOption(option);
+        
+        int i;
+        int j;
+        int k;
+        
+        double topMax = (maxL > maxR) ? maxL : maxR;
+        topMax = ceil(topMax/spacing)*spacing;
+        
+        double aValue[3];
+        double minValue[3];
+        double maxValue[3];
+        double runValue;
+        int thisLineStyle;
+        
+        i=(noAxis)%3;
+        j=(noAxis+1)%3;
+        k=(noAxis+2)%3;
+        
+        maxL *= 1.1;
+        maxR *= 1.1;
+        
+        if (noAxis==1) {
+            minValue[0]=0;
+            maxValue[0]=+maxR;
+            minValue[1]=0;
+            maxValue[1]=+maxR;
+            minValue[2]=0;
+            maxValue[2]=+maxL;
+        } else {
+            minValue[0]=-maxR;
+            maxValue[0]=+maxR;
+            minValue[1]=-maxR;
+            maxValue[1]=+maxR;
+            minValue[2]=0;
+            maxValue[2]=+maxL;
+        }
+        
+        aValue[k]=-topMax;
+        for(runValue = -topMax; runValue<=topMax; runValue+=spacing) {
+            
+            // Special line for axis
+            if (runValue==0) {
+                thisLineStyle=1;
+                thisLineColor=gridColor_hard;
+            } else {
+                thisLineStyle=2;
+                thisLineColor=gridColor;
+            }
+            
+            // Parallel to j
+            if ((runValue<=maxValue[i])&&(runValue>=minValue[i])) {
+                aValue[i] = runValue;
+                aLine = new TPolyLine3D(2);
+                aValue[j] = minValue[j];
+                aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
+                aValue[j] = maxValue[j];
+                aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
+                aLine->SetLineStyle(thisLineStyle);
+                aLine->SetLineColor(thisLineColor);
+                aLine->Draw(theOption.c_str());
+                theOption="same";
+            };
+            
+            // Parallel to i
+            if ((runValue<=maxValue[j])&&(runValue>=minValue[j])) {
+                aValue[j] = runValue;
+                aLine = new TPolyLine3D(2);
+                aValue[i] = minValue[i];
+                aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
+                aValue[i] = maxValue[i];
+                aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
+                aLine->SetLineStyle(thisLineStyle);
+                aLine->SetLineColor(thisLineColor);
+                aLine->Draw(theOption.c_str());
+                theOption="same";
+            };
+            
+        }
     }
     
-    aValue[k]=-topMax;
-    for(runValue = -topMax; runValue<=topMax; runValue+=spacing) {
-      
-      // Special line for axis
-      if (runValue==0) {
-	thisLineStyle=1;
-	thisLineColor=gridColor_hard;
-      } else {
-	thisLineStyle=2;
-	thisLineColor=gridColor;
-      }
-      
-      // Parallel to j
-      if ((runValue<=maxValue[i])&&(runValue>=minValue[i])) {
-	aValue[i] = runValue;
-	aLine = new TPolyLine3D(2);
-	aValue[j] = minValue[j];
-	aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
-	aValue[j] = maxValue[j];
-	aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
-	aLine->SetLineStyle(thisLineStyle);
-	aLine->SetLineColor(thisLineColor);
-	aLine->Draw(theOption.c_str());
-	theOption="same";
-      };
-      
-      // Parallel to i
-      if ((runValue<=maxValue[j])&&(runValue>=minValue[j])) {
-	aValue[j] = runValue;
-	aLine = new TPolyLine3D(2);
-	aValue[i] = minValue[i];
-	aLine->SetPoint(0, aValue[0], aValue[1], aValue[2]);
-	aValue[i] = maxValue[i];
-	aLine->SetPoint(1, aValue[0], aValue[1], aValue[2]);
-	aLine->SetLineStyle(thisLineStyle);
-	aLine->SetLineColor(thisLineColor);
-	aLine->Draw(theOption.c_str());
-	theOption="same";
-      };
-      
-    } 
-  }
-  
-  // private
-  // Creates a new 4-pad canvas with XY and YZ views with all the useful details, like the axis ticks
-  // and the eta reference. The fourth pad contains a miniature of the eta profile coverage
-  // if you need any of these you can get them with GetPad()
-  // @param maxZ maximum tracker's Z coordinate to be shown
-  // @param maxRho maximum tracker's Rho coordinate to be shown
-  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms 
-  // @return a pointer to the new TCanvas
-  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
-    Int_t irep;
-    TVirtualPad* myPad;
-
-    YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
-    summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
-    summaryCanvas->SetFillColor(color_pad_background);
-    summaryCanvas->Divide(2, 2);
-
-    for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetFillColor(color_plot_background);  }
-
-    // First pad
-    // YZView
-    myPad = summaryCanvas->GetPad(padYZ);
-    myPad->SetFillColor(color_plot_background);
-    myPad->cd();
-    if (analyzer.getGeomLiteYZ()) {
-      drawGrid(maxZ, maxRho, ViewSectionYZ);
-      analyzer.getGeomLiteYZ()->DrawClonePad();
-      myPad->GetView()->SetParallel();
-      myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
-      myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-      drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);      
-
-      YZCanvas->cd();
-      myPad = YZCanvas->GetPad(0);
-      myPad->SetFillColor(color_plot_background);
-      drawGrid(maxZ, maxRho, ViewSectionYZ);
-      analyzer.getGeomLiteYZ()->DrawClonePad();
-      myPad->GetView()->SetParallel();
-      myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
-      myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-      drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
-    }
-
-    // Second pad
-    // XYView (barrel)
-    myPad = summaryCanvas->GetPad(padXY);
-    myPad->cd();
-    myPad->SetFillColor(color_plot_background);
-    if (analyzer.getGeomLiteXY()) {
-      drawGrid(maxZ, maxRho, ViewSectionXY);
-      analyzer.getGeomLiteXY()->DrawClonePad();
-      myPad->GetView()->SetParallel();
-      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    // private
+    // Creates a new 4-pad canvas with XY and YZ views with all the useful details, like the axis ticks
+    // and the eta reference. The fourth pad contains a miniature of the eta profile coverage
+    // if you need any of these you can get them with GetPad()
+    // @param maxZ maximum tracker's Z coordinate to be shown
+    // @param maxRho maximum tracker's Rho coordinate to be shown
+    // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+    // @return a pointer to the new TCanvas
+    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
+        Int_t irep;
+        TVirtualPad* myPad;
+        
+        YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
+        summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
+        summaryCanvas->SetFillColor(color_pad_background);
+        summaryCanvas->Divide(2, 2);
+        
+        for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetFillColor(color_plot_background);  }
+        
+        // First pad
+        // YZView
+        myPad = summaryCanvas->GetPad(padYZ);
+        myPad->SetFillColor(color_plot_background);
+        myPad->cd();
+        if (analyzer.getGeomLiteYZ()) {
+            drawGrid(maxZ, maxRho, ViewSectionYZ);
+            analyzer.getGeomLiteYZ()->DrawClonePad();
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+            
+            YZCanvas->cd();
+            myPad = YZCanvas->GetPad(0);
+            myPad->SetFillColor(color_plot_background);
+            drawGrid(maxZ, maxRho, ViewSectionYZ);
+            analyzer.getGeomLiteYZ()->DrawClonePad();
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+        }
+        
+        // Second pad
+        // XYView (barrel)
+        myPad = summaryCanvas->GetPad(padXY);
+        myPad->cd();
+        myPad->SetFillColor(color_plot_background);
+        if (analyzer.getGeomLiteXY()) {
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteXY()->DrawClonePad();
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+        }
+        
+        // Third pad
+        // Plots
+        myPad = summaryCanvas->GetPad(padProfile);
+        myPad->cd();
+        myPad->SetFillColor(color_plot_background);
+        analyzer.getEtaProfileCanvas().DrawClonePad();
+        
+        // Fourth pad
+        // XYView (EndCap)
+        myPad = summaryCanvas->GetPad(padEC);
+        myPad->cd();
+        myPad->SetFillColor(color_plot_background);
+        if (analyzer.getGeomLiteEC()) {
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteEC()->DrawClonePad();
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+        }
+        
+        for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
+        summaryCanvas->Modified();
+        //return summaryCanvas;
     }
     
-    // Third pad
-    // Plots
-    myPad = summaryCanvas->GetPad(padProfile);
-    myPad->cd();
-    myPad->SetFillColor(color_plot_background);
-    analyzer.getEtaProfileCanvas().DrawClonePad();
     
-    // Fourth pad
-    // XYView (EndCap)
-    myPad = summaryCanvas->GetPad(padEC);
-    myPad->cd();
-    myPad->SetFillColor(color_plot_background);
-    if (analyzer.getGeomLiteEC()) {
-      drawGrid(maxZ, maxRho, ViewSectionXY);
-      analyzer.getGeomLiteEC()->DrawClonePad();
-      myPad->GetView()->SetParallel();
-      myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-      myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-    }
     
-    for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
-    summaryCanvas->Modified();   
-    //return summaryCanvas;
-  }
-  
-  
-
 }
 

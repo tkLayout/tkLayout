@@ -194,6 +194,11 @@ namespace insur {
         transformEtaToZ();
         // fill TGraph map
         calculateProfiles(momenta);
+        std::map<double, TGraph>::iterator rho_iter, rho_guard = rhoprofiles.end();
+        for (rho_iter = rhoprofiles.begin(); rho_iter != rho_guard; rho_iter++) {
+            std::cout << "Analyzer::analyzeMaterialBudget(): momentum = " << rho_iter->first << ":" << std::endl;
+            rho_iter->second.Print();
+        }
     }
   
     // protected
@@ -444,15 +449,19 @@ namespace insur {
         }
         // track loop
         for (int i = 0; i < n; i++) {
+            std::cout << "deltarho_.size() = " << tv.at(i).getDeltaRho().size() << std::endl;
             std::map<double, double>& drho = tv.at(i).getDeltaRho();
+            std::cout << "drho.size() = " << drho.size() << std::endl;
             eta = - log(tan(tv.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
                 if (rhoprofiles.find(miter->first) != rhoprofiles.end()) {
                     rho = miter->first / magnetic_field / 0.3;
+                    std::cout << "rho = " << rho << ", drho / rho = " << (miter->second / rho) << std::endl;
                     rhoprofiles[miter->first].SetPoint(i, eta, (miter->second / rho));
                 }
+                else std::cout << "No match found." << std::endl;
             }
         }
     }
