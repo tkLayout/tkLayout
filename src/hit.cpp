@@ -121,12 +121,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     int n = hitV_.size();
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
-        if (correlations_.find(momenta.at(p)) == correlations_.end()) {
-            TMatrixTSym<double> tmp(n);
-            pair<double, TMatrixTSym<double> > par(momenta.at(p), tmp);
-            correlations_.insert(par);
-        }
-        TMatrixTSym<double>& corr = correlations_[momenta.at(p)];
+        TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
         for (int i = 0; i < n - 1; i++) {
@@ -179,6 +174,11 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         }
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
+        // check if matrix is sane and worth keeping
+        if (corr.Determinant() != 0.0) {
+            pair<double, TMatrixTSym<double> > par(momenta.at(p), corr);
+            correlations_.insert(par);
+        }
     }
 }
 

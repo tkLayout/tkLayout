@@ -192,6 +192,7 @@ namespace insur {
      * This function initialises a material calculator from a config file.
      * @param configfile The name and, if necessary, path of a material config file for a tracker layout
      * @param calc A reference to an uninitialised material calculator
+     * @param mattabdir The location of the global material table if it is not in the default place
      * @return True if the config file was successfully parsed, false otherwise
      */
   bool MatParser::initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir ) {

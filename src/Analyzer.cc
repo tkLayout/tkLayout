@@ -447,6 +447,7 @@ namespace insur {
             std::map<double, double>& drho = tv.at(i).getDeltaRho();
             eta = - log(tan(tv.at(i).getTheta() / 2));
             mguard = drho.end();
+            // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
                 if (rhoprofiles.find(miter->first) != rhoprofiles.end()) {
                     rho = miter->first / magnetic_field / 0.3;
