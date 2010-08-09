@@ -15,6 +15,7 @@ Hit::~Hit() {
 
 Hit::Hit() {
     distance_ = 0;
+    radius_ = 0;
     objectKind_ = Undefined;
     hitModule_ = NULL;
     orientation_ = Undefined;
@@ -24,12 +25,12 @@ Hit::Hit() {
 
 Hit::Hit(const Hit& h) {
     distance_ = h.distance_;
+    radius_ = h.radius_;
     orientation_ = h.orientation_;
     objectKind_ = h.objectKind_;
     hitModule_ = h.hitModule_;
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
-    //TODO: rphiError_ ???
 }
 
 Hit::Hit(double myDistance) {
@@ -86,6 +87,11 @@ Track::Track() {
 
 Track::Track(const Track& t) {
     theta_ = t.theta_;
+    correlations_ = t.correlations_;
+    covariances_ = t.covariances_;
+    deltarho_ = t.deltarho_;
+    deltaphi_ = t.deltaphi_;
+    deltad_ = t.deltad_;
     vector<Hit*>::const_iterator iter, guard = t.hitV_.end();
     for (iter = t.hitV_.begin(); iter != guard; iter++) {
         Hit* h = new Hit(*(*iter));

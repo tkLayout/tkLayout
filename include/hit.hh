@@ -27,9 +27,6 @@ protected:
   // "Thickness" in terms of radiation_length and interaction_length
   pair<double, double> correctedMaterial_;
   Track* myTrack_;
-  // Error of the measurement due to scattering in mm
-  // as a function of the track momentum
-  std::map<momentum ,double> rphiError_ ;
 
 private:
   
@@ -56,7 +53,6 @@ public:
   double getTrackTheta();
   pair<double, double> getCorrectedMaterial();
   void setCorrectedMaterial(pair<double, double> newMaterial) { correctedMaterial_ = newMaterial;};
-  void setError(double rphiError, momentum p) { rphiError_[p] = rphiError; };
 };
 
 bool sortSmallerR(Hit* h1, Hit* h2);
