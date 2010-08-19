@@ -1261,9 +1261,9 @@ EndcapModule::EndcapModule(int shape /*=wedge*/) : Module() {
 }
 
 
-//EndcapModule::EndcapModule(double waferDiameter, double heightOverWidth) : Module(waferDiameter) {
-//  setSensorRectGeometry(heightOverWidth,0);
-//}
+EndcapModule::EndcapModule(double waferDiameter, double heightOverWidth) : Module(waferDiameter) {
+  setSensorRectGeometry(heightOverWidth,0);
+}
 
 EndcapModule::EndcapModule(double heightOverWidth) : Module() {
     setSensorRectGeometry(heightOverWidth, 0);

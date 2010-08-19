@@ -293,6 +293,7 @@ public:
   // Rectangular-shaped detectors
   // EndcapModule(double waferDiameter, double heightOverWidth); // TODO: treat the wafer's diameter properly
   EndcapModule(double heightOverWidth);
+  EndcapModule(double waferDiameter, double heightOverWidth);
 
   // Wedge- or square-shaped (no real geometry setting here)
   //  EndcapModule(const Module& aModule);
