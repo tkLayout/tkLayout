@@ -1076,11 +1076,11 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
 
 
 EndcapLayer::EndcapLayer(const EndcapModule& sample, double alpha, double d) {
-    sampleModule_ = new EndcapModule(sample, alpha, d);
+    sampleModule_ = new EndcapModule(sample, alpha, d, -1);
 }
 
 EndcapLayer::EndcapLayer(double alpha, double d) {
-    sampleModule_ = new EndcapModule(alpha, d);
+    sampleModule_ = new EndcapModule(alpha, d, -1);
 }
 
 EndcapLayer::EndcapLayer(const EndcapModule& mySample) {
@@ -1217,7 +1217,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 	addMessage(tempString, INFO);
 	tempString.str(""); tempString << "lastrho: " << lastRho;
 	addMessage(tempString, INFO);
-        aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho);
+        aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho, -1);
         aRingModule->setRing(nRing);
         
         

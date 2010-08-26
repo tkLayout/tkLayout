@@ -7,10 +7,10 @@
 namespace insur {
     // public
     /**
-     * This is the function that provides a frame for the steps that are necessary to build up the inactive surfaces around
-     * a given collection of active modules. The tracker object is analysed first, then the information is used to create the
-     * inactive surfaces on the z+ side. In a last step, those surfaces are mirrored around the origin of z to create the
-     * complete set of volumes.
+     * This is the function framing the steps that are necessary to build up the inactive surfaces around a given tracker's
+     * collection of active modules. The tracker object is analysed first, then the information is used to create the inactive
+     * surfaces on the z+ side. In a last step, those surfaces are mirrored around the origin of z to create the complete
+     * set of volumes.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
@@ -20,10 +20,32 @@ namespace insur {
     InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
-        if (is.isUp()) is = arrangeUp(tintrep, is, geomfile);
-        else is = arrangeDown(tintrep, is, geomfile);
+        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, geomfile);
+        else is = arrangeDown(tintrep, is, outer_radius, geomfile);
         is = mirror(tintrep, is);
         if (printstatus) print(tintrep, is, false);
+        return is;
+    }
+    
+    /**
+     * This is the function framing the steps that are necessary to build up the inactive surfaces around a given pixel
+     * detector's collection of active modules. The pixel detector is analysed first, then the information is used to create the
+     * inactive surfaces on the z+ side. In a last step, those surfaces are mirrored around the origin of z to create the
+     * complete set of volumes
+     * @param pixels A reference to an existing tracker object, representing a pixel detector, with the active modules in it
+     * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param printstatus A flag that turns the command line summary at the end of processing on or off
+     * @return A reference to the modified collection of inactive surfaces
+     */
+    InactiveSurfaces& Usher::arrangePixels(Tracker& pixels, InactiveSurfaces& is, bool printstatus) {
+        TrackerIntRep pintrep;
+        std::cout << "Arranging Pixel configuration..." << std::flush;
+        is.setUp(pintrep.analyze(pixels));
+        is = servicesUp(pintrep, is, inner_radius, true);
+        is = supportsAll(pintrep, is, inner_radius, "", true);
+        std::cout << "done." << std::endl;
+        is = mirror(pintrep, is);
+        if (printstatus) print(pintrep, is, false);
         return is;
     }
     
@@ -33,13 +55,14 @@ namespace insur {
      * side for the UP configuration.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
-        std::cout << "Arranging UP configuration...";
-        is = servicesUp(tracker, is);
-        is = supportsAll(tracker, is, geomfile);
+    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
+        std::cout << "Arranging UP configuration..." << std::flush;
+        is = servicesUp(tracker, is, r_outer, false);
+        is = supportsAll(tracker, is, r_outer, geomfile, false);
         std::cout << "done." << std::endl;
         return is;
     }
@@ -49,13 +72,14 @@ namespace insur {
      * side for the DOWN configuration.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
-        std::cout << "Arranging DOWN configuration...";
-        is = servicesDown(tracker, is);
-        is = supportsAll(tracker, is, geomfile);
+    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
+        std::cout << "Arranging DOWN configuration..."<< std::flush;
+        is = servicesDown(tracker, is, r_outer, false);
+        is = supportsAll(tracker, is, r_outer, geomfile, false);
         std::cout << "done." << std::endl;
         return is;
     }
@@ -68,7 +92,7 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::mirror(TrackerIntRep& tracker, InactiveSurfaces& is) {
-        std::cout << "Mirroring barrel services...";
+        std::cout << "Mirroring barrel services..." << std::flush;
         // number of barrel service volumes that need to be reflected
         unsigned int half = is.getBarrelServices().size();
         // barrel service loop
@@ -127,7 +151,7 @@ namespace insur {
                 is.addBarrelServicePart(tube);
             }
         }
-        std::cout << "done." << std::endl << "Mirroring endcap services...";
+        std::cout << "done." << std::endl << "Mirroring endcap services..." << std::flush;
         // number of endcap service volumes that need to be reflected
         half = is.getEndcapServices().size();
         // endcap service loop
@@ -156,7 +180,7 @@ namespace insur {
                 is.addEndcapServicePart(tube);
             }
         }
-        std::cout << "done." << std::endl << "Mirroring supports...";
+        std::cout << "done." << std::endl << "Mirroring supports..." << std::flush;
         // number of support volumes that may need to be reflected
         half = is.getSupports().size();
         // supports loop
@@ -189,9 +213,11 @@ namespace insur {
      * else is in place.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
+     * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is) {
+    InactiveSurfaces& Usher::servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all) {
         double zl, zo, ri, rw; //zlength, zoffset, rinner, rwidth
         int k = 0, h; // global layer counter, helper variable
         // set the difference between number of barrels and number of endcaps
@@ -259,7 +285,7 @@ namespace insur {
                 }
             }
             // outmost barrel
-            k = servicesOutmostBarrel(tracker, is, k);
+            k = servicesOutmostBarrel(tracker, is, r_outer, k);
             if ((tracker.nOfEndcaps() < 2) && (tracker.nOfBarrels() > 1)) {
                 int sub = tracker.nOfLayers(tracker.nOfBarrels() - 1);
                 is.getBarrelServicePart(is.getBarrelServices().size() - sub).setNeighbourType(InactiveElement::barrel);
@@ -274,20 +300,19 @@ namespace insur {
                     int l = findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + 1, tracker);
                     ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * epsilon;
                 }
-                else ri = outer_radius - rw - epsilon;
+                else ri = r_outer - rw - epsilon;
                 // disc loop
                 for (int j = 0; j < tracker.nOfDiscs(i); j++) {
                     // first disc in tracker
                     if (k == 0) {
                         zl = tracker.zOffsetDisc(k) - tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps()) - volume_width - 2 * epsilon;
                         zo = tracker.zOffsetDisc(k) - zl;
-                        if (tracker.totalDiscs() == 1) is = addEndcapServiceTube(is, zl, zo, ri, rw, true);
-                        else is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
+                        is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(k));
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::barrel);
-                        if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
+                        if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                     }
                     // other disc in tracker
                     else {
@@ -298,12 +323,11 @@ namespace insur {
                             ro = ro - 2 * rw - 2 * epsilon;
                             zo = tracker.zOffsetDisc(k - 1) + epsilon;
                             zl = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) - zo + volume_width + epsilon;
-                            if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) is = addEndcapServiceTube(is, zl, zo, ro, rw, true);
-                            else is = addEndcapServiceTube(is, zl, zo, ro, rw, false);
+                            is = addEndcapServiceTube(is, zl, zo, ro, rw, false);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
-                            if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
+                            if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                             zo = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) + volume_width + 2 * epsilon;
                             zl = tracker.zOffsetDisc(k) - zo;
                         }
@@ -314,8 +338,7 @@ namespace insur {
                             
                         }
                         // all discs except first in tracker
-                        if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) is = addEndcapServiceTube(is, zl, zo, ri, rw, true);
-                        else is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
+                        is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(k));
@@ -324,7 +347,14 @@ namespace insur {
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
                         }
                         else is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::barrel);
-                        if (i == tracker.nOfEndcaps() - 1) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
+                        if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
+                    }
+                    if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) {
+                        is = addEndcapServiceTube(is, max_length - zo - zl - epsilon, zo + zl + epsilon, ri, rw, true);
+                        is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
+                        is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
+                        is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
+                        if (!track_all) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                     }
                     k++;
                 }
@@ -343,9 +373,11 @@ namespace insur {
      * of the UP configuration and allows for far less variation.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
+     * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is) {
+    InactiveSurfaces& Usher::servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all) {
         double zrl, ztl, zbo, zeo, ri, rrw, rtw;
         int k = 0;
         // barrels
@@ -370,16 +402,15 @@ namespace insur {
             }
         }
         // outmost barrel
-        k = servicesOutmostBarrel(tracker, is, k);
+        k = servicesOutmostBarrel(tracker, is, r_outer, k);
         // endcap (one by definition)
-        ri = outer_radius - rtw - epsilon;
+        ri = r_outer - rtw - epsilon;
         // disc loop
         for (int i = 0; i < tracker.totalDiscs(); i++) {
             if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
             else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
-            if (i == tracker.totalDiscs() - 1) is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, true);
-            else is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, false);
+            is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, false);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederType(InactiveElement::tracker);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setFeederIndex(tracker.realIndexDisc(i));
@@ -393,7 +424,13 @@ namespace insur {
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
             }
-            is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
+            if (i == tracker.totalDiscs() - 1) {
+                is = addEndcapServiceTube(is, max_length - zeo - ztl - epsilon, zeo + ztl + epsilon, ri, rtw, true);
+                is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
+                is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
+                is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
+            }
+            if (!track_all) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
         }
         return is;
     }
@@ -402,24 +439,26 @@ namespace insur {
      * This function provides a frame for the steps that are necessary to to build the supports on the z+ side.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
+     * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
+    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all) {
         // outer tube
-        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, outer_radius, volume_width);
+        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, r_outer, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::o_sup);
-        is.getSupportPart(is.getSupports().size() - 1).track(false);
+        if (!track_all) is.getSupportPart(is.getSupports().size() - 1).track(false);
         // barrels
         is = supportsRegularBarrels(tracker, is);
         // barrel tubes
-        is = supportsBarrelTubes(tracker, is);
+        is = supportsBarrelTubes(tracker, is, track_all);
         // short barrels
-        is = supportsShortBarrels(tracker, is);
+        is = supportsShortBarrels(tracker, is, r_outer);
         // endcaps
-        is = supportsEndcaps(tracker, is);
+        is = supportsEndcaps(tracker, is, track_all);
         // rings from config file
-        is = supportsUserDefined(tracker, is, geomfile);
+        if (!geomfile.empty()) is = supportsUserDefined(tracker, is, geomfile);
         return is;
     }
     
@@ -430,10 +469,11 @@ namespace insur {
      * connect anything to other active surface layers or discs outside the last barrel.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
      * @param layer The overall layer index of the first layer of the last barrel
      * @return One past the last overall layer index that occurs in the tracker, i.e. the total number of barrel layers
      */
-    int Usher::servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, int layer) {
+    int Usher::servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, int layer) {
         int om_b;
         double zl, zo, ri, rw;
         om_b = tracker.nOfBarrels() - 1;
@@ -456,7 +496,7 @@ namespace insur {
         }
         // last layer
         ri = tracker.innerRadiusLayer(layer);
-        rw = outer_radius - ri - epsilon;
+        rw = r_outer - ri - epsilon;
         if (tracker.nOfEndcaps() == 0) is = addBarrelServiceRing(is, zl, zo, ri, rw, true);
         else is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
         is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
@@ -502,9 +542,10 @@ namespace insur {
      * It places a tube below the minimal radius of the first and above the maximal radius of the last layer.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is) {
+    InactiveSurfaces& Usher::supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all) {
         double r, z, l;
         std::pair<int, int> aux, stst;
         std::pair<int, double> tmp;
@@ -530,7 +571,7 @@ namespace insur {
                 is = addSupportTube(is, l, z, r, volume_width);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
                 // outmost barrel support tube is outside the tracking volume
-                if (i == aux.second - 1) is.getSupportPart(is.getSupports().size() - 1).track(false);
+                if ((!track_all) && (i == aux.second - 1)) is.getSupportPart(is.getSupports().size() - 1).track(false);
             }
         }
         return is;
@@ -542,9 +583,10 @@ namespace insur {
      * to the nearest long layer above.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param outer_r The outer radius of the enclosing tracker volume
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is) {
+    InactiveSurfaces& Usher::supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer) {
         bool regular;
         int start, stop;
         double r, w, z;
@@ -572,7 +614,7 @@ namespace insur {
             }
             stop = iter->first + 1;
             // set width of support disc
-            if (stop == tracker.totalLayers()) w = outer_radius - r - epsilon;
+            if (stop == tracker.totalLayers()) w = r_outer - r - epsilon;
             else w = tracker.innerRadiusLayer(stop) - r - epsilon;
             // create volume
             is = addSupportRing(is, volume_width, z, r, w);
@@ -587,9 +629,10 @@ namespace insur {
      * two tubes per endcap, one inside the innermost and one outside the outmost ring, outside the service volumes.
      * @param tracker A reference to the existing tracker object with the active modules in it
      * @param is A reference to the collection of inactive surfaces that needs to be built up
+     * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is) {
+    InactiveSurfaces& Usher::supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all) {
         double zl, zo, ri, rw;
         int k = 0;
         rw = volume_width;
@@ -602,7 +645,7 @@ namespace insur {
                 zl = tracker.zOffsetDisc(k + tracker.nOfDiscs(i) - 1) - zo;
                 is = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
-                if (i == tracker.nOfEndcaps() - 1) is.getSupportPart(is.getSupports().size() - 1).track(false);
+                if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getSupportPart(is.getSupports().size() - 1).track(false);
                 ri = tracker.innerRadiusEndcap(i) - rw - epsilon;
                 is  = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
@@ -941,7 +984,7 @@ namespace insur {
         }
         return z_max;
     }
-        
+    
     /**
      * This convenience function calculates the number of cut layers that are part of the innermost
      * barrel and the number of barrels as as defined by the geometry config file from a given internal
@@ -1058,6 +1101,7 @@ namespace insur {
      * Print the internal status of the active and inactive surfaces given to the usher to be arranged.
      * @param tintrep A reference to the internal data collection that represents the measurements of the tracker object
      * @param is A reference to the collection of inactive surfaces that belong to this tracker
+     * @param full_summary A flag turning printing of detailed information about inactive surfaces on or off; mostly for debugging
      */
     void Usher::print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary) {
         std::cout << std::endl << "Current state of the system is:" << std::endl;

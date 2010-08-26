@@ -308,3 +308,5 @@ cleantkmaine:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o $(BINDIR)/tkmaterial $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 	
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine 
+	
+# doc: TODO: find out how to autogenerate doxygen man pages using make

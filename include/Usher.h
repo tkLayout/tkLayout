@@ -25,17 +25,21 @@
 namespace insur {
     /*
      * @class Usher
-     * @brief The Usher class defines the core geometry creation algorithm for inactive surfaces.
+     * @brief The Usher class defines the core geometry creation algorithms for inactive surfaces.
      *
      * It analyses an existing collection of active modules, then goes on to decide where to place services and
      * support structures. It does this by building all the necessary parts on the z+ side and mirroring everything
-     * that is not centered on the origin in z to the other side of the xy-plane.
+     * that is not centered on the origin in z to the other side of the xy-plane. The two public functions build inactive
+     * surfaces around a tracker and around a pixel detector, respectively. Their main difference is not in the
+     * service and support parts themselves, but in some constraints regarding size and whether all parts are
+     * inside the tracking volume or not.
      */
     class Usher {
     public:
         Usher() {}
         virtual ~Usher() {}
         virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus = false);
+        virtual InactiveSurfaces& arrangePixels(Tracker& pixels, InactiveSurfaces& is, bool printstatus = false);
     protected:
         /**
          * @class TrackerIntRep
@@ -82,18 +86,18 @@ namespace insur {
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
             bool analyzePolarity();
         };
-        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
-        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
+        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
+        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
         InactiveSurfaces& mirror(TrackerIntRep& tracker, InactiveSurfaces& is);
-        virtual InactiveSurfaces& servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is);
-        virtual InactiveSurfaces& servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is);
-        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
+        virtual InactiveSurfaces& servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
+        virtual InactiveSurfaces& servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
+        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all);
     private:
-        int servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, int layer);
+        int servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, int layer);
         InactiveSurfaces& supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
-        InactiveSurfaces& supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is);
-        InactiveSurfaces& supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
-        InactiveSurfaces& supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is);
+        InactiveSurfaces& supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
+        InactiveSurfaces& supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer);
+        InactiveSurfaces& supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
         InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
         InactiveSurfaces& joinBarrelEndcapServices(TrackerIntRep& tracker, InactiveSurfaces& is, int begin_b, int end_b, int begin_e, int end_e, int d_offset);
         InactiveSurfaces& addBarrelServiceRing(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);

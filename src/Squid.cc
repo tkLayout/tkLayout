@@ -13,11 +13,14 @@ namespace insur {
         tr = NULL;
         is = NULL;
         mb = NULL;
+        px = NULL;
+        pi = NULL;
+        pm = NULL;
 #ifdef USING_ROOTWEB
-	sitePrepared = false;
+        sitePrepared = false;
 #endif
     }
-
+    
     /**
      * The destructor deletes the heap-allocated internal objects if they exist.
      */
@@ -25,12 +28,17 @@ namespace insur {
         if (mb) delete mb;
         if (is) delete is;
         if (tr) delete tr;
+        if (pm) delete pm;
+        if (pi) delete pi;
+        if (px) delete px;
     }
-
+    
     /**
      * Build a bare-bones geometry of active modules. The resulting tracker object replaces the previously
      * registered one, if such an object existed. It remains in the squid until it is overwritten by a second call
-     * to this function or by another one that creates a new tracker object.
+     * to this function or by another one that creates a new tracker object. If the geometry file contains a
+     * description of a pixel detector, that is created as well. It is treated exactly like the tracker with respect
+     * to replacement and persistence.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @return True if there were no errors during processing, false otherwise
      */
@@ -38,22 +46,29 @@ namespace insur {
         if (tr) delete tr;
         tr = cp.parseFile(geomfile);
         if (tr) {
+            if (px) delete px;
+            px = cp.parsePixelsFromFile(geomfile);
+            if (px) px->setZError(tr->getZError());
             g = geomfile;
             return true;
         }
         return false;
     }
-
+    
     /**
      * Dress the previously created geometry with module options. The modified tracker object remains
      * in the squid as the current tracker until it is overwritten by a call to another function that creates
-     * a new one. If the tracker object has not been created yet, the function fails.
+     * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
+     * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
+     * pixel detector remains in the squid until it is replaced by a call to another function creating a new
+     * one.
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @return True if there was an existing tracker to dress, false otherwise
      */
     bool Squid::dressTracker(std::string settingsfile) {
         if (tr) {
             cp.dressTracker(tr, settingsfile);
+            if (px) cp.dressPixels(px, settingsfile);
             return true;
         }
         else {
@@ -61,33 +76,30 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Build a geometry of active modules using both geometry constraints and module settings. If there
      * was an existing tracker object, it is destroyed and replaced by a new one as described in the geometry
-     * and settings configuration files.
+     * and settings configuration files. If there is a pixel detector, it gets the same treatment and may not
+     * exist anymore afterwards, depending on whether the new geometry file describes one or not.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::buildTrackerSystem(std::string geomfile, std::string settingsfile) {
-        if (tr) delete tr;
-        if ((tr = cp.parseFile(geomfile))) {
-            cp.dressTracker(tr, settingsfile);
-            g = geomfile;
-            return true;
-        }
+        if (buildTracker(geomfile)) return dressTracker(settingsfile);
         else {
             g = "";
             return false;
         }
     }
-
+    
     /**
      * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
      * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the
      * squid until it is overwritten by a second call to this function or by another one that creates a new
-     * collection of inactive surfaces.
+     * collection of inactive surfaces. If a pixel detector was also created in a previous step, it gets a new set
+     * of inactive surfaces as well.
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @return True if there were no errors during processing, false otherwise
      */
@@ -97,6 +109,11 @@ namespace insur {
                 if (is) delete is;
                 is = new InactiveSurfaces();
                 u.arrange(*tr, *is, g, verbose);
+                if (px) {
+                    if (pi) delete pi;
+                    pi = new InactiveSurfaces();
+                    u.arrangePixels(*px, *pi, verbose);
+                }
                 return true;
             }
             else {
@@ -109,12 +126,14 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Build up a bare-bones geometry of active modules, then arrange the inactive surfaces around it. The
      * resulting tracker object and collection of inactive surfaces replace the previously registered ones, if
      * such objects existed. They remain in the squid until they are overwritten by a second call to this
-     * function or by another one that creates a new tracker object and collection of inactive surfaces.
+     * function or by another one that creates a new tracker object and collection of inactive surfaces. If a
+     * pixel detector is specified in the geometry and settings files, it recieves the same treatment as the
+     * tracker.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
      * @return True if there were no errors during processing, false otherwise
@@ -124,18 +143,24 @@ namespace insur {
         if (buildTracker(geomfile)) {
             is = new InactiveSurfaces();
             u.arrange(*tr, *is, geomfile, verbose);
+            if (px) {
+                if (pi) delete pi;
+                pi = new InactiveSurfaces();
+                u.arrangePixels(*px, *pi, verbose);
+            }
             return true;
         }
         is = NULL;
         return false;
     }
-
+    
     /**
      * Build a geometry of active modules using both geometry constraints and module settings, then
      * arrange the inactive surfaces around it. The resulting tracker object and collection of inactive
      * surfaces replace the previously registered ones, if such objects existed. They remain in the squid
      * until they are overwritten by a second call to this function or by another one that creates a new
-     * tracker object and collection of inactive surfaces.
+     * tracker object and collection of inactive surfaces. If a pixel detector was also created in a previous
+     * step, its inactive surfaces are treated exactly the same as those of the tracker.
      * @param geomfile The name and - if necessary - path of the geometry configuration file
      * @param settingsfile The name and - if necessary - path of the module settings configuration file
      * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
@@ -146,18 +171,24 @@ namespace insur {
         if (buildTrackerSystem(geomfile, settingsfile)) {
             is = new InactiveSurfaces();
             u.arrange(*tr, *is, geomfile, verbose);
+            if (px) {
+                if (pi) delete pi;
+                pi = new InactiveSurfaces();
+                u.arrangePixels(*px, *pi, verbose);
+            }
             return true;
         }
         is = NULL;
         return false;
     }
-
+    
     /**
      * Calculate a material budget for the previously created tracker object and collection of inactive
      * surfaces. The resulting material budget replaces the previously registered one, if such an object
      * existed. It remains in the squid until it is overwritten by a second call to this function or by
      * another one that creates a new material budget. This function succeeds if either the tracker or
-     * both the tracker and the inactive surfaces exist.
+     * both the tracker and the inactive surfaces exist. If a pixel detector exists, it gets its own material
+     * budget at the same time. This object is treated exactly the same as the one for the tracker.
      * @param matfile The name and - if necessary - path of the materials configuration file
      * @param verbose A flag that turns the final status summary of the material budget on or off
      * @return True if there were no errors during processing, false otherwise
@@ -172,11 +203,20 @@ namespace insur {
                 if (mp.initMatCalc(matfile, c, mainConfiguration.getMattabDirectory())) {
                     mb->materialsAll(c);
                     if (verbose) mb->print();
+                    if (px) {
+                        if (!pi) pi = new InactiveSurfaces();
+                        if (pm) delete pm;
+                        pm = new MaterialBudget(*px, *pi);
+                        pm->materialsAll(c);
+                        if (verbose) pm->print();
+                    }
                     return true;
                 }
                 else {
                     if (mb) delete mb;
                     mb = NULL;
+                    if (pm) delete pm;
+                    pm = NULL;
                     std::cout << "Squid::createMaterialBudget(): " << err_init_failed << std::endl;
                     return false;
                 }
@@ -191,7 +231,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
      * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
@@ -208,7 +248,7 @@ namespace insur {
         if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, mat_verbose);
         return false;
     }
-
+    
     /**
      * Analyse the previously created full system, writing the full series of output files: HTML for the histograms that
      * were filled during analysis of the material budget, ROOT for the geometry visualisation and plain text for the
@@ -230,7 +270,7 @@ namespace insur {
         if (analyzeGeometry(rootout, graphout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-
+    
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the geometry
      * visualisation to a ROOT file.
@@ -244,7 +284,7 @@ namespace insur {
         if (analyzeGeometry(rootout, simplified)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-
+    
     /**
      * Analyse the previously created full system, writing the result to an HTML file and the feeder/neighbour
      * graph to a plain text file.
@@ -257,7 +297,7 @@ namespace insur {
         if (analyzeNeighbours(graphout)) return analyzeMaterialBudget(htmlout, tracks);
         return false;
     }
-
+    
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
      * in a ROOT viewer later. In addition, build the feeder/neighbour graph of the collection of inactive
@@ -272,12 +312,14 @@ namespace insur {
     bool Squid::analyzeGeometry(std::string rootout, std::string graphout, bool simplified) {
         if (tr) {
             if (is) {
+                if (v.needsReset()) resetVizard();
                 v.display(*tr, *is, rootout, simplified);
                 v.writeNeighbourGraph(*is, graphout);
             }
             else {
                 std::cout << "Squid::analyzeGeometry(): " << warning_rootonly << std::endl;
                 is = new InactiveSurfaces();
+                if (v.needsReset()) resetVizard();
                 v.display(*tr, *is, rootout, simplified);
                 delete is;
                 is = NULL;
@@ -289,7 +331,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Build a ROOT representation of a partial or complete tracker geometry that can be visualised
      * in a ROOT viewer later, and save the result to a ROOT file. This function succeeds if either the
@@ -302,6 +344,7 @@ namespace insur {
             if (is) v.display(*tr, *is, rootout, simplified);
             else {
                 is = new InactiveSurfaces();
+                if (v.needsReset()) resetVizard();
                 v.display(*tr, *is, rootout, simplified);
                 delete is;
                 is = NULL;
@@ -313,7 +356,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
      * save the results in a plain text file.
@@ -330,16 +373,17 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
-     * Analyze the previously created material budget and save the results in an HTML file.
+     * Analyze the previously created material budget and save the results in an HTML file. If a material budget
+     * for an associated pixel detector exists, it is included in the calculations.
      * @param htmlout The name - without path - of the designated output file
      * @param tracks The number of tracks that should be fanned out across the analysed region
      * @return True if there were no errors during processing, false otherwise
      */
     bool Squid::analyzeMaterialBudget(std::string htmlout, int tracks) {
         if (mb) {
-            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks);
+            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
             v.histogramSummary(a, htmlout);
             return true;
         }
@@ -348,7 +392,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
      * @param xmlout The name - without path - of the designated output subdirectory
@@ -364,7 +408,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     /**
      * Create the geometry summary page for an existing tracker. Unless specified otherwise in an <i>Output</i>
      * block in the geometry file, the page will be written to a subfolder based on the tracker name.
@@ -380,19 +424,19 @@ namespace insur {
             // Optical transmission
             tr->createGeometry(true);
             tr->computeBandwidth();
-
+            
             // Analysis
             tr->analyze(2000);
-
+            
             // Summary and save
             tr->writeSummary(true, extractFileName(configFileName), extractFileName(dressFileName));
             //tr->printBarrelModuleZ();
             tr->save();
-
+            
             myDirectory = tr->getActiveDirectory();
             destConfigFile = myDirectory + "/" + extractFileName(configFileName);
             destDressFile = myDirectory + "/" + extractFileName(dressFileName);
-
+            
             bfs::remove(destConfigFile);
             bfs::remove(destDressFile);
             bfs::copy_file(configFileName, destConfigFile);
@@ -404,7 +448,7 @@ namespace insur {
             return false;
         }
     }
-
+    
     // private
     /**
      * Check if a given configuration file actually exists.
@@ -416,7 +460,7 @@ namespace insur {
         if (bfs::exists(p)) return true;
         return false;
     }
-
+    
     /**
      * Extract the filename from a path. If there is nothing to extract, a copy of the input is returned.
      * @full The source string
@@ -428,95 +472,102 @@ namespace insur {
             return full.substr(idx+1);
         else return full;
     }
-
+    
+    // private
+    void Squid::resetVizard() {
+        v.~Vizard();
+        new ((void*) &v) Vizard();
+    }
+    
 #ifdef USING_ROOTWEB
-  // Private
-  /**
-   * Prepare the website object (if not done yet) from the configuration file
-   * it needs the tracker object to be already there
-   * @return a boolean with the operation success
-   */
-  bool Squid::prepareWebsite() {
-    if (sitePrepared) return true;
-    string trackerName;
-    if (tr) trackerName = tr->getName();
-    else trackerName = default_trackername;
-    string layoutDirectory;
-    //styleDirectory=mainConfiguration.getStyleDirectory();
-    layoutDirectory=mainConfiguration.getLayoutDirectory();
-    layoutDirectory+="/"+trackerName;
-    if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
-    else return false;
-    site.setTitle(trackerName);
-    site.setComment("layout summary");
-    site.addAuthor("Nicoletta De Maio");
-    site.addAuthor("Stefano Mersi");
+    /**
+     * Prepare the website object (if not done yet) from the configuration file
+     * it needs the tracker object to be already there
+     * @return a boolean with the operation success
+     */
+    bool Squid::prepareWebsite() {
+        if (sitePrepared) return true;
+        string trackerName;
+        if (tr) trackerName = tr->getName();
+        else trackerName = default_trackername;
+        string layoutDirectory;
+        //styleDirectory=mainConfiguration.getStyleDirectory();
+        layoutDirectory=mainConfiguration.getLayoutDirectory();
+        layoutDirectory+="/"+trackerName;
+        if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
+        else return false;
+        site.setTitle(trackerName);
+        site.setComment("layout summary");
+        site.addAuthor("Nicoletta De Maio");
+        site.addAuthor("Stefano Mersi");
 #ifdef REVISIONNUMBER
-    site.setRevision(REVISIONNUMBER);
+        site.setRevision(REVISIONNUMBER);
 #endif
-    return true;
-  }
-
-  
-  /**
-   * Actually creates the website where it was supposed to be
-   * @return a boolean with the operation success
-   */
-  bool Squid::makeSite(bool addLogPage /* = true */) {
-    if (!prepareWebsite()) return false;
-    if (addLogPage) {
-      v.makeLogPage(site);
+        return true;
     }
-
-    return site.makeSite();
-  }
-
-  /**
-   * Analyze the previously created material budget and save the results through rootweb
-   * @param tracks The number of tracks that should be fanned out across the analysed region
-   * @return True if there were no errors during processing, false otherwise
-   */
-  bool Squid::analyzeMaterialBudgetSite(int tracks) {
-    if (mb) {
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks);
-      v.histogramSummary(a, site);
-      return true;
+    
+    
+    /**
+     * Actually creates the website where it was supposed to be
+     * @return a boolean with the operation success
+     */
+    bool Squid::makeSite(bool addLogPage /* = true */) {
+        if (!prepareWebsite()) return false;
+        if (addLogPage) {
+            v.makeLogPage(site);
+        }
+        
+        return site.makeSite();
     }
-    else {
-      std::cout << "Squid::analyzeMaterialBudgetSite(): " << err_no_matbudget << std::endl;
-      return false;
+    
+    /**
+     * Analyze the previously created material budget and save the results through rootweb. If a material budget
+     * for an associated pixel detector exists, it will be included in the calculations as well.
+     * @param tracks The number of tracks that should be fanned out across the analysed region
+     * @return True if there were no errors during processing, false otherwise
+     */
+    bool Squid::analyzeMaterialBudgetSite(int tracks) {
+        if (mb) {
+            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
+            v.histogramSummary(a, site);
+            return true;
+        }
+        else {
+            std::cout << "Squid::analyzeMaterialBudgetSite(): " << err_no_matbudget << std::endl;
+            return false;
+        }
     }
-  }
-
-  /**
-   * Analyze the previously created geometry and produces the html ouput through rootweb
-   * @return True if there were no errors during processing, false otherwise
-   */
-  bool Squid::analyzeGeometrySite(int tracks /* = 1000 */ ) {
-    if (tr) {
-      a.analyzeGeometry(*tr, tracks);
-      a.createGeometryLite(*tr);
-      v.geometrySummary(a,*tr,site);
-      a.computeBandwidth(*tr);
-      v.bandwidthSummary(a, *tr, site);
-      return true; // TODO: is not really meaningful
-    } else {
-      std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
-      return false;
+    
+    /**
+     * Analyze the previously created geometry and produces the html ouput through rootweb. If a material budget
+     * for an associated pixel detector exists, it will be included in the calculations as well.
+     * @return True if there were no errors during processing, false otherwise
+     */
+    bool Squid::analyzeGeometrySite(int tracks /* = 1000 */ ) {
+        if (tr) {
+            a.analyzeGeometry(*tr, tracks);
+            a.createGeometryLite(*tr);
+            v.geometrySummary(a, *tr, site);
+            a.computeBandwidth(*tr);
+            v.bandwidthSummary(a, *tr, site);
+            return true; // TODO: is not really meaningful
+        } else {
+            std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
+            return false;
+        }
     }
-  }
-
-  bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile) {
-    if (!tr) {
-      std::cout << "Squid::additionalInfoSite(): " << err_no_tracker << std::endl;      
-      return false;
-    } else {
-      v.additionalInfoSite(geomfile,settingsfile,matfile, a, *tr, site);
-      return true;
+    
+    bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile) {
+        if (!tr) {
+            std::cout << "Squid::additionalInfoSite(): " << err_no_tracker << std::endl;
+            return false;
+        } else {
+            v.additionalInfoSite(geomfile, settingsfile, matfile, a, *tr, site);
+            return true;
+        }
     }
-  }
-
-  
+    
+    
 #endif
-
+    
 }

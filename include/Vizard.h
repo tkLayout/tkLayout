@@ -103,6 +103,7 @@ namespace insur {
     public:
         Vizard();
         virtual ~Vizard();
+        bool needsReset() { return geometry_created; }
         void buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified);
         void display(std::string rootfilename = "");
         void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);

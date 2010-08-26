@@ -2108,6 +2108,8 @@ void Tracker::setModuleTypes() {
                 std::cerr << "ERROR! in function Tracker::setModuleTypes() "
                 <<"I found a !BarrelModule in the barrel" << std::endl;
             }
+            aModule->setPrecisionRho();
+            aModule->setPrecisionZ();
         }
     }
     
@@ -2179,6 +2181,8 @@ void Tracker::setModuleTypes() {
             std::cerr << "ERROR! in function Tracker::setModuleTypes() "
             << "I found a !EndcapModule in the end-caps" << std::endl;
         }
+        aModule->setPrecisionRho();
+        aModule->setPrecisionZ();
     }
 }
 

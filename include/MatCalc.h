@@ -47,10 +47,6 @@ namespace insur {
     class MatCalc {
     public:
         /**
-         * @enum Modtype A list of the possible types (including <i>none</i>) for active volumes
-         */
-        //enum Modtype { un_mod, rphi, stereo, pt };
-        /**
          * @enum Matunit The allowed measurement units for the quantities of material that the config file defines
          */
         enum Matunit { gr, mm3, mm, grpm };
@@ -70,7 +66,6 @@ namespace insur {
         void addServiceParameters(std::string tag, double Q, Matunit uQ);
         void addServiceParameters(std::string tagIn, double In, Matunit uIn, std::string tagOut, double Out, Matunit uOut, bool local);
         void addSupportParameters(std::string tag, double M, Matunit uM, MaterialProperties::Category cM);
-        void clearTypeVector();
         void clearModVectors();
         void clearModVector(std::string type);
         void copyContents(std::string source, std::string dest);
@@ -83,7 +78,7 @@ namespace insur {
         virtual bool calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
                 std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices);
         virtual bool calculateEndcapServiceMaterials(
-            std::vector<std::vector<ModuleCap> >& endcapcaps,
+        std::vector<std::vector<ModuleCap> >& endcapcaps,
                 std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices);
         virtual bool calculateSupportMaterials(std::vector<InactiveElement>& supports);
         void printInternals();
@@ -166,20 +161,13 @@ namespace insur {
         /**
          * @struct MatInfo
          * @brief An instance of this struct bundles the material information for all types of volumes as it comes out of the config file.
-         * @param typeinfo A vector with information about the module layouts for different types
-         * @param modinforphi A vector describing the materials that are found in <i>rphi</i> modules
-         * @param modinfostereo A vector describing the additional materials that are found in <i>stereo</i> modules
-         * @param modinfopt A vector describing the materials that are found in <i>pt</i> modules
+         * @param modinfo A nested arrangement of vectors and pairs listing the module types and their associated parameters and materials
          * @param serlocalinfo A vector describing the local materials in services at the layer-service boundary
          * @param serexitinfo A vector describing the material mappings at the layer-service boundary
          * @param supinfo A vector describing the materials that are found in the various categories of support structures
          */
         struct MatInfo {
-            std::vector<TypeInfo> typeinfo;
-            //std::vector<SingleMod> modinforphi;
-            //std::vector<SingleMod> modinfostereo;
-            //std::vector<SingleMod> modinfopt;
-            std::map<std::string, std::vector<SingleMod> > modinfo;
+            std::vector<std::pair<TypeInfo, std::vector<SingleMod> > > modinfo;
             std::vector<SingleSerLocal> serlocalinfo;
             std::vector<SingleSerExit> serexitinfo;
             std::vector<SingleSup> supinfo;

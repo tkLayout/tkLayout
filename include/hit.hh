@@ -15,6 +15,15 @@ class Track;
 
 typedef double momentum;  // Track momentum in MeV
 
+/**
+ * @class Hit
+ * @brief The Hit class is used when analysing a tracker layout to record information about a volume that was hit by a test track.
+ *
+ * It is used for both active and inactive surface hits. In case of an inactive surface, the pointer to the hit module will be <i>NULL</i>
+ * since those volumes only matter with respect to the radiation and interaction lengths they add to the total in the error calculations.
+ * All the other information is available to both categories. For convenience, the scaled radiation and interaction lengths are stored in
+ * here as well to avoid additional computation and callbacks to the material property objects.
+ */
 class Hit {
 protected:
   double distance_;   // distance of hit from origin in 3D
@@ -27,6 +36,7 @@ protected:
   // "Thickness" in terms of radiation_length and interaction_length
   pair<double, double> correctedMaterial_;
   Track* myTrack_;
+  bool isPixel_;
 
 private:
   
@@ -38,6 +48,9 @@ public:
   Hit(double myDistance, Module* myModule);
   Module* getHitModule() { return hitModule_; };
   void setHitModule(Module* myModule);
+  /**
+   * @enum An enumeration of the category and orientation constants used within the object
+   */
   enum { Undefined, Horizontal, Vertical,  // Hit object orientation 
 	 Active, Inactive };               // Hit object type
 
@@ -53,10 +66,21 @@ public:
   double getTrackTheta();
   pair<double, double> getCorrectedMaterial();
   void setCorrectedMaterial(pair<double, double> newMaterial) { correctedMaterial_ = newMaterial;};
+  bool isPixel() { return isPixel_; };
 };
 
+/**
+ * Given two hits, compare the distance to the z-axis.
+ */
 bool sortSmallerR(Hit* h1, Hit* h2);
 
+/**
+ * @class Track
+ * @brief The Track class is essentially a collection of consecutive hits.
+ *
+ * Once those hits have been stored, though, it also provides a series of error analysis functions that use the information about
+ * radiation and interaction length from the hits as a basis for the calculations.
+ */
 class Track {
 protected:
   double theta_;

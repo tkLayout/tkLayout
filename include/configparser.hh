@@ -19,10 +19,12 @@ public:
   ~configParser();
 
   // Parse the geometry config file and creates a Tracker object
-  Tracker* parseFile(string fileName);
+  Tracker* parseFile(string configFileName);
+  Tracker* parsePixelsFromFile(string configFileName);
 
   // Parse the module type config file and "dresses" a Tracker object
-  bool dressTracker(Tracker* aTracker, string fileName);
+  bool dressTracker(Tracker* aTracker, string configFileName);
+  bool dressPixels(Tracker* aTracker, string configFileName);
 
   // Extract the user-defined support structures from the geometry config file
   std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);
@@ -42,6 +44,7 @@ private:
   bool parseTracker(string myName, istream &inStream);
   bool parseBarrel(string myName, istream &inStream);
   bool parseEndcap(string myName, istream &inStream);
+  bool parsePixels(string myName, istream &inStream);
   bool parseObjectType(string myType);
 
   // Parsing functions for the tracker dressing
@@ -49,6 +52,7 @@ private:
   bool breakParameterName(string& parameterName, int& ringIndex, int& diskIndex);
   bool parseBarrelType(string myName, istream &inStream);
   bool parseEndcapType(string myName, istream &inStream);
+  bool parsePixelType(istream& inStream);
   bool parseAnyType(string myName, istream &inStream);
   bool parseOutput(istream &inStream);
 

@@ -171,19 +171,16 @@ namespace insur {
             }
             catch (bfs::filesystem_error& bfe) {
                 std::cerr << "MatParser::readParameters(): " << bfe.what() << std::endl;
-                calc.clearTypeVector();
                 calc.clearModVectors();
                 return false;
             }
             catch (std::bad_alloc& ba) {
                 std::cerr << "MatParser::readParameters(): " << ba.what() << std::endl;
-                calc.clearTypeVector();
                 calc.clearModVectors();
                 return false;
             }
         }
         else std::cerr << "MatParser::readParameters(): " << msg_no_mat_file << std::endl;
-        calc.clearTypeVector();
         calc.clearModVectors();
         return false;
     }

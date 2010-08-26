@@ -93,7 +93,8 @@ namespace insur {
         TH2D& getHistoIsoI() { return isoi; }
         std::vector<Track>& getTracks() { return tv; }
         std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb,
+                                                                  std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -146,7 +147,7 @@ namespace insur {
 
 	TH1D hitDistribution;
         std::vector<Track> tv;
-        std::map<double, TGraph> rhoprofiles;
+        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
@@ -154,10 +155,12 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi, Track& t);
-        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t);
-        virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-								  double theta, Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat);
+        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
+                                                                                          double eta, double theta, double phi, Track& t, bool isPixel = false);
+        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer,
+                                                                                               double eta, double theta, double phi, Track& t, bool isPixel = false);
+        virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
+								  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
         void calculateProfiles(std::vector<double> p);
         void clearMaterialBudgetHistograms();
         void clearGeometryHistograms();

@@ -164,9 +164,9 @@ namespace insur {
         std::cout << "-----Barrel Modules-----" << std::endl;
         std::cout << "Total valid modules in barrels: " << d << std::endl;
         std::cout << "Total module mass in barrels: " << am << std::endl;
-        std::cout << "Average module mass in barrels: " << (am / (double)d) << std::endl;
-        std::cout << "Average module radiation length in barrels: " << (ar / (double)d) << std::endl;
-        std::cout << "Average module interaction length in barrels: " << (ai / (double)d) << std::endl;
+        if (d > 0) std::cout << "Average module mass in barrels: " << (am / (double)d) << std::endl;
+        if (d > 0) std::cout << "Average module radiation length in barrels: " << (ar / (double)d) << std::endl;
+        if (d > 0) std::cout << "Average module interaction length in barrels: " << (ai / (double)d) << std::endl;
         for (unsigned int i = 0; i < capsbarrelmods.size(); i++) {
             std::cout << "Sample boundary module in layer " << (i + 1) << ":" << std::endl;
             try {
@@ -191,9 +191,9 @@ namespace insur {
         std::cout << "-----Endcap Modules-----" << std::endl;
         std::cout << "Total valid modules in endcaps: " << f << std::endl;
         std::cout << "Total module mass in endcaps: " << bm << std::endl;
-        std::cout << "Average module mass in endcaps: " << (bm / (double)f) << std::endl;
-        std::cout << "Average module radiation length in endcaps: " << (br / (double)f) << std::endl;
-        std::cout << "Average module interaction length in endcaps: " << (bi / (double)f) << std::endl;
+        if (f > 0) std::cout << "Average module mass in endcaps: " << (bm / (double)f) << std::endl;
+        if (f > 0) std::cout << "Average module radiation length in endcaps: " << (br / (double)f) << std::endl;
+        if (f > 0) std::cout << "Average module interaction length in endcaps: " << (bi / (double)f) << std::endl;
         for (unsigned int i = 0; i < capsendmods.size(); i++) {
             std::cout << "Sample boundary module on disc " << i << ":" << std::endl;
             try {
@@ -216,9 +216,12 @@ namespace insur {
         std::cout << "-----Barrel Services-----" << std::endl;
         std::cout << "Total valid services in barrels: " << (inactive->getBarrelServices().size() - s) << std::endl;
         std::cout << "Total service mass in barrels: " << cm << std::endl;
-        std::cout << "Average service mass in barrels: " << (cm / (double)(inactive->getBarrelServices().size())) << std::endl;
-        std::cout << "Average service radiation length in barrels: " << (cr / (double)(inactive->getBarrelServices().size())) << std::endl;
-        std::cout << "Average service interaction length in barrels: " << (ci / (double)(inactive->getBarrelServices().size())) << std::endl;
+        if (inactive->getBarrelServices().size() > 0)
+            std::cout << "Average service mass in barrels: "<< (cm / (double)(inactive->getBarrelServices().size())) << std::endl;
+        if (inactive->getBarrelServices().size() > 0)
+            std::cout << "Average service radiation length in barrels: " << (cr / (double)(inactive->getBarrelServices().size())) << std::endl;
+        if (inactive->getBarrelServices().size() > 0)
+            std::cout << "Average service interaction length in barrels: " << (ci / (double)(inactive->getBarrelServices().size())) << std::endl;
         std::cout << std::endl;
         for (unsigned int i = 0; i < inactive->getEndcapServices().size(); i++) {
             if (inactive->getEndcapServicePart(i).getTotalMass() > 0) {
@@ -231,9 +234,12 @@ namespace insur {
         std::cout << "-----Endcap Services-----" << std::endl;
         std::cout << "Total valid services in endcaps: " << (inactive->getEndcapServices().size() - t) << std::endl;
         std::cout << "Total service mass in endcaps: " << dm << std::endl;
-        std::cout << "Average service mass in endcaps: " << (dm / (double)(inactive->getEndcapServices().size())) << std::endl;
-        std::cout << "Average service radiation length in endcaps: " << (dr / (double)(inactive->getEndcapServices().size())) << std::endl;
-        std::cout << "Average service interaction length in endcaps: " << (di / (double)(inactive->getEndcapServices().size())) << std::endl;
+        if (inactive->getEndcapServices().size() > 0)
+            std::cout << "Average service mass in endcaps: " << (dm / (double)(inactive->getEndcapServices().size())) << std::endl;
+        if (inactive->getEndcapServices().size() > 0)
+            std::cout << "Average service radiation length in endcaps: " << (dr / (double)(inactive->getEndcapServices().size())) << std::endl;
+        if (inactive->getEndcapServices().size() > 0)
+            std::cout << "Average service interaction length in endcaps: " << (di / (double)(inactive->getEndcapServices().size())) << std::endl;
         std::cout << std::endl;
         for (unsigned int i = 0; i < inactive->getSupports().size(); i++) {
             if (inactive->getSupportPart(i).getCategory() == MaterialProperties::b_sup) {
@@ -282,33 +288,78 @@ namespace insur {
         std::cout << g << " in barrel support tubes, " << o << " in outer support tube and " << h;
         std::cout << " user defined." << std::endl << std::endl;
         std::cout << "Total support mass in barrels: " << (em + gm) << std::endl;
-        std::cout << "Average support mass in barrels: " << ((em + gm)/ (double)(a + g)) << std::endl;
-        std::cout << "Average support radiation length in barrels: " << ((er + gr) / (double)(a + g)) << std::endl;
-        std::cout << "Average support interaction length in barrels: " << ((ei + gi) / (double)(a + g)) << std::endl;
+        if ((a + g) > 0) std::cout << "Average support mass in barrels: " << ((em + gm)/ (double)(a + g)) << std::endl;
+        if ((a + g) > 0) std::cout << "Average support radiation length in barrels: " << ((er + gr) / (double)(a + g)) << std::endl;
+        if ((a + g) > 0) std::cout << "Average support interaction length in barrels: " << ((ei + gi) / (double)(a + g)) << std::endl;
         std::cout << std::endl;
         std::cout << "Total support mass in endcaps: " << fm << std::endl;
-        std::cout << "Average support mass in endcaps: " << (fm / (double)b) << std::endl;
-        std::cout << "Average support radiation length in endcaps: " << (fr / (double)b) << std::endl;
-        std::cout << "Average support interaction length in endcaps: " << (fi / (double)b) << std::endl;
+        if (b > 0) std::cout << "Average support mass in endcaps: " << (fm / (double)b) << std::endl;
+        if (b > 0) std::cout << "Average support radiation length in endcaps: " << (fr / (double)b) << std::endl;
+        if (b > 0) std::cout << "Average support interaction length in endcaps: " << (fi / (double)b) << std::endl;
         std::cout << std::endl;
         std::cout << "Total mass in outer support tube: " << lm << std::endl;
-        std::cout << "Average mass in outer support tube: " << (lm / (double)o) << std::endl;
-        std::cout << "Average radiation length in outer support tube: " << (lr / (double)o) << std::endl;
-        std::cout << "Average interaction length in outer support tube: " << (li / (double)o) << std::endl;
+        if (o > 0) std::cout << "Average mass in outer support tube: " << (lm / (double)o) << std::endl;
+        if (o > 0) std::cout << "Average radiation length in outer support tube: " << (lr / (double)o) << std::endl;
+        if (o > 0) std::cout << "Average interaction length in outer support tube: " << (li / (double)o) << std::endl;
         std::cout << std::endl;
         std::cout << "Total mass in user defined supports: " << hm << std::endl;
-        std::cout << "Average mass in user defined supports: " << (hm / (double)h) << std::endl;
-        std::cout << "Average radiation length in user defined supports: " << (hr / (double)h) << std::endl;
-        std::cout << "Average interaction length in user defined supports: " << (hi / (double)h) << std::endl;
+        if (h > 0) std::cout << "Average mass in user defined supports: " << (hm / (double)h) << std::endl;
+        if (h > 0) std::cout << "Average radiation length in user defined supports: " << (hr / (double)h) << std::endl;
+        if (h > 0) std::cout << "Average interaction length in user defined supports: " << (hi / (double)h) << std::endl;
         std::cout << std::endl;
         std::cout << "Total mass in barrels: " << (am + cm + em + gm) << std::endl;
         std::cout << "Total mass in endcaps: " << (bm + dm + fm) << std::endl;
         std::cout << std::endl;
-        std::cout << "Average radiation length in barrels: " << (((ar / (double)d) + (cr / (double)(inactive->getBarrelServices().size())) + (er / (double)a) + (gr / (double)g)) / 4.0) << std::endl;
-        std::cout << "Average radiation length in endcaps: " << (((br / (double)f) + (dr / (double)(inactive->getEndcapServices().size())) + (fr / (double) b)) / 3.0) << std::endl;
+        double arb = 0, aib = 0, are = 0, aie = 0, cnt = 0;
+        if (d > 0) {
+            arb = arb + ar / (double)d;
+            aib = aib + ai / (double)d;
+            cnt++;
+        }
+        if (inactive->getBarrelServices().size() > 0) {
+            arb = arb + cr / (double)(inactive->getBarrelServices().size());
+            aib = aib + ci / (double)(inactive->getBarrelServices().size());
+            cnt++;
+        }
+        if (a > 0) {
+            arb = arb + er / (double)a;
+            aib = aib + ei / (double)a;
+            cnt++;
+        }
+        if (g > 0) {
+            arb = arb + gr / (double)g;
+            aib = aib + gi / (double)g;
+            cnt++;
+        }
+        if (cnt > 0) {
+            arb = arb / cnt;
+            aib = aib / cnt;
+        }
+        cnt = 0;
+        if (f > 0) {
+            are = are + br / (double)f;
+            aie = aie + bi / (double)f;
+            cnt++;
+        }
+        if (inactive->getEndcapServices().size()) {
+            are = are + dr / (double)(inactive->getEndcapServices().size());
+            aie = aie + di / (double)(inactive->getEndcapServices().size());
+            cnt++;
+        }
+        if (b > 0) {
+            are = are + fr / (double) b;
+            aie = aie + fi / (double)b;
+            cnt++;
+        }
+        if (cnt > 0) {
+            are = are / cnt;
+            aie = aie / cnt;
+        }
+        std::cout << "Average radiation length in barrels: " << arb << std::endl;
+        std::cout << "Average radiation length in endcaps: " << are << std::endl;
         std::cout << std::endl;
-        std::cout << "Average interaction length in barrels: " << (((ai / (double)d) + (ci / (double)(inactive->getBarrelServices().size())) + (ei / (double)a) + (gi / (double)g)) / 4.0) << std::endl;
-        std::cout << "Average interaction length in endcaps: " << (((bi / (double)f) + (di / (double)(inactive->getEndcapServices().size())) + (fi / (double)b)) / 3.0) << std::endl;
+        std::cout << "Average interaction length in barrels: " << aib << std::endl;
+        std::cout << "Average interaction length in endcaps: " << aie << std::endl;
         std::cout << std::endl;
         std::cout << "Total mass in tracker: " << ((am + bm + cm + dm + em + fm + gm +hm + lm) / 1000.0) << "kg." << std::endl;
         std::cout << "----------Material Budget Internal State----------" << std::endl << std::endl;

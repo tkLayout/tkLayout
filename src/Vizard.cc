@@ -1298,25 +1298,25 @@ namespace insur {
         }
         
         /*
-    myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
-    myCanvas->cd();
-    myPad = summaryCanvas->GetPad(padXY);
-    if (myPad) {
-      myPad->DrawClonePad();
-      myImage = new RootWImage(myCanvas, 600, 600);
-      myImage->setComment("XY Section of the tracker barrel");
-      myContent->addItem(myImage);
-    }
-     
-    myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 600, 600);
-    myCanvas->cd();
-    myPad = summaryCanvas->GetPad(padEC);
-    if (myPad) {
-      myPad->DrawClonePad();
-      myImage = new RootWImage(myCanvas, 600, 600);
-      myImage->setComment("XY View of the tracker endcap");
-      myContent->addItem(myImage);
-    }
+         * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
+         * myCanvas->cd();
+         * myPad = summaryCanvas->GetPad(padXY);
+         * if (myPad) {
+         * myPad->DrawClonePad();
+         * myImage = new RootWImage(myCanvas, 600, 600);
+         * myImage->setComment("XY Section of the tracker barrel");
+         * myContent->addItem(myImage);
+         * }
+         *
+         * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 600, 600);
+         * myCanvas->cd();
+         * myPad = summaryCanvas->GetPad(padEC);
+         * if (myPad) {
+         * myPad->DrawClonePad();
+         * myImage = new RootWImage(myCanvas, 600, 600);
+         * myImage->setComment("XY View of the tracker endcap");
+         * myContent->addItem(myImage);
+         * }
          */
         
         myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
@@ -1510,37 +1510,37 @@ namespace insur {
             // TODO: add loops for distanceCanvas and angleCanvas (reuse iterators g_iter and g_guard, and reset plotOption)
             // Loop over the momenta (replace with real code)
             /*for (double i=1; i<4; i=i+1) {
-        // Get the TGraphs of momentum, distance and angle
-        // for momentum i: replace with real code
-        TGraph* fakeMomentumGraph = new TGraph(2);
-        fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
-        TGraph* fakeDistanceGraph = new TGraph(2);
-        fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
-        TGraph* fakeAngleGraph = new TGraph(2);
-        fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
-       
-        if (firstPlot) {
-          // Only for the first time
-          firstPlot=false;
-          // Create the canvases
-          momentumCanvas = new TCanvas();
-          distanceCanvas = new TCanvas();
-          angleCanvas = new TCanvas();
-        } else {
-          plotOption = "lp same";
-        }
-       
-        std::cerr << plotOption <<std::endl;
-       
-        // Actually draw the plots on the cavases
-        // with the right plot options
-        momentumCanvas->cd();
-        fakeMomentumGraph->Draw(plotOption.c_str());
-        distanceCanvas->cd();
-        fakeDistanceGraph->Draw(plotOption.c_str());
-        angleCanvas->cd();
-        fakeAngleGraph->Draw(plotOption.c_str());
-      }*/
+             * // Get the TGraphs of momentum, distance and angle
+             * // for momentum i: replace with real code
+             * TGraph* fakeMomentumGraph = new TGraph(2);
+             * fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
+             * TGraph* fakeDistanceGraph = new TGraph(2);
+             * fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
+             * TGraph* fakeAngleGraph = new TGraph(2);
+             * fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
+             *
+             * if (firstPlot) {
+             * // Only for the first time
+             * firstPlot=false;
+             * // Create the canvases
+             * momentumCanvas = new TCanvas();
+             * distanceCanvas = new TCanvas();
+             * angleCanvas = new TCanvas();
+             * } else {
+             * plotOption = "lp same";
+             * }
+             *
+             * std::cerr << plotOption <<std::endl;
+             *
+             * // Actually draw the plots on the cavases
+             * // with the right plot options
+             * momentumCanvas->cd();
+             * fakeMomentumGraph->Draw(plotOption.c_str());
+             * distanceCanvas->cd();
+             * fakeDistanceGraph->Draw(plotOption.c_str());
+             * angleCanvas->cd();
+             * fakeAngleGraph->Draw(plotOption.c_str());
+             * }*/
             
             if (momentumCanvas != NULL) {
                 std::cout << "Vizard: momentumCanvas is not NULL." << std::endl;

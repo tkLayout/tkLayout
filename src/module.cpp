@@ -60,6 +60,8 @@ void Module::setDefaultParameters() {
     computedBoundaries_ = false;
     shape_              = Undefined;
     aspectRatio_        = defaultAspectRatio_;
+    precisionRho_ = defaultPrecisionRho_;
+    precisionZ_ = defaultPrecisionZ_;
 }
 
 void Module::print() {
@@ -895,7 +897,7 @@ void Module::computeBoundaries(double zError) {
     if (averagePhi<-1*M_PI/2.) artificialRotation=M_PI/2.;
     fakeModule = new Module(*this);
     fakeModule->rotatePhi(artificialRotation);
-
+    
     minPhi=fakeModule->getCorner(0).Phi();
     maxPhi=fakeModule->getCorner(0).Phi();
     for (i=1; i<4; i++) {
@@ -929,15 +931,15 @@ void Module::computeBoundaries(double zError) {
         isAcrossPi_=false;
     } else {
         isAcrossPi_=true;
-    }    
+    }
     computedBoundaries_ = true;
     
 }
 
 
 bool Module::couldHit(double eta, double phi) {
-    bool withinPhi, withinPhiSub, withinPhiAdd;    
-
+    bool withinPhi, withinPhiSub, withinPhiAdd;
+    
     if (!computedBoundaries_) {
         std::cerr << "ERROR: missing boundaries after computeBoundaries()" << std::endl;
         return true;
@@ -1262,7 +1264,7 @@ EndcapModule::EndcapModule(int shape /*=wedge*/) : Module() {
 
 
 EndcapModule::EndcapModule(double waferDiameter, double heightOverWidth) : Module(waferDiameter) {
-  setSensorRectGeometry(heightOverWidth,0);
+    setSensorRectGeometry(heightOverWidth, 0);
 }
 
 EndcapModule::EndcapModule(double heightOverWidth) : Module() {

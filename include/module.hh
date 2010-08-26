@@ -59,6 +59,8 @@ class Module {
   int nStripAcross_;
   int nFaces_;
   int readoutType_;
+  double precisionRho_;
+  double precisionZ_;
 
   int inSection_;
 
@@ -87,6 +89,8 @@ class Module {
   static const int     defaultSegments_ = 1;
   static const int     defaultStripAcross_ = 1;
   static const int     defaultFaces_ = 1;
+  static const double defaultPrecisionRho_ = 0.0;
+  static const double defaultPrecisionZ_ = 0.0;
   
   std::string id_;   // Ids of the module
   std::string tag_;  // Tags the module
@@ -210,6 +214,12 @@ class Module {
   virtual double getLowPitch();
   virtual double getHighPitch();
 
+  double getPrecisionRho() { return precisionRho_; };
+  virtual void setPrecisionRho(double prho = -1) { precisionRho_ = 0.0; };
+
+  double getPrecisionZ() { return precisionZ_; };
+  void setPrecisionZ(double pz = -1) { (pz == -1) ? (precisionZ_ = height_ / (double)(nSegments_) / sqrt(12)) : (precisionZ_ = pz); };
+
   virtual double getOccupancyPerEvent();
 
   // Boundaries to ease the computation of tracks
@@ -244,6 +254,8 @@ class BarrelModule : public Module {
 
   double getLowPitch();
   double getHighPitch();
+
+  void setPrecisionRho(double prho = -1) { (prho == -1) ? (precisionRho_ = (width_ / (double)(nStripAcross_)) / sqrt(12)) : (precisionRho_ = prho); };
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -283,6 +295,9 @@ public:
   ~EndcapModule();
   double getLowPitch();
   double getHighPitch();
+
+  void setPrecisionRho(double prho = -1) { (prho == -1) ? (precisionRho_ = ((getLowPitch() + getHighPitch()) / 2.0) / sqrt(12)) : (precisionRho_ = prho); };
+
   virtual int getSubdetectorType() { return Endcap; };
 
   // The constructor needs 
@@ -299,9 +314,9 @@ public:
   //  EndcapModule(const Module& aModule);
 
   // Generating wedge-shaped modules
-  EndcapModule(double alpha, double d, double maxRho = -1);
-  EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho = -1);
-  EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho = -1);
+  EndcapModule(double alpha, double d, double maxRho); //use -1 as default for maxRho
+  EndcapModule(const Module& sampleModule, double alpha, double d, double maxRho); //use -1 as default for maxRho
+  EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho); //use -1 as default for maxRho
 
   // Generating square-shaped modules
   EndcapModule(const Module& aModule, double d);

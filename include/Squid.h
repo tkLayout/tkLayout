@@ -55,7 +55,8 @@ namespace insur {
      * It manages instances to all the necessary components internally. Its functions bundle the steps that are
      * required to carry out the main tasks of the application. The idea is to allow access to the underlying
      * via a series of well-defined pathways contained in a single class. This class acts as a sort of manager 
-     * to the application and can be embedded into a main program easily.
+     * to the application and can be embedded into a main program easily. It maintains internal instances of
+     * all the objects that are necessary to run the modelling, analysis and visualisation steps.
      */
     class Squid {
     public:
@@ -90,6 +91,9 @@ namespace insur {
         Tracker* tr;
         InactiveSurfaces* is;
         MaterialBudget* mb;
+        Tracker* px;
+        InactiveSurfaces* pi;
+        MaterialBudget* pm;
         configParser cp;
         MatParser mp;
         Usher u;
@@ -102,6 +106,7 @@ namespace insur {
         std::string extractFileName(const std::string& full);
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
+        void resetVizard();
 #ifdef USING_ROOTWEB
 	RootWSite site;
 	bool prepareWebsite();

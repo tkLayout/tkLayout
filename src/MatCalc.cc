@@ -22,10 +22,6 @@ namespace insur {
      * This function resets the internal data structures.
      */
     void MatCalc::reset() {
-        internals.typeinfo.clear();
-        //internals.modinforphi.clear();
-        //internals.modinfostereo.clear();
-        //internals.modinfopt.clear();
         internals.modinfo.clear();
         internals.serlocalinfo.clear();
         internals.serexitinfo.clear();
@@ -99,11 +95,9 @@ namespace insur {
             info.type = type;
             info.strips_across = strips;
             info.segments_along = segments;
-            internals.typeinfo.push_back(info);
-            if (internals.modinfo.find(type) == internals.modinfo.end()) {
-                std::vector<SingleMod> tmp;
-                internals.modinfo.insert(std::pair<std::string, std::vector<SingleMod> >(type, tmp));
-            }
+            std::vector<SingleMod> tmp;
+            std::pair<TypeInfo, std::vector<SingleMod> > tpair(info, tmp);
+            internals.modinfo.push_back(tpair);
         }
     }
     
@@ -268,23 +262,11 @@ namespace insur {
         }
     }
     
-    /**
-     * Reset the vector containing the information about the default dimensions of different module types.
-     */
-    void MatCalc::clearTypeVector() { internals.typeinfo.clear(); }
     
     /**
-     * Reset the vectors containing the material information for the three module types.
+     * Reset the module information vector
      */
-    void MatCalc::clearModVectors() {
-        std::map<std::string, std::vector<SingleMod> >::iterator iter, guard = internals.modinfo.end();
-        for (iter = internals.modinfo.begin(); iter != guard; iter++) {
-            iter->second.clear();
-        }
-        //internals.modinforphi.clear();
-        //internals.modinfostereo.clear();
-        //internals.modinfopt.clear();
-    }
+    void MatCalc::clearModVectors() { internals.modinfo.clear(); }
     
     /**
      * Reset a module info vector of a given type.
@@ -334,10 +316,10 @@ namespace insur {
      * @return True if the given module type appears in the <i>typeinfo</i> vector, false otherwise
      */
     bool MatCalc::typeRegistered(std::string type) {
-        std::vector<TypeInfo>::const_iterator iter = internals.typeinfo.begin();
-        std::vector<TypeInfo>::const_iterator guard = internals.typeinfo.end();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::const_iterator iter = internals.modinfo.begin();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::const_iterator guard = internals.modinfo.end();
         while (iter != guard) {
-            if (type.compare(iter->type) == 0) return true;
+            if (type.compare(iter->first.type) == 0) return true;
             else iter++;
         }
         return false;
@@ -347,7 +329,7 @@ namespace insur {
      * This is a convenince function that returns the number of registered module types.
      * @return The number of module types with registered default dimensions
      */
-    unsigned int MatCalc::registeredTypes() { return internals.typeinfo.size(); }
+    unsigned int MatCalc::registeredTypes() { return internals.modinfo.size(); }
     
     /**
      * Getter for the internal global material table. The material table always exists but
@@ -818,32 +800,11 @@ namespace insur {
     void MatCalc::printInternals() {
         if (init_done) {
             std::cout << "-----MatCalc parsed parameters-----" << std::endl << std::endl;
-            std::cout << "Number of module types found: " << internals.typeinfo.size() << std::endl;
-            for (std::vector<TypeInfo>::const_iterator iter = internals.typeinfo.begin(); iter != internals.typeinfo.end(); iter++) {
-                std::cout << "Type " << iter->type << ": " << iter->strips_across << " strips across, ";
-                std::cout << iter->segments_along << " segments along." << std::endl;
-            }
-            /*std::cout << std::endl << "Number of rphi materials found: " << internals.modinforphi.size() << std::endl;
-             * for (std::vector<SingleMod>::const_iterator iter = internals.modinforphi.begin(); iter != internals.modinforphi.end(); iter++) {
-             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-             * }
-             * std::cout << std::endl << "Number of stereo materials found: " << internals.modinfostereo.size() << std::endl;
-             * for (std::vector<SingleMod>::const_iterator iter = internals.modinfostereo.begin(); iter != internals.modinfostereo.end(); iter++) {
-             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-             * }
-             * std::cout << std::endl << "Number of pt materials found: " << internals.modinfopt.size() << std::endl;
-             * for (std::vector<SingleMod>::const_iterator iter = internals.modinfopt.begin(); iter != internals.modinfopt.end(); iter++) {
-             * std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-             * std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-             * std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-             * }*/
-            std::map<std::string, std::vector<SingleMod> >::const_iterator i, g = internals.modinfo.end();
+            std::cout << "Number of module types found: " << internals.modinfo.size() << std::endl;
+            std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::const_iterator i, g = internals.modinfo.end();
             for (i = internals.modinfo.begin(); i != g; i++) {
-                std::cout << "Number of type " << i->first << " materials found: " << i->second.size() << std::endl;
+                std::cout << "Type " << i->first.type << ": " << i->first.strips_across << " strips, " << i->first.segments_along << " segments." << std::endl;
+                std::cout << "Number of type " << i->first.type << " materials found: " << i->second.size() << std::endl;
                 for (std::vector<SingleMod>::const_iterator iter = i->second.begin(); iter != i->second.end(); iter++) {
                     std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
                     std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
@@ -875,13 +836,13 @@ namespace insur {
      * @return A reference to the requested module info vector
      */
     std::vector<MatCalc::SingleMod>& MatCalc::getModVector(std::string type) { // throws exception
-        std::map<std::string, std::vector<SingleMod> >::iterator res = internals.modinfo.find(type);
-        if (res != internals.modinfo.end()) {
-            return res->second;
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
+        while (iter != guard) {
+            if (type.compare(iter->first.type) == 0) return iter->second;
+            iter++;
         }
-        else {
-            throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
-        }
+        throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
     }
     
     /**
@@ -891,10 +852,10 @@ namespace insur {
      * @return A reference to the requested module type information
      */
     MatCalc::TypeInfo& MatCalc::getTypeInfoByType(std::string type) { // throws exception
-        std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
-        std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
         while (iter != guard) {
-            if (iter->type == type) return *iter;
+            if (type.compare(iter->first.type) == 0) return iter->first;
             iter++;
         }
         throw std::range_error("Exception in MatCalc::getTypeInfoTyType(): " + err_no_such_type);
@@ -993,10 +954,10 @@ namespace insur {
      * @return True if such an entry exists, false otherwise
      */
     bool MatCalc::entryExists(std::string type) {
-        std::vector<TypeInfo>::iterator iter = internals.typeinfo.begin();
-        std::vector<TypeInfo>::iterator guard = internals.typeinfo.end();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
         while (iter != guard) {
-            if (type.compare(iter->type) == 0) return true;
+            if (type.compare(iter->first.type) == 0) return true;
             iter++;
         }
         return false;

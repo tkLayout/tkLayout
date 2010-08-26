@@ -6,13 +6,24 @@
 using namespace ROOT::Math;
 using namespace std;
 
+/**
+ * This is a comparator for two Hit objects.
+ * @param h1 A pointer to the first hit
+ * @param h2 A pointer to the second hit
+ * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
+ */
 bool sortSmallerR(Hit* h1, Hit* h2) {
     return (h1->getDistance() < h2->getDistance());
 }
 
-Hit::~Hit() {
-}
+/**
+ * Nothing to do for the destructor, as a hit never owns any objects it has pointers to...
+ */
+Hit::~Hit() {}
 
+/**
+ * The default constructor sets the internal parameters to default values.
+ */
 Hit::Hit() {
     distance_ = 0;
     radius_ = 0;
@@ -21,8 +32,13 @@ Hit::Hit() {
     orientation_ = Undefined;
     //trackTheta_ = 0;
     myTrack_ = NULL;
+    isPixel_ = false;
 }
 
+/**
+ * The copy constructor makes sure the new object doesn't point to the old track (the track pointer needs to
+ * be set explicitly later). The pointer to the module, on the other hand, stays the same as that of the original.
+ */
 Hit::Hit(const Hit& h) {
     distance_ = h.distance_;
     radius_ = h.radius_;
@@ -31,8 +47,12 @@ Hit::Hit(const Hit& h) {
     hitModule_ = h.hitModule_;
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
+    isPixel_ = h.isPixel_;
 }
 
+/**
+ * //TODO
+ */
 Hit::Hit(double myDistance) {
     distance_ = myDistance;
     objectKind_ = Undefined;
@@ -42,6 +62,9 @@ Hit::Hit(double myDistance) {
     myTrack_ = NULL;
 }
 
+/**
+ * //TODO
+ */
 Hit::Hit(double myDistance, Module* myModule) {
     distance_ = myDistance;
     objectKind_ = Active;
@@ -52,7 +75,10 @@ Hit::Hit(double myDistance, Module* myModule) {
 }
 
 
-
+/*
+ * Setter for the pointer to the active surface that caused the hit.
+ * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
+ */
 void Hit::setHitModule(Module* myModule) {
     if (myModule) {
         hitModule_ = myModule;
@@ -67,24 +93,34 @@ void Hit::setHitModule(Module* myModule) {
     }
 }
 
-//pair<double, double> Hit::getBareMaterial() {
-//  return material_;
-//}
-
+/**
+ * Get the track angle theta.
+ * @return The angle from the z-axis of the entire track
+ */
 double Hit::getTrackTheta() {
     if (myTrack_==NULL)
         return 0;
     return (myTrack_->getTheta());
 };
 
+/**
+ * Getter for the final, angle corrected pair of radiation and interaction lengths.
+ * @return A copy of the pair containing the requested values; radiation length first, interaction length second
+ */
 pair<double, double> Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
+/**
+ * The default constructor sets the parameter for the track angle to zero.
+ */
 Track::Track() {
     theta_ = 0;
 }
 
+/**
+ * The copy constructor creates a deep copy of the vector of hits.
+ */
 Track::Track(const Track& t) {
     theta_ = t.theta_;
     correlations_ = t.correlations_;
@@ -99,6 +135,9 @@ Track::Track(const Track& t) {
     }
 }
 
+/**
+ * The destructor makes sure that the hit vector is cleaned up properly.
+ */
 Track::~Track() {
     std::vector<Hit*>::iterator hitIt;
     for (hitIt=hitV_.begin(); hitIt!=hitV_.end(); hitIt++) {
@@ -109,6 +148,10 @@ Track::~Track() {
     hitV_.clear();
 }
 
+/**
+ * Setter for the track angle.
+ * @param newTheta A reference to the value of the angle from the z-axis of the track
+ */
 double Track::setTheta(double& newTheta) {
     theta_ = newTheta;
     std::vector<Hit*>::iterator iter, guard = hitV_.end();
@@ -116,10 +159,17 @@ double Track::setTheta(double& newTheta) {
     return theta_;
 };
 
+/**
+ * This function sorts the hits in the internal vector by their distance to the z-axis.
+ */
 void Track::sort() {
     std::stable_sort(hitV_.begin(), hitV_.end(), sortSmallerR);
 }
 
+/**
+ * Compute the correlation matrices of the track hits for a series of different energies.
+ * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
+ */
 void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     // reset map
     correlations_.clear();
@@ -152,8 +202,8 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                         for (int i = 0; i < r; i++)
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
-                            double pitch = (hitV_.at(r)->getHitModule()->getLowPitch() + hitV_.at(r)->getHitModule()->getHighPitch()) / 2.0;
-                            sum = sum + pitch * pitch / 12.0;
+                            double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
+                            sum = sum + prec * prec / 12.0;
                         }
                         corr(r, c) = sum;
                         if (r != c) corr(c, r) = sum;
@@ -188,6 +238,10 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     }
 }
 
+/**
+ * Compute the covariance matrices of the track hits from a series of previously calculated correlation matrices.
+ * @param A reference to the map of correlation matrices per energy  that serves as the value source for the computation
+ */
 void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations) {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations.end();
     covariances_.clear();
@@ -216,6 +270,10 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
     }
 }
 
+/**
+ * //TODO
+ * @param momentaList A reference of the list of energies that the errors should be calculated for
+ */
 void Track::computeErrors(const std::vector<momentum>& momentaList) {
     // preliminary work
     computeCorrelationMatrix(momentaList);
