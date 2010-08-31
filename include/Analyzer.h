@@ -93,6 +93,8 @@ namespace insur {
         TH2D& getHistoIsoI() { return isoi; }
         std::vector<Track>& getTracks() { return tv; }
         std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
+        std::map<double, TGraph>& getPhiProfiles() { return phiprofiles; }
+        std::map<double, TGraph>& getDProfiles() { return dprofiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb,
                                                                   std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?

@@ -467,7 +467,7 @@ namespace insur {
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = tv.size();
-        double eta, rho, phi;
+        double eta, rho;
         rhoprofiles.clear();
         phiprofiles.clear();
         dprofiles.clear();
@@ -496,21 +496,38 @@ namespace insur {
                     rhoprofiles[miter->first].SetPoint(i, eta, (miter->second / rho));
                 }
             }
-            //TODO: implement this properly
-            /*mguard = dphi.end();
+            mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-                if (phiprofiles.find(miter->first) != phiprofiles.end()) {
-                    phi = ;
-                    phiprofiles[miter->first].SetPoint(i, eta, (miter->second / phi));
-                }
-            }*/
+                if (phiprofiles.find(miter->first) != phiprofiles.end()) phiprofiles[miter->first].SetPoint(i, eta, miter->second);
+            }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-                if (dprofiles.find(miter->first) != dprofiles.end()) {
-                    dprofiles[miter->first].SetPoint(i, eta, (miter->second));
-                }
+                if (dprofiles.find(miter->first) != dprofiles.end()) dprofiles[miter->first].SetPoint(i, eta, (miter->second));
             }
         }
+        //TODO: remove this after testing
+        std::cout << "Analyzer::calculateProfiles(): printing calculation results..." << std::endl;
+        std::cout << "rhoprofiles: " << rhoprofiles.size() << " entries in map. Contents:" << std::endl;
+        for (std::map<double, TGraph>::const_iterator i = rhoprofiles.begin(); i != rhoprofiles.end(); i++) {
+            std::cout << i->first << ": " << std::endl;
+            i->second.Print();
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+        std::cout << "phiprofiles: " << phiprofiles.size() << " entries in map. Contents:" << std::endl;
+        for (std::map<double, TGraph>::const_iterator i = phiprofiles.begin(); i != phiprofiles.end(); i++) {
+            std::cout << i->first << ": " << std::endl;
+            i->second.Print();
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+        std::cout << "dprofiles: " << dprofiles.size() << " entries in map. Contents:" << std::endl;
+        for (std::map<double, TGraph>::const_iterator i = dprofiles.begin(); i != dprofiles.end(); i++) {
+            std::cout << i->first << ": " << std::endl;
+            i->second.Print();
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
     }
     
     /**
