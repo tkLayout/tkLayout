@@ -530,6 +530,7 @@ namespace insur {
         if (mb) {
             a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
             v.histogramSummary(a, site);
+            v.errorSummary(a, site);
             return true;
         }
         else {

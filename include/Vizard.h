@@ -117,6 +117,7 @@ namespace insur {
 	void histogramSummary(Analyzer& a, RootWSite& site);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+        bool errorSummary(Analyzer& a, RootWSite& site);
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 	bool makeLogPage(RootWSite& site);
 #endif

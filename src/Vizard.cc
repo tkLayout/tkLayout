@@ -1472,7 +1472,11 @@ namespace insur {
         ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << tracker.getNMB();
         aStringStream <<" minimum bias events assumed</br>";
         myDescription->addText( aStringStream.str() );
-        
+                
+        return true;
+    }
+    
+    bool Vizard::errorSummary(Analyzer& a, RootWSite& site) {
         //********************************//
         //*                              *//
         //*    Resolution estimate       *//
@@ -1481,14 +1485,14 @@ namespace insur {
         
         // Here you should check if the TGraph
         // list is empty => maybe not?
-        // if (!isempty)
+        if (!(a.getRhoProfiles().empty() && a.getDProfiles().empty() && a.getPhiProfiles().empty()))
         {
             // Create a page for the errors
             RootWPage& myPage = site.addPage("Resolution");
             myPage.setAddress("errors.html");
             
             // Create the contents
-            RootWContent& resolutionContent = myPage.addContent("Track resolution (dummy plots)");
+            RootWContent& resolutionContent = myPage.addContent("Track resolution");
             
             //bool firstPlot = true;
             TCanvas* momentumCanvas = NULL;
@@ -1497,53 +1501,35 @@ namespace insur {
             std::string plotOption = "Alp";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
-            std::cout << "Vizard: plotting rho profiles..." << std::flush;
-            g_guard = analyzer.getRhoProfiles().end();
-            for (g_iter = analyzer.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
+            g_guard = a.getRhoProfiles().end();
+            for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
                 if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
                 else plotOption = "lp same";
                 momentumCanvas->cd();
                 momentumGraph.Draw(plotOption.c_str());
             }
-            std::cout << "done." << std::endl;
-            // TODO: add loops for distanceCanvas and angleCanvas (reuse iterators g_iter and g_guard, and reset plotOption)
-            // Loop over the momenta (replace with real code)
-            /*for (double i=1; i<4; i=i+1) {
-             * // Get the TGraphs of momentum, distance and angle
-             * // for momentum i: replace with real code
-             * TGraph* fakeMomentumGraph = new TGraph(2);
-             * fakeMomentumGraph->SetPoint(0, 1+(i/10), 1); fakeMomentumGraph->SetPoint(1, 2*i, 2*i);
-             * TGraph* fakeDistanceGraph = new TGraph(2);
-             * fakeDistanceGraph->SetPoint(0, 1+(i/10), 1); fakeDistanceGraph->SetPoint(1, 2*i, 2*i);
-             * TGraph* fakeAngleGraph = new TGraph(2);
-             * fakeAngleGraph->SetPoint(0, 1+(i/10), 1); fakeAngleGraph->SetPoint(1, 2*i, 2*i);
-             *
-             * if (firstPlot) {
-             * // Only for the first time
-             * firstPlot=false;
-             * // Create the canvases
-             * momentumCanvas = new TCanvas();
-             * distanceCanvas = new TCanvas();
-             * angleCanvas = new TCanvas();
-             * } else {
-             * plotOption = "lp same";
-             * }
-             *
-             * std::cerr << plotOption <<std::endl;
-             *
-             * // Actually draw the plots on the cavases
-             * // with the right plot options
-             * momentumCanvas->cd();
-             * fakeMomentumGraph->Draw(plotOption.c_str());
-             * distanceCanvas->cd();
-             * fakeDistanceGraph->Draw(plotOption.c_str());
-             * angleCanvas->cd();
-             * fakeAngleGraph->Draw(plotOption.c_str());
-             * }*/
-            
+            plotOption = "Alp";
+            // distance canvas loop
+            g_guard = a.getDProfiles().end();
+            for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
+                TGraph& distanceGraph = g_iter->second;
+                if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
+                else plotOption = "lp same";
+                distanceCanvas->cd();
+                distanceGraph.Draw(plotOption.c_str());
+            }
+            plotOption = "Alp";
+            // angle canvas loop
+            g_guard = a.getPhiProfiles().end();
+            for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
+                TGraph& angleGraph = g_iter->second;
+                if (angleCanvas == NULL) angleCanvas = new TCanvas();
+                else plotOption = "lp same";
+                angleCanvas->cd();
+                angleGraph.Draw(plotOption.c_str());
+            }
             if (momentumCanvas != NULL) {
-                std::cout << "Vizard: momentumCanvas is not NULL." << std::endl;
                 RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
                 momentumImage.setComment("Momentum resolution vs. eta");
             }
@@ -1555,9 +1541,9 @@ namespace insur {
                 RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
                 angleImage.setComment("Angle resolution vs. eta");
             }
+            return true;
         }
-        
-        return true;
+        return false;
     }
     
     // public
@@ -1583,7 +1569,6 @@ namespace insur {
     
     
 #endif
-    
     
     // private
     // Draws tickmarks on 3d canvases

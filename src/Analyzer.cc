@@ -475,7 +475,6 @@ namespace insur {
         for (iter = p.begin(); iter != guard; iter++) {
             std::pair<double, TGraph> elem;
             TGraph graph(n);
-            //TODO: graph.SetTitle() -> find sensible name...
             elem.first = *iter;
             elem.second = graph;
             rhoprofiles.insert(elem);
@@ -505,29 +504,6 @@ namespace insur {
                 if (dprofiles.find(miter->first) != dprofiles.end()) dprofiles[miter->first].SetPoint(i, eta, (miter->second));
             }
         }
-        //TODO: remove this after testing
-        std::cout << "Analyzer::calculateProfiles(): printing calculation results..." << std::endl;
-        std::cout << "rhoprofiles: " << rhoprofiles.size() << " entries in map. Contents:" << std::endl;
-        for (std::map<double, TGraph>::const_iterator i = rhoprofiles.begin(); i != rhoprofiles.end(); i++) {
-            std::cout << i->first << ": " << std::endl;
-            i->second.Print();
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "phiprofiles: " << phiprofiles.size() << " entries in map. Contents:" << std::endl;
-        for (std::map<double, TGraph>::const_iterator i = phiprofiles.begin(); i != phiprofiles.end(); i++) {
-            std::cout << i->first << ": " << std::endl;
-            i->second.Print();
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << "dprofiles: " << dprofiles.size() << " entries in map. Contents:" << std::endl;
-        for (std::map<double, TGraph>::const_iterator i = dprofiles.begin(); i != dprofiles.end(); i++) {
-            std::cout << i->first << ": " << std::endl;
-            i->second.Print();
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
     }
     
     /**
