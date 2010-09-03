@@ -474,12 +474,13 @@ namespace insur {
         // momentum loop
         for (iter = p.begin(); iter != guard; iter++) {
             std::pair<double, TGraph> elem;
-            TGraph graph(n);
+            TGraph graph;
             elem.first = *iter;
             elem.second = graph;
             rhoprofiles.insert(elem);
             phiprofiles.insert(elem);
             dprofiles.insert(elem);
+	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;p(GeV);sigma(micrometers)");
         }
         // track loop
         for (int i = 0; i < n; i++) {
@@ -501,7 +502,8 @@ namespace insur {
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-                if (dprofiles.find(miter->first) != dprofiles.end()) dprofiles[miter->first].SetPoint(i, eta, (miter->second));
+	      // Plot in micrometers
+              if (dprofiles.find(miter->first) != dprofiles.end()) dprofiles[miter->first].SetPoint(i, eta, 1000*(miter->second));
             }
         }
     }

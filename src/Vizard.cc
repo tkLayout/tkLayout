@@ -1501,31 +1501,49 @@ namespace insur {
             std::string plotOption = "Alp";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
+	    int myColor=0;
             g_guard = a.getRhoProfiles().end();
             for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
                 if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
                 else plotOption = "lp same";
+		momentumGraph.SetMinimum(1E-4);
+		momentumGraph.SetMaximum(0.1);
+		momentumCanvas->SetLogy();
+		momentumGraph.SetLineColor(++myColor);
+		momentumGraph.SetMarkerColor(myColor);
+		momentumGraph.SetMarkerStyle(8);
                 momentumCanvas->cd();
                 momentumGraph.Draw(plotOption.c_str());
             }
             plotOption = "Alp";
+	    myColor=0;
             // distance canvas loop
             g_guard = a.getDProfiles().end();
             for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
                 if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
                 else plotOption = "lp same";
+		distanceGraph.SetMinimum(0);
+		distanceGraph.SetMaximum(40E3);
+		//distanceCanvas->SetLogy();
+		distanceGraph.SetLineColor(++myColor);
+		distanceGraph.SetMarkerColor(myColor);
+		distanceGraph.SetMarkerStyle(8);
                 distanceCanvas->cd();
                 distanceGraph.Draw(plotOption.c_str());
             }
             plotOption = "Alp";
+	    myColor=0;
             // angle canvas loop
             g_guard = a.getPhiProfiles().end();
             for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
                 if (angleCanvas == NULL) angleCanvas = new TCanvas();
                 else plotOption = "lp same";
+		angleGraph.SetLineColor(++myColor);
+		angleGraph.SetMarkerColor(myColor);
+		angleGraph.SetMarkerStyle(8);
                 angleCanvas->cd();
                 angleGraph.Draw(plotOption.c_str());
             }
