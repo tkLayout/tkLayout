@@ -181,7 +181,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
         for (int i = 0; i < n - 1; i++) {
-            double th = hitV_.at(i)->getCorrectedMaterial().second;
+            double th = hitV_.at(i)->getCorrectedMaterial().first;
             th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
             thetasq.push_back(th);
         }
