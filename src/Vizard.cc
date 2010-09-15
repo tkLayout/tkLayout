@@ -1,3 +1,8 @@
+/**
+ * @file Vizard.cc
+ * @brief This class takes care of visualisation for both geometry and analysis results
+ */
+
 #include <Vizard.h>
 
 

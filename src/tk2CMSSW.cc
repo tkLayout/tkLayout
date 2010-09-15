@@ -1,6 +1,6 @@
 /**
  * @file tk2CMSSW.cc
- * @brief
+ * @brief This class provides the interface to analyse a tracker and write the results to XML files for CMSSW
  */
 
 #include <tk2CMSSW.h>

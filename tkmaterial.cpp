@@ -7,9 +7,8 @@
 
 /**
  * @file tkmaterial.cpp
- * @brief This is <i>tkmaterial</i>'s main program.
- * It collects switches and parameter files and decides what to do with them based on what it found.
- * To find out the available options, running <i>tkmaterial</i> without parameters will print a message that shows them.
+ * @brief This is the old main program of <i>tkgeometry</i>.
+ * It should no longer be used and has been replaced by <i>tklayout</i>.
  */
 
 #include <stdlib.h>

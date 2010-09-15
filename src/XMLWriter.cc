@@ -1,6 +1,6 @@
 /**
  * @file XMLWriter.cc
- * @brief
+ * @brief This class implements the output functions that turn a set of previously collected tracker information into a series of CMSSW XML files
  */
 
 #include <XMLWriter.h>

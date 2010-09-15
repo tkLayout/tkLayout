@@ -1,3 +1,8 @@
+/**
+ * @file hit.cpp
+ * @brief This file implements the hit and track classes used for internal analysis
+ */
+
 #include "hit.hh"
 #include "module.hh"
 #include <vector>
@@ -203,7 +208,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
                             double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
-                            sum = sum + prec * prec / 12.0;
+                            sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
                         if (r != c) corr(c, r) = sum;
@@ -271,7 +276,8 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
 }
 
 /**
- * //TODO
+ * Calculate the errors of the track curvature radius, the propagation direction at the point of closest approach and the
+ * distance of closest approach to the origin, all of them for each momentum of the test particle.
  * @param momentaList A reference of the list of energies that the errors should be calculated for
  */
 void Track::computeErrors(const std::vector<momentum>& momentaList) {
@@ -288,14 +294,49 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
-        if (data(0, 0) >= 0) err.second = sqrt(data(0,0));
+        if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltarho_.insert(err);
-        if (data(1, 1) >= 0) err.second = sqrt(data(1,1));
+        if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaphi_.insert(err);
-        if (data(2, 2)) err.second = sqrt(data(2,2));
+        if (data(2, 2)) err.second = sqrt(data(2, 2));
         else err.second = -1;
         deltad_.insert(err);
     }
 }
+
+/**
+ * Print the values in the correlation and covariance matrices and the drho, dphi and dd vectors per momentum.
+ */
+void Track::printErrors() {
+    std::map<momentum, double>::const_iterator iter, guard;
+    std::map<momentum, TMatrixT<double> >::const_iterator miter, mguard;
+    std::map<momentum, TMatrixTSym<double> >::const_iterator siter, sguard;
+    std::cout << "Overview of track errors:" << std::endl;
+    std::cout << "Hit correlation matrices: " << correlations_.size() << (correlations_.size() == 1 ? " entry." : " entries.") << std::endl;
+    sguard = correlations_.end();
+    for (siter = correlations_.begin(); siter != sguard; siter++) {
+        std::cout << "momentum = " << siter->first << ":";
+        siter->second.Print();
+    }
+    std::cout << "Covariance matrices: " << covariances_.size() << (covariances_.size() == 1 ? " entry." : " entries.") << std::endl;
+    mguard = covariances_.end();
+    for (miter = covariances_.begin(); miter != mguard; miter++) {
+        std::cout << "momentum = " << miter->first << ":";
+        miter->second.Print();
+    }
+    std::cout << "Rho errors by momentum: " << deltarho_.size() << (deltarho_.size() == 1 ? " entry." : " entries.") << std::endl;
+    guard = deltarho_.end();
+    for (iter = deltarho_.begin(); iter != guard; iter++)
+        std::cout << "momentum = " << iter->first << ": deltaRho = " << iter->second << std::endl;
+    std::cout << "Phi errors by momentum: " << deltaphi_.size() << (deltaphi_.size() == 1 ? " entry." : " entries.") << std::endl;
+    guard = deltaphi_.end();
+    for (iter = deltaphi_.begin(); iter != guard; iter++)
+        std::cout << "momentum = " << iter->first << ": deltaPhi = " << iter->second << std::endl;
+    std::cout << "D errors by momentum: " << deltad_.size() << (deltad_.size() == 1 ? " entry." : " entries.") << std::endl;
+    guard = deltad_.end();
+    for (iter = deltad_.begin(); iter != guard; iter++)
+        std::cout << "momentum = " << iter->first << ": deltaD = " << iter->second << std::endl;
+}
+

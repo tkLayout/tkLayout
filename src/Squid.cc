@@ -1,6 +1,6 @@
 /**
  * @file Squid.cc
- * @brief
+ * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
 #include <Squid.h>

@@ -17,6 +17,8 @@ INCDIR=include
 LIBDIR=lib
 BINDIR=bin
 TESTDIR=test
+DOCDIR=doc
+DOXYDIR=doc/doxygen
 
 COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
@@ -197,7 +199,7 @@ $(LIBDIR)/rootweb.o:	src/rootweb.cpp $(INCDIR)/rootweb.hh
 
 # UTILITIES
 setup: $(BINDIR)/setup.bin
-	@echo Building setup...
+	@echo "Building setup..."
 
 $(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
 	$(COMP) $(BOOSTLIBFLAGS) $(LIBDIR)/mainConfigHandler.o setup.cpp -o $(BINDIR)/setup.bin
@@ -205,7 +207,7 @@ $(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
 #FINAL
 #(obsolete)
 tkLayout: $(BINDIR)/tkLayout
-	@echo Building tkLayout...
+	@echo "Building tkLayout..."
 
 #(obsolete)
 $(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
@@ -214,7 +216,7 @@ $(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
 	-o $(BINDIR)/tkLayout
 
 tkmaterial: $(BINDIR)/tkmaterial
-	@echo Building tkmaterial...
+	@echo "Building tkmaterial..."
 
 $(BINDIR)/tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
 	$(LIBDIR)/tracker.o  $(LIBDIR)/messageLogger.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
@@ -237,7 +239,7 @@ $(LIBDIR)/tkmaterial.o: tkmaterial.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
 
 tklayout: $(BINDIR)/tklayout
-	@echo Building tklayout...
+	@echo "Building tklayout..."
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
 	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
@@ -309,4 +311,9 @@ cleantkmaine:
 	
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine 
 	
-# doc: TODO: find out how to autogenerate doxygen man pages using make
+doc: doxydoc
+	
+doxydoc:
+	rm -rf $(DOXYDIR)/html
+	doxygen $(DOCDIR)/tkdoc.doxy
+	@echo "Created API documentation."

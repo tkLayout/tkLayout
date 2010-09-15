@@ -1,3 +1,9 @@
+/**
+ * @file hit.hh
+ * @brief This header file defines the hit and track classes used for internal analysis
+ */
+
+
 #ifndef _HIT_HH_
 #define _HIT_HH_
 
@@ -109,5 +115,6 @@ public:
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
+  void printErrors();
 };
 #endif

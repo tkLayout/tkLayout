@@ -1,6 +1,6 @@
 /**
  * @file Extractor.cc
- * @brief
+ * @brief This class extracts the tracker geometry and material properties from an existing setup and groups them in preparation for translation to CMSSW XML
  */
 
 #include <Extractor.h>

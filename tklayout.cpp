@@ -1,15 +1,15 @@
 //
-// File:   tkmaterial.cpp
+// File:   tklayout.cpp
 // Author: ndemaio
 //
 // Created on June 8, 2009, 10:51 AM
 //
 
 /**
- * @file tkmaterial.cpp
- * @brief This is <i>tkmaterial</i>'s main program.
+ * @file tklayout.cpp
+ * @brief This is <i>tkgeometry</i>'s main program.
  * It collects switches and parameter files and decides what to do with them based on what it found.
- * To find out the available options, running <i>tkmaterial</i> without parameters will print a message that shows them.
+ * To find out the available options, running <i>bin/tklayout</i> without parameters will print a message that shows them.
  */
 
 #include <stdlib.h>
@@ -24,9 +24,9 @@ int main(int argc, char** argv) {
     // idiot usage check
     if (argc < 2) {
         // print usage message
-        std::cout << "Error: tkmaterial needs at least a geometry configuration file to run." << std::endl;
+        std::cout << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
         std::cout << "The full call syntax is as follows:" << std::endl << std::endl;
-        std::cout << "./tkmaterial [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
+        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile] [materialfile] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
         std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
         std::cout << "m   print material budget summary after material assignment" << std::endl;
         std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
                 break;
                 case 'd': d = true;
                 break;
-                default: std::cerr << "Error: unknown parameter " << *iter << ". Aborting tkmaterial." << std::endl;
+                default: std::cerr << "Error: unknown parameter " << *iter << ". Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
         }
@@ -69,8 +69,8 @@ int main(int argc, char** argv) {
         // next argument can be geomfile, settingsfile, tracks or outfileswitch
         if (switch_processed) {
             if (argv[i][0] == '-') {
-                std::cerr << "Error: tkmaterial needs at least a geometry configuration file to run." << std::endl;
-                std::cout << "Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: tklayout needs at least a geometry configuration file to run." << std::endl;
+                std::cout << "Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             else {
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
                 if (argv[i][1]){
                     if (argv[i][1] == 'h') {
                         if (h) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                         else {
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
                     }
                     else if (argv[i][1] == 'r') {
                         if (r) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                         else {
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
                     }
                     else if (argv[i][1] == 'g') {
                         if (g) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                         else {
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
                     }
                     else if (argv[i][1] == 'x') {
                         if (x) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                         else {
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
                     }
                     else if (argv[i][1] == 't') {
                         if (t) {
-                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                         else {
@@ -145,18 +145,18 @@ int main(int argc, char** argv) {
                                 t = true;
                             }
                             else {
-                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                                std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                                 return (EXIT_FAILURE);
                             }
                         }
                     }
                     else {
-                        std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
                 files_processed = true;
@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -247,18 +247,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -269,7 +269,7 @@ int main(int argc, char** argv) {
         // next argument can be outfileswitch, tracks or materialfile
         if (argv[i][0] != '-') {
             if (files_processed) {
-                std::cerr << "Error: unexpected config file found. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unexpected config file found. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             else {
@@ -282,7 +282,7 @@ int main(int argc, char** argv) {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -321,7 +321,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -334,7 +334,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -344,18 +344,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -365,14 +365,14 @@ int main(int argc, char** argv) {
     if (i < argc) {
         // next argument can be outfileswitch or tracks (up to five to go)
         if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tkmaterial." << std::endl;
+            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
         else {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -385,7 +385,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -398,7 +398,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -424,7 +424,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -434,18 +434,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -455,14 +455,14 @@ int main(int argc, char** argv) {
     if (i < argc) {
         // next argument can be outfileswitch or tracks (up to four to go)
         if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tkmaterial." << std::endl;
+            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
         else {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -475,7 +475,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -488,7 +488,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -501,7 +501,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -514,7 +514,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -524,18 +524,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -545,14 +545,14 @@ int main(int argc, char** argv) {
     if (i < argc) {
         // next argument can be outfileswitch or tracks (up to three to go)
         if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tkmaterial." << std::endl;
+            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
         else {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -565,7 +565,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -578,7 +578,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -591,7 +591,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -604,7 +604,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -614,18 +614,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -635,14 +635,14 @@ int main(int argc, char** argv) {
     if (i < argc) {
         // next argument can be outfileswitch or tracks (up to two to go)
         if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tkmaterial." << std::endl;
+            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
         else {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -655,7 +655,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -668,7 +668,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -681,7 +681,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -694,7 +694,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -704,18 +704,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -725,14 +725,14 @@ int main(int argc, char** argv) {
     if (i < argc) {
         // next argument can be outfileswitch or tracks (last one)
         if (argv[i][0] != '-') {
-            std::cerr << "Error: too many config files. Aborting tkmaterial." << std::endl;
+            std::cerr << "Error: too many config files. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
         else {
             if (argv[i][1]){
                 if (argv[i][1] == 'h') {
                     if (h) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -745,7 +745,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'r') {
                     if (r) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -758,7 +758,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'g') {
                     if (g) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -771,7 +771,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 'x') {
                     if (x) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -784,7 +784,7 @@ int main(int argc, char** argv) {
                 }
                 else if (argv[i][1] == 't') {
                     if (t) {
-                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                        std::cerr << "Error: redefinition of parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                         return (EXIT_FAILURE);
                     }
                     else {
@@ -794,18 +794,18 @@ int main(int argc, char** argv) {
                             t = true;
                         }
                         else {
-                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                            std::cerr << "Error parsing numeric parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                             return (EXIT_FAILURE);
                         }
                     }
                 }
                 else {
-                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tkmaterial." << std::endl;
+                    std::cerr << "Error: unknown parameter " << argv[i] << ". Aborting tklayout." << std::endl;
                     return (EXIT_FAILURE);
                 }
             }
             else {
-                std::cerr << "Error: unknown parameter. Aborting tkmaterial." << std::endl;
+                std::cerr << "Error: unknown parameter. Aborting tklayout." << std::endl;
                 return (EXIT_FAILURE);
             }
             files_processed = true;
@@ -813,8 +813,8 @@ int main(int argc, char** argv) {
     }
     i++;
     if (i < argc) {
-        std::cerr << "Error: too many arguments. The tkmaterial call syntax is as follows:" << std::endl;
-        std::cout << "./tkmaterial [-umd] geomfile [settingsfile [materialfile]] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
+        std::cerr << "Error: too many arguments. The tklayout call syntax is as follows:" << std::endl;
+        std::cout << "./bin/tklayout [-umd] geomfile [settingsfile [materialfile]] [-t n_of_tracks] [-h [htmlfile]] [-r [rootfile]] [-g [graphfile]] [-x [XMLsubdir]]";
         std::cout << std::endl << std::endl << "u   print geometry summary after volume creation" << std::endl;
         std::cout << "m   print material budget summary after material assignment" << std::endl;
         std::cout << "d   write detailed geometry to root file - WARNING: may cause root to crash later!" << std::endl;
@@ -967,7 +967,7 @@ int main(int argc, char** argv) {
             case 3 : if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
             break;
             default: std::cerr << "Something truly strange happened during processing: the command line passed the parsing stage ";
-            std::cerr << "but the number of input files is not between 1 and 3. Aborting tkmaterial." << std::endl;
+            std::cerr << "but the number of input files is not between 1 and 3. Aborting tklayout." << std::endl;
             return (EXIT_FAILURE);
         }
     }
