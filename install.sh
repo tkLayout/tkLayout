@@ -17,7 +17,7 @@ if [ ! -f $TKG_SETUP_BIN ]; then
 fi
 
 echo "Where should I install the binary?"
-echo -n "(Choose a directory in you PATH) [ $HOME/bin ]: "
+echo -n "(Choose a directory in your PATH) [ $HOME/bin ]: "
 read TKG_BIN_TARGET
 if [ "${TKG_BIN_TARGET}" == "" ] ; then TKG_BIN_TARGET="$HOME/bin" ; fi
 
