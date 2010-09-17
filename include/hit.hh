@@ -95,6 +95,7 @@ protected:
   map<momentum, TMatrixTSym<double> > correlations_;
   map<momentum, TMatrixT<double> > covariances_;
   map<momentum, double> deltarho_;
+  map<momentum, double>::iterator deltarhoIt_;
   map<momentum, double> deltaphi_;
   map<momentum, double> deltad_;
   void computeCorrelationMatrix(const vector<double>& momenta);

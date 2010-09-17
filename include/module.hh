@@ -214,10 +214,11 @@ class Module {
   virtual double getLowPitch();
   virtual double getHighPitch();
 
-  double getPrecisionRho() { return precisionRho_; };
-  virtual void setPrecisionRho(double prho = -1) { precisionRho_ = 0.0; };
+  virtual double getPrecisionRho() { return precisionRho_; };
+  virtual void setPrecisionRho(double prho) { precisionRho_ = 0.0; };
+  virtual void setPrecisionRho() { precisionRho_ = 0.0; }; // TODO: fix the call to setPrecision in wedge modules
 
-  double getPrecisionZ() { return precisionZ_; };
+  double getPrecisionZ() { return precisionZ_; }; // TODO: fix here too
   void setPrecisionZ(double pz = -1) { (pz == -1) ? (precisionZ_ = height_ / (double)(nSegments_) / sqrt(12)) : (precisionZ_ = pz); };
 
   virtual double getOccupancyPerEvent();
@@ -255,7 +256,10 @@ class BarrelModule : public Module {
   double getLowPitch();
   double getHighPitch();
 
-  void setPrecisionRho(double prho = -1) { (prho == -1) ? (precisionRho_ = (width_ / (double)(nStripAcross_)) / sqrt(12)) : (precisionRho_ = prho); };
+  double getPrecisionRho() { setPrecisionRho(); return precisionRho_; } // TODO : fix this!
+
+  void setPrecisionRho() {  precisionRho_ = width_ / (double)(nStripAcross_) / sqrt(12);  };
+  void setPrecisionRho(double prho) { precisionRho_ = prho;  };
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -296,7 +300,8 @@ public:
   double getLowPitch();
   double getHighPitch();
 
-  void setPrecisionRho(double prho = -1) { (prho == -1) ? (precisionRho_ = ((getLowPitch() + getHighPitch()) / 2.0) / sqrt(12)) : (precisionRho_ = prho); };
+  void setPrecisionRho() {  precisionRho_ = ((getLowPitch() + getHighPitch()) / 2.0) / (double)(nStripAcross_) / sqrt(12);  };
+  void setPrecisionRho(double prho) { precisionRho_ = prho;  };
 
   virtual int getSubdetectorType() { return Endcap; };
 

@@ -180,8 +180,18 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     correlations_.clear();
     // matrix size
     int n = hitV_.size();
+
+    std::cerr << std::endl
+	      << std::endl
+	      << "=== Track::computeCorrelationMatrix() == " << std::endl
+	      << " theta = " << theta_ << std::endl; // debug
+
+
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
+
+        std::cerr << " p = " << momenta.at(p) << std::endl; // debug
+
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
@@ -208,6 +218,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
                             double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
+			    std::cerr << "Hit precision: " << prec << std::endl; // debug
                             sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
@@ -235,6 +246,10 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         }
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
+
+	std::cerr << "Correlation matrix: " << std::endl; // debug
+	corr.Print(); // debug
+
         // check if matrix is sane and worth keeping
         if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
             pair<double, TMatrixTSym<double> > par(momenta.at(p), corr);
@@ -250,6 +265,12 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations) {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations.end();
     covariances_.clear();
+
+    std::cerr << std::endl
+	      << std::endl
+	      << "=== Track::computeCovarianceMatrix() == " << std::endl
+	      << " theta = " << theta_ << std::endl; // debug
+
     for (iter = correlations.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
         unsigned int nhits = hitV_.size();
@@ -258,6 +279,7 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
         TMatrixT<double> diffsT(3, n);
         TMatrixT<double> diffs(n, 3);
         TMatrixT<double> cov(3, 3);
+
         // set up partial derivative matrices diffs and diffsT
         for (unsigned int i = 0; i < nhits; i++) {
             if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
@@ -268,8 +290,10 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
             else offset++;
         }
         diffsT.Transpose(diffs);
+	diffs.Print(); // debug
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C.Invert() * diffs;
+	cov.Print(); // debug
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariances_.insert(par);
     }
@@ -294,9 +318,12 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
+	std::cerr << "Matrix S" << std::endl; // debug
+	data.Print(); // debug
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltarho_.insert(err);
+	std::cerr << err.second << std::endl;
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaphi_.insert(err);
@@ -304,6 +331,10 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         else err.second = -1;
         deltad_.insert(err);
     }
+    
+    //for (deltarhoIt_=deltarho_.begin(); deltarhoIt_!=deltarho_.end(); ++deltarhoIt_)
+    //  std::cerr << "deltarho ( " << (*deltarhoIt_).first << ") = " << (*deltarhoIt_).second << ", ";
+    //std::cerr << std::endl; //debug
 }
 
 /**

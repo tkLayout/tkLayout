@@ -1513,7 +1513,7 @@ namespace insur {
                 if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
                 else plotOption = "lp same";
 		momentumGraph.SetMinimum(1E-4);
-		momentumGraph.SetMaximum(0.1);
+		momentumGraph.SetMaximum(1);
 		momentumCanvas->SetLogy();
 		momentumGraph.SetLineColor(++myColor);
 		momentumGraph.SetMarkerColor(myColor);
@@ -1530,7 +1530,7 @@ namespace insur {
                 if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
                 else plotOption = "lp same";
 		distanceGraph.SetMinimum(0);
-		distanceGraph.SetMaximum(40E3);
+		distanceGraph.SetMaximum(1E3);
 		//distanceCanvas->SetLogy();
 		distanceGraph.SetLineColor(++myColor);
 		distanceGraph.SetMarkerColor(myColor);
@@ -1546,6 +1546,8 @@ namespace insur {
                 TGraph& angleGraph = g_iter->second;
                 if (angleCanvas == NULL) angleCanvas = new TCanvas();
                 else plotOption = "lp same";
+		angleGraph.SetMinimum(-0.01);
+		angleGraph.SetMaximum(0.01);
 		angleGraph.SetLineColor(++myColor);
 		angleGraph.SetMarkerColor(myColor);
 		angleGraph.SetMarkerStyle(8);

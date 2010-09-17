@@ -467,7 +467,7 @@ namespace insur {
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = tv.size();
-        double eta, rho;
+        double eta, R;
         rhoprofiles.clear();
         phiprofiles.clear();
         dprofiles.clear();
@@ -480,9 +480,14 @@ namespace insur {
             rhoprofiles.insert(elem);
             phiprofiles.insert(elem);
             dprofiles.insert(elem);
+	    rhoprofiles[elem.first].SetTitle("p_T error;p(GeV);relative error");
+	    phiprofiles[elem.first].SetTitle("Track angle error;p(GeV);sigma(radians)");
 	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;p(GeV);sigma(micrometers)");
         }
         // track loop
+	std::map<double,int> rhoPointCount;
+	std::map<double,int> phiPointCount;
+	std::map<double,int> dPointCount;
         for (int i = 0; i < n; i++) {
             std::map<double, double>& drho = tv.at(i).getDeltaRho();
             std::map<double, double>& dphi = tv.at(i).getDeltaPhi();
@@ -492,18 +497,21 @@ namespace insur {
             // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
                 if (rhoprofiles.find(miter->first) != rhoprofiles.end()) {
-                    rho = miter->first / magnetic_field / 0.3;
-                    rhoprofiles[miter->first].SetPoint(i, eta, (miter->second / rho));
+		  R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
+		  // deltaRho / rho = deltaRho * R
+		  rhoprofiles[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, (miter->second * R));
                 }
             }
             mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-                if (phiprofiles.find(miter->first) != phiprofiles.end()) phiprofiles[miter->first].SetPoint(i, eta, miter->second);
+                if (phiprofiles.find(miter->first) != phiprofiles.end())
+		  phiprofiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, miter->second);
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
 	      // Plot in micrometers
-              if (dprofiles.find(miter->first) != dprofiles.end()) dprofiles[miter->first].SetPoint(i, eta, 1000*(miter->second));
+              if (dprofiles.find(miter->first) != dprofiles.end())
+		dprofiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, 1000*(miter->second));
             }
         }
     }
