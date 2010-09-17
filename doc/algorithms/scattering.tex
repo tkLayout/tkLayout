@@ -7,6 +7,10 @@
 \usepackage{graphicx}
 \pagestyle{fancy}
 
+%\usepackage{xltxtra}
+%\setmainfont[Mapping=tex-text,Ligatures={Common, Historical},Numbers={OldStyle}]{OFL Sorts Mill Goudy}
+
+
 % Fancy header and footer to have my name everywhere
 \lhead{\textbf{Multiple scattering}}
 \chead{}
@@ -182,66 +186,68 @@ columns corresponding to the inactive hits are removed. We thus start
 from a $N\times N$ square matrix of correlations $b_{n,m}$ and we end
 up with a $M\times M$ measurement point covariance matrix $C_{n,m}$,
 or in matrix notation $C$.
-\subsection{Extrapolation to the ECAL}
-We want to estimate the error in the extrapolation of the track to an
-external cylindrical surface, for example the inner surface of ECAL.
 
-In the transverse plane this reduces to the interception of two
-circles: the given cylinder section of radius $L$ and the track
-trajectory with radius $R=1/\rho$. Given that typically $R \gg d$ and
-$L \gg d$ we will neglect $d$ and consider the particle trajectory to
-be starting from the origin of the ${x, y}$ plane (see
-Figure~\ref{fig:angle} below).
-\begin{figure}[h]
-\begin{center}
-\includegraphics[height=0.5\textwidth,angle=-90]{angle.pdf}
-\caption{Target cylinder surface and particle trajectory in the ${x, y}$ plane}
-\label{fig:angle}
-\end{center}
-\end{figure}
 
-To extrapolate the position on the target barrel the important
-parameter is $\varphi$:
-\begin{equation}
-\varphi = \phi + \beta
-\end{equation}
-where $\phi$ is the trajectory angle at the origin already esitmated
-(plus a constant which is not influent in the error estimation) and
-$\beta$ is shown in Figure~\ref{fig:angle}.
-
-From the figure one can easily get the relation
-\begin{eqnarray}
-  R \, \cos(\beta) & =& \frac L 2 \\
-  \beta & = & \arccos \left ( \frac {L \rho} 2 \right )
-\end{eqnarray}
-where the relation $R = 1/ \rho$ was used.
-
-The error on $\varphi$ can be estimated through
-\begin{equation}
-\sigma^2_{\varphi} = \left ( \frac {\partial \varphi} {\partial \rho} \right )^2 \sigma^2_{\rho}
-+ \left ( \frac {\partial \varphi} {\partial \phi} \right )^2 \sigma^2_{\phi}
-+ 2 \left ( \frac {\partial \varphi} {\partial \rho} \right ) \left ( \frac {\partial \varphi} {\partial \phi} \right ) \sigma_{\phi \rho}
-\end{equation}
-given that
-\begin{equation}
-\frac {\partial \varphi} {\partial \phi} = 1
-\end{equation}
-and
-\begin{equation}
- \frac {\partial \varphi} {\partial \rho} = 
- \frac {\partial \beta} {\partial \rho} = 
-- \frac {L} {\sqrt{4 - {L^2 \rho^2} }}
-\end{equation}
-the error on $\varphi$ can be written as
-\begin{equation}
-\sigma^2_{\varphi} = \left ( \frac {L^2 } {4 - L^2 \rho^2 } \right )  \sigma^2_{\rho}
-+ \sigma^2_{\phi}
--  \left ( \frac {2\,L} {\sqrt{4- {L^2 \rho^2} }} \right ) \sigma_{\phi \rho}
-\end{equation}
-the linear error in the $r-\varphi$ plane of the extrapolation $\Delta s$ will be finally
-\begin{equation}
-\Delta s = L \sqrt{\sigma^2_{\varphi}}
-\end{equation}
-
+%\subsection{Extrapolation to the ECAL}
+%We want to estimate the error in the extrapolation of the track to an
+%external cylindrical surface, for example the inner surface of ECAL.
+%
+%In the transverse plane this reduces to the interception of two
+%circles: the given cylinder section of radius $L$ and the track
+%trajectory with radius $R=1/\rho$. Given that typically $R \gg d$ and
+%$L \gg d$ we will neglect $d$ and consider the particle trajectory to
+%be starting from the origin of the ${x, y}$ plane (see
+%Figure~\ref{fig:angle} below).
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[height=0.5\textwidth,angle=-90]{angle.pdf}
+%\caption{Target cylinder surface and particle trajectory in the ${x, y}$ plane}
+%\label{fig:angle}
+%\end{center}
+%\end{figure}
+%
+%To extrapolate the position on the target barrel the important
+%parameter is $\varphi$:
+%\begin{equation}
+%\varphi = \phi + \beta
+%\end{equation}
+%where $\phi$ is the trajectory angle at the origin already esitmated
+%(plus a constant which is not influent in the error estimation) and
+%$\beta$ is shown in Figure~\ref{fig:angle}.
+%
+%From the figure one can easily get the relation
+%\begin{eqnarray}
+%  R \, \cos(\beta) & =& \frac L 2 \\
+%  \beta & = & \arccos \left ( \frac {L \rho} 2 \right )
+%\end{eqnarray}
+%where the relation $R = 1/ \rho$ was used.
+%
+%The error on $\varphi$ can be estimated through
+%\begin{equation}
+%\sigma^2_{\varphi} = \left ( \frac {\partial \varphi} {\partial \rho} \right )^2 \sigma^2_{\rho}
+%+ \left ( \frac {\partial \varphi} {\partial \phi} \right )^2 \sigma^2_{\phi}
+%+ 2 \left ( \frac {\partial \varphi} {\partial \rho} \right ) \left ( \frac {\partial \varphi} {\partial \phi} \right ) \sigma_{\phi \rho}
+%\end{equation}
+%given that
+%\begin{equation}
+%\frac {\partial \varphi} {\partial \phi} = 1
+%\end{equation}
+%and
+%\begin{equation}
+% \frac {\partial \varphi} {\partial \rho} = 
+% \frac {\partial \beta} {\partial \rho} = 
+%- \frac {L} {\sqrt{4 - {L^2 \rho^2} }}
+%\end{equation}
+%the error on $\varphi$ can be written as
+%\begin{equation}
+%\sigma^2_{\varphi} = \left ( \frac {L^2 } {4 - L^2 \rho^2 } \right )  \sigma^2_{\rho}
+%+ \sigma^2_{\phi}
+%-  \left ( \frac {2\,L} {\sqrt{4- {L^2 \rho^2} }} \right ) \sigma_{\phi \rho}
+%\end{equation}
+%the linear error in the $r-\varphi$ plane of the extrapolation $\Delta s$ will be finally
+%\begin{equation}
+%\Delta s = L \sqrt{\sigma^2_{\varphi}}
+%\end{equation}
+%
 \label{LastPage}
 \end{document}
