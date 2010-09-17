@@ -4,6 +4,7 @@
 
 \usepackage{hyphenat}
 \usepackage{fancyhdr}
+\usepackage{graphicx}
 \pagestyle{fancy}
 
 % Fancy header and footer to have my name everywhere
@@ -85,7 +86,15 @@ errors are:
 \Delta \phi &=& \sqrt{W_{2,2}^{-1}} \nonumber \\
 \Delta d &=& \sqrt{W_{3,3}^{-1}} \nonumber
 \end{eqnarray}
-The derivatives of (\ref{eq:helix}) are:
+which can be also written as
+\begin{eqnarray}
+\sigma^2_\rho &=& S_{1,1} \nonumber \\
+\sigma^2_\phi &=& S_{2,2} \nonumber \\
+\sigma^2_d &=& S_{3,3} \nonumber \\
+\sigma_{\rho, \phi} & = & S_{1,2} \nonumber \\
+ & \ldots & \nonumber
+\end{eqnarray}
+to evidentiate the covariances. The derivatives of (\ref{eq:helix}) are:
 \begin{eqnarray}
   \frac { \partial \varepsilon_i} {\partial \alpha_1} =
   \frac { \partial \varepsilon_i} {\partial \rho} &=& \frac 1 2 r_i^2 + d (d+y_i) \nonumber \\
@@ -113,6 +122,7 @@ will be $M\times 3$ and defined by
 and the $3\times 3$ weight matrix $W$ will be (in matrix notation)
 $W=D^{T}C^{-1}D$.
 \section{Error estimate}
+\subsection{Track parameters}
 Given the layer radii $x_n = x_1, x_2, \ldots, x_N$ with scattering
 angles $\theta_1, \theta_2, \ldots, \theta_3$, then the deviation from
 the ideal path $y_n$ is
@@ -172,7 +182,66 @@ columns corresponding to the inactive hits are removed. We thus start
 from a $N\times N$ square matrix of correlations $b_{n,m}$ and we end
 up with a $M\times M$ measurement point covariance matrix $C_{n,m}$,
 or in matrix notation $C$.
+\subsection{Extrapolation to the ECAL}
+We want to estimate the error in the extrapolation of the track to an
+external cylindrical surface, for example the inner surface of ECAL.
 
+In the transverse plane this reduces to the interception of two
+circles: the given cylinder section of radius $L$ and the track
+trajectory with radius $R=1/\rho$. Given that typically $R \gg d$ and
+$L \gg d$ we will neglect $d$ and consider the particle trajectory to
+be starting from the origin of the ${x, y}$ plane (see
+Figure~\ref{fig:angle} below).
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=0.5\textwidth,angle=-90]{angle.pdf}
+\caption{Target cylinder surface and particle trajectory in the ${x, y}$ plane}
+\label{fig:angle}
+\end{center}
+\end{figure}
+
+To extrapolate the position on the target barrel the important
+parameter is $\varphi$:
+\begin{equation}
+\varphi = \phi + \beta
+\end{equation}
+where $\phi$ is the trajectory angle at the origin already esitmated
+(plus a constant which is not influent in the error estimation) and
+$\beta$ is shown in Figure~\ref{fig:angle}.
+
+From the figure one can easily get the relation
+\begin{eqnarray}
+  R \, \cos(\beta) & =& \frac L 2 \\
+  \beta & = & \arccos \left ( \frac {L \rho} 2 \right )
+\end{eqnarray}
+where the relation $R = 1/ \rho$ was used.
+
+The error on $\varphi$ can be estimated through
+\begin{equation}
+\sigma^2_{\varphi} = \left ( \frac {\partial \varphi} {\partial \rho} \right )^2 \sigma^2_{\rho}
++ \left ( \frac {\partial \varphi} {\partial \phi} \right )^2 \sigma^2_{\phi}
++ 2 \left ( \frac {\partial \varphi} {\partial \rho} \right ) \left ( \frac {\partial \varphi} {\partial \phi} \right ) \sigma_{\phi \rho}
+\end{equation}
+given that
+\begin{equation}
+\frac {\partial \varphi} {\partial \phi} = 1
+\end{equation}
+and
+\begin{equation}
+ \frac {\partial \varphi} {\partial \rho} = 
+ \frac {\partial \beta} {\partial \rho} = 
+- \frac {L} {\sqrt{4 - {L^2 \rho^2} }}
+\end{equation}
+the error on $\varphi$ can be written as
+\begin{equation}
+\sigma^2_{\varphi} = \left ( \frac {L^2 } {4 - L^2 \rho^2 } \right )  \sigma^2_{\rho}
++ \sigma^2_{\phi}
+-  \left ( \frac {2\,L} {\sqrt{4- {L^2 \rho^2} }} \right ) \sigma_{\phi \rho}
+\end{equation}
+the linear error in the $r-\varphi$ plane of the extrapolation $\Delta s$ will be finally
+\begin{equation}
+\Delta s = L \sqrt{\sigma^2_{\varphi}}
+\end{equation}
 
 \label{LastPage}
 \end{document}
