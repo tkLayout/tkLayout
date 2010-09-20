@@ -296,7 +296,7 @@ public:
   // Module adjustments
   void changeRingModules(std::string diskName, int ringN, std::string newtype, Color_t newColor);
   void setModuleTypesDemo1();
-  void setModuleTypes();
+  //void setModuleTypes();
   void setModuleTypes(std::string sectionName,
 		      std::map<int, int> nStripsAcross,
 		      std::map<int, int> nFaces,

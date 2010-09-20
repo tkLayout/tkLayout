@@ -181,16 +181,18 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     // matrix size
     int n = hitV_.size();
 
+    /*
     std::cerr << std::endl
 	      << std::endl
 	      << "=== Track::computeCorrelationMatrix() == " << std::endl
 	      << " theta = " << theta_ << std::endl; // debug
+    */
 
 
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
 
-        std::cerr << " p = " << momenta.at(p) << std::endl; // debug
+      //std::cerr << " p = " << momenta.at(p) << std::endl; // debug
 
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
@@ -218,7 +220,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
                             double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
-			    std::cerr << "Hit precision: " << prec << std::endl; // debug
+			    //std::cerr << "Hit precision: " << prec << std::endl; // debug
                             sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
@@ -247,8 +249,8 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
 
-	std::cerr << "Correlation matrix: " << std::endl; // debug
-	corr.Print(); // debug
+	//std::cerr << "Correlation matrix: " << std::endl; // debug
+	//corr.Print(); // debug
 
         // check if matrix is sane and worth keeping
         if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
@@ -266,10 +268,12 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations.end();
     covariances_.clear();
 
+    /*
     std::cerr << std::endl
 	      << std::endl
 	      << "=== Track::computeCovarianceMatrix() == " << std::endl
 	      << " theta = " << theta_ << std::endl; // debug
+    */
 
     for (iter = correlations.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
@@ -293,7 +297,7 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
 	diffs.Print(); // debug
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C.Invert() * diffs;
-	cov.Print(); // debug
+	//cov.Print(); // debug
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariances_.insert(par);
     }
@@ -318,12 +322,12 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
-	std::cerr << "Matrix S" << std::endl; // debug
-	data.Print(); // debug
+	//std::cerr << "Matrix S" << std::endl; // debug
+	//data.Print(); // debug
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltarho_.insert(err);
-	std::cerr << err.second << std::endl;
+	//std::cerr << err.second << std::endl; // debug
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaphi_.insert(err);

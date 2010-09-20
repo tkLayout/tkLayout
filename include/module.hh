@@ -214,12 +214,15 @@ class Module {
   virtual double getLowPitch();
   virtual double getHighPitch();
 
-  virtual double getPrecisionRho() { return precisionRho_; };
-  virtual void setPrecisionRho(double prho) { precisionRho_ = 0.0; };
-  virtual void setPrecisionRho() { precisionRho_ = 0.0; }; // TODO: fix the call to setPrecision in wedge modules
+  // R-Phi precision
+  void setPrecisionRho(const double& prho) { precisionRho_ = 0.0; };
+  virtual void setPrecisionRho() { std::cerr << "ERROR this should never be called!!!" << std::endl; precisionRho_ = 0.0; };
+  double getPrecisionRho() { return precisionRho_; }; // Todo: rename Rho to RPhi everywhere
 
-  double getPrecisionZ() { return precisionZ_; }; // TODO: fix here too
-  void setPrecisionZ(double pz = -1) { (pz == -1) ? (precisionZ_ = height_ / (double)(nSegments_) / sqrt(12)) : (precisionZ_ = pz); };
+  // Z precision
+  void setPrecisionZ(const double& pz) { precisionZ_ = pz; };
+  void setPrecisionZ() {   precisionZ_ = height_ / (double)(nSegments_) / sqrt(12); };
+  virtual double getPrecisionZ() { return precisionZ_; }; // This is rho for endcaps modules in reality!
 
   virtual double getOccupancyPerEvent();
 
@@ -256,10 +259,7 @@ class BarrelModule : public Module {
   double getLowPitch();
   double getHighPitch();
 
-  double getPrecisionRho() { setPrecisionRho(); return precisionRho_; } // TODO : fix this!
-
   void setPrecisionRho() {  precisionRho_ = width_ / (double)(nStripAcross_) / sqrt(12);  };
-  void setPrecisionRho(double prho) { precisionRho_ = prho;  };
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -301,7 +301,6 @@ public:
   double getHighPitch();
 
   void setPrecisionRho() {  precisionRho_ = ((getLowPitch() + getHighPitch()) / 2.0) / (double)(nStripAcross_) / sqrt(12);  };
-  void setPrecisionRho(double prho) { precisionRho_ = prho;  };
 
   virtual int getSubdetectorType() { return Endcap; };
 

@@ -2025,6 +2025,8 @@ void Tracker::setModuleTypesDemo1() {
 }
 
 
+/*
+
 // The real method used here
 // Parameter set here (example)
 //       sampleModule->setNStripAcross(512);
@@ -2048,12 +2050,16 @@ void Tracker::setModuleTypes() {
     std::string myType;
     Color_t myColor;
     int readoutType;
-    
+
+    std::cerr << "Tracker::setModuleTypes()" << std::endl; // debug
     for (layIt=barrelLayerSet_.begin(); layIt!=barrelLayerSet_.end(); layIt++) {
         aLay = (*layIt)->getModuleVector();
+	std::cerr << "here's a layer" << std::endl; // debug
         for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+	  std::cerr << "here's a module"; // debug
             aModule=(*modIt);
             if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
+	      std::cerr << " (a barrel one)" << std::endl; // debug
                 
                 nFaces = 1;
                 readoutType = Module::Strip;
@@ -2110,7 +2116,8 @@ void Tracker::setModuleTypes() {
             }
             aModule->setPrecisionRho();
             aModule->setPrecisionZ();
-        }
+	    std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
+       }
     }
     
     
@@ -2129,6 +2136,8 @@ void Tracker::setModuleTypes() {
     
     for (modIt=allEndcapModules.begin(); modIt!=allEndcapModules.end(); modIt++) {
         aModule=(*modIt);
+	std::cerr << "here's an endcap module" << std::endl; // debug
+
         if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
             
             nFaces = 1;
@@ -2181,10 +2190,10 @@ void Tracker::setModuleTypes() {
             std::cerr << "ERROR! in function Tracker::setModuleTypes() "
             << "I found a !EndcapModule in the end-caps" << std::endl;
         }
-        aModule->setPrecisionRho();
-        aModule->setPrecisionZ();
+	std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
     }
 }
+*/
 
 // Returns the same color for the same module type across
 // all the program
@@ -2336,8 +2345,10 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setTag(myTag.str());
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
-            
-            
+
+	    aModule->setPrecisionRho();
+	    aModule->setPrecisionZ();
+
             // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
             
             // Check if a given module type was not assigned fr a group
