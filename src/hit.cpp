@@ -11,6 +11,8 @@
 using namespace ROOT::Math;
 using namespace std;
 
+#undef HIT_DEBUG
+
 /**
  * This is a comparator for two Hit objects.
  * @param h1 A pointer to the first hit
@@ -181,25 +183,35 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     // matrix size
     int n = hitV_.size();
 
-    /*
+    
+#ifdef HIT_DEBUG
     std::cerr << std::endl
 	      << std::endl
 	      << "=== Track::computeCorrelationMatrix() == " << std::endl
-	      << " theta = " << theta_ << std::endl; // debug
-    */
+	      << " theta = " << theta_ << std::endl;
+#endif
+    
 
 
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
 
-      //std::cerr << " p = " << momenta.at(p) << std::endl; // debug
+#ifdef HIT_DEBUG
+      std::cerr << " p = " << momenta.at(p) << std::endl;
+#endif
 
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().first;
-            th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
+#ifdef HIT_DEBUG
+	    std::cerr << "material (i) = " << th << std::endl;
+#endif
+	    if (th>0)
+	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
+	    else
+	      th = 0;
             thetasq.push_back(th);
         }
         // correlations: c is column, r is row
@@ -220,7 +232,10 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
                             double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
-			    //std::cerr << "Hit precision: " << prec << std::endl; // debug
+#ifdef HIT_DEBUG
+			    std::cerr << "Hit precision: " << prec << std::endl;
+			    std::cerr << "Radius: " << hitV_.at(r)->getRadius() << std::endl;
+#endif
                             sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
@@ -249,8 +264,10 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
 
-	//std::cerr << "Correlation matrix: " << std::endl; // debug
-	//corr.Print(); // debug
+#ifdef HIT_DEBUG
+	std::cerr << "Correlation matrix: " << std::endl;
+	corr.Print();
+#endif
 
         // check if matrix is sane and worth keeping
         if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
@@ -268,12 +285,12 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations.end();
     covariances_.clear();
 
-    /*
+#ifdef HIT_DEBUG
     std::cerr << std::endl
 	      << std::endl
 	      << "=== Track::computeCovarianceMatrix() == " << std::endl
-	      << " theta = " << theta_ << std::endl; // debug
-    */
+	      << " theta = " << theta_ << std::endl;
+#endif
 
     for (iter = correlations.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
@@ -294,10 +311,14 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
             else offset++;
         }
         diffsT.Transpose(diffs);
-	// diffs.Print(); // debug
+#ifdef HIT_DEBUG
+	diffs.Print();
+#endif
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C.Invert() * diffs;
-	//cov.Print(); // debug
+#ifdef HIT_DEBUG
+	cov.Print();
+#endif
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariances_.insert(par);
     }
@@ -322,12 +343,16 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
-	//std::cerr << "Matrix S" << std::endl; // debug
-	//data.Print(); // debug
+#ifdef HIT_DEBUG
+	std::cerr << "Matrix S" << std::endl;
+	data.Print();
+#endif
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltarho_.insert(err);
-	//std::cerr << err.second << std::endl; // debug
+#ifdef HIT_DEBUG
+	std::cerr << err.second << std::endl;
+#endif
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaphi_.insert(err);
@@ -336,9 +361,6 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         deltad_.insert(err);
     }
     
-    //for (deltarhoIt_=deltarho_.begin(); deltarhoIt_!=deltarho_.end(); ++deltarhoIt_)
-    //  std::cerr << "deltarho ( " << (*deltarhoIt_).first << ") = " << (*deltarhoIt_).second << ", ";
-    //std::cerr << std::endl; //debug
 }
 
 /**
@@ -352,14 +374,14 @@ void Track::printErrors() {
     std::cout << "Hit correlation matrices: " << correlations_.size() << (correlations_.size() == 1 ? " entry." : " entries.") << std::endl;
     sguard = correlations_.end();
     for (siter = correlations_.begin(); siter != sguard; siter++) {
-        // std::cout << "momentum = " << siter->first << ":"; // debug
-        // siter->second.Print(); // debug
+      std::cout << "momentum = " << siter->first << ":";
+      siter->second.Print();
     }
-    std::cout << "Covariance matrices: " << covariances_.size() << (covariances_.size() == 1 ? " entry." : " entries.") << std::endl;
+    std::cout << "Covariance matrices: " << covariances_.size() << (covariances_.size() == 1 ? " entry." : " entries.") << std::endl; // debug
     mguard = covariances_.end();
     for (miter = covariances_.begin(); miter != mguard; miter++) {
-        //std::cout << "momentum = " << miter->first << ":"; // debug
-        //miter->second.Print(); //debug
+      std::cout << "momentum = " << miter->first << ":";
+      miter->second.Print();
     }
     std::cout << "Rho errors by momentum: " << deltarho_.size() << (deltarho_.size() == 1 ? " entry." : " entries.") << std::endl;
     guard = deltarho_.end();
