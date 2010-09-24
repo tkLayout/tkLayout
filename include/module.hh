@@ -215,7 +215,7 @@ class Module {
   virtual double getHighPitch();
 
   // R-Phi precision
-  void setPrecisionRho(const double& prho) { precisionRho_ = 0.0; };
+  void setPrecisionRho(const double& prho) { precisionRho_ = prho; };
   virtual void setPrecisionRho() { std::cerr << "ERROR this should never be called!!!" << std::endl; precisionRho_ = 0.0; };
   double getPrecisionRho() { return precisionRho_; }; // Todo: rename Rho to RPhi everywhere
 
@@ -300,7 +300,7 @@ public:
   double getLowPitch();
   double getHighPitch();
 
-  void setPrecisionRho() {  precisionRho_ = ((getLowPitch() + getHighPitch()) / 2.0) / (double)(nStripAcross_) / sqrt(12);  };
+  void setPrecisionRho() {  precisionRho_ = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  };
 
   virtual int getSubdetectorType() { return Endcap; };
 
