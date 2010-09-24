@@ -34,16 +34,16 @@ namespace insur {
     public:
         void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
         void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
-        void tracker(CMSSWBundle& d, std::ofstream& out);
+        void tracker(CMSSWBundle& d, std::ofstream& out, bool wt = false);
         void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
-        void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out);
+        void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool wt = false);
     protected:
         void materialSection(std::string name, std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream);
         void rotationSection(std::vector<Rotation>& r, std::string label, std::ostringstream& stream);
-        void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream);
-        void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid);
+        void logicalPartSection(std::vector<LogicalInfo>& l, std::string label,  std::ostringstream& stream, bool wt = false);
+        void solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid, bool wt = false);
         void posPartSection(std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::string label, std::ostringstream& stream);
         void specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream);
         void algorithm(std::string name, std::string parent, std::vector<std::string>& params, std::ostringstream& stream);
@@ -62,7 +62,7 @@ namespace insur {
         void translation(double x, double y, double z, std::ostringstream& stream);
         void specPar(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
     private:
-        std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks);
+        std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt = false);
         bool endcapsInTopology(std::vector<SpecParInfo>& specs);
         int findNumericPrefixSize(std::string s);
         int findEntry(std::vector<SpecParInfo>& specs, std::string name);

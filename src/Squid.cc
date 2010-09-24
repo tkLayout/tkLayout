@@ -398,9 +398,9 @@ namespace insur {
      * @param xmlout The name - without path - of the designated output subdirectory
      * @return True if there were no errors during processing, false otherwise
      */
-    bool Squid::translateFullSystemToXML(std::string xmlout) {
+    bool Squid::translateFullSystemToXML(std::string xmlout, bool wt) {
         if (mb) {
-            t2c.translate(c.getMaterialTable(), *mb, xmlout);
+            t2c.translate(c.getMaterialTable(), *mb, xmlout, wt);
             return true;
         }
         else {

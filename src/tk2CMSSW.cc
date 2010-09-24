@@ -18,7 +18,7 @@ namespace insur {
      * @mb A reference to an existing material budget that serves as input to the translation
      * @outsubdir A string with the name of a subfolder for the output; empty by default.
      */
-    void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir) {
+    void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir, bool wt) {
         std::string outpath = default_xmlpath;
         if (outsubdir.empty()) outpath = outpath + "/" + default_xml;
         else {
@@ -28,41 +28,45 @@ namespace insur {
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
         std::string tmppath = default_xmlpath + "/" + xml_tmppath + "/";
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
-        ex.analyse(mt, mb, data);
+        ex.analyse(mt, mb, data, wt);
         // translate collected information to XML and write to buffers
         std::ifstream instream;
         std::ofstream outstream;
         try {
             if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
             bfs::create_directory(outpath);
-            instream.open((default_xmlpath + "/" + xml_pixbarfile).c_str());
-            outstream.open((outpath + xml_pixbarfile).c_str());
-            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
-            wr.pixbar(data.shapes, instream, outstream);
-            if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
-            instream.close();
-            instream.clear();
-            outstream.close();
-            outstream.clear();
-            std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
-            instream.open((default_xmlpath + "/" + xml_pixfwdfile).c_str());
-            outstream.open((outpath + xml_pixfwdfile).c_str());
-            if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
-            wr.pixfwd(data.shapes, instream, outstream);
-            if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
-            instream.close();
-            instream.clear();
-            outstream.close();
-            outstream.clear();
-            std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
-            outstream.open((outpath + xml_trackerfile).c_str());
+            if (!wt) {
+                instream.open((default_xmlpath + "/" + xml_pixbarfile).c_str());
+                outstream.open((outpath + xml_pixbarfile).c_str());
+                if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
+                wr.pixbar(data.shapes, instream, outstream);
+                if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
+                instream.close();
+                instream.clear();
+                outstream.close();
+                outstream.clear();
+                std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+                instream.open((default_xmlpath + "/" + xml_pixfwdfile).c_str());
+                outstream.open((outpath + xml_pixfwdfile).c_str());
+                if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
+                wr.pixfwd(data.shapes, instream, outstream);
+                if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
+                instream.close();
+                instream.clear();
+                outstream.close();
+                outstream.clear();
+                std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
+            }
+            if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
+            else outstream.open((outpath + xml_trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
-            wr.tracker(data, outstream);
+            wr.tracker(data, outstream, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW tracker geometry output has been written to " << outpath << xml_trackerfile << std::endl;
-            instream.open((default_xmlpath + "/" + xml_topologyfile).c_str());
+            std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_trackerfile) << std::endl;
+            if (wt) instream.open((default_xmlpath + "/" + xml_newtopologyfile).c_str());
+            else instream.open((default_xmlpath + "/" + xml_topologyfile).c_str());
             outstream.open((outpath + xml_topologyfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
             wr.topology(data.specs, instream, outstream);
@@ -92,10 +96,11 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
-            instream.open((default_xmlpath + "/" + xml_recomatfile).c_str());
+            if (wt) instream.open((default_xmlpath + "/" + xml_newrecomatfile).c_str());
+            else instream.open((default_xmlpath + "/" + xml_recomatfile).c_str());
             outstream.open((outpath + xml_recomatfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
-            wr.recomaterial(data.specs, data.lrilength, instream, outstream);
+            wr.recomaterial(data.specs, data.lrilength, instream, outstream, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing recomaterial to file.");
             instream.close();
             instream.clear();

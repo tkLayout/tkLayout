@@ -24,7 +24,8 @@ namespace insur {
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";
-    static const std::string xml_const_section = "<ConstantsSection label=\"tobrodpar.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
+    static const std::string xml_const_section = "<ConstantsSection label=\"tracker.xml\" eval=\"true\">\n<Constant name=\"BackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
+    static const std::string xml_new_const_section = "<ConstantsSection label=\"newtracker.xml\" eval=\"true\">\n<Constant name=\"newDummyBackPlaneDz\" value=\"0.015*mm\"/>\n</ConstantsSection>\n";
     static const std::string xml_recomat_parameters = "<Parameter name=\"TrackerRadLength\" value=\"0.01\"/>\n<Parameter name=\"TrackerXi\" value=\"0.0001";
     static const std::string xml_recomat_radlength = "TrackerRadLength";
     static const std::string xml_recomat_xi = "TrackerXi";
@@ -112,15 +113,18 @@ namespace insur {
     static const std::string xml_spec_par_parameter_second = "\" value=\"";
     static const std::string xml_spec_par_close = "\"/>\n</SpecPar>\n";
     /**
-     * Output filenames
+     * Input and output filenames
      */
     static const std::string xml_trackerfile = "tracker.xml";
+    static const std::string xml_newtrackerfile = "newtracker.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
+    static const std::string xml_newtopologyfile = "newTrackerStructureTopology.xml";
     static const std::string xml_prodcutsfile = "trackerProdCuts.xml";
     static const std::string xml_trackersensfile = "trackersens.xml";
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
+    static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
     static const std::string xml_tmppath = "tmp";
     /**
      * Naming conventions and variable names
@@ -147,6 +151,7 @@ namespace insur {
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
+    static const std::string xml_newfileident = "newtracker";
     static const std::string xml_pixbar = "PixelBarrel";
     static const std::string xml_pixfwd_plus = "PixelForwardZPlus";
     static const std::string xml_pixfwd_minus = "PixelForwardZMinus";
@@ -170,7 +175,6 @@ namespace insur {
     static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
-    static const std::string xml_full_tracker = "FullTracker";//may be obsolete
     static const std::string xml_det_layer = "TOBLayer";
     static const std::string xml_det_rod = "TOBRod";
     static const std::string xml_det_tobdet = "TOBDet";

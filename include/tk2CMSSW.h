@@ -44,7 +44,7 @@ namespace insur {
     public:
         tk2CMSSW() {}
         virtual ~tk2CMSSW() {}
-        void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "");
+        void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
     protected:
         CMSSWBundle data;
         Extractor ex;

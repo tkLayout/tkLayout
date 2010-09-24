@@ -4,7 +4,7 @@
  */
 
 #include <XMLWriter.h>
-#include <stdlib.h> // Because atoi() is used 
+#include <stdlib.h> // Because atoi() is used
 
 
 namespace insur {
@@ -87,7 +87,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out) {
+    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, bool wt) {
         std::vector<Element>& e = d.elements;
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
@@ -96,12 +96,23 @@ namespace insur {
         std::vector<AlgoInfo>& a = d.algos;
         std::vector<Rotation>& r = d.rots;
         std::ostringstream buffer;
-        buffer << xml_preamble << xml_const_section;
-        materialSection(xml_trackerfile, e, c, buffer);
-        rotationSection(r, xml_trackerfile, buffer);
-        logicalPartSection(l, xml_trackerfile, buffer);
-        solidSection(s, xml_trackerfile, buffer, true);
-        posPartSection(p, a, xml_trackerfile, buffer);
+        buffer << xml_preamble;
+        if (wt) {
+            buffer << xml_new_const_section;
+            materialSection(xml_newtrackerfile, e, c, buffer);
+            rotationSection(r, xml_newtrackerfile, buffer);
+            logicalPartSection(l, xml_newtrackerfile, buffer, true);
+            solidSection(s, xml_newtrackerfile, buffer, true, true);
+            posPartSection(p, a, xml_newtrackerfile, buffer);
+        }
+        else {
+            buffer << xml_const_section;
+            materialSection(xml_trackerfile, e, c, buffer);
+            rotationSection(r, xml_trackerfile, buffer);
+            logicalPartSection(l, xml_trackerfile, buffer);
+            solidSection(s, xml_trackerfile, buffer, true);
+            posPartSection(p, a, xml_trackerfile, buffer);
+        }
         buffer << xml_defclose;
         out << buffer.str();
     }
@@ -289,9 +300,9 @@ namespace insur {
      * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::recomaterial(std::vector<SpecParInfo>& t,
-            std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out) {
+            std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool wt) {
         std::vector<PathInfo> b;
-        b = buildPaths(t, b);
+        b = buildPaths(t, b, wt);
         if (!b.empty()) {
             std::string line;
             while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
@@ -368,10 +379,10 @@ namespace insur {
      * @param label The label of the logical part section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream) {
+    void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool wt) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
-        logicalPart(xml_tracker, xml_fileident + ":" + xml_tracker, xml_material_air, stream);
+        if (!wt) logicalPart(xml_tracker, xml_fileident + ":" + xml_tracker, xml_material_air, stream);
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
@@ -385,9 +396,9 @@ namespace insur {
      * @param label The label of the solid section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid) {
+    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid, bool wt) {
         stream << xml_solid_section_open << label << xml_general_inter;
-        tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream);
+        if (!wt) tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream);
         for (unsigned int i = 0; i < s.size(); i++) {
             if ((notobtid) &&
                     ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;
@@ -534,7 +545,7 @@ namespace insur {
     /**
      * This formatter writes an XML entry describing an isosceles trapezium shape to the stream that serves as a buffer
      * for the output file contents.
-     * @param name The name of the trapezium shape; must be unique 
+     * @param name The name of the trapezium shape; must be unique
      * @param dx Half the volume length along x
      * @param dy Half the volume length along the lower y
      * @param dyy Half the volume length along the upper y
@@ -661,7 +672,7 @@ namespace insur {
      * @param blocks A container for a string representation of <i>SpecPar</i> blocks and their <i>PartSelector</i> path entries
      * @return The completed collection of blocks in string representation
      */
-    std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks) {
+    std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt) {
         std::vector<PathInfo>::iterator existing;
         std::string prefix, postfix, spname;
         std::vector<std::string> paths, tpaths;
@@ -686,7 +697,12 @@ namespace insur {
                 rnumber = rnumber.substr(0, rnumber.size() - plusminus.size());
                 spname = xml_tob_prefix + xml_pixbar + xml_layer + rnumber;
                 layer = atoi(rnumber.c_str());
-                prefix = xml_pixbar + "/" + xml_layer + rnumber + "/" + rcurrent;
+                prefix = xml_pixbar + "/" + xml_layer + rnumber + "/";
+                if (wt && (plusminus.length() > 0)) {
+                    if ((plusminus.compare(xml_plus) == 0) || (plusminus.compare(xml_minus) == 0))
+                        prefix = prefix + xml_layer + rnumber + plusminus + "/";
+                }
+                prefix = prefix + rcurrent;
                 // module loop
                 for (unsigned int j = 0; j < specs.at(mindex).partselectors.size(); j++) {
                     mnumber = specs.at(mindex).partselectors.at(j).substr(xml_barrel_module.size());
