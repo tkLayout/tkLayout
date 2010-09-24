@@ -22,10 +22,10 @@ DOXYDIR=doc/doxygen
 
 COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tkmaterial tklayout setup
+bin: tklayout setup
 	@echo "Executable built."
 
-all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tkmaterial tklayout rootwebTest 
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest 
 	@echo "Full build successful."
 
 install:
@@ -215,29 +215,6 @@ $(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
 	$(LIBDIR)/configparser.o TrackerGeom2.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tkLayout
 
-tkmaterial: $(BINDIR)/tkmaterial
-	@echo "Building tkmaterial..."
-
-$(BINDIR)/tkmaterial: $(LIBDIR)/tkmaterial.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
-	$(LIBDIR)/tracker.o  $(LIBDIR)/messageLogger.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
-	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
-	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/rootweb.o
-	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o  $(LIBDIR)/messageLogger.o \
-	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
-	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
-	$(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
-	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/Vizard.o \
-	$(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/rootweb.o $(LIBDIR)/tkmaterial.o \
-	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o $(BINDIR)/tkmaterial
-
-$(LIBDIR)/tkmaterial.o: tkmaterial.cpp
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tkmaterial.o tkmaterial.cpp
-
 tklayout: $(BINDIR)/tklayout
 	@echo "Building tklayout..."
 
@@ -307,7 +284,7 @@ cleanrootweb:
 #	@rm -f $(LIBDIR)/rootutils.o
 	
 cleantkmaine:
-	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tkmaterial.o $(BINDIR)/tkmaterial $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
+	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 	
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine 
 	

@@ -416,7 +416,7 @@ namespace insur {
      * @dressFileName The name - preferably without the path - of the module settings configuration file
      * @return True if there is an existing tracker to summarise, false otherwise.
      */
-    bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
+  /*    bool Squid::trackerSummary(std::string configFileName, std::string dressFileName) {
         if (tr) {
             std::string myDirectory;
             std::string destConfigFile;
@@ -447,7 +447,7 @@ namespace insur {
             std::cout << "Squid::trackerSummary(): " << err_no_tracker << std::endl;
             return false;
         }
-    }
+	} */
     
     // private
     /**

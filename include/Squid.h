@@ -78,7 +78,7 @@ namespace insur {
         bool analyzeNeighbours(std::string graphout = "");
         bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
         bool translateFullSystemToXML(std::string xmlout = "", bool wt = false);
-        bool trackerSummary(std::string configFileName, std::string dressFileName);
+        //bool trackerSummary(std::string configFileName, std::string dressFileName);
 #ifdef USING_ROOTWEB
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);

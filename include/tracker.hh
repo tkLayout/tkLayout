@@ -275,11 +275,11 @@ public:
   void createGeometry(bool lite = false); // should be made obsolete (currently used by analyzer)  or be restricted in use: no canvases
 
   // Summary output
-  void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html",
-		    std::string barrelModuleCoordinatesFile ="",
-		    std::string endcapModuleCoordinatesFile ="");
-  void writeSummary(std::string fileType = "html"); // obsolete
-  void createPackageLayout(std::string dirName);
+  //void writeSummary(bool configFiles, std::string configFile, std::string dressFile, std::string fileType = "html",
+  //                std::string barrelModuleCoordinatesFile ="",
+  //                std::string endcapModuleCoordinatesFile ="");
+  //void writeSummary(std::string fileType = "html"); // obsolete
+  //void createPackageLayout(std::string dirName);
   void printBarrelModuleZ(ostream& outfile); // to be made obsolete
   void printEndcapModuleRPhiZ(ostream& outfile); // to be made obsolete
 
@@ -288,7 +288,7 @@ public:
 
   // Geometry validation
   std::pair<double, double> getEtaMinMax();
-  void analyze(int nTracks = 1000, int section = Layer::NoSection); // obsolete
+  //void analyze(int nTracks = 1000, int section = Layer::NoSection); // obsolete
   int cutOverEta(double etaCut);
   double getMaxBarrelZ(int direction);
   //  void compressBarrelLayers();

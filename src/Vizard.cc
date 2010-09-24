@@ -913,6 +913,7 @@ namespace insur {
         std::map<std::string, long> typeMapCountChan;
         std::map<std::string, double> typeMapMaxOccupancy;
         std::map<std::string, double> typeMapAveOccupancy;
+        std::map<std::string, double> typeMapAveRphiResolution;
         std::map<std::string, Module*>::iterator typeMapIt;
         std::map<int, Module*> ringTypeMap;
         std::string aSensorTag;
@@ -1002,6 +1003,7 @@ namespace insur {
                     typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
                 }
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
+		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getPrecisionRho();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1055,6 +1057,7 @@ namespace insur {
         std::vector<std::string> areastrips;
         std::vector<std::string> areapts;
         std::vector<std::string> occupancies;
+	std::vector<std::string> rphiresolutions;
         std::vector<std::string> pitchpairs;
         std::vector<std::string> striplengths;
         std::vector<std::string> segments;
@@ -1074,6 +1077,7 @@ namespace insur {
         std::ostringstream aType;
         std::ostringstream anArea;
         std::ostringstream anOccupancy;
+	std::ostringstream anRphiResolution;
         std::ostringstream aPitchPair;
         std::ostringstream aStripLength;
         std::ostringstream aSegment;
@@ -1103,16 +1107,17 @@ namespace insur {
         static const int areastripRow = 3;
         static const int areaptRow = 4;
         static const int occupancyRow = 5;
-        static const int pitchpairsRow = 6;
-        static const int striplengthRow = 7;
-        static const int segmentsRow = 8;
-        static const int nstripsRow = 9;
-        static const int numbermodsRow = 10;
-        static const int numbersensRow = 11;
-        static const int channelstripRow = 12;
-        static const int channelptRow = 13;
-        static const int powerRow = 14;
-        static const int costRow = 15;
+	static const int rphiResolutionRow = 6;
+        static const int pitchpairsRow = 7;
+        static const int striplengthRow = 8;
+        static const int segmentsRow = 9;
+        static const int nstripsRow = 10;
+        static const int numbermodsRow = 11;
+        static const int numbersensRow = 12;
+        static const int channelstripRow = 13;
+        static const int channelptRow = 14;
+        static const int powerRow = 15;
+        static const int costRow = 16;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1120,6 +1125,7 @@ namespace insur {
         moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
+        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um, av)");
         moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
         moduleTable->setContent(striplengthRow, 0, "Strip length");
         moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
@@ -1160,8 +1166,11 @@ namespace insur {
             // Occupancy
             anOccupancy.str("");
             anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+	    // RphiResolution
+	    anRphiResolution.str("");
+	    anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
             // Pitches
-            aPitchPair.str("");
+	    aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
             hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
             if (loPitch==hiPitch) {
@@ -1212,6 +1221,7 @@ namespace insur {
             moduleTable->setContent(tagRow, iType, aTag.str());
             moduleTable->setContent(typeRow, iType, aType.str());
             moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
+            moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
             moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
             moduleTable->setContent(striplengthRow, iType, aStripLength.str());
             moduleTable->setContent(segmentsRow, iType, aSegment.str());
@@ -1248,6 +1258,7 @@ namespace insur {
         << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
         moduleTable->setContent(areaptRow, iType, anArea.str());
         moduleTable->setContent(occupancyRow, iType, "");
+        moduleTable->setContent(rphiResolutionRow, iType, "");
         moduleTable->setContent(pitchpairsRow, iType, "");
         moduleTable->setContent(striplengthRow, iType, "");
         moduleTable->setContent(segmentsRow, iType, "");

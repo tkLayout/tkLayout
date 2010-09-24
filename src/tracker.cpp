@@ -885,8 +885,10 @@ std::pair <XYZVector, double > Tracker::shootDirectionFixedPhi(double minEta, do
     return result;
 }
 
+/*
 // won't fix messages here: it is obsolete anyway
-void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection */ ) {
+void Tracker::analyze(int nTracks, // = 1000
+		      int section ) { // = Layer::NoSection 
     // A bunch of pointers
     std::map <std::string, int> modTypes;
     std::map <std::string, TH2D*> etaType;
@@ -1084,16 +1086,20 @@ void Tracker::analyze(int nTracks /*=1000*/ , int section /* = Layer::NoSection 
     return;
 }
 
-void Tracker::writeSummary(std::string fileType /* = "html" */) {
-    std::string nullString("");
-    writeSummary(false, nullString, nullString, fileType);
-}
+*/
 
+//void Tracker::writeSummary(std::string fileType /* = "html" */) {
+//    std::string nullString("");
+//    writeSummary(false, nullString, nullString, fileType);
+//}
+
+/*
 void Tracker::writeSummary(bool configFiles,
 			   std::string configFile,
-			   std::string dressFile, std::string fileType /*= "html"*/,
-			   std::string barrelModuleCoordinatesFile /*=""*/,
-			   std::string endcapModuleCoordinatesFile /*=""*/) {
+			   std::string dressFile, std::string fileType , // ="html"
+			   std::string barrelModuleCoordinatesFile , // = ""
+			   std::string endcapModuleCoordinatesFile ) // = ""
+{
     
     // Just to start with
     createDirectories();
@@ -1558,10 +1564,12 @@ void Tracker::writeSummary(bool configFiles,
     // TODO: create a TString summary
 }
 
-void Tracker::createPackageLayout(std::string dirName) {
-    std::string layoutFile = dirName + "/layout.png";
-    drawLayout(maxL_, maxR_, layoutFile);
-}
+*/
+
+//void Tracker::createPackageLayout(std::string dirName) {
+//    std::string layoutFile = dirName + "/layout.png";
+//    drawLayout(maxL_, maxR_, layoutFile);
+//}
 
 
 // Prints the positions of barrel modules to file or cout
