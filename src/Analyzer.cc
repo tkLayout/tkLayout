@@ -295,9 +295,9 @@ namespace insur {
                         res.second = res.second + tmp.second;
                         // create Hit object with appropriate parameters, add to Track t
                         Hit* hit = new Hit(distance, &(iter->getModule()));
-                        if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal);
-                        else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical);
-                        hit->setObjectKind(Hit::Active);
+                        //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
+                        //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
+                        //hit->setObjectKind(Hit::Active); // should not be necessary
                         hit->setCorrectedMaterial(tmp);
                         t.addHit(hit);
                     }
