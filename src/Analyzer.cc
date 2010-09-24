@@ -920,7 +920,7 @@ namespace insur {
         nTracks = nTracksPerSide*nTracksPerSide;
         mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
         TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
-        TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 1000 , 0., 10.);
+        TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
         
         // Shoot nTracksPerSide^2 tracks
         for (int i=0; i<nTracksPerSide; i++) {
