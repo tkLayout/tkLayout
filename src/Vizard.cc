@@ -1514,7 +1514,7 @@ namespace insur {
             TCanvas* momentumCanvas = NULL;
             TCanvas* distanceCanvas = NULL;
             TCanvas* angleCanvas = NULL;
-            std::string plotOption = "Alp";
+            std::string plotOption = "Ap";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
 	    int myColor=0;
@@ -1522,7 +1522,7 @@ namespace insur {
             for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
                 if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
-                else plotOption = "lp same";
+                else plotOption = "p same";
 		momentumGraph.SetMinimum(1E-4);
 		momentumGraph.SetMaximum(1);
 		momentumCanvas->SetLogy();
@@ -1532,31 +1532,31 @@ namespace insur {
                 momentumCanvas->cd();
                 momentumGraph.Draw(plotOption.c_str());
             }
-            plotOption = "Alp";
+            plotOption = "Ap";
 	    myColor=0;
             // distance canvas loop
             g_guard = a.getDProfiles().end();
             for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
                 if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
-                else plotOption = "lp same";
-		distanceGraph.SetMinimum(0);
-		distanceGraph.SetMaximum(1E3);
-		//distanceCanvas->SetLogy();
+                else plotOption = "p same";
+		distanceGraph.SetMinimum(1);
+		distanceGraph.SetMaximum(5E2);
+		distanceCanvas->SetLogy();
 		distanceGraph.SetLineColor(++myColor);
 		distanceGraph.SetMarkerColor(myColor);
 		distanceGraph.SetMarkerStyle(8);
                 distanceCanvas->cd();
                 distanceGraph.Draw(plotOption.c_str());
             }
-            plotOption = "Alp";
+            plotOption = "Ap";
 	    myColor=0;
             // angle canvas loop
             g_guard = a.getPhiProfiles().end();
             for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
                 if (angleCanvas == NULL) angleCanvas = new TCanvas();
-                else plotOption = "lp same";
+                else plotOption = "p same";
 		angleGraph.SetMinimum(-0.01);
 		angleGraph.SetMaximum(0.01);
 		angleGraph.SetLineColor(++myColor);
