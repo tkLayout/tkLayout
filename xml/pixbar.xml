@@ -89,6 +89,44 @@
  <Constant name="RadialCoolDZ"       value="1.0*cm"/>
  <Constant name="RadialCoolRin"      value="4.0*cm"/>
 
+ <Constant name="RadiusStack0"         value="25.0*cm"/>
+ <Constant name="RadiusStack1"         value="35.0*cm"/>
+
+ <Constant name="SeparationStack0"     value="1.0*mm"/>
+ <Constant name="SeparationStack1"     value="1.0*mm"/>
+
+ <Constant name="SensorWidthStack0"    value="100.0*mm"/>
+ <Constant name="SensorWidthStack1"    value="100.0*mm"/>
+
+ <Constant name="SensorThickStack0"    value="0.200*mm"/>
+ <Constant name="SensorThickStack1"    value="0.200*mm"/>
+
+ <Constant name="LaddersStack0"        value="((7*[RadiusStack0]/[SensorWidthStack0])+1)"/>
+ <Constant name="LaddersStack1"        value="((7*[RadiusStack1]/[SensorWidthStack1]))"/>
+
+ <Constant name="PhiOffsetStack0"      value="0*deg"/>
+ <Constant name="PhiOffsetStack1"      value="0*deg"/>
+
+ <Constant name="ModulesStack0"        value="32"/><!--38-->
+ <Constant name="ModulesStack1"        value="42"/><!--54-->
+
+ <Constant name="LayerDzStack0"        value="320.0*cm"/>
+ <Constant name="LayerDzStack1"        value="420.0*cm"/>
+
+ <Constant name="OverlapStack0"        value="0"/>
+ <Constant name="OverlapStack1"        value="0"/>     
+
+ <Constant name="ZOverlapStack0"       value="0.6*cm"/>
+ <Constant name="ZOverlapStack1"       value="0.6*cm"/>
+
+ <Constant name="StackOffsetStack0"    value="0.0*mm"/>
+ <Constant name="StackOffsetStack1"    value="0.0*mm"/>
+
+ <Constant name="StackOffsetTStack0"   value="0"/>
+ <Constant name="StackOffsetTStack1"   value="0"/>  
+
+ <Constant name="LayoutStack0"         value="1"/>
+ <Constant name="LayoutStack1"         value="1"/> 
 
 </ConstantsSection>
 
