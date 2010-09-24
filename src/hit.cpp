@@ -294,7 +294,7 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
             else offset++;
         }
         diffsT.Transpose(diffs);
-	diffs.Print(); // debug
+	// diffs.Print(); // debug
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C.Invert() * diffs;
 	//cov.Print(); // debug
@@ -352,14 +352,14 @@ void Track::printErrors() {
     std::cout << "Hit correlation matrices: " << correlations_.size() << (correlations_.size() == 1 ? " entry." : " entries.") << std::endl;
     sguard = correlations_.end();
     for (siter = correlations_.begin(); siter != sguard; siter++) {
-        std::cout << "momentum = " << siter->first << ":";
-        siter->second.Print();
+        // std::cout << "momentum = " << siter->first << ":"; // debug
+        // siter->second.Print(); // debug
     }
     std::cout << "Covariance matrices: " << covariances_.size() << (covariances_.size() == 1 ? " entry." : " entries.") << std::endl;
     mguard = covariances_.end();
     for (miter = covariances_.begin(); miter != mguard; miter++) {
-        std::cout << "momentum = " << miter->first << ":";
-        miter->second.Print();
+        //std::cout << "momentum = " << miter->first << ":"; // debug
+        //miter->second.Print(); //debug
     }
     std::cout << "Rho errors by momentum: " << deltarho_.size() << (deltarho_.size() == 1 ? " entry." : " entries.") << std::endl;
     guard = deltarho_.end();
