@@ -480,9 +480,9 @@ namespace insur {
             rhoprofiles.insert(elem);
             phiprofiles.insert(elem);
             dprofiles.insert(elem);
-	    rhoprofiles[elem.first].SetTitle("p_T error;p(GeV);relative error");
-	    phiprofiles[elem.first].SetTitle("Track angle error;p(GeV);sigma(radians)");
-	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;p(GeV);sigma(micrometers)");
+	    rhoprofiles[elem.first].SetTitle("p_T error;eta;relative error");
+	    phiprofiles[elem.first].SetTitle("Track angle error;eta;sigma(radians)");
+	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;eta;sigma(micrometers)");
         }
         // track loop
 	std::map<double,int> rhoPointCount;
