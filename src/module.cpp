@@ -1382,7 +1382,7 @@ void EndcapModule::setSensorWedgeGeometry(double alpha, double d, double maxRho 
     }
     
     // Some member variable computing:
-    area_     = (b1+b2)*(h2+h1);
+    area_     = fabs((b1+b2)*(h2+h1));
     height_   = b1+b2;
     //phiWidth_ = 2*phi;
     widthLo_  = 2*h1;
