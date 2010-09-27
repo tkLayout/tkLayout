@@ -88,7 +88,7 @@ namespace insur {
             std::pair<double, double> tmp;
             Track track;
             eta = i_eta * etaStep;
-            theta = 2 * atan(pow(E, -1 * eta));
+            theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
             track.setTheta(theta);
             //      active volumes, barrel
             tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
@@ -279,6 +279,8 @@ namespace insur {
                         r = distance * sin(theta);
                         tmp.first = iter->getRadiationLength();
                         tmp.second = iter->getInteractionLength();
+			// 2D material maps
+			fillMapRT(r, theta, tmp.first, tmp.second);
                         // radiation and interaction length scaling for barrels
                         if (iter->getModule().getSubdetectorType() == Module::Barrel) {
                             tmp.first = tmp.first / sin(theta);
@@ -290,7 +292,7 @@ namespace insur {
                             tmp.second = tmp.second / cos(theta);
                         }
                         // 2D plot and eta plot results
-                        if (!isPixel) fillCell(r, eta, tmp.first, tmp.second);
+                        if (!isPixel) fillCell(r, eta, theta, tmp.first, tmp.second);
                         res.first = res.first + tmp.first;
                         res.second = res.second + tmp.second;
                         // create Hit object with appropriate parameters, add to Track t
@@ -344,6 +346,8 @@ namespace insur {
                     if (iter->isVertical()) {
                         z = iter->getZOffset() + iter->getZLength() / 2.0;
                         r = z * tan(theta);
+			// 2D maps for vertical surfaces
+			fillMapRZ(r,z,iter->getRadiationLength(), iter->getInteractionLength());
                         // special treatment for user-defined supports as they can be very close to z=0
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
@@ -355,7 +359,7 @@ namespace insur {
                                 corr.second = iter->getInteractionLength() * s / iter->getZLength();
                                 res.second = res.second + corr.second;
                                 if (!isPixel)
-                                    fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                                    fillCell(r, eta, theta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                             }
                             else {
                                 if (!isPixel) {
@@ -372,7 +376,7 @@ namespace insur {
                                 corr.second = iter->getInteractionLength() / cos(theta);
                                 res.second = res.second + corr.second;
                                 if (!isPixel)
-                                    fillCell(r, eta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
+                                    fillCell(r, eta, theta, iter->getRadiationLength() / cos(theta), iter->getInteractionLength() / cos(theta));
                             }
                             else {
                                 if (!isPixel) {
@@ -395,6 +399,8 @@ namespace insur {
                     // radiation and interaction length scaling for horizontal volumes
                     else {
                         r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+			// 2D maps for horizontal surfaces
+			fillMapRT(r,theta,iter->getRadiationLength(), iter->getInteractionLength());
                         // special treatment for user-defined supports; should not be necessary for now
                         // as all user-defined supports are vertical, but just in case...
                         if (cat == MaterialProperties::u_sup) {
@@ -407,7 +413,7 @@ namespace insur {
                                 corr.second = iter->getInteractionLength() * s / iter->getZLength();
                                 res.second = res.second + corr.second;
                                 if (!isPixel)
-                                    fillCell(r, eta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
+                                    fillCell(r, eta, theta, iter->getRadiationLength() * s / iter->getZLength(), iter->getInteractionLength() * s / iter->getZLength());
                             }
                             else {
                                 if (!isPixel) {
@@ -424,7 +430,7 @@ namespace insur {
                                 corr.second = iter->getInteractionLength() / sin(theta);
                                 res.second = res.second + corr.second;
                                 if (!isPixel)
-                                    fillCell(r, eta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
+                                    fillCell(r, eta, theta, iter->getRadiationLength() / sin(theta), iter->getInteractionLength() / sin(theta));
                             }
                             else {
                                 if (!isPixel) {
@@ -594,6 +600,24 @@ namespace insur {
         isor.SetNameTitle("isor", "Radiation Length Contours");
         isoi.Reset();
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
+	mapRadiation.Reset();
+	mapRadiation.SetName("mapRadiation");
+	mapRadiation.SetTitle("Radiation length map (raw);z(mm);r(mm)");
+	mapInteraction.Reset();
+	mapInteraction.SetName("mapInteraction");
+	mapInteraction.SetTitle("Interaction length map (raw);z(mm);r(mm)");
+	mapRadiationCount.Reset();
+	mapRadiationCount.SetName("mapRadiationCount");
+	mapRadiationCount.SetTitle("Radiation length hit count map;z(mm);r(mm)");
+	mapInteractionCount.Reset();
+	mapInteractionCount.SetName("mapInteractionCount");
+	mapInteractionCount.SetTitle("Interaction length hit count map;z(mm);r(mm)");
+	mapRadiationCalib.Reset();
+	mapRadiationCalib.SetName("mapRadiationCalib");
+	mapRadiationCalib.SetTitle("Radiation length map;z(mm);r(mm)");
+	mapInteractionCalib.Reset();
+	mapInteractionCalib.SetName("mapInteractionCalib");
+	mapInteractionCalib.SetTitle("Interaction length map;z(mm);r(mm)");
     }
     
     /**
@@ -670,6 +694,13 @@ namespace insur {
         // isolines
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+	// Material distribution maps
+	mapRadiation.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteraction.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	mapRadiationCount.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteractionCount.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	mapRadiationCalib.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteractionCalib.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
     }
     
     /**
@@ -699,7 +730,82 @@ namespace insur {
             }
         }
     }
-    
+
+
+  /**
+   * Fills the material distribution maps
+   * @param r The radius at which the hit was detected
+   * @param theta The angle of the track used for meterial detection
+   * @param rl The local radiation length
+   * @param il The local interaction length
+   */
+  void Analyzer::fillMapRT(const double& r, const double& theta, const double& rl, const double& il) {
+    double z = r /tan(theta);
+    if (rl>0){
+      mapRadiation.Fill(z,r,rl);
+      mapRadiationCount.Fill(z,r);
+    } 
+    if (il>0) {
+      mapInteraction.Fill(z,r,il);
+      mapInteractionCount.Fill(z,r);
+    }
+  }
+
+  /**
+   * Fills the material distribution maps
+   * @param r The radius at which the hit was detected
+   * @param z The z coordinate of the hit
+   * @param rl The local radiation length
+   * @param il The local interaction length
+   */
+  void Analyzer::fillMapRZ(const double& r, const double& z, const double& rl, const double& il) {
+    if (rl>0){
+      mapRadiation.Fill(z,r,rl);
+      mapRadiationCount.Fill(z,r);
+    } 
+    if (il>0) {
+      mapInteraction.Fill(z,r,il);
+      mapInteractionCount.Fill(z,r);
+    }
+  }
+
+  /**
+   * @return a (hit-scaled) map of radiation length
+   */
+  TH2D& Analyzer::getHistoMapRadiation() {
+    int nBins = mapRadiation.GetNbinsX()*mapRadiation.GetNbinsY();
+    double content;
+    int count;
+    for (int iBin=1; iBin<=nBins; ++iBin) {
+      content = mapRadiation.GetBinContent(iBin);
+      count = mapRadiationCount.GetBinContent(iBin);
+      //mapRadiationCalib.SetBinContent(iBin,content);
+      if (count==1) mapRadiationCalib.SetBinContent(iBin,content);
+      else if (count>1) mapRadiationCalib.SetBinContent(iBin,content/double(count));
+      //else if (count==0) mapRadiationCalib.SetBinContent(iBin, 0.);
+    }
+    return mapRadiationCalib;
+  }
+
+  /**
+   * @return a (hit-scaled) map of interaction length
+   */
+  TH2D& Analyzer::getHistoMapInteraction() {
+    int nBins = mapInteraction.GetNbinsX()*mapInteraction.GetNbinsY();
+    double content;
+    int count;
+    for (int iBin=1; iBin<=nBins; ++iBin) {
+      content = mapInteraction.GetBinContent(iBin);
+      count = mapInteractionCount.GetBinContent(iBin);
+      //mapInteractionCalib.SetBinContent(iBin,content);
+      if (count==1) mapInteractionCalib.SetBinContent(iBin,content);
+      else if (count>1) mapInteractionCalib.SetBinContent(iBin,content/double(count));
+      //else if (count==0) mapInteractionCalib.SetBinContent(iBin, 0.);
+    }
+    return mapInteractionCalib;
+  }
+
+
     /**
      * This function assigns the local radiation and interaction lengths of a detected hit to their position in the
      * (eta, r) space.
@@ -708,7 +814,7 @@ namespace insur {
      * @param rl The local radiation length
      * @param il The local interaction length
      */
-    void Analyzer::fillCell(double r, double eta, double rl, double il) {
+  void Analyzer::fillCell(double r, double eta, double theta, double rl, double il) {
         int rindex, etaindex;
         if (cells.size() > 0) {
             for (rindex = 0; (unsigned int) rindex < cells.at(0).size(); rindex++) {
@@ -727,8 +833,9 @@ namespace insur {
     }
     
     /**
-     * The integrated radiation and interaction lengths in (eta, r) are converted to (z, r) coordinates and stored in
-     * <i>isor</i> and <i>isoi</i> in this function.
+     * The integrated radiation and interaction lengths in (eta, r)
+     * are converted to (z, r) coordinates and stored in <i>isor</i>
+     * and <i>isoi</i> in this function.
      */
     void Analyzer::transformEtaToZ() {
         int size_z, size_r, rindex, etaindex;

@@ -607,6 +607,7 @@ namespace insur {
         TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
         TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
         TH2D *ir = NULL, *ii = NULL;
+	TH2D *mapRad = NULL, *mapInt = NULL;
         
         // Output initialisation and headers
         myCanvas = new TCanvas("overviewMaterial");
@@ -763,7 +764,7 @@ namespace insur {
         myPad->cd();
         
         // Countour plots
-        myContent = new RootWContent("Contours", true);
+        myContent = new RootWContent("Material distributon", true);
         myPage->addContent(myContent);
         // radiation length in isolines
         ir = (TH2D*)a.getHistoIsoR().Clone();
@@ -784,6 +785,29 @@ namespace insur {
         // Write isoline plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material 2D distributions");
+        myContent->addItem(myImage);
+
+	// Radiation length plot
+        myCanvas = new TCanvas("mapMaterialRadiation");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
+	mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
+	mapRad->SetContour(temperature_levels, NULL);
+	//myCanvas->SetLogz();
+	mapRad->Draw("COLZ");
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Radiation length material map");
+        myContent->addItem(myImage);
+
+	// Interaction length plot
+        myCanvas = new TCanvas("mapMaterialInteraction");
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->cd();
+	mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
+	mapInt->SetContour(temperature_levels, NULL);
+	mapInt->Draw("COLZ");
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Interaction length material map");
         myContent->addItem(myImage);
     }
     
@@ -905,7 +929,7 @@ namespace insur {
      * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
      * @param site the RootWSite object for the output
      */
-    bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         
         // A bunch of indexes
         std::map<std::string, Module*> typeMap;
@@ -929,7 +953,7 @@ namespace insur {
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
-        myPage->setAddress("index.html");
+	myPage->setAddress("index.html");
         site.addPage(myPage);
         RootWContent* myContent;
         
@@ -1523,8 +1547,9 @@ namespace insur {
                 TGraph& momentumGraph = g_iter->second;
                 if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
                 else plotOption = "p same";
-		momentumGraph.SetMinimum(1E-4);
+		momentumGraph.SetMinimum(1E-3);
 		momentumGraph.SetMaximum(1);
+                momentumGraph.GetXaxis()->SetLimits(0, 2.4);
 		momentumCanvas->SetLogy();
 		momentumGraph.SetLineColor(++myColor);
 		momentumGraph.SetMarkerColor(myColor);
@@ -1542,6 +1567,7 @@ namespace insur {
                 else plotOption = "p same";
 		distanceGraph.SetMinimum(1);
 		distanceGraph.SetMaximum(5E2);
+                distanceGraph.GetXaxis()->SetLimits(0, 2.4);
 		distanceCanvas->SetLogy();
 		distanceGraph.SetLineColor(++myColor);
 		distanceGraph.SetMarkerColor(myColor);
@@ -1557,8 +1583,9 @@ namespace insur {
                 TGraph& angleGraph = g_iter->second;
                 if (angleCanvas == NULL) angleCanvas = new TCanvas();
                 else plotOption = "p same";
-		angleGraph.SetMinimum(-0.01);
+		angleGraph.SetMinimum(0);
 		angleGraph.SetMaximum(0.01);
+                angleGraph.GetXaxis()->SetLimits(0, 2.4);
 		angleGraph.SetLineColor(++myColor);
 		angleGraph.SetMarkerColor(myColor);
 		angleGraph.SetMarkerStyle(8);

@@ -91,6 +91,8 @@ namespace insur {
         TH1D& getHistoGlobalI() { return iglobal; }
         TH2D& getHistoIsoR() { return isor; }
         TH2D& getHistoIsoI() { return isoi; }
+        TH2D& getHistoMapRadiation();
+        TH2D& getHistoMapInteraction();
         std::vector<Track>& getTracks() { return tv; }
         std::map<double, TGraph>& getRhoProfiles() { return rhoprofiles; }
         std::map<double, TGraph>& getPhiProfiles() { return phiprofiles; }
@@ -136,6 +138,9 @@ namespace insur {
         TH1D iextraservices, iextrasupports;
         TH1D rglobal, iglobal;
         TH2D isor, isoi;
+	TH2D mapRadiation, mapInteraction;
+	TH2I mapRadiationCount, mapInteractionCount;
+	TH2D mapRadiationCalib, mapInteractionCalib;
 	TH2D mapPhiEta;
 	TCanvas etaProfileCanvas;
 	TCanvas* geomLite; bool geomLiteCreated;
@@ -169,7 +174,9 @@ namespace insur {
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
-        void fillCell(double r, double eta, double rl, double il);
+        void fillCell(double r, double eta, double theta, double rl, double il);
+        void fillMapRT(const double& r, const double& theta, const double& rl, const double& il);
+        void fillMapRZ(const double& r, const double& z, const double& rl, const double& il);
         void transformEtaToZ();
     private:
         // A random number generator
