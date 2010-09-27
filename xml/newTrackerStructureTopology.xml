@@ -129,5 +129,5 @@
           <Parameter name="PixelROC_Y" value="5"/>
       </SpecPar> 
       <!--mid point marker-->
-   <SpecParSection>
+   </SpecParSection>
 </DDDefinition>
