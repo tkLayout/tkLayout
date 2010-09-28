@@ -60,8 +60,8 @@ void Module::setDefaultParameters() {
     computedBoundaries_ = false;
     shape_              = Undefined;
     aspectRatio_        = defaultAspectRatio_;
-    precisionRho_ = defaultPrecisionRho_;
-    precisionZ_ = defaultPrecisionZ_;
+    resolutionRphi_ = defaultResolutionRphi_;
+    resolutionZ_ = defaultResolutionZ_;
 }
 
 void Module::print() {

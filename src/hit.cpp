@@ -231,7 +231,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                         for (int i = 0; i < r; i++)
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
-                            double prec = hitV_.at(r)->getHitModule()->getPrecisionRho();
+                            double prec = hitV_.at(r)->getHitModule()->getResolutionRphi();
 #ifdef HIT_DEBUG
 			    std::cerr << "Hit precision: " << prec << std::endl;
 			    std::cerr << "Radius: " << hitV_.at(r)->getRadius() << std::endl;

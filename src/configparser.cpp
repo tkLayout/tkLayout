@@ -345,8 +345,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         myTracker_->setLayerOptions(layerOptions);
         myTracker_->setPhiSegments(phiSegments);
         
-        sampleBarrelModule->setPrecisionRho();
-        sampleBarrelModule->setPrecisionZ();
+        sampleBarrelModule->setResolutionRphi();
+        sampleBarrelModule->setResolutionZ();
         
         myTracker_->buildBarrel(nBarrelLayers,
                 barrelRhoIn,
@@ -581,8 +581,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         myTracker_->setRingDirectives(ringDirective);
         myTracker_->setPhiSegments(phiSegments);
         
-        sampleModule->setPrecisionRho();
-        sampleModule->setPrecisionZ();
+        sampleModule->setResolutionRphi();
+        sampleModule->setResolutionZ();
         
         if (rhoIn!=0) {
             myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
@@ -828,8 +828,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     waferDiameter = pow((pow(bmsize.first, 2) + pow(bmsize.second, 2)), 0.5);
     aspectRatio = bmsize.second / bmsize.first; // height / width
     BarrelModule* sampleBarrelModule = new BarrelModule(waferDiameter, aspectRatio);
-    sampleBarrelModule->setPrecisionRho();
-    sampleBarrelModule->setPrecisionZ();
+    sampleBarrelModule->setResolutionRphi();
+    sampleBarrelModule->setResolutionZ();
     myTracker_->buildBarrel(nLayers, rIn, rOut, nModules, sampleBarrelModule, myName, Layer::NoSection, true, 0.0);
     delete sampleBarrelModule;
     
@@ -837,8 +837,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         waferDiameter = pow((pow(emsize.first, 2) + pow(emsize.second, 2)), 0.5);
         aspectRatio = emsize.second / emsize.first; // height / width
         EndcapModule* sampleEndcapModule = new EndcapModule(waferDiameter, aspectRatio);
-        sampleEndcapModule->setPrecisionRho();
-        sampleEndcapModule->setPrecisionZ();
+        sampleEndcapModule->setResolutionRphi();
+        sampleEndcapModule->setResolutionZ();
         myTracker_->buildEndcaps(nDisks, myTracker_->getMaxBarrelZ(+1) + barrelToEndcap,
                 maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, Layer::NoSection);
         delete sampleEndcapModule;
@@ -894,8 +894,8 @@ bool configParser::parsePixelType(istream& inStream) {
     double nSegments = 0.0;
     double dsDistance = 0.0;
     double dsRotation = 0.0;
-    double precisionRho = -1.0;
-    double precisionZ = -1.0;
+    double resolutionRphi = -1.0;
+    double resolutionZ = -1.0;
     
     // Tracker should be already there
     if (!myTracker_) {
@@ -918,10 +918,10 @@ bool configParser::parsePixelType(istream& inStream) {
                 dsDistance = atof(parameterValue.c_str());
             } else if (parameterName == "dsRotation") {
                 dsRotation = atof(parameterValue.c_str());
-            } else if (parameterName == "precisionRho") {
-                precisionRho = atof(parameterValue.c_str());
-            } else if (parameterName == "precisionZ") {
-                precisionZ = atof(parameterValue.c_str());
+            } else if (parameterName == "resolutionRphi") {
+                resolutionRphi = atof(parameterValue.c_str());
+            } else if (parameterName == "resolutionZ") {
+                resolutionZ = atof(parameterValue.c_str());
             } else {
                 cerr << "ERROR: Unknown parameter in PixelType block: " << parameterName << ". Ignoring it." << endl;
             }
@@ -940,8 +940,8 @@ bool configParser::parsePixelType(istream& inStream) {
             (*miter)->setNSegments(nSegments);
             (*miter)->setStereoDistance(dsDistance);
             (*miter)->setStereoRotation(dsRotation);
-            (*miter)->setPrecisionRho(precisionRho);
-            (*miter)->setPrecisionZ(precisionZ);
+            (*miter)->setResolutionRphi(resolutionRphi);
+            (*miter)->setResolutionZ(resolutionZ);
         }
     }
     
@@ -956,8 +956,8 @@ bool configParser::parsePixelType(istream& inStream) {
             (*miter)->setNSegments(nSegments);
             (*miter)->setStereoDistance(dsDistance);
             (*miter)->setStereoRotation(dsRotation);
-            (*miter)->setPrecisionRho(precisionRho);
-            (*miter)->setPrecisionZ(precisionZ);
+            (*miter)->setResolutionRphi(resolutionRphi);
+            (*miter)->setResolutionZ(resolutionZ);
         }
     }
     

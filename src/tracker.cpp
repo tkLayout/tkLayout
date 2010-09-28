@@ -2122,9 +2122,9 @@ void Tracker::setModuleTypes() {
                 std::cerr << "ERROR! in function Tracker::setModuleTypes() "
                 <<"I found a !BarrelModule in the barrel" << std::endl;
             }
-            aModule->setPrecisionRho();
-            aModule->setPrecisionZ();
-	    std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
+            aModule->setResolutionRphi();
+            aModule->setResolutionZ();
+	    std::cerr << "setResolutionRphi() and setResolutionZ() called" << std::endl; // debug
        }
     }
     
@@ -2198,7 +2198,7 @@ void Tracker::setModuleTypes() {
             std::cerr << "ERROR! in function Tracker::setModuleTypes() "
             << "I found a !EndcapModule in the end-caps" << std::endl;
         }
-	std::cerr << "setPrecisionRho() and setPrecisionZ() called" << std::endl; // debug
+	std::cerr << "setResolutionRphi() and setResolutionZ() called" << std::endl; // debug
     }
 }
 */
@@ -2354,8 +2354,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
 
-	    aModule->setPrecisionRho();
-	    aModule->setPrecisionZ();
+	    aModule->setResolutionRphi();
+	    aModule->setResolutionZ();
 
             // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
             

@@ -59,8 +59,8 @@ class Module {
   int nStripAcross_;
   int nFaces_;
   int readoutType_;
-  double precisionRho_;
-  double precisionZ_;
+  double resolutionRphi_;
+  double resolutionZ_;
 
   int inSection_;
 
@@ -89,8 +89,8 @@ class Module {
   static const int     defaultSegments_ = 1;
   static const int     defaultStripAcross_ = 1;
   static const int     defaultFaces_ = 1;
-  static const double defaultPrecisionRho_ = 0.0;
-  static const double defaultPrecisionZ_ = 0.0;
+  static const double defaultResolutionRphi_ = 0.0;
+  static const double defaultResolutionZ_ = 0.0;
   
   std::string id_;   // Ids of the module
   std::string tag_;  // Tags the module
@@ -214,15 +214,15 @@ class Module {
   virtual double getLowPitch();
   virtual double getHighPitch();
 
-  // R-Phi precision
-  void setPrecisionRho(const double& prho) { precisionRho_ = prho; };
-  virtual void setPrecisionRho() { std::cerr << "ERROR this should never be called!!!" << std::endl; precisionRho_ = 0.0; };
-  double getPrecisionRho() { return precisionRho_; }; // Todo: rename Rho to RPhi everywhere
+  // R-Phi resolution 
+  void setResolutionRphi(const double& prho) { resolutionRphi_ = prho; };
+  virtual void setResolutionRphi() { std::cerr << "ERROR this should never be called!!!" << std::endl; resolutionRphi_ = 0.0; };
+  double getResolutionRphi() { return resolutionRphi_; }; // Todo: rename Rho to RPhi everywhere
 
-  // Z precision
-  void setPrecisionZ(const double& pz) { precisionZ_ = pz; };
-  void setPrecisionZ() {   precisionZ_ = height_ / (double)(nSegments_) / sqrt(12); };
-  virtual double getPrecisionZ() { return precisionZ_; }; // This is rho for endcaps modules in reality!
+  // Z resolution 
+  void setResolutionZ(const double& pz) { resolutionZ_ = pz; };
+  void setResolutionZ() {   resolutionZ_ = height_ / (double)(nSegments_) / sqrt(12); };
+  virtual double getResolutionZ() { return resolutionZ_; }; // This is rho for endcaps modules in reality!
 
   virtual double getOccupancyPerEvent();
 
@@ -259,7 +259,7 @@ class BarrelModule : public Module {
   double getLowPitch();
   double getHighPitch();
 
-  void setPrecisionRho() {  precisionRho_ = width_ / (double)(nStripAcross_) / sqrt(12);  };
+  void setResolutionRphi() {  resolutionRphi_ = width_ / (double)(nStripAcross_) / sqrt(12);  };
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -300,7 +300,7 @@ public:
   double getLowPitch();
   double getHighPitch();
 
-  void setPrecisionRho() {  precisionRho_ = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  };
+  void setResolutionRphi() {  resolutionRphi_ = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  };
 
   virtual int getSubdetectorType() { return Endcap; };
 

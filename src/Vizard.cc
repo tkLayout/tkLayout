@@ -1027,7 +1027,7 @@ namespace insur {
                     typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
                 }
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
-		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getPrecisionRho();
+		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
