@@ -52,7 +52,9 @@ with pixfwdCommon:Y180 rotation (180 degrees around Y axis).
  <Constant name="AnchorZ"        value="0.*mm"/>
  <Constant name="ZPixelForward"  value="325.*mm"/>
  <Constant name="RootStartZ"     value="-2*mm"/>
- <Constant name="RootMidZ"       value="[cms:TrackBeamZ1]-[ZPixelForward]"/>
+ <Constant name="RootMidZ1"      value="[cms:TrackLumiZ1]-[ZPixelForward]"/>
+ <Constant name="RootMidZ2"      value="[cms:TrackLumiZ2]-[ZPixelForward]"/>
+ <Constant name="RootMidZ3"      value="[cms:TrackBeamZ1]-[ZPixelForward]"/>
  <Constant name="RootEndZ"       value="2*[RootHalfLength]"/>
 </ConstantsSection>
 
@@ -207,3 +209,4 @@ with pixfwdCommon:Y180 rotation (180 degrees around Y axis).
 
     
 </DDDefinition>
+

@@ -454,6 +454,7 @@
   <rSolid name="PixelBarrelSupTubCables"/>
   <rMaterial name="pixbarmaterial:PixelBarrelSupTubCables2"/>
  </LogicalPart>
+
 </LogicalPartSection>
 
 <PosPartSection label="pixbar.xml">
@@ -714,6 +715,10 @@
  <PosPart copyNumber="1">
    <rParent name="pixbar:PixelBarrel"/>
    <rChild name="pixbarlayer2:PixelBarrelLayer2"/>
+ </PosPart>
+ <PosPart copyNumber="1">
+   <rParent name="pixbar:PixelBarrel"/>
+   <rChild name="pixbarlayer3:PixelBarrelLayer3"/>
  </PosPart>
 </PosPartSection>
 
