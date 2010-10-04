@@ -147,6 +147,28 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   setDefaultExtensions();
 }
 
+RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
+  myCanvas_ = NULL;
+  setCanvas(myCanvas);
+  setZoomedSize(witdh, height);
+  relativeHtmlDirectory_ = "";
+  targetDirectory_ = "";
+  comment_ = "";
+  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
+  setDefaultExtensions();
+}
+
+RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
+  myCanvas_ = NULL;
+  setCanvas(myCanvas);
+  setZoomedSize(witdh, height);
+  setRelativeHtmlDirectory(relativehtmlDirectory);
+  targetDirectory_ = "";
+  comment_ = "";
+  allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
+  setDefaultExtensions();
+}
+
 RootWImage::~RootWImage() {
   if (myCanvas_) delete myCanvas_;
 }
@@ -162,8 +184,6 @@ void RootWImage::setComment(string newComment) {
 
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
-  //myCanvas_ = new TCanvas();
-  //myCanvas_->cd();
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   TView* myView = myCanvas->GetView();
   if (myView) {
@@ -178,6 +198,10 @@ void RootWImage::setCanvas(TCanvas* myCanvas) {
       newView->SetRange(min, max);
     }
   }
+}
+
+void RootWImage::setCanvas(TCanvas& myCanvas) {
+  setCanvas(&myCanvas);
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {
@@ -394,6 +418,18 @@ RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height) {
 }
 
 RootWImage& RootWContent::addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory) {
+  RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
+  addItem(newImage);
+  return (*newImage);
+}
+
+RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height) {
+  RootWImage* newImage = new RootWImage(myCanvas, witdh, height);
+  addItem(newImage);
+  return (*newImage);
+}
+
+RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory) {
   RootWImage* newImage = new RootWImage(myCanvas, witdh, height, relativeHtmlDirectory);
   addItem(newImage);
   return (*newImage);

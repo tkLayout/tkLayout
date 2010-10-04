@@ -1591,9 +1591,9 @@ namespace insur {
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
             
             //bool firstPlot = true;
-            TCanvas* momentumCanvas = NULL;
-            TCanvas* distanceCanvas = NULL;
-            TCanvas* angleCanvas = NULL;
+            TCanvas momentumCanvas;
+            TCanvas distanceCanvas;
+            TCanvas angleCanvas;
             std::string plotOption = "Ap";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
@@ -1601,17 +1601,17 @@ namespace insur {
             g_guard = a.getRhoProfiles().end();
             for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
-                if (momentumCanvas == NULL) momentumCanvas = new TCanvas();
-                else plotOption = "p same";
 		momentumGraph.SetMinimum(1E-3);
 		momentumGraph.SetMaximum(1);
                 momentumGraph.GetXaxis()->SetLimits(0, 2.4);
-		momentumCanvas->SetLogy();
+		momentumCanvas.SetLogy();
 		momentumGraph.SetLineColor(++myColor);
 		momentumGraph.SetMarkerColor(myColor);
 		momentumGraph.SetMarkerStyle(8);
-                momentumCanvas->cd();
+                momentumCanvas.cd();
+                momentumCanvas.SetFillColor(color_plot_background);
                 momentumGraph.Draw(plotOption.c_str());
+		plotOption = "p same";
             }
             plotOption = "Ap";
 	    myColor=0;
@@ -1619,17 +1619,17 @@ namespace insur {
             g_guard = a.getDProfiles().end();
             for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
-                if (distanceCanvas == NULL) distanceCanvas = new TCanvas();
-                else plotOption = "p same";
 		distanceGraph.SetMinimum(1);
 		distanceGraph.SetMaximum(5E2);
                 distanceGraph.GetXaxis()->SetLimits(0, 2.4);
-		distanceCanvas->SetLogy();
+		distanceCanvas.SetLogy();
 		distanceGraph.SetLineColor(++myColor);
 		distanceGraph.SetMarkerColor(myColor);
 		distanceGraph.SetMarkerStyle(8);
-                distanceCanvas->cd();
+                distanceCanvas.cd();
+                distanceCanvas.SetFillColor(color_plot_background);
                 distanceGraph.Draw(plotOption.c_str());
+		plotOption = "p same";
             }
             plotOption = "Ap";
 	    myColor=0;
@@ -1637,29 +1637,23 @@ namespace insur {
             g_guard = a.getPhiProfiles().end();
             for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
-                if (angleCanvas == NULL) angleCanvas = new TCanvas();
-                else plotOption = "p same";
 		angleGraph.SetMinimum(0);
 		angleGraph.SetMaximum(0.01);
                 angleGraph.GetXaxis()->SetLimits(0, 2.4);
 		angleGraph.SetLineColor(++myColor);
 		angleGraph.SetMarkerColor(myColor);
 		angleGraph.SetMarkerStyle(8);
-                angleCanvas->cd();
+                angleCanvas.cd();
+                angleCanvas.SetFillColor(color_plot_background);
                 angleGraph.Draw(plotOption.c_str());
+		plotOption = "p same";
             }
-            if (momentumCanvas != NULL) {
                 RootWImage& momentumImage = resolutionContent.addImage(momentumCanvas, 600, 600);
                 momentumImage.setComment("Momentum resolution vs. eta");
-            }
-            if (distanceCanvas != NULL) {
                 RootWImage& distanceImage = resolutionContent.addImage(distanceCanvas, 600, 600);
                 distanceImage.setComment("Distance of closest approach resolution vs. eta");
-            }
-            if (angleCanvas != NULL) {
                 RootWImage& angleImage = resolutionContent.addImage(angleCanvas, 600, 600);
                 angleImage.setComment("Angle resolution vs. eta");
-            }
             return true;
         }
         return false;
