@@ -189,7 +189,7 @@ namespace insur {
             }
         }
 #ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeMaterialBudget(): ";
+        std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
         t = time(NULL);
         localt = localtime(&t);
         clock_t endtime = clock();
@@ -197,6 +197,7 @@ namespace insur {
         t = time(NULL);
         localt = localtime(&t);
 #endif
+#ifdef MATERIAL_SHADOW       
         // integration over eta
         for (unsigned int i = 0; i < cells.size(); i++) {
             for (unsigned int j = 1; j < cells.at(i).size(); j++) {
@@ -206,8 +207,25 @@ namespace insur {
         }
         // transformation from (eta, r) to (z, r) coordinates
         transformEtaToZ();
+#endif // MATERIAL_SHADOW
+
         // fill TGraph map
+#ifdef DEBUG_PERFORMANCE
+        t = time(NULL);
+        localt = localtime(&t);
+        //std::cerr << asctime(localt) << std::endl;
+	starttime = clock();
+#endif
         calculateProfiles(momenta);
+#ifdef DEBUG_PERFORMANCE
+        std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
+        t = time(NULL);
+        localt = localtime(&t);
+        endtime = clock();
+        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+        t = time(NULL);
+        localt = localtime(&t);
+#endif
     }
     
     // protected
@@ -695,12 +713,14 @@ namespace insur {
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
 	// Material distribution maps
-	mapRadiation.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteraction.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
-	mapRadiationCount.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteractionCount.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
-	mapRadiationCalib.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteractionCalib.SetBins(bins, 0.0, max_length*1.1, bins / 2, 0.0, (outer_radius + volume_width) * 1.1);
+	int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
+	int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
+	mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+	mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+	mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+	mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
     }
     
     /**
@@ -1093,7 +1113,7 @@ namespace insur {
         totalEtaProfile.SetMarkerStyle(8);
         totalEtaProfile.SetMarkerColor(1);
         totalEtaProfile.SetMarkerSize(1.5);
-        totalEtaProfile.SetTitle("Number of hit modules");
+        totalEtaProfile.SetTitle("Number of hit modules;eta;Number of hits");
         if (totalEtaProfile.GetMaximum()<9) totalEtaProfile.SetMaximum(9.);
         totalEtaProfile.Draw();
         std::string profileName;
@@ -1109,6 +1129,8 @@ namespace insur {
             profileName = "etaProfile"+(*it).first;
             myProfile->SetName(profileName.c_str());
             myProfile->SetTitle((*it).first.c_str());
+            myProfile->GetXaxis()->SetTitle("eta");
+            myProfile->GetYaxis()->SetTitle("Number of hits");
             myProfile->Draw("same");
             typeEtaProfile.push_back(*myProfile);
         }

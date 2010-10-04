@@ -149,6 +149,8 @@ namespace insur {
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
+	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
+	bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
     };
 }
 #endif	/* _VIZARD_H */

@@ -762,10 +762,12 @@ namespace insur {
         myPad->SetFillColor(color_pad_background);
         myPad = myCanvas->GetPad(1);
         myPad->cd();
-        
+
         // Countour plots
         myContent = new RootWContent("Material distributon", true);
         myPage->addContent(myContent);
+
+#ifdef MATERIAL_SHADOW        
         // radiation length in isolines
         ir = (TH2D*)a.getHistoIsoR().Clone();
         ir->SetNameTitle("isor", "Radiation Length Contours");
@@ -786,6 +788,7 @@ namespace insur {
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material 2D distributions");
         myContent->addItem(myImage);
+#endif // MATERIAL_SHADOW
 
 	// Radiation length plot
         myCanvas = new TCanvas("mapMaterialRadiation");
@@ -1357,11 +1360,11 @@ namespace insur {
          * myImage->setComment("XY View of the tracker endcap");
          * myContent->addItem(myImage);
          * }
-         */
-        
+	*/
+
+	// Eta profile big plot
         myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
-        myCanvas->cd();
-        analyzer.getEtaProfileCanvas().DrawClonePad();
+	drawEtaProfiles(*myCanvas, analyzer);
         myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Hit coverage in eta");
         myContent->addItem(myImage);
@@ -1385,6 +1388,33 @@ namespace insur {
         return true;
         
     }
+
+  // Draws all the profile plots present in the analyzer into the given TCanvas
+  // @param myPad the target TPad
+  // @param analyzer the plot data container
+  bool Vizard::drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfile = analyzer.getTotalEtaProfile();
+    std::vector<TProfile>& etaProfiles = analyzer.getTypeEtaProfiles();
+    std::vector<TProfile>::iterator etaProfileIterator;
+
+    totalEtaProfile.Draw();
+    for (etaProfileIterator=etaProfiles.begin();
+	 etaProfileIterator!=etaProfiles.end();
+	 ++etaProfileIterator) {
+      (*etaProfileIterator).Draw("same");
+    }
+    return true; // TODO: make this meaningful
+  }
+  // Draws all the profile plots present in the analyzer into the given TCanvas
+  // @param myCanvas the target TCanvas
+  // @param analyzer the plot data container
+  bool Vizard::drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfiles(*myVirtualPad, analyzer);
+  }
     
     bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         RootWPage* myPage = new RootWPage("Info");
@@ -1905,7 +1935,7 @@ namespace insur {
     void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
         Int_t irep;
         TVirtualPad* myPad;
-        
+
         YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
         summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
         summaryCanvas->SetFillColor(color_pad_background);
@@ -1921,6 +1951,7 @@ namespace insur {
         if (analyzer.getGeomLiteYZ()) {
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -1928,9 +1959,10 @@ namespace insur {
             
             YZCanvas->cd();
             myPad = YZCanvas->GetPad(0);
-            myPad->SetFillColor(color_plot_background);
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
+	    myPad->SetBorderMode(0);
+	    myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -1945,6 +1977,7 @@ namespace insur {
         if (analyzer.getGeomLiteXY()) {
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteXY()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
@@ -1953,9 +1986,7 @@ namespace insur {
         // Third pad
         // Plots
         myPad = summaryCanvas->GetPad(padProfile);
-        myPad->cd();
-        myPad->SetFillColor(color_plot_background);
-        analyzer.getEtaProfileCanvas().DrawClonePad();
+	drawEtaProfiles(*myPad, analyzer);
         
         // Fourth pad
         // XYView (EndCap)
@@ -1965,6 +1996,7 @@ namespace insur {
         if (analyzer.getGeomLiteEC()) {
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteEC()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
@@ -1975,7 +2007,6 @@ namespace insur {
         //return summaryCanvas;
     }
     
-    
-    
+
 }
 

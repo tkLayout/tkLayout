@@ -2279,21 +2279,21 @@ void Tracker::setModuleTypes(std::string sectionName,
             myTag << sectionName << std::dec ;
             myIndex = -1;
             if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
-                myTag << "L" << aBarrelModule->getLayer();
+                myTag << "L" << setfill('0') << setw(2) << aBarrelModule->getLayer();
                 myIndex = aBarrelModule->getLayer();
                 mySpecialIndex.first= myIndex;
                 mySpecialIndex.second = aBarrelModule->getRing();
 		if (specialSecond[mySpecialIndex]) {
-		  myTag << "R" << aBarrelModule->getRing();
+		  myTag << "R" << setfill('0') << setw(2) << aBarrelModule->getRing();
 		}
             } else if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
-                myTag << "R" << anEndcapModule->getRing();
+                myTag << "R" << setfill('0') << setw(2) << anEndcapModule->getRing();
                 myIndex = anEndcapModule->getRing();
                 // If special rules are applied here, we add the disk id to the tag
                 mySpecialIndex.first = myIndex;
                 mySpecialIndex.second = anEndcapModule->getDisk();
                 if (specialSecond[mySpecialIndex]) {
-                    myTag << "D" << anEndcapModule->getDisk();
+                    myTag << "D" << setfill('0') << setw(2) << anEndcapModule->getDisk();
                 }
             } else {
                 // This shouldnt happen
