@@ -255,8 +255,8 @@ namespace insur {
     bool MatParser::parseMLine(std::string line, std::string type, MatCalc& calc) {
         if (type.empty()) return false;
         // set starting and end points of information on line
-        unsigned int start = line.find(m_line_delim) + m_line_delim.size();
-        unsigned int stop = line.find(line_end_delim);
+        size_t start = line.find(m_line_delim) + m_line_delim.size();
+        size_t stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         // clip line to information section and remove whitespace at beginning and end
         line = line.substr(start, stop - start);
@@ -329,8 +329,8 @@ namespace insur {
      */
     bool MatParser::parseDLine(std::string line, MatCalc& calc) {
         // set starting and end points of information on line
-        unsigned int start = line.find(d_line_delim) +d_line_delim.size();
-        unsigned int stop = line.find(line_end_delim);
+        size_t start = line.find(d_line_delim) +d_line_delim.size();
+        size_t stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         // clip line to information section and remove whitespace at beginning and end
         line = line.substr(start, stop - start);
@@ -385,8 +385,8 @@ namespace insur {
      */
     bool MatParser::parseSimpleLine(std::string line, MatCalc& calc, std::string marker) {
         // set starting and end points of information on line
-        unsigned int start = line.find(marker) + marker.size();
-        unsigned int stop = line.find(line_end_delim);
+        size_t start = line.find(marker) + marker.size();
+        size_t stop = line.find(line_end_delim);
         if ((start >= line.size()) || (stop == std::string::npos)) return false;
         // clip line to information section and remove whitespace at beginning and end
         line = line.substr(start, stop - start);
@@ -451,10 +451,10 @@ namespace insur {
      */
     std::string MatParser::getValue(std::string source, bool final_delim, std::string delimiter) {
         std::string value;
-        unsigned int start = source.find(delimiter) + delimiter.size();
+        size_t start = source.find(delimiter) + delimiter.size();
         if (start < source.size()) {
             if (final_delim) {
-                unsigned int stop = source.find(line_end_delim);
+                size_t stop = source.find(line_end_delim);
                 if (stop != std::string::npos) value = source.substr(start, stop - start);
             }
             else value = source.substr(start);

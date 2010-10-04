@@ -4,6 +4,7 @@
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
 DEFINES+=-DDEBUG_PERFORMANCE
+#DEFINES+=-DMATERIAL_SHADOW
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
@@ -19,8 +20,11 @@ BINDIR=bin
 TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
+COMPILERFLAGS+=-Wall
+#COMPILERFLAGS+=-Werror
 
-COMP=g++ -Wall $(INCLUDEFLAGS) $(DEFINES)
+
+COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
 bin: tklayout setup
 	@echo "Executable built."
@@ -270,26 +274,24 @@ cleanushers:
 
 cleandressers:
 	@rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
-	
+
 cleanviz:
 	@rm -f $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
-	
+
 cleannaly:
 	@rm -f $(LIBDIR)/Analyzer.o
 
 cleanrootweb:
 	@rm -f $(LIBDIR)/rootweb.o 
 
-#cleanutils:
-#	@rm -f $(LIBDIR)/rootutils.o
-	
+
 cleantkmaine:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
-	
+
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine 
-	
+
 doc: doxydoc
-	
+
 doxydoc:
 	rm -rf $(DOXYDIR)/html
 	doxygen $(DOCDIR)/tkdoc.doxy

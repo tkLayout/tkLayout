@@ -606,7 +606,9 @@ namespace insur {
         THStack* icontainer = new THStack("istack", "Interaction Length by Category");
         TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
         TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
+#ifdef MATERIAL_SHADOW
         TH2D *ir = NULL, *ii = NULL;
+#endif
 	TH2D *mapRad = NULL, *mapInt = NULL;
         
         // Output initialisation and headers
@@ -962,7 +964,7 @@ namespace insur {
         
         // Grab a list of layers from teh tracker object
         LayerVector& layerSet = tracker.getLayers();
-        int nMB = tracker.getNMB();
+        double nMB = tracker.getNMB();
         ModuleVector& endcapSample = tracker.getEndcapSample();
         
         

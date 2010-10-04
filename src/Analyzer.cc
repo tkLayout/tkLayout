@@ -795,7 +795,7 @@ namespace insur {
   TH2D& Analyzer::getHistoMapRadiation() {
     int nBins = mapRadiation.GetNbinsX()*mapRadiation.GetNbinsY();
     double content;
-    int count;
+    double count;
     for (int iBin=1; iBin<=nBins; ++iBin) {
       content = mapRadiation.GetBinContent(iBin);
       count = mapRadiationCount.GetBinContent(iBin);
@@ -813,7 +813,7 @@ namespace insur {
   TH2D& Analyzer::getHistoMapInteraction() {
     int nBins = mapInteraction.GetNbinsX()*mapInteraction.GetNbinsY();
     double content;
-    int count;
+    double count;
     for (int iBin=1; iBin<=nBins; ++iBin) {
       content = mapInteraction.GetBinContent(iBin);
       count = mapInteractionCount.GetBinContent(iBin);
@@ -1076,7 +1076,7 @@ namespace insur {
         
         // Create and archive for saving our 2D map of hits
         double hitCount;
-        int trackCount;
+        double trackCount;
         for (int nx=0; nx<=mapPhiEtaCount.GetNbinsX()+1; nx++) {
             for (int ny=0; ny<=mapPhiEtaCount.GetNbinsY()+1; ny++) {
                 trackCount=mapPhiEtaCount.GetBinContent(nx, ny);

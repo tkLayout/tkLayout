@@ -890,8 +890,8 @@ bool configParser::parsePixelType(istream& inStream) {
     
     string type;
     int nSides = 0;
-    double nStripsAcross = 0.0;
-    double nSegments = 0.0;
+    int nStripsAcross = 0;
+    int nSegments = 0;
     double dsDistance = 0.0;
     double dsRotation = 0.0;
     double resolutionRphi = -1.0;

@@ -1440,8 +1440,10 @@ namespace insur {
      * @return The atomic number
      */
     int Extractor::Z(double x0, double A) {
-        double d = 4 - 4 * (1.0 - 181.0 * A / x0);
-        if (d > 0) return floor((sqrt(d) - 2.0) / 2.0 + 0.5);
-        else return -1;
+      // TODO: understand this: why do we need to
+      // get an integer value as output?
+      double d = 4 - 4 * (1.0 - 181.0 * A / x0);
+      if (d > 0) return int(floor((sqrt(d) - 2.0) / 2.0 + 0.5));
+      else return -1;
     }
 }

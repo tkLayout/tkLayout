@@ -21,7 +21,7 @@ using namespace std;
 
 class RootWItem {
 public:
-  ~RootWItem() {};
+  virtual ~RootWItem() {};
   RootWItem() {taken=false;};
   virtual bool isTable() {return false;};
   virtual bool isImage() {return false;};
