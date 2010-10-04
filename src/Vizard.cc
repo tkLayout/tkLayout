@@ -1332,8 +1332,12 @@ namespace insur {
         RootWImage* myImage;
         TCanvas *summaryCanvas = NULL;
         TCanvas *YZCanvas = NULL;
+        TCanvas *XYCanvas = NULL;
+        TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
-        createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas);
+        //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
+	createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
+	
         
         //TVirtualPad* myPad;
         myContent = new RootWContent("Plots");
@@ -1350,6 +1354,17 @@ namespace insur {
             myImage->setComment("YZ Section of the tracker barrel");
             myContent->addItem(myImage);
         }
+        if (XYCanvas) {
+            myImage = new RootWImage(XYCanvas, 600, 600);
+            myImage->setComment("XY Section of the tracker barrel");
+            myContent->addItem(myImage);
+        }
+        if (XYCanvasEC) {
+            myImage = new RootWImage(XYCanvasEC, 600, 600);
+            myImage->setComment("XY Projection of the tracker endcap(s)");
+            myContent->addItem(myImage);
+        }
+
         
         /*
          * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
@@ -1936,6 +1951,7 @@ namespace insur {
     }
     
     // private
+    // DEPRECATED
     // Creates a new 4-pad canvas with XY and YZ views with all the useful details, like the axis ticks
     // and the eta reference. The fourth pad contains a miniature of the eta profile coverage
     // if you need any of these you can get them with GetPad()
@@ -1943,11 +1959,14 @@ namespace insur {
     // @param maxRho maximum tracker's Rho coordinate to be shown
     // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
     // @return a pointer to the new TCanvas
-    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas) {
+    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas,
+				     TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
         Int_t irep;
         TVirtualPad* myPad;
 
         YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
+        XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+        XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
         summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
         summaryCanvas->SetFillColor(color_pad_background);
         summaryCanvas->Divide(2, 2);
@@ -1992,6 +2011,15 @@ namespace insur {
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+
+	    XYCanvas->cd();
+	    myPad = XYCanvas->GetPad(0);
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteXY()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
         }
         
         // Third pad
@@ -2011,13 +2039,80 @@ namespace insur {
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+
+	    XYCanvasEC->cd();
+	    myPad = XYCanvasEC->GetPad(0);
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteEC()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
         }
         
         for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
         summaryCanvas->Modified();
         //return summaryCanvas;
     }
-    
+
+
+    // private
+    // Creates 4 new canvas with XY and YZ views with all the useful details, like the axis ticks
+    // and the eta reference.
+    // @param maxZ maximum tracker's Z coordinate to be shown
+    // @param maxRho maximum tracker's Rho coordinate to be shown
+    // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+    // @return a pointer to the new TCanvas
+  void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer,
+				   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
+				   TCanvas *&XYCanvasEC) {
+        Int_t irep;
+        TVirtualPad* myPad;
+
+        YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
+        XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+        XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+        
+        // YZView
+        if (analyzer.getGeomLiteYZ()) {
+            YZCanvas->cd();
+            myPad = YZCanvas->GetPad(0);
+            drawGrid(maxZ, maxRho, ViewSectionYZ);
+            analyzer.getGeomLiteYZ()->DrawClonePad();
+	    myPad->SetBorderMode(0);
+	    myPad->SetFillColor(color_plot_background);
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+        }
+        
+        // XYView (barrel)
+        if (analyzer.getGeomLiteXY()) {
+	    XYCanvas->cd();
+	    myPad = XYCanvas->GetPad(0);
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteXY()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+        }
+        
+        // XYView (EndCap)
+        if (analyzer.getGeomLiteEC()) {
+	    XYCanvasEC->cd();
+	    myPad = XYCanvasEC->GetPad(0);
+            drawGrid(maxZ, maxRho, ViewSectionXY);
+            analyzer.getGeomLiteEC()->DrawClonePad();
+            myPad->SetFillColor(color_plot_background);
+            myPad->GetView()->SetParallel();
+            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+        }
+        
+        //return summaryCanvas;
+  }    
 
 }
 

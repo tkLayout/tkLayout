@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <TError.h>
+#include <TView.h>
 #include <time.h>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/exception.hpp>
@@ -146,6 +147,10 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   setDefaultExtensions();
 }
 
+RootWImage::~RootWImage() {
+  if (myCanvas_) delete myCanvas_;
+}
+
 void RootWImage::setDefaultExtensions() {
    addExtension("C");
    addExtension("pdf");
@@ -157,9 +162,22 @@ void RootWImage::setComment(string newComment) {
 
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
-  myCanvas_ = new TCanvas();
-  myCanvas_->cd();
-  myCanvas->DrawClonePad();
+  //myCanvas_ = new TCanvas();
+  //myCanvas_->cd();
+  myCanvas_ = (TCanvas*)myCanvas->DrawClone();
+  TView* myView = myCanvas->GetView();
+  if (myView) {
+    TView* newView = myCanvas_->GetView();
+    if (newView) {
+      double min[3], max[3];
+      Int_t irep;
+      newView->SetView(myView->GetLongitude(),
+		       myView->GetLatitude(),
+		       myView->GetPsi(), irep);
+      myView->GetRange(min, max);
+      newView->SetRange(min, max);
+    }
+  }
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {

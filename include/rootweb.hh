@@ -83,7 +83,7 @@ typedef string RootWImageSize;
 
 class RootWImage : public RootWItem {
 public:
-  ~RootWImage() {};
+  ~RootWImage();
   RootWImage();
   RootWImage(TCanvas* myCanvas, int witdh, int height);
   RootWImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?

@@ -146,7 +146,9 @@ namespace insur {
                 TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
         double averageHistogramValues(TH1D& histo, double cutoff);
-	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas);
+        // deprecated:
+	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
