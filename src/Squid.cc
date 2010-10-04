@@ -530,6 +530,12 @@ namespace insur {
         if (mb) {
             a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
             v.histogramSummary(a, site);
+            if (pm) {
+	      // TODO: make this much neater!
+	      Analyzer* pixelAnalyzer = new Analyzer;
+	      pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
+	      v.histogramSummary(*pixelAnalyzer, site, "pixel");
+            }
             v.errorSummary(a, site);
             return true;
         }

@@ -116,6 +116,7 @@ namespace insur {
 	// TODO: all these functions should check if the corresponding data is present
 	// and return true or false, depending if they created the output or not
 	void histogramSummary(Analyzer& a, RootWSite& site);
+	void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
         bool errorSummary(Analyzer& a, RootWSite& site);

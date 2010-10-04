@@ -351,7 +351,8 @@ namespace insur {
         const std::string label = "label=";
         const std::string edge = "->";
     }
-    
+   
+
     /**
      * This function draws some of the histograms that were filled during material budget analysis and
      * embeds the resulting image in an HTML file for easy access. If no name is given for the output file,
@@ -579,13 +580,18 @@ namespace insur {
     }
     
 #ifdef USING_ROOTWEB
+
+    void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
+        histogramSummary(a, site, "");
+    }
+
     /**
      * This function draws some of the histograms that were filled during material budget analysis
      * with the rootweb library
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
      * @param site the RootWSite object for the output
      */
-    void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
+    void Vizard::histogramSummary(Analyzer& a, RootWSite& site, std::string name) {
         // Initialize the page with the material budget
         RootWPage* myPage;
         RootWContent* myContent;
@@ -593,8 +599,11 @@ namespace insur {
         RootWImage* myImage;
         TCanvas* myCanvas;
         TVirtualPad* myPad;
-        myPage = new RootWPage("Material");
-        myPage->setAddress("material.html");
+        std::string pageTitle="Material";
+        if (name!="") pageTitle+=" (" +name+")";
+        myPage = new RootWPage(pageTitle);
+        std::string pageAddress="material"+name+".html";
+        myPage->setAddress(pageAddress);
         site.addPage(myPage);
         
         // 1D Overview

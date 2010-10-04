@@ -125,6 +125,7 @@ RootWImage::RootWImage() {
 }
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
+  myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   relativeHtmlDirectory_ = "";
@@ -135,6 +136,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
 }
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
+  myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
   setRelativeHtmlDirectory(relativehtmlDirectory);
@@ -154,7 +156,10 @@ void RootWImage::setComment(string newComment) {
 }
 
 void RootWImage::setCanvas(TCanvas* myCanvas) {
-  myCanvas_ = myCanvas;
+  if (myCanvas_) delete myCanvas_;
+  myCanvas_ = new TCanvas();
+  myCanvas_->cd();
+  myCanvas->DrawClonePad();
 }
 
 void RootWImage::setZoomedSize(int witdh, int height) {
