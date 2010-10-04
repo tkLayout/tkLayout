@@ -18,6 +18,7 @@
 namespace balgo = boost::algorithm;
 int main(int argc, char** argv) {
     std::string geomfile, settingsfile, matfile, htmlout, rootout, graphout, xmlout;
+    std::string pixmatfile;
     bool switch_processed = false, files_processed = false, u = false, m = false, d = false, h = false, r = false, g = false, x = false, t = false;
     bool T = false;
     int cfiles = 0, tracks = 0, tracks_geom = 0, pos = 0, i = 0;
@@ -979,6 +980,7 @@ int main(int argc, char** argv) {
     
     // here comes the heavy lifting...
     insur::Squid s;
+    // TODO: review completely the argument parsing !!
     if (h || x) {
         if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
         if (h) {

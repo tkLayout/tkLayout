@@ -97,7 +97,8 @@ namespace insur {
         configParser cp;
         MatParser mp;
         Usher u;
-        MatCalc c;
+        MatCalc tkMaterialCalc;
+        MatCalc pxMaterialCalc;
         Analyzer a;
         Vizard v;
         tk2CMSSW t2c;

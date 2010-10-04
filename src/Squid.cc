@@ -199,16 +199,20 @@ namespace insur {
                 if (!is) is = new InactiveSurfaces();
                 if (mb) delete mb;
                 mb  = new MaterialBudget(*tr, *is);
-                if (c.initDone()) c.reset();
-                if (mp.initMatCalc(matfile, c, mainConfiguration.getMattabDirectory())) {
-                    mb->materialsAll(c);
+                if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
+                if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
+                if (mp.initMatCalc(matfile, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+                    mb->materialsAll(tkMaterialCalc);
                     if (verbose) mb->print();
                     if (px) {
+                        // TODO: better handle the pixel material file name
+                        if (mp.initMatCalc(matfile+".pix", pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
                         if (!pi) pi = new InactiveSurfaces();
                         if (pm) delete pm;
                         pm = new MaterialBudget(*px, *pi);
-                        pm->materialsAll(c);
+                        pm->materialsAll(pxMaterialCalc);
                         if (verbose) pm->print();
+                        }
                     }
                     return true;
                 }
@@ -400,7 +404,7 @@ namespace insur {
      */
     bool Squid::translateFullSystemToXML(std::string xmlout, bool wt) {
         if (mb) {
-            t2c.translate(c.getMaterialTable(), *mb, xmlout, wt);
+            t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout, wt);
             return true;
         }
         else {
