@@ -162,11 +162,11 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-        virtual std::pair<double, double> analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
+        virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
-        virtual std::pair<double, double> findModuleLayerRI(std::vector<ModuleCap>& layer,
+        virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer,
                                                                                                double eta, double theta, double phi, Track& t, bool isPixel = false);
-        virtual std::pair<double, double> analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
+        virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
 								  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
         void calculateProfiles(std::vector<double> p);
         void clearMaterialBudgetHistograms();
@@ -174,9 +174,9 @@ namespace insur {
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
-        void fillCell(double r, double eta, double theta, double rl, double il);
-        void fillMapRT(const double& r, const double& theta, const double& rl, const double& il);
-        void fillMapRZ(const double& r, const double& z, const double& rl, const double& il);
+        void fillCell(double r, double eta, double theta, Material mat);
+        void fillMapRT(const double& r, const double& theta, const Material& mat);
+        void fillMapRZ(const double& r, const double& z, const Material& mat);
         void transformEtaToZ();
     private:
         // A random number generator

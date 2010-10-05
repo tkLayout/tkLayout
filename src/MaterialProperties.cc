@@ -4,6 +4,19 @@
  */
 
 #include <MaterialProperties.h>
+
+Material& Material::operator+=(const Material &a) {
+  interaction += a.interaction;
+  radiation += a.radiation;
+  return *this;
+}
+
+const Material Material::operator+(const Material &other) const {
+  Material result = *this;     // Make a copy of myself.  Same as Material result(*this);
+  result += other;            // Use += to add other to the copy.
+  return result;              // All done!
+}
+
 namespace insur {
     /*-----public functions-----*/
     /**
@@ -219,6 +232,13 @@ namespace insur {
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
     double MaterialProperties::getInteractionLength() { return i_length; }
+
+    Material MaterialProperties::getMaterialLengths() {
+      Material myMaterials;
+      myMaterials.interaction = i_length;
+      myMaterials.radiation = r_length;
+      return myMaterials;
+    }
     
     /**
      * Calculate the overall mass of the inactive element from the internal mass vectors,

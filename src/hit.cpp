@@ -114,7 +114,7 @@ double Hit::getTrackTheta() {
  * Getter for the final, angle corrected pair of radiation and interaction lengths.
  * @return A copy of the pair containing the requested values; radiation length first, interaction length second
  */
-pair<double, double> Hit::getCorrectedMaterial() {
+Material Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
@@ -204,7 +204,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
         for (int i = 0; i < n - 1; i++) {
-            double th = hitV_.at(i)->getCorrectedMaterial().first;
+            double th = hitV_.at(i)->getCorrectedMaterial().radiation;
 #ifdef HIT_DEBUG
 	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
 #endif

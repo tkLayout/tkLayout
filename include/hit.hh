@@ -8,6 +8,7 @@
 #define _HIT_HH_
 
 #include "module.hh"
+#include <MaterialProperties.h>
 #include <cmath>
 #include <vector>
 #include <map>
@@ -38,9 +39,9 @@ protected:
   int objectKind_;    // kind of hit object
   Module* hitModule_; // Pointer to the hit module
   //double trackTheta_; // Theta angle of the track
-  //pair<double, double> material_;
+  //Material material_;
   // "Thickness" in terms of radiation_length and interaction_length
-  pair<double, double> correctedMaterial_;
+  Material correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
 
@@ -70,8 +71,8 @@ public:
   void setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
   void setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
   double getTrackTheta();
-  pair<double, double> getCorrectedMaterial();
-  void setCorrectedMaterial(pair<double, double> newMaterial) { correctedMaterial_ = newMaterial;};
+  Material getCorrectedMaterial();
+  void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
 };
 
