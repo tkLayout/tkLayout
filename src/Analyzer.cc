@@ -182,6 +182,15 @@ namespace insur {
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
             }
+            // Add the hit on the beam pipe
+ 	    Hit* hit = new Hit(23./sin(theta));
+ 	    hit->setOrientation(Hit::Horizontal);
+ 	    hit->setObjectKind(Hit::Inactive);
+ 	    std::pair<double, double> beamPipeMat;
+ 	    beamPipeMat.first = 0.0023;
+ 	    beamPipeMat.second = 0.0019;
+ 	    hit->setCorrectedMaterial(beamPipeMat);
+ 	    track.addHit(hit);
             if (!track.noHits()) {
                 track.sort();
                 track.computeErrors(momenta);
@@ -505,8 +514,8 @@ namespace insur {
             phiprofiles.insert(elem);
             dprofiles.insert(elem);
 	    rhoprofiles[elem.first].SetTitle("p_T error;eta;relative error");
-	    phiprofiles[elem.first].SetTitle("Track angle error;eta;sigma(radians)");
-	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;eta;sigma(micrometers)");
+	    phiprofiles[elem.first].SetTitle("Track angle error;eta;sigma(radian)");
+	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;eta;sigma (micrometer)");
         }
         // track loop
 	std::map<double,int> rhoPointCount;

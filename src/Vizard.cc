@@ -1594,19 +1594,27 @@ namespace insur {
             TCanvas momentumCanvas;
             TCanvas distanceCanvas;
             TCanvas angleCanvas;
+            momentumCanvas.SetGrid(1,1);
+            distanceCanvas.SetGrid(1,1);
+            angleCanvas.SetGrid(1,1);
             std::string plotOption = "Ap";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
 	    int myColor=0;
             g_guard = a.getRhoProfiles().end();
+            gStyle->SetGridStyle(style_grid);
+            gStyle->SetGridColor(color_hard_grid);
             for (g_iter = a.getRhoProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
-		momentumGraph.SetMinimum(1E-3);
-		momentumGraph.SetMaximum(1);
+//		momentumGraph.SetMinimum(1E-3);
+		momentumGraph.SetMinimum(4E-3);
+//		momentumGraph.SetMaximum(1);
+		momentumGraph.SetMaximum(.11);
                 momentumGraph.GetXaxis()->SetLimits(0, 2.4);
 		momentumCanvas.SetLogy();
-		momentumGraph.SetLineColor(++myColor);
-		momentumGraph.SetMarkerColor(myColor);
+		momentumGraph.SetLineColor(momentumColor(myColor));
+		momentumGraph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
 		momentumGraph.SetMarkerStyle(8);
                 momentumCanvas.cd();
                 momentumCanvas.SetFillColor(color_plot_background);
@@ -1619,12 +1627,13 @@ namespace insur {
             g_guard = a.getDProfiles().end();
             for (g_iter = a.getDProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
-		distanceGraph.SetMinimum(1);
-		distanceGraph.SetMaximum(5E2);
+		distanceGraph.SetMinimum(4);
+		distanceGraph.SetMaximum(4E2);
                 distanceGraph.GetXaxis()->SetLimits(0, 2.4);
 		distanceCanvas.SetLogy();
-		distanceGraph.SetLineColor(++myColor);
-		distanceGraph.SetMarkerColor(myColor);
+		distanceGraph.SetLineColor(momentumColor(myColor));
+		distanceGraph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
 		distanceGraph.SetMarkerStyle(8);
                 distanceCanvas.cd();
                 distanceCanvas.SetFillColor(color_plot_background);
@@ -1637,11 +1646,13 @@ namespace insur {
             g_guard = a.getPhiProfiles().end();
             for (g_iter = a.getPhiProfiles().begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
-		angleGraph.SetMinimum(0);
+		angleGraph.SetMinimum(1E-5);
 		angleGraph.SetMaximum(0.01);
                 angleGraph.GetXaxis()->SetLimits(0, 2.4);
-		angleGraph.SetLineColor(++myColor);
-		angleGraph.SetMarkerColor(myColor);
+                angleCanvas.SetLogy();
+		angleGraph.SetLineColor(momentumColor(myColor));
+		angleGraph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
 		angleGraph.SetMarkerStyle(8);
                 angleCanvas.cd();
                 angleCanvas.SetFillColor(color_plot_background);
@@ -2107,6 +2118,14 @@ namespace insur {
         
         //return summaryCanvas;
   }    
+
+ int Vizard::momentumColor(int iMomentum) {
+   if (iMomentum==0) return kBlack;
+   if (iMomentum==1) return kBlue;
+   if (iMomentum==2) return kRed;   
+   if (iMomentum==3) return kGreen;   
+   return iMomentum+1;
+ }
 
 }
 

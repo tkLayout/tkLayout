@@ -206,7 +206,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().first;
 #ifdef HIT_DEBUG
-	    std::cerr << "material (i) = " << th << std::endl;
+	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
 #endif
 	    if (th>0)
 	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
@@ -240,6 +240,13 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                         }
                         corr(r, c) = sum;
                         if (r != c) corr(c, r) = sum;
+#undef CORRELATIONS_OFF_DEBUG
+#ifdef CORRELATIONS_OFF_DEBUG
+if (r!=c) {
+corr(c, r)=0;
+corr(r, c)=0;
+}
+#endif
                     }
                 }
             }
