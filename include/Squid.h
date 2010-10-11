@@ -39,6 +39,7 @@ namespace insur {
      */
     static const std::string err_no_geomfile = "Error: there is no recorded name for the geometry configuration file. Initialise the tracker first.";
     static const std::string err_no_matfile = "Error: the provided material configuration file does not exist.";
+    static const std::string err_no_pixmatfile = "Error: the material configuration file for the pixels does not exist.";
     static const std::string err_init_failed = "Error: initialisation of the material calculator failed.";
     static const std::string err_no_tracker = "Error: the tracker object does not exist. The tracker must be created before calling this function.";
     static const std::string err_no_inacsurf = "Error: the collection of inactive surfaces does not exist. It must be created before calling this function";
@@ -69,7 +70,9 @@ namespace insur {
         bool buildInactiveSurfaces(std::string geomfile, bool verbose = false);
         bool buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose = false);
         bool createMaterialBudget(std::string matfile, bool verbose = false);
+        bool createMaterialBudget(std::string matfile, std::string& pixmatfile, bool verbose = false);
         bool buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose = false, bool mat_verbose = false);
+        bool buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string& pixmatfile, bool usher_verbose = false, bool mat_verbose = false);
         bool analyzeFullSystem(std::string htmlout = "", std::string rootout = "", std::string graphout = "", int tracks = 50, bool simplified = true);
         bool analyzeGeoMat(std::string htmlout = "", std::string rootout = "", int tracks = 50, bool simplified = true);
         bool analyzeGraphMat(std::string htmlout = "", std::string graphout = "", int tracks = 50);
@@ -83,7 +86,7 @@ namespace insur {
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);
 	bool analyzeMaterialBudgetSite(int tracks = 50);
-	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile);
+	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
 	bool makeSite(bool addLogPage = true);
 #endif
     private:

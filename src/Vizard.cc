@@ -582,7 +582,7 @@ namespace insur {
 #ifdef USING_ROOTWEB
 
     void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
-        histogramSummary(a, site, "");
+        histogramSummary(a, site, "outer");
     }
 
     /**
@@ -1453,7 +1453,9 @@ namespace insur {
     return drawEtaProfiles(*myVirtualPad, analyzer);
   }
     
-    bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile,
+				  std::string& matfile, std::string& pixmatfile,
+				  Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         RootWPage* myPage = new RootWPage("Info");
         myPage->setAddress("info.html");
         site.addPage(myPage);
@@ -1487,9 +1489,14 @@ namespace insur {
         }
         if (matfile!="") {
             std::string destinationFilename = trackerName + "_Materials.cfg";
-            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file", matfile);
+            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
             simulationContent->addItem(myBinaryFile);
         }
+	if (pixmatfile!="") {
+            std::string destinationFilename = trackerName + "_Materials.cfg.pix";
+            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
+            simulationContent->addItem(myBinaryFile);
+	}
         
         RootWInfo* myInfo;
         myInfo = new RootWInfo("Minimum bias per bunch crossing");

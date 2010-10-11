@@ -181,7 +181,24 @@ namespace insur {
         is = NULL;
         return false;
     }
-    
+
+   /**
+     * Calculate a material budget for the previously created tracker object and collection of inactive
+     * surfaces. The resulting material budget replaces the previously registered one, if such an object
+     * existed. It remains in the squid until it is overwritten by a second call to this function or by
+     * another one that creates a new material budget. This function succeeds if either the tracker or
+     * both the tracker and the inactive surfaces exist. If a pixel detector exists, it gets its own material
+     * budget at the same time. This object is treated exactly the same as the one for the tracker.
+     * @param matfile The name and - if necessary - path of the materials configuration file
+     * @param pixmatfile The name and - if necessary - path of the materials configuration file fro the pixels
+     * @param verbose A flag that turns the final status summary of the material budget on or off
+     * @return True if there were no errors during processing, false otherwise
+     */
+  bool Squid::createMaterialBudget(std::string matfile, bool verbose) {   
+     std::string dummyString;
+     return createMaterialBudget(matfile, dummyString, verbose);
+  }
+ 
     /**
      * Calculate a material budget for the previously created tracker object and collection of inactive
      * surfaces. The resulting material budget replaces the previously registered one, if such an object
@@ -190,10 +207,11 @@ namespace insur {
      * both the tracker and the inactive surfaces exist. If a pixel detector exists, it gets its own material
      * budget at the same time. This object is treated exactly the same as the one for the tracker.
      * @param matfile The name and - if necessary - path of the materials configuration file
+     * @param pixmatfile The name and - if necessary - path of the materials configuration file fro the pixels
      * @param verbose A flag that turns the final status summary of the material budget on or off
      * @return True if there were no errors during processing, false otherwise
      */
-    bool Squid::createMaterialBudget(std::string matfile, bool verbose) {
+  bool Squid::createMaterialBudget(std::string matfile, std::string& pixmatfile, bool verbose) {
         if (fileExists(matfile)) {
             if (tr) {
                 if (!is) is = new InactiveSurfaces();
@@ -205,15 +223,19 @@ namespace insur {
                     mb->materialsAll(tkMaterialCalc);
                     if (verbose) mb->print();
                     if (px) {
-                        // TODO: better handle the pixel material file name
-                        if (mp.initMatCalc(matfile+".pix", pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-                        if (!pi) pi = new InactiveSurfaces();
-                        if (pm) delete pm;
-                        pm = new MaterialBudget(*px, *pi);
-                        pm->materialsAll(pxMaterialCalc);
-                        if (verbose) pm->print();
+		      if (fileExists(pixmatfile)) {
+                        if (mp.initMatCalc(pixmatfile, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+			  if (!pi) pi = new InactiveSurfaces();
+			  if (pm) delete pm;
+			  pm = new MaterialBudget(*px, *pi);
+			  pm->materialsAll(pxMaterialCalc);
+			  if (verbose) pm->print();
                         }
-                    }
+		      } else {
+			std::cout << "Squid::createMaterialBudget(): " << err_no_pixmatfile << std::endl;
+			return false;
+		      }
+                    } else pixmatfile="";
                     return true;
                 }
                 else {
@@ -235,8 +257,8 @@ namespace insur {
             return false;
         }
     }
-    
-    /**
+   
+   /**
      * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
      * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
      * in the squid  until they are overwritten by a second call to this function or by another one that creates new
@@ -248,8 +270,26 @@ namespace insur {
      * @param mat_verbose A flag that turns the final status summary of the material budget on or off
      * @return True if there were no errors during processing, false otherwise
      */
-    bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose, bool mat_verbose) {
-        if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, mat_verbose);
+  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose, bool mat_verbose) {
+    std::string dummyString;
+    return buildFullSystem(geomfile, settingsfile, matfile, dummyString, usher_verbose, mat_verbose);
+  }
+ 
+    /**
+     * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
+     * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
+     * in the squid  until they are overwritten by a second call to this function or by another one that creates new
+     * instances of them.
+     * @param geomfile The name and - if necessary - path of the geometry configuration file
+     * @param settingsfile The name and - if necessary - path of the module settings configuration file
+     * @param matfile The name and - if necessary - path of the materials configuration file
+     * @param pixmatfile The name and - if necessary - path of the materials configuration file for the pixels
+     * @param usher_verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
+     * @param mat_verbose A flag that turns the final status summary of the material budget on or off
+     * @return True if there were no errors during processing, false otherwise
+     */
+  bool Squid::buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string& pixmatfile, bool usher_verbose, bool mat_verbose) {
+    if (buildInactiveSurfaces(geomfile, settingsfile, usher_verbose)) return createMaterialBudget(matfile, pixmatfile, mat_verbose);
         return false;
     }
     
@@ -568,12 +608,12 @@ namespace insur {
         }
     }
     
-    bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile) {
+  bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile) {
         if (!tr) {
             std::cout << "Squid::additionalInfoSite(): " << err_no_tracker << std::endl;
             return false;
         } else {
-            v.additionalInfoSite(geomfile, settingsfile, matfile, a, *tr, site);
+            v.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile, a, *tr, site);
             return true;
         }
     }

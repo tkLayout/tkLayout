@@ -982,7 +982,8 @@ int main(int argc, char** argv) {
     insur::Squid s;
     // TODO: review completely the argument parsing !!
     if (h || x) {
-        if (!s.buildFullSystem(geomfile, settingsfile, matfile, u, m)) return (EXIT_FAILURE);
+        if (matfile!="") pixmatfile = matfile+".pix";
+        if (!s.buildFullSystem(geomfile, settingsfile, matfile, pixmatfile, u, m)) return (EXIT_FAILURE);
         if (h) {
             if (tracks_geom==0) tracks_geom= 2000;
 	    s.analyzeGeometrySite(tracks_geom);
@@ -994,7 +995,7 @@ int main(int argc, char** argv) {
                 std::cout << "Calling analyzer with the default number of tracks." << std::endl;
                 if (!s.analyzeMaterialBudgetSite()) return (EXIT_FAILURE);
             }
-	    s.additionalInfoSite(geomfile, settingsfile, matfile);
+	    s.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile);
             s.makeSite();
         }
         if (r) {
