@@ -9,6 +9,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/exception.hpp>
 
+int RootWImage::imageCounter_ = 0;
+
 //*******************************************//
 // RootWTable                                //
 //*******************************************//
@@ -116,6 +118,7 @@ pair<int, int> RootWTable::newLine() {
 //*******************************************//
 
 RootWImage::RootWImage() {
+  imageCounter_++;
   myCanvas_ = NULL;
   zoomedWidth_ = 0; zoomedHeight_ = 0;
   relativeHtmlDirectory_ = "";
@@ -126,6 +129,7 @@ RootWImage::RootWImage() {
 }
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
+  imageCounter_++;
   myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
@@ -137,6 +141,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
 }
 
 RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relativehtmlDirectory) {
+  imageCounter_++;
   myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
@@ -148,6 +153,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
 }
 
 RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
+  imageCounter_++;
   myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
@@ -159,6 +165,7 @@ RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
 }
 
 RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relativehtmlDirectory) {
+  imageCounter_++;
   myCanvas_ = NULL;
   setCanvas(myCanvas);
   setZoomedSize(witdh, height);
@@ -185,6 +192,9 @@ void RootWImage::setComment(string newComment) {
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
+  std::ostringstream canvasName("");
+  canvasName << "img" << setfill('0') << setw(3) << imageCounter_;
+  myCanvas_->SetName(canvasName.str().c_str());
   TView* myView = myCanvas->GetView();
   if (myView) {
     TView* newView = myCanvas_->GetView();

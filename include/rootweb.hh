@@ -117,6 +117,8 @@ private:
   static const double thumb_compression_ = 2.;
   string allowedExtensions_; // Will be initialized in the constructor
   void setDefaultExtensions();
+
+  static int imageCounter_;
 };
 
 class RootWFile : public RootWItem {

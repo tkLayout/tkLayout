@@ -118,5 +118,6 @@ public:
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
+  void removeMaterial();
 };
 #endif

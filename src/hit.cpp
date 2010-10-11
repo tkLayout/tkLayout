@@ -143,6 +143,17 @@ Track::Track(const Track& t) {
 }
 
 /**
+ * Modifies the hits to remove the material
+ */
+void Track::removeMaterial() {
+  std::vector<Hit*>::iterator it;
+  Material nullMaterial;
+  for (it = hitV_.begin(); it!=hitV_.end(); ++it) {
+    (*it)->setCorrectedMaterial(nullMaterial);
+  }
+}
+
+/**
  * The destructor makes sure that the hit vector is cleaned up properly.
  */
 Track::~Track() {

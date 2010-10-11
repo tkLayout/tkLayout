@@ -7,8 +7,8 @@
 \usepackage{graphicx}
 \pagestyle{fancy}
 
-%\usepackage{xltxtra}
-%\setmainfont[Mapping=tex-text,Ligatures={Common, Historical},Numbers={OldStyle}]{OFL Sorts Mill Goudy}
+\usepackage{xltxtra}
+\setmainfont[Mapping=tex-text,Ligatures={Common, Historical},Numbers={OldStyle}]{OFL Sorts Mill Goudy}
 
 
 % Fancy header and footer to have my name everywhere
@@ -50,10 +50,10 @@
 \section{Helix equation fit}
 The points will lay on a helix, or (for our purposes) on a circle (we
 will neglect the z axis).  The error $\varepsilon_i$ of the
-measurement point $i$ will be given by:w
+measurement point $i$ will be given by:
 \begin{equation}
   \label{eq:helix}
-  \varepsilon_i = \frac 1 2 \rho r_i^2 - (1 + \rho d) r_i \sin(\phi_i-\phi_0) + \frac 1 2 \rho d^2 + d
+  \varepsilon_i = \frac 1 2 \rho r_i^2 - (1 + \rho d) r_i \sin(\phi_i-\phi_0) + \frac 1 2 \rho d^2 + d -y_i
 \end{equation}
 there $r_i$ is the layer radius, $\phi_0$ is the initial track's polar
 angle in the transverse plane, $\phi_i$ is the polar angle of each
@@ -154,13 +154,13 @@ without loss of generality that $m \geq n$)
 Since the angles $\theta_i$ are uncorrelated, any term containing in
 $\left < \theta_i \theta_j \right >$ with $i\neq j$ will be zero, thus
 \begin{eqnarray}
-  a_{n,m}\left < y_n y_m \right > & = &
+  a_{n,m} = \left < y_n y_m \right > & = &
   \left <
     \sum_{i=1}^{m-1} \sum_{j=1}^{n-1}
     \left (  x_m - x_i \right )
     \left (  x_n - x_j \right ) \theta_i \theta_j \delta_{i,j}
   \right > \nonumber \\
-  & = &
+  a_{n,m} = \left < y_n y_m \right > & = &
   \sum_{i=1}^{n-1} 
   \left (  x_m - x_i \right )
   \left (  x_n - x_i \right )  \left < \theta_i^2 \right > 

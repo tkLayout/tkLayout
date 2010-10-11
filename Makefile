@@ -4,7 +4,6 @@
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
 DEFINES+=-DDEBUG_PERFORMANCE
-#DEFINES+=-DMATERIAL_SHADOW
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`

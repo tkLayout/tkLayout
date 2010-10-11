@@ -533,7 +533,7 @@ namespace insur {
     bool Squid::analyzeMaterialBudgetSite(int tracks) {
         if (mb) {
             a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
-            v.histogramSummary(a, site);
+            v.histogramSummary(a, site, "outer");
             if (pm) {
 	      // TODO: make this much neater!
 	      Analyzer* pixelAnalyzer = new Analyzer;

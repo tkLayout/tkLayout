@@ -1048,6 +1048,7 @@ int main(int argc, char** argv) {
                 std::cout << "XML files will be written to subdirectory " << xmlout << std::endl;
             }
             if (!s.translateFullSystemToXML(xmlout, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+            // false: a la nico, true: a la Harry
         }
     }
     else if (r || g) {

@@ -7,6 +7,8 @@
 #include <Analyzer.h>
 #include <TProfile.h>
 
+#define MATERIAL_SHADOW
+
 namespace insur {
     
     // public
@@ -195,6 +197,10 @@ namespace insur {
                 track.sort();
                 track.computeErrors(momenta);
                 tv.push_back(track);
+		Track trackIdeal = track;
+		trackIdeal.removeMaterial();
+		trackIdeal.computeErrors(momenta);
+		tvIdeal.push_back(trackIdeal);
             }
         }
 #ifdef DEBUG_PERFORMANCE
@@ -225,7 +231,8 @@ namespace insur {
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-        calculateProfiles(momenta);
+        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles);
+        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -506,55 +513,68 @@ namespace insur {
      * and store them internally for later visualisation.
      * @param p The list of different momenta that the error profiles are calculated for
      */
-    void Analyzer::calculateProfiles(std::vector<double> p) {
+  void Analyzer::calculateProfiles(std::vector<double>& p, 
+				   std::vector<Track>& trackVector,
+				   std::map<double, TGraph>& thisRhoProfiles,
+				   std::map<double, TGraph>& thisPhiProfiles,
+				   std::map<double, TGraph>& thisDProfiles) {
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
-        int n = tv.size();
+        int n = trackVector.size();
         double eta, R;
-        rhoprofiles.clear();
-        phiprofiles.clear();
-        dprofiles.clear();
+        thisRhoProfiles.clear();
+        thisPhiProfiles.clear();
+        thisDProfiles.clear();
         // momentum loop
         for (iter = p.begin(); iter != guard; iter++) {
             std::pair<double, TGraph> elem;
             TGraph graph;
             elem.first = *iter;
             elem.second = graph;
-            rhoprofiles.insert(elem);
-            phiprofiles.insert(elem);
-            dprofiles.insert(elem);
-	    rhoprofiles[elem.first].SetTitle("p_T error;eta;relative error");
-	    phiprofiles[elem.first].SetTitle("Track angle error;eta;sigma(radian)");
-	    dprofiles[elem.first].SetTitle("Transverse impact parameter error;eta;sigma (micrometer)");
+            thisRhoProfiles.insert(elem);
+            thisPhiProfiles.insert(elem);
+            thisDProfiles.insert(elem);
+	    thisRhoProfiles[elem.first].SetTitle("p_T error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+	    thisPhiProfiles[elem.first].SetTitle("Track angle error;#eta;#sigma (#delta #phi) [rad]");
+	    thisDProfiles[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
         }
         // track loop
 	std::map<double,int> rhoPointCount;
 	std::map<double,int> phiPointCount;
 	std::map<double,int> dPointCount;
+	double graphValue;
         for (int i = 0; i < n; i++) {
-            std::map<double, double>& drho = tv.at(i).getDeltaRho();
-            std::map<double, double>& dphi = tv.at(i).getDeltaPhi();
-            std::map<double, double>& dd = tv.at(i).getDeltaD();
-            eta = - log(tan(tv.at(i).getTheta() / 2));
+            std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
+            std::map<double, double>& dphi = trackVector.at(i).getDeltaPhi();
+            std::map<double, double>& dd = trackVector.at(i).getDeltaD();
+            eta = - log(tan(trackVector.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
-                if (rhoprofiles.find(miter->first) != rhoprofiles.end()) {
+                if (thisRhoProfiles.find(miter->first) != thisRhoProfiles.end()) {
 		  R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
-		  // deltaRho / rho = deltaRho * R
-		  rhoprofiles[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, (miter->second * R));
+		  if ((miter->second)>0) {
+		    // deltaRho / rho = deltaRho * R
+		    graphValue = (miter->second * R) * 100; // in percent
+		    thisRhoProfiles[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
+		  }
                 }
             }
             mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-                if (phiprofiles.find(miter->first) != phiprofiles.end())
-		  phiprofiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, miter->second);
+                if (thisPhiProfiles.find(miter->first) != thisPhiProfiles.end())
+		  if ((miter->second)>0) {
+		    graphValue = miter->second; // radians is ok
+		    thisPhiProfiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
+		  }
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-	      // Plot in micrometers
-              if (dprofiles.find(miter->first) != dprofiles.end())
-		dprofiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, 1000*(miter->second));
+              if (thisDProfiles.find(miter->first) != thisDProfiles.end())
+		if ((miter->second)>0) {
+		  graphValue =  (miter->second) / 10.; // in cm
+		  thisDProfiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
+		}
             }
         }
     }
@@ -639,22 +659,22 @@ namespace insur {
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
 	mapRadiation.Reset();
 	mapRadiation.SetName("mapRadiation");
-	mapRadiation.SetTitle("Radiation length map (raw);z(mm);r(mm)");
+	mapRadiation.SetTitle("Radiation length map (raw);z [mm];r [mm]");
 	mapInteraction.Reset();
 	mapInteraction.SetName("mapInteraction");
-	mapInteraction.SetTitle("Interaction length map (raw);z(mm);r(mm)");
+	mapInteraction.SetTitle("Interaction length map (raw);z [mm];r [mm]");
 	mapRadiationCount.Reset();
 	mapRadiationCount.SetName("mapRadiationCount");
-	mapRadiationCount.SetTitle("Radiation length hit count map;z(mm);r(mm)");
+	mapRadiationCount.SetTitle("Radiation length hit count map;z [mm];r [mm]");
 	mapInteractionCount.Reset();
 	mapInteractionCount.SetName("mapInteractionCount");
-	mapInteractionCount.SetTitle("Interaction length hit count map;z(mm);r(mm)");
+	mapInteractionCount.SetTitle("Interaction length hit count map;z [mm];r [mm]");
 	mapRadiationCalib.Reset();
 	mapRadiationCalib.SetName("mapRadiationCalib");
-	mapRadiationCalib.SetTitle("Radiation length map;z(mm);r(mm)");
+	mapRadiationCalib.SetTitle("Radiation length map;z [mm];r [mm]");
 	mapInteractionCalib.Reset();
 	mapInteractionCalib.SetName("mapInteractionCalib");
-	mapInteractionCalib.SetTitle("Interaction length map;z(mm);r(mm)");
+	mapInteractionCalib.SetTitle("Interaction length map;z [mm];r [mm]");
     }
     
     /**
@@ -664,7 +684,7 @@ namespace insur {
     void Analyzer::clearGeometryHistograms() {
         // geometry analysis
         mapPhiEta.Reset();
-        mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;phi;eta");
+        mapPhiEta.SetNameTitle("mapPhiEta", "Number of hits;#phi;#eta");
         etaProfileCanvas.SetName("etaProfileCanvas"); etaProfileCanvas.SetTitle("Eta Profiles");
         hitDistribution.Reset();
         hitDistribution.SetNameTitle("hitDistribution", "Hit distribution");
@@ -1134,7 +1154,7 @@ namespace insur {
         totalEtaProfile.SetMarkerStyle(8);
         totalEtaProfile.SetMarkerColor(1);
         totalEtaProfile.SetMarkerSize(1.5);
-        totalEtaProfile.SetTitle("Number of hit modules;eta;Number of hits");
+        totalEtaProfile.SetTitle("Number of hit modules;#eta;Number of hits");
         if (totalEtaProfile.GetMaximum()<9) totalEtaProfile.SetMaximum(9.);
         totalEtaProfile.Draw();
         std::string profileName;
