@@ -183,6 +183,7 @@ RootWImage::~RootWImage() {
 void RootWImage::setDefaultExtensions() {
    addExtension("C");
    addExtension("pdf");
+   addExtension("root");
 }
 
 void RootWImage::setComment(string newComment) {

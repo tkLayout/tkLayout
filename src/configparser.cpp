@@ -346,7 +346,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         myTracker_->setPhiSegments(phiSegments);
         
         sampleBarrelModule->setResolutionRphi();
-        sampleBarrelModule->setResolutionZ();
+        sampleBarrelModule->setResolutionY();
         
         myTracker_->buildBarrel(nBarrelLayers,
                 barrelRhoIn,
@@ -582,7 +582,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         myTracker_->setPhiSegments(phiSegments);
         
         sampleModule->setResolutionRphi();
-        sampleModule->setResolutionZ();
+        sampleModule->setResolutionY();
         
         if (rhoIn!=0) {
             myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
@@ -829,7 +829,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     aspectRatio = bmsize.second / bmsize.first; // height / width
     BarrelModule* sampleBarrelModule = new BarrelModule(waferDiameter, aspectRatio);
     sampleBarrelModule->setResolutionRphi();
-    sampleBarrelModule->setResolutionZ();
+    sampleBarrelModule->setResolutionY();
     myTracker_->buildBarrel(nLayers, rIn, rOut, nModules, sampleBarrelModule, myName, Layer::NoSection, true, 0.0);
     delete sampleBarrelModule;
     
@@ -838,7 +838,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         aspectRatio = emsize.second / emsize.first; // height / width
         EndcapModule* sampleEndcapModule = new EndcapModule(waferDiameter, aspectRatio);
         sampleEndcapModule->setResolutionRphi();
-        sampleEndcapModule->setResolutionZ();
+        sampleEndcapModule->setResolutionY();
         myTracker_->buildEndcaps(nDisks, myTracker_->getMaxBarrelZ(+1) + barrelToEndcap,
                 maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, Layer::NoSection);
         delete sampleEndcapModule;
@@ -895,7 +895,7 @@ bool configParser::parsePixelType(istream& inStream) {
     double dsDistance = 0.0;
     double dsRotation = 0.0;
     double resolutionRphi = -1.0;
-    double resolutionZ = -1.0;
+    double resolutionY = -1.0;
     
     // Tracker should be already there
     if (!myTracker_) {
@@ -920,8 +920,8 @@ bool configParser::parsePixelType(istream& inStream) {
                 dsRotation = atof(parameterValue.c_str());
             } else if (parameterName == "resolutionRphi") {
                 resolutionRphi = atof(parameterValue.c_str());
-            } else if (parameterName == "resolutionZ") {
-                resolutionZ = atof(parameterValue.c_str());
+            } else if (parameterName == "resolutionY") {
+                resolutionY = atof(parameterValue.c_str());
             } else {
                 cerr << "ERROR: Unknown parameter in PixelType block: " << parameterName << ". Ignoring it." << endl;
             }
@@ -941,7 +941,7 @@ bool configParser::parsePixelType(istream& inStream) {
             (*miter)->setStereoDistance(dsDistance);
             (*miter)->setStereoRotation(dsRotation);
             (*miter)->setResolutionRphi(resolutionRphi);
-            (*miter)->setResolutionZ(resolutionZ);
+            (*miter)->setResolutionY(resolutionY);
         }
     }
     
@@ -957,7 +957,7 @@ bool configParser::parsePixelType(istream& inStream) {
             (*miter)->setStereoDistance(dsDistance);
             (*miter)->setStereoRotation(dsRotation);
             (*miter)->setResolutionRphi(resolutionRphi);
-            (*miter)->setResolutionZ(resolutionZ);
+            (*miter)->setResolutionY(resolutionY);
         }
     }
     

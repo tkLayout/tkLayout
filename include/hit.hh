@@ -95,12 +95,18 @@ protected:
   // Track resolution as a function of momentum
   map<momentum, TMatrixTSym<double> > correlations_;
   map<momentum, TMatrixT<double> > covariances_;
+  map<momentum, TMatrixTSym<double> > correlationsRZ_;
+  map<momentum, TMatrixT<double> > covariancesRZ_;
   map<momentum, double> deltarho_;
   map<momentum, double>::iterator deltarhoIt_;
   map<momentum, double> deltaphi_;
   map<momentum, double> deltad_;
+  map<momentum, double> deltaCtgTheta_;
+  map<momentum, double> deltaZ0_;
+  void computeCorrelationMatrixRZ(const vector<double>& momenta);
+  void computeCovarianceMatrixRZ();
   void computeCorrelationMatrix(const vector<double>& momenta);
-  void computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations);
+  void computeCovarianceMatrix();
 public:
   Track();
   Track(const Track& t);
@@ -114,6 +120,8 @@ public:
   map<momentum, double>& getDeltaRho() { return deltarho_; };
   map<momentum, double>& getDeltaPhi() { return deltaphi_; };
   map<momentum, double>& getDeltaD() { return deltad_; };
+  map<momentum, double>& getDeltaCtgTheta() { return deltaCtgTheta_; };
+  map<momentum, double>& getDeltaZ0() { return deltaZ0_; };
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);

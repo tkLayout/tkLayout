@@ -97,6 +97,8 @@ namespace insur {
         std::map<double, TGraph>& getRhoProfiles(bool ideal=false) { if (ideal) return rhoprofilesIdeal; else return rhoprofiles; }
         std::map<double, TGraph>& getPhiProfiles(bool ideal=false) { if (ideal) return phiprofilesIdeal; else return phiprofiles; }
         std::map<double, TGraph>& getDProfiles(bool ideal=false) { if (ideal) return dprofilesIdeal; else return dprofiles; }
+        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal=false) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
+        std::map<double, TGraph>& getZ0Profiles(bool ideal=false) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb,
                                                                   std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
@@ -155,8 +157,8 @@ namespace insur {
 	TH1D hitDistribution;
         std::vector<Track> tv;
         std::vector<Track> tvIdeal;
-        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles;
-        std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal;
+        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles;
+        std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
@@ -174,7 +176,9 @@ namespace insur {
 			       std::vector<Track>& trackVector,
 			       std::map<double, TGraph>& thisRhoProfiles,
 			       std::map<double, TGraph>& thisPhiProfiles,
-			       std::map<double, TGraph>& thisDProfiles);
+			       std::map<double, TGraph>& thisDProfiles,
+                               std::map<double, TGraph>& thisCtgThetaProfiles,
+                               std::map<double, TGraph>& thisZ0Profiles);
         void clearMaterialBudgetHistograms();
         void clearGeometryHistograms();
         void clearCells();

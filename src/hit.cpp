@@ -5,6 +5,7 @@
 
 #include "hit.hh"
 #include "module.hh"
+#include <global_constants.h>
 #include <vector>
 #include <algorithm>
 
@@ -12,6 +13,7 @@ using namespace ROOT::Math;
 using namespace std;
 
 #undef HIT_DEBUG
+#undef HIT_DEBUG_RZ
 
 /**
  * This is a comparator for two Hit objects.
@@ -135,6 +137,8 @@ Track::Track(const Track& t) {
     deltarho_ = t.deltarho_;
     deltaphi_ = t.deltaphi_;
     deltad_ = t.deltad_;
+    deltaCtgTheta_ = t.deltaCtgTheta_;
+    deltaZ0_ = t.deltaZ0_;
     vector<Hit*>::const_iterator iter, guard = t.hitV_.end();
     for (iter = t.hitV_.begin(); iter != guard; iter++) {
         Hit* h = new Hit(*(*iter));
@@ -214,6 +218,12 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
         std::vector<double> thetasq;
+	// pre-fetch the error on ctg(theta)
+	// will be zero, if not known
+	double deltaCtgT = deltaCtgTheta_[momenta.at(p)];
+
+	// precompute the curvature in mm^-1
+	double rho = 1E-3 * insur::magnetic_field * 0.3 / momenta.at(p);
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().radiation;
 #ifdef HIT_DEBUG
@@ -247,6 +257,23 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 			    std::cerr << "Hit precision: " << prec << std::endl;
 			    std::cerr << "Radius: " << hitV_.at(r)->getRadius() << std::endl;
 #endif
+			    if (hitV_.at(r)->getOrientation()==Hit::Vertical) {
+			      // I have to introduce an additional error in the position
+			      // to account for the uncertainty on r
+
+			      // The component due to ctgTheta is
+			      double deltar_ctg = hitV_.at(c)->getRadius() * tan(theta_) * deltaCtgT;
+			      // The intrinsic r measurement resolution is
+			      double deltar_y =  hitV_.at(c)->getHitModule()->getResolutionY();
+			      double deltar_sq = (deltar_ctg * deltar_ctg 
+						  + deltar_y * deltar_y);
+			      // This is equivalent to a (squared) rPhi error of
+			      double delta_rPhi_sq = pow(rho * hitV_.at(c)->getRadius(),2) * deltar_sq;
+			      
+			      // Which finally composes to the actual r-Phi error as:
+			      prec = sqrt(prec*prec+delta_rPhi_sq);
+			      
+			    }
                             sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
@@ -299,8 +326,8 @@ corr(r, c)=0;
  * Compute the covariance matrices of the track hits from a series of previously calculated correlation matrices.
  * @param A reference to the map of correlation matrices per energy  that serves as the value source for the computation
  */
-void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& correlations) {
-    map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations.end();
+void Track::computeCovarianceMatrix() {
+    map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations_.end();
     covariances_.clear();
 
 #ifdef HIT_DEBUG
@@ -310,7 +337,7 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
 	      << " theta = " << theta_ << std::endl;
 #endif
 
-    for (iter = correlations.begin(); iter != guard; iter++) {
+    for (iter = correlations_.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
         unsigned int nhits = hitV_.size();
         int n = iter->second.GetNrows();
@@ -343,19 +370,224 @@ void Track::computeCovarianceMatrix(const map<double, TMatrixTSym<double> >& cor
 }
 
 /**
+ * Compute the correlation matrices of the track hits for a series of different energies.
+ * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
+ */
+void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
+    // reset map
+    correlationsRZ_.clear();
+    // matrix size
+    int n = hitV_.size();
+    
+#ifdef HIT_DEBUG_RZ
+    std::cerr << std::endl
+	      << std::endl
+	      << "=== Track::computeCorrelationMatrixRZ() == " << std::endl
+	      << " theta = " << theta_ << std::endl;
+#endif
+
+    // Corraction factor for horizontal and vertical surfaces
+    double verticalFactor = 1 / cos(theta_);
+    double horizontalFactor = 1 / sin(theta_);
+    
+    // set up correlation matrix
+    for (unsigned int p = 0; p < momenta.size(); p++) {
+
+#ifdef HIT_DEBUG_RZ
+      std::cerr << " p = " << momenta.at(p) << std::endl;
+#endif
+
+        TMatrixTSym<double> corr(n);
+        // pre-compute the squares of the scattering angles
+        std::vector<double> thetasq;
+        for (int i = 0; i < n - 1; i++) {
+            double th = hitV_.at(i)->getCorrectedMaterial().radiation;
+#ifdef HIT_DEBUG_RZ
+	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
+#endif
+	    if (th>0)
+	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
+	    else
+	      th = 0;
+            thetasq.push_back(th);
+        }
+        // correlations: c is column, r is row
+        for (int c = 0; c < n; c++) {
+            // dummy value for correlations involving inactive surfaces
+            if (hitV_.at(c)->getObjectKind() == Hit::Inactive) {
+                for (int r = 0; r <= c; r++) corr(r, c) = 0.0;
+            }
+            // one of the correlation factors refers to an active surface
+            else {
+                for (int r = 0; r <= c; r++) {
+                    // dummy value for correlation involving an inactive surface
+                    if (hitV_.at(r)->getObjectKind() == Hit::Inactive) corr(r, c) = 0.0;
+                    // correlations between two active surfaces
+                    else {
+                        double sum = 0.0;
+			double myFactor = 1;
+			if (hitV_.at(c)->getOrientation()==Hit::Horizontal) myFactor*=horizontalFactor;
+			if (hitV_.at(r)->getOrientation()==Hit::Horizontal) myFactor*=horizontalFactor;
+			if (hitV_.at(c)->getOrientation()==Hit::Vertical) myFactor*=verticalFactor;
+			if (hitV_.at(r)->getOrientation()==Hit::Vertical) myFactor*=verticalFactor;
+                        for (int i = 0; i < r; i++)
+			  //sum += (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius())
+			  // * thetasq.at(i);
+			  sum += myFactor
+			    * (hitV_.at(c)->getDistance() - hitV_.at(i)->getDistance())
+			    * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance())
+			    * thetasq.at(i);
+                        if (r == c) {
+                            double prec = hitV_.at(r)->getHitModule()->getResolutionY();
+#ifdef HIT_DEBUG_RZ
+			    std::cerr << "Hit precision: " << prec << std::endl;
+			    std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
+#endif
+                            sum = sum + prec * prec;
+                        }
+                        corr(r, c) = sum;
+                        if (r != c) corr(c, r) = sum;
+#undef CORRELATIONS_OFF_DEBUG
+#ifdef CORRELATIONS_OFF_DEBUG
+if (r!=c) {
+corr(c, r)=0;
+corr(r, c)=0;
+}
+#endif
+                    }
+                }
+            }
+        }
+        // remove zero rows and columns
+        int ia = -1;
+        bool look_for_active = false;
+        for (int i = 0; i < n; i++) {
+            if ((hitV_.at(i)->getObjectKind() == Hit::Inactive) && (!look_for_active)) {
+                ia = i;
+                look_for_active = true;
+            }
+            else if ((hitV_.at(i)->getObjectKind() == Hit::Active) && (look_for_active)) {
+                for (int j = 0; j < n; j++) {
+                    corr(ia, j) = corr(i, j);
+                    corr(j, ia) = corr(j, i);
+                }
+                corr(ia, ia) = corr(i, i);
+                ia++;
+            }
+        }
+        // resize matrix if necessary
+        if (ia != -1) corr.ResizeTo(ia, ia);
+
+#ifdef HIT_DEBUG_RZ
+	std::cerr << "Correlation matrix: " << std::endl;
+	corr.Print();
+#endif
+
+        // check if matrix is sane and worth keeping
+        if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
+            pair<double, TMatrixTSym<double> > par(momenta.at(p), corr);
+            correlationsRZ_.insert(par);
+        }
+    }
+}
+
+/**
+ * Compute the covariance matrices of the track hits from a series of previously calculated correlation matrices.
+ * @param A reference to the map of correlation matrices per energy  that serves as the value source for the computation
+ */
+void Track::computeCovarianceMatrixRZ() {
+    map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlationsRZ_.end();
+    covariancesRZ_.clear();
+
+#ifdef HIT_DEBUG_RZ
+    std::cerr << std::endl
+	      << std::endl
+	      << "=== Track::computeCovarianceMatrixRZ() == " << std::endl
+	      << " theta = " << theta_ << std::endl;
+#endif
+
+    for (iter = correlationsRZ_.begin(); iter != guard; iter++) {
+        unsigned int offset = 0;
+        unsigned int nhits = hitV_.size();
+        int n = iter->second.GetNrows();
+        TMatrixT<double> C(correlationsRZ_[iter->first]);
+        TMatrixT<double> diffsT(2, n);
+        TMatrixT<double> diffs(n, 2);
+        TMatrixT<double> cov(2, 2);
+
+        // set up partial derivative matrices diffs and diffsT
+        for (unsigned int i = 0; i < nhits; i++) {
+            if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
+	      if (hitV_.at(i)->getOrientation() == Hit::Horizontal) {
+                diffs(i - offset, 0) = hitV_.at(i)->getRadius();
+                diffs(i - offset, 1) = 1;
+	      } else { // Veritcal
+                diffs(i - offset, 0) = -1* hitV_.at(i)->getRadius() * tan(theta_) * sin(theta_) ;
+                diffs(i - offset, 1) = -1* tan(theta_) ;
+	      }
+            }
+            else offset++;
+        }
+        diffsT.Transpose(diffs);
+#ifdef HIT_DEBUG_RZ
+	diffs.Print();
+	C.Print();
+#endif
+        // compute cov from diffsT, the correlation matrix and diffs
+        cov = diffsT * C.Invert() * diffs;
+#ifdef HIT_DEBUG_RZ
+	cov.Print();
+#endif
+        pair<momentum, TMatrixT<double> > par(iter->first, cov);
+        covariancesRZ_.insert(par);
+    }
+}
+
+/**
  * Calculate the errors of the track curvature radius, the propagation direction at the point of closest approach and the
  * distance of closest approach to the origin, all of them for each momentum of the test particle.
  * @param momentaList A reference of the list of energies that the errors should be calculated for
  */
 void Track::computeErrors(const std::vector<momentum>& momentaList) {
-    // preliminary work
-    computeCorrelationMatrix(momentaList);
-    computeCovarianceMatrix(correlations_);
-    // calculate delta rho, delta phi and delta d maps from covariances_ matrix
-    map<momentum, TMatrixT<double> >::const_iterator iter, guard = covariances_.end();
+    map<momentum, TMatrixT<double> >::const_iterator iter, guard;
     deltarho_.clear();
     deltaphi_.clear();
     deltad_.clear();
+    deltaCtgTheta_.clear();
+    deltaZ0_.clear();
+
+    // Compute the relevant matrices (RZ plane)
+    computeCorrelationMatrixRZ(momentaList);
+    computeCovarianceMatrixRZ();
+    guard = covariancesRZ_.end();
+    for (iter = covariancesRZ_.begin(); iter != guard; iter++) {
+        TMatrixT<double> data(iter->second);
+        pair<momentum, double> err;
+        err.first = iter->first;
+        data = data.Invert();
+#ifdef HIT_DEBUG_RZ
+	std::cerr << "Matrix S" << std::endl;
+	data.Print();
+#endif
+        if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
+        else err.second = -1;
+        deltaCtgTheta_.insert(err);
+#ifdef HIT_DEBUG_RZ
+	std::cerr << err.second << std::endl;
+#endif
+        if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
+        else err.second = -1;
+        deltaZ0_.insert(err);
+#ifdef HIT_DEBUG_RZ
+	std::cerr << err.second << std::endl;
+#endif
+    }
+
+    // rPhi plane
+    computeCorrelationMatrix(momentaList);
+    computeCovarianceMatrix();
+    // calculate delta rho, delta phi and delta d maps from covariances_ matrix
+    guard = covariances_.end();
     for (iter = covariances_.begin(); iter != guard; iter++) {
         TMatrixT<double> data(iter->second);
         pair<momentum, double> err;
@@ -378,7 +610,8 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         else err.second = -1;
         deltad_.insert(err);
     }
-    
+
+
 }
 
 /**

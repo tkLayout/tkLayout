@@ -231,8 +231,8 @@ namespace insur {
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles);
-        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal);
+        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles);
+        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -514,10 +514,12 @@ namespace insur {
      * @param p The list of different momenta that the error profiles are calculated for
      */
   void Analyzer::calculateProfiles(std::vector<double>& p, 
-				   std::vector<Track>& trackVector,
-				   std::map<double, TGraph>& thisRhoProfiles,
-				   std::map<double, TGraph>& thisPhiProfiles,
-				   std::map<double, TGraph>& thisDProfiles) {
+                                  std::vector<Track>& trackVector,
+                                  std::map<double, TGraph>& thisRhoProfiles,
+                                  std::map<double, TGraph>& thisPhiProfiles,
+                                  std::map<double, TGraph>& thisDProfiles,
+                                  std::map<double, TGraph>& thisCtgThetaProfiles,
+                                  std::map<double, TGraph>& thisZ0Profiles) {
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = trackVector.size();
@@ -525,34 +527,60 @@ namespace insur {
         thisRhoProfiles.clear();
         thisPhiProfiles.clear();
         thisDProfiles.clear();
+	thisCtgThetaProfiles.clear();
+	thisZ0Profiles.clear();
         // momentum loop
+        std::ostringstream aName;
         for (iter = p.begin(); iter != guard; iter++) {
             std::pair<double, TGraph> elem;
             TGraph graph;
             elem.first = *iter;
             elem.second = graph;
+	    // Prepare plots: pT
             thisRhoProfiles.insert(elem);
+	    thisRhoProfiles[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+            aName.str(""); aName << "pt_vs_eta" << *iter;
+            thisRhoProfiles[elem.first].SetName(aName.str().c_str());
+	    // Prepare plots: phi
             thisPhiProfiles.insert(elem);
+	    thisPhiProfiles[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+            aName.str(""); aName << "phi_vs_eta" << *iter;
+            thisPhiProfiles[elem.first].SetName(aName.str().c_str());
+	    // Prepare plots: d
             thisDProfiles.insert(elem);
-	    thisRhoProfiles[elem.first].SetTitle("p_T error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
-	    thisPhiProfiles[elem.first].SetTitle("Track angle error;#eta;#sigma (#delta #phi) [rad]");
 	    thisDProfiles[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+            aName.str(""); aName << "d_vs_eta" << *iter;
+            thisDProfiles[elem.first].SetName(aName.str().c_str());
+	    // Prepare plots: ctg(theta)
+	    thisCtgThetaProfiles.insert(elem);
+	    thisCtgThetaProfiles[elem.first].SetTitle("Track polar angle error;eta;#sigma (#delta ctg(#theta))");
+            aName.str(""); aName << "ctgTheta_vs_eta" << *iter;
+            thisCtgThetaProfiles[elem.first].SetName(aName.str().c_str());
+	    // Prepare plots: z0
+	    thisZ0Profiles.insert(elem);
+	    thisZ0Profiles[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+            aName.str(""); aName << "z_vs_eta" << *iter;
+            thisZ0Profiles[elem.first].SetName(aName.str().c_str());
         }
         // track loop
 	std::map<double,int> rhoPointCount;
 	std::map<double,int> phiPointCount;
 	std::map<double,int> dPointCount;
-	double graphValue;
+	std::map<double,int> ctgPointCount;
+	std::map<double,int> z0PointCount;
+        double graphValue;
         for (int i = 0; i < n; i++) {
             std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
             std::map<double, double>& dphi = trackVector.at(i).getDeltaPhi();
             std::map<double, double>& dd = trackVector.at(i).getDeltaD();
+            std::map<double, double>& dctg = trackVector.at(i).getDeltaCtgTheta();
+            std::map<double, double>& dz0 = trackVector.at(i).getDeltaZ0();
             eta = - log(tan(trackVector.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
                 if (thisRhoProfiles.find(miter->first) != thisRhoProfiles.end()) {
-		  R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
+                  R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
 		  if ((miter->second)>0) {
 		    // deltaRho / rho = deltaRho * R
 		    graphValue = (miter->second * R) * 100; // in percent
@@ -562,20 +590,35 @@ namespace insur {
             }
             mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-                if (thisPhiProfiles.find(miter->first) != thisPhiProfiles.end())
-		  if ((miter->second)>0) {
-		    graphValue = miter->second; // radians is ok
-		    thisPhiProfiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
-		  }
+	      if (thisPhiProfiles.find(miter->first) != thisPhiProfiles.end())
+		if ((miter->second)>0) {
+		  graphValue = miter->second; // radians is ok
+		  thisPhiProfiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
+		}
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-              if (thisDProfiles.find(miter->first) != thisDProfiles.end())
+	      if (thisDProfiles.find(miter->first) != thisDProfiles.end())
 		if ((miter->second)>0) {
 		  graphValue =  (miter->second) / 10.; // in cm
 		  thisDProfiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
 		}
             }
+            mguard = dctg.end();
+            for (miter = dctg.begin(); miter != mguard; miter++) {
+	      // Ctg theta (absolute number)
+              if (thisCtgThetaProfiles.find(miter->first) != thisCtgThetaProfiles.end()) {
+		graphValue = miter->second; // An absolute number
+		thisCtgThetaProfiles[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
+	      }
+            }
+            mguard = dz0.end();
+            for (miter = dz0.begin(); miter != mguard; miter++) {
+              if (thisZ0Profiles.find(miter->first) != thisZ0Profiles.end()) {
+		graphValue =  (miter->second) / 10.; // in cm
+		thisZ0Profiles[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
+	      }
+            }	    
         }
     }
     

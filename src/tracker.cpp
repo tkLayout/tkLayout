@@ -2355,7 +2355,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setReadoutType(myReadoutType);
 
 	    aModule->setResolutionRphi();
-	    aModule->setResolutionZ();
+	    aModule->setResolutionY();
 
             // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
             

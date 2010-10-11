@@ -61,7 +61,17 @@ void Module::setDefaultParameters() {
     shape_              = Undefined;
     aspectRatio_        = defaultAspectRatio_;
     resolutionRphi_ = defaultResolutionRphi_;
-    resolutionZ_ = defaultResolutionZ_;
+    resolutionY_ = defaultResolutionY_;
+}
+
+double Module::getResolutionY() {
+ if (resolutionY_!=0) return resolutionY_;
+ double result;
+ // TODO: handle this correctly once and for all!
+ //if (type_=="stereo") result = sqrt(2) * getResolutionRphi() / sin(0.1);
+ if (type_=="stereo") result = getResolutionRphi() / sin(0.1);
+ else result = height_ / (double)(nSegments_) / sqrt(12); 
+ return result;
 }
 
 void Module::print() {

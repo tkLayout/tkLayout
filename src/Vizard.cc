@@ -952,6 +952,7 @@ namespace insur {
         std::map<std::string, double> typeMapMaxOccupancy;
         std::map<std::string, double> typeMapAveOccupancy;
         std::map<std::string, double> typeMapAveRphiResolution;
+        std::map<std::string, double> typeMapAveYResolution;
         std::map<std::string, Module*>::iterator typeMapIt;
         std::map<int, Module*> ringTypeMap;
         std::string aSensorTag;
@@ -1042,6 +1043,7 @@ namespace insur {
                 }
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
 		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
+		typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1096,6 +1098,7 @@ namespace insur {
         std::vector<std::string> areapts;
         std::vector<std::string> occupancies;
 	std::vector<std::string> rphiresolutions;
+	std::vector<std::string> yresolutions;
         std::vector<std::string> pitchpairs;
         std::vector<std::string> striplengths;
         std::vector<std::string> segments;
@@ -1116,6 +1119,7 @@ namespace insur {
         std::ostringstream anArea;
         std::ostringstream anOccupancy;
 	std::ostringstream anRphiResolution;
+	std::ostringstream aYResolution;
         std::ostringstream aPitchPair;
         std::ostringstream aStripLength;
         std::ostringstream aSegment;
@@ -1146,16 +1150,17 @@ namespace insur {
         static const int areaptRow = 4;
         static const int occupancyRow = 5;
 	static const int rphiResolutionRow = 6;
-        static const int pitchpairsRow = 7;
-        static const int striplengthRow = 8;
-        static const int segmentsRow = 9;
-        static const int nstripsRow = 10;
-        static const int numbermodsRow = 11;
-        static const int numbersensRow = 12;
-        static const int channelstripRow = 13;
-        static const int channelptRow = 14;
-        static const int powerRow = 15;
-        static const int costRow = 16;
+	static const int yResolutionRow = 7;
+        static const int pitchpairsRow = 8;
+        static const int striplengthRow = 9;
+        static const int segmentsRow = 10;
+        static const int nstripsRow = 11;
+        static const int numbermodsRow = 12;
+        static const int numbersensRow = 13;
+        static const int channelstripRow = 14;
+        static const int channelptRow = 15;
+        static const int powerRow = 16;
+        static const int costRow = 17;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1163,7 +1168,8 @@ namespace insur {
         moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
-        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um, av)");
+        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um)");
+        moduleTable->setContent(yResolutionRow, 0, "Y resolution (um)");
         moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
         moduleTable->setContent(striplengthRow, 0, "Strip length");
         moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
@@ -1207,6 +1213,9 @@ namespace insur {
 	    // RphiResolution
 	    anRphiResolution.str("");
 	    anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+	    // YResolution
+	    aYResolution.str("");
+	    aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
             // Pitches
 	    aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
@@ -1260,6 +1269,7 @@ namespace insur {
             moduleTable->setContent(typeRow, iType, aType.str());
             moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
             moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
+            moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
             moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
             moduleTable->setContent(striplengthRow, iType, aStripLength.str());
             moduleTable->setContent(segmentsRow, iType, aSegment.str());
@@ -1297,6 +1307,7 @@ namespace insur {
         moduleTable->setContent(areaptRow, iType, anArea.str());
         moduleTable->setContent(occupancyRow, iType, "");
         moduleTable->setContent(rphiResolutionRow, iType, "");
+        moduleTable->setContent(yResolutionRow, iType, "");
         moduleTable->setContent(pitchpairsRow, iType, "");
         moduleTable->setContent(striplengthRow, iType, "");
         moduleTable->setContent(segmentsRow, iType, "");
@@ -1605,9 +1616,13 @@ namespace insur {
             TCanvas momentumCanvas;
             TCanvas distanceCanvas;
             TCanvas angleCanvas;
+            TCanvas ctgThetaCanvas;
+            TCanvas z0Canvas;
             momentumCanvas.SetGrid(1,1);
             distanceCanvas.SetGrid(1,1);
             angleCanvas.SetGrid(1,1);
+	    ctgThetaCanvas.SetGrid(1,1);
+	    z0Canvas.SetGrid(1,1);
             std::string plotOption = "Ap";
             std::map<double, TGraph>::iterator g_iter, g_guard;
             // momentum canvas loop
@@ -1683,13 +1698,55 @@ namespace insur {
                 angleGraph.Draw(plotOption.c_str());
 		plotOption = "p same";
             }
-	    RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
-	    momentumImage.setComment("Momentum resolution vs. eta");
-	    RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
-	    distanceImage.setComment("Distance of closest approach resolution vs. eta");
-	    RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
-	    angleImage.setComment("Angle resolution vs. eta");
-	    }
+            plotOption = "Ap";
+	    myColor=0;
+            // ctgTheta canvas loop
+            g_guard = a.getCtgThetaProfiles(idealMaterial).end();
+            for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+                TGraph& ctgThetaGraph = g_iter->second;
+		ctgThetaGraph.SetMinimum(1E-5);
+		ctgThetaGraph.SetMaximum(0.1);
+                ctgThetaGraph.GetXaxis()->SetLimits(0, 2.4);
+                ctgThetaCanvas.SetLogy();
+		ctgThetaGraph.SetLineColor(momentumColor(myColor));
+		ctgThetaGraph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
+		ctgThetaGraph.SetMarkerStyle(8);
+                ctgThetaCanvas.cd();
+                ctgThetaCanvas.SetFillColor(color_plot_background);
+                ctgThetaGraph.Draw(plotOption.c_str());
+		plotOption = "p same";
+            }
+            plotOption = "Ap";
+	    myColor=0;
+            // z0 canvas loop
+            g_guard = a.getZ0Profiles(idealMaterial).end();
+            for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+                TGraph& z0Graph = g_iter->second;
+		z0Graph.SetMinimum(1E-5);
+		z0Graph.SetMaximum(1);
+                z0Graph.GetXaxis()->SetLimits(0, 2.4);
+                z0Canvas.SetLogy();
+		z0Graph.SetLineColor(momentumColor(myColor));
+		z0Graph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
+		z0Graph.SetMarkerStyle(8);
+                z0Canvas.cd();
+                z0Canvas.SetFillColor(color_plot_background);
+                z0Graph.Draw(plotOption.c_str());
+		plotOption = "p same";
+            }
+            RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
+            momentumImage.setComment("Momentum resolution vs. eta");
+            RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
+            distanceImage.setComment("Distance of closest approach resolution vs. eta");
+            RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
+            angleImage.setComment("Angle resolution vs. eta");
+	    RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
+	    ctgThetaImage.setComment("CtgTheta resolution vs. eta");
+	    RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
+	    z0Image.setComment("z0 resolution vs. eta");
+            }
             return true;
         }
         return false;

@@ -60,7 +60,7 @@ class Module {
   int nFaces_;
   int readoutType_;
   double resolutionRphi_;
-  double resolutionZ_;
+  double resolutionY_;
 
   int inSection_;
 
@@ -90,7 +90,7 @@ class Module {
   static const int     defaultStripAcross_ = 1;
   static const int     defaultFaces_ = 1;
   static const double defaultResolutionRphi_ = 0.0;
-  static const double defaultResolutionZ_ = 0.0;
+  static const double defaultResolutionY_ = 0.0;
   
   std::string id_;   // Ids of the module
   std::string tag_;  // Tags the module
@@ -220,9 +220,9 @@ class Module {
   double getResolutionRphi() { return resolutionRphi_; }; // Todo: rename Rho to RPhi everywhere
 
   // Z resolution 
-  void setResolutionZ(const double& pz) { resolutionZ_ = pz; };
-  void setResolutionZ() {   resolutionZ_ = height_ / (double)(nSegments_) / sqrt(12); };
-  virtual double getResolutionZ() { return resolutionZ_; }; // This is rho for endcaps modules in reality!
+  void setResolutionY(const double& py) { resolutionY_ = py; };
+  void setResolutionY(){};
+  double getResolutionY();
 
   virtual double getOccupancyPerEvent();
 
