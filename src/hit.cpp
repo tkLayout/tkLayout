@@ -265,10 +265,12 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 			      double deltar_ctg = hitV_.at(c)->getRadius() * tan(theta_) * deltaCtgT;
 			      // The intrinsic r measurement resolution is
 			      double deltar_y =  hitV_.at(c)->getHitModule()->getResolutionY();
-			      double deltar_sq = (deltar_ctg * deltar_ctg 
-						  + deltar_y * deltar_y);
+                              // We must combine this information: we get a bit more precise
+                              double deltar_tot_sq = 1 / (
+							  (1/deltar_ctg/deltar_ctg)
+							  + (1/deltar_y/deltar_y));
 			      // This is equivalent to a (squared) rPhi error of
-			      double delta_rPhi_sq = pow(rho * hitV_.at(c)->getRadius(),2) * deltar_sq;
+			      double delta_rPhi_sq = pow(rho * hitV_.at(c)->getRadius(),2) * deltar_tot_sq;
 			      
 			      // Which finally composes to the actual r-Phi error as:
 			      prec = sqrt(prec*prec+delta_rPhi_sq);
