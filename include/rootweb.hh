@@ -2,13 +2,19 @@
 #define _ROOTWEB_HH_
 
 #define USING_ROOTWEB // TODO: remove this everywhere
-
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <map>
-#include <vector>
-#include <string>
 #include <sstream>
+#include <string>
 #include <TCanvas.h>
+#include <TError.h>
+#include <time.h>
+#include <TView.h>
+#include <vector>
 
 using namespace std;
 
@@ -93,6 +99,7 @@ public:
   void setCanvas(TCanvas* myCanvas);
   void setCanvas(TCanvas& myCanvas);
   void setComment(string newComment);
+  void setName(string newName);
   void setZoomedSize(int witdh, int height);
   void setRelativeHtmlDirectory(string newDirectory); 
   void setTargetDirectory(string newDirectory); 
@@ -111,6 +118,7 @@ private:
   map<RootWImageSize, bool> fileSaved_;
   RootWImageSize lastSize_;
   string comment_;
+  string name_;
   RootWImageSize makeSizeCode(int sw, int sh, int lw, int lh);
   vector<string> fileTypeV_;
 
@@ -119,6 +127,7 @@ private:
   void setDefaultExtensions();
 
   static int imageCounter_;
+  static std::map<std::string, int> imageNameCounter_;
 };
 
 class RootWFile : public RootWItem {

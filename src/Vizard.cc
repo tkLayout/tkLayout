@@ -1745,14 +1745,19 @@ namespace insur {
             }
             RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
             momentumImage.setComment("Momentum resolution vs. eta");
+            momentumImage.setName("ptres");
             RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
             distanceImage.setComment("Distance of closest approach resolution vs. eta");
+            distanceImage.setName("dxyres");
             RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
             angleImage.setComment("Angle resolution vs. eta");
+            angleImage.setName("phires");
 	    RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
 	    ctgThetaImage.setComment("CtgTheta resolution vs. eta");
+            ctgThetaImage.setName("cotThetares");
 	    RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
 	    z0Image.setComment("z0 resolution vs. eta");
+            z0Image.setName("dzres");
             }
             return true;
         }

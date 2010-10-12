@@ -1,15 +1,7 @@
 #include <rootweb.hh>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
-#include <fstream>
-#include <TError.h>
-#include <TView.h>
-#include <time.h>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/exception.hpp>
 
 int RootWImage::imageCounter_ = 0;
+std::map <std::string, int> RootWImage::imageNameCounter_;
 
 //*******************************************//
 // RootWTable                                //
@@ -124,6 +116,7 @@ RootWImage::RootWImage() {
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
   comment_ = "";
+  name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
 }
@@ -136,6 +129,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height) {
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
   comment_ = "";
+  name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
 }
@@ -148,6 +142,7 @@ RootWImage::RootWImage(TCanvas* myCanvas, int witdh, int height, string relative
   setRelativeHtmlDirectory(relativehtmlDirectory);
   targetDirectory_ = "";
   comment_ = "";
+  name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
 }
@@ -160,6 +155,7 @@ RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height) {
   relativeHtmlDirectory_ = "";
   targetDirectory_ = "";
   comment_ = "";
+  name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
 }
@@ -172,6 +168,7 @@ RootWImage::RootWImage(TCanvas& myCanvas, int witdh, int height, string relative
   setRelativeHtmlDirectory(relativehtmlDirectory);
   targetDirectory_ = "";
   comment_ = "";
+  name_ = "img";
   allowedExtensions_ = DEFAULTALLOWEDEXTENSIONS;
   setDefaultExtensions();
 }
@@ -190,11 +187,16 @@ void RootWImage::setComment(string newComment) {
   comment_ = newComment;
 }
 
+void RootWImage::setName(string newName) {
+  name_ = newName;
+}
+
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
   std::ostringstream canvasName("");
-  canvasName << "img" << setfill('0') << setw(3) << imageCounter_;
+  //int myNumber = imageNameCounter_[name_]++; //##########
+  canvasName << "canvas" << setfill('0') << setw(3) << imageCounter_;
   myCanvas_->SetName(canvasName.str().c_str());
   TView* myView = myCanvas->GetView();
   if (myView) {
@@ -242,6 +244,10 @@ RootWImageSize RootWImage::makeSizeCode(int sw, int sh, int lw, int lh) {
 string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   RootWImageSize myImageSize;
   myImageSize = makeSizeCode(smallWidth,smallHeight,zoomedWidth_,zoomedHeight_);
+  std::ostringstream tmpCanvasName("");
+  tmpCanvasName << name_ << setfill('0') << setw(3) << imageNameCounter_[name_]++;
+  string canvasName = tmpCanvasName.str();
+  myCanvas_->SetName(canvasName.c_str());
   if (fileSaved_[myImageSize]) {
     return myText_[myImageSize];
   }
@@ -253,9 +259,9 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
 
   if (!myCanvas_) return "";
 
-  string canvasName = myCanvas_->GetName();
+  //string canvasName = myCanvas_->GetName();
   string smallCanvasFileName = canvasName + "-" + myImageSize + "_small.png";
-  string largeCanvasFileBaseName = canvasName + "-" + myImageSize;
+  string largeCanvasFileBaseName = canvasName;
 
   double wScale = double(smallWidth) / double(zoomedWidth_);
   double hScale = double(smallHeight) / double(zoomedHeight_);
