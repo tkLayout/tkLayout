@@ -7,7 +7,7 @@
 #include <Analyzer.h>
 #include <TProfile.h>
 
-#define MATERIAL_SHADOW
+#undef MATERIAL_SHADOW
 
 namespace insur {
     
