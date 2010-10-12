@@ -57,6 +57,7 @@ void Module::setDefaultParameters() {
     nStripAcross_       = defaultStripAcross_;
     nFaces_             = defaultFaces_;
     readoutType_        = Strip;
+    readoutMode_        = Binary;
     computedBoundaries_ = false;
     shape_              = Undefined;
     aspectRatio_        = defaultAspectRatio_;
@@ -65,13 +66,29 @@ void Module::setDefaultParameters() {
 }
 
 double Module::getResolutionY() {
- if (resolutionY_!=0) return resolutionY_;
+ if (resolutionY_!=defaultResolutionY_) return resolutionY_;
  double result;
  // TODO: handle this correctly once and for all!
  //if (type_=="stereo") result = sqrt(2) * getResolutionRphi() / sin(0.1);
  if (type_=="stereo") result = getResolutionRphi() / sin(0.1);
  else result = height_ / (double)(nSegments_) / sqrt(12); 
  return result;
+}
+
+// TODO: add special case for PT modules
+double BarrelModule::getResolutionRphi() {
+  if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
+  double result = width_ / (double)(nStripAcross_) / sqrt(12);
+  if (readoutMode_==Cluster) result/=1.5;
+  return result;
+}
+
+// TODO: add special case for PT modules
+double EndcapModule::getResolutionRphi() {
+  if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
+  double result = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  
+  if (readoutMode_==Cluster) result/=1.5;
+  return result;
 }
 
 void Module::print() {

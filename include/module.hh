@@ -59,6 +59,7 @@ class Module {
   int nStripAcross_;
   int nFaces_;
   int readoutType_;
+  int readoutMode_;
   double resolutionRphi_;
   double resolutionY_;
 
@@ -204,20 +205,22 @@ class Module {
   int getNSegments()        { return nSegments_ ;};
   int getNFaces()           { return nFaces_ ;};
   int getReadoutType()      { return readoutType_ ;};
+  int getReadoutMode()      { return readoutMode_ ;};
 
   void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
   void setNStripsAcross(const int& newN) { setNStripAcross(newN); }
   void setNSegments(const int& newN) { nSegments_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
   void setNFaces(const int& newN) { nFaces_=newN; };
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
+  void setReadoutMode(const int& newN) { readoutMode_=newN; }; // TODO: check validity
 
   virtual double getLowPitch();
   virtual double getHighPitch();
 
   // R-Phi resolution 
-  void setResolutionRphi(const double& prho) { resolutionRphi_ = prho; };
-  virtual void setResolutionRphi() { std::cerr << "ERROR this should never be called!!!" << std::endl; resolutionRphi_ = 0.0; };
-  double getResolutionRphi() { return resolutionRphi_; }; // Todo: rename Rho to RPhi everywhere
+  void setResolutionRphi(const double& newRes ) { resolutionRphi_ = newRes; };
+  void setResolutionRphi(){};
+  virtual double getResolutionRphi() { std::cerr << "BAD ERROR: this shouldn't happen" << std::endl; return 0; };
 
   // Z resolution 
   void setResolutionY(const double& py) { resolutionY_ = py; };
@@ -234,6 +237,7 @@ class Module {
 	 Barrel, Endcap,     // module subdetector type
 	 Rectangular, Wedge, // sensor shapes
 	 Undefined };
+  enum { Binary, Cluster }; // readout modes
   static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
 };
@@ -259,7 +263,7 @@ class BarrelModule : public Module {
   double getLowPitch();
   double getHighPitch();
 
-  void setResolutionRphi() {  resolutionRphi_ = width_ / (double)(nStripAcross_) / sqrt(12);  };
+  double getResolutionRphi();
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -300,7 +304,7 @@ public:
   double getLowPitch();
   double getHighPitch();
 
-  void setResolutionRphi() {  resolutionRphi_ = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  };
+  double getResolutionRphi();
 
   virtual int getSubdetectorType() { return Endcap; };
 

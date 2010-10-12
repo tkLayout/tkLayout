@@ -138,6 +138,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     int mainIndex, secondaryIndex;
     bool correctlyBroken;
     
+    int readoutMode = Module::Binary;
     int nBarrelLayers = 0;
     double minZ=0;
     double barrelRhoIn = 0;
@@ -173,6 +174,14 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
             correctlyBroken = breakParameterName(parameterNameCopy, mainIndex, secondaryIndex);
             if (parameterName=="nLayers") {
                 nBarrelLayers=atoi(parameterValue.c_str());
+            } else if (parameterName=="readout") { // TODO: move this to the types
+	      if (parameterValue=="cluster") readoutMode=Module::Cluster;
+	      else if (parameterValue=="binary") readoutMode=Module::Binary;
+	      else {
+		cerr << "Error: unknown readout mode: " << parameterValue << endl;
+		cerr << "Allowed values: cluster, binary" << endl;
+		throw parsingException();
+	      }
             } else if (parameterName=="smallDelta") {
                 myTracker_->setSmallDelta(atof(parameterValue.c_str()));
             } else if (parameterName=="bigDelta") {
@@ -344,7 +353,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         myTracker_->setLayerDirectives(layerDirectives);
         myTracker_->setLayerOptions(layerOptions);
         myTracker_->setPhiSegments(phiSegments);
-        
+       
+        sampleBarrelModule->setReadoutMode(readoutMode); 
         sampleBarrelModule->setResolutionRphi();
         sampleBarrelModule->setResolutionY();
         
@@ -380,6 +390,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     int mainIndex, secondaryIndex;
     bool correctlyBroken;
     
+    int readoutMode = Module::Binary;
     int nDisks = 0;       // nDisks (per side)
     double barrelToEndcap = 0;  // gap between barrel and endcap
     double minZ = 0;            // explicit minimum z
@@ -416,8 +427,16 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             parameterNameCopy = parameterName;
             correctlyBroken = breakParameterName(parameterNameCopy, mainIndex, secondaryIndex);
             if (parameterName=="nDisks") {
-                nDisks=atoi(parameterValue.c_str());
-            } else if (parameterName=="smallDelta") {
+	      nDisks=atoi(parameterValue.c_str());
+	    } else if (parameterName=="readout") { // TODO: move this to the types
+	      if (parameterValue=="cluster") readoutMode=Module::Cluster;
+	      else if (parameterValue=="binary") readoutMode=Module::Binary;
+	      else {
+		cerr << "Error: unknown readout mode: " << parameterValue << endl;
+		cerr << "Allowed values: cluster, binary" << endl;
+		throw parsingException();
+	      }
+	    } else if (parameterName=="smallDelta") {
                 myTracker_->setSmallDelta(atof(parameterValue.c_str()));
             } else if (parameterName=="bigDelta") {
                 myTracker_->setBigDelta(atof(parameterValue.c_str()));
@@ -581,6 +600,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         myTracker_->setRingDirectives(ringDirective);
         myTracker_->setPhiSegments(phiSegments);
         
+	sampleModule->setReadoutMode(readoutMode);
         sampleModule->setResolutionRphi();
         sampleModule->setResolutionY();
         
