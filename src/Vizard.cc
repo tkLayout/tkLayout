@@ -1872,7 +1872,7 @@ namespace insur {
 	      myIndex.name=(*plotNameIt);
 	      for (unsigned int i=0; i<momentum.size(); ++i) {
 		baseColumn = nCuts*i+1;
-		myTable->setContent(0, baseColumn, momentum[i]);
+		myTable->setContent(0, baseColumn, momentum[i],0);
 		myIndex.p=momentum[i];
 		myIndex.ideal = false;
 		myGraph = myPlotMap[myIndex];
