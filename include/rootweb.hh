@@ -15,6 +15,8 @@
 #include <time.h>
 #include <TView.h>
 #include <vector>
+#include <TColor.h>
+#include <TROOT.h>
 
 using namespace std;
 
@@ -67,6 +69,7 @@ protected:
 };
 
 typedef std::map<pair<int,int>, string> rootWTableContent;
+typedef std::map<pair<int,int>, int> rootWTableContentColor;
 class RootWTable : public RootWItem {
 public:
   ~RootWTable() {};
@@ -74,6 +77,7 @@ public:
   void setContent(int row, int column, string content);
   void setContent(int row, int column, int number);
   void setContent(int row, int column, double number, int precision);
+  void setColor(int row, int column, int newColor);
   ostream& dump(ostream& output);
   pair<int, int> addContent(string content);
   pair<int, int> addContent(int number);
@@ -82,6 +86,7 @@ public:
   bool isTable() {return true;};
 private:
   rootWTableContent tableContent_;
+  rootWTableContentColor tableContentColor_;
   int serialRow_, serialCol_;
 };
 

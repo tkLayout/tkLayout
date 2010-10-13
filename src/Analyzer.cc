@@ -1435,6 +1435,39 @@ namespace insur {
         savingGeometryV.push_back(bandwidthDistribution);
         savingGeometryV.push_back(bandwidthDistributionSparsified);
     }
+
+
+  std::vector<double> Analyzer::average(TGraph& myGraph, std::vector<double> cuts) {
+    std::vector<double> averages;
+    if (cuts.size()<2) return averages;
+    std::sort(cuts.begin(), cuts.end());
+    int iBorder;
+    int nBoarders=cuts.size();
+    double valuesCount, valuesSum;
+    double vx, vy;
+    for (iBorder=0; iBorder<nBoarders-1; ++iBorder) {
+      // Here we have a cut between
+      // cuts[iBorder] and cuts[iBorder+1]
+
+      //std::cerr << cuts[iBorder] << "< x <= "
+      //<< cuts[iBorder+1] << std::endl;
+
+      // Average on points within the cut
+      valuesSum=0;
+      valuesCount=0;
+      for (int iPoint=0; iPoint<myGraph.GetN(); ++iPoint) {
+	myGraph.GetPoint(iPoint, vx, vy);
+	if ((vx>=cuts[iBorder])
+	    && (vx<cuts[iBorder+1])) {
+	  valuesCount++;
+	  valuesSum+=vy;
+	}
+      }
+      averages.push_back(valuesSum/valuesCount);
+    }
     
+    return averages;
+  }
+  
 }
 

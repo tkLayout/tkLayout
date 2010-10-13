@@ -89,6 +89,25 @@ namespace insur {
     static const int powerPerUnitPrecision = 2;
     static const int costPerUnitPrecision  = 1;
     static const int minimumBiasPrecision = 0;
+
+    class graphIndex {
+    public:
+      graphIndex() {} ;
+      graphIndex(const graphIndex& ref) {
+	ideal = ref.ideal;
+	p = ref.p;
+	name = ref.name;
+      };
+      std::string name;
+      bool ideal;
+      double p;
+      bool operator<( const graphIndex& other ) const { // returns true if this > other
+	if (this->name!=other.name) return ((this->name)>other.name);
+	if ((!(this->ideal))&&(other.ideal)) return false;
+	if ((this->ideal)&&(!other.ideal)) return true;
+	return ((this->p)>other.p);
+      }
+    };
     
     /**
      * @class Vizard
@@ -157,6 +176,11 @@ namespace insur {
 	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
 	bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
         int momentumColor(int iMomentum);
+
+	void fillPlotMap(std::string& plotName, 
+			 std::map<graphIndex, TGraph*>& myPlotMap,
+			 Analyzer *a,
+			 std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool));
     };
 }
 #endif	/* _VIZARD_H */

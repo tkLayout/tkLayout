@@ -24,7 +24,7 @@
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
-#include  <MaterialBudget.h>
+#include <MaterialBudget.h>
 #include <TProfile.h>
 #include <TGraph.h>
 #include "TRandom3.h"
@@ -94,11 +94,11 @@ namespace insur {
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
         std::vector<Track>& getTracks() { return tv; }
-        std::map<double, TGraph>& getRhoProfiles(bool ideal=false) { if (ideal) return rhoprofilesIdeal; else return rhoprofiles; }
-        std::map<double, TGraph>& getPhiProfiles(bool ideal=false) { if (ideal) return phiprofilesIdeal; else return phiprofiles; }
-        std::map<double, TGraph>& getDProfiles(bool ideal=false) { if (ideal) return dprofilesIdeal; else return dprofiles; }
-        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal=false) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
-        std::map<double, TGraph>& getZ0Profiles(bool ideal=false) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
+        std::map<double, TGraph>& getRhoProfiles(bool ideal) { if (ideal) return rhoprofilesIdeal; else return rhoprofiles; }
+        std::map<double, TGraph>& getPhiProfiles(bool ideal) { if (ideal) return phiprofilesIdeal; else return phiprofiles; }
+        std::map<double, TGraph>& getDProfiles(bool ideal) { if (ideal) return dprofilesIdeal; else return dprofiles; }
+        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
+        std::map<double, TGraph>& getZ0Profiles(bool ideal) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb,
                                                                   std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
@@ -119,6 +119,8 @@ namespace insur {
 	TH1D& getBandwidthDistributionSparsified() {return bandwidthDistributionSparsified; } ;
 	int getGeometryTracksUsed() {return geometryTracksUsed; };
 	int getMaterialTracksUsed() {return materialTracksUsed; };
+
+	static std::vector<double> average(TGraph& myGraph, std::vector<double> cuts);
     protected:
         /**
          * @struct Cell

@@ -42,21 +42,35 @@ ostream& RootWTable::dump(ostream& output) {
   }
   //std::cerr << "Size:" << tableContent_.size() << "; Rows: " << minRow << "-" << maxRow <<"; Cols: " << minCol << "-" << maxCol << endl; // debug
   if (firstNotFound) return output;
+  std::string myColorCode;
+  std::string myCellCode;
+  int myColorIndex;
 
   output << "<table>";
   for (int iRow = minRow; iRow<=maxRow; ++iRow) { 
     output << "<tr>";
     for (int iCol = minCol; iCol<=maxCol; ++iCol) {
-      if ((iRow==minRow)&&(iRow==0))
-	output << "<th>" << myTableContent[make_pair(iRow, iCol)]  << "</th>" << " ";
-      else
-	output << "<td>" << myTableContent[make_pair(iRow, iCol)]  << "</td>" << " ";
+      if ((iRow==minRow)&&(iRow==0)) myCellCode = "th";
+      else myCellCode = "td";
+      output << "<" << myCellCode;
+      myColorIndex = tableContentColor_[make_pair(iRow, iCol)];
+      if (myColorIndex!=0) { 
+	myColorCode=gROOT->GetColor(myColorIndex)->AsHexString();        
+	output << " style=\"color:" << myColorCode << ";\" " << std::endl;
+      }
+      output << ">";
+      output << myTableContent[make_pair(iRow, iCol)];
+      output << "</" << myColorCode << ">" << " ";
     }
     output << "</tr>";
   }
   output << "</table>" << endl;
   
   return output;
+}
+
+void RootWTable::setColor(int row, int column, int newColor) {
+  tableContentColor_[make_pair(row, column)] = newColor;
 }
 
 void RootWTable::setContent(int row, int column, string content) {

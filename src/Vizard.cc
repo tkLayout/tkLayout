@@ -657,6 +657,7 @@ namespace insur {
         // Put the total plots to the site
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material in full volume");
+	myImage->setName("matFull");
         myTable = new RootWTable();
         // TODO: put etaMaxAvg correctly in the string :)
         myTable->setContent(1, 1, "Average radiation length in full volume (eta = [0, 2.4])");
@@ -694,6 +695,7 @@ namespace insur {
         // Write global tracking volume plots to web pag
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material in tracking volume");
+	myImage->setName("matTrack");
         myTable = new RootWTable();
         myTable->setContent(1, 1, "Average radiation length in tracking volume (eta = [0, 2.4])");
         myTable->setContent(2, 1, "Average interaction length in tracking volume (eta = [0, 2.4])");
@@ -747,6 +749,7 @@ namespace insur {
         // Write asl category plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Detailed");
+	myImage->setName("matTrackDet");
         myTable = new RootWTable();
         // Average values by active, service and passive
         myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
@@ -798,6 +801,7 @@ namespace insur {
         // Write isoline plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material 2D distributions");
+	myImage->setName("matShadow");
         myContent->addItem(myImage);
 #endif // MATERIAL_SHADOW
 
@@ -811,6 +815,7 @@ namespace insur {
 	mapRad->Draw("COLZ");
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Radiation length material map");
+	myImage->setName("matMapR");
         myContent->addItem(myImage);
 
 	// Interaction length plot
@@ -822,6 +827,7 @@ namespace insur {
 	mapInt->Draw("COLZ");
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Interaction length material map");
+	myImage->setName("matMapI");
         myContent->addItem(myImage);
     }
     
@@ -1599,8 +1605,7 @@ namespace insur {
         
         // Here you should check if the TGraph
         // list is empty => maybe not?
-        if (!(a.getRhoProfiles().empty() && a.getDProfiles().empty() && a.getPhiProfiles().empty()))
-        {
+        if (!(a.getRhoProfiles(false).empty() && a.getDProfiles(false).empty() && a.getPhiProfiles(false).empty())) {
             // Create a page for the errors
             RootWPage& myPage = site.addPage("Resolution");
             myPage.setAddress("errors.html");
@@ -1608,7 +1613,7 @@ namespace insur {
             // Create the contents
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
             RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
-          
+	    
             for (int scenario=0; scenario<2; ++scenario) {
               bool idealMaterial;
               RootWContent* myContent;
@@ -1619,25 +1624,25 @@ namespace insur {
                 idealMaterial=true;
                 myContent = &idealResolutionContent;
               }
- 
-            TCanvas momentumCanvas;
-            TCanvas distanceCanvas;
-            TCanvas angleCanvas;
-            TCanvas ctgThetaCanvas;
-            TCanvas z0Canvas;
-            momentumCanvas.SetGrid(1,1);
-            distanceCanvas.SetGrid(1,1);
-            angleCanvas.SetGrid(1,1);
-	    ctgThetaCanvas.SetGrid(1,1);
-	    z0Canvas.SetGrid(1,1);
-            std::string plotOption = "Ap";
-            std::map<double, TGraph>::iterator g_iter, g_guard;
-            // momentum canvas loop
-	    int myColor=0;
-            g_guard = a.getRhoProfiles(idealMaterial).end();
-            gStyle->SetGridStyle(style_grid);
-            gStyle->SetGridColor(color_hard_grid);
-            for (g_iter = a.getRhoProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      
+	      TCanvas momentumCanvas;
+	      TCanvas distanceCanvas;
+	      TCanvas angleCanvas;
+	      TCanvas ctgThetaCanvas;
+	      TCanvas z0Canvas;
+	      momentumCanvas.SetGrid(1,1);
+	      distanceCanvas.SetGrid(1,1);
+	      angleCanvas.SetGrid(1,1);
+	      ctgThetaCanvas.SetGrid(1,1);
+	      z0Canvas.SetGrid(1,1);
+	      std::string plotOption = "Ap";
+	      std::map<double, TGraph>::iterator g_iter, g_guard;
+	      // momentum canvas loop
+	      int myColor=0;
+	      g_guard = a.getRhoProfiles(idealMaterial).end();
+	      gStyle->SetGridStyle(style_grid);
+	      gStyle->SetGridColor(color_hard_grid);
+	      for (g_iter = a.getRhoProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
 		if (idealMaterial) {
 		  momentumGraph.SetMinimum(1E-5*100);
@@ -1656,12 +1661,12 @@ namespace insur {
                 momentumCanvas.SetFillColor(color_plot_background);
                 momentumGraph.Draw(plotOption.c_str());
 		plotOption = "p same";
-            }
-            plotOption = "Ap";
-	    myColor=0;
-            // distance canvas loop
-            g_guard = a.getDProfiles(idealMaterial).end();
-            for (g_iter = a.getDProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      }
+	      plotOption = "Ap";
+	      myColor=0;
+	      // distance canvas loop
+	      g_guard = a.getDProfiles(idealMaterial).end();
+	      for (g_iter = a.getDProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
 		if (idealMaterial) {
 		  distanceGraph.SetMinimum(4*1e-4);
@@ -1680,12 +1685,12 @@ namespace insur {
                 distanceCanvas.SetFillColor(color_plot_background);
                 distanceGraph.Draw(plotOption.c_str());
 		plotOption = "p same";
-            }
-            plotOption = "Ap";
-	    myColor=0;
-            // angle canvas loop
-            g_guard = a.getPhiProfiles(idealMaterial).end();
-            for (g_iter = a.getPhiProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      }
+	      plotOption = "Ap";
+	      myColor=0;
+	      // angle canvas loop
+	      g_guard = a.getPhiProfiles(idealMaterial).end();
+	      for (g_iter = a.getPhiProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
 		if (idealMaterial) {
 		  angleGraph.SetMinimum(1E-5);
@@ -1704,12 +1709,12 @@ namespace insur {
                 angleCanvas.SetFillColor(color_plot_background);
                 angleGraph.Draw(plotOption.c_str());
 		plotOption = "p same";
-            }
-            plotOption = "Ap";
-	    myColor=0;
-            // ctgTheta canvas loop
-            g_guard = a.getCtgThetaProfiles(idealMaterial).end();
-            for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      }
+	      plotOption = "Ap";
+	      myColor=0;
+	      // ctgTheta canvas loop
+	      g_guard = a.getCtgThetaProfiles(idealMaterial).end();
+	      for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
 		ctgThetaGraph.SetMinimum(1E-5);
 		ctgThetaGraph.SetMaximum(0.1);
@@ -1723,12 +1728,12 @@ namespace insur {
                 ctgThetaCanvas.SetFillColor(color_plot_background);
                 ctgThetaGraph.Draw(plotOption.c_str());
 		plotOption = "p same";
-            }
-            plotOption = "Ap";
-	    myColor=0;
-            // z0 canvas loop
-            g_guard = a.getZ0Profiles(idealMaterial).end();
-            for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      }
+	      plotOption = "Ap";
+	      myColor=0;
+	      // z0 canvas loop
+	      g_guard = a.getZ0Profiles(idealMaterial).end();
+	      for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
 		z0Graph.SetMinimum(1E-5);
 		z0Graph.SetMaximum(1);
@@ -1742,27 +1747,199 @@ namespace insur {
                 z0Canvas.SetFillColor(color_plot_background);
                 z0Graph.Draw(plotOption.c_str());
 		plotOption = "p same";
+	      }
+	      RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
+	      momentumImage.setComment("Momentum resolution vs. eta");
+	      momentumImage.setName("ptres");
+	      RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
+	      distanceImage.setComment("Distance of closest approach resolution vs. eta");
+	      distanceImage.setName("dxyres");
+	      RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
+	      angleImage.setComment("Angle resolution vs. eta");
+	      angleImage.setName("phires");
+	      RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
+	      ctgThetaImage.setComment("CtgTheta resolution vs. eta");
+	      ctgThetaImage.setName("cotThetares");
+	      RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
+	      z0Image.setComment("z0 resolution vs. eta");
+	      z0Image.setName("dzres");
             }
-            RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
-            momentumImage.setComment("Momentum resolution vs. eta");
-            momentumImage.setName("ptres");
-            RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
-            distanceImage.setComment("Distance of closest approach resolution vs. eta");
-            distanceImage.setName("dxyres");
-            RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
-            angleImage.setComment("Angle resolution vs. eta");
-            angleImage.setName("phires");
-	    RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
-	    ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-            ctgThetaImage.setName("cotThetares");
-	    RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
-	    z0Image.setComment("z0 resolution vs. eta");
-            z0Image.setName("dzres");
-            }
+
+	    // Check that the ideal and real have the same pts
+	    // Otherwise the table cannot be prepared
+
+            RootWContent& summaryContent = myPage.addContent("Summary", false);
+	    RootWTable& cutsTable = summaryContent.addTable();
+	    std::vector<std::string> plotNames;
+	    std::map<std::string, RootWTable*> tableMap;
+	    std::map<std::string, RootWTable*>::iterator tableMapIt;
+	    plotNames.push_back("pt");
+	    plotNames.push_back("d");
+	    plotNames.push_back("phi");
+	    plotNames.push_back("ctg(theta)");
+	    plotNames.push_back("z0");
+	    for (std::vector<std::string>::iterator it=plotNames.begin();
+		 it!=plotNames.end(); ++it) {
+	      tableMap[(*it)] = &(summaryContent.addTable());
+	      tableMap[(*it)]->setContent(0,0,(*it));
+	    }
+
+	    // Prepare the cuts for the averages
+	    std::vector<std::string> cutNames;
+	    std::vector<double> cuts;
+	    ostringstream label;
+	    std::string name;	   
+	    RootWTable* myTable;
+
+	    cuts.push_back(0.05);
+	    cuts.push_back(1);
+	    cuts.push_back(1.5);
+	    cuts.push_back(2.4);
+	    cutNames.push_back("C");
+	    cutNames.push_back("I");
+	    cutNames.push_back("F");
+	    unsigned int nCuts = cutNames.size();
+	    
+	    // Table explaining the cuts
+	    cutsTable.setContent(0,0,"Region");
+	    cutsTable.setContent(1,0,"etaMin");
+	    cutsTable.setContent(2,0,"etaMax");
+	    myTable = &cutsTable;
+	    for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
+	      myTable->setContent(0,iBorder+1,cutNames[iBorder]);
+	      label.str(""); label << cuts[iBorder];
+	      myTable->setContent(1,iBorder+1,label.str());
+	      label.str(""); label << cuts[iBorder+1];
+	      myTable->setContent(2,iBorder+1,label.str());
+	    }
+	    
+	    std::map<graphIndex, TGraph*> myPlotMap;
+	    graphIndex myIndex;
+
+	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoProfiles);
+	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDProfiles);
+	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiProfiles);
+	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles);
+	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles);
+
+	    // TODO: remove this useless cycle
+	    /*
+	    for (std::map<graphIndex, TGraph*>::iterator it = myPlotMap.begin();
+		 it!=myPlotMap.end(); ++it) {
+	      myIndex =  (*it).first;
+	      std::cerr << "Check: myIndex.name = " << myIndex.name << std::endl; // debug
+	    }
+	    for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
+		 myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
+	      myIndex =  (*myPlotMapIt).first;
+	      std::cerr << "Check2: myIndex.name = " << myIndex.name << std::endl; // debug
+	      }*/
+
+
+	    // Cycle over the different measurements
+	    for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
+		 plotNameIt!=plotNames.end(); ++plotNameIt) {
+	      
+	      //std::cerr << "tableMap[\""<< *plotNameIt <<"\"] = " << tableMap[*plotNameIt] << std::endl; // debug
+	      myTable = tableMap[*plotNameIt];
+	      if (!myTable) continue;
+
+	      // Count the realistic plots' momenta
+	      std::vector<double> momentum;
+	      std::vector<double>::iterator momentumIt;
+
+	      for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
+		   myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
+		myIndex =  (*myPlotMapIt).first;
+		//std::cerr << "Check3: myIndex.name = " << myIndex.name << std::endl; // debug
+		if (myIndex.name==(*plotNameIt)) {
+		  //std::cerr << "found momentum " << myIndex.p <<std::endl; // debug
+		  momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
+		  if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
+		}
+	      }
+	      
+	      std::sort(momentum.begin(), momentum.end());
+	      //std::cerr << "momentum.size() = " << momentum.size() <<std::endl; // debug
+
+	      // Fill the table with the values
+	      // First the heading of momentum
+	      int baseColumn;
+	      std::vector<double> averagesReal;
+	      std::vector<double> averagesIdeal;
+	      TGraph* myGraph;
+	      int myColor;
+	      myIndex.name=(*plotNameIt);
+	      for (unsigned int i=0; i<momentum.size(); ++i) {
+		baseColumn = nCuts*i+1;
+		myTable->setContent(0, baseColumn, momentum[i]);
+		myIndex.p=momentum[i];
+		myIndex.ideal = false;
+		myGraph = myPlotMap[myIndex];
+		myTable->setContent(2, 0, "Real");
+		myTable->setContent(3, 0, "Ideal");
+		myTable->setContent(4, 0, "Ratio");
+		if (myGraph) {
+		  averagesReal=Analyzer::average(*myGraph, cuts);
+		  myColor = myGraph->GetMarkerColor();
+		  myTable->setColor(0, baseColumn, myColor);
+		}
+		myIndex.ideal = true;
+		myGraph = myPlotMap[myIndex];
+		if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
+		for (unsigned int j=0; j<nCuts; ++j) {
+		  myTable->setContent(1, baseColumn+j, cutNames[j]);
+		  myTable->setColor(1, baseColumn+j, myColor);
+		  if (averagesReal.size() > j) {
+		    myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+		    myTable->setColor(2, baseColumn+j, myColor);
+		  }
+		  if (averagesIdeal.size() > j) {
+		    myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+		    myTable->setColor(3, baseColumn+j, myColor);
+		  }
+		  if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
+		    myTable->setContent(4, baseColumn+j,averagesIdeal[j]/averagesReal[j],1);
+		    myTable->setColor(4, baseColumn+j, myColor);
+		  }
+		}
+	      }
+	    }
             return true;
         }
-        return false;
+	return false;
     }
+
+  // TODO: describe this here, if it ever worked
+  void Vizard::fillPlotMap(std::string& plotName, 
+			   std::map<graphIndex, TGraph*>& myPlotMap,
+			   Analyzer *a,
+			   std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool)) {
+    graphIndex myIndex;
+    double p;
+    TGraph* myGraph;
+    std::vector<std::string> plotNames;
+
+    myIndex.name=plotName;
+    //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
+    for (int i=0; i<2; ++i) {
+      if (i==0) myIndex.ideal=false;
+      else myIndex.ideal=true;
+      std::map<double, TGraph>& ptProfilesIdeal = (a->*retriveFunction)(myIndex.ideal);
+      std::map<double, TGraph>::iterator profilesIterator;
+      for (profilesIterator=ptProfilesIdeal.begin();
+	   profilesIterator!=ptProfilesIdeal.end();
+	   ++profilesIterator) {
+	myGraph = &(*profilesIterator).second;
+	p = (*profilesIterator).first;
+	myIndex.p = p;
+	myPlotMap[myIndex] = myGraph;
+	//std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
+      }
+    }
+    
+  }
+
     
     // public
     // creates a page with all the logs taken from the messagelogger objects
