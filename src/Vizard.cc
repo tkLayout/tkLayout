@@ -1878,7 +1878,7 @@ namespace insur {
 		myGraph = myPlotMap[myIndex];
 		myTable->setContent(2, 0, "Real");
 		myTable->setContent(3, 0, "Ideal");
-		myTable->setContent(4, 0, "Ratio");
+		myTable->setContent(4, 0, "Loss");
 		if (myGraph) {
 		  averagesReal=Analyzer::average(*myGraph, cuts);
 		  myColor = myGraph->GetMarkerColor();
@@ -1899,7 +1899,7 @@ namespace insur {
 		    myTable->setColor(3, baseColumn+j, myColor);
 		  }
 		  if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
-		    myTable->setContent(4, baseColumn+j,averagesIdeal[j]/averagesReal[j],1);
+		    myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
 		    myTable->setColor(4, baseColumn+j, myColor);
 		  }
 		}
