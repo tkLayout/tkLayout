@@ -235,6 +235,7 @@ void Tracker::placeModuleLite(Module* aModule) {
     moduleName = "mod_" + std::string(moduleNumber);
     aModule->setId(moduleName);
     TPolyLine3D* contour = aModule->getContour();
+    contour->SetLineWidth(2);
     contour->Draw();
     
 }
