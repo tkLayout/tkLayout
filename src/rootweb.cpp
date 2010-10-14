@@ -192,7 +192,7 @@ RootWImage::~RootWImage() {
 }
 
 void RootWImage::setDefaultExtensions() {
-   addExtension("C");
+   //addExtension("C");
    addExtension("pdf");
    addExtension("root");
 }
