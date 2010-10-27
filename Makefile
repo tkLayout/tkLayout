@@ -8,7 +8,7 @@ DEFINES+=-DDEBUG_PERFORMANCE
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-BOOSTLIBFLAGS=-lboost_filesystem -lboost_regex
+BOOSTLIBFLAGS=-lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS=-Iinclude/
@@ -25,10 +25,10 @@ COMPILERFLAGS+=-Wall
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tklayout setup
+bin: tklayout setup materialShow
 	@echo "Executable built."
 
-all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest 
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest materialShow
 	@echo "Full build successful."
 
 install:
@@ -202,24 +202,20 @@ $(LIBDIR)/rootweb.o:	src/rootweb.cpp $(INCDIR)/rootweb.hh
 
 # UTILITIES
 setup: $(BINDIR)/setup.bin
-	@echo "Building setup..."
+	@echo "setup built"
 
 $(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
 	$(COMP) $(BOOSTLIBFLAGS) $(LIBDIR)/mainConfigHandler.o setup.cpp -o $(BINDIR)/setup.bin
 
+materialShow: $(BINDIR)/materialShow
+	@echo "materialShow built"
+
+$(BINDIR)/materialShow: materialShow.cpp $(LIBDIR)/mainConfigHandler.o $(INCDIR)/mainConfigHandler.h
+	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) materialShow.cpp $(LIBDIR)/mainConfigHandler.o -o $(BINDIR)/materialShow
+
 #FINAL
-#(obsolete)
-tkLayout: $(BINDIR)/tkLayout
-	@echo "Building tkLayout..."
-
-#(obsolete)
-$(BINDIR)/tkLayout: TrackerGeom2.cpp tkgeometry
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o  $(LIBDIR)/messageLogger.o \
-	$(LIBDIR)/configparser.o TrackerGeom2.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
-	-o $(BINDIR)/tkLayout
-
 tklayout: $(BINDIR)/tklayout
-	@echo "Building tklayout..."
+	@echo "tklayout built"
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
 	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
@@ -284,10 +280,10 @@ cleanrootweb:
 	@rm -f $(LIBDIR)/rootweb.o 
 
 
-cleantkmaine:
+cleantkmain:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 
-clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmaine 
+clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain 
 
 doc: doxydoc
 

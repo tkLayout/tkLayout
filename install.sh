@@ -2,6 +2,7 @@
 
 myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
+TKG_MATSHOW=$myDir/bin/materialShow
 TKG_SETUP_BIN=$myDir/bin/setup.bin
 
 if [ ! -f $TKG_MAIN ] ; then
@@ -55,7 +56,9 @@ if $TKG_SETUP_BIN ; then
     cp -f $TKG_MAIN $TKG_BIN_TARGET \
 	&& echo Main program installed/updated \
 	|| echo Failed copying the style directory $TKG_MAIN to $TKG_BIN_TARGET
-
+    cp -f $TKG_MATSHOW $TKG_BIN_TARGET \
+	&& echo Material helper program installed/updated \
+	|| echo Failed copying the style directory $TKG_MATSHOW to $TKG_BIN_TARGET
     if ! $TKG_SETUP_BIN --checkDir ; then
 	echo Problem during installation
 	exit -1
