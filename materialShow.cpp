@@ -19,6 +19,8 @@
 #include <string>
 #include <TLegend.h>
 
+#include <Palette.h>
+
 
 #include <mainConfigHandler.h>
 #include <boost/program_options.hpp>
@@ -140,7 +142,7 @@ int main(int ac, char* av[]) {
     string outputName = "output";
     vector<string> fileV;
     lastPixel = NULL;
-    
+
     // Declare a group of options that will be
     // allowed only on command line
     po::options_description generic("Generic");
@@ -188,16 +190,19 @@ int main(int ac, char* av[]) {
     }
     
     bool usePixel = (vm.count("trackerOnly")==0);
+    int myColor;
 
     // Look into the input-file list
     if (vm.count("input-file")) {
       string dirName;
       prepareCanvas();
+      Palette::prepare(fileV.size());
       for (unsigned int iMat=0 ; iMat<fileV.size(); ++iMat) {
 	dirName = (mainConfiguration.getLayoutDirectory()
 		   + "/" + fileV.at(iMat));
 	cerr << dirName << endl; // debug
-	plotMaterial(dirName, iMat+2, usePixel, fileV.at(iMat));
+	myColor = Palette::color(iMat);
+	plotMaterial(dirName, myColor, usePixel, fileV.at(iMat));
       }
       if (lastPixel) {
 	myLegend->AddEntry(lastPixel, "pixel", "F");

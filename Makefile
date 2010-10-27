@@ -64,11 +64,11 @@ $(LIBDIR)/tracker.o: $(SRCDIR)/tracker.cpp $(INCDIR)/tracker.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tracker.o $(SRCDIR)/tracker.cpp 	
 	@echo "Built target tracker.o"
 
-$(LIBDIR)/mainConfigHandler.o: src/mainConfigHandler.cpp $(INCDIR)/mainConfigHandler.h
-	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o src/mainConfigHandler.cpp
+$(LIBDIR)/mainConfigHandler.o: $(SRCDIR)/mainConfigHandler.cpp $(INCDIR)/mainConfigHandler.h
+	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o $(SRCDIR)/mainConfigHandler.cpp
 
-$(LIBDIR)/messageLogger.o: src/messageLogger.cpp $(INCDIR)/messageLogger.h
-	$(COMP) -c -o $(LIBDIR)/messageLogger.o src/messageLogger.cpp
+$(LIBDIR)/messageLogger.o: $(SRCDIR)/messageLogger.cpp $(INCDIR)/messageLogger.h
+	$(COMP) -c -o $(LIBDIR)/messageLogger.o $(SRCDIR)/messageLogger.cpp
 
 #EXOCOM
 exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
@@ -194,11 +194,14 @@ $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 	@echo "Built target Squid.o"
 
 #ROOT-related stuff
-$(LIBDIR)/rootweb.o:	src/rootweb.cpp $(INCDIR)/rootweb.hh
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootweb.o src/rootweb.cpp
+$(LIBDIR)/rootweb.o: $(SRCDIR)/rootweb.cpp $(INCDIR)/rootweb.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootweb.o $(SRCDIR)/rootweb.cpp
 
-#$(LIBDIR)/rootutils.o: src/rootutils.cpp $(INCDIR)/rootutils.h
-#	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootutils.o src/rootutils.cpp
+$(LIBDIR)/Palette.o: $(SRCDIR)/Palette.cc  $(INCDIR)/Palette.h
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Palette.o $(SRCDIR)/Palette.cc
+
+#$(LIBDIR)/rootutils.o: $(SRCDIR)/rootutils.cpp $(INCDIR)/rootutils.h
+#	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootutils.o $(SRCDIR)/rootutils.cpp
 
 # UTILITIES
 setup: $(BINDIR)/setup.bin
@@ -210,8 +213,12 @@ $(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
 materialShow: $(BINDIR)/materialShow
 	@echo "materialShow built"
 
-$(BINDIR)/materialShow: materialShow.cpp $(LIBDIR)/mainConfigHandler.o $(INCDIR)/mainConfigHandler.h
-	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) materialShow.cpp $(LIBDIR)/mainConfigHandler.o -o $(BINDIR)/materialShow
+$(BINDIR)/materialShow: materialShow.cpp \
+	$(LIBDIR)/mainConfigHandler.o $(INCDIR)/mainConfigHandler.h \
+	$(LIBDIR)/Palette.o $(INCDIR)/Palette.h
+	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) \
+	materialShow.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/Palette.o \
+	-o $(BINDIR)/materialShow
 
 #FINAL
 tklayout: $(BINDIR)/tklayout
@@ -279,11 +286,18 @@ cleannaly:
 cleanrootweb:
 	@rm -f $(LIBDIR)/rootweb.o 
 
+cleanpalette:
+	@rm -f $(LIBDIR)/Palette.o
+
+cleanmaterialshow:
+	@rm -f $(BINDIR)/materialShow
 
 cleantkmain:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 
-clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain 
+clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
+	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
+	cleanpalette cleanmaterialshow
 
 doc: doxydoc
 
