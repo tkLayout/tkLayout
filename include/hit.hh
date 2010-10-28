@@ -74,6 +74,7 @@ public:
   Material getCorrectedMaterial();
   void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
+  void setPixel(bool isPixel) { isPixel_ = isPixel;}
 };
 
 /**
@@ -127,5 +128,8 @@ public:
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
   void removeMaterial();
+  int nActiveHits(bool usePixels  = false );
+  std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
+  double hadronActiveHitsProbability(int nHits, bool usePixels = false);
 };
 #endif

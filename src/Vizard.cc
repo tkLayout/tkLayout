@@ -829,6 +829,69 @@ namespace insur {
         myImage->setComment("Interaction length material map");
 	myImage->setName("matMapI");
         myContent->addItem(myImage);
+
+        // Nuclear interactions
+        myContent = new RootWContent("Nuclear interactions", true);
+        myPage->addContent(myContent);
+	
+	// Number of hits
+	myCanvas = new TCanvas("hadronsHitsNumber");
+	myCanvas->SetFillColor(color_plot_background);
+	myCanvas->cd();
+	TGraph* hadronTotalHitsProfile = new TGraph(a.getHadronTotalHitsProfile());
+	TGraph* hadronAverageHitsProfile = new TGraph(a.getHadronAverageHitsProfile());
+	hadronTotalHitsProfile->SetMarkerStyle(8);
+	hadronTotalHitsProfile->SetMarkerColor(kBlack);
+	hadronTotalHitsProfile->SetMinimum(0);
+	hadronTotalHitsProfile->Draw("alp");
+	hadronAverageHitsProfile->SetMarkerStyle(8);
+	hadronAverageHitsProfile->SetMarkerColor(kRed);
+	hadronAverageHitsProfile->Draw("same lp");
+	myImage = new RootWImage(myCanvas, 600, 600);
+        myImage->setComment("Maximum and average number of points (hadrons)");
+	myImage->setName("hadHits");
+        myContent->addItem(myImage);	
+
+	// Number of hits
+	std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
+	std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
+	myCanvas = new TCanvas("hadronsTracksFraction");
+	myCanvas->SetFillColor(color_plot_background);
+	myCanvas->cd();
+	TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
+	Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
+	TH1D* ranger = new TH1D("hadTrackRanger","", 100, 0, 3);
+	ranger->SetMaximum(1.);
+	TAxis* myAxis;
+	myAxis = ranger->GetXaxis();
+	myAxis->SetTitle("#eta");
+	myAxis = ranger->GetYaxis();
+	myAxis->SetTitle("Tracks fraction");
+	ranger->Draw();
+	ostringstream tempSS;
+	for (unsigned int i=0;
+	     i<hadronGoodTracksFraction.size();
+	     ++i) {
+	  TGraph& myGraph = hadronGoodTracksFraction.at(i);
+	  closeGraph(myGraph);
+	  myGraph.SetFillColor(Palette::color(i));
+	  myGraph.Draw("same F");
+	  tempSS.str("");
+	  if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
+	    if (hadronNeededHitsFraction.at(i)==Analyzer::OneHitRequired)
+	      tempSS << "1 hit required";
+	    else
+	      tempSS << int(hadronNeededHitsFraction.at(i)*100)
+		     << "% hits required";
+	    myLegend->AddEntry(&myGraph, tempSS.str().c_str(), "F");
+	  }
+	}
+	ranger->Draw("sameaxis");
+	myLegend->Draw();
+	myImage = new RootWImage(myCanvas, 600, 600);
+        myImage->setComment("Fraction of tracks with a given fraction of good hits (hadrons)");
+	myImage->setName("hadTracks");
+        myContent->addItem(myImage);
     }
     
 #endif
@@ -2389,14 +2452,33 @@ namespace insur {
         
         //return summaryCanvas;
   }    
+  
+  /*
+   * Returns always the same color for a given momentum index
+   * @param iMomentum index of the momentum
+   * @return the color index in ROOT
+   */
+  int Vizard::momentumColor(int iMomentum) {
+    if (iMomentum==0) return kBlack;
+    if (iMomentum==1) return kBlue;
+    if (iMomentum==2) return kRed;   
+    if (iMomentum==3) return kGreen;   
+    return iMomentum+1;
+  }
+  
+  /*
+   * Modifies a TGraph, so that it looks like a
+   * histogram (can be filled)
+   * @param myGraph a reference to the TGraph to be modified
+   */  
+  void Vizard::closeGraph(TGraph& myGraph) {
+    double x, y, x0, y0;
+    myGraph.GetPoint(myGraph.GetN()-1, x, y);
+    myGraph.GetPoint(0, x0, y0);
+    myGraph.SetPoint(myGraph.GetN(), x,0);
+    myGraph.SetPoint(myGraph.GetN(), x0,0);
+  }
 
- int Vizard::momentumColor(int iMomentum) {
-   if (iMomentum==0) return kBlack;
-   if (iMomentum==1) return kBlue;
-   if (iMomentum==2) return kRed;   
-   if (iMomentum==3) return kGreen;   
-   return iMomentum+1;
- }
 
 }
 

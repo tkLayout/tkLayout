@@ -147,6 +147,107 @@ Track::Track(const Track& t) {
 }
 
 /**
+ * Gives the number of active hits
+ * @param usePixels take into account also pixel hits
+ * @return how many active hits there are in a track
+ */
+int Track::nActiveHits(bool usePixels /* = false */ ) {
+  std::vector<Hit*>::iterator hitIt;
+  Hit* myHit;
+  int result=0;
+  for (hitIt=hitV_.begin();
+       hitIt!=hitV_.end();
+       ++hitIt) {
+    myHit=(*hitIt);
+    if (myHit) {
+      if ( (usePixels) || (!myHit->isPixel()) ) {
+	if (myHit->getObjectKind()==Hit::Active)
+	  result++;
+      }
+    }
+  }
+  return result;
+}
+
+
+/**
+ * Gives the probabilty of having "clean" hits
+ * for nuclear-interacting particles
+ * @param usePixels take into account also pixel hits
+ * @return a vector with the probabilities of hits
+ */
+std::vector<double> Track::hadronActiveHitsProbability(bool usePixels /*= false */) {
+  std::vector<Hit*>::iterator hitIt;
+  std::vector<double> result;
+  double probability=1;
+  Hit* myHit;
+  Material myMaterial;
+  sort();
+  // int debugCount = 0; // debug
+  for (hitIt=hitV_.begin();
+       hitIt!=hitV_.end();
+       ++hitIt) {
+    myHit=(*hitIt);
+    if (myHit) {
+      if ( (usePixels) || (!myHit->isPixel()) ) {
+	if (myHit->getObjectKind()==Hit::Active) {
+	  result.push_back(probability);
+	}
+      }
+      // DEBUG:
+      // std::cerr << "Hit " << debugCount++ 
+      // << ((myHit->getObjectKind()==Hit::Active) ? "Active" : "Inactive")
+      // << " probability = " << probability << endl;
+
+      // Decrease the probability that the
+      // next hit is a clean one
+      myMaterial = myHit->getCorrectedMaterial();
+      probability /= exp(myMaterial.interaction);
+    }
+  }
+  return result;
+}
+
+/**
+ * Gives the probability of having a given number of "clean" hits
+ * for nuclear-interacting particles
+ * @param nHits the required number of clean hits
+ * @param usePixels take into account also pixel hits
+ * @return a vector with the probabilities of hits
+ */
+double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false */ ) {
+  std::vector<Hit*>::iterator hitIt;
+  double probability=1;
+  Hit* myHit;
+  Material myMaterial;
+  int goodHits=0;
+  sort();
+  for (hitIt=hitV_.begin();
+       hitIt!=hitV_.end();
+       ++hitIt) {
+    myHit=(*hitIt);
+    if (myHit) {
+      if ( (usePixels) || (!myHit->isPixel()) ) {
+	if (myHit->getObjectKind()==Hit::Active)
+	  goodHits++;
+      }
+      // If I reached the requested number of hits
+      if (goodHits==nHits) 
+	return probability;
+      // Decrease the probability that the
+      // next hit is a clean one
+      myMaterial = myHit->getCorrectedMaterial();
+      probability /= exp(myMaterial.interaction);
+    }
+  }
+  // If I did not reach the requested number of active hits
+  // The probability is zero
+  return 0;
+}
+
+
+
+/**
  * Modifies the hits to remove the material
  */
 void Track::removeMaterial() {

@@ -196,7 +196,8 @@ int main(int ac, char* av[]) {
     if (vm.count("input-file")) {
       string dirName;
       prepareCanvas();
-      Palette::prepare(fileV.size());
+      Palette::skipColors(100);
+      Palette::prepare(fileV.size(),210,0.75,0.8);
       for (unsigned int iMat=0 ; iMat<fileV.size(); ++iMat) {
 	dirName = (mainConfiguration.getLayoutDirectory()
 		   + "/" + fileV.at(iMat));
@@ -207,6 +208,7 @@ int main(int ac, char* av[]) {
       if (lastPixel) {
 	myLegend->AddEntry(lastPixel, "pixel", "F");
       }
+      //Palette::prepare(10, 210, 0.9, 0.4);
       printCanvas(outputName);
     } else {
       cout << "Error: at least a layout name should be given" << endl << endl;

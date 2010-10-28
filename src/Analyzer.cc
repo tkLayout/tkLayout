@@ -6,10 +6,16 @@
 #include <TH2D.h>
 #include <Analyzer.h>
 #include <TProfile.h>
+#include <TLegend.h>
 
 #undef MATERIAL_SHADOW
 
 namespace insur {
+
+  const double Analyzer::ZeroHitsRequired = 0;
+  const double Analyzer::OneHitRequired = 0.0001;
+
+
     
     // public
     /**
@@ -49,7 +55,7 @@ namespace insur {
         geometryTracksUsed = 0;
         materialTracksUsed = 0;
     }
-    
+  
     /**
      * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
      * and interaction lengths for each volume category to subfunctions, and sorts those results into the
@@ -194,15 +200,73 @@ namespace insur {
  	    hit->setCorrectedMaterial(beamPipeMat);
  	    track.addHit(hit);
             if (!track.noHits()) {
-                track.sort();
-                track.computeErrors(momenta);
-                tv.push_back(track);
-		Track trackIdeal = track;
-		trackIdeal.removeMaterial();
-		trackIdeal.computeErrors(momenta);
-		tvIdeal.push_back(trackIdeal);
+	      track.sort();
+	      track.computeErrors(momenta);
+	      tv.push_back(track);
+	      Track trackIdeal = track;
+	      trackIdeal.removeMaterial();
+	      trackIdeal.computeErrors(momenta);
+	      tvIdeal.push_back(trackIdeal);
+
+	      // @@ Hadrons
+	      int nActive = track.nActiveHits();
+	      if (nActive>0) {
+		hadronTotalHitsProfile.SetPoint(hadronTotalHitsProfile.GetN(),
+						eta,
+						nActive);
+		double probability;
+		std::vector<double> probabilities = track.hadronActiveHitsProbability();
+		
+		double averageHits=0;
+		//double averageSquaredHits=0;
+		double exactProb=0;
+		double moreThanProb = 0;
+		for (int i=probabilities.size()-1;
+		     i>=0;
+		     --i) {
+		  //if (nActive==10) { // debug
+		  //  std::cerr << "probabilities.at(" 
+		  //  << i << ")=" << probabilities.at(i)
+		  //  << endl;
+		  //}
+		  exactProb=probabilities.at(i)-moreThanProb;
+		  averageHits+=(i+1)*exactProb;
+		  //averageSquaredHits+=((i+1)*(i+1))*exactProb;
+		  moreThanProb+=exactProb;
+		}
+		hadronAverageHitsProfile.SetPoint(hadronAverageHitsProfile.GetN(),
+						  eta,
+						  averageHits);
+		//hadronAverageHitsProfile.SetPointError(hadronAverageHitsProfile.GetN()-1,
+		//					     0,
+		//					     sqrt( averageSquaredHits - averageHits*averageHits) );
+		
+		unsigned int requiredHits;
+		for (unsigned int i = 0;
+		     i<hadronNeededHitsFraction.size();
+		     ++i) {
+		  requiredHits = ceil(double(nActive) * hadronNeededHitsFraction.at(i));
+		  if (requiredHits==0)
+		    probability=1;
+		  else if (requiredHits>probabilities.size())
+		    probability = 0;
+		  else
+		    probability = probabilities.at(requiredHits-1);
+		  //if (probabilities.size()==10) { // debug
+		  //  std::cerr << "required " << requiredHits
+		  //		      << " out of " << probabilities.size()
+		  //		      << " == " << nActive
+		  //		      << endl;
+		  // std::cerr << "      PROBABILITY = " << probability << endl << endl;
+		  //}
+		  hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(),
+							  eta,
+							  probability);
+		}
+	      }
             }
         }
+
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -334,6 +398,7 @@ namespace insur {
                         //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
                         //hit->setObjectKind(Hit::Active); // should not be necessary
                         hit->setCorrectedMaterial(tmp);
+			hit->setPixel(isPixel);
                         t.addHit(hit);
                     }
                 }
@@ -500,6 +565,7 @@ namespace insur {
                     else hit->setOrientation(Hit::Horizontal);
                     hit->setObjectKind(Hit::Inactive);
                     hit->setCorrectedMaterial(corr);
+		    hit->setPixel(isPixel);
                     t.addHit(hit);
                 }
             }
@@ -718,6 +784,41 @@ namespace insur {
 	mapInteractionCalib.Reset();
 	mapInteractionCalib.SetName("mapInteractionCalib");
 	mapInteractionCalib.SetTitle("Interaction length map;z [mm];r [mm]");
+
+	// Nuclear interactions
+	while (hadronTotalHitsProfile.GetN()) hadronTotalHitsProfile.RemovePoint(0);
+	hadronTotalHitsProfile.SetName("hadronTotalHitsProfile");
+	while (hadronAverageHitsProfile.GetN()) hadronAverageHitsProfile.RemovePoint(0);
+	hadronAverageHitsProfile.SetName("hadronAverageHitsProfile");
+
+	// Clear the list of requested good hadron hits
+	hadronNeededHitsFraction.clear();
+	hadronGoodTracksFraction.clear();
+
+	hadronNeededHitsFraction.push_back(ZeroHitsRequired);
+	hadronNeededHitsFraction.push_back(OneHitRequired);
+	//hadronNeededHitsFraction.push_back(.33);
+	hadronNeededHitsFraction.push_back(.66);
+	hadronNeededHitsFraction.push_back(1);
+
+	std::sort(hadronNeededHitsFraction.begin(),
+		  hadronNeededHitsFraction.end());
+
+	// Prepare the plots for the track survival fraction
+	ostringstream tempSS;
+	string tempString;
+	TGraph* myGraph;
+	for (unsigned int i=0;
+	     i<hadronNeededHitsFraction.size();
+	     ++i) {
+	  tempSS.str("");
+	  tempSS << "hadronGoodTracksFraction_at"
+		     << hadronNeededHitsFraction.at(i);
+	  tempString = tempSS.str();
+	  myGraph = new TGraph();
+	  myGraph->SetName(tempString.c_str());
+	  hadronGoodTracksFraction.push_back(*myGraph);
+	}
     }
     
     /**

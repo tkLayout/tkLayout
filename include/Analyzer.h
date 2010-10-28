@@ -40,7 +40,7 @@ namespace insur {
      */
     bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
     bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
-    
+
     /**
      * @class Analyzer
      * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
@@ -119,8 +119,18 @@ namespace insur {
 	TH1D& getBandwidthDistributionSparsified() {return bandwidthDistributionSparsified; } ;
 	int getGeometryTracksUsed() {return geometryTracksUsed; };
 	int getMaterialTracksUsed() {return materialTracksUsed; };
+	// Hadrons
+	TGraph& getHadronTotalHitsProfile() {return hadronTotalHitsProfile;};
+	TGraph& getHadronAverageHitsProfile() {return hadronAverageHitsProfile;};
+	std::vector<double>& getHadronNeededHitsFraction() {return hadronNeededHitsFraction;};
+	std::vector<TGraph>& getHadronGoodTracksFraction() { return hadronGoodTracksFraction; };
+
 
 	static std::vector<double> average(TGraph& myGraph, std::vector<double> cuts);
+
+	static const double ZeroHitsRequired;
+	static const double OneHitRequired;
+    
     protected:
         /**
          * @struct Cell
@@ -161,6 +171,12 @@ namespace insur {
         std::vector<Track> tvIdeal;
         std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles;
         std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal;
+	
+	// Hadrons
+	TGraph hadronTotalHitsProfile;
+	TGraph hadronAverageHitsProfile;
+	std::vector<double> hadronNeededHitsFraction;
+	std::vector<TGraph> hadronGoodTracksFraction;
 
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;

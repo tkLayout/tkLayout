@@ -3,6 +3,12 @@
 unsigned int Palette::myColorBase=10000;
 unsigned int Palette::myColors=0;
 
+// Skips a number of colors on the palette
+// @param nColors the number of colors to be skipped
+void Palette::skipColors(unsigned int nColors) {
+  myColorBase+=nColors;
+}
+
 // Sets the colors of my palette
 // between myColorBase and myColorBase+nColors
 // @param nColors number of colors to be booked
@@ -27,10 +33,12 @@ void Palette::prepare(unsigned int nColors,
   // nColors different colors
   for (unsigned int iColor=0; iColor<nColors; ++iColor) {
     h = double(iColor)/double(nColors)*360.; 
-    h += phase+210;
+    //h += phase+210;
     h -= int(h/360)*360.;
     TColor::HLStoRGB(h, l, s, r, g, b);
-    new TColor(iColor+myColorBase, r, g, b);
+    TColor* myColor = gROOT->GetColor(iColor+myColorBase);
+    if (myColor) myColor->SetRGB(r, g, b);
+    else new TColor(iColor+myColorBase, r, g, b);
   }
 }
 

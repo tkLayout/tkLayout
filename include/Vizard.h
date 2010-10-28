@@ -38,6 +38,7 @@
 #include <InactiveSurfaces.h>
 #include <rootweb.hh>
 #include <vector>
+#include <Palette.h>
 
 namespace insur {
     /*
@@ -176,6 +177,7 @@ namespace insur {
 	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
 	bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
         int momentumColor(int iMomentum);
+	void closeGraph(TGraph& myGraph);
 
 	void fillPlotMap(std::string& plotName, 
 			 std::map<graphIndex, TGraph*>& myPlotMap,
