@@ -245,7 +245,10 @@ class Module {
   void setContainerName(const std::string& newName) {containerName_ = newName;};
   std::string getContainerName() {return containerName_ ;};
 
-  virtual int getLayer() { return 0; };
+  virtual int getLayer() const { return 0; };
+  virtual int getDisk() const { return 0;};
+
+
 };
 
 
@@ -284,7 +287,7 @@ class BarrelModule : public Module {
 
   std::string getSensorTag();
 
-  int getLayer() {return layer_;};
+  int getLayer() const {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
 
   double getOccupancyPerEvent();
@@ -344,7 +347,7 @@ public:
   double getWidthLo() const { return widthLo_ ; };
   double getWidthHi() const { return widthHi_ ; };
 
-  int getDisk() const {return disk_;};
+  int getDisk() const { return disk_;};
   void setDisk(const int& newDisk) {disk_ = newDisk;};
 
   double getOccupancyPerEvent();

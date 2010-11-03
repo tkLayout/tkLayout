@@ -316,8 +316,8 @@ namespace insur {
    * @param result a map of summary tables to be filled
    */
   void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result ) {
-    map<std::pair<std::string, int>, bool> typeTaken;
-    map<std::pair<std::string, int>, bool> typeWritten;
+    map<std::pair<int, int>, bool> typeTaken;
+    map<std::pair<int, int>, bool> typeWritten;
 
     string tempString;
     ostringstream tempSS;
@@ -349,17 +349,28 @@ namespace insur {
 	myModuleCap = &(*moduleIt);
 	myModule = &(myModuleCap->getModule());
 	if (myModule->getSection()==Layer::YZSection) {
-	  pair<string, int> myIndex = make_pair(myModule->getTag(), myModule->getRing());
+	  pair<int, int> myIndex = make_pair(myModule->getLayer()+myModule->getDisk(), myModule->getRing());
 	  if (!typeTaken[myIndex]) {
 	    typeTaken[myIndex]=true;
 	    tempString = myModule->getContainerName();
 	    if (tempString!="") {
 	      // TODO: put this in a better place
 	      // (and make a better module typing)
+	      tempSS.str("");
 	      if (myModule->getSubdetectorType()==Module::Barrel) {
-		tempSS.str("");
 		tempSS << myModule->getLayer();
 		tempString+=" (L"+tempSS.str()+")";
+	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
+		if (EndcapModule* myEcMod = dynamic_cast<EndcapModule*>(myModule))  {
+		  tempSS << myEcMod->getDisk();
+		  tempString+=" (D"+tempSS.str()+")";
+		} else {
+		  cerr << "ERROR in Analyzer::detailedWeights(): "
+		       << "I found an endcap Module that cannot be cast to an EndcapModule!" << std::endl;		  
+		}
+	      } else {
+		cerr << "ERROR in Analyzer::detailedWeights(): "
+		     << "I found a module which is neither endcap nor barrel!" << std::endl;
 	      }
 	      result[tempString].setCell(0, myModule->getRing(), myModule->getTag());
 	    } else {
@@ -411,17 +422,23 @@ namespace insur {
 	typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
 	if (myModule->getSection()==Layer::YZSection) {
 	  // If we did not write this module type yet
-	  pair<string, int> myIndex = make_pair(myModule->getTag(), myModule->getRing());
+	  pair<int, int> myIndex = make_pair(myModule->getLayer()+myModule->getDisk(), myModule->getRing());
 	  if (!typeWritten[myIndex]) {
 	    typeWritten[myIndex]=true;
 	    tempString = myModule->getContainerName();
 	    if (tempString!="") {
 	      // TODO: put this in a better place
 	      // (and make a better module typing)
+	      tempSS.str("");
 	      if (myModule->getSubdetectorType()==Module::Barrel) {
-		tempSS.str("");
 		tempSS << myModule->getLayer();
 		tempString+=" (L"+tempSS.str()+")";
+	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
+		tempSS << myModule->getDisk();
+		tempString+=" (D"+tempSS.str()+")";
+	      } else {
+		cerr << "ERROR in Analyzer::detailedWeights(): "
+		     << "I found a module which is neither endcap nor barrel!" << std::endl;
 	      }
 	      //	  cout << "Here's a module: id = " << myModule->getId()
 	      //	       << ", tag = " << myModule->getTag()
