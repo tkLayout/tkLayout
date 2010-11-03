@@ -2352,6 +2352,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setStereoDistance(aDistance);
             aModule->setStereoRotation(aRotation);
             aModule->setTag(myTag.str());
+	    aModule->setContainerName(sectionName);
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
 

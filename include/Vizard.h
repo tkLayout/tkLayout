@@ -90,6 +90,7 @@ namespace insur {
     static const int powerPerUnitPrecision = 2;
     static const int costPerUnitPrecision  = 1;
     static const int minimumBiasPrecision = 0;
+    static const int weightPrecision = 0;
 
     class graphIndex {
     public:
@@ -139,6 +140,7 @@ namespace insur {
 	// and return true or false, depending if they created the output or not
 	void histogramSummary(Analyzer& a, RootWSite& site);
 	void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
+	void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
         bool errorSummary(Analyzer& a, RootWSite& site);

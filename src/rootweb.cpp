@@ -643,6 +643,7 @@ ostream& RootWPage::dump(ostream& output) {
 RootWSite::RootWSite() {
   title_ = "Untitled";
   comment_ = "";
+  commentLink_ = "";
   programName_ = DEFAULTPROGRAMNAME;
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
@@ -653,6 +654,7 @@ RootWSite::RootWSite() {
 RootWSite::RootWSite(string title) {
   title_ = title;
   comment_ = "";
+  commentLink_ = "";
   programName_ = DEFAULTPROGRAMNAME;
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
@@ -663,6 +665,7 @@ RootWSite::RootWSite(string title) {
 RootWSite::RootWSite(string title, string comment) {
   title_ = title;
   comment_ = comment;
+  commentLink_ = "";
   programName_ = DEFAULTPROGRAMNAME;
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
@@ -681,12 +684,20 @@ void RootWSite::setComment(string newComment) {
   comment_ = newComment;
 }
 
+void RootWSite::setCommentLink(string newCommentLink) {
+  commentLink_ = newCommentLink;
+}
+
 string RootWSite::getTitle() {
   return title_;
 }
 
 string RootWSite::getComment() {
   return comment_;
+}
+
+string RootWSite::getCommentLink() {
+  return commentLink_;
 }
 
 string RootWSite::getRevision() {
@@ -763,9 +774,17 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "      <div id=\"header\">" << endl
 	 << "        <h1>" << endl
 	 << "    <a href=\"index.html\">" << title_ << "</a>" << endl
-	 << "        </h1>" << endl
-	 << "    <h2>"<<comment_<<"</h2>" << endl
-	 << "      </div>" << endl
+	 << "        </h1>" << endl;
+if (commentLink_=="") {
+	 output << "    <h2>"<<comment_<<"</h2>" << endl;
+} else {
+	 output << "    <h2>"
+                << "<a href=\"" << commentLink_ << "\">"
+                << comment_
+                << "</a>"
+                << "</h2>" << endl;
+}
+	 output << "      </div>" << endl
 	 << "      <div id=\"menu\">" << endl
 	 << "        <ul>" << endl;
   for (vector<RootWPage*>::iterator it = pageList_.begin();

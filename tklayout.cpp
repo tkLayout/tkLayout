@@ -985,18 +985,15 @@ int main(int argc, char** argv) {
         if (matfile!="") pixmatfile = matfile+".pix";
         if (!s.buildFullSystem(geomfile, settingsfile, matfile, pixmatfile, u, m)) return (EXIT_FAILURE);
         if (h) {
-            if (tracks_geom==0) tracks_geom= 2000;
-	    s.analyzeGeometrySite(tracks_geom);
-            if (tracks != 0) {
-                std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
-                if (!s.analyzeMaterialBudgetSite(tracks)) return (EXIT_FAILURE);
-            }
-            else {
-                std::cout << "Calling analyzer with the default number of tracks." << std::endl;
-                if (!s.analyzeMaterialBudgetSite()) return (EXIT_FAILURE);
-            }
-	    s.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile);
-            s.makeSite();
+	  if (tracks_geom==0) tracks_geom = 2000;
+	  if (tracks==0) tracks = 50;
+	  s.pureAnalyzeGeometry(tracks_geom);
+	  std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
+	  if (!s.pureAnalyzeMaterialBudget(tracks)) return (EXIT_FAILURE);
+	  if (!(s.reportGeometrySite())) return (EXIT_FAILURE);
+	  if (!(s.reportMaterialBudgetSite())) return (EXIT_FAILURE);
+	  if (!(s.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile))) return (EXIT_FAILURE);
+	  if (!(s.makeSite())) return (EXIT_FAILURE);
         }
         if (r) {
             if (rootout.empty()) {

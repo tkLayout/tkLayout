@@ -42,6 +42,20 @@ namespace insur {
     bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
 
     /**
+     * @class SummaryTable
+     * @brief A generic object to build summary tables
+     */
+    class SummaryTable {
+    public:
+      SummaryTable() {};
+      void setCell(const int row, const int column, std::string content) { summaryTable[std::make_pair(row,column)]=content;};
+      std::string getCell(const int row, const int column) { return summaryTable[make_pair(row,column)];};
+      std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; };
+    private:
+      std::map<std::pair<int, int>, std::string> summaryTable;
+    };
+
+    /**
      * @class Analyzer
      * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
      *
@@ -130,7 +144,11 @@ namespace insur {
 
 	static const double ZeroHitsRequired;
 	static const double OneHitRequired;
-    
+
+	void computeWeightSummary(MaterialBudget& mb);
+	std::map<std::string, SummaryTable>& getBarrelWeightSummary() { return barrelWeights;};
+	std::map<std::string, SummaryTable>& getEndcapWeightSummary() { return endcapWeights;};
+	std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     protected:
         /**
          * @struct Cell
@@ -165,6 +183,10 @@ namespace insur {
 	TH1D bandwidthDistribution;
 	TH1D bandwidthDistributionSparsified;
 
+	std::map<std::string, SummaryTable> barrelWeights;
+	std::map<std::string, SummaryTable> endcapWeights;
+	std::map<std::string, double> typeWeight;
+
 
 	TH1D hitDistribution;
         std::vector<Track> tv;
@@ -184,6 +206,7 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
+	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer,

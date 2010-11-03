@@ -41,6 +41,11 @@ a
 	text-decoration: none;
 	font-size: 1.5em;
 }
+#header h2 a
+{
+        color: #fff;
+        text-decoration: none;
+}
 #header h1
 {
 	text-transform: lowercase;

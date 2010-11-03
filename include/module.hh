@@ -66,6 +66,8 @@ class Module {
   int inSection_;
 
   int ring_;
+
+  std::string containerName_;
   
   //  point corner_[4];
   XYZVector corner_[4];
@@ -240,6 +242,10 @@ class Module {
   enum { Binary, Cluster }; // readout modes
   static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
+  void setContainerName(const std::string& newName) {containerName_ = newName;};
+  std::string getContainerName() {return containerName_ ;};
+
+  virtual int getLayer() { return 0; };
 };
 
 

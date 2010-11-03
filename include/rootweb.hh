@@ -77,6 +77,7 @@ public:
   void setContent(int row, int column, string content);
   void setContent(int row, int column, int number);
   void setContent(int row, int column, double number, int precision);
+  void setContent(const rootWTableContent& newContent) { tableContent_ = newContent; };
   void setColor(int row, int column, int newColor);
   ostream& dump(ostream& output);
   pair<int, int> addContent(string content);
@@ -224,6 +225,7 @@ private:
   vector<RootWPage*> pageList_;
   string title_;
   string comment_;
+  string commentLink_;
   vector<string> authorList_;
   string programName_;
   string programSite_;
@@ -238,8 +240,10 @@ public:
   RootWSite(string title, string comment);
   void setTitle(string newTitle);
   void setComment(string newComment);
+  void setCommentLink(string newCommentLink);
   string getTitle();
   string getComment();
+  string getCommentLink();
   string getRevision();
   void setRevision (string newRevision);
   ostream& dumpHeader(ostream& output, RootWPage* thisPage);

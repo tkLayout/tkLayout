@@ -308,6 +308,175 @@ namespace insur {
 #endif
     }
     
+  // protected
+  /**
+   * Looping on the layers, and picking only modules on the YZ section
+   * For all these modules prepare a different table with materials
+   * @param tracker a reference to the <i>ModuleCap</i> vector of vectors that sits on top of the tracker modules
+   * @param result a map of summary tables to be filled
+   */
+  void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result ) {
+    map<std::pair<std::string, int>, bool> typeTaken;
+    map<std::pair<std::string, int>, bool> typeWritten;
+
+    string tempString;
+    ostringstream tempSS;
+
+    std::vector<std::vector<ModuleCap> >::iterator layerIt;
+    //std::vector<std::vector<ModuleCap> >::iterator layerGuard;
+    std::vector<ModuleCap>::iterator moduleIt;
+    //std::vector<ModuleCap>::iterator moduleGuard;
+
+    ModuleCap* myModuleCap;
+    Module* myModule;
+    
+    unsigned int nLocalMasses;
+    unsigned int nExitingMasses;
+
+    // First create a list of material used anywhere
+    std::vector<std::string> materialTagV;
+    std::vector<std::string>::iterator materialTagIt;
+
+    double localMaterial;
+    double exitingMaterial;
+    string materialTag;
+    
+    // loop over layers
+    for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) {
+      // Loop over modules
+      for (moduleIt = layerIt->begin(); moduleIt != layerIt->end(); ++moduleIt) {
+	// Check if the module is on the YZ section
+	myModuleCap = &(*moduleIt);
+	myModule = &(myModuleCap->getModule());
+	if (myModule->getSection()==Layer::YZSection) {
+	  pair<string, int> myIndex = make_pair(myModule->getTag(), myModule->getRing());
+	  if (!typeTaken[myIndex]) {
+	    typeTaken[myIndex]=true;
+	    tempString = myModule->getContainerName();
+	    if (tempString!="") {
+	      // TODO: put this in a better place
+	      // (and make a better module typing)
+	      if (myModule->getSubdetectorType()==Module::Barrel) {
+		tempSS.str("");
+		tempSS << myModule->getLayer();
+		tempString+=" (L"+tempSS.str()+")";
+	      }
+	      result[tempString].setCell(0, myModule->getRing(), myModule->getTag());
+	    } else {
+	      cerr << "ERROR in Analyzer::detailedWeights(): "
+		   << "I found a module with no reference to the container name." << endl;
+	    }
+	  }
+	  nLocalMasses = myModuleCap->localMassCount();
+	  nExitingMasses = myModuleCap->exitingMassCount();
+	  for (unsigned int iLocalMasses=0; iLocalMasses < nLocalMasses; ++iLocalMasses) {
+	    materialTag = myModuleCap->getLocalTag(iLocalMasses);
+	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
+	    if (materialTagIt==materialTagV.end()) {
+	      materialTagV.push_back(materialTag);
+	    }
+	  }
+	  for (unsigned int iExitingMasses=0; iExitingMasses < nExitingMasses; ++iExitingMasses) {
+	    materialTag = myModuleCap->getExitingTag(iExitingMasses);
+	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
+	    if (materialTagIt==materialTagV.end()) {
+	      materialTagV.push_back(materialTag);
+	    }
+	  }
+	}
+      }
+    }
+
+    // Alphabetically sort materials
+    std::sort(materialTagV.begin(), materialTagV.end());
+
+    // Prepare the columns of the tables
+    for (map<string, SummaryTable>::iterator it=result.begin();
+	 it!=result.end(); ++it) {
+      for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
+	it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
+      }
+      it->second.setCell(materialTagV.size()+1, 0, "Total");
+    }
+   
+    // Now fill the table
+    // loop over layers
+    for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) { 
+      // Loop over modules
+      for (moduleIt = layerIt->begin(); moduleIt != layerIt->end(); ++moduleIt) { 
+	// Check if the module is on the YZ section
+	myModuleCap = &(*moduleIt);
+	myModule = &(myModuleCap->getModule());
+	typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
+	typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
+	if (myModule->getSection()==Layer::YZSection) {
+	  // If we did not write this module type yet
+	  pair<string, int> myIndex = make_pair(myModule->getTag(), myModule->getRing());
+	  if (!typeWritten[myIndex]) {
+	    typeWritten[myIndex]=true;
+	    tempString = myModule->getContainerName();
+	    if (tempString!="") {
+	      // TODO: put this in a better place
+	      // (and make a better module typing)
+	      if (myModule->getSubdetectorType()==Module::Barrel) {
+		tempSS.str("");
+		tempSS << myModule->getLayer();
+		tempString+=" (L"+tempSS.str()+")";
+	      }
+	      //	  cout << "Here's a module: id = " << myModule->getId()
+	      //	       << ", tag = " << myModule->getTag()
+	      //	       << ", type = " << myModule->getType()
+	      //	       << ", ring = " << myModule->getRing()
+	      //	       << endl;
+	      // std::cout << "Material\tLocal\texiting\n";
+
+	      // Then we fill in the proper column
+	      // Prepare the columns of the table
+	      for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
+		materialTag = materialTagV[materialTag_i];
+		try { localMaterial = myModuleCap->getLocalMass(materialTag); }
+		catch (exception e) { localMaterial = 0; }
+		try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
+		catch (exception e) { exitingMaterial = 0; }
+		//cout << materialTag << "\t"
+		//<< localMaterial << "\t"
+		//<< exitingMaterial << "\t" << endl;
+		tempSS.str("");
+                // TODO: move this to Vizard
+		tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
+                       << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
+                       << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
+		result[tempString].setCell(materialTag_i+1, myModule->getRing(), tempSS.str());
+	      }
+	      localMaterial = myModuleCap->getLocalMass();
+	      exitingMaterial = myModuleCap->getExitingMass();
+	      tempSS.str("");
+	      tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
+                     << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
+                     << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
+	      result[tempString].setCell(materialTagV.size()+1, myModule->getRing(), tempSS.str());
+	    } else {
+	      cerr << "ERROR in Analyzer::detailedWeights(): "
+		   << "I found a module with no reference to the container name." << endl;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  
+  // public
+  /**
+   * Produces a full material summary for the modules
+   */
+  void Analyzer::computeWeightSummary(MaterialBudget& mb) {
+    typeWeight.clear();
+    barrelWeights.clear();
+    computeDetailedWeights(mb.getBarrelModuleCaps(), barrelWeights);
+    endcapWeights.clear();
+    computeDetailedWeights(mb.getEndcapModuleCaps(), endcapWeights);
+  }
+
     // protected
     /**
      * The layer-level analysis function for modules forms the frame for sending a single track through the active modules.
@@ -370,6 +539,7 @@ namespace insur {
                 if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
                     // same method as in Tracker, same function used
+		    // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
                         // module was hit

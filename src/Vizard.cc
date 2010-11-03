@@ -586,10 +586,43 @@ namespace insur {
     }
 
     /**
+     * This function writes the tables of the weight summaries for the modules
+     * with the rootweb library
+     * @param a A reference to the analysing class that examined the material budget and filled the histograms
+     * @param site the RootWSite object for the output
+     * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
+     */  
+    void Vizard::weigthSummart(Analyzer& a, RootWSite& site, std::string name) {
+      // Initialize the page with the material budget
+      std::string pageTitle="Weights";
+      if (name!="") pageTitle+=" (" +name+")";
+      std::string pageAddress="weights"+name+".html";
+      RootWPage& myPage = site.addPage(pageTitle);
+      myPage.setAddress(pageAddress);
+      
+      std::map<std::string, SummaryTable>* summaryTables;
+
+      // Write the summary for barrel first and endcap second
+      for (int i=0; i<2; ++i) {
+	if (i==0) summaryTables = &a.getBarrelWeightSummary();
+	else summaryTables = &a.getEndcapWeightSummary();
+
+	std::map<std::string, SummaryTable>::iterator it;
+	for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
+	  // Create one content per layer
+	  RootWContent& myContent = myPage.addContent(it->first, false);
+	  RootWTable& myTable = myContent.addTable();
+	  myTable.setContent(it->second.getContent());
+	}
+      }
+    }
+
+    /**
      * This function draws some of the histograms that were filled during material budget analysis
      * with the rootweb library
      * @param a A reference to the analysing class that examined the material budget and filled the histograms
      * @param site the RootWSite object for the output
+     * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
      */
     void Vizard::histogramSummary(Analyzer& a, RootWSite& site, std::string name) {
         // Initialize the page with the material budget
@@ -1018,6 +1051,7 @@ namespace insur {
         std::map<std::string, Module*> typeMap;
         std::map<std::string, int> typeMapCount;
         std::map<std::string, long> typeMapCountChan;
+	std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
         std::map<std::string, double> typeMapMaxOccupancy;
         std::map<std::string, double> typeMapAveOccupancy;
         std::map<std::string, double> typeMapAveRphiResolution;
@@ -1179,9 +1213,10 @@ namespace insur {
         std::vector<std::string> powers;
         std::vector<std::string> costs;
         
-        double totalPower=0;
+        double totalPower=0; 
         double totalCost=0;
-        
+        double totalWeight=0;
+       
         std::ostringstream aName;
         std::ostringstream aTag;
         std::ostringstream aType;
@@ -1198,6 +1233,7 @@ namespace insur {
         std::ostringstream aChannel;
         std::ostringstream aPower;
         std::ostringstream aCost;
+	std::ostringstream aWeight;
         int barrelCount=0;
         int endcapCount=0;
         Module* aModule;
@@ -1230,6 +1266,7 @@ namespace insur {
         static const int channelptRow = 15;
         static const int powerRow = 16;
         static const int costRow = 17;
+	static const int weightRow = 18;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1249,6 +1286,7 @@ namespace insur {
         moduleTable->setContent(channelptRow, 0, "Channels (M)");
         moduleTable->setContent(powerRow, 0, "Power (kW)");
         moduleTable->setContent(costRow, 0, "Cost (MCHF)");
+        moduleTable->setContent(weightRow, 0, "Weight (av, g)");
         
         int loPitch;
         int hiPitch;
@@ -1331,7 +1369,11 @@ namespace insur {
             1e-6 *                                           // conversion CHF-> MCHF
             typeMapCount[(*typeMapIt).first];                // Number of modules
             totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
-            
+            // Weight
+	    aWeight.str("");
+	    aWeight << std::fixed << std::setprecision(weightPrecision) <<
+	      typeMapWeight[aModule->getTag()] / typeMapCount[(*typeMapIt).first];
+	    totalWeight += typeMapWeight[aModule->getTag()];
             
             moduleTable->setContent(0, iType, aName.str());
             moduleTable->setContent(tagRow, iType, aTag.str());
@@ -1347,6 +1389,8 @@ namespace insur {
             moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
             moduleTable->setContent(powerRow, iType, aPower.str());
             moduleTable->setContent(costRow, iType, aCost.str());
+            moduleTable->setContent(weightRow, iType, aWeight.str());
+
             
             if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
                 moduleTable->setContent(channelstripRow, iType, aChannel.str());
@@ -1399,10 +1443,14 @@ namespace insur {
         moduleTable->setContent(channelptRow, iType, aChannel.str());
         aPower.str("");
         aCost.str("");
+	aWeight.str("");
         aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
         aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
+        aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
+		 << " (kg)";
         moduleTable->setContent(powerRow, iType, aPower.str());
         moduleTable->setContent(costRow, iType, aCost.str());
+        moduleTable->setContent(weightRow, iType, aWeight.str());
         
         //********************************//
         //*                              *//

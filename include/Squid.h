@@ -85,6 +85,10 @@ namespace insur {
 #ifdef USING_ROOTWEB
 	// Functions using rootweb
 	bool analyzeGeometrySite(int tracks = 1000);
+	bool pureAnalyzeGeometry(int tracks);
+	bool pureAnalyzeMaterialBudget(int tracks);
+	bool reportGeometrySite();
+	bool reportMaterialBudgetSite();
 	bool analyzeMaterialBudgetSite(int tracks = 50);
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
 	bool makeSite(bool addLogPage = true);
@@ -103,6 +107,7 @@ namespace insur {
         MatCalc tkMaterialCalc;
         MatCalc pxMaterialCalc;
         Analyzer a;
+	Analyzer *pixelAnalyzer;
         Vizard v;
         tk2CMSSW t2c;
         mainConfigHandler mainConfiguration;

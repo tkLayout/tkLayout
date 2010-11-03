@@ -16,6 +16,7 @@ namespace insur {
         px = NULL;
         pi = NULL;
         pm = NULL;
+	pixelAnalyzer = NULL;
 #ifdef USING_ROOTWEB
         sitePrepared = false;
 #endif
@@ -31,6 +32,7 @@ namespace insur {
         if (pm) delete pm;
         if (pi) delete pi;
         if (px) delete px;
+	if (pixelAnalyzer) delete pixelAnalyzer;
     }
     
     /**
@@ -541,7 +543,8 @@ namespace insur {
         if (layoutDirectory!="") site.setTargetDirectory(layoutDirectory);
         else return false;
         site.setTitle(trackerName);
-        site.setComment("layout summary");
+        site.setComment("layouts");
+        site.setCommentLink("../");
         site.addAuthor("Nicoletta De Maio");
         site.addAuthor("Stefano Mersi");
 #ifdef REVISIONNUMBER
@@ -580,6 +583,8 @@ namespace insur {
 	      pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
 	      v.histogramSummary(*pixelAnalyzer, site, "pixel");
             }
+	    a.computeWeightSummary(*mb);
+	    v.weigthSummart(a, site, "outer");
             v.errorSummary(a, site);
             return true;
         }
@@ -607,6 +612,79 @@ namespace insur {
             return false;
         }
     }
+
+  /**
+   * Analyze the previously created geometry and without no output  through rootweb.
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::pureAnalyzeGeometry(int tracks) {
+    if (tr) {
+      a.analyzeGeometry(*tr, tracks);
+      a.createGeometryLite(*tr);
+      a.computeBandwidth(*tr);
+      return true; // TODO: is not really meaningful
+    } else {
+      std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
+      return false;
+    }
+  }
+
+  /**
+   * Analyze the previously created material budget with no output.
+   * @param tracks The number of tracks that should be fanned out across the analysed region
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::pureAnalyzeMaterialBudget(int tracks) {
+    if (mb) {
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
+      if (pm) {
+	// TODO: make this much neater!
+	if (pixelAnalyzer) delete pixelAnalyzer;
+	pixelAnalyzer = new Analyzer;
+	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
+      }
+      a.computeWeightSummary(*mb);
+      return true;
+    } else {
+      std::cout << "Squid::pureAnalyzeMaterialBudget(): " << err_no_matbudget << std::endl;
+      return false;
+    }
+  }
+
+  /**
+   * Produces the output of the analysis of the geomerty analysis
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportGeometrySite() {
+    if (tr) {
+      v.geometrySummary(a, *tr, site);
+      v.bandwidthSummary(a, *tr, site);
+      return true;
+    } else {
+      std::cout << "Squid::reportGeometrySite(): " << err_no_tracker << std::endl;
+      return false;
+    }
+  }
+
+  /**
+   * Produces the output of the analysis of the material budget analysis
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportMaterialBudgetSite() {
+    if (mb) {
+      v.histogramSummary(a, site, "outer");
+      if ((pm)&&(pixelAnalyzer)) {
+	v.histogramSummary(*pixelAnalyzer, site, "pixel");
+      }
+      v.weigthSummart(a, site, "outer");
+      v.errorSummary(a, site);
+      return true;
+    }
+    else {
+      std::cout << "Squid::reportMaterialBudgetSite(): " << err_no_matbudget << std::endl;
+      return false;
+    }
+  }
     
   bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile) {
         if (!tr) {
