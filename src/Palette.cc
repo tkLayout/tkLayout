@@ -33,7 +33,7 @@ void Palette::prepare(unsigned int nColors,
   // nColors different colors
   for (unsigned int iColor=0; iColor<nColors; ++iColor) {
     h = double(iColor)/double(nColors)*360.; 
-    //h += phase+210;
+    h += phase;
     h -= int(h/360)*360.;
     TColor::HLStoRGB(h, l, s, r, g, b);
     TColor* myColor = gROOT->GetColor(iColor+myColorBase);

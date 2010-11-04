@@ -197,7 +197,7 @@ int main(int ac, char* av[]) {
       string dirName;
       prepareCanvas();
       Palette::skipColors(100);
-      Palette::prepare(fileV.size(),210,0.75,0.8);
+      Palette::prepare(fileV.size(), 210, 0.6,.6);
       for (unsigned int iMat=0 ; iMat<fileV.size(); ++iMat) {
 	dirName = (mainConfiguration.getLayoutDirectory()
 		   + "/" + fileV.at(iMat));

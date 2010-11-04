@@ -1918,7 +1918,7 @@ namespace insur {
 
 	    cuts.push_back(0.05);
 	    cuts.push_back(1);
-	    cuts.push_back(1.5);
+	    cuts.push_back(1.6);
 	    cuts.push_back(2.4);
 	    cutNames.push_back("C");
 	    cutNames.push_back("I");
