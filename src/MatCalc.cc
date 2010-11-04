@@ -151,13 +151,14 @@ namespace insur {
      *@param uD The unit of parameter <i>D</i>
      * @param local A flag indicating whether the amounts as a whole will be treated as local or as exiting the module later
      */
-    void MatCalc::addModuleParameters(std::string tag, std::string type,
+  void MatCalc::addModuleParameters(std::string tag, std::string type, std::string comp,
             double A, Matunit uA, double B, Matunit uB, double C, Matunit uC, double D, Matunit uD, bool local) {
         try {
-            if (!entryExists(tag, type, uA, uB, uC, uD, local)) {
+	  if (!entryExists(tag, type, comp, uA, uB, uC, uD, local)) {
                 // Create new entry if there is none
                 SingleMod mod;
                 mod.tag = tag;
+		mod.comp = comp;
                 mod.A = A;
                 mod.uA = uA;
                 mod.B = B;
@@ -172,7 +173,7 @@ namespace insur {
             }
             else {
                 // Add new amounts to existing entry otherwise
-                SingleMod& mod = getSingleMod(tag, type, uA, uB, uC, uD, local);
+	      SingleMod& mod = getSingleMod(tag, type, comp, uA, uB, uC, uD, local);
                 mod.A = mod.A + A;
                 mod.B = mod.B + B;
                 mod.C = mod.C + C;
@@ -417,8 +418,8 @@ namespace insur {
                                     // parameter scaling
                                     B = B * stripseg_scalars.at(j);
                                     // save converted and scaled material
-                                    if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, B + D);
-                                    else barrelcaps.at(i).at(j).addExitingMass(iter->tag, B + D);
+                                    if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, iter->comp, B + D);
+                                    else barrelcaps.at(i).at(j).addExitingMass(iter->tag, iter->comp, B + D);
                                 }
                                 //accumulation of travelling parameters for outer rings
                                 if (j > 0) {
@@ -445,8 +446,8 @@ namespace insur {
                                                 // parameter scaling
                                                 A = A * stripseg_scalars.at(k);
                                                 // save converted and scaled material
-                                                if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, A + C);
-                                                else barrelcaps.at(i).at(j).addExitingMass(iter->tag, A + C);
+                                                if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, iter->comp, A + C);
+                                                else barrelcaps.at(i).at(j).addExitingMass(iter->tag, iter->comp, A + C);
                                             }
                                         }
                                     }
@@ -559,8 +560,8 @@ namespace insur {
                                     // parameter scaling
                                     B = B * stripseg_scalars.at(j);
                                     // save converted and scaled material
-                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, B + D);
-                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, B + D);
+                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D);
+                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
                                 }
                                 // accumulation of travelling parameters for outer rings
                                 if (j > 0) {
@@ -590,8 +591,8 @@ namespace insur {
                                                     A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
                                                     C = C * (double)mods.at(k) / (double)mods.at(j);
                                                     // save converted and scaled material
-                                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, A + C);
-                                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, A + C);
+                                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
+                                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
                                                 }
                                             }
                                         }
@@ -873,12 +874,13 @@ namespace insur {
      * @param local A flag indicating whether the material in question is local or exiting
      * @return A reference to the requested entry
      */
-    MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag,
-            std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
+    MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag, std::string type, std::string comp,
+					      Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
         std::vector<SingleMod>& vect = getModVector(type);
         std::vector<SingleMod>::iterator iter = vect.begin();
         while (iter != vect.end()) {
             if ((tag.compare(iter->tag) == 0) && (iter->is_local == local)) {
+	      if (comp.compare(iter->comp) == 0)
                 if ((iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD)) return *iter;
             }
             iter++;
@@ -974,13 +976,14 @@ namespace insur {
      * @param local A flag indicating whether the material in question is local or exiting
      * @return True if such an entry exists, false otherwise
      */
-    bool MatCalc::entryExists(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
+  bool MatCalc::entryExists(std::string tag, std::string type, std::string comp, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
         try {
             std::vector<SingleMod>& vect = getModVector(type);
             std::vector<SingleMod>::const_iterator iter = vect.begin();
             std::vector<SingleMod>::const_iterator guard = vect.end();
             while (iter != guard) {
                 bool found = (tag.compare(iter->tag) == 0) && (iter->is_local == local);
+		found = found && (comp.compare(iter->comp) == 0);
                 found = found && (iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD);
                 if (found) return true;
                 iter++;

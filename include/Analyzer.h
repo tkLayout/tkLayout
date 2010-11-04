@@ -148,6 +148,8 @@ namespace insur {
 	void computeWeightSummary(MaterialBudget& mb);
 	std::map<std::string, SummaryTable>& getBarrelWeightSummary() { return barrelWeights;};
 	std::map<std::string, SummaryTable>& getEndcapWeightSummary() { return endcapWeights;};
+	std::map<std::string, SummaryTable>& getBarrelWeightComponentSummary() { return barrelComponentWeights;};
+	std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
 	std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     protected:
         /**
@@ -185,6 +187,8 @@ namespace insur {
 
 	std::map<std::string, SummaryTable> barrelWeights;
 	std::map<std::string, SummaryTable> endcapWeights;
+	std::map<std::string, SummaryTable> barrelComponentWeights;
+	std::map<std::string, SummaryTable> endcapComponentWeights;
 	std::map<std::string, double> typeWeight;
 
 
@@ -206,7 +210,7 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables);
+	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer,

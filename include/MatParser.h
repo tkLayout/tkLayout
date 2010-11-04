@@ -51,6 +51,7 @@ namespace insur {
     static const std::string y_line_delim = "Y";
     static const std::string z_line_delim = "Z";
     static const std::string line_end_delim = ";";
+    static const std::string component_marker = "comp";
     static const std::string type_marker = "type";
     static const std::string strip_marker = "nStripsAcross";
     static const std::string seg_marker = "nSegments";
@@ -94,7 +95,7 @@ namespace insur {
         bool initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir );
     protected:
         bool parseStripsSegs(std::ifstream& instream, std::string& strips, std::string& segs);
-        bool parseMLine(std::string line, std::string type, MatCalc& calc);
+        bool parseMLine(std::string line, std::string type, MatCalc& calc, std::string comp);
         bool parseDLine(std::string line, MatCalc& calc);
         bool parseSimpleLine(std::string line, MatCalc& calc, std::string marker);
     private:

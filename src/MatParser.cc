@@ -87,7 +87,7 @@ namespace insur {
         bfs::path mpath(configfile);
         if (bfs::exists(mpath)) {
             try {
-                std::string line, word, type;
+    	        std::string line, word, type, comp;
                 std::ifstream infilestream;
                 infilestream.open(configfile.c_str());
                 // material file line loop
@@ -99,6 +99,11 @@ namespace insur {
                     // skip comments
                     if ((word.compare(0, c_comment.size(), c_comment) == 0)
                             || (word.compare(0, shell_comment.size(), shell_comment) == 0)) continue;
+                    // line defining a component
+		    else if (word.compare(component_marker) == 0) {
+		      comp = getValue(line, false);
+		      // std::cout << "COMPONENT IS NOW '" << comp << "'" << std::endl; // debug (TODO: remove this line)
+		    }
                     // line defining a module type
                     else if (word.compare(type_marker) == 0) {
                         // extract module type
@@ -134,7 +139,7 @@ namespace insur {
                     }
                     // line defining a module material
                     else if (word.compare(m_line_delim) == 0) {
-                        if (!parseMLine(line, type, calc)) std::cout << msg_m_line_err << std::endl << "Line was: " << line << std::endl;
+		      if (!parseMLine(line, type, calc, comp)) std::cout << msg_m_line_err << std::endl << "Line was: " << line << std::endl;
                     }
                     // line defining a module-to-service mapping
                     else if(word.compare(d_line_delim) == 0) {
@@ -252,7 +257,7 @@ namespace insur {
      * @param calc The material calculator where the extracted information is transferred
      * @return True if there were no errors during parsing, false otherwise
      */
-    bool MatParser::parseMLine(std::string line, std::string type, MatCalc& calc) {
+  bool MatParser::parseMLine(std::string line, std::string type, MatCalc& calc, std::string comp) {
         if (type.empty()) return false;
         // set starting and end points of information on line
         size_t start = line.find(m_line_delim) + m_line_delim.size();
@@ -265,6 +270,7 @@ namespace insur {
         std::stringstream wordstream(line);
         std::string tag, tmp;
         if (!(wordstream >> tag)) return false;
+	//tag+=component_separator+comp;
         // parameter and unit retrieval: if no unit, assume grams
         double A, B, C, D;
         MatCalc::Matunit uA, uB, uC, uD;
@@ -316,7 +322,7 @@ namespace insur {
          * else if (type.compare(type_pt) == 0) tp = MatCalc::pt;
          * else return false;*/
         // record material parameters, units and marker in an internal data structure
-        calc.addModuleParameters(tag, type, A, uA, B, uB, C, uC, D, uD, local);
+        calc.addModuleParameters(tag, type, comp, A, uA, B, uB, C, uC, D, uD, local);
         return true;
     }
     

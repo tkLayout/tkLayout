@@ -68,6 +68,18 @@ namespace insur {
         if (index < 0) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + tag);
         return getLocalMass(index);
     }
+
+    /**
+     * Get the local mass of one of the components, as identified by its name, that make up the element.
+     * If the component does not appear on the list, the function throws an exception.
+     * @param tag The name of the component
+     * @return The mass of the requested component
+     */
+    double MaterialProperties::getLocalMassComp(std::string comp) { // throws exception
+        int index = findLocalIndexComp(comp);
+        if (index < 0) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + comp);
+        return getLocalMassComp(index);
+    }
     
     /**
      * Get the local mass of one of the materials, as identified by its internal index, that make up the element.
@@ -79,6 +91,17 @@ namespace insur {
         if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error("MaterialProperties::getLocalMass(int): " + err_local_mass);
         return localmasses.at(index).second;
     }
+
+    /**
+     * Get the local mass of one of the components, as identified by its internal index, that make up the element.
+     * If the component does not appear on the list, the function throws an exception.
+     * @param index The internal index of the component
+     * @return The mass of the requested component
+     */
+    double MaterialProperties::getLocalMassComp(int index) { // throws exception
+        if (index < 0 || index >= (int)localmassesComp.size()) throw std::runtime_error("MaterialProperties::getLocalMass(int): " + err_local_mass);
+        return localmassesComp.at(index).second;
+    }
     
     /**
      * Get the tag of one of the local materials that make up the element by its internal index. If the material
@@ -89,6 +112,19 @@ namespace insur {
     std::string MaterialProperties::getLocalTag(int index) {
         std::string res;
         if ((index >= 0) && (index < (int)localmasses.size())) res = localmasses.at(index).first;
+        return res;
+    }
+    
+
+    /**
+     * Get the tag of one of the local component that make up the element by its internal index. If the component
+     * does not appear on the list, the function returns an empty string.
+     * @param index The internal index of the component
+     * @return The unique identifier of the requested component
+     */
+    std::string MaterialProperties::getLocalTagComp(int index) {
+        std::string res;
+        if ((index >= 0) && (index < (int)localmassesComp.size())) res = localmassesComp.at(index).first;
         return res;
     }
     
@@ -114,6 +150,29 @@ namespace insur {
         if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error("MaterialProperties::getExitingMass(int): " + err_exiting_mass);
         return exitingmasses.at(index).second;
     }
+
+    /**
+     * Get the exiting mass of one of the components, as identified by its name, that make up the element.
+     * If the component does not appear on the list, the function throws an exception.
+     * @param tag The name of the component
+     * @return The mass of the requested component
+     */
+    double MaterialProperties::getExitingMassComp(std::string comp) { // throws exception
+        int index = findExitingIndexComp(comp);
+        if (index < 0) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + comp);
+        return getExitingMassComp(index);
+    }
+    
+    /**
+     * Get the exiting mass of one of the components, as identified by its internal index, that make up the element.
+     * If the component does not appear on the list, the function throws an exception.
+     * @param index The internal index of the component
+     * @return The mass of the requested component
+     */
+    double MaterialProperties::getExitingMassComp(int index) { // throws exception
+        if (index < 0 || index >= (int)exitingmassesComp.size()) throw std::runtime_error("MaterialProperties::getExitingMass(int): " + err_exiting_mass);
+        return exitingmassesComp.at(index).second;
+    }
     
     /**
      * Get the tag of one of the exiting materials that make up the element by its internal index. If the material
@@ -126,6 +185,18 @@ namespace insur {
         if ((index >=0) && (index < (int)exitingmasses.size())) res = exitingmasses.at(index).first;
         return res;
     }
+
+    /**
+     * Get the tag of one of the exiting components that make up the element by its internal index. If the component
+     * does not appear on the list, the function returns an empty string.
+     * @param index The internal index of the component
+     * @return The unique identifier of the requested component
+     */
+    std::string MaterialProperties::getExitingTagComp(int index) {
+        std::string res;
+        if ((index >=0) && (index < (int)exitingmassesComp.size())) res = exitingmassesComp.at(index).first;
+        return res;
+    }
     
     /**
      * Set the local mass of one of the materials, as identified by its name, that make up the element.
@@ -133,10 +204,14 @@ namespace insur {
      * @param tag The name of the material
      * @param ms The new mass of the material
      */
-    void MaterialProperties::setLocalMass(std::string tag, double ms) {
+  /*
+  void MaterialProperties::setLocalMass(std::string tag, std::string comp, double ms) {
         std::pair<std::string, double> p(tag, ms);
         setLocalMass(p);
+        std::pair<std::string, double> pc(comp, ms);
+        setLocalMassComp(pc);
     }
+  */
     
     /**
      * Add the local mass for a material, as specified by its tag, to the internal list.
@@ -145,9 +220,25 @@ namespace insur {
      * @param tag The name of the material
      * @param ms The mass value
      */
-    void MaterialProperties::addLocalMass(std::string tag, double ms) {
+  void MaterialProperties::addLocalMass(std::string tag, double ms) {
         std::pair<std::string, double> p(tag, ms);
         addLocalMass(p);
+    }
+
+    /**
+     * Add the local mass for a material, as specified by its tag, to the internal list.
+     * Also keeps track of the originating component
+     * If the given material is already listed with a mass value, the new value is added
+     * to the existing one.
+     * @param tag The name of the material
+     * @param comp The name of the component
+     * @param ms The mass value
+     */
+  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms) {
+        std::pair<std::string, double> p(tag, ms);
+        addLocalMass(p);
+        std::pair<std::string, double> pc(comp, ms);
+        addLocalMassComp(pc);
     }
     
     /**
@@ -156,10 +247,13 @@ namespace insur {
      * @param tag The name of the material
      * @param ms The new mass of the material
      */
-    void MaterialProperties::setExitingMass(std::string tag, double ms) {
+  /*
+  void MaterialProperties::setExitingMass(std::string tag, std::string comp, double ms) {
         std::pair<std::string, double> p(tag, ms);
         setExitingMass(p);
-    }
+        std::pair<std::string, double> pc(comp, ms);
+        setExitingMassComp(pc);
+	}*/
     
     /**
      * Add the exiting mass for a material, as specified by its tag, to the internal list.
@@ -168,9 +262,25 @@ namespace insur {
      * @param tag The name of the material
      * @param ms The mass value
      */
-    void MaterialProperties::addExitingMass(std::string tag, double ms) {
+  void MaterialProperties::addExitingMass(std::string tag, double ms) {
         std::pair<std::string, double> p(tag, ms);
         addExitingMass(p);
+    }
+
+    /**
+     * Add the exiting mass for a material, as specified by its tag, to the internal list.
+     * Also keeps track of the originating component
+     * If the given material is already listed with a mass value, the new value is added
+     * to the existing one.
+     * @param tag The name of the material
+     * @param comp The name of the component
+     * @param ms The mass value
+     */
+  void MaterialProperties::addExitingMass(std::string tag, std::string comp, double ms) {
+        std::pair<std::string, double> p(tag, ms);
+        addExitingMass(p);
+        std::pair<std::string, double> pc(comp, ms);
+        addExitingMassComp(pc);
     }
     
     /**
@@ -184,6 +294,18 @@ namespace insur {
      * @return The size of the internal mass vector
      */
     unsigned int MaterialProperties::exitingMassCount() { return exitingmasses.size(); }
+
+    /**
+     * Get the number of registered local masses for the components found in the inactive element.
+     * @return The size of the internal mass vector
+     */
+    unsigned int MaterialProperties::localMassCompCount() { return localmassesComp.size(); }
+    
+    /**
+     * Get the number of registered exiting masses for the components found in the inactive element.
+     * @return The size of the internal mass vector
+     */
+    unsigned int MaterialProperties::exitingMassCompCount() { return exitingmassesComp.size(); }
     
     /**
      * Reset the state of the internal mass vector to empty, discarding all entries.
@@ -191,6 +313,8 @@ namespace insur {
     void MaterialProperties::clearMassVectors() {
         localmasses.clear();
         exitingmasses.clear();
+        localmassesComp.clear();
+        exitingmassesComp.clear();
     }
     
     /**
@@ -199,8 +323,10 @@ namespace insur {
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
         mp.clearMassVectors();
-        for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i).first, localmasses.at(i).second);
-        for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i).first, exitingmasses.at(i).second);
+        for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
+        for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i));
+        for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
+        for (unsigned int i = 0; i < exitingMassCompCount(); i++) mp.addExitingMassComp(exitingmassesComp.at(i));
     }
     
     /**
@@ -415,7 +541,8 @@ namespace insur {
             msl_set = true;
         }
         else {
-            setLocalMass(ms.first, getLocalMass(ms.first) + ms.second);
+	  ms.second += getLocalMass(ms.first);
+	  setLocalMass(ms);
         }
     }
     
@@ -443,7 +570,8 @@ namespace insur {
             mse_set = true;
         }
         else {
-            setExitingMass(ms.first, (getExitingMass(ms.first) + ms.second));
+	  ms.second += getExitingMass(ms.first);
+	  setExitingMass(ms);
         }
     }
     
@@ -502,4 +630,118 @@ namespace insur {
         }
         return true;
     }
+
+
+  // Components instead of tags
+
+    /**
+     * Set the local mass of one of the components, as identified by its name, that make up the element.
+     * If no component with the given name is found on the list, nothing happens.
+     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
+     */
+    void MaterialProperties::setLocalMassComp(std::pair<std::string, double> ms) {
+        int index = findLocalIndexComp(ms.first);
+        if (index >= 0)  {
+            localmassesComp.at(index) = ms;
+        }
+    }
+    
+    /**
+     * Add the local mass for a component, as specified by its tag, to the internal list.
+     * If the given component is already listed with a mass value, that value is replaced.
+     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
+     */
+    void MaterialProperties::addLocalMassComp(std::pair<std::string, double> ms) {
+        if (newLocalComp(ms.first)) {
+            localmassesComp.push_back(ms);
+        }
+        else {
+	  ms.second += getLocalMassComp(ms.first);
+	  setLocalMassComp(ms);
+        }
+    }
+    
+    /**
+     * Set the exiting mass of one of the components, as identified by its name, that make up the element.
+     * If no component with the given name is found on the list, nothing happens.
+     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
+     */
+    void MaterialProperties::setExitingMassComp(std::pair<std::string, double> ms) {
+        int index = findExitingIndexComp(ms.first);
+        if (index >= 0)  {
+            exitingmassesComp.at(index) = ms;
+        }
+    }
+    
+    /**
+     * Add the exiting mass for a component, as specified by its tag, to the internal list.
+     * If the given component is already listed with a mass value, that value is replaced.
+     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
+     */
+    void MaterialProperties::addExitingMassComp(std::pair<std::string, double> ms) {
+        if (newExitingComp(ms.first)) {
+            exitingmassesComp.push_back(ms);
+        }
+        else {
+	  ms.second += getExitingMassComp(ms.first);
+	  setExitingMassComp(ms);
+        }
+    }
+    
+    /**
+     * Find the index of an entry in the local mass vector from the component tag.
+     * @param The name of the component
+     * @return The component index in the internal mass vector; -1 if the component is not listed
+     */
+    int MaterialProperties::findLocalIndexComp(std::string tag) {
+        bool found = false;
+        int index = 0;
+        while ((index < (int)localmassesComp.size()) && !found) {
+            if (tag.compare(localmassesComp.at(index).first) == 0) found = true;
+            else index++;
+        }
+        if (!found) return -1;
+        return index;
+    }
+    
+    /**
+     * Find the index of an entry in the exiting mass vector from the component tag.
+     * @param The name of the component
+     * @return The component index in the internal mass vector; -1 if the component is not listed
+     */
+    int MaterialProperties::findExitingIndexComp(std::string tag) {
+        bool found = false;
+        int index = 0;
+        while (!found && (index < (int)exitingmassesComp.size())) {
+            if (tag.compare(exitingmassesComp.at(index).first) == 0) found = true;
+            else index++;
+        }
+        if (!found) return -1;
+        return index;
+    }
+    
+    /**
+     * Check if a component is already listed with in the local mass vector
+     * @param tag The component name
+     * @return True if the component is not listed in the vector, false otherwise
+     */
+    bool MaterialProperties::newLocalComp(std::string tag) {
+        for (unsigned int i = 0; i < localmassesComp.size(); i++) {
+            if (tag.compare(localmassesComp.at(i).first) == 0) return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Check if a component is already listed with in the exiting mass vector
+     * @param tag The component name
+     * @return True if the component is not listed in the vector, false otherwise
+     */
+    bool MaterialProperties::newExitingComp(std::string tag) {
+        for (unsigned int i = 0; i < exitingmassesComp.size(); i++) {
+            if (tag.compare(exitingmassesComp.at(i).first) == 0) return false;
+        }
+        return true;
+    }
+
 }

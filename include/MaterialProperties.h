@@ -61,16 +61,26 @@ namespace insur {
         // material mass handling
         double getLocalMass(std::string tag); // throws exception
         double getLocalMass(int index); // throws exception
+        double getLocalMassComp(std::string tag); // throws exception
+        double getLocalMassComp(int index); // throws exception
         std::string getLocalTag(int index);
+        std::string getLocalTagComp(int index);
         double getExitingMass(std::string tag); // throws exception
         double getExitingMass(int index); // throws exception
+        double getExitingMassComp(std::string tag); // throws exception
+        double getExitingMassComp(int index); // throws exception
         std::string getExitingTag(int index);
-        void setLocalMass(std::string tag, double ms);
+        std::string getExitingTagComp(int index);
+        //void setLocalMass(std::string tag, std::string comp, double ms);
+        void addLocalMass(std::string tag, std::string comp, double ms);
         void addLocalMass(std::string tag, double ms);
-        void setExitingMass(std::string tag, double ms);
+        //void setExitingMass(std::string tag, std::string comp, double ms);
+        void addExitingMass(std::string tag, std::string comp, double ms);
         void addExitingMass(std::string tag, double ms);
         unsigned int localMassCount();
         unsigned int exitingMassCount();
+        unsigned int localMassCompCount();
+        unsigned int exitingMassCompCount();
         void clearMassVectors();
         void copyMassVectors(MaterialProperties& mp);
         // calculated output values
@@ -97,9 +107,11 @@ namespace insur {
         // geometry-dependent parameters
         Category cat;
         std::vector<std::pair<std::string, double> > localmasses, exitingmasses;
+        std::vector<std::pair<std::string, double> > localmassesComp, exitingmassesComp;
         // complex parameters (OUTPUT)
         double total_mass, local_mass, exiting_mass, r_length, i_length;
         // internal help
+	// Masses by type
         void setLocalMass(std::pair<std::string, double> ms);
         void addLocalMass(std::pair<std::string, double> ms);
         void setExitingMass(std::pair<std::string, double> ms);
@@ -108,6 +120,16 @@ namespace insur {
         int findExitingIndex(std::string tag);
         bool newLocalMaterial(std::string tag);
         bool newExitingMaterial(std::string tag);
+	// Masses by component
+        void setLocalMassComp(std::pair<std::string, double> ms);
+        void addLocalMassComp(std::pair<std::string, double> ms);
+        void setExitingMassComp(std::pair<std::string, double> ms);
+        void addExitingMassComp(std::pair<std::string, double> ms);
+        int findLocalIndexComp(std::string comp);
+        int findExitingIndexComp(std::string comp);
+        bool newLocalComp(std::string comp);
+        bool newExitingComp(std::string comp);
+
     };
 }
 #endif	/* _MATERIALPROPERTIES_H */

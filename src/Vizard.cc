@@ -615,6 +615,20 @@ namespace insur {
 	  myTable.setContent(it->second.getContent());
 	}
       }
+
+      // Write the category summary for barrel first and endcap second
+      for (int i=0; i<2; ++i) {
+	if (i==0) summaryTables = &a.getBarrelWeightComponentSummary();
+	else summaryTables = &a.getEndcapWeightComponentSummary();
+
+	std::map<std::string, SummaryTable>::iterator it;
+	for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
+	  // Create one content per layer
+	  RootWContent& myContent = myPage.addContent(it->first + " - components", false);
+	  RootWTable& myTable = myContent.addTable();
+	  myTable.setContent(it->second.getContent());
+	}
+      }
     }
 
     /**

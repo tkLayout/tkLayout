@@ -315,7 +315,8 @@ namespace insur {
    * @param tracker a reference to the <i>ModuleCap</i> vector of vectors that sits on top of the tracker modules
    * @param result a map of summary tables to be filled
    */
-  void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result ) {
+  void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
+					bool byMaterial) {
     map<std::pair<int, int>, bool> typeTaken;
     map<std::pair<int, int>, bool> typeWritten;
 
@@ -378,17 +379,24 @@ namespace insur {
 		   << "I found a module with no reference to the container name." << endl;
 	    }
 	  }
-	  nLocalMasses = myModuleCap->localMassCount();
-	  nExitingMasses = myModuleCap->exitingMassCount();
+	  if (byMaterial) { // sort by Material tag
+	    nLocalMasses = myModuleCap->localMassCount();
+	    nExitingMasses = myModuleCap->exitingMassCount();
+	  } else { // sort by Component tag
+	    nLocalMasses = myModuleCap->localMassCompCount();
+	    nExitingMasses = myModuleCap->exitingMassCompCount();
+	  }
 	  for (unsigned int iLocalMasses=0; iLocalMasses < nLocalMasses; ++iLocalMasses) {
-	    materialTag = myModuleCap->getLocalTag(iLocalMasses);
+	    if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
+	    else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
 	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
 	    if (materialTagIt==materialTagV.end()) {
 	      materialTagV.push_back(materialTag);
 	    }
 	  }
 	  for (unsigned int iExitingMasses=0; iExitingMasses < nExitingMasses; ++iExitingMasses) {
-	    materialTag = myModuleCap->getExitingTag(iExitingMasses);
+	    if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
+	    else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
 	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
 	    if (materialTagIt==materialTagV.end()) {
 	      materialTagV.push_back(materialTag);
@@ -418,8 +426,11 @@ namespace insur {
 	// Check if the module is on the YZ section
 	myModuleCap = &(*moduleIt);
 	myModule = &(myModuleCap->getModule());
-	typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
-	typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
+	
+	if (byMaterial) {
+	  typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
+	  typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
+	}
 	if (myModule->getSection()==Layer::YZSection) {
 	  // If we did not write this module type yet
 	  pair<int, int> myIndex = make_pair(myModule->getLayer()+myModule->getDisk(), myModule->getRing());
@@ -451,10 +462,17 @@ namespace insur {
 	      // Prepare the columns of the table
 	      for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
 		materialTag = materialTagV[materialTag_i];
-		try { localMaterial = myModuleCap->getLocalMass(materialTag); }
-		catch (exception e) { localMaterial = 0; }
-		try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
-		catch (exception e) { exitingMaterial = 0; }
+		if (byMaterial) { // table by materials
+		  try { localMaterial = myModuleCap->getLocalMass(materialTag); }
+		  catch (exception e) { localMaterial = 0; }
+		  try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
+		  catch (exception e) { exitingMaterial = 0; }
+		} else { // table by components
+		  try { localMaterial = myModuleCap->getLocalMassComp(materialTag); }
+		  catch (exception e) { localMaterial = 0; }
+		  try { exitingMaterial = myModuleCap->getExitingMassComp(materialTag); }
+		  catch (exception e) { exitingMaterial = 0; }
+		}
 		//cout << materialTag << "\t"
 		//<< localMaterial << "\t"
 		//<< exitingMaterial << "\t" << endl;
@@ -487,11 +505,17 @@ namespace insur {
    * Produces a full material summary for the modules
    */
   void Analyzer::computeWeightSummary(MaterialBudget& mb) {
+
     typeWeight.clear();
     barrelWeights.clear();
-    computeDetailedWeights(mb.getBarrelModuleCaps(), barrelWeights);
+    computeDetailedWeights(mb.getBarrelModuleCaps(), barrelWeights, true);
     endcapWeights.clear();
-    computeDetailedWeights(mb.getEndcapModuleCaps(), endcapWeights);
+    computeDetailedWeights(mb.getEndcapModuleCaps(), endcapWeights, true);
+
+    barrelComponentWeights.clear();
+    computeDetailedWeights(mb.getBarrelModuleCaps(), barrelComponentWeights, false);
+    endcapComponentWeights.clear();
+    computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
   }
 
     // protected

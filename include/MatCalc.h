@@ -61,7 +61,7 @@ namespace insur {
         void addTypeInfo(std::string type, int strips, int segments);
         void updateTypeInfoStrips(std::string type, int strips);
         void updateTypeInfoSegments(std::string type, int segments);
-        void addModuleParameters(std::string tag, std::string type,
+        void addModuleParameters(std::string tag, std::string type, std::string comp,
                 double A, Matunit uA, double B, Matunit uB, double C, Matunit uC, double D, Matunit uD, bool local);
         void addServiceParameters(std::string tag, double Q, Matunit uQ);
         void addServiceParameters(std::string tagIn, double In, Matunit uIn, std::string tagOut, double Out, Matunit uOut, bool local);
@@ -111,6 +111,7 @@ namespace insur {
          */
         struct SingleMod {
             std::string tag;
+	  std::string comp;
             double A, B, C, D;
             Matunit uA, uB, uC, uD;
             bool is_local;
@@ -177,13 +178,13 @@ namespace insur {
         MatInfo internals;
         std::vector<SingleMod>& getModVector(std::string type); // throws exception
         TypeInfo& getTypeInfoByType(std::string type); // throws exception
-        SingleMod& getSingleMod(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local); // throws exception
+        SingleMod& getSingleMod(std::string tag, std::string type, std::string comp, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local); // throws exception
         SingleSerLocal& getSingleSer(std::string tag, Matunit u); // throws exception
         SingleSerExit& getSingleSer(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local); // throws exception
         SingleSup& getSingleSup(std::string tag, Matunit uM, MaterialProperties::Category cM); // throws exception
     private:
         bool entryExists(std::string type);
-        bool entryExists(std::string tag, std::string type, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local);
+        bool entryExists(std::string tag, std::string type, std::string comp, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local);
         bool entryExists(std:: string tag, Matunit uQ);
         bool entryExists(std::string tag1, std::string tag2, Matunit uIn, Matunit uOut, bool local);
         bool entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM);
