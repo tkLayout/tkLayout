@@ -1158,7 +1158,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 				  int sectioned /*=NoSection*/) {
     
     averageZ_=diskZ;
-    
+
     EndcapModule* aRingModule;
     
     EndcapModule* trialModule[3];
@@ -1180,6 +1180,8 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     std::ostringstream tag;
     
     for (nRing=1; lastRho<maxRadius; nRing++) {
+        tempString.str(""); tempString  << "Ring number " << nRing;
+        addMessage(tempString, DEBUG);
         // Ring parity is 1, -1, 1, -1 for
         //      nRing=    1,  2, 3,  4
         // if diskParity==1 and the opposite, otherwise
@@ -1202,23 +1204,39 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         
         // ringParity = 1 means the ring is nearer to the interaction point
         lastRho = buildRing(nextRho,
-                smallDelta,
-                ringParity*bigDelta,
-                diskZ,
-                overlap,
-                base,
-                nearDirection,
-                sampleModule,
-                maxRadius,
-                addModules,
-                sectioned);
+			    smallDelta,
+			    ringParity*bigDelta,
+			    diskZ,
+			    overlap,
+			    base,
+			    nearDirection,
+			    sampleModule,
+			    maxRadius,
+			    addModules,
+			    sectioned);
         
-	tempString.str(""); tempString << "maxRadius: " << maxRadius;
-	addMessage(tempString, INFO);
+	tempString.str(""); tempString << "smallDelta: " << smallDelta;
+	addMessage(tempString, DEBUG);
+	tempString.str(""); tempString << "bigDelta: " << bigDelta;
+	addMessage(tempString, DEBUG);
 	tempString.str(""); tempString << "lastrho: " << lastRho;
-	addMessage(tempString, INFO);
-        aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho, -1);
+	addMessage(tempString, DEBUG);
+	tempString.str(""); tempString << "aRingModule = new EndcapModule(*sampleModule, "
+				       << 100/lastRho << ", " << lastRho << ", -1);";
+	addMessage(tempString, DEBUG);
+	aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho, -1);
+
         aRingModule->setRing(nRing);
+	tempString.str("");
+	tempString << "aRingModule = " << std::endl;
+	tempString << (*aRingModule);
+	tempString << std::endl;
+	tempString << "sampleModule = " << std::endl;
+	tempString << (*sampleModule);
+	tempString << std::endl;
+	tempString << "aRingModule->getEdgeRhoSide(-1).first = "
+		   << aRingModule->getEdgeRhoSide(-1).first;
+	addMessage(tempString, DEBUG);
         
         
         // Place the mock-up module so as to simulate the worst position for this ring
@@ -1230,9 +1248,12 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         destZ = diskZ + nearDirection*smallDelta + -1*ringParity*nearDirection*bigDelta;
         
         aRingModule->translate(shiftThis);
-	tempString.str(""); tempString << "Pushing from z=" << diskZ + -1*nearDirection*smallDelta + ringParity*nearDirection*bigDelta
+	tempString.str(""); tempString << "Pushing from z="
+				       << diskZ + -1*nearDirection*smallDelta + ringParity*nearDirection*bigDelta
 				       << " to z=" << destZ;
-	addMessage(tempString, INFO);
+	addMessage(tempString, DEBUG);
+	tempString.str(""); tempString << "aRingModule->getEdgeRhoSide(-1).first = " << aRingModule->getEdgeRhoSide(-1).first;
+	addMessage(tempString, DEBUG);
         
         for (int i=0; i<3; i++) {
             trialModule[i] = new EndcapModule(*aRingModule);
@@ -1248,7 +1269,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
             aSide = trialModule[i]->getEdgeRhoSide(-1);
             trialModule[i]->projectSideZ(aSide.second, destZ, direct*zError);
 	    tempString.str(""); tempString << "Fake module base: " << trialModule[i]->getEdgeRhoSide(-1).first;
-	    addMessage(tempString, INFO);
+	    addMessage(tempString, DEBUG);
             
             if (i==1) {
                 // trialModule[1] is the one with no zError, but overlap
@@ -1268,7 +1289,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 	  tempString << "safetyEdge["
 		     << i << "]="
 		     << trialModule[i]->getEdgeRhoSide(-1).first;
-	  addMessage(tempString, INFO);
+	  addMessage(tempString, DEBUG);
         }
         for (int i=1; i<3; i++) {
             aSide = trialModule[i]->getEdgeRhoSide(-1);
@@ -1286,7 +1307,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         tempString.str(""); tempString << "Ring computation: using safety rule #" << minSafetyEdge.second;
         nextRho = minSafetyEdge.first;
         tempString << " next radius at rho: " << nextRho;
-	addMessage(tempString, INFO);
+	addMessage(tempString, DEBUG);
     }
     nOfRings_ = nRing - 1;
     
@@ -1361,7 +1382,7 @@ double EndcapLayer::buildRing(double minRadius,
         alpha=asin(sqrt(x))*2;
         
         tempString << "mod aperture: " << alpha*180./M_PI;
-	addMessage(tempString, INFO);
+	addMessage(tempString, DEBUG);
     } else if ( sampleModule->getShape()==Module::Rectangular ) { // it's a barrel module
         modMaxRadius=minRadius + sampleModule->getHeight();
         // widthHi or widthLo would give the same number: it's a square module!

@@ -2074,15 +2074,19 @@ namespace insur {
     bool Vizard::makeLogPage(RootWSite& site) {
         bool anythingFound=false;
         RootWPage& myPage = site.addPage("Log page");
+	if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))
+	  myPage.setAlert(1);
+	else if (!MessageLogger::hasEmptyLog(MessageLogger::WARNING))
+	  myPage.setAlert(0.5);
         for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
-            if (!MessageLogger::hasEmptyLog(iLevel)) {
+	  if (!MessageLogger::hasEmptyLog(iLevel)) {
                 bool defaultOpen=false;
                 if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
                 anythingFound=true;
                 RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
                 newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
-                MessageLogger::getLatestLog(iLevel);
-            }
+                //MessageLogger::getLatestLog(iLevel);
+	  }
         }
         return anythingFound;
     }

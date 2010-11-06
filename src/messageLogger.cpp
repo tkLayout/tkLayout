@@ -1,14 +1,25 @@
 #include <messageLogger.h>
 
 //bool MessageLogger::wasModified[MessageLogger::NumberOfLevels];
-std::vector<LogMessage> MessageLogger::logMessageV[MessageLogger::NumberOfLevels];
+std::vector<LogMessage> MessageLogger::logMessageV;
+int MessageLogger::countInstances = 0;
+
+//  enum {UNKNOWN, ERROR, WARNING, INFO, DEBUG, NumberOfLevels};
+std::string MessageLogger::shortLevelCode[] = { "??", "EE", "WW", "II", "DD" };
+int MessageLogger::messageCounter[NumberOfLevels];
 
 MessageLogger::MessageLogger() {
   objectName="unknownObject";
+  if (countInstances==0) {
+    for (unsigned int i=0; i<NumberOfLevels; ++i)
+      messageCounter[i]=0;
+  }
+  ++countInstances;
 }
 
 MessageLogger::MessageLogger(string newObjectName) {
   objectName=newObjectName;
+  ++countInstances;
 }
 
 bool MessageLogger::addMessage(string message, int level /*=UNKNOWN*/ ) {
@@ -17,7 +28,8 @@ bool MessageLogger::addMessage(string message, int level /*=UNKNOWN*/ ) {
     newMessage.sender=objectName;
     newMessage.level=level;
     newMessage.message=message;
-    logMessageV[level].push_back(newMessage);
+    logMessageV.push_back(newMessage);
+    messageCounter[level]++;
     return true;
   } else return false;
 }
@@ -28,34 +40,55 @@ bool MessageLogger::addMessage(ostringstream& message, int level /*=UNKNOWN*/ ) 
 }
 
 bool MessageLogger::hasEmptyLog(int level) {
-  bool result=false;
   if ((level>=0)&&(level<NumberOfLevels)) {
-    if (logMessageV[level].size()==0) result=true;
+    return (messageCounter[level]==0);
+    
+    /*
+    for(unsigned int i=0; i<logMessageV.size(); ++i) {
+      if (logMessageV[i].level==level) return false;
+    }
+    */
+
   }
-  return result;
+  return true;
 }
 
 string MessageLogger::getLatestLog(int level) {
   string result="";
   if ((level>=0)&&(level<NumberOfLevels)) {
-    for (std::vector<LogMessage>::iterator itMessage=logMessageV[level].begin();
-	 itMessage != logMessageV[level].end(); ++itMessage) {
-      result += (*itMessage).sender+": "+(*itMessage).message+"\n";
-      // std::cerr << "getLatestLog("<<level<<"):"<<(*itMessage).sender << ": " << (*itMessage).message << std::endl; //debug
+    std::vector<LogMessage>::iterator itMessage;
+    std::vector<LogMessage>::iterator nextMessage;
+    for (itMessage=logMessageV.begin();
+	 itMessage != logMessageV.end(); ) {
+      if (itMessage->level==level) {
+        result += (*itMessage).sender+": "+(*itMessage).message+"\n";
+	nextMessage=itMessage+1;
+	messageCounter[itMessage->level]--;
+        logMessageV.erase(itMessage);
+	itMessage=nextMessage;
+      } else {
+	++itMessage;
+      }
     }
-    //wasModified[level]=false;
-    logMessageV[level].clear();
+  }
+  return result;
+}
+
+string MessageLogger::getLatestLog() {
+  string result="";
+  std::vector<LogMessage>::iterator itMessage=logMessageV.begin();
+  while (itMessage!=logMessageV.end()) {
+    result += "(" + shortLevelCode[itMessage->level]+ ") " + itMessage->sender+": "+ itMessage->message+"\n";
+    messageCounter[itMessage->level]--;
+    logMessageV.erase(itMessage);
+    itMessage=logMessageV.begin();
   }
   return result;
 }
 
 MessageLogger::~MessageLogger() {
-  //for (unsigned int level=0; level<NumberOfLevels; ++level) {
-  //  if (!hasEmptyLog(level)) {
-  //    std::cerr << "Warning: unread messages for object " << objectName << " at level " << level << std::endl;
-  //    std::cerr << getLatestLog(level);
-  //  }
-  //}
+  if (--countInstances==0)
+    std::cerr << getLatestLog();
 }
 
 string MessageLogger::getLevelName(int level) {

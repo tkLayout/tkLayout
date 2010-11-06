@@ -93,24 +93,28 @@ double EndcapModule::getResolutionRphi() {
   return result;
 }
 
+ostream& operator<<(ostream& output, const Module& m) {
+  output << "("
+	 << m.corner_[3].X() << ", "
+	 << m.corner_[3].Y() << ", "
+	 << m.corner_[3].Z() << ")\t\t"
+	 << "("
+	 << m.corner_[2].X() << ", "
+	 << m.corner_[2].Y() << ", "
+	 << m.corner_[2].Z() << ")" << std::endl
+	 << "("
+	 << m.corner_[0].X() << ", "
+	 << m.corner_[0].Y() << ", "
+	 << m.corner_[0].Z() << ")\t\t"
+	 << "("
+	 << m.corner_[1].X() << ", "
+	 << m.corner_[1].Y() << ", "
+	 << m.corner_[1].Z() << ")";
+  return output;
+}
+
 void Module::print() {
-    std::cout <<
-    "(" <<
-    corner_[3].X() << ", " <<
-    corner_[3].Y() << ", " <<
-    corner_[3].Z() << ")\t\t" <<
-    "(" <<
-    corner_[2].X() << ", " <<
-    corner_[2].Y() << ", " <<
-    corner_[2].Z() << ")" << std::endl <<
-    "(" <<
-    corner_[0].X() << ", " <<
-    corner_[0].Y() << ", " <<
-    corner_[0].Z() << ")\t\t" <<
-    "(" <<
-    corner_[1].X() << ", " <<
-    corner_[1].Y() << ", " <<
-    corner_[1].Z() << ")" << std::endl ;
+  std::cout << this << std::endl;
 }
 
 void Module::translate(XYZVector Delta) {
@@ -1307,8 +1311,7 @@ EndcapModule::EndcapModule(const Module& sampleModule, double alpha, double d, d
     setSensorWedgeGeometry(alpha, d, maxRho);
 }
 
-EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule){
-    
+EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, double d, double maxRho /* = -1 */) : Module(sampleModule) {
     //phiWidth_ = sampleModule.phiWidth_;
     widthLo_ = sampleModule.widthLo_;
     widthHi_ = sampleModule.widthHi_;
@@ -1318,7 +1321,13 @@ EndcapModule::EndcapModule(const EndcapModule& sampleModule, double alpha, doubl
     ring_ = sampleModule.ring_;
     disk_ = sampleModule.disk_;
     
-    setSensorWedgeGeometry(alpha, d, maxRho);
+    if (sampleModule.shape_==Wedge) 
+      setSensorWedgeGeometry(alpha, d, maxRho);
+    else if (sampleModule.shape_==Rectangular)
+      setSensorRectGeometry(height_/widthLo_, d);
+    else {
+      std::cerr << "ERROR: EndcapModule::EndcapModule() in the sample module has an undefined geometry" << std::endl;
+    }
 }
 
 EndcapModule::EndcapModule(double alpha, double d, double maxRho /* = -1 */) : Module() {

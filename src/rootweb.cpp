@@ -554,12 +554,14 @@ RootWPage::RootWPage() {
   title_ = "Untitled";
   site_ = NULL;
   targetDirectory_ = "";
+  alert_ = 0;
 }
 
 RootWPage::RootWPage(string title) {
   setTitle(title);
   site_ = NULL;
   targetDirectory_ = "";
+  alert_ = 0;
 }
 
 RootWPage::~RootWPage() {
@@ -602,6 +604,15 @@ RootWContent& RootWPage::addContent(string title, bool visible /*=true*/) {
   return (*newContent);
 }
 
+void RootWPage::setAlert(double alert) {
+  if (alert<0) alert_=0;
+  else if (alert>1) alert_=1;
+  else alert_=alert;
+}
+
+double RootWPage::getAlert() {
+  return alert_;
+}
 
 ostream& RootWPage::dump(ostream& output) {
   bool fakeSite=false;
@@ -775,23 +786,37 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "        <h1>" << endl
 	 << "    <a href=\"index.html\">" << title_ << "</a>" << endl
 	 << "        </h1>" << endl;
-if (commentLink_=="") {
-	 output << "    <h2>"<<comment_<<"</h2>" << endl;
-} else {
-	 output << "    <h2>"
-                << "<a href=\"" << commentLink_ << "\">"
-                << comment_
-                << "</a>"
-                << "</h2>" << endl;
-}
-	 output << "      </div>" << endl
+  if (commentLink_=="") {
+    output << "    <h2>"<<comment_<<"</h2>" << endl;
+  } else {
+    output << "    <h2>"
+	   << "<a href=\"" << commentLink_ << "\">"
+	   << comment_
+	   << "</a>"
+	   << "</h2>" << endl;
+  }
+  output << "      </div>" << endl
 	 << "      <div id=\"menu\">" << endl
 	 << "        <ul>" << endl;
   for (vector<RootWPage*>::iterator it = pageList_.begin();
        it !=pageList_.end(); ++it) {
     output << "          <li";
     if ((*it)==(thisPage)) output << " class=\"current\"";
-    output << ">" << "    <a href=\"" << (*it)->getAddress() << "\" >"<< (*it)->getTitle() <<"</a>" << "          </li>" << endl;
+    output << ">";
+    output  << "    <a href=\"" << (*it)->getAddress() << "\" ";
+    if ((*it)->getAlert()>0) {
+      ostringstream anAlarmColor;
+      anAlarmColor.str("");
+      anAlarmColor << "rgb(255, " 
+		   << int(255 * (*it)->getAlert())
+		   << ", 0)";
+      output << " style = 'background:"
+		   << anAlarmColor.str()
+		   << ";' ";
+    }
+    output << ">";
+    output << (*it)->getTitle();
+    output <<"</a>" << "          </li>" << endl;
   }
   output << "        </ul>" << endl
 	 << "      </div>" << endl

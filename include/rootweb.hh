@@ -263,6 +263,7 @@ private:
   vector<RootWContent*> contentList_;
   RootWSite* site_;
   string targetDirectory_;
+  double alert_;
 
 public:
   ~RootWPage();
@@ -277,6 +278,8 @@ public:
   ostream& dump(ostream& output);
   void addContent(RootWContent* newContent);
   RootWContent& addContent(string title, bool visible=true);
+  void setAlert(double alert);
+  double getAlert();
 };
 
 class RootWItemCollection {

@@ -673,6 +673,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     int nDisks = 0;
     int phiSegments = 4;
     int diskParity = 0;
+    double smallDelta = 0.5;
+    double bigDelta = 3;
     pair<double, double> bmsize, emsize; // width, length
     map<int, double> layerDirectives;
     map<int, LayerOption> layerOptions;
@@ -685,6 +687,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         throw parsingException();
     }
     myTracker_ = new Tracker(myName);
+    myTracker_->setSmallDelta(smallDelta);
+    myTracker_->setBigDelta(bigDelta);
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {

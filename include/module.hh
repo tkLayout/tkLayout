@@ -31,8 +31,9 @@ using namespace ROOT::Math;
 typedef std::pair<double, int> edge;
 
 class Module {
-
- protected:
+  friend ostream& operator<<(ostream& output, const Module& m);
+  
+protected:
   int shape_;
   double aspectRatio_;
 
@@ -136,6 +137,7 @@ class Module {
   XYZVector* marginBorderSide(double margin, int side);
 
   void print();
+  
 
   int projectSideZ(int side, double destZ, double displaceZ = 0);
   int projectSideRho(int side, double destRho, double displaceZ = 0);
