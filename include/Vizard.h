@@ -80,7 +80,7 @@ namespace insur {
     // Formatting parameters
     static const int coordPrecision = 0;
     static const int areaPrecision = 1;
-    static const int occupancyPrecision = 4;
+    static const int occupancyPrecision = 1;
     static const int rphiResolutionPrecision = 0;
     static const int pitchPrecision = 0;
     static const int stripLengthPrecision = 1;

@@ -1225,6 +1225,7 @@ namespace insur {
         std::vector<std::string> channelstrips;
         std::vector<std::string> channelpts;
         std::vector<std::string> powers;
+        std::vector<std::string> powerPerModules;
         std::vector<std::string> costs;
         
         double totalPower=0; 
@@ -1246,6 +1247,7 @@ namespace insur {
         std::ostringstream aNumberSens;
         std::ostringstream aChannel;
         std::ostringstream aPower;
+        std::ostringstream aPowerPerModule;
         std::ostringstream aCost;
 	std::ostringstream aWeight;
         int barrelCount=0;
@@ -1279,8 +1281,9 @@ namespace insur {
         static const int channelstripRow = 14;
         static const int channelptRow = 15;
         static const int powerRow = 16;
-        static const int costRow = 17;
-	static const int weightRow = 18;
+        static const int powerPerModuleRow = 17;
+        static const int costRow = 18;
+	static const int weightRow = 19;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1299,6 +1302,7 @@ namespace insur {
         moduleTable->setContent(channelstripRow, 0, "Channels (M)");
         moduleTable->setContent(channelptRow, 0, "Channels (M)");
         moduleTable->setContent(powerRow, 0, "Power (kW)");
+        moduleTable->setContent(powerPerModuleRow, 0, "Power (W)");
         moduleTable->setContent(costRow, 0, "Cost (MCHF)");
         moduleTable->setContent(weightRow, 0, "Weight (av, g)");
         
@@ -1383,6 +1387,11 @@ namespace insur {
             1e-6 *                                           // conversion CHF-> MCHF
             typeMapCount[(*typeMapIt).first];                // Number of modules
             totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
+	    aPowerPerModule.str("");
+            aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
+			    << ((*typeMapIt).second->getNChannelsPerFace() *  // number of channels per face
+				(*typeMapIt).second->getNFaces() *            // number of faces
+				tracker.getPower((*typeMapIt).second->getReadoutType())); // power consumption in W/channel
             // Weight
 	    aWeight.str("");
 	    aWeight << std::fixed << std::setprecision(weightPrecision) <<
@@ -1402,6 +1411,7 @@ namespace insur {
             moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
             moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
             moduleTable->setContent(powerRow, iType, aPower.str());
+            moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
             moduleTable->setContent(costRow, iType, aCost.str());
             moduleTable->setContent(weightRow, iType, aWeight.str());
 
@@ -1456,6 +1466,7 @@ namespace insur {
         << totChannelPts / 1e6 << emphEnd;
         moduleTable->setContent(channelptRow, iType, aChannel.str());
         aPower.str("");
+	aPowerPerModule.str("");
         aCost.str("");
 	aWeight.str("");
         aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
@@ -1463,6 +1474,7 @@ namespace insur {
         aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
 		 << " (kg)";
         moduleTable->setContent(powerRow, iType, aPower.str());
+        moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
         moduleTable->setContent(costRow, iType, aCost.str());
         moduleTable->setContent(weightRow, iType, aWeight.str());
         
