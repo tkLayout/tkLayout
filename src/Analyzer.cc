@@ -245,7 +245,7 @@ namespace insur {
 		for (unsigned int i = 0;
 		     i<hadronNeededHitsFraction.size();
 		     ++i) {
-		  requiredHits = ceil(double(nActive) * hadronNeededHitsFraction.at(i));
+                  requiredHits = int(ceil(double(nActive) * hadronNeededHitsFraction.at(i)));
 		  if (requiredHits==0)
 		    probability=1;
 		  else if (requiredHits>probabilities.size())
