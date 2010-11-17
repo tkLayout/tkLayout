@@ -139,6 +139,7 @@ Track::Track(const Track& t) {
     deltad_ = t.deltad_;
     deltaCtgTheta_ = t.deltaCtgTheta_;
     deltaZ0_ = t.deltaZ0_;
+    deltaP_ = t.deltaP_;
     vector<Hit*>::const_iterator iter, guard = t.hitV_.end();
     for (iter = t.hitV_.begin(); iter != guard; iter++) {
         Hit* h = new Hit(*(*iter));
@@ -658,6 +659,7 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
     deltad_.clear();
     deltaCtgTheta_.clear();
     deltaZ0_.clear();
+    deltaP_.clear();
 
     // Compute the relevant matrices (RZ plane)
     computeCorrelationMatrixRZ(momentaList);
@@ -681,6 +683,7 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaZ0_.insert(err);
+
 #ifdef HIT_DEBUG_RZ
 	std::cerr << err.second << std::endl;
 #endif
@@ -714,6 +717,19 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         deltad_.insert(err);
     }
 
+    // Combining into p measurement
+    for (unsigned int i=0; i<momentaList.size(); ++i) {
+      double ptErr = deltarho_[momentaList[i]];
+      double R = momentaList[i] / insur::magnetic_field / 0.3 * 1E3; // radius in mm
+      ptErr *= R; // fractional dpT/pT = dRho / Rho = dRho * R
+      double ctgThetaErr = deltaCtgTheta_[momentaList[i]];
+      // dp/p = dp_t/p_t + A / (1+A^2) * dA // with A = ctg(theta)
+      // dp/p = dp_t/p_t + sin(theta)*cos(theta) //
+      //double A = 1 / tan(theta_);
+      //double pErr = ptErr + A / (1+A*A) * ctgThetaErr;
+      double pErr = ptErr + sin(theta_) * cos(theta_) * ctgThetaErr;
+      deltaP_[momentaList[i]]=pErr;
+    }
 
 }
 

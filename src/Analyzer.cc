@@ -295,8 +295,8 @@ namespace insur {
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles);
-        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal);
+        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles);
+        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -796,7 +796,8 @@ namespace insur {
                                   std::map<double, TGraph>& thisPhiProfiles,
                                   std::map<double, TGraph>& thisDProfiles,
                                   std::map<double, TGraph>& thisCtgThetaProfiles,
-                                  std::map<double, TGraph>& thisZ0Profiles) {
+                                  std::map<double, TGraph>& thisZ0Profiles,
+                                  std::map<double, TGraph>& thisPProfiles) {
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = trackVector.size();
@@ -806,6 +807,7 @@ namespace insur {
         thisDProfiles.clear();
 	thisCtgThetaProfiles.clear();
 	thisZ0Profiles.clear();
+	thisPProfiles.clear();
         // momentum loop
         std::ostringstream aName;
         for (iter = p.begin(); iter != guard; iter++) {
@@ -838,6 +840,11 @@ namespace insur {
 	    thisZ0Profiles[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
             aName.str(""); aName << "z_vs_eta" << *iter;
             thisZ0Profiles[elem.first].SetName(aName.str().c_str());
+            // Prepare plots: p
+            thisPProfiles.insert(elem);
+            thisPProfiles[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+            aName.str(""); aName << "p_vs_eta" << *iter;
+            thisPProfiles[elem.first].SetName(aName.str().c_str());
         }
         // track loop
 	std::map<double,int> rhoPointCount;
@@ -845,6 +852,7 @@ namespace insur {
 	std::map<double,int> dPointCount;
 	std::map<double,int> ctgPointCount;
 	std::map<double,int> z0PointCount;
+	std::map<double,int> pPointCount;
         double graphValue;
         for (int i = 0; i < n; i++) {
             std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
@@ -852,6 +860,7 @@ namespace insur {
             std::map<double, double>& dd = trackVector.at(i).getDeltaD();
             std::map<double, double>& dctg = trackVector.at(i).getDeltaCtgTheta();
             std::map<double, double>& dz0 = trackVector.at(i).getDeltaZ0();
+            std::map<double, double>& dp = trackVector.at(i).getDeltaP();
             eta = - log(tan(trackVector.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
@@ -896,6 +905,13 @@ namespace insur {
 		thisZ0Profiles[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
 	      }
             }	    
+            mguard = dp.end();
+            for (miter = dp.begin(); miter != mguard; miter++) {
+              if (thisPProfiles.find(miter->first) != thisPProfiles.end()) {
+                graphValue =  (miter->second) * 100.; // in percent 
+                thisPProfiles[miter->first].SetPoint(pPointCount[miter->first]++, eta, graphValue);
+              }
+            }
         }
     }
     

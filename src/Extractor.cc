@@ -505,9 +505,9 @@ namespace insur {
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_barrel_module + shapename.str();
                                 rot.thetax = 90.0;
-                                rot.phix = iiter->getModule().getStereoRotation();
+                                rot.phix = iiter->getModule().getStereoRotation() / M_PI * 180;
                                 rot.thetay = 90.0;
-                                rot.phiy = 90.0 + iiter->getModule().getStereoRotation();
+                                rot.phiy = 90.0 + iiter->getModule().getStereoRotation() / M_PI * 180;
                                 r.push_back(rot);
                                 pos.rotref = nspace + ":" + rot.name;
                             }
@@ -831,9 +831,9 @@ namespace insur {
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_endcap_module + mname.str();
                                 rot.thetax = 90.0;
-                                rot.phix = iiter->getModule().getStereoRotation();
+                                rot.phix = iiter->getModule().getStereoRotation() / M_PI * 180;
                                 rot.thetay = 90.0;
-                                rot.phiy = 90.0 + iiter->getModule().getStereoRotation();
+                                rot.phiy = 90.0 + iiter->getModule().getStereoRotation() / M_PI * 180;
                                 r.push_back(rot);
                                 pos.rotref = nspace + ":" + rot.name;
                             }

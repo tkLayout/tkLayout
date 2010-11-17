@@ -104,6 +104,7 @@ protected:
   map<momentum, double> deltad_;
   map<momentum, double> deltaCtgTheta_;
   map<momentum, double> deltaZ0_;
+  map<momentum, double> deltaP_;
   void computeCorrelationMatrixRZ(const vector<double>& momenta);
   void computeCovarianceMatrixRZ();
   void computeCorrelationMatrix(const vector<double>& momenta);
@@ -123,6 +124,7 @@ public:
   map<momentum, double>& getDeltaD() { return deltad_; };
   map<momentum, double>& getDeltaCtgTheta() { return deltaCtgTheta_; };
   map<momentum, double>& getDeltaZ0() { return deltaZ0_; };
+  map<momentum, double>& getDeltaP() { return deltaP_; };
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);

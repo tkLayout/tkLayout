@@ -1767,11 +1767,13 @@ namespace insur {
 	      TCanvas angleCanvas;
 	      TCanvas ctgThetaCanvas;
 	      TCanvas z0Canvas;
+	      TCanvas pCanvas;
 	      momentumCanvas.SetGrid(1,1);
 	      distanceCanvas.SetGrid(1,1);
 	      angleCanvas.SetGrid(1,1);
 	      ctgThetaCanvas.SetGrid(1,1);
 	      z0Canvas.SetGrid(1,1);
+	      pCanvas.SetGrid(1,1);
 	      std::string plotOption = "Ap";
 	      std::map<double, TGraph>::iterator g_iter, g_guard;
 	      // momentum canvas loop
@@ -1885,8 +1887,32 @@ namespace insur {
                 z0Graph.Draw(plotOption.c_str());
 		plotOption = "p same";
 	      }
+	      plotOption = "Ap";
+	      myColor=0;
+	      // p canvas loop
+	      g_guard = a.getPProfiles(idealMaterial).end();
+	      for (g_iter = a.getPProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+                TGraph& pGraph = g_iter->second;
+		if (idealMaterial) {
+		  pGraph.SetMinimum(1E-5*100);
+		  pGraph.SetMaximum(.11*100);		  
+		} else {
+		  pGraph.SetMinimum(4E-3*100);
+		  pGraph.SetMaximum(.11*100);
+		}
+                pGraph.GetXaxis()->SetLimits(0, 2.4);
+		pCanvas.SetLogy();
+		pGraph.SetLineColor(momentumColor(myColor));
+		pGraph.SetMarkerColor(momentumColor(myColor));
+                myColor++;
+		pGraph.SetMarkerStyle(8);
+                pCanvas.cd();
+                pCanvas.SetFillColor(color_plot_background);
+                pGraph.Draw(plotOption.c_str());
+		plotOption = "p same";
+	      }
 	      RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
-	      momentumImage.setComment("Momentum resolution vs. eta");
+	      momentumImage.setComment("Transverse momentum resolution vs. eta");
 	      momentumImage.setName("ptres");
 	      RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
 	      distanceImage.setComment("Distance of closest approach resolution vs. eta");
@@ -1900,6 +1926,9 @@ namespace insur {
 	      RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
 	      z0Image.setComment("z0 resolution vs. eta");
 	      z0Image.setName("dzres");
+	      RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
+	      pImage.setComment("Momentum resolution vs. eta");
+	      pImage.setName("pres");
             }
 
 	    // Check that the ideal and real have the same pts
@@ -1915,6 +1944,7 @@ namespace insur {
 	    plotNames.push_back("phi");
 	    plotNames.push_back("ctg(theta)");
 	    plotNames.push_back("z0");
+	    plotNames.push_back("p");
 	    for (std::vector<std::string>::iterator it=plotNames.begin();
 		 it!=plotNames.end(); ++it) {
 	      tableMap[(*it)] = &(summaryContent.addTable());
@@ -1958,6 +1988,7 @@ namespace insur {
 	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiProfiles);
 	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles);
 	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles);
+	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPProfiles);
 
 	    // TODO: remove this useless cycle
 	    /*

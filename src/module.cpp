@@ -70,12 +70,13 @@ double Module::getResolutionY() {
  double result;
  // TODO: handle this correctly once and for all!
  //if (type_=="stereo") result = sqrt(2) * getResolutionRphi() / sin(0.1);
- if (type_=="stereo") result = getResolutionRphi() / sin(0.1);
+ //if (type_=="stereo") result = getResolutionRphi() / sin(0.1);
+ if (stereorot_!=0) result = getResolutionRphi() / sin(stereorot_);
  else result = height_ / (double)(nSegments_) / sqrt(12); 
  return result;
 }
 
-// TODO: add special case for PT modules
+// TODO: better special case for PT modules
 double BarrelModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = width_ / (double)(nStripAcross_) / sqrt(12);
@@ -84,7 +85,7 @@ double BarrelModule::getResolutionRphi() {
   return result;
 }
 
-// TODO: add special case for PT modules
+// TODO: better special case for PT modules
 double EndcapModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  
