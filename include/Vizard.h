@@ -146,6 +146,8 @@ namespace insur {
         bool errorSummary(Analyzer& a, RootWSite& site);
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 	bool makeLogPage(RootWSite& site);
+	std::string getSummaryString();
+	std::string getSummaryLabelString();
 #endif
     protected:
         TGeoManager* gm;
@@ -185,6 +187,19 @@ namespace insur {
 			 std::map<graphIndex, TGraph*>& myPlotMap,
 			 Analyzer *a,
 			 std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool));
+        std::string summaryCsv_;
+        std::string summaryCsvLabels_;
+	std::string occupancyCsv_;
+	void setSummaryString(std::string);
+	void addSummaryElement(std::string element, bool first = false);
+	void setSummaryLabelString(std::string);
+	void addSummaryLabelElement(std::string element, bool first = false);
+	void addSummaryElement(double element, bool first = false);
+
+	void setOccupancyString(std::string newString) { occupancyCsv_ = newString; };
+	void addOccupancyElement(double element);
+	void addOccupancyElement(std::string element);
+	void addOccupancyEOL();
     };
 }
 #endif	/* _VIZARD_H */

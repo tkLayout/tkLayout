@@ -122,8 +122,9 @@ namespace insur {
 	TH2D& getMapPhiEta() { return mapPhiEta; }
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
         TH1D& getHitDistribution() {return hitDistribution;};
-        TProfile& getTotalEtaProfile() {return totalEtaProfile;}
-        std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;}
+        TProfile& getTotalEtaProfile() {return totalEtaProfile;};
+	TGraph& getPowerDensity() {return powerDensity;};
+        std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;};
         std::vector<TObject> getSavingVector();
 	TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
 	TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
@@ -205,6 +206,7 @@ namespace insur {
 	std::vector<double> hadronNeededHitsFraction;
 	std::vector<TGraph> hadronGoodTracksFraction;
 
+	TGraph powerDensity;
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
   

@@ -45,9 +45,10 @@ namespace insur {
         // Not strictly necessary, but it's useful to keep
         // the color the same for the most used module types
         lastPickedColor = STARTCOLOR;
-        colorPicker("pt");
+        colorPicker("ptOut");
         colorPicker("rphi");
         colorPicker("stereo");
+        colorPicker("ptIn");
         geomLite = NULL;   geomLiteCreated=false;
         geomLiteXY = NULL; geomLiteXYCreated=false;
         geomLiteYZ = NULL; geomLiteYZCreated=false;
@@ -67,6 +68,9 @@ namespace insur {
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
             MaterialBudget* pm) {
+
+        Tracker& tracker = mb.getTracker();
+        double efficiency = tracker.getEfficiency();
         materialTracksUsed = etaSteps;
 #ifdef DEBUG_PERFORMANCE
         struct tm *localt; // timing: debug
@@ -201,6 +205,7 @@ namespace insur {
  	    track.addHit(hit);
             if (!track.noHits()) {
 	      track.sort();
+              if (efficiency!=1) track.addEfficiency(efficiency, false);
 	      track.computeErrors(momenta);
 	      tv.push_back(track);
 	      Track trackIdeal = track;
@@ -1063,6 +1068,12 @@ namespace insur {
         //geomLiteXY->SetName("geometryLiteXY"); geomLiteXY->SetTitle("Modules geometry (XY Section)");
         //geomLiteYZ->SetName("geometryLiteYZ"); geomLiteYZ->SetTitle("Modules geometry (EC Section)");
         //geomLiteEC->SetName("geometryLiteEC"); geomLiteEC->SetTitle("Modules geometry (Endcap)");
+
+        // Power density
+	while (powerDensity.GetN()) powerDensity.RemovePoint(0);
+	powerDensity.SetName("powerdensity");
+        powerDensity.SetTitle("Power density;Total area [m^{2}];Power density [W / cm^{2}]");
+
     }
     
     /**
@@ -1511,14 +1522,14 @@ namespace insur {
         t = time(NULL);
         localt = localtime(&t);
 #endif
-        
+
         // Eta profile compute
         //TProfile *myProfile;
         
         etaProfileCanvas.cd();
         savingGeometryV.push_back(etaProfileCanvas);
         int plotCount=0;
-        
+
         //TProfile* total = total2D.ProfileX("etaProfileTotal");
         totalEtaProfile = TProfile(*total2D.ProfileX("etaProfileTotal"));
         savingGeometryV.push_back(totalEtaProfile);
@@ -1553,6 +1564,30 @@ namespace insur {
         for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
             hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
         }
+
+        std::string aSensorTag;
+        std::map<std::string, int> typeToCount;
+        std::map<std::string, double> typeToPower;
+        std::map<std::string, double> typeToSurface;
+        // Type summary
+        for (ModuleVector::iterator aModule = allModules.begin();
+             aModule != allModules.end(); ++aModule) {
+	  aSensorTag=(*aModule)->getSensorTag();
+	  typeToCount[aSensorTag] ++;
+	  typeToPower[aSensorTag] += ((*aModule)->getNChannelsPerFace() *  // number of channels per face
+				      (*aModule)->getNFaces() *            // number of faces
+				      tracker.getPower((*aModule)->getReadoutType()) );
+	  typeToSurface[aSensorTag] += (*aModule)->getArea();
+        }
+	
+	int iPoints = 0;
+	for (std::map<std::string, int>::iterator typesIt = typeToCount.begin();
+	     typesIt != typeToCount.end(); ++typesIt ) {
+	  aSensorTag = (typesIt)->first;
+	  powerDensity.SetPoint(iPoints++,
+				typeToSurface[aSensorTag],
+				typeToPower[aSensorTag] / typeToSurface[aSensorTag] );
+	}
         
         return;
     }
@@ -1692,7 +1727,9 @@ namespace insur {
         if (type=="") return COLOR_INVALID_MODULE;
         if (colorPickMap[type]==0) {
             // New type! I'll pick a new color
-            colorPickMap[type]=++lastPickedColor;
+            lastPickedColor++;
+            if (lastPickedColor==5) lastPickedColor++;
+            colorPickMap[type]=lastPickedColor;
         }
         return colorPickMap[type];
     }

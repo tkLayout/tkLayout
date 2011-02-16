@@ -133,5 +133,6 @@ public:
   int nActiveHits(bool usePixels  = false );
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
+  void addEfficiency(double efficiency, bool alsoPixel = false);
 };
 #endif

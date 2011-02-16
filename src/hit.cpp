@@ -8,6 +8,7 @@
 #include <global_constants.h>
 #include <vector>
 #include <algorithm>
+#include <cstdlib>
 
 using namespace ROOT::Math;
 using namespace std;
@@ -765,5 +766,23 @@ void Track::printErrors() {
     guard = deltad_.end();
     for (iter = deltad_.begin(); iter != guard; iter++)
         std::cout << "momentum = " << iter->first << ": deltaD = " << iter->second << std::endl;
+}
+
+/**
+ * Changes some active hits into inactive
+ * according to the efficiency 
+ * @param efficiency the modules active fraction
+ * @param alsoPixel true if the efficiency removal applies to the pixel hits also
+ */
+void Track::addEfficiency(double efficiency, bool alsoPixel /* = false */ ) {
+  for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
+    if ((*it)->getObjectKind() == Hit::Active) {
+      if ((alsoPixel)||(!(*it)->isPixel())) {
+	if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
+	  (*it)->setObjectKind(Hit::Inactive);
+	}
+      }
+    }
+  }
 }
 

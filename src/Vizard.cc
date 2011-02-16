@@ -899,6 +899,22 @@ namespace insur {
 	myImage->setName("hadHits");
         myContent->addItem(myImage);	
 
+	// Prepare the cuts for the averages
+	// Three slices of 0.8 each
+	std::vector<std::string> cutNames;
+	std::vector<double> cuts;
+	ostringstream label;
+	cuts.push_back(0.01);
+	cuts.push_back(0.8);
+	cuts.push_back(1.6);
+	cuts.push_back(2.4);
+	cutNames.push_back("C");
+	cutNames.push_back("I");
+	cutNames.push_back("F");
+	//unsigned int nCuts = cutNames.size();
+	std::map<int, std::vector<double> > averages;
+
+
 	// Number of hits
 	std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
 	std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
@@ -916,10 +932,12 @@ namespace insur {
 	myAxis->SetTitle("Tracks fraction");
 	ranger->Draw();
 	ostringstream tempSS;
+	std::map<int, std::string> fractionTitles;
 	for (unsigned int i=0;
 	     i<hadronGoodTracksFraction.size();
 	     ++i) {
 	  TGraph& myGraph = hadronGoodTracksFraction.at(i);
+	  averages[i] = Analyzer::average(myGraph, cuts);
 	  closeGraph(myGraph);
 	  myGraph.SetFillColor(Palette::color(i));
 	  myGraph.Draw("same F");
@@ -930,7 +948,8 @@ namespace insur {
 	    else
 	      tempSS << int(hadronNeededHitsFraction.at(i)*100)
 		     << "% hits required";
-	    myLegend->AddEntry(&myGraph, tempSS.str().c_str(), "F");
+	    fractionTitles[i]=tempSS.str();
+	    myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
 	  }
 	}
 	ranger->Draw("sameaxis");
@@ -939,6 +958,48 @@ namespace insur {
         myImage->setComment("Fraction of tracks with a given fraction of good hits (hadrons)");
 	myImage->setName("hadTracks");
         myContent->addItem(myImage);
+
+	if (name=="outer") {
+	  
+	  // Summary table
+	  RootWContent& summaryContent = myPage->addContent("Summary", false);
+	  RootWTable& cutsTable = summaryContent.addTable();
+	  RootWTable& summaryTable = summaryContent.addTable();
+	  summaryTable.setContent(0,0,"Clean pions");
+	  
+	  // Table explaining the cuts
+	  cutsTable.setContent(0,0,"Region");
+	  cutsTable.setContent(1,0,"etaMin");
+	  cutsTable.setContent(2,0,"etaMax");
+	  
+	  myTable = &cutsTable;
+	  for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
+	    myTable->setContent(0,iBorder+1,cutNames[iBorder]);
+	    label.str(""); label << cuts[iBorder];
+	    myTable->setContent(1,iBorder+1,label.str());
+	    label.str(""); label << cuts[iBorder+1];
+	    myTable->setContent(2,iBorder+1,label.str());
+	  }
+	  
+	  int delta=1;
+	  for (unsigned int i=0;
+	       i<hadronGoodTracksFraction.size();
+	       ++i) {
+	    if (fractionTitles[i]!="") {
+	      summaryTable.setContent(i+delta,0,fractionTitles[i]);
+	      int j=0;
+	      for ( std::vector<double>::iterator it = averages[i].begin();
+		    it != averages[i].end(); ++it ) {
+		//std::cout << "average: " << (*it) << std::endl;
+		summaryTable.setContent(i+delta,j+1, (*it),2);
+		summaryTable.setContent(0,j+1, cutNames[j]);
+		addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
+		addSummaryElement(*it);
+		j++;
+	      }
+	    } else delta--;
+	  }
+	}
     }
     
 #endif
@@ -1049,7 +1110,57 @@ namespace insur {
         }
         return avg;
     }
-    
+  
+  std::string Vizard::getSummaryString() {
+    return summaryCsv_;
+  }
+  
+  std::string Vizard::getSummaryLabelString() {
+    return summaryCsvLabels_;
+  }
+
+  void Vizard::setSummaryString(std::string myString) {
+    summaryCsv_ = myString;
+  }
+
+  void Vizard::setSummaryLabelString(std::string myString) {
+    summaryCsvLabels_ = myString;
+  }
+
+  void Vizard::addSummaryElement(std::string element, bool first /*= false*/ ) {
+    if (!first) summaryCsv_+=csv_separator;
+    summaryCsv_+=element;
+  }
+
+  void Vizard::addSummaryLabelElement(std::string element, bool first /*= false*/ ) {
+    if (!first) summaryCsvLabels_+=csv_separator;
+    summaryCsvLabels_+=element;
+  }
+
+  void Vizard::addSummaryElement(double element, bool first /*= false*/ ) {
+    std::ostringstream myElement;
+    std::string myString;
+    myElement.str("");
+    myElement << element;
+    addSummaryElement(myElement.str(), first);
+  }
+
+  void Vizard::addOccupancyElement(std::string element) {
+    occupancyCsv_ += element;
+    occupancyCsv_ += csv_separator;
+  }
+
+  void Vizard::addOccupancyElement(double element) {
+    std::ostringstream myElement;
+    std::string myString;
+    myElement.str("");
+    myElement << element;
+    addOccupancyElement(myElement.str());
+  }
+
+  void Vizard::addOccupancyEOL() {
+    occupancyCsv_ += "\n";
+  }
     
 #ifdef USING_ROOTWEB
     /**
@@ -1253,9 +1364,7 @@ namespace insur {
         int barrelCount=0;
         int endcapCount=0;
         Module* aModule;
-        
-        
-        
+
         //********************************//
         //*                              *//
         //*       Modules                *//
@@ -1308,6 +1417,16 @@ namespace insur {
         
         int loPitch;
         int hiPitch;
+
+	setOccupancyString("");
+
+	addOccupancyElement(tracker.getName());
+	addOccupancyElement("");
+	addOccupancyElement("");
+	addOccupancyEOL();
+	addOccupancyElement("radius");
+	addOccupancyElement("occupancy [%]");
+	addOccupancyElement("rphi resolution [um]");
         
         // Summary cycle: prepares the rows cell by cell
         int iType=0;
@@ -1335,6 +1454,11 @@ namespace insur {
             // Occupancy
             anOccupancy.str("");
             anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+	    
+	    addOccupancyEOL();
+	    addOccupancyElement((aModule->getMinRho() + aModule->getMaxRho())/2);
+	    addOccupancyElement(typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
+	    
 	    // RphiResolution
 	    anRphiResolution.str("");
 	    anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
@@ -1345,6 +1469,8 @@ namespace insur {
 	    aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
             hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
+            addOccupancyElement((loPitch+hiPitch)/2);
+
             if (loPitch==hiPitch) {
                 aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision) << loPitch;
             } else {
@@ -1428,7 +1554,32 @@ namespace insur {
                 moduleTable->setContent(areaptRow, iType, anArea.str());
             }
         }
-        
+
+	// Summary in short
+	setSummaryString(tracker.getName());
+	setSummaryLabelString("Name");
+	addSummaryElement(totAreaStrips/1e6);
+	addSummaryElement(totAreaPts/1e6);
+	addSummaryElement(totAreaPts/1e6 + totAreaStrips/1e6);
+	addSummaryElement(totCountMod);
+	addSummaryElement(totCountSens);
+	addSummaryElement(totChannelStrips / 1e6);
+	addSummaryElement(totChannelPts / 1e6);
+	addSummaryElement(totalPower);
+	addSummaryElement(totalCost);
+	addSummaryElement(totalWeight/1.e3);
+
+	addSummaryLabelElement("Area (strips) mq");
+	addSummaryLabelElement("Area (pt) mq");
+	addSummaryLabelElement("Area (total) mq");
+	addSummaryLabelElement("Modules");
+	addSummaryLabelElement("Sensors");
+	addSummaryLabelElement("Standard channels (M)");
+	addSummaryLabelElement("pt channels (M)");
+	addSummaryLabelElement("Power (kW)");
+	addSummaryLabelElement("Cost (MCHF)");
+	addSummaryLabelElement("Weight (kg)");
+
         // Score totals
         ++iType;
         moduleTable->setContent(0, iType, "Total");
@@ -1519,7 +1670,6 @@ namespace insur {
             myContent->addItem(myImage);
         }
 
-        
         /*
          * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
          * myCanvas->cd();
@@ -1563,6 +1713,21 @@ namespace insur {
         myImage = new RootWImage(hitMapCanvas, 600, 600);
         myImage->setComment("Hit coverage in eta, phi");
         myContent->addItem(myImage);
+
+	// Power density
+	myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
+	myCanvas->cd();
+	myCanvas->SetLogx();
+	myCanvas->SetLogy();
+	TGraph& pd = analyzer.getPowerDensity();
+	pd.SetMarkerStyle(8);
+	pd.SetMarkerColor(kBlue);
+	pd.Draw("ap");
+	myCanvas->SetFillColor(color_plot_background);
+	myImage = new RootWImage(myCanvas, 600, 600);
+	myImage->setComment("Power density distribution");
+	myContent->addItem(myImage);        
+
         
         // TODO: make this meaningful!
         return true;
@@ -1602,7 +1767,7 @@ namespace insur {
         RootWPage* myPage = new RootWPage("Info");
         myPage->setAddress("info.html");
         site.addPage(myPage);
-        RootWContent *simulationContent, *filesContent;
+        RootWContent *simulationContent, *filesContent, *summaryContent;
         RootWBinaryFile* myBinaryFile;
         std::string trackerName = tracker.getName();
         
@@ -1619,6 +1784,8 @@ namespace insur {
         myPage->addContent(simulationContent);
         filesContent = new RootWContent("Geometry files");
         myPage->addContent(filesContent);
+        summaryContent = new RootWContent("Summary");
+        myPage->addContent(summaryContent);
         
         if (geomfile!="") {
             std::string destinationFilename = trackerName + ".cfg";
@@ -1676,7 +1843,25 @@ namespace insur {
         myTable->setContent(2, 1, tracker.getPower(Module::Pt)*1e3, powerPerUnitPrecision);
         myTable->setContent(2, 2, tracker.getPower(Module::Strip)*1e3, powerPerUnitPrecision);
         simulationContent->addItem(myTable);
-        
+       
+        //********************************//
+        //*                              *//
+        //*  Summary files               *//
+        //*                              *//
+        //********************************//
+
+	// Summary of layout and performance
+	myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
+	myTextFile->addText(getSummaryLabelString()+"\n");
+	myTextFile->addText(getSummaryString());
+	summaryContent->addItem(myTextFile);
+
+	// Occupancy vs. radius
+	myTextFile = new RootWTextFile("occupancy.csv", "Occupancy vs. radius");
+	myTextFile->addText(occupancyCsv_);
+	summaryContent->addItem(myTextFile);
+	
+	
         return true; // TODO: make this meaningful
     }
     
@@ -1958,8 +2143,9 @@ namespace insur {
 	    std::string name;	   
 	    RootWTable* myTable;
 
-	    cuts.push_back(0.05);
-	    cuts.push_back(1);
+            // Three slices of 0.8 each
+	    cuts.push_back(0.01);
+	    cuts.push_back(0.8);
 	    cuts.push_back(1.6);
 	    cuts.push_back(2.4);
 	    cutNames.push_back("C");
@@ -1989,20 +2175,6 @@ namespace insur {
 	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles);
 	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles);
 	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPProfiles);
-
-	    // TODO: remove this useless cycle
-	    /*
-	    for (std::map<graphIndex, TGraph*>::iterator it = myPlotMap.begin();
-		 it!=myPlotMap.end(); ++it) {
-	      myIndex =  (*it).first;
-	      std::cerr << "Check: myIndex.name = " << myIndex.name << std::endl; // debug
-	    }
-	    for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
-		 myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
-	      myIndex =  (*myPlotMapIt).first;
-	      std::cerr << "Check2: myIndex.name = " << myIndex.name << std::endl; // debug
-	      }*/
-
 
 	    // Cycle over the different measurements
 	    for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -2038,6 +2210,7 @@ namespace insur {
 	      TGraph* myGraph;
 	      int myColor;
 	      myIndex.name=(*plotNameIt);
+	      std::ostringstream myLabel;
 	      for (unsigned int i=0; i<momentum.size(); ++i) {
 		baseColumn = nCuts*i+1;
 		myTable->setContent(0, baseColumn, momentum[i],0);
@@ -2070,6 +2243,14 @@ namespace insur {
 		    myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
 		    myTable->setColor(4, baseColumn+j, myColor);
 		  }
+		  myLabel.str("");
+		  myLabel << myIndex.name
+			  << std::dec << std::fixed << std::setprecision(0) 
+			  << myIndex.p << "(" << cutNames[j] << ")";
+		  addSummaryLabelElement(myLabel.str()+"_Real");
+		  addSummaryLabelElement(myLabel.str()+"_Ideal");
+		  addSummaryElement(averagesReal[j]);
+		  addSummaryElement(averagesIdeal[j]);
 		}
 	      }
 	    }

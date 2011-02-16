@@ -80,7 +80,7 @@ double Module::getResolutionY() {
 double BarrelModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = width_ / (double)(nStripAcross_) / sqrt(12);
-  if (type_=="pt") result/=sqrt(2);
+  if (readoutType_==Pt) result/=sqrt(2);
   if (readoutMode_==Cluster) result/=1.5;
   return result;
 }
@@ -89,7 +89,7 @@ double BarrelModule::getResolutionRphi() {
 double EndcapModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  
-  if (type_=="pt") result/=sqrt(2);
+  if (readoutType_==Pt) result/=sqrt(2);
   if (readoutMode_==Cluster) result/=1.5;
   return result;
 }

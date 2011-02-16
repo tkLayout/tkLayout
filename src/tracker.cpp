@@ -101,11 +101,13 @@ void Tracker::setDefaultParameters() {
     arguments_= "";
     maxL_ = 0;
     maxR_ = 0;
-    phiSegments_=4;
+    phiSegments_ = 4;
+    efficiency_ = 1;
     lastPickedColor_ = STARTCOLOR; // remove (obsolete)
-    colorPicker("pt"); // remove these three from here
+    colorPicker("ptOut"); // remove these three from here
     colorPicker("rphi");
     colorPicker("stereo");
+    colorPicker("ptIn");
 }
 
 void Tracker::shapeVolume() {
@@ -2210,7 +2212,9 @@ Color_t Tracker::colorPicker(std::string type) {
     if (type=="") return COLOR_INVALID_MODULE;
     if (colorPickMap_[type]==0) {
         // New type! I'll pick a new color
-        colorPickMap_[type]=++lastPickedColor_;
+        lastPickedColor_++;
+        if (lastPickedColor_==5) lastPickedColor_++;
+        colorPickMap_[type]=lastPickedColor_;
     }
     return colorPickMap_[type];
 }
@@ -2334,6 +2338,12 @@ void Tracker::setModuleTypes(std::string sectionName,
             
             // Readout type definition, according to the module type
             if (aType == "pt") {
+                myReadoutType = Module::Pt;
+            } else if (myType[myIndex] == "pt2") {
+                myReadoutType = Module::Pt;
+            } else if (myType[myIndex] == "ptIn") {
+                myReadoutType = Module::Pt;
+            } else if (myType[myIndex] == "ptOut") {
                 myReadoutType = Module::Pt;
             } else if (myType[myIndex] == "rphi") {
                 myReadoutType = Module::Strip;

@@ -81,6 +81,7 @@ private:
   Color_t lastPickedColor_;                     // obsolete
 
   int iModule_;
+  double efficiency_;
 
   std::string comment_;
 
@@ -234,6 +235,10 @@ public:
   double getBigDelta(const int& index);
   double getOverlap() { return overlap_; };
   double getEtaCut() { return etaCut_; };
+
+  // Module efficiency
+  double getEfficiency() {return efficiency_ ; }
+  void setEfficiency(double newEfficiency) { efficiency_ = newEfficiency ; }
 
   // Access to layer vectors
   LayerVector* getBarrelLayers() { return &barrelLayerSet_; }

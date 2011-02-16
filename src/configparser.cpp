@@ -92,6 +92,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             } else if (parameterName=="zError") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setZError(doubleValue);
+            } else if (parameterName=="efficiency") {
+                doubleValue=atof(parameterValue.c_str());
+                myTracker_->setEfficiency(doubleValue);
             } else if (parameterName=="smallDelta") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setSmallDelta(doubleValue);
