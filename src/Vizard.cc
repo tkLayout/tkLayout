@@ -656,6 +656,20 @@ namespace insur {
         // 1D Overview
         myContent = new RootWContent("1D Overview");
         myPage->addContent(myContent);
+
+        // Prepare the cuts for the averages
+        // Three slices of 0.8 each
+        std::vector<std::string> cutNames;
+        std::vector<double> cuts;
+        ostringstream label;
+        cuts.push_back(0.01);
+        cuts.push_back(0.8);
+        cuts.push_back(1.6);
+        cuts.push_back(2.4);
+        cutNames.push_back("C");
+        cutNames.push_back("I");
+        cutNames.push_back("F");
+        std::map<int, std::vector<double> > averages;
         
         // Book histograms
         THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
@@ -713,7 +727,32 @@ namespace insur {
         myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
         myContent->addItem(myTable);
         myContent->addItem(myImage);
-        
+
+        // Material summary table
+        // @@@@@@@@@
+        RootWTable& materialSummaryTable = myContent->addTable();
+	{
+	  double averageValue;
+	  materialSummaryTable.setContent(1,0,"Rad. length");
+	  materialSummaryTable.setContent(2,0,"Int. length");
+	  for (unsigned int j=0; j< cutNames.size(); ++j) {
+	    // Column: the cut name
+	    materialSummaryTable.setContent(0,j+1, cutNames[j]);
+
+	    // First row: the radiation length
+	    averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
+	    materialSummaryTable.setContent(1,j+1, averageValue ,2);
+	    addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
+	    addSummaryElement(averageValue);
+
+	    // First row: the interaction length
+	    averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
+	    materialSummaryTable.setContent(2,j+1, averageValue ,2);
+	    addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
+	    addSummaryElement(averageValue);
+	  }
+	}
+
         // Detailed plots
         myContent = new RootWContent("Tracking volume", false);
         myPage->addContent(myContent);
@@ -898,22 +937,6 @@ namespace insur {
         myImage->setComment("Maximum and average number of points (hadrons)");
 	myImage->setName("hadHits");
         myContent->addItem(myImage);	
-
-	// Prepare the cuts for the averages
-	// Three slices of 0.8 each
-	std::vector<std::string> cutNames;
-	std::vector<double> cuts;
-	ostringstream label;
-	cuts.push_back(0.01);
-	cuts.push_back(0.8);
-	cuts.push_back(1.6);
-	cuts.push_back(2.4);
-	cutNames.push_back("C");
-	cutNames.push_back("I");
-	cutNames.push_back("F");
-	//unsigned int nCuts = cutNames.size();
-	std::map<int, std::vector<double> > averages;
-
 
 	// Number of hits
 	std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
@@ -1110,6 +1133,33 @@ namespace insur {
         }
         return avg;
     }
+
+    /**
+     * This function computes the average of a range of histogram bins: from the first to the one that includes a
+     * cutoff value along the axis.
+     * @param histo A reference to the histogram data
+     * @param cutoffStart The lower cutoff value
+     * @param cutoffEnd The upper cutoff value
+     * @return The average value of the bins within range
+     */
+    double Vizard::averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd) {
+        double avg = 0.0;
+        int coBinStart = 1;
+        int coBinEnd = 1;
+        if (cutoffStart >= cutoffEnd) return 0;
+        // find first relevant bin
+        while ((coBinStart < histo.GetNbinsX()) && (histo.GetBinLowEdge(coBinStart) < cutoffStart)) coBinStart++;
+        coBinEnd=coBinStart;
+        // find last relevant bin
+        while ((coBinEnd < histo.GetNbinsX()) && (histo.GetBinLowEdge(coBinEnd) < cutoffEnd)) coBinEnd++;
+        double coBinN=coBinEnd-coBinStart+1; // TODO: IMPORTANT check this
+        // calculate average
+        if (coBinStart> histo.GetNbinsX() - 1) coBinStart= histo.GetNbinsX() - 1;
+        if (coBinEnd > histo.GetNbinsX() - 1) coBinEnd= histo.GetNbinsX() - 1;
+        for (int i = coBinStart; i <= coBinEnd; i++) avg = avg + histo.GetBinContent(i) / coBinN;
+        return avg;
+    }
+
   
   std::string Vizard::getSummaryString() {
     return summaryCsv_;
