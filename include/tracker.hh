@@ -6,6 +6,7 @@
 #include <string>
 #include "TGeoManager.h"
 #include "module.hh"
+#include "moduleType.hh"
 #include "layer.hh"
 
 #include "TCanvas.h"
@@ -48,7 +49,7 @@ protected:
   double nMB_;
 
   std::map<int, double> mapTypeToCost_;
-  std::map<int, double> mapTypeToPower_;
+  std::map<std::string, ModuleType> mapType_;
 
   SpecialDelta specialSmallDelta_;
   SpecialDelta specialBigDelta_;
@@ -223,9 +224,12 @@ public:
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); }; // should be made obsolete (should go into Analyzer)
-  double getPower(const int& type) { return(mapTypeToPower_[type]); }; // should be made obsolete (should go into Analyzer)
+  //double getPower(const int& type) { return(mapTypeToPower_[type]); }; // should be made obsolete (should go into Analyzer)
   void setCost(const int& type, const double& newCost) { mapTypeToCost_[type]=newCost; }; // should be made obsolete (should go into Analyzer)
-  void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; }; // should be made obsolete (should go into Analyzer)
+  //void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; }; // should be made obsolete (should go into Analyzer)
+  void setPower(string typeIndex, int powerIndex, double newPower) { mapType_[typeIndex].setPowerPerStrip(newPower, powerIndex); }
+  std::map<std::string, ModuleType>& getTypes() { return mapType_ ; }
+  ModuleType& getModuleType(std::string typeName) { return mapType_[typeName] ; }
 
   // Overlaps / error
   double getZError() { return zError_; };

@@ -720,34 +720,52 @@ namespace insur {
         myImage->setComment("Material in full volume");
 	myImage->setName("matFull");
         myTable = new RootWTable();
-        // TODO: put etaMaxAvg correctly in the string :)
-        myTable->setContent(1, 1, "Average radiation length in full volume (eta = [0, 2.4])");
-        myTable->setContent(2, 1, "Average interaction length in full volume (eta = [0, 2.4])");
+	std::ostringstream anEtaMaxAvg;
+	anEtaMaxAvg.str("");
+	anEtaMaxAvg << "Average radiation length in full volume (eta = [0, ";
+	anEtaMaxAvg << std::dec << std::fixed
+		    << std::setprecision(1) << etaMaxAvg;
+	anEtaMaxAvg << "])";
+        myTable->setContent(1, 1, anEtaMaxAvg.str().c_str());
+	anEtaMaxAvg.str("");
+	anEtaMaxAvg << "Average interaction length in full volume (eta = [0, ";
+	anEtaMaxAvg << std::dec << std::fixed
+		    << std::setprecision(1) << etaMaxAvg;
+	anEtaMaxAvg << "])";
+        myTable->setContent(2, 1, anEtaMaxAvg.str().c_str());
         myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
         myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
         myContent->addItem(myTable);
         myContent->addItem(myImage);
 
         // Material summary table
-        // @@@@@@@@@
-        RootWTable& materialSummaryTable = myContent->addTable();
+        RootWTable* materialSummaryTable = new RootWTable();
 	{
 	  double averageValue;
-	  materialSummaryTable.setContent(1,0,"Rad. length");
-	  materialSummaryTable.setContent(2,0,"Int. length");
+	  materialSummaryTable->setContent(0,0,"Material");
+	  materialSummaryTable->setContent(1,0,"Rad. length");
+	  materialSummaryTable->setContent(2,0,"Int. length");
+	  materialSummaryTable->setContent(3,0,"Photon conversion");
 	  for (unsigned int j=0; j< cutNames.size(); ++j) {
 	    // Column: the cut name
-	    materialSummaryTable.setContent(0,j+1, cutNames[j]);
+	    materialSummaryTable->setContent(0,j+1, cutNames[j]);
 
 	    // First row: the radiation length
 	    averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
-	    materialSummaryTable.setContent(1,j+1, averageValue ,2);
+	    materialSummaryTable->setContent(1,j+1, averageValue ,2);
 	    addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
 	    addSummaryElement(averageValue);
 
-	    // First row: the interaction length
+	    // Third row: the photon conversion probability
+	    averageValue *= -7./9.;
+	    averageValue = 1 - exp(averageValue);
+	    materialSummaryTable->setContent(3,j+1, averageValue ,2);
+	    addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
+	    addSummaryElement(averageValue);
+
+	    // Second row: the interaction length
 	    averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
-	    materialSummaryTable.setContent(2,j+1, averageValue ,2);
+	    materialSummaryTable->setContent(2,j+1, averageValue ,2);
 	    addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
 	    addSummaryElement(averageValue);
 	  }
@@ -982,8 +1000,7 @@ namespace insur {
 	myImage->setName("hadTracks");
         myContent->addItem(myImage);
 
-	if (name=="outer") {
-	  
+	if (name=="outer") {	  
 	  // Summary table
 	  RootWContent& summaryContent = myPage->addContent("Summary", false);
 	  RootWTable& cutsTable = summaryContent.addTable();
@@ -1022,7 +1039,11 @@ namespace insur {
 	      }
 	    } else delta--;
 	  }
+	  summaryContent.addItem(materialSummaryTable);
+	} else {
+	  delete materialSummaryTable;
 	}
+	
     }
     
 #endif
@@ -1548,14 +1569,23 @@ namespace insur {
             aChannel.str("");
             aChannel << std::fixed << std::setprecision(millionChannelPrecision)
             << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
-            // Power and cost
+
+            // Power (per module and total)
             aPower.str("");
+	    ModuleType& myType = tracker.getModuleType((*typeMapIt).second->getType());
+	    double powerPerModule;
+	    powerPerModule =  myType.getPower( (typeMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
+            aPower << std::fixed << std::setprecision(powerPrecision)
+		   << powerPerModule * typeMapCount[typeMapIt->first] * 1e-3; // conversion from W to kW
+	                                                                      // number of modules of this type
+
+	    aPowerPerModule.str("");
+            aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
+			    << powerPerModule ;
+            totalPower += powerPerModule * typeMapCount[typeMapIt->first] * 1e-3;
+
+	    // Cost
             aCost.str("");
-            aPower << std::fixed << std::setprecision(powerPrecision) <<
-            typeMapCountChan[(*typeMapIt).first] *           // number of channels in type
-            1e-3 *                                           // conversion from W to kW
-            tracker.getPower((*typeMapIt).second->getReadoutType()); // power consumption in W/channel
-            totalPower += typeMapCountChan[(*typeMapIt).first] * 1e-3 * tracker.getPower((*typeMapIt).second->getReadoutType());
             aCost  << std::fixed << std::setprecision(costPrecision) <<
             (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
             (*typeMapIt).second->getNFaces() *               // number of faces
@@ -1563,11 +1593,7 @@ namespace insur {
             1e-6 *                                           // conversion CHF-> MCHF
             typeMapCount[(*typeMapIt).first];                // Number of modules
             totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
-	    aPowerPerModule.str("");
-            aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
-			    << ((*typeMapIt).second->getNChannelsPerFace() *  // number of channels per face
-				(*typeMapIt).second->getNFaces() *            // number of faces
-				tracker.getPower((*typeMapIt).second->getReadoutType())); // power consumption in W/channel
+
             // Weight
 	    aWeight.str("");
 	    aWeight << std::fixed << std::setprecision(weightPrecision) <<
@@ -1767,8 +1793,8 @@ namespace insur {
 	// Power density
 	myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
 	myCanvas->cd();
-	myCanvas->SetLogx();
-	myCanvas->SetLogy();
+	//myCanvas->SetLogx();
+	//myCanvas->SetLogy();
 	TGraph& pd = analyzer.getPowerDensity();
 	pd.SetMarkerStyle(8);
 	pd.SetMarkerColor(kBlue);
@@ -1885,14 +1911,37 @@ namespace insur {
         // TODO: make an object that handles this properly:
         RootWTable* myTable = new RootWTable();
         myTable->setContent(1, 0, "CHF/cm"+superStart+"2"+superEnd);
-        myTable->setContent(2, 0, "mW/channel");
+        //myTable->setContent(2, 0, "mW/channel");
         myTable->setContent(0, 1, "Pt modules");
         myTable->setContent(0, 2, "Strip modules");
         myTable->setContent(1, 1, tracker.getCost(Module::Pt), costPerUnitPrecision);
         myTable->setContent(1, 2, tracker.getCost(Module::Strip), costPerUnitPrecision);
-        myTable->setContent(2, 1, tracker.getPower(Module::Pt)*1e3, powerPerUnitPrecision);
-        myTable->setContent(2, 2, tracker.getPower(Module::Strip)*1e3, powerPerUnitPrecision);
         simulationContent->addItem(myTable);
+
+	RootWTable& typesTable = simulationContent->addTable();
+	typesTable.setContent(1,0,"mW / channel [chip]");
+	typesTable.setContent(2,0,"mW / channel [opto]");
+	typesTable.setContent(3,0,"mW / channel [total]");
+	typesTable.setContent(4,0,"mW / module [chip]");
+	typesTable.setContent(5,0,"mW / module [opto]");
+	typesTable.setContent(6,0,"mW / module [total]");
+	int iType=1;
+	std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
+	for (std::map<std::string, ModuleType>::iterator it=typeMap.begin();
+	     it != typeMap.end(); ++it) {
+	  typesTable.setContent(0,iType, it->first);
+	  typesTable.setContent(1,iType,1e3*(it->second).getPowerPerStrip(ModuleType::ChipPower),2);
+	  typesTable.setContent(2,iType,1e3*(it->second).getPowerPerStrip(ModuleType::OpticalPower),2);
+	  typesTable.setContent(3,iType,1e3*(
+				(it->second).getPowerPerStrip(ModuleType::OpticalPower)+
+				(it->second).getPowerPerStrip(ModuleType::ChipPower)), 2);
+	  typesTable.setContent(4,iType,1e3*(it->second).getPowerPerModule(ModuleType::ChipPower),2);
+	  typesTable.setContent(5,iType,1e3*(it->second).getPowerPerModule(ModuleType::OpticalPower),2);
+	  typesTable.setContent(6,iType,1e3*(
+				(it->second).getPowerPerModule(ModuleType::OpticalPower)+
+				(it->second).getPowerPerModule(ModuleType::ChipPower)), 2);
+	  iType++;
+	}
        
         //********************************//
         //*                              *//

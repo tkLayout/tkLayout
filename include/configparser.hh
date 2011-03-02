@@ -50,6 +50,7 @@ private:
   // Parsing functions for the tracker dressing
   bool parseDressType(string myType);
   bool breakParameterName(string& parameterName, int& ringIndex, int& diskIndex);
+  bool breakParameterName(string& parameterName, string& stringIndex);
   bool parseBarrelType(string myName, istream &inStream);
   bool parseEndcapType(string myName, istream &inStream);
   bool parsePixelType(istream& inStream);

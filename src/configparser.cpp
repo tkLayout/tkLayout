@@ -73,7 +73,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
     string parameterName;
     string parameterValue;
     double doubleValue;
-    
+    string parameterNameCopy;
+    bool correctlyBroken;
+    string stringIndex;
     
     // Tracker is a singleton. Declare just one, please
     if (myTracker_) {
@@ -86,6 +88,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
+            parameterNameCopy = parameterName;
+	    correctlyBroken = breakParameterName(parameterNameCopy, stringIndex);
             if (parameterName=="nMB") { // Number of minimum bias events per BX
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setNMB(doubleValue);
@@ -113,12 +117,19 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             } else if (parameterName=="stripCost") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setCost(Module::Strip, doubleValue);
-            } else if (parameterName=="ptPower") {
-                doubleValue=atof(parameterValue.c_str());
-                myTracker_->setPower(Module::Pt, doubleValue*1e-3);
-            } else if (parameterName=="stripPower") {
-                doubleValue=atof(parameterValue.c_str());
-                myTracker_->setPower(Module::Strip, doubleValue*1e-3);
+            } else if (correctlyBroken) { // Per module type parameters
+	      if (parameterNameCopy == "opticalPower") {
+		// Input is in mW, while we always store in SI units internally
+		doubleValue = atof(parameterValue.c_str()) * 1e-3;
+		myTracker_->setPower(stringIndex, ModuleType::OpticalPower, doubleValue);
+	      } else if (parameterNameCopy == "chipPower") {
+		// Input is in mW, while we always store in SI units internally
+		doubleValue = atof(parameterValue.c_str()) * 1e-3;
+		myTracker_->setPower(stringIndex, ModuleType::ChipPower, doubleValue);
+	      } else {
+                cerr << "ERROR: Unknown parameter name: " << parameterNameCopy << endl;
+                throw parsingException();
+	      }
             } else {
                 cerr << "ERROR: Unknown parameter name: " << parameterName << endl;
                 throw parsingException();
@@ -901,6 +912,29 @@ bool configParser::breakParameterName(string& parameterName, int& ringIndex, int
     
     return result;
 }
+
+bool configParser::breakParameterName(string& parameterName, string& stringIndex) {
+    bool result = false;
+    string tempParamStr;
+    string tempParamInd;
+    string dummy;
+    istringstream parameterStream(parameterName);
+    stringIndex = "";
+    
+    getline(parameterStream, tempParamStr, '[');
+    getline(parameterStream, tempParamInd, ']');
+    getline(parameterStream, dummy);
+    
+    // We check that we found parameter[index] and nothing else
+    if ((tempParamStr!="")&&(tempParamInd!="")&&(dummy=="")&&(parameterStream.eof())) {
+      parameterName=tempParamStr;
+      stringIndex = tempParamInd;
+      result = true;
+    }
+    
+    return result;
+}
+
 
 // The following two functions are temporary: by now we have no difference in syntax
 // between the barrel and the endcap

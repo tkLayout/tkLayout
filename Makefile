@@ -55,6 +55,11 @@ $(LIBDIR)/module.o: $(SRCDIR)/module.cpp $(INCDIR)/module.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/module.o $(SRCDIR)/module.cpp 
 	@echo "Built target module.o"
 
+$(LIBDIR)/moduleType.o: $(SRCDIR)/moduleType.cpp $(INCDIR)/moduleType.hh
+	@echo "Building target moduleType.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/moduleType.o $(SRCDIR)/moduleType.cpp
+	@echo "Built target moduleType.o"
+
 $(LIBDIR)/layer.o: $(SRCDIR)/layer.cpp $(INCDIR)/layer.hh
 	@echo "Building target layer.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/layer.o $(SRCDIR)/layer.cpp 
@@ -231,7 +236,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LI
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o
 	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
 	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
 	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
@@ -241,6 +246,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LI
 	$(LIBDIR)/messageLogger.o \
 	$(LIBDIR)/Palette.o \
 	$(LIBDIR)/tklayout.o \
+	$(LIBDIR)/moduleType.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 

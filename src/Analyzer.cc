@@ -1072,7 +1072,7 @@ namespace insur {
         // Power density
 	while (powerDensity.GetN()) powerDensity.RemovePoint(0);
 	powerDensity.SetName("powerdensity");
-        powerDensity.SetTitle("Power density;Total area [m^{2}];Power density [W / cm^{2}]");
+        powerDensity.SetTitle("Power density;Total area [m^{2}];Power density [kW / m^{2}]");
 
     }
     
@@ -1565,30 +1565,31 @@ namespace insur {
             hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
         }
 
-        std::string aSensorTag;
+	
+	std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
         std::map<std::string, int> typeToCount;
-        std::map<std::string, double> typeToPower;
-        std::map<std::string, double> typeToSurface;
-        // Type summary
+	std::map<std::string, double> typeToPower;
+	std::map<std::string, double> typeToSurface;
+	std::string aSensorType;
+	ModuleType aModuleType;
+
         for (ModuleVector::iterator aModule = allModules.begin();
              aModule != allModules.end(); ++aModule) {
-	  aSensorTag=(*aModule)->getSensorTag();
-	  typeToCount[aSensorTag] ++;
-	  typeToPower[aSensorTag] += ((*aModule)->getNChannelsPerFace() *  // number of channels per face
-				      (*aModule)->getNFaces() *            // number of faces
-				      tracker.getPower((*aModule)->getReadoutType()) );
-	  typeToSurface[aSensorTag] += (*aModule)->getArea();
-        }
-	
+	  aSensorType = (*aModule)->getType();
+	  aModuleType = typeMap[aSensorType];
+	  typeToCount[aSensorType] ++;
+	  typeToSurface[aSensorType] += (*aModule)->getArea() / 1e6; // in mq
+	  typeToPower[aSensorType] += aModuleType.getPower( (*aModule)->getNChannels() ) / 1e3; // in kW
+	}
+
 	int iPoints = 0;
 	for (std::map<std::string, int>::iterator typesIt = typeToCount.begin();
 	     typesIt != typeToCount.end(); ++typesIt ) {
-	  aSensorTag = (typesIt)->first;
+	  aSensorType = typesIt->first;
 	  powerDensity.SetPoint(iPoints++,
-				typeToSurface[aSensorTag],
-				typeToPower[aSensorTag] / typeToSurface[aSensorTag] );
+				typeToSurface[aSensorType],
+				typeToPower[aSensorType] / typeToSurface[aSensorType] );
 	}
-        
         return;
     }
     

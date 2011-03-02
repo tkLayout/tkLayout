@@ -250,7 +250,6 @@ protected:
   virtual int getLayer() const { return 0; };
   virtual int getDisk() const { return 0;};
 
-
 };
 
 

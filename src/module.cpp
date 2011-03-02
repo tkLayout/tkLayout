@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <cmath>
 #include "module.hh"
@@ -823,9 +824,9 @@ void Module::computeDphiDeta() {
     delete anotherModule;
 }
 
+
 double Module::getOccupancyPerEvent() {
     std::cout << "ERROR: you are somehow accessing the deprecated generic getOccupancyPerEvent" << std::endl;
-    
     return 0;
 }
 
