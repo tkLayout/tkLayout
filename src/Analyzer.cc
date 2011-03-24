@@ -837,7 +837,7 @@ namespace insur {
             thisDProfiles[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: ctg(theta)
 	    thisCtgThetaProfiles.insert(elem);
-	    thisCtgThetaProfiles[elem.first].SetTitle("Track polar angle error;eta;#sigma (#delta ctg(#theta))");
+	    thisCtgThetaProfiles[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
             aName.str(""); aName << "ctgTheta_vs_eta" << *iter;
             thisCtgThetaProfiles[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: z0
@@ -847,7 +847,7 @@ namespace insur {
             thisZ0Profiles[elem.first].SetName(aName.str().c_str());
             // Prepare plots: p
             thisPProfiles.insert(elem);
-            thisPProfiles[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+            thisPProfiles[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
             aName.str(""); aName << "p_vs_eta" << *iter;
             thisPProfiles[elem.first].SetName(aName.str().c_str());
         }

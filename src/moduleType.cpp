@@ -1,5 +1,10 @@
 #include <moduleType.hh>
 
+ModuleType::ModuleType() {
+  triggerErrorX_=1;
+  triggerErrorY_=1;
+}
+
 bool ModuleType::checkPowerType(int powerType) {
   if ((powerType<0) || (powerType>PowerTypes)) {
     std::cerr << "ERROR: unknown power type " << powerType << std::endl;
@@ -51,3 +56,9 @@ double ModuleType::getPower(int nStrips) {
   return (perStripPower * nStrips + perModulePower);
 }
 
+// Set and get triggerErrorx and triggerErrory
+// error multipliers for the trigger
+void ModuleType::setTriggerErrorX(double newError) { triggerErrorX_ = newError; }
+void ModuleType::setTriggerErrorY(double newError) { triggerErrorY_ = newError; }
+double ModuleType::getTriggerErrorX() const { return triggerErrorX_ ; }
+double ModuleType::getTriggerErrorY() const { return triggerErrorY_ ; }

@@ -1252,6 +1252,8 @@ namespace insur {
         std::map<std::string, double> typeMapAveOccupancy;
         std::map<std::string, double> typeMapAveRphiResolution;
         std::map<std::string, double> typeMapAveYResolution;
+        std::map<std::string, double> typeMapAveRphiResolutionTrigger;
+        std::map<std::string, double> typeMapAveYResolutionTrigger;
         std::map<std::string, Module*>::iterator typeMapIt;
         std::map<int, Module*> ringTypeMap;
         std::string aSensorTag;
@@ -1343,6 +1345,8 @@ namespace insur {
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
 		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
 		typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
+		typeMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
+		typeMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1421,6 +1425,8 @@ namespace insur {
         std::ostringstream anOccupancy;
 	std::ostringstream anRphiResolution;
 	std::ostringstream aYResolution;
+	std::ostringstream anRphiResolutionTrigger;
+	std::ostringstream aYResolutionTrigger;
         std::ostringstream aPitchPair;
         std::ostringstream aStripLength;
         std::ostringstream aSegment;
@@ -1452,18 +1458,20 @@ namespace insur {
         static const int occupancyRow = 5;
 	static const int rphiResolutionRow = 6;
 	static const int yResolutionRow = 7;
-        static const int pitchpairsRow = 8;
-        static const int striplengthRow = 9;
-        static const int segmentsRow = 10;
-        static const int nstripsRow = 11;
-        static const int numbermodsRow = 12;
-        static const int numbersensRow = 13;
-        static const int channelstripRow = 14;
-        static const int channelptRow = 15;
-        static const int powerRow = 16;
-        static const int powerPerModuleRow = 17;
-        static const int costRow = 18;
-	static const int weightRow = 19;
+	static const int rphiResolutionTriggerRow = 8;
+	static const int yResolutionTriggerRow = 9;
+        static const int pitchpairsRow = 10;
+        static const int striplengthRow = 11;
+        static const int segmentsRow = 12;
+        static const int nstripsRow = 13;
+        static const int numbermodsRow = 14;
+        static const int numbersensRow = 15;
+        static const int channelstripRow = 16;
+        static const int channelptRow = 17;
+        static const int powerRow = 18;
+        static const int powerPerModuleRow = 19;
+        static const int costRow = 20;
+	static const int weightRow = 21;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1473,6 +1481,8 @@ namespace insur {
         moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
         moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um)");
         moduleTable->setContent(yResolutionRow, 0, "Y resolution (um)");
+        moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] (um)");
+        moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] (um)");
         moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
         moduleTable->setContent(striplengthRow, 0, "Strip length");
         moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
@@ -1536,6 +1546,17 @@ namespace insur {
 	    // YResolution
 	    aYResolution.str("");
 	    aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+
+	    // RphiResolution (trigger)
+	    anRphiResolutionTrigger.str("");
+	    if ( typeMapAveRphiResolutionTrigger[(*typeMapIt).first] != typeMapAveRphiResolution[(*typeMapIt).first] )
+	      anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolutionTrigger[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+	    // YResolution (trigger)
+	    aYResolutionTrigger.str("");
+	    if ( typeMapAveYResolutionTrigger[(*typeMapIt).first] != typeMapAveYResolution[(*typeMapIt).first] )
+	      aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolutionTrigger [(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+
+
             // Pitches
 	    aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
@@ -1606,6 +1627,8 @@ namespace insur {
             moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
             moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
             moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
+            moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
+            moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
             moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
             moduleTable->setContent(striplengthRow, iType, aStripLength.str());
             moduleTable->setContent(segmentsRow, iType, aSegment.str());

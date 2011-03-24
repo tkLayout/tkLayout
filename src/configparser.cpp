@@ -118,7 +118,13 @@ bool configParser::parseTracker(string myName, istream& inStream) {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setCost(Module::Strip, doubleValue);
             } else if (correctlyBroken) { // Per module type parameters
-	      if (parameterNameCopy == "opticalPower") {
+              if (parameterNameCopy == "triggerErrorIncreaseX") {
+	        doubleValue = atof(parameterValue.c_str());
+                myTracker_->setTriggerErrorX(stringIndex, doubleValue);
+              } else if (parameterNameCopy == "triggerErrorIncreaseY") {
+	        doubleValue = atof(parameterValue.c_str());
+                myTracker_->setTriggerErrorY(stringIndex, doubleValue);
+              } else if (parameterNameCopy == "opticalPower") {
 		// Input is in mW, while we always store in SI units internally
 		doubleValue = atof(parameterValue.c_str()) * 1e-3;
 		myTracker_->setPower(stringIndex, ModuleType::OpticalPower, doubleValue);

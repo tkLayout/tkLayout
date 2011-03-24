@@ -11,9 +11,12 @@ class ModuleType {
 protected:
   std::map<int,double> perStripPower_;
   std::map<int,double> perModulePower_;
+  double triggerErrorX_;
+  double triggerErrorY_;
 private:
   bool checkPowerType(int powerType);
 public:
+  ModuleType();
   enum { OpticalPower, ChipPower, PowerTypes };
   void setPowerPerStrip(double W, int powerType);
   void setPowerPerModule(double W, int powerType);
@@ -21,6 +24,10 @@ public:
   double getPower(int nStrips);
   double getPowerPerStrip(int powerType);
   double getPowerPerModule(int powerType);
+  void setTriggerErrorX(double newError);
+  void setTriggerErrorY(double newError);
+  double getTriggerErrorX() const ;
+  double getTriggerErrorY() const ;
 };
 
 #endif

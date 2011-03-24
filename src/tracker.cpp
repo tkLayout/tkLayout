@@ -1672,6 +1672,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setNFaces(aFaces);
             aModule->setNSegments(aSegments);
             aModule->setType(aType);
+	    aModule->setModuleType(&(mapType_[aType]));
             aModule->setStereoDistance(aDistance);
             aModule->setStereoRotation(aRotation);
             aModule->setTag(myTag.str());
@@ -1739,6 +1740,7 @@ void Tracker::changeRingModules(std::string diskName, int ringN, std::string new
                 myTag<<"R"<<ringN;
                 if (myTag.str()==aTag) {
                     (*modIt)->setType(newType);
+		    (*modIt)->setModuleType(&(mapType_[newType]));
                     (*modIt)->setColor(newColor);
                 }
             }

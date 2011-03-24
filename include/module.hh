@@ -13,6 +13,7 @@
 
 // Our objects
 #include <messageLogger.h>
+#include <moduleType.hh>
 
 /*****************************/
 /*                           */
@@ -115,6 +116,8 @@ protected:
   void computeStripArea();
   void computeDphiDeta();
 
+  const ModuleType* moduleType_;
+
  private:
   void setDefaultParameters();
     
@@ -154,6 +157,8 @@ protected:
 
   void setType(const std::string newType) {type_=newType;}
   std::string getType() {return type_;}
+
+  void setModuleType(const ModuleType* newType) { moduleType_ = newType; }
 
   void setStereoDistance(double sdist) { stereodist_=sdist; }
   double getStereoDistance() { return stereodist_; };
@@ -225,11 +230,13 @@ protected:
   void setResolutionRphi(const double& newRes ) { resolutionRphi_ = newRes; };
   void setResolutionRphi(){};
   virtual double getResolutionRphi() { std::cerr << "BAD ERROR: this shouldn't happen" << std::endl; return 0; };
+  virtual double getResolutionRphiTrigger()  { std::cerr << "BAD ERROR: this shouldn't happen" << std::endl; return 0; };
 
   // Z resolution 
   void setResolutionY(const double& py) { resolutionY_ = py; };
   void setResolutionY(){};
   double getResolutionY();
+  double getResolutionYTrigger();
 
   virtual double getOccupancyPerEvent();
 
@@ -274,6 +281,7 @@ class BarrelModule : public Module {
   double getHighPitch();
 
   double getResolutionRphi();
+  double getResolutionRphiTrigger();
 
   virtual int getSubdetectorType() { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
@@ -315,6 +323,7 @@ public:
   double getHighPitch();
 
   double getResolutionRphi();
+  double getResolutionRphiTrigger();
 
   virtual int getSubdetectorType() { return Endcap; };
 

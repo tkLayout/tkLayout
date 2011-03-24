@@ -64,6 +64,7 @@ void Module::setDefaultParameters() {
     aspectRatio_        = defaultAspectRatio_;
     resolutionRphi_ = defaultResolutionRphi_;
     resolutionY_ = defaultResolutionY_;
+    moduleType_ = NULL;
 }
 
 double Module::getResolutionY() {
@@ -77,6 +78,14 @@ double Module::getResolutionY() {
  return result;
 }
 
+double Module::getResolutionYTrigger() {
+  double result = getResolutionY();
+  if (moduleType_!=NULL) {
+    result *= moduleType_->getTriggerErrorY();
+  }
+  return result;
+}
+
 // TODO: better special case for PT modules
 double BarrelModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
@@ -86,12 +95,28 @@ double BarrelModule::getResolutionRphi() {
   return result;
 }
 
+double BarrelModule::getResolutionRphiTrigger() {
+  double result = getResolutionRphi();
+  if (moduleType_!=NULL) {
+    result *= moduleType_->getTriggerErrorX();
+  }
+  return result;
+}
+
 // TODO: better special case for PT modules
 double EndcapModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  
   if (readoutType_==Pt) result/=sqrt(2);
   if (readoutMode_==Cluster) result/=1.5;
+  return result;
+}
+
+double EndcapModule::getResolutionRphiTrigger() {
+  double result = getResolutionRphi();
+  if (moduleType_!=NULL) {
+    result *= moduleType_->getTriggerErrorX();
+  }
   return result;
 }
 
