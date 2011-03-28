@@ -114,8 +114,8 @@ namespace insur {
         std::map<double, TGraph>& getCtgThetaProfiles(bool ideal) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
         std::map<double, TGraph>& getZ0Profiles(bool ideal) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
         std::map<double, TGraph>& getPProfiles(bool ideal) { if (ideal) return pProfilesIdeal; return pProfiles; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb,
-                                                                  std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+        virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);

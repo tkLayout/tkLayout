@@ -2040,7 +2040,7 @@ namespace insur {
         return true;
     }
     
-    bool Vizard::errorSummary(Analyzer& a, RootWSite& site) {
+  bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag /* = "" */ ) {
         //********************************//
         //*                              *//
         //*    Resolution estimate       *//
@@ -2050,9 +2050,19 @@ namespace insur {
         // Here you should check if the TGraph
         // list is empty => maybe not?
         if (!(a.getRhoProfiles(false).empty() && a.getDProfiles(false).empty() && a.getPhiProfiles(false).empty())) {
+
             // Create a page for the errors
-            RootWPage& myPage = site.addPage("Resolution");
-            myPage.setAddress("errors.html");
+	  std::string pageTitle = "Resolution";
+	  std::string additionalSummaryTag;
+	  if (additionalTag!="") {
+	    pageTitle += " ("+additionalTag+")";
+	    additionalSummaryTag = "_"+additionalTag+"_";
+	  } else {
+	    additionalSummaryTag = "";
+	  }
+	  std::string pageAddress = "errors" + additionalTag + ".html";
+	  RootWPage& myPage = site.addPage(pageTitle);
+	  myPage.setAddress(pageAddress);
             
             // Create the contents
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
@@ -2105,8 +2115,10 @@ namespace insur {
 		momentumGraph.SetMarkerStyle(8);
                 momentumCanvas.cd();
                 momentumCanvas.SetFillColor(color_plot_background);
-                momentumGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (momentumGraph.GetN()>0) {
+		  momentumGraph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      plotOption = "Ap";
 	      myColor=0;
@@ -2129,8 +2141,10 @@ namespace insur {
 		distanceGraph.SetMarkerStyle(8);
                 distanceCanvas.cd();
                 distanceCanvas.SetFillColor(color_plot_background);
-                distanceGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (distanceGraph.GetN()>0) {
+		  distanceGraph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      plotOption = "Ap";
 	      myColor=0;
@@ -2153,8 +2167,10 @@ namespace insur {
 		angleGraph.SetMarkerStyle(8);
                 angleCanvas.cd();
                 angleCanvas.SetFillColor(color_plot_background);
-                angleGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (angleGraph.GetN() > 0) {
+		  angleGraph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      plotOption = "Ap";
 	      myColor=0;
@@ -2172,8 +2188,10 @@ namespace insur {
 		ctgThetaGraph.SetMarkerStyle(8);
                 ctgThetaCanvas.cd();
                 ctgThetaCanvas.SetFillColor(color_plot_background);
-                ctgThetaGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (ctgThetaGraph.GetN() > 0) {
+		  ctgThetaGraph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      plotOption = "Ap";
 	      myColor=0;
@@ -2191,8 +2209,10 @@ namespace insur {
 		z0Graph.SetMarkerStyle(8);
                 z0Canvas.cd();
                 z0Canvas.SetFillColor(color_plot_background);
-                z0Graph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (z0Graph.GetN() > 0) {
+		  z0Graph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      plotOption = "Ap";
 	      myColor=0;
@@ -2215,8 +2235,10 @@ namespace insur {
 		pGraph.SetMarkerStyle(8);
                 pCanvas.cd();
                 pCanvas.SetFillColor(color_plot_background);
-                pGraph.Draw(plotOption.c_str());
-		plotOption = "p same";
+		if (pGraph.GetN() > 0) {
+		  pGraph.Draw(plotOption.c_str());
+		  plotOption = "p same";
+		}
 	      }
 	      RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
 	      momentumImage.setComment("Transverse momentum resolution vs. eta");
@@ -2369,8 +2391,8 @@ namespace insur {
 		  myLabel << myIndex.name
 			  << std::dec << std::fixed << std::setprecision(0) 
 			  << myIndex.p << "(" << cutNames[j] << ")";
-		  addSummaryLabelElement(myLabel.str()+"_Real");
-		  addSummaryLabelElement(myLabel.str()+"_Ideal");
+		  addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
+		  addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
 		  addSummaryElement(averagesReal[j]);
 		  addSummaryElement(averagesIdeal[j]);
 		}

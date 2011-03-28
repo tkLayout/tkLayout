@@ -89,7 +89,6 @@ namespace insur {
 	bool pureAnalyzeMaterialBudget(int tracks);
 	bool reportGeometrySite();
 	bool reportMaterialBudgetSite();
-	bool analyzeMaterialBudgetSite(int tracks = 50);
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
 	bool makeSite(bool addLogPage = true);
 #endif
@@ -108,6 +107,7 @@ namespace insur {
         MatCalc pxMaterialCalc;
         Analyzer a;
 	Analyzer *pixelAnalyzer;
+	Analyzer *triggerAnalyzer;
         Vizard v;
         tk2CMSSW t2c;
         mainConfigHandler mainConfiguration;

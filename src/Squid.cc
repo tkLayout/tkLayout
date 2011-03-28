@@ -17,6 +17,7 @@ namespace insur {
         pi = NULL;
         pm = NULL;
 	pixelAnalyzer = NULL;
+	triggerAnalyzer = NULL;
 #ifdef USING_ROOTWEB
         sitePrepared = false;
 #endif
@@ -32,7 +33,8 @@ namespace insur {
         if (pm) delete pm;
         if (pi) delete pi;
         if (px) delete px;
-	if (pixelAnalyzer) delete pixelAnalyzer;
+	if (pixelAnalyzer) delete pixelAnalyzer;	
+	if (triggerAnalyzer) delete triggerAnalyzer;
     }
     
     /**
@@ -568,33 +570,6 @@ namespace insur {
     }
     
     /**
-     * Analyze the previously created material budget and save the results through rootweb. If a material budget
-     * for an associated pixel detector exists, it will be included in the calculations as well.
-     * @param tracks The number of tracks that should be fanned out across the analysed region
-     * @return True if there were no errors during processing, false otherwise
-     */
-    bool Squid::analyzeMaterialBudgetSite(int tracks) {
-        if (mb) {
-            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
-            v.histogramSummary(a, site, "outer");
-            if (pm) {
-	      // TODO: make this much neater!
-	      Analyzer* pixelAnalyzer = new Analyzer;
-	      pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
-	      v.histogramSummary(*pixelAnalyzer, site, "pixel");
-            }
-	    a.computeWeightSummary(*mb);
-	    v.weigthSummart(a, site, "outer");
-            v.errorSummary(a, site);
-            return true;
-        }
-        else {
-            std::cout << "Squid::analyzeMaterialBudgetSite(): " << err_no_matbudget << std::endl;
-            return false;
-        }
-    }
-    
-    /**
      * Analyze the previously created geometry and produces the html ouput through rootweb. If a material budget
      * for an associated pixel detector exists, it will be included in the calculations as well.
      * @return True if there were no errors during processing, false otherwise
@@ -644,6 +619,11 @@ namespace insur {
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
       }
       a.computeWeightSummary(*mb);
+
+      if (triggerAnalyzer) delete triggerAnalyzer;
+      triggerAnalyzer = new Analyzer;
+      triggerAnalyzer->analyzeMaterialBudgetTrigger(*mb, mainConfiguration.getMomenta(), tracks, pm);
+
       return true;
     } else {
       std::cout << "Squid::pureAnalyzeMaterialBudget(): " << err_no_matbudget << std::endl;
@@ -678,6 +658,10 @@ namespace insur {
       }
       v.weigthSummart(a, site, "outer");
       v.errorSummary(a, site);
+      
+      if (triggerAnalyzer) {
+	v.errorSummary(*triggerAnalyzer, site, "trigger");
+      }
       return true;
     }
     else {

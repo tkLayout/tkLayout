@@ -16,6 +16,8 @@ using namespace std;
 #undef HIT_DEBUG
 #undef HIT_DEBUG_RZ
 
+// bool Track::debugRemoval = false; // debug
+
 /**
  * This is a comparator for two Hit objects.
  * @param h1 A pointer to the first hit
@@ -43,6 +45,8 @@ Hit::Hit() {
     //trackTheta_ = 0;
     myTrack_ = NULL;
     isPixel_ = false;
+    myResolutionRphi_ = 0;
+    myResolutionY_ = 0;
 }
 
 /**
@@ -58,6 +62,8 @@ Hit::Hit(const Hit& h) {
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
+    myResolutionRphi_ = h.myResolutionRphi_;
+    myResolutionY_ = h.myResolutionY_;
 }
 
 /**
@@ -119,6 +125,32 @@ double Hit::getTrackTheta() {
  */
 Material Hit::getCorrectedMaterial() {
     return correctedMaterial_;
+}
+
+double Hit::getResolutionRphi() {
+  if (objectKind_!=Active) {
+    std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
+    return -1;
+  } else {
+    if (hitModule_) {
+      return hitModule_->getResolutionRphi();
+    } else {
+      return myResolutionRphi_;
+    }
+  }
+}
+
+double Hit::getResolutionY() {
+  if (objectKind_!=Active) {
+    std::cerr << "ERROR: Hit::getResolutionY called on a non-active hit" << std::endl;
+    return -1;
+  } else {
+    if (hitModule_) {
+      return hitModule_->getResolutionY();
+    } else {
+      return myResolutionY_;
+    }
+  }
 }
 
 /**
@@ -355,7 +387,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                         for (int i = 0; i < r; i++)
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
-                            double prec = hitV_.at(r)->getHitModule()->getResolutionRphi();
+                            double prec = hitV_.at(r)->getResolutionRphi();
 #ifdef HIT_DEBUG
 			    std::cerr << "Hit precision: " << prec << std::endl;
 			    std::cerr << "Radius: " << hitV_.at(r)->getRadius() << std::endl;
@@ -367,7 +399,7 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 			      // The component due to ctgTheta is
 			      double deltar_ctg = hitV_.at(c)->getRadius() * tan(theta_) * deltaCtgT;
 			      // The intrinsic r measurement resolution is
-			      double deltar_y =  hitV_.at(c)->getHitModule()->getResolutionY();
+			      double deltar_y =  hitV_.at(c)->getResolutionY();
                               // We must combine this information: we get a bit more precise
                               double deltar_tot_sq = 1 / (
 							  (1/deltar_ctg/deltar_ctg)
@@ -394,6 +426,7 @@ corr(r, c)=0;
                 }
             }
         }
+
         // remove zero rows and columns
         int ia = -1;
         bool look_for_active = false;
@@ -543,7 +576,7 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
 			    * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance())
 			    * thetasq.at(i);
                         if (r == c) {
-                            double prec = hitV_.at(r)->getHitModule()->getResolutionY();
+                            double prec = hitV_.at(r)->getResolutionY();
 #ifdef HIT_DEBUG_RZ
 			    std::cerr << "Hit precision: " << prec << std::endl;
 			    std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
@@ -786,3 +819,58 @@ void Track::addEfficiency(double efficiency, bool alsoPixel /* = false */ ) {
   }
 }
 
+/**
+ * Makes all non-trigger hits inactive
+ */
+void Track::keepTriggerOnly() {
+  // int iRemove=0;
+  for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
+    // if (debugRemoval) std::cerr << "Hit number "
+    //	                           << iRemove++ << ": ";
+    // if (debugRemoval) std::cerr << "r = " << (*it)->getRadius() << ", ";
+    // if (debugRemoval) std::cerr << "d = " << (*it)->getDistance() << ", ";
+    if ((*it)->getObjectKind() == Hit::Active) {
+      // if (debugRemoval) std::cerr << "active ";
+      if ((*it)->isPixel()) {
+	// if (debugRemoval) std::cerr << "pixel: removed";
+	(*it)->setObjectKind(Hit::Inactive);
+      } else {
+	Module* myModule = (*it)->getHitModule();
+	if (myModule) {
+	  // if (debugRemoval) std::cerr << "module ";
+	  if (myModule->getReadoutType() != Module::Pt) {
+	    // if (debugRemoval) std::cerr << "non-pt: removed";
+	    (*it)->setObjectKind(Hit::Inactive);
+	  } else {
+	    // if (debugRemoval) std::cerr << "pt: kept";
+	  }
+	} else {
+	  // if (debugRemoval) std::cerr << "active without module: kept";
+	}
+      }
+    } else {
+      // if (debugRemoval) std::cerr << "inactive";
+    }
+    // if (debugRemoval) std::cerr << std::endl;
+  }
+
+  // debugRemoval=false;
+}
+
+
+/**
+ * Adds the constraint of the IP in the form of a virtual module
+ */
+void Track::addIPConstraint(double dr, double dz) {
+  Hit* newHit = new Hit(0.);
+  Material emptyMaterial;
+  emptyMaterial.radiation = 0;
+  emptyMaterial.interaction = 0;
+  newHit->setPixel(false);
+  newHit->setCorrectedMaterial(emptyMaterial);
+  newHit->setOrientation(Hit::Horizontal);
+  newHit->setObjectKind(Hit::Active);
+  newHit->setResolutionRphi(dr);
+  newHit->setResolutionY(dz);
+  this->addHit(newHit);
+}

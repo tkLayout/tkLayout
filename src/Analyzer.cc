@@ -58,6 +58,142 @@ namespace insur {
     }
   
     /**
+     * The analysis function providing the resolution as a function of eta
+     * using only the trigger modules
+     * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
+     * @param momenta A list of momentum values for the tracks that are shot through the layout
+     * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
+     * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
+     */
+    void Analyzer::analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
+						MaterialBudget* pm) {
+
+        Tracker& tracker = mb.getTracker();
+        double efficiency = tracker.getEfficiency();
+        materialTracksUsed = etaSteps;
+
+#ifdef DEBUG_PERFORMANCE
+        struct tm *localt; // timing: debug
+        time_t t;          // timing: debug
+        t = time(NULL);
+        localt = localtime(&t);
+        //std::cerr << asctime(localt) << std::endl;
+        clock_t starttime = clock();
+#endif
+        int nTracks;
+        double etaStep, eta, theta, phi;
+        clearMaterialBudgetHistograms();
+
+        // prepare etaStep, phiStep, nTracks, nScans
+        if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
+        else etaStep = etaMax;
+        nTracks = etaSteps;
+
+        // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
+        setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
+
+        // reset the list of tracks
+        tv.clear();
+
+        // used fixed phi
+        phi = PI / 2.0;
+
+        //      loop over nTracks (eta range [0, etaMax])
+        for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+            Material tmp;
+            Track track;
+            eta = i_eta * etaStep;
+            theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
+            track.setTheta(theta);
+
+            //      active volumes, barrel
+            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
+            //      active volumes, endcap
+            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
+            //      services, barrel
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+            //      services, endcap
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+            //      supports, barrel
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
+            //      supports, endcap
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
+            //      supports, tubes
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
+            //      supports, barrel tubes
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
+            //      supports, user defined
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
+            //      pixels, if they exist
+            if (pm != NULL) {
+                analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
+                analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
+                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, true);
+                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
+                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
+            }
+
+            // Add the hit on the beam pipe
+ 	    Hit* hit = new Hit(23./sin(theta));
+ 	    hit->setOrientation(Hit::Horizontal);
+ 	    hit->setObjectKind(Hit::Inactive);
+ 	    Material beamPipeMat;
+ 	    beamPipeMat.radiation = 0.0023;
+ 	    beamPipeMat.interaction = 0.0019;
+ 	    hit->setCorrectedMaterial(beamPipeMat);
+ 	    track.addHit(hit);
+
+            if (!track.noHits()) {
+	      // Assume the IP constraint here
+	      // TODO: make this configurable
+	      track.addIPConstraint(tracker.getRError(),tracker.getZError());
+	      track.sort();
+	      track.keepTriggerOnly();
+	      
+	      if (efficiency!=1) track.addEfficiency(efficiency, false);
+	      if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
+		track.computeErrors(momenta);
+		tv.push_back(track);
+
+		Track trackIdeal = track;
+		trackIdeal.removeMaterial();
+		trackIdeal.computeErrors(momenta);
+		tvIdeal.push_back(trackIdeal);	
+	      }
+            }
+        }
+
+#ifdef DEBUG_PERFORMANCE
+        std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
+        t = time(NULL);
+        localt = localtime(&t);
+        clock_t endtime = clock();
+        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+        t = time(NULL);
+        localt = localtime(&t);
+#endif
+
+
+#ifdef DEBUG_PERFORMANCE
+        t = time(NULL);
+        localt = localtime(&t);
+        //std::cerr << asctime(localt) << std::endl;
+	starttime = clock();
+#endif
+        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles);
+        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal);
+#ifdef DEBUG_PERFORMANCE
+        std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
+        t = time(NULL);
+        localt = localtime(&t);
+        endtime = clock();
+        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+        t = time(NULL);
+        localt = localtime(&t);
+#endif
+    }
+
+    /**
      * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
      * and interaction lengths for each volume category to subfunctions, and sorts those results into the
      * correct histograms.
@@ -67,7 +203,7 @@ namespace insur {
      * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
-            MaterialBudget* pm) {
+					 MaterialBudget* pm ) {
 
         Tracker& tracker = mb.getTracker();
         double efficiency = tracker.getEfficiency();
@@ -206,12 +342,15 @@ namespace insur {
             if (!track.noHits()) {
 	      track.sort();
               if (efficiency!=1) track.addEfficiency(efficiency, false);
-	      track.computeErrors(momenta);
-	      tv.push_back(track);
-	      Track trackIdeal = track;
-	      trackIdeal.removeMaterial();
-	      trackIdeal.computeErrors(momenta);
-	      tvIdeal.push_back(trackIdeal);
+	      if (track.nActiveHits(true)>2) { // At least 3 points needed
+		track.computeErrors(momenta);
+		tv.push_back(track);
+
+		Track trackIdeal = track;
+		trackIdeal.removeMaterial();
+		trackIdeal.computeErrors(momenta);
+		tvIdeal.push_back(trackIdeal);
+	      }
 
 	      // @@ Hadrons
 	      int nActive = track.nActiveHits();

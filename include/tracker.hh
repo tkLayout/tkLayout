@@ -60,11 +60,12 @@ protected:
   std::string arguments_;
 
   // Default variables (distances in mm)
-  static const double defaultZError_ = 70.;    // Vertex displacement sigma in z
+  static const double defaultZError_ = 70.;    // Vertex displacement sigma in z (7 cm)
+  static const double defaultRError_ = 0.02;   // Vertex displacement sigma in r (20 um)
   static const double defaultSmallDelta_ = 2.; // Space between overlapping modules
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
-  static const double defaultNMB_ = 400;
+  static const double defaultNMB_ = 200;
   
 private:
   void setDefaultParameters();
@@ -107,6 +108,7 @@ private:
 
   std::vector<TObject* > savingV_; // (partly?) obsolete: check
 
+  double rError_;
   double zError_;
   double smallDelta_;
   double bigDelta_;
@@ -195,6 +197,7 @@ public:
 
 
   // Access to parameters
+  void setRError(const double& newError) { rError_ = newError; };
   void setZError(const double& newError) { zError_ = newError; };
   void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; };
   void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; };
@@ -236,6 +239,7 @@ public:
   void setTriggerErrorY(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorY(errorIncrease); }
 
   // Overlaps / error
+  double getRError() { return rError_; };
   double getZError() { return zError_; };
   double getSmallDelta() { return smallDelta_; };
   double getBigDelta() { return bigDelta_; };

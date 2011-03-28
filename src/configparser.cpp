@@ -93,6 +93,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             if (parameterName=="nMB") { // Number of minimum bias events per BX
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setNMB(doubleValue);
+            } else if (parameterName=="rError") {
+                doubleValue=atof(parameterValue.c_str());
+                myTracker_->setRError(doubleValue);
             } else if (parameterName=="zError") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setZError(doubleValue);
@@ -1375,8 +1378,9 @@ Tracker* configParser::parseFile(string configFileName) {
     minMaxEta = myTracker_->getEtaMinMax();
     tempString.str("");
     tempString << "Eta coverage (min, max) of the tracker (after module purging at eta "
-    << myTracker_->getEtaCut() << "): ("
-    << minMaxEta.first << ", " << minMaxEta.second << ")";
+	       << myTracker_->getEtaCut() << "): ("
+	       << minMaxEta.first << ", " << minMaxEta.second << ")";
+
     addMessage(tempString, INFO);
     result = myTracker_;
     myTracker_ = NULL;

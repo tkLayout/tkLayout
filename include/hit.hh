@@ -46,6 +46,8 @@ protected:
   bool isPixel_;
 
 private:
+  double myResolutionRphi_; // Only used for virtual hits on non-modules
+  double myResolutionY_;    // Only used for virtual hits on non-modules
   
 public:
   ~Hit();
@@ -54,6 +56,8 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule);
   Module* getHitModule() { return hitModule_; };
+  double getResolutionRphi();
+  double getResolutionY();
   void setHitModule(Module* myModule);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
@@ -75,6 +79,9 @@ public:
   void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
+
+  void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
+  void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
 };
 
 /**
@@ -113,26 +120,30 @@ public:
   Track();
   Track(const Track& t);
   ~Track();
-  bool noHits() { return hitV_.empty(); };
+  bool noHits() { return hitV_.empty(); }
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
-  double getTheta() {return theta_;};
-  map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; };
-  map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; };
-  map<momentum, double>& getDeltaRho() { return deltarho_; };
-  map<momentum, double>& getDeltaPhi() { return deltaphi_; };
-  map<momentum, double>& getDeltaD() { return deltad_; };
-  map<momentum, double>& getDeltaCtgTheta() { return deltaCtgTheta_; };
-  map<momentum, double>& getDeltaZ0() { return deltaZ0_; };
-  map<momentum, double>& getDeltaP() { return deltaP_; };
-  Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); return newHit;};
+  double getTheta() {return theta_;}
+  map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
+  map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; }
+  map<momentum, double>& getDeltaRho() { return deltarho_; }
+  map<momentum, double>& getDeltaPhi() { return deltaphi_; }
+  map<momentum, double>& getDeltaD() { return deltad_; }
+  map<momentum, double>& getDeltaCtgTheta() { return deltaCtgTheta_; }
+  map<momentum, double>& getDeltaZ0() { return deltaZ0_; }
+  map<momentum, double>& getDeltaP() { return deltaP_; }
+  // TODO: maybe updateradius is not necessary here. To be checked
+  Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); newHit->updateRadius(); return newHit;}
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
   void removeMaterial();
-  int nActiveHits(bool usePixels  = false );
+  int nActiveHits(bool usePixels = false );
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
+  void keepTriggerOnly();
+  // static bool debugRemoval; // debug
+  void addIPConstraint(double dr, double dz);
 };
 #endif
