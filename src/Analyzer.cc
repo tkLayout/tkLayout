@@ -343,6 +343,13 @@ namespace insur {
 	      track.sort();
               if (efficiency!=1) track.addEfficiency(efficiency, false);
 	      if (track.nActiveHits(true)>2) { // At least 3 points needed
+		//#ifdef HIT_DEBUG_RZ
+		//		if ((eta >1.617) &&(theta>0.383)) {
+		//		  Track::debugRZCorrelationMatrix = true;
+		//		  Track::debugRZCovarianceMatrix = true;
+		//		  Track::debugRZErrorPropagation = true;
+		//		}
+		//#endif
 		track.computeErrors(momenta);
 		tv.push_back(track);
 

@@ -22,6 +22,10 @@ class Track;
 
 typedef double momentum;  // Track momentum in MeV
 
+
+#undef HIT_DEBUG
+#undef HIT_DEBUG_RZ
+
 /**
  * @class Hit
  * @brief The Hit class is used when analysing a tracker layout to record information about a volume that was hit by a test track.
@@ -144,6 +148,11 @@ public:
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
   // static bool debugRemoval; // debug
+#ifdef HIT_DEBUG_RZ
+  static bool debugRZCovarianceMatrix;  // debug
+  static bool debugRZCorrelationMatrix;  // debug
+  static bool debugRZErrorPropagation;  // debug
+#endif
   void addIPConstraint(double dr, double dz);
 };
 #endif

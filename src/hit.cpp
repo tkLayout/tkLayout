@@ -13,10 +13,12 @@
 using namespace ROOT::Math;
 using namespace std;
 
-#undef HIT_DEBUG
-#undef HIT_DEBUG_RZ
-
 // bool Track::debugRemoval = false; // debug
+#ifdef HIT_DEBUG_RZ
+bool Track::debugRZCovarianceMatrix = false;  // debug
+bool Track::debugRZCorrelationMatrix = false;  // debug
+bool Track::debugRZErrorPropagation = false;  // debug
+#endif
 
 /**
  * This is a comparator for two Hit objects.
@@ -518,20 +520,21 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
     int n = hitV_.size();
     
 #ifdef HIT_DEBUG_RZ
-    std::cerr << std::endl
-	      << std::endl
-	      << "=== Track::computeCorrelationMatrixRZ() == " << std::endl
-	      << " theta = " << theta_ << std::endl;
+    if (debugRZCorrelationMatrix)
+      std::cerr << std::endl
+		<< std::endl
+		<< "=== Track::computeCorrelationMatrixRZ() == " << std::endl
+		<< " theta = " << theta_ << std::endl;
 #endif
 
-    // Corraction factor for horizontal and vertical surfaces
-    double verticalFactor = 1 / cos(theta_);
-    double horizontalFactor = 1 / sin(theta_);
+    double newHorizontalFactor = 1 / sin(theta_) / sin(theta_);
+    double ctgTheta = 1/tan(theta_);
     
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
 
 #ifdef HIT_DEBUG_RZ
+    if (debugRZCorrelationMatrix)
       std::cerr << " p = " << momenta.at(p) << std::endl;
 #endif
 
@@ -541,7 +544,12 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().radiation;
 #ifdef HIT_DEBUG_RZ
-	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
+    if (debugRZCorrelationMatrix)
+	    std::cerr << "material (" << i << ") = " << th
+		      << "\t at r=" << hitV_.at(i)->getRadius()
+		      << "\t " << ((hitV_.at(i)->getOrientation()==Hit::Horizontal) ? "Horizontal" : "Vertical")
+		      << "\t " << ((hitV_.at(i)->getObjectKind()==Hit::Active) ? "Active" : "Inactive")
+		      << std::endl;
 #endif
 	    if (th>0)
 	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
@@ -563,23 +571,19 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
                     // correlations between two active surfaces
                     else {
                         double sum = 0.0;
-			double myFactor = 1;
-			if (hitV_.at(c)->getOrientation()==Hit::Horizontal) myFactor*=horizontalFactor;
-			if (hitV_.at(r)->getOrientation()==Hit::Horizontal) myFactor*=horizontalFactor;
-			if (hitV_.at(c)->getOrientation()==Hit::Vertical) myFactor*=verticalFactor;
-			if (hitV_.at(r)->getOrientation()==Hit::Vertical) myFactor*=verticalFactor;
                         for (int i = 0; i < r; i++)
-			  //sum += (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius())
-			  // * thetasq.at(i);
-			  sum += myFactor
+			  sum += newHorizontalFactor
 			    * (hitV_.at(c)->getDistance() - hitV_.at(i)->getDistance())
 			    * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance())
 			    * thetasq.at(i);
                         if (r == c) {
-                            double prec = hitV_.at(r)->getResolutionY();
+			  double prec = hitV_.at(r)->getResolutionY();
+			  if (hitV_.at(r)->getOrientation()==Hit::Vertical) prec *= ctgTheta;
 #ifdef HIT_DEBUG_RZ
-			    std::cerr << "Hit precision: " << prec << std::endl;
-			    std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
+			    if (debugRZCorrelationMatrix) {
+			      std::cerr << "Hit precision: " << prec << "\t";
+			      std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
+			    }
 #endif
                             sum = sum + prec * prec;
                         }
@@ -617,8 +621,11 @@ corr(r, c)=0;
         if (ia != -1) corr.ResizeTo(ia, ia);
 
 #ifdef HIT_DEBUG_RZ
-	std::cerr << "Correlation matrix: " << std::endl;
-	corr.Print();
+	if (debugRZCorrelationMatrix) {
+	  std::cerr << "Correlation matrix: " << std::endl;
+	  corr.Print();
+	  debugRZCorrelationMatrix = false;
+	}
 #endif
 
         // check if matrix is sane and worth keeping
@@ -627,6 +634,7 @@ corr(r, c)=0;
             correlationsRZ_.insert(par);
         }
     }
+
 }
 
 /**
@@ -636,12 +644,15 @@ corr(r, c)=0;
 void Track::computeCovarianceMatrixRZ() {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlationsRZ_.end();
     covariancesRZ_.clear();
+    double sinTheta = sin(theta_);
 
 #ifdef HIT_DEBUG_RZ
-    std::cerr << std::endl
-	      << std::endl
-	      << "=== Track::computeCovarianceMatrixRZ() == " << std::endl
-	      << " theta = " << theta_ << std::endl;
+    if (debugRZCovarianceMatrix) {
+      std::cerr << std::endl
+		<< std::endl
+		<< "=== Track::computeCovarianceMatrixRZ() == " << std::endl
+		<< " theta = " << theta_ << std::endl;
+    }
 #endif
 
     for (iter = correlationsRZ_.begin(); iter != guard; iter++) {
@@ -655,26 +666,46 @@ void Track::computeCovarianceMatrixRZ() {
 
         // set up partial derivative matrices diffs and diffsT
         for (unsigned int i = 0; i < nhits; i++) {
-            if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
-	      if (hitV_.at(i)->getOrientation() == Hit::Horizontal) {
-                diffs(i - offset, 0) = hitV_.at(i)->getRadius();
-                diffs(i - offset, 1) = 1;
-	      } else { // Veritcal
-                diffs(i - offset, 0) = -1* hitV_.at(i)->getRadius() * tan(theta_) * sin(theta_) ;
-                diffs(i - offset, 1) = -1* tan(theta_) ;
-	      }
-            }
-            else offset++;
+	  if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
+	    // partial derivatives for y = p[0] * x + p[1]
+	    // diffs(i - offset, 0) = hitV_.at(i)->getDistance() * cos(theta_) ; // TODO: optimize this
+	    // diffs(i - offset, 1) = 1;
+
+	    // partial derivatives for y = (x - p[1]) / p[0]
+	    // diffs(i - offset, 0) = hitV_.at(i)->getDistance() * sinTimesTan;
+	    // diffs(i - offset, 1) = tanTheta;
+
+	    // partial derivatives for x = p[0] * y + p[1]
+	    diffs(i - offset, 0) = hitV_.at(i)->getDistance() * sinTheta;
+	    diffs(i - offset, 1) = 1;
+	  }
+	  else offset++;
         }
         diffsT.Transpose(diffs);
 #ifdef HIT_DEBUG_RZ
-	diffs.Print();
-	C.Print();
+	if (debugRZCovarianceMatrix) {
+	  std::cerr << "Partial derivatives matrix" << std::endl;
+	  diffs.Print();
+	  diffsT.Print();
+	  std::cerr << "Error correlation matrix:" << std::endl;
+	  C.Print();
+	}
+#endif
+	// Invert the C matrix
+	C.Invert();
+#ifdef HIT_DEBUG_RZ
+	if (debugRZCovarianceMatrix) {
+	  std::cerr << "Error correlation matrix (inverted):" << std::endl;	  
+	  C.Print();
+	}
 #endif
         // compute cov from diffsT, the correlation matrix and diffs
-        cov = diffsT * C.Invert() * diffs;
+        cov = diffsT * C * diffs;
 #ifdef HIT_DEBUG_RZ
-	cov.Print();
+	if (debugRZCovarianceMatrix) {
+	  cov.Print();
+	  debugRZCovarianceMatrix = false;
+	}
 #endif
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariancesRZ_.insert(par);
@@ -705,21 +736,28 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         err.first = iter->first;
         data = data.Invert();
 #ifdef HIT_DEBUG_RZ
-	std::cerr << "Matrix S" << std::endl;
-	data.Print();
+	if (debugRZErrorPropagation) {
+	  std::cerr << "Matrix S" << std::endl;
+	  data.Print();
+	}
 #endif
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltaCtgTheta_.insert(err);
 #ifdef HIT_DEBUG_RZ
-	std::cerr << err.second << std::endl;
+	if (debugRZErrorPropagation) {
+	  std::cerr << err.second << std::endl;
+	}
 #endif
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaZ0_.insert(err);
 
 #ifdef HIT_DEBUG_RZ
-	std::cerr << err.second << std::endl;
+	if (debugRZErrorPropagation) {
+	  std::cerr << err.second << std::endl;
+	  debugRZErrorPropagation = false;
+	}
 #endif
     }
 
