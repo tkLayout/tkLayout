@@ -138,8 +138,8 @@ namespace insur {
  	    hit->setOrientation(Hit::Horizontal);
  	    hit->setObjectKind(Hit::Inactive);
  	    Material beamPipeMat;
- 	    beamPipeMat.radiation = 0.0023;
- 	    beamPipeMat.interaction = 0.0019;
+ 	    beamPipeMat.radiation = 0.0023 / sin(theta);
+ 	    beamPipeMat.interaction = 0.0019 / sin(theta);
  	    hit->setCorrectedMaterial(beamPipeMat);
  	    track.addHit(hit);
 
@@ -335,8 +335,8 @@ namespace insur {
  	    hit->setOrientation(Hit::Horizontal);
  	    hit->setObjectKind(Hit::Inactive);
  	    Material beamPipeMat;
- 	    beamPipeMat.radiation = 0.0023;
- 	    beamPipeMat.interaction = 0.0019;
+ 	    beamPipeMat.radiation = 0.0023 / sin(theta);
+ 	    beamPipeMat.interaction = 0.0019 / sin(theta);
  	    hit->setCorrectedMaterial(beamPipeMat);
  	    track.addHit(hit);
             if (!track.noHits()) {

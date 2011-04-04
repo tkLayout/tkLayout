@@ -527,7 +527,6 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
 		<< " theta = " << theta_ << std::endl;
 #endif
 
-    double newHorizontalFactor = 1 / sin(theta_) / sin(theta_);
     double ctgTheta = 1/tan(theta_);
     
     // set up correlation matrix
@@ -540,7 +539,10 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
 
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
-        std::vector<double> thetasq;
+	// already divided by sin^2 (that is : we should use p instead of p_T here
+	// but the result for theta^2 differ by a factor 1/sin^2, which is exactly the
+	// needed factor to project the scattering angle on an horizontal surface
+        std::vector<double> thetaOverSin_sq;
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().radiation;
 #ifdef HIT_DEBUG_RZ
@@ -552,10 +554,11 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
 		      << std::endl;
 #endif
 	    if (th>0)
-	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
+	      // equivalent to p=momenta.at(p)/sin(theta_); and then computing th/sin(theta)/sin(theta) using p in place of p_T
+	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p) ) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
 	    else
 	      th = 0;
-            thetasq.push_back(th);
+            thetaOverSin_sq.push_back(th);
         }
         // correlations: c is column, r is row
         for (int c = 0; c < n; c++) {
@@ -572,10 +575,9 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
                     else {
                         double sum = 0.0;
                         for (int i = 0; i < r; i++)
-			  sum += newHorizontalFactor
+			  sum += thetaOverSin_sq.at(i)
 			    * (hitV_.at(c)->getDistance() - hitV_.at(i)->getDistance())
-			    * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance())
-			    * thetasq.at(i);
+			    * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance());
                         if (r == c) {
 			  double prec = hitV_.at(r)->getResolutionY();
 			  if (hitV_.at(r)->getOrientation()==Hit::Vertical) prec *= ctgTheta;
@@ -644,7 +646,6 @@ corr(r, c)=0;
 void Track::computeCovarianceMatrixRZ() {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlationsRZ_.end();
     covariancesRZ_.clear();
-    double sinTheta = sin(theta_);
 
 #ifdef HIT_DEBUG_RZ
     if (debugRZCovarianceMatrix) {
@@ -676,7 +677,7 @@ void Track::computeCovarianceMatrixRZ() {
 	    // diffs(i - offset, 1) = tanTheta;
 
 	    // partial derivatives for x = p[0] * y + p[1]
-	    diffs(i - offset, 0) = hitV_.at(i)->getDistance() * sinTheta;
+	    diffs(i - offset, 0) = hitV_.at(i)->getRadius();
 	    diffs(i - offset, 1) = 1;
 	  }
 	  else offset++;
