@@ -72,6 +72,7 @@ bool configParser::parseParameter(string &parameterName, string &parameterValue,
 bool configParser::parseTracker(string myName, istream& inStream) {
     string parameterName;
     string parameterValue;
+    int intValue;
     double doubleValue;
     string parameterNameCopy;
     bool correctlyBroken;
@@ -120,6 +121,14 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             } else if (parameterName=="stripCost") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setCost(Module::Strip, doubleValue);
+            } else if (parameterName=="useIPConstraint") {
+                intValue=atoi(parameterValue.c_str());
+		if (intValue==1) myTracker_->setUseIPConstraint(true);
+		else if (intValue==0) myTracker_->setUseIPConstraint(false);
+		else {
+		  std::cerr << "ERROR: useIPConstraint can be 0 or 1" << std::endl;
+		  throw parsingException();
+		}
             } else if (correctlyBroken) { // Per module type parameters
               if (parameterNameCopy == "triggerErrorIncreaseX") {
 	        doubleValue = atof(parameterValue.c_str());

@@ -66,6 +66,7 @@ protected:
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
   static const double defaultNMB_ = 200;
+  static const bool defaultUseIPConstraint_ = true; // in the trigger fit use the ip constraint by default
   
 private:
   void setDefaultParameters();
@@ -110,6 +111,7 @@ private:
 
   double rError_;
   double zError_;
+  double useIPConstraint_;
   double smallDelta_;
   double bigDelta_;
   double overlap_;
@@ -197,10 +199,11 @@ public:
 
 
   // Access to parameters
-  void setRError(const double& newError) { rError_ = newError; };
-  void setZError(const double& newError) { zError_ = newError; };
-  void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; };
-  void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; };
+  void setRError(const double& newError) { rError_ = newError; }
+  void setZError(const double& newError) { zError_ = newError; }
+  void setUseIPConstraint(bool newUse) { useIPConstraint_ = newUse; }
+  void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; }
+  void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; }
   void setSpecialSmallDelta(const int& specialIndex, const double& newSpecialSmallDelta) { specialSmallDelta_[specialIndex]=newSpecialSmallDelta; };
   void setSpecialBigDelta(const int& specialIndex, const double& newSpecialBigDelta) { specialBigDelta_[specialIndex]=newSpecialBigDelta; };
   double getSpecialSmallDelta(const int& specialIndex) { return specialSmallDelta_[specialIndex]; };
@@ -239,14 +242,15 @@ public:
   void setTriggerErrorY(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorY(errorIncrease); }
 
   // Overlaps / error
-  double getRError() { return rError_; };
-  double getZError() { return zError_; };
-  double getSmallDelta() { return smallDelta_; };
-  double getBigDelta() { return bigDelta_; };
+  double getRError() { return rError_; }
+  double getZError() { return zError_; }
+  bool getUseIPConstraint() { return useIPConstraint_; }
+  double getSmallDelta() { return smallDelta_; }
+  double getBigDelta() { return bigDelta_; }
   double getSmallDelta(const int& index);
   double getBigDelta(const int& index);
-  double getOverlap() { return overlap_; };
-  double getEtaCut() { return etaCut_; };
+  double getOverlap() { return overlap_; }
+  double getEtaCut() { return etaCut_; }
 
   // Module efficiency
   double getEfficiency() {return efficiency_ ; }

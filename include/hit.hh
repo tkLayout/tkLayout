@@ -48,6 +48,7 @@ protected:
   Material correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
+  bool isTrigger_;
 
 private:
   double myResolutionRphi_; // Only used for virtual hits on non-modules
@@ -82,8 +83,9 @@ public:
   Material getCorrectedMaterial();
   void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
+  bool isTrigger() { return isTrigger_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
-
+  void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
   void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
   void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
 };
@@ -147,6 +149,7 @@ public:
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
+  void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
 #ifdef HIT_DEBUG_RZ
   static bool debugRZCovarianceMatrix;  // debug

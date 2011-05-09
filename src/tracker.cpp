@@ -93,6 +93,7 @@ void Tracker::setDefaultParameters() {
     nMB_ = defaultNMB_;
     rError_ = defaultRError_;
     zError_ = defaultZError_;
+    useIPConstraint_ = defaultUseIPConstraint_;
     smallDelta_ = defaultSmallDelta_;
     bigDelta_ = defaultBigDelta_;
     overlap_ = defaultOverlap_;

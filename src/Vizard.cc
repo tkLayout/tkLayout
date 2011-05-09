@@ -2054,9 +2054,11 @@ namespace insur {
             // Create a page for the errors
 	  std::string pageTitle = "Resolution";
 	  std::string additionalSummaryTag;
+	  double verticalScale=1;
 	  if (additionalTag!="") {
 	    pageTitle += " ("+additionalTag+")";
 	    additionalSummaryTag = "_"+additionalTag+"_";
+	    verticalScale = 10;
 	  } else {
 	    additionalSummaryTag = "";
 	  }
@@ -2079,12 +2081,14 @@ namespace insur {
                 myContent = &idealResolutionContent;
               }
 	      
+	      TCanvas linearMomentumCanvas;
 	      TCanvas momentumCanvas;
 	      TCanvas distanceCanvas;
 	      TCanvas angleCanvas;
 	      TCanvas ctgThetaCanvas;
 	      TCanvas z0Canvas;
 	      TCanvas pCanvas;
+	      linearMomentumCanvas.SetGrid(1,1);
 	      momentumCanvas.SetGrid(1,1);
 	      distanceCanvas.SetGrid(1,1);
 	      angleCanvas.SetGrid(1,1);
@@ -2102,20 +2106,24 @@ namespace insur {
                 TGraph& momentumGraph = g_iter->second;
 		if (idealMaterial) {
 		  momentumGraph.SetMinimum(1E-5*100);
-		  momentumGraph.SetMaximum(.11*100);		  
+		  momentumGraph.SetMaximum(.11*100*verticalScale);
 		} else {
 		  momentumGraph.SetMinimum(4E-3*100);
-		  momentumGraph.SetMaximum(.11*100);
+		  momentumGraph.SetMaximum(.11*100*verticalScale);
 		}
                 momentumGraph.GetXaxis()->SetLimits(0, 2.4);
-		momentumCanvas.SetLogy();
+		linearMomentumCanvas.SetLogy(0);		
+		momentumCanvas.SetLogy(1);
 		momentumGraph.SetLineColor(momentumColor(myColor));
 		momentumGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
 		momentumGraph.SetMarkerStyle(8);
-                momentumCanvas.cd();
                 momentumCanvas.SetFillColor(color_plot_background);
+                linearMomentumCanvas.SetFillColor(color_plot_background);
 		if (momentumGraph.GetN()>0) {
+		  momentumCanvas.cd();
+		  momentumGraph.Draw(plotOption.c_str());
+		  linearMomentumCanvas.cd();
 		  momentumGraph.Draw(plotOption.c_str());
 		  plotOption = "p same";
 		}
@@ -2128,10 +2136,10 @@ namespace insur {
                 TGraph& distanceGraph = g_iter->second;
 		if (idealMaterial) {
 		  distanceGraph.SetMinimum(4*1e-4);
-		  distanceGraph.SetMaximum(4E2*1e-4);
+		  distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
 		} else {
 		  distanceGraph.SetMinimum(4*1e-4);
-		  distanceGraph.SetMaximum(4E2*1e-4);
+		  distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
 		}
                 distanceGraph.GetXaxis()->SetLimits(0, 2.4);
 		distanceCanvas.SetLogy();
@@ -2154,10 +2162,10 @@ namespace insur {
                 TGraph& angleGraph = g_iter->second;
 		if (idealMaterial) {
 		  angleGraph.SetMinimum(1E-5);
-		  angleGraph.SetMaximum(0.01);
+		  angleGraph.SetMaximum(0.01*verticalScale);
 		} else {
 		  angleGraph.SetMinimum(1E-5);
-		  angleGraph.SetMaximum(0.01);
+		  angleGraph.SetMaximum(0.01*verticalScale);
 		}
                 angleGraph.GetXaxis()->SetLimits(0, 2.4);
                 angleCanvas.SetLogy();
@@ -2179,7 +2187,7 @@ namespace insur {
 	      for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
 		ctgThetaGraph.SetMinimum(1E-5);
-		ctgThetaGraph.SetMaximum(0.1);
+		ctgThetaGraph.SetMaximum(0.1*verticalScale);
                 ctgThetaGraph.GetXaxis()->SetLimits(0, 2.4);
                 ctgThetaCanvas.SetLogy();
 		ctgThetaGraph.SetLineColor(momentumColor(myColor));
@@ -2200,7 +2208,7 @@ namespace insur {
 	      for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
 		z0Graph.SetMinimum(1E-5);
-		z0Graph.SetMaximum(1);
+		z0Graph.SetMaximum(1*verticalScale);
                 z0Graph.GetXaxis()->SetLimits(0, 2.4);
                 z0Canvas.SetLogy();
 		z0Graph.SetLineColor(momentumColor(myColor));
@@ -2222,10 +2230,10 @@ namespace insur {
                 TGraph& pGraph = g_iter->second;
 		if (idealMaterial) {
 		  pGraph.SetMinimum(1E-5*100);
-		  pGraph.SetMaximum(.11*100);		  
+		  pGraph.SetMaximum(.11*100*verticalScale);		  
 		} else {
 		  pGraph.SetMinimum(4E-3*100);
-		  pGraph.SetMaximum(.11*100);
+		  pGraph.SetMaximum(.11*100*verticalScale);
 		}
                 pGraph.GetXaxis()->SetLimits(0, 2.4);
 		pCanvas.SetLogy();
@@ -2240,6 +2248,9 @@ namespace insur {
 		  plotOption = "p same";
 		}
 	      }
+	      RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
+	      linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
+	      linearMomentumImage.setName("linptres");
 	      RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
 	      momentumImage.setComment("Transverse momentum resolution vs. eta");
 	      momentumImage.setName("ptres");

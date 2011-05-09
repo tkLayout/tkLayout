@@ -44,9 +44,9 @@ Hit::Hit() {
     objectKind_ = Undefined;
     hitModule_ = NULL;
     orientation_ = Undefined;
-    //trackTheta_ = 0;
     myTrack_ = NULL;
     isPixel_ = false;
+    isTrigger_ = false;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
 }
@@ -64,6 +64,7 @@ Hit::Hit(const Hit& h) {
     correctedMaterial_ = h.correctedMaterial_;
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
+    isTrigger_ = h.isTrigger_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
 }
@@ -76,7 +77,8 @@ Hit::Hit(double myDistance) {
     objectKind_ = Undefined;
     hitModule_ = NULL;
     orientation_ = Undefined;
-    //trackTheta_ = 0;
+    isTrigger_ = false;
+    isPixel_ = false;
     myTrack_ = NULL;
 }
 
@@ -86,8 +88,9 @@ Hit::Hit(double myDistance) {
 Hit::Hit(double myDistance, Module* myModule) {
     distance_ = myDistance;
     objectKind_ = Active;
-    orientation_ = Undefined;
-    //trackTheta_ = 0;
+    orientation_ = Undefined; 
+    isTrigger_ = false;
+    isPixel_ = false;
     setHitModule(myModule);
     myTrack_ = NULL;
 }
@@ -135,7 +138,8 @@ double Hit::getResolutionRphi() {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->getResolutionRphi();
+      if (isTrigger_) return hitModule_->getResolutionRphiTrigger();
+      else return hitModule_->getResolutionRphi();
     } else {
       return myResolutionRphi_;
     }
@@ -148,7 +152,8 @@ double Hit::getResolutionY() {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->getResolutionY();
+      if (isTrigger_) return hitModule_->getResolutionYTrigger();
+      else return hitModule_->getResolutionY();
     } else {
       return myResolutionY_;
     }
@@ -894,6 +899,19 @@ void Track::keepTriggerOnly() {
   }
 
   // debugRemoval=false;
+}
+
+/**
+ * Sets all the hits to their trigger resolution
+ */
+void Track::setTriggerResolution(bool isTrigger) {
+  Hit* myHit;
+  for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
+    myHit = (*it);
+    if (myHit->getObjectKind() == Hit::Active) {
+      myHit->setTrigger(isTrigger);
+    }
+  }
 }
 
 

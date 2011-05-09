@@ -146,9 +146,11 @@ namespace insur {
             if (!track.noHits()) {
 	      // Assume the IP constraint here
 	      // TODO: make this configurable
-	      track.addIPConstraint(tracker.getRError(),tracker.getZError());
+	      if (tracker.getUseIPConstraint())
+		track.addIPConstraint(tracker.getRError(),tracker.getZError());
 	      track.sort();
 	      track.keepTriggerOnly();
+	      track.setTriggerResolution(true);
 	      
 	      if (efficiency!=1) track.addEfficiency(efficiency, false);
 	      if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
