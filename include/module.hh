@@ -27,6 +27,8 @@
 // constant (digital: per module) + 
 // scaling (analogue? : per strip / strip size..?) - Mark Raymond
 
+#define maxNFaces 2
+
 using namespace ROOT::Math;
 
 typedef std::pair<double, int> edge;
@@ -56,8 +58,7 @@ protected:
   double stereodist_;
   double stereorot_;
   double dphideta_;
-  int nChannelsPerFace_;
-  int nSegments_;
+  int nSegmentsFace_[maxNFaces];
   int nStripAcross_;
   int nFaces_;
   int readoutType_;
@@ -113,13 +114,15 @@ protected:
 
   edge getEdgeRho(int direction);
 
-  void computeStripArea();
-  void computeDphiDeta();
+  //void computeStripArea(int nFace);
+  void computeMaxDphiDeta();
 
   const ModuleType* moduleType_;
 
  private:
   void setDefaultParameters();
+  int findMaxSegmentsFace_(); // starting from 0 !!
+  int findMinSegmentsFace_(); // starting from 0 !!
     
  public:
   virtual ~Module();
@@ -206,20 +209,27 @@ protected:
   int getSection() { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };
 
-  int getNChannels()        { return nChannelsPerFace_ * nFaces_ ;};
-  int getNChannelsPerFace() { return nChannelsPerFace_ ;};
-  int getNPerFace()         { return nChannelsPerFace_ ;};
+  int getNChannels();
+  int getNChannelsFace(int nFace);
+  int getNMaxChannelsFace();
+  int getNMinChannelsFace();
+
   int getNStripAcross()     { return nStripAcross_ ;};
   int getNStripsAcross()    { return nStripAcross_ ;};
-  int getNSegments()        { return nSegments_ ;};
+
+  int getNSegments(int nFace);
+  int getNMaxSegments();
+  double getNMeanSegments();
+  int getNMinSegments();
+
+  void setNSegments(const int& face, const int& newNSegments);
   int getNFaces()           { return nFaces_ ;};
   int getReadoutType()      { return readoutType_ ;};
   int getReadoutMode()      { return readoutMode_ ;};
 
-  void setNStripAcross(const int& newN) { nStripAcross_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
-  void setNStripsAcross(const int& newN) { setNStripAcross(newN); }
-  void setNSegments(const int& newN) { nSegments_=newN; nChannelsPerFace_=nStripAcross_*nSegments_;  };
-  void setNFaces(const int& newN) { nFaces_=newN; };
+  void setNStripsAcross(const int& newN) { nStripAcross_=newN; }
+  void setNSegments(const int& newN);
+  void setNFaces(const int& newN);
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity
   void setReadoutMode(const int& newN) { readoutMode_=newN; }; // TODO: check validity
 

@@ -1922,27 +1922,26 @@ namespace insur {
         LayerVector layerSet = tracker.getLayers();
         double nMB = tracker.getNMB();
         for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
-            aLay = (*layIt)->getModuleVector();
-            for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-                if ((*modIt)->getReadoutType()==Module::Strip) {
-                    hitChannels = (*modIt)->getOccupancyPerEvent()*nMB*((*modIt)->getNChannelsPerFace());
-                    chanHitDistribution.Fill(hitChannels);
-                    
-                    for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
-                        nChips=int(ceil((*modIt)->getNChannelsPerFace()/128.));
+	  aLay = (*layIt)->getModuleVector();
+	  for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+	    if ((*modIt)->getReadoutType()==Module::Strip) {
+	      for (int nFace=1; nFace<=(*modIt)->getNFaces() ; nFace++) {
+		hitChannels = (*modIt)->getOccupancyPerEvent()*nMB*((*modIt)->getNChannelsFace(nFace));
+		chanHitDistribution.Fill(hitChannels);
+		nChips=int(ceil((*modIt)->getNChannelsFace(nFace)/128.));
                         
-                        // TODO: place the computing model choice here
-                        
-                        // ACHTUNG!!!! whenever you change the numbers here, you have to change
-                        // also the numbers in the summary
-                        
-                        // Binary unsparsified (bps)
-                        bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
-                        // Binary sparsified
-                        bandwidthDistributionSparsified.Fill((23*nChips+hitChannels*9)*100E3);
-                    }
-                }
-            }
+		// TODO: place the computing model choice here
+                
+		// ACHTUNG!!!! whenever you change the numbers here, you have to change
+		// also the numbers in the summary
+                
+		// Binary unsparsified (bps)
+		bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsFace(nFace))*100E3);
+		// Binary sparsified
+		bandwidthDistributionSparsified.Fill((23*nChips+hitChannels*9)*100E3);
+	      }
+	    }
+	  }
         }
         
         savingGeometryV.push_back(chanHitDistribution);

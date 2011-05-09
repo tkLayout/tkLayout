@@ -1569,17 +1569,45 @@ namespace insur {
                 aPitchPair << std::dec << std::fixed << std::setprecision(pitchPrecision)<< loPitch
                 << "/" << std::fixed << std::setprecision(pitchPrecision) << hiPitch;
             }
-            // Strip Lengths
+
+            // Strip Lengths and segmentation
             aStripLength.str("");
-            aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-            << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments();
-            // Segments
-            aSegment.str("");
-            aSegment << std::dec << (*typeMapIt).second->getNSegments()
-            << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+	    aSegment.str("");
+	    // One number only if all the same
+	    if ((*typeMapIt).second->getNMinSegments() == (*typeMapIt).second->getNMaxSegments()) {
+	      // Strip length
+	      aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+			   << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(1);
+	      // Segments
+	      aSegment << std::dec << (*typeMapIt).second->getNSegments(1)
+		       << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+	    } else { // They are different
+	      for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
+		// Strip length
+		aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+			     << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(iFace);
+		// Segments
+		aSegment << std::dec << (*typeMapIt).second->getNSegments(iFace)
+			 << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+		if (iFace!=(*typeMapIt).second->getNFaces()) {
+		  aStripLength << " - ";
+		  aSegment << " - ";
+		}
+	      }
+	    }
+
             // Nstrips
             anNstrips.str("");
-            anNstrips << std::dec << (*typeMapIt).second->getNChannelsPerFace();
+	    if ( (*typeMapIt).second->getNMinChannelsFace() == (*typeMapIt).second->getNMaxChannelsFace()) {
+	      anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(1);
+	    } else {
+	      for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
+		anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(iFace);
+		if (iFace!=(*typeMapIt).second->getNFaces()) anNstrips << " - ";
+	      }
+	    }
+
+
             // Number Mod
             aNumberMod.str("");
             aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
@@ -2024,7 +2052,7 @@ namespace insur {
         TH1D& chanHitDistribution = analyzer.getChanHitDistribution();
         chanHitDistribution.Draw();
         myImage = new RootWImage(moduleHitCanvas, 600, 600);
-        myImage->setComment("Number of hits per module per BX distribution");
+        myImage->setComment("Distribution of number of hits per bunch crossing (each sensor is counted separately)");
         myContent->addItem(myImage);
         
         RootWText* myDescription = new RootWText();

@@ -1350,8 +1350,11 @@ void Tracker::setModuleTypesDemo1() {
     }
 }
 
-// Returns the same color for the same module type across
-// all the program
+/* Returns the same color for the same module type across all the
+ * program
+ * @param module type
+ * @return corresponding color
+ */
 Color_t Tracker::colorPicker(std::string type) {
     if (type=="") return COLOR_INVALID_MODULE;
     if (colorPickMap_[type]==0) {
@@ -1363,16 +1366,6 @@ Color_t Tracker::colorPicker(std::string type) {
     return colorPickMap_[type];
 }
 
-// Method used to assign the module types via config file
-// Paramter set here (example)
-//   sampleModule->setNStripAcross(512);
-//   sampleModule->setNFaces(2);
-//   sampleModule->setNSegments(1);
-//   sampleModule->setType("stereo");
-//   sampleModule->setTag("TIBL2");
-//   sampleModule->setColor(kBlue);
-//   sampleModule->setReadoutType(Module::Pt);
-
 void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, int> nStripsAcross,
         std::map<int, int> nFaces,
@@ -1380,12 +1373,14 @@ void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, std::string> myType,
         std::map<int, double> dsDistance,
         std::map<int, double> dsRotation,
+        std::map<int, int> divideBack,
         std::map<std::pair<int, int>, int> nStripsAcrossSecond,
         std::map<std::pair<int, int>, int> nFacesSecond,
         std::map<std::pair<int, int>, int> nSegmentsSecond,
         std::map<std::pair<int, int>, std::string> myTypeSecond,
         std::map<std::pair<int, int>, double> dsDistanceSecond,
         std::map<std::pair<int, int>, double> dsRotationSecond,
+        std::map<std::pair<int, int>, int> divideBackSecond,
         std::map<std::pair<int, int>, bool> specialSecond) {
     
     LayerVector::iterator layIt;
@@ -1408,6 +1403,7 @@ void Tracker::setModuleTypes(std::string sectionName,
     std::string aType;
     double aDistance;
     double aRotation;
+    int aDivideBack;
     
     std::pair<int, int> mySpecialIndex;
     
@@ -1458,6 +1454,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aType = myType[myIndex];
             aDistance = dsDistance[myIndex];
             aRotation = dsRotation[myIndex];
+	    aDivideBack = divideBack[myIndex];
             
             if (specialSecond[mySpecialIndex]) {
                 if (nStripsAcrossSecond[mySpecialIndex]!=0) {
@@ -1478,6 +1475,9 @@ void Tracker::setModuleTypes(std::string sectionName,
                 if (dsRotationSecond[mySpecialIndex]!=0) {
                     aRotation = dsRotationSecond[mySpecialIndex];
                 }
+		if (divideBackSecond[mySpecialIndex]!=0) {
+                    aDivideBack = divideBackSecond[mySpecialIndex];
+		}
             }
             
             // Readout type definition, according to the module type
@@ -1499,8 +1499,8 @@ void Tracker::setModuleTypes(std::string sectionName,
                 myReadoutType = Module::Undefined;
             }
             
-            aModule->setNStripAcross(aStripsAcross);
             aModule->setNFaces(aFaces);
+            aModule->setNStripsAcross(aStripsAcross);
             aModule->setNSegments(aSegments);
             aModule->setType(aType);
 	    aModule->setModuleType(&(mapType_[aType]));
@@ -1514,8 +1514,24 @@ void Tracker::setModuleTypes(std::string sectionName,
 	    aModule->setResolutionRphi();
 	    aModule->setResolutionY();
 
-            // TODO: decide whether to use nStripAcross or nStripsAcross everywhere
-            
+	    // Make the back side of the module with longer strips
+	    // if applicable (and complain otherwise)
+	    if (aDivideBack>1) {
+	      if (aFaces!=2) {
+		std::cerr << "ERROR: trying to make modules with longer back strips (divideBack = )"
+			  << aDivideBack << ", but the number of faces is " << aFaces
+			  << " is not 2" << std::endl << "Ignoring the statement" << std::endl;
+	      } else {
+		if ((aSegments%aDivideBack)!=0) {
+		  std::cerr << "ERROR: trying to divide the number of segments in the back sensor by "
+			    << aDivideBack << ", but the number of segments is " << aSegments
+			    << ", I cannot perform the integer division" << std::endl;
+		} else {
+		  aModule->setNSegments(2, aSegments/aDivideBack);
+		}
+	      }
+	    }
+
             // Check if a given module type was not assigned fr a group
             // We do not check the case for special assignment (optional)
             if ((nStripsAcross[myIndex]==0)&&(!warningStrips[myIndex])) {
@@ -1743,69 +1759,6 @@ void Tracker::drawLayout(double maxZ, double maxRho, std::string fileName) {
     layoutCanvas->Modified();
     
     layoutCanvas->SaveAs(fileName.c_str());
-}
-
-
-void Tracker::computeBandwidth() {
-    LayerVector::iterator layIt;
-    ModuleVector::iterator modIt;
-    ModuleVector* aLay;
-    double hitChannels;
-    TLegend* myLegend;
-    
-    
-    bandWidthCanvas_ = new TCanvas("ModuleBandwidthC", "Modules needed bandwidthC", 2000, 1200);
-    bandWidthCanvas_->Divide(2, 2);
-    bandWidthCanvas_->GetPad(1)->SetLogy(1);
-    
-    
-    chanHitDist_     = new TH1F("NHitChannels",
-            "Number of hit channels;Hit Channels;Modules", 200, 0., 400);
-    bandWidthDist_   = new TH1F("BandWidthDist",
-            "Module Needed Bandwidth;Bandwidth (bps);Modules", 200, 0., 6E+8);
-    bandWidthDistSp_ = new TH1F("BandWidthDistSp",
-            "Module Needed Bandwidth (sparsified);Bandwidth (bps);Modules", 100, 0., 6E+8);
-    bandWidthDistSp_->SetLineColor(kRed);
-    
-    int nChips;
-    for (layIt=layerSet_.begin(); layIt!=layerSet_.end(); layIt++) {
-        aLay = (*layIt)->getModuleVector();
-        for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-            if ((*modIt)->getReadoutType()==Module::Strip) {
-                hitChannels = (*modIt)->getOccupancyPerEvent()*nMB_*((*modIt)->getNChannelsPerFace());
-                chanHitDist_->Fill(hitChannels);
-                
-                for (int nFace=0; nFace<(*modIt)->getNFaces() ; nFace++) {
-                    nChips=int(ceil((*modIt)->getNChannelsPerFace()/128.));
-                    
-                    // TODO: place the computing model choice here
-                    
-                    // ACHTUNG!!!! whenever you change the numbers here, you have to change
-                    // also the numbers in the summary
-                    
-                    // Binary unsparsified (bps)
-                    bandWidthDist_->Fill((16*nChips+(*modIt)->getNChannelsPerFace())*100E3);
-                    // Binary sparsified
-                    bandWidthDistSp_->Fill((23*nChips+hitChannels*9)*100E3);
-                }
-            }
-        }
-    }
-    
-    bandWidthCanvas_->cd(1);
-    bandWidthDist_->Draw();
-    bandWidthDistSp_->Draw("same");
-    myLegend = new TLegend(0.75, 0.5, 1, .75);
-    myLegend->AddEntry(bandWidthDist_, "Unsparsified", "l");
-    myLegend->AddEntry(bandWidthDistSp_, "Sparsified", "l");
-    myLegend->Draw();
-    bandWidthCanvas_->cd(2);
-    chanHitDist_->Draw();
-    
-    savingV_.push_back(bandWidthCanvas_);
-    savingV_.push_back(chanHitDist_);
-    savingV_.push_back(bandWidthDist_);
-    savingV_.push_back(bandWidthDistSp_);
 }
 
 double Tracker::getSmallDelta(const int& index) {

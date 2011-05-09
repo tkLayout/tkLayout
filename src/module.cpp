@@ -53,8 +53,6 @@ void Module::setDefaultParameters() {
     thisVolume_         = NULL;
     color_              = defaultColor_;
     inSection_          = defaultInSection_;
-    nChannelsPerFace_   = defaultChannelsPerFace_;
-    nSegments_          = defaultSegments_;
     nStripAcross_       = defaultStripAcross_;
     nFaces_             = defaultFaces_;
     readoutType_        = Strip;
@@ -62,22 +60,225 @@ void Module::setDefaultParameters() {
     computedBoundaries_ = false;
     shape_              = Undefined;
     aspectRatio_        = defaultAspectRatio_;
-    resolutionRphi_ = defaultResolutionRphi_;
-    resolutionY_ = defaultResolutionY_;
-    moduleType_ = NULL;
+    resolutionRphi_     = defaultResolutionRphi_;
+    resolutionY_        = defaultResolutionY_;
+    moduleType_         = NULL;
+    for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
 }
 
+void Module::setNFaces(const int& newNFaces) {
+  if (newNFaces<0) {
+    std::cerr << "ERROR in Module::setNFaces: negative number of faces!" << std::endl;
+    return;
+  } else if (newNFaces > maxNFaces) {
+    std::cerr << "ERROR in Module::setNFaces: number of faces (" << newNFaces
+	      << ") exceeds maximum allowed ("
+	      << maxNFaces << ")" << std::endl;
+    return;
+  } else {
+    nFaces_=newNFaces;
+  }
+}
+
+/**
+ * Sets the same number of segments (for all the possible faces)
+ * @param newNSegments number of segments
+ */
+void Module::setNSegments(const int& newNSegments) {
+  for (int i=0;i<maxNFaces;++i)  nSegmentsFace_[i] = newNSegments;
+}
+
+/**
+ * Sets the same number of segments for a given face
+ * @param face number of the face (counting from 1)
+ * @param newNSegments number of segments
+ */
+void Module::setNSegments(const int& face, const int& newNSegments) {
+  if (face<=0) {
+    std::cerr << "ERROR in Module::setNFaces: zero or negative face index" << std::endl;
+    return;
+  } else if (face > maxNFaces) {
+    std::cerr << "ERROR in Module::setNSegments: face index (" << face
+	      << ") exceeds maximum allowed ("
+	      << maxNFaces << ")" << std::endl;
+    return;
+  } else if (face > nFaces_) {
+    std::cerr << "WARNING in Module::setNSegments: face index (" << face
+	      << ") exceeds number of faces ("
+	      << maxNFaces << ")" << std::endl;
+  }
+
+  nSegmentsFace_[face-1] = newNSegments;
+}
+
+/**
+ * Total number of channel in the module, taking into account
+ * the different faces
+ * @return total number of channels
+ */
+int Module::getNChannels() {
+  int countChannels=0;
+  for (int i=0; i<nFaces_; ++i) {
+    countChannels += nStripAcross_ * nSegmentsFace_[i] ;
+  }
+  return countChannels;
+}
+
+/** 
+ * Computes on the fly the number of channels in a given face
+ * @return number of channels in a given face
+ */
+int Module::getNChannelsFace(int nFace) {
+  if (nFace<=0) {
+    std::cerr << "ERROR in Module::getNChannelsFace: zero or negative face index" << std::endl;
+    return 0;
+  } else if (nFace > maxNFaces) {
+    std::cerr << "ERROR in Module::getNChannelsFace: face index (" << nFace
+	      << ") exceeds maximum allowed ("
+	      << maxNFaces << ")" << std::endl;
+    return 0;
+  } else if (nFace > nFaces_) {
+    std::cerr << "WARNING in Module::getNChannelsFace: face index (" << nFace
+	      << ") exceeds number of faces ("
+	      << maxNFaces << ")" << std::endl;
+  }
+  return nStripAcross_ * nSegmentsFace_[nFace-1] ;
+}
+
+/**
+ * Returns the number of channels on the sensor with the lowest number of channels
+ * @return the minimum sensor number of channels in the module
+ */ 
+int Module::getNMinChannelsFace() {
+  return nStripAcross_ * getNMinSegments();
+}
+
+/**
+ * Returns the number of channels on the sensor with the highest number of channels
+ * @return the maximum sensor number of channels in the module
+ */ 
+int Module::getNMaxChannelsFace() {
+  return nStripAcross_ * getNMaxSegments();
+}
+
+/**
+ * Returns the number of segments of the face with most segments
+ * @return max number of segments
+ */
+int Module::getNMaxSegments() {
+  int maxSegments=0;
+  // TODO: make such that all these things are computed only once
+  for (int i=0; i<nFaces_; ++i) {
+    if (nSegmentsFace_[i]>maxSegments) {
+      maxSegments = nSegmentsFace_[i];
+    }
+  }  
+  return maxSegments;
+}
+
+/**
+ * Returns the average number of segments on the faces
+ * @return mean number of segments
+ */
+double Module::getNMeanSegments() {
+  int maxSegments=0;
+  // TODO: make such that all these things are computed only once
+  for (int i=0; i<nFaces_; ++i) {
+    maxSegments += nSegmentsFace_[i];
+  }  
+  return double(maxSegments)/nFaces_;
+}
+
+/**
+ * Returns the minimum number of segments on the faces
+ * @return min number of segments
+ */
+int Module::getNMinSegments() {
+  int minSegments=nSegmentsFace_[0];
+  // TODO: make such that all these things are computed only once
+  for (int i=1; i<nFaces_; ++i) {
+    if (nSegmentsFace_[i]<minSegments) {
+      minSegments = nSegmentsFace_[i];
+    }
+  }  
+  return minSegments;
+}
+
+/**
+ * Computes on the fly the same number of segments for all the
+ * possible faces)
+ * @param newNSegments number of segments
+ */
+int Module::getNSegments(int nFace) {
+  if ((nFace<=0)||(nFace>maxNFaces)) return 0;
+  return nSegmentsFace_[nFace-1];
+}
+
+/**
+ * Finds the ARRAY INDEX of the face with the most number of segments
+ * counting from 0
+ * @return the face index with most segments
+ */
+int Module::findMaxSegmentsFace_() {
+  int maxSegments=0;
+  int iMostSegments=0;
+  // TODO: make such that all these things are computed only once
+  for (int i=0; i<nFaces_; ++i) {
+    if (nSegmentsFace_[i]>maxSegments) {
+      maxSegments = nSegmentsFace_[i];
+      iMostSegments = i;
+    }
+  }
+  return iMostSegments;
+}
+
+/**
+ * Finds the ARRAY INDEX of the face with the least number of segments
+ * counting from 0
+ * @return the face index with least segments
+ */
+int Module::findMinSegmentsFace_() {
+  int minSegments=nSegmentsFace_[0];
+  int iLeastSegments=0;
+  // TODO: make such that all these things are computed only once
+  for (int i=1; i<nFaces_; ++i) {
+    if (nSegmentsFace_[i]<minSegments) {
+      minSegments = nSegmentsFace_[i];
+      iLeastSegments = i;
+    }
+  }
+  return iLeastSegments;
+}
+
+
+/**
+ * Computes on the fly the resolution of the module along the local Y
+ * direction as the strip/sqrt(12) of the shortest strip in the module
+ * The computed value is overridden if an explicit setResolutionY()
+ * was previously called
+ * @return the local Y resolution
+ */
 double Module::getResolutionY() {
  if (resolutionY_!=defaultResolutionY_) return resolutionY_;
  double result;
  // TODO: handle this correctly once and for all!
- //if (type_=="stereo") result = sqrt(2) * getResolutionRphi() / sin(0.1);
- //if (type_=="stereo") result = getResolutionRphi() / sin(0.1);
- if (stereorot_!=0) result = getResolutionRphi() / sin(stereorot_);
- else result = height_ / (double)(nSegments_) / sqrt(12); 
+
+ // This is the standard stereo module:
+ if (stereorot_!=0) {
+   result = getResolutionRphi() / sin(stereorot_);
+ } else { // Stereo angle is absent
+   int iMostSegments = findMaxSegmentsFace_();
+   result = height_ / (double)(nSegmentsFace_[iMostSegments]) / sqrt(12); 
+ }
+
  return result;
 }
 
+/**
+ * Returns the "trigger" Y precision as the standard one, divided by
+ * an arbitrary factor
+ * @return the Y resolution in trigger readout
+ */
 double Module::getResolutionYTrigger() {
   double result = getResolutionY();
   if (moduleType_!=NULL) {
@@ -95,20 +296,20 @@ double BarrelModule::getResolutionRphi() {
   return result;
 }
 
-double BarrelModule::getResolutionRphiTrigger() {
-  double result = getResolutionRphi();
-  if (moduleType_!=NULL) {
-    result *= moduleType_->getTriggerErrorX();
-  }
-  return result;
-}
-
 // TODO: better special case for PT modules
 double EndcapModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;
   double result = (widthLo_ + widthHi_) / 2.0 / (double)(nStripAcross_) / sqrt(12);  
   if (readoutType_==Pt) result/=sqrt(2);
   if (readoutMode_==Cluster) result/=1.5;
+  return result;
+}
+
+double BarrelModule::getResolutionRphiTrigger() {
+  double result = getResolutionRphi();
+  if (moduleType_!=NULL) {
+    result *= moduleType_->getTriggerErrorX();
+  }
   return result;
 }
 
@@ -788,7 +989,8 @@ const XYZVector Module::getMeanPoint() const {
     return meanPoint;
 }
 
-void Module::computeStripArea() {
+/*
+void Module::computeStripArea(int nFace) {
     XYZVector meanPoint = getMeanPoint();
     // double meanEta = meanPoint.eta(); // TODO: remove this line
     double meanPhi = meanPoint.phi();
@@ -815,14 +1017,18 @@ void Module::computeStripArea() {
     etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
     //  std::cerr << "widths: theta:\t" << etaWidth << " phi:\t" << phiWidth << std::endl;
     
-    stripArea_ = phiWidth * etaWidth / double(nChannelsPerFace_);
+    stripArea_ = phiWidth * etaWidth / double(getNChannelsFace(nFace));
     //  std::cerr << "area:\t" << stripArea_ << std::endl;
     
     delete anotherModule;
 }
+*/
 
-
-void Module::computeDphiDeta() {
+/*
+ * Computes the dPhi dTheta of the sensor with the lowest number of
+ * segments
+ */
+void Module::computeMaxDphiDeta() {
     XYZVector meanPoint = getMeanPoint();
     double meanPhi = meanPoint.phi();
     
@@ -844,7 +1050,8 @@ void Module::computeDphiDeta() {
     phiWidth = maxPhi-minPhi;
     etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
     
-    dphideta_ = phiWidth * etaWidth / double(nSegments_);
+    double minNSegments = nSegmentsFace_[findMinSegmentsFace_()];
+    dphideta_ = phiWidth * etaWidth / minNSegments;
     
     delete anotherModule;
 }
@@ -874,7 +1081,7 @@ double BarrelModule::getOccupancyPerEvent() {
     //std::cerr << "Rho: " << rho << ", "
     //	    << "myOcc: " << myOccupancyBarrel << std::endl;
     double factor=fabs(sin(theta));
-    computeDphiDeta();
+    computeMaxDphiDeta();
     
     return myOccupancyBarrel*dphideta_/factor;
 }
@@ -889,7 +1096,7 @@ double EndcapModule::getOccupancyPerEvent() {
     //std::cerr << "Rho: " << rho << ", z: " << z << ", "
     //	    << "myOcc: " << myOccupancyEndcap << std::endl;
     double factor=fabs(cos(theta));
-    computeDphiDeta();
+    computeMaxDphiDeta();
     
     return myOccupancyEndcap*dphideta_/factor;
 }

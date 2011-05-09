@@ -374,7 +374,7 @@ namespace insur {
                             if (!mtypes.at(rindex - 1).empty()) {
                                 stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNSegments();
+                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNMeanSegments();
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                             }
                         }
@@ -516,7 +516,7 @@ namespace insur {
                             if (!mtypes.at(rindex - 1).empty()) {
                                 stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNSegments();
+                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNMeanSegments();
                                 stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                             }
                         }

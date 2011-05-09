@@ -1057,6 +1057,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<int, string> type;
     map<int, double> dsDistance;
     map<int, double> dsRotation;
+    map<int, int> divideBack;
     
     pair<int, int> specialIndex; // used to indicate ring,disk
     
@@ -1066,6 +1067,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<pair<int, int>, string> typeSecond;
     map<pair<int, int>, double> dsDistanceSecond;
     map<pair<int, int>, double> dsRotationSecond;
+    map<pair<int, int>, int> divideBackSecond;
     map<pair<int, int>, bool> specialSecond;
     
     // Tracker should be already there
@@ -1097,7 +1099,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         dsDistance[mainIndex]=atof(parameterValue.c_str());
                     } else if (parameterName == "dsRotation") {
                         dsRotation[mainIndex]=atof(parameterValue.c_str());
-                    }
+                    } else if (parameterName == "divideBack") {
+                        divideBack[mainIndex]=atoi(parameterValue.c_str());
+		    }
                     // cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
                 } else { // Special assignment per disk/ring
                     specialIndex.first = mainIndex;
@@ -1140,14 +1144,20 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                             specialSecond[specialIndex]=true;
                             isSpecial = true;
                         }
+                    } else if (parameterName=="divideBack") {
+		        if (atoi(parameterValue.c_str())!=divideBack[mainIndex]) {
+                            divideBackSecond[specialIndex]=atoi(parameterValue.c_str());
+                            specialSecond[specialIndex]=true;
+                            isSpecial = true;
+                        }
                     }
                     if (!isSpecial) {
-                        tempString.str(""); tempString << "The special parameter "
+		        tempString.str(""); tempString << "The special parameter "
                                 << parameterName << "[" << mainIndex << "," << secondaryIndex << "] is setting the same "
                                 << "values as the default parameter "
                                 << parameterName << "[" << mainIndex << "]. Ignoring it.";
                         addMessage(tempString, WARNING);
-                    } // else {
+                    } // else { // debug
                     // cout << "\t" << parameterName << "[" << mainIndex << ","<<secondaryIndex<<"] = " << parameterValue << ";" << endl; // debug
                     // }
                 }
@@ -1156,9 +1166,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     }
     
     myTracker_->setModuleTypes(myName,
-            nStripsAcross, nSides, nSegments, type, dsDistance, dsRotation,
+            nStripsAcross, nSides, nSegments, type, dsDistance, dsRotation, divideBack,
             nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
-            dsDistanceSecond, dsRotationSecond, specialSecond);
+            dsDistanceSecond, dsRotationSecond, divideBackSecond, specialSecond);
     
     return true;
     

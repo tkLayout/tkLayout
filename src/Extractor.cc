@@ -547,7 +547,8 @@ namespace insur {
                             t.push_back(rocdims);
                         }
                         specname.str("");
-                        specname << xml_roc_y << xml_par_tail << iiter->getModule().getNSegments();
+			// TODO: model correctly the modules with different segmentation
+                        specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
                         id = findSpecParIndex(t, specname.str());
                         if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
                         else {
@@ -555,7 +556,8 @@ namespace insur {
                             rocdims.name = specname.str();
                             rocdims.parameter.first = xml_roc_y;
                             specname.str("");
-                            specname << iiter->getModule().getNSegments();
+			    // TODO: model correctly the modules with different segmentation
+                            specname << iiter->getModule().getNMaxSegments();
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
                             t.push_back(rocdims);
@@ -873,7 +875,8 @@ namespace insur {
                             t.push_back(rocdims);
                         }
                         specname.str("");
-                        specname << xml_roc_y << xml_par_tail << iiter->getModule().getNSegments();
+			// TODO: model correctly the modules with different segmentation
+                        specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
                         id = findSpecParIndex(t, specname.str());
                         if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
                         else {
@@ -881,7 +884,8 @@ namespace insur {
                             rocdims.name = specname.str();
                             rocdims.parameter.first = xml_roc_y;
                             specname.str("");
-                            specname << iiter->getModule().getNSegments();
+			    // TODO: model correctly the modules with different segmentation
+                            specname << iiter->getModule().getNMaxSegments();
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
                             t.push_back(rocdims);
