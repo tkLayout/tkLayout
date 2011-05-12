@@ -1000,7 +1000,7 @@ namespace insur {
 	myImage->setName("hadTracks");
         myContent->addItem(myImage);
 
-	if (name=="outer") {	  
+	//if (name=="outer") {	  
 	  // Summary table
 	  RootWContent& summaryContent = myPage->addContent("Summary", false);
 	  RootWTable& cutsTable = summaryContent.addTable();
@@ -1040,9 +1040,9 @@ namespace insur {
 	    } else delta--;
 	  }
 	  summaryContent.addItem(materialSummaryTable);
-	} else {
-	  delete materialSummaryTable;
-	}
+	//} else {
+	//  delete materialSummaryTable;
+	//}
 	
     }
     
