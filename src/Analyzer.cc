@@ -1306,6 +1306,10 @@ namespace insur {
         rstep = 2 * (maxr - minr) / bins;
         etastep = (maxeta - mineta) / bins;
         Cell c;
+	c.rmin = 0.0;  // TODO: is this right?
+	c.rmax = 0.0;
+	c.etamin = 0.0;
+	c.etamax = 0.0;
         c.rlength = 0.0;
         c.ilength = 0.0;
         cells.resize(bins);

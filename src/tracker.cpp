@@ -1406,8 +1406,8 @@ void Tracker::setModuleTypes(std::string sectionName,
     double aDistance;
     double aRotation;
     int aDivideBack;
-    int aXResolution;
-    int aYResolution;
+    double aXResolution;
+    double aYResolution;
     
     std::pair<int, int> mySpecialIndex;
     

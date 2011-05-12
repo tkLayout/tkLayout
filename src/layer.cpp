@@ -642,7 +642,7 @@ void BarrelLayer::buildLayer(double averageRadius,
     }
     
     double stringPhiShift = 2*M_PI/double(nStrings);
-    double rightAngle;
+    double rightAngle=0;
     std::vector<Module*>::iterator itMod;
     
     for (int i=0; i<nStrings; i++) {

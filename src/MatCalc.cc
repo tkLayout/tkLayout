@@ -353,7 +353,7 @@ namespace insur {
         for (unsigned int i = 0; i < barrelcaps.size(); i++) {
             if (barrelcaps.at(i).size() > 0) {
                 try {
-                    int rindex;
+                    int rindex = 0;
                     std::vector<double> stripseg_scalars;
                     std::vector<std::string> mtypes;
                     std::vector<std::list<int> > modinrings;
