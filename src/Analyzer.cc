@@ -1582,7 +1582,7 @@ namespace insur {
         }
         
         LayerVector::iterator layIt;
-        ModuleVector* moduleV;
+        ModuleVector* moduleV = NULL;
         ModuleVector::iterator modIt;
         ModuleVector allModules;
         LayerVector& layerSet = tracker.getLayers();
@@ -1591,6 +1591,10 @@ namespace insur {
         // Build the proper list of modules
         for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
             moduleV = (*layIt)->getModuleVector();
+            if (!moduleV) {
+              std::cerr << "ERROR in Analyzer::analyzeGeometry: cannot retrieve moduleVector from the layer" << std::endl;
+              return;
+            }
             for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
                 // I pre-compute the boxes to reduce the calculations
                 (*modIt)->computeBoundaries(zError);

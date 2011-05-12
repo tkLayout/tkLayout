@@ -546,7 +546,8 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all) {
-        double r, z, l;
+        double z = 0;
+        double r, l;
         std::pair<int, int> aux, stst;
         std::pair<int, double> tmp;
         // find relevant barrel range taking into account cut layers

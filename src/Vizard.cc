@@ -2391,7 +2391,7 @@ namespace insur {
 	      std::vector<double> averagesReal;
 	      std::vector<double> averagesIdeal;
 	      TGraph* myGraph;
-	      int myColor;
+	      int myColor = kBlack;
 	      myIndex.name=(*plotNameIt);
 	      std::ostringstream myLabel;
 	      for (unsigned int i=0; i<momentum.size(); ++i) {

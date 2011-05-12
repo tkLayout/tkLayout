@@ -6,7 +6,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
-  bool result;
+  bool result = false;
   mainConfigHandler m;
   // No arguments: just read the configuration file
   // or create it if necessary

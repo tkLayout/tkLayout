@@ -14,8 +14,8 @@ RootWTable::RootWTable() {
 ostream& RootWTable::dump(ostream& output) {
   RootWTable& myRootWTable = (*this);
 
-  int minRow, maxRow;
-  int minCol, maxCol;
+  int minRow = tableContent_.begin()->first.first; int maxRow=0;
+  int minCol = tableContent_.begin()->first.second; int maxCol=0;
   bool firstNotFound = true;
 
   pair<int, int> myIndex;

@@ -140,7 +140,7 @@ int Module::getNChannelsFace(int nFace) {
   } else if (nFace > nFaces_) {
     std::cerr << "WARNING in Module::getNChannelsFace: face index (" << nFace
 	      << ") exceeds number of faces ("
-	      << maxNFaces << ")" << std::endl;
+	      << nFaces_ << ")" << std::endl;
   }
   return nStripAcross_ * nSegmentsFace_[nFace-1] ;
 }

@@ -88,6 +88,9 @@ public:
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
   void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
   void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
+
+  bool isSquareEndcap();
+  double getD();
 };
 
 /**

@@ -1391,6 +1391,7 @@ double EndcapLayer::buildRing(double minRadius,
       tempString.str("");
       tempString << "The sample EndcapModule was not Barrel nor Endcap... this should never happen!";
       addMessage(tempString, ERROR);
+      alpha = 0;
     }
     
     // The needed overlap becomes an angle delta by

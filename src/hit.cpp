@@ -160,6 +160,48 @@ double Hit::getResolutionY() {
   }
 }
 
+
+bool Hit::isSquareEndcap() {
+  bool result = false;
+  if (isPixel_) return false; // TODO: FIX THIS!!!!
+  //std::cout << "Hit::isSquareEndcap() "; //debug
+  if (hitModule_) {
+    //std::cout << " hitModule_!= NULL "; //debug
+    if (hitModule_->getSubdetectorType()==Module::Endcap) {
+      //std::cout << " getSubdetectorType()==Endcap "; //debug
+      if (hitModule_->getShape()==Module::Rectangular) {
+       //std::cout << " getShape()==Rectangular "; //debug
+       result = true;
+      }
+    }
+  }
+  //std::cout << std::endl; // debug
+  return result;
+}
+
+/*
+ * Retrieves the module's half width
+ * for hit related to endcap modules only
+ * @return Modules half width
+ */
+double Hit::getD() {
+  double result = 0;
+  //std::cout << "Hit::getD() "; //debug
+  if (hitModule_) {
+    //std::cout << " hitModule_!= NULL "; //debug
+    EndcapModule* myECModule = NULL;
+    myECModule = dynamic_cast<EndcapModule*>(hitModule_);
+    if (myECModule) {
+      //std::cout << " myECModule!= NULL "; //debug
+      result = (myECModule->getWidthLo() + myECModule->getWidthHi()) / 2. / 2.;
+      //std::cout << " result = " << result; //debug
+    }
+  }
+  //std::cout << std::endl; // debug
+  return result;
+}
+
+
 /**
  * The default constructor sets the parameter for the track angle to zero.
  */
@@ -403,6 +445,9 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 			      // I have to introduce an additional error in the position
 			      // to account for the uncertainty on r
 
+                              // TODO: IMPORTANT
+                              // error on ctgTheta is correlated!
+
 			      // The component due to ctgTheta is
 			      double deltar_ctg = hitV_.at(c)->getRadius() * tan(theta_) * deltaCtgT;
 			      // The intrinsic r measurement resolution is
@@ -413,6 +458,19 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 							  + (1/deltar_y/deltar_y));
 			      // This is equivalent to a (squared) rPhi error of
 			      double delta_rPhi_sq = pow(rho * hitV_.at(c)->getRadius(),2) * deltar_tot_sq;
+
+                              // If the module is square things get slightly worse:
+                              // + [ 1/63 (d/r)^3 ] * Delta_r^2
+                              if (hitV_.at(c)->isSquareEndcap()) {
+                                  //std::cout << "p= " << momenta.at(p); 
+                                  //std::cout << " r= " << hitV_.at(c)->getRadius();
+                                  //std::cout << " z= " << hitV_.at(c)->getRadius()/tan(theta_);
+                                  //std::cout << " before= " << sqrt(delta_rPhi_sq)*1000; 
+                                  double d_over_r = hitV_.at(c)->getD() / hitV_.at(c)->getRadius(); // TODO: make this nicer IMPORTANT!
+                                  delta_rPhi_sq += ( 1/63.*pow(d_over_r,3) ) * deltar_tot_sq;
+                                  //std::cout << " add= " << sqrt(( 1/63.*pow(d_over_r,3) ) * deltar_tot_sq)*1000; 
+                                  //std::cout << std::endl; 
+                              }
 			      
 			      // Which finally composes to the actual r-Phi error as:
 			      prec = sqrt(prec*prec+delta_rPhi_sq);

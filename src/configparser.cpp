@@ -1058,6 +1058,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<int, double> dsDistance;
     map<int, double> dsRotation;
     map<int, int> divideBack;
+    map<int, double> xResolution;
+    map<int, double> yResolution;
     
     pair<int, int> specialIndex; // used to indicate ring,disk
     
@@ -1101,6 +1103,10 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         dsRotation[mainIndex]=atof(parameterValue.c_str());
                     } else if (parameterName == "divideBack") {
                         divideBack[mainIndex]=atoi(parameterValue.c_str());
+                    } else if (parameterName == "xResolution") {
+                        xResolution[mainIndex]=atoi(parameterValue.c_str());
+                    } else if (parameterName == "yResolution") {
+                        yResolution[mainIndex]=atoi(parameterValue.c_str());
 		    }
                     // cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
                 } else { // Special assignment per disk/ring
@@ -1167,6 +1173,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     
     myTracker_->setModuleTypes(myName,
             nStripsAcross, nSides, nSegments, type, dsDistance, dsRotation, divideBack,
+            xResolution, yResolution,
             nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
             dsDistanceSecond, dsRotationSecond, divideBackSecond, specialSecond);
     

@@ -412,8 +412,8 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
     LayerVector::iterator layIt;
     BarrelLayer* aBarrelLayer;
     
-    double minZm;
-    double minZp;
+    double minZm = 0;
+    double minZp = 0;
     double aZp;
     double aZm;
     
@@ -593,7 +593,7 @@ void Tracker::sortLayers() {
 }
 
 double Tracker::getMaxBarrelZ(int direction) {
-    double maxZ;
+    double maxZ = 0;
     double aZ;
     LayerVector::iterator layIt;
     BarrelLayer* aBarrelLayer;
@@ -1374,6 +1374,8 @@ void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, double> dsDistance,
         std::map<int, double> dsRotation,
         std::map<int, int> divideBack,
+        std::map<int, double> xResolution,
+        std::map<int, double> yResolution,
         std::map<std::pair<int, int>, int> nStripsAcrossSecond,
         std::map<std::pair<int, int>, int> nFacesSecond,
         std::map<std::pair<int, int>, int> nSegmentsSecond,
@@ -1404,6 +1406,8 @@ void Tracker::setModuleTypes(std::string sectionName,
     double aDistance;
     double aRotation;
     int aDivideBack;
+    int aXResolution;
+    int aYResolution;
     
     std::pair<int, int> mySpecialIndex;
     
@@ -1455,6 +1459,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aDistance = dsDistance[myIndex];
             aRotation = dsRotation[myIndex];
 	    aDivideBack = divideBack[myIndex];
+	    aXResolution = xResolution[myIndex];
+	    aYResolution = yResolution[myIndex];
             
             if (specialSecond[mySpecialIndex]) {
                 if (nStripsAcrossSecond[mySpecialIndex]!=0) {
@@ -1489,6 +1495,8 @@ void Tracker::setModuleTypes(std::string sectionName,
                 myReadoutType = Module::Pt;
             } else if (myType[myIndex] == "ptOut") {
                 myReadoutType = Module::Pt;
+            } else if (myType[myIndex] == "ptMixed") {
+                myReadoutType = Module::Pt;
             } else if (myType[myIndex] == "rphi") {
                 myReadoutType = Module::Strip;
             } else if (myType[myIndex] == "stereo") {
@@ -1498,6 +1506,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             } else {
                 myReadoutType = Module::Undefined;
             }
+ 
             
             aModule->setNFaces(aFaces);
             aModule->setNStripsAcross(aStripsAcross);
@@ -1511,8 +1520,10 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setColor(colorPicker(aType));
             aModule->setReadoutType(myReadoutType);
 
-	    aModule->setResolutionRphi();
-	    aModule->setResolutionY();
+            if (aXResolution) aModule->setResolutionRphi(aXResolution);
+	    else aModule->setResolutionRphi();
+            if (aYResolution) aModule->setResolutionY(aYResolution);
+	    else aModule->setResolutionY();
 
 	    // Make the back side of the module with longer strips
 	    // if applicable (and complain otherwise)

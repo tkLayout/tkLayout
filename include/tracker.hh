@@ -326,6 +326,8 @@ public:
                       std::map<int, double> dsDistance,
                       std::map<int, double> dsRotation,
 		      std::map<int, int> divideBack,
+		      std::map<int, double> xResolution,
+		      std::map<int, double> yResolution,
 		      std::map<std::pair<int, int>, int> nStripsAcrossSecond,
 		      std::map<std::pair<int, int>, int> nFacesSecond,
 		      std::map<std::pair<int, int>, int> nSegmentsSecond,
