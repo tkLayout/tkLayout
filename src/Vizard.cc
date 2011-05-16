@@ -2327,10 +2327,17 @@ namespace insur {
 	    RootWTable* myTable;
 
             // Three slices of 0.8 each
-	    cuts.push_back(0.01);
-	    cuts.push_back(0.8);
-	    cuts.push_back(1.6);
-	    cuts.push_back(2.4);
+            // Or 0.7 for the trigger
+            cuts.push_back(0.01);
+            if (additionalTag=="trigger") {
+	      cuts.push_back(0.7);
+	      cuts.push_back(1.4);
+	      cuts.push_back(2.1);
+            } else {
+	      cuts.push_back(0.8);
+	      cuts.push_back(1.6);
+	      cuts.push_back(2.4);
+            }
 	    cutNames.push_back("C");
 	    cutNames.push_back("I");
 	    cutNames.push_back("F");
