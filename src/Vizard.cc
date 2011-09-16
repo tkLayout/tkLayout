@@ -2068,7 +2068,7 @@ namespace insur {
         return true;
     }
     
-  bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag /* = "" */ ) {
+  bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
         //********************************//
         //*                              *//
         //*    Resolution estimate       *//
@@ -2077,7 +2077,7 @@ namespace insur {
         
         // Here you should check if the TGraph
         // list is empty => maybe not?
-        if (!(a.getRhoProfiles(false).empty() && a.getDProfiles(false).empty() && a.getPhiProfiles(false).empty())) {
+    if (!(a.getRhoProfiles(false, isTrigger).empty() && a.getDProfiles(false, isTrigger).empty() && a.getPhiProfiles(false, isTrigger).empty())) {
 
             // Create a page for the errors
 	  std::string pageTitle = "Resolution";
@@ -2127,10 +2127,10 @@ namespace insur {
 	      std::map<double, TGraph>::iterator g_iter, g_guard;
 	      // momentum canvas loop
 	      int myColor=0;
-	      g_guard = a.getRhoProfiles(idealMaterial).end();
+	      g_guard = a.getRhoProfiles(idealMaterial, isTrigger).end();
 	      gStyle->SetGridStyle(style_grid);
 	      gStyle->SetGridColor(color_hard_grid);
-	      for (g_iter = a.getRhoProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      for (g_iter = a.getRhoProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
 		if (idealMaterial) {
 		  momentumGraph.SetMinimum(1E-5*100);
@@ -2159,8 +2159,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // distance canvas loop
-	      g_guard = a.getDProfiles(idealMaterial).end();
-	      for (g_iter = a.getDProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getDProfiles(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getDProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
 		if (idealMaterial) {
 		  distanceGraph.SetMinimum(4*1e-4);
@@ -2185,8 +2185,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // angle canvas loop
-	      g_guard = a.getPhiProfiles(idealMaterial).end();
-	      for (g_iter = a.getPhiProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getPhiProfiles(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getPhiProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
 		if (idealMaterial) {
 		  angleGraph.SetMinimum(1E-5);
@@ -2211,8 +2211,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // ctgTheta canvas loop
-	      g_guard = a.getCtgThetaProfiles(idealMaterial).end();
-	      for (g_iter = a.getCtgThetaProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getCtgThetaProfiles(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getCtgThetaProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
 		ctgThetaGraph.SetMinimum(1E-5);
 		ctgThetaGraph.SetMaximum(0.1*verticalScale);
@@ -2232,8 +2232,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // z0 canvas loop
-	      g_guard = a.getZ0Profiles(idealMaterial).end();
-	      for (g_iter = a.getZ0Profiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getZ0Profiles(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getZ0Profiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
 		z0Graph.SetMinimum(1E-5);
 		z0Graph.SetMaximum(1*verticalScale);
@@ -2253,8 +2253,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // p canvas loop
-	      g_guard = a.getPProfiles(idealMaterial).end();
-	      for (g_iter = a.getPProfiles(idealMaterial).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getPProfiles(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getPProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& pGraph = g_iter->second;
 		if (idealMaterial) {
 		  pGraph.SetMinimum(1E-5*100);
@@ -2359,12 +2359,12 @@ namespace insur {
 	    std::map<graphIndex, TGraph*> myPlotMap;
 	    graphIndex myIndex;
 
-	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoProfiles);
-	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDProfiles);
-	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiProfiles);
-	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles);
-	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles);
-	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPProfiles);
+	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoProfiles, isTrigger);
+	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDProfiles, isTrigger);
+	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiProfiles, isTrigger);
+	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles, isTrigger);
+	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles, isTrigger);
+	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPProfiles, isTrigger);
 
 	    // Cycle over the different measurements
 	    for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -2453,7 +2453,8 @@ namespace insur {
   void Vizard::fillPlotMap(std::string& plotName, 
 			   std::map<graphIndex, TGraph*>& myPlotMap,
 			   Analyzer *a,
-			   std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool)) {
+			   std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
+			   bool isTrigger) {
     graphIndex myIndex;
     double p;
     TGraph* myGraph;
@@ -2464,7 +2465,7 @@ namespace insur {
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
-      std::map<double, TGraph>& ptProfilesIdeal = (a->*retriveFunction)(myIndex.ideal);
+      std::map<double, TGraph>& ptProfilesIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
       std::map<double, TGraph>::iterator profilesIterator;
       for (profilesIterator=ptProfilesIdeal.begin();
 	   profilesIterator!=ptProfilesIdeal.end();

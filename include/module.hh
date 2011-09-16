@@ -14,6 +14,7 @@
 // Our objects
 #include <messageLogger.h>
 #include <moduleType.hh>
+#include <ptError.h>
 
 /*****************************/
 /*                           */
@@ -56,6 +57,7 @@ protected:
   double area_;
   double stripArea_;
   double stereodist_;
+  int triggerWindow_;
   double stereorot_;
   double dphideta_;
   int nSegmentsFace_[maxNFaces];
@@ -88,15 +90,15 @@ protected:
   static const int     defaultNHits_ = 0;
   static const int     defaultHeight_ = 0;
   static const int     defaultArea_ = 0;
-  static const int     defaultStereoDist_ = 0;
+  static const int     defaultStereoDist_ = 2; // default distance between sensors = 2 mm
   static const int     defaultStereoRot_ = 0;
   static const int     defaultInSection_ = 0;
   static const int     defaultChannelsPerFace_ = 1;
   static const int     defaultSegments_ = 1;
   static const int     defaultStripAcross_ = 1;
   static const int     defaultFaces_ = 1;
-  static const double defaultResolutionRphi_ = 0.0;
-  static const double defaultResolutionY_ = 0.0;
+  static const double  defaultResolutionRphi_ = 0.0;
+  static const double  defaultResolutionY_ = 0.0;
   
   std::string id_;   // Ids of the module
   std::string tag_;  // Tags the module
@@ -118,6 +120,8 @@ protected:
   void computeMaxDphiDeta();
 
   const ModuleType* moduleType_;
+
+  ptError myPtError;
 
  private:
   void setDefaultParameters();
@@ -164,7 +168,10 @@ protected:
   void setModuleType(const ModuleType* newType) { moduleType_ = newType; }
 
   void setStereoDistance(double sdist) { stereodist_=sdist; }
-  double getStereoDistance() { return stereodist_; };
+  double getStereoDistance() { return (nFaces_ -1) * stereodist_; }; // TODO: check if this creates any problem around!
+
+  void setTriggerWindow(const int& newWindow) { triggerWindow_ = newWindow ; }
+  int getTriggerWindow() { return triggerWindow_ ; }
 
   void setStereoRotation(double srot) { stereorot_=srot; }
   double getStereoRotation() { return stereorot_; };
@@ -266,6 +273,8 @@ protected:
 
   virtual int getLayer() const { return 0; };
   virtual int getDisk() const { return 0;};
+
+  double getPtThreshold(const double& myEfficiency);
 
 };
 

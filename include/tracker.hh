@@ -316,7 +316,7 @@ public:
 
   // Module adjustments
   void changeRingModules(std::string diskName, int ringN, std::string newtype, Color_t newColor);
-  void setModuleTypesDemo1();
+
   //void setModuleTypes();
   void setModuleTypes(std::string sectionName,
 		      std::map<int, int> nStripsAcross,
@@ -324,6 +324,7 @@ public:
 		      std::map<int, int> nSegments,
 		      std::map<int, std::string> myType, 
                       std::map<int, double> dsDistance,
+                      std::map<int, int> triggerWindow,
                       std::map<int, double> dsRotation,
 		      std::map<int, int> divideBack,
 		      std::map<int, double> xResolution,
@@ -333,6 +334,7 @@ public:
 		      std::map<std::pair<int, int>, int> nSegmentsSecond,
 		      std::map<std::pair<int, int>, std::string> myTypeSecond,
                       std::map<std::pair<int, int>, double> dsDistanceSecond,
+                      std::map<std::pair<int, int>, int> triggerWindowSecond,
                       std::map<std::pair<int, int>, double> dsRotationSecond,
 		      std::map<std::pair<int, int>, int> divideBackSecond,
 		      std::map<std::pair<int, int>, bool> specialSecond);

@@ -17,7 +17,6 @@ namespace insur {
         pi = NULL;
         pm = NULL;
 	pixelAnalyzer = NULL;
-	triggerAnalyzer = NULL;
 #ifdef USING_ROOTWEB
         sitePrepared = false;
 #endif
@@ -34,7 +33,6 @@ namespace insur {
         if (pi) delete pi;
         if (px) delete px;
 	if (pixelAnalyzer) delete pixelAnalyzer;	
-	if (triggerAnalyzer) delete triggerAnalyzer;
     }
     
     /**
@@ -619,10 +617,7 @@ namespace insur {
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
       }
       a.computeWeightSummary(*mb);
-
-      if (triggerAnalyzer) delete triggerAnalyzer;
-      triggerAnalyzer = new Analyzer;
-      triggerAnalyzer->analyzeMaterialBudgetTrigger(*mb, mainConfiguration.getMomenta(), tracks, pm);
+      a.analyzeTrigger(*mb, mainConfiguration.getMomenta(), tracks, pm);
 
       return true;
     } else {
@@ -657,11 +652,9 @@ namespace insur {
 	v.histogramSummary(*pixelAnalyzer, site, "pixel");
       }
       v.weigthSummart(a, site, "outer");
-      v.errorSummary(a, site);
+      v.errorSummary(a, site, "", false);
+      v.errorSummary(a, site, "trigger", true);
       
-      if (triggerAnalyzer) {
-	v.errorSummary(*triggerAnalyzer, site, "trigger");
-      }
       return true;
     }
     else {

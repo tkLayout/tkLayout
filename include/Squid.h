@@ -107,7 +107,6 @@ namespace insur {
         MatCalc pxMaterialCalc;
         Analyzer a;
 	Analyzer *pixelAnalyzer;
-	Analyzer *triggerAnalyzer;
         Vizard v;
         tk2CMSSW t2c;
         mainConfigHandler mainConfiguration;

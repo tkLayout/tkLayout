@@ -3,6 +3,7 @@
 myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
 TKG_MATSHOW=$myDir/bin/materialShow
+TKG_TUNE=$myDir/bin/tunePtParam
 TKG_SETUP_BIN=$myDir/bin/setup.bin
 
 if [ ! -f $TKG_MAIN ] ; then
@@ -46,19 +47,22 @@ if $TKG_SETUP_BIN ; then
     # Copy the installation directories
     cp -rf $myDir/$TKG_SOURCE_MATTAB/* $TKG_DESTINATION_MATTAB \
 	&& echo Material config directory created/updated \
-	|| echo Failed copying the style directory $TKG_SOURCE_MATTAB to $TKG_DESTINATION_MATTAB
+	|| echo Failed copying the material configuration directory $TKG_SOURCE_MATTAB to $TKG_DESTINATION_MATTAB
     cp -rf $myDir/$TKG_SOURCE_XML/* $TKG_DESTINATION_XML \
 	&& echo Xml directory created/updated \
-	|| echo Failed copying the style directory $TKG_SOURCE_XML to $TKG_DESTINATION_XML
+	|| echo Failed copying the xml directory $TKG_SOURCE_XML to $TKG_DESTINATION_XML
     cp -rf $myDir/$TKG_SOURCE_STYLE/* $TKG_DESTINATION_STYLE \
 	&& echo Style directory created/updated \
 	|| echo Failed copying the style directory $TKG_SOURCE_STYLE to $TKG_DESTINATION_STYLE
     cp -f $TKG_MAIN $TKG_BIN_TARGET \
 	&& echo Main program installed/updated \
-	|| echo Failed copying the style directory $TKG_MAIN to $TKG_BIN_TARGET
+	|| echo Failed copying the main program $TKG_MAIN to $TKG_BIN_TARGET
     cp -f $TKG_MATSHOW $TKG_BIN_TARGET \
 	&& echo Material helper program installed/updated \
-	|| echo Failed copying the style directory $TKG_MATSHOW to $TKG_BIN_TARGET
+	|| echo Failed the material helper $TKG_MATSHOW to $TKG_BIN_TARGET
+    cp -f $TKG_TUNE $TKG_BIN_TARGET \
+	&& echo Pt-cut tuner installed/updated \
+	|| echo Failed copying the Pt-cut tuner $TKG_TUNE to $TKG_BIN_TARGET
     if ! $TKG_SETUP_BIN --checkDir ; then
 	echo Problem during installation
 	exit -1

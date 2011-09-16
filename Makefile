@@ -27,7 +27,7 @@ COMPILERFLAGS+=-O2
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tklayout setup materialShow
+bin: tklayout setup materialShow tunePtParam
 	@echo "Executable built."
 
 all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest materialShow
@@ -35,6 +35,13 @@ all: hit tkgeometry exocom general elements ushers dressers viz naly squid testO
 
 install:
 	./install.sh
+
+# Pt computation
+$(LIBDIR)/ptError.o: $(SRCDIR)/ptError.cpp $(INCDIR)/ptError.h
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ptError.o $(SRCDIR)/ptError.cpp
+
+$(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
+	$(COMP) $(ROOTLIBFLAGS) $(ROOTFLAGS) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp -o $(BINDIR)/tunePtParam
 
 #TRACKS
 hit: $(LIBDIR)/hit.o
@@ -231,13 +238,16 @@ $(BINDIR)/materialShow: materialShow.cpp \
 tklayout: $(BINDIR)/tklayout
 	@echo "tklayout built"
 
+tunePtParam: $(BINDIR)/tunePtParam
+	@echo "tunePtParam built"
+
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
 	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o $(LIBDIR)/ptError.o
 	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
 	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
 	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
@@ -248,6 +258,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LI
 	$(LIBDIR)/Palette.o \
 	$(LIBDIR)/tklayout.o \
 	$(LIBDIR)/moduleType.o \
+	$(LIBDIR)/ptError.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 
@@ -256,7 +267,8 @@ $(LIBDIR)/tklayout.o: tklayout.cpp
 
 testObjects: $(TESTDIR)/testObjects
 $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(TESTDIR)/testObjects.cpp \
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/messageLogger.o $(TESTDIR)/testObjects.cpp \
+        $(LIBDIR)/ptError.o $(LIBDIR)/moduleType.o \
 	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o $(TESTDIR)/testObjects
 
 rootwebTest: $(TESTDIR)/rootwebTest
@@ -304,9 +316,12 @@ cleanmaterialshow:
 cleantkmain:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 
+cleantuneptparam:
+	@rm -f #(BINDIR)/tunePtParam
+
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
 	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
-	cleanpalette cleanmaterialshow
+	cleanpalette cleanmaterialshow cleantuneptparam
 
 doc: doxydoc
 

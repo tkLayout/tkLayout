@@ -43,7 +43,7 @@ void Module::setDefaultParameters() {
     height_             = defaultHeight_;
     nHits_              = defaultNHits_;
     thickness_          = defaultThickness_;
-    moduleThickness_ = defaultModuleThickness_;
+    moduleThickness_    = defaultModuleThickness_;
     area_               = defaultArea_;
     stereodist_         = defaultStereoDist_;
     stereorot_          = defaultStereoRot_;
@@ -277,6 +277,7 @@ double Module::getResolutionY() {
 /**
  * Returns the "trigger" Y precision as the standard one, divided by
  * an arbitrary factor
+ * 
  * @return the Y resolution in trigger readout
  */
 double Module::getResolutionYTrigger() {
@@ -285,6 +286,34 @@ double Module::getResolutionYTrigger() {
     result *= moduleType_->getTriggerErrorY();
   }
   return result;
+}
+
+/**
+ * Returns the pT for which we reach a given trigger efficiency
+ *
+ * @param myEfficiency the threshold efficiency
+ *
+ * @returns the pT corresponding to the selected efficiency, if it is
+ * possible and within the range, returns -1 else
+ */
+double Module::getPtThreshold(const double& myEfficiency) {
+  // TODO: avoid setting the variables each time!
+  myPtError.setDistance( getStereoDistance() );
+  myPtError.setModuleType( getSubdetectorType() );
+  myPtError.setPitch((getLowPitch()+getHighPitch())/2.);
+  // TODO: in the error computation the strip length is used twice:
+  // Once to calculate the geometric inefficiency, and also to compute
+  // the pt error due to the r uncertainty in the endcap module. It is
+  // possible that for the second computation we might want to use the
+  // small strip length (i.e. findMaxSegmentsFace). In this case the
+  // object ptError should be changed to take into account this
+  // possibility
+  myPtError.setStripLength( height_ / (double)(nSegmentsFace_[findMinSegmentsFace_()]) );
+  XYZVector center = getMeanPoint();
+  myPtError.setZ(center.Z());
+  myPtError.setR(center.Rho());
+  double pt_cut = myPtError.stripsToP(triggerWindow_/2.);
+  return myPtError.find_probability(myEfficiency, pt_cut);
 }
 
 // TODO: better special case for PT modules

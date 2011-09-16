@@ -1299,56 +1299,6 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
     }
 }
 
-// This function is the place where we set the module types
-// Basically the only place that is to be edited, before we
-// put all the stuff in user interface
-void Tracker::setModuleTypesDemo1() {
-    LayerVector::iterator layIt;
-    ModuleVector::iterator modIt;
-    ModuleVector* aLay;
-    Module* aModule;
-    BarrelModule* aBarrelModule;
-    EndcapModule* anEndcapModule;
-    
-    for (layIt=barrelLayerSet_.begin(); layIt!=barrelLayerSet_.end(); layIt++) {
-        aLay = (*layIt)->getModuleVector();
-        for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-            aModule=(*modIt);
-            if ( (aBarrelModule=dynamic_cast<BarrelModule*>(aModule)) ) {
-                aBarrelModule->setColor(aBarrelModule->getLayer());
-            } else {
-                // This shouldnt happen
-                std::cerr << "ERROR! in function Tracker::setModuleTypes() "
-                <<"I found a !BarrelModule in the barrel" << std::endl;
-            }
-        }
-    }
-    
-    for (layIt=endcapLayerSet_.begin(); layIt!=endcapLayerSet_.end(); layIt++) {
-        aLay = (*layIt)->getModuleVector();
-        for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-            aModule=(*modIt);
-            if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
-                anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
-            } else {
-                // This shouldnt happen
-                std::cerr << "ERROR! in function Tracker::setModuleTypes() "
-                << "I found a !EndcapModule in the end-caps" << std::endl;
-            }
-        }
-    }
-    
-    for (modIt=endcapSample_.begin(); modIt!=endcapSample_.end(); modIt++) {
-        aModule=(*modIt);
-        if ( (anEndcapModule=dynamic_cast<EndcapModule*>(aModule)) ) {
-            anEndcapModule->setColor(anEndcapModule->getRing()+anEndcapModule->getDisk());
-        } else {
-            // This shouldnt happen
-            std::cerr << "ERROR! in function Tracker::setModuleTypes() "
-            << "I found a !EndcapModule in the end cap sample" << std::endl;
-        }
-    }
-}
 
 /* Returns the same color for the same module type across all the
  * program
@@ -1372,6 +1322,7 @@ void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, int> nSegments,
         std::map<int, std::string> myType,
         std::map<int, double> dsDistance,
+        std::map<int, int> triggerWindow,
         std::map<int, double> dsRotation,
         std::map<int, int> divideBack,
         std::map<int, double> xResolution,
@@ -1381,6 +1332,7 @@ void Tracker::setModuleTypes(std::string sectionName,
         std::map<std::pair<int, int>, int> nSegmentsSecond,
         std::map<std::pair<int, int>, std::string> myTypeSecond,
         std::map<std::pair<int, int>, double> dsDistanceSecond,
+        std::map<std::pair<int, int>, int> triggerWindowSecond,
         std::map<std::pair<int, int>, double> dsRotationSecond,
         std::map<std::pair<int, int>, int> divideBackSecond,
         std::map<std::pair<int, int>, bool> specialSecond) {
@@ -1404,6 +1356,7 @@ void Tracker::setModuleTypes(std::string sectionName,
     int aSegments;
     std::string aType;
     double aDistance;
+    int aTriggerWindow;
     double aRotation;
     int aDivideBack;
     double aXResolution;
@@ -1457,6 +1410,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aSegments = nSegments[myIndex];
             aType = myType[myIndex];
             aDistance = dsDistance[myIndex];
+            aTriggerWindow = triggerWindow[myIndex];
             aRotation = dsRotation[myIndex];
 	    aDivideBack = divideBack[myIndex];
 	    aXResolution = xResolution[myIndex];
@@ -1477,6 +1431,9 @@ void Tracker::setModuleTypes(std::string sectionName,
                 }
                 if (dsDistanceSecond[mySpecialIndex]!=0) {
                     aDistance = dsDistanceSecond[mySpecialIndex];
+                }
+                if (triggerWindowSecond[mySpecialIndex]!=0) {
+                    aTriggerWindow = triggerWindowSecond[mySpecialIndex];
                 }
                 if (dsRotationSecond[mySpecialIndex]!=0) {
                     aRotation = dsRotationSecond[mySpecialIndex];
@@ -1514,6 +1471,7 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setType(aType);
 	    aModule->setModuleType(&(mapType_[aType]));
             aModule->setStereoDistance(aDistance);
+            aModule->setTriggerWindow(aTriggerWindow);
             aModule->setStereoRotation(aRotation);
             aModule->setTag(myTag.str());
 	    aModule->setContainerName(sectionName);

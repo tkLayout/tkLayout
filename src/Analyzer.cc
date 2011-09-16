@@ -12,6 +12,49 @@
 
 namespace insur {
 
+  const int profileBag::RhoProfile      = 0x01;
+  const int profileBag::PhiProfile      = 0x02;
+  const int profileBag::DProfile        = 0x03;
+  const int profileBag::CtgthetaProfile = 0x04;
+  const int profileBag::Z0Profile       = 0x05;
+  const int profileBag::PProfile        = 0x06;
+  const int profileBag::IdealProfile    = 0x08;
+  const int profileBag::RealProfile     = 0x10;
+  const int profileBag::TriggerProfile  = 0x20;
+  const int profileBag::StandardProfile = 0x40;
+
+  int profileBag::clearTriggerProfiles() {
+    return clearProfiles(profileBag::TriggerProfile);
+  }
+
+  int profileBag::clearStandardProfiles() {
+    return clearProfiles(profileBag::StandardProfile);
+  }
+
+  int profileBag::clearProfiles(const int& attributeMask) {
+    std::map<int, std::map<double, TGraph> >::iterator it;
+    std::map<int, std::map<double, TGraph> >::iterator nextIt;
+
+    int deleteCounter = 0;
+    int anAttribute;
+    for (it=graphMap_.begin(); it!=graphMap_.end(); ) {
+      anAttribute=it->first;
+      if ((anAttribute&attributeMask)==attributeMask) {
+        nextIt = ((++it)--);
+	graphMap_.erase(it);
+	it=nextIt;
+	++deleteCounter;
+      } else {
+	++it;
+      }
+    }
+    return deleteCounter;
+  }
+  
+  std::map<double, TGraph>& profileBag::getProfiles(const int& attribute) {
+    return graphMap_[attribute];
+  }
+  
   const double Analyzer::ZeroHitsRequired = 0;
   const double Analyzer::OneHitRequired = 0.0001;
 
@@ -56,7 +99,165 @@ namespace insur {
         geometryTracksUsed = 0;
         materialTracksUsed = 0;
     }
+
+
+  // private
+  /* High-level function finding all hits for a given tracker (and pixel)
+   * and adding them to the track. The total crossed material is returned.
+   * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
+   * @param momenta A list of momentum values for which to perform the efficiency measurements
+   * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
+   * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
+   * @return the total crossed material amount
+   */
+  Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
+				 double& eta, double& theta, double& phi, Track& track) {
+    Material totalMaterial;
+    //      active volumes, barrel
+    totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
+    //      active volumes, endcap
+    totalMaterial += findHitsModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
+    //      services, barrel
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+    //      services, endcap
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+    //      supports
+    totalMaterial += findHitsInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track);
+    //      pixels, if they exist
+    if (pm != NULL) {
+      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
+      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, true);
+      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, true);
+    }
+    return totalMaterial;
+  }
   
+  /**
+   * The analysis function performing all necessary the trigger resolution
+   * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
+   * @param momenta A list of momentum values for which to perform the efficiency measurements
+   * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
+   * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
+   */
+  void Analyzer::analyzeTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
+				MaterialBudget* pm) {
+
+    Tracker& tracker = mb.getTracker();
+    double efficiency = tracker.getEfficiency();
+
+    materialTracksUsed = etaSteps;
+    
+#ifdef DEBUG_PERFORMANCE
+    struct tm *localt; // timing: debug
+    time_t t;          // timing: debug
+    t = time(NULL);
+    localt = localtime(&t);
+    //std::cerr << asctime(localt) << std::endl;
+    clock_t starttime = clock();
+#endif
+    int nTracks;
+    double etaStep, eta, theta, phi;
+    clearTriggerPerformanceHistograms();
+    
+    // prepare etaStep, phiStep, nTracks, nScans
+    if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
+    else etaStep = etaMax;
+    nTracks = etaSteps;
+    
+    // reset the number of bins and the histogram boundaries (0.0 to
+    // etaMax) for all histograms (none for the moment)
+    setTriggerHistogramBinsBoundaries(nTracks, 0.0, etaMax);
+    
+    // reset the list of tracks
+    std::vector<Track> tv;
+    std::vector<Track> tvIdeal;
+    
+    // used fixed phi
+    phi = PI / 2.0;
+    
+    // Loop over nTracks (eta range [0, etaMax])
+    for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+      Material tmp;
+      Track track;
+      eta = i_eta * etaStep;
+      theta = 2 * atan(exp(-eta));
+      track.setTheta(theta);      
+
+      tmp = findAllHits(mb, pm, eta, theta, phi, track);
+
+      // Debug: material amount
+      //std::cerr << "eta = " << eta
+      //		<< ", material.radiation = " << tmp.radiation
+      //		<< ", material.interaction = " << tmp.interaction
+      //		<< std::endl;
+      
+      // TODO: add the beam pipe as a user material eveywhere!
+      // in a coherent way
+      // Add the hit on the beam pipe
+      Hit* hit = new Hit(23./sin(theta));
+      hit->setOrientation(Hit::Horizontal);
+      hit->setObjectKind(Hit::Inactive);
+      Material beamPipeMat;
+      beamPipeMat.radiation = 0.0023 / sin(theta);
+      beamPipeMat.interaction = 0.0019 / sin(theta);
+      hit->setCorrectedMaterial(beamPipeMat);
+      track.addHit(hit);
+      
+      if (!track.noHits()) {
+	// Assume the IP constraint here
+	// TODO: make this configurable
+	if (tracker.getUseIPConstraint())
+	  track.addIPConstraint(tracker.getRError(),tracker.getZError());
+	track.sort();
+	track.keepTriggerOnly();
+	track.setTriggerResolution(true);
+	      
+	if (efficiency!=1) track.addEfficiency(efficiency, false);
+	if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
+	  track.computeErrors(momenta);
+	  tv.push_back(track);
+
+	  Track trackIdeal = track;
+	  trackIdeal.removeMaterial();
+	  trackIdeal.computeErrors(momenta);
+	  tvIdeal.push_back(trackIdeal);	
+	}
+      }
+    }
+
+
+#ifdef DEBUG_PERFORMANCE
+    std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeTrigger(): ";
+    t = time(NULL);
+    localt = localtime(&t);
+    clock_t endtime = clock();
+    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+#endif
+    
+#ifdef DEBUG_PERFORMANCE
+    t = time(NULL);
+    localt = localtime(&t);
+    //std::cerr << asctime(localt) << std::endl;
+    starttime = clock();
+#endif
+    calculateProfiles(momenta, tv, myProfileBag, profileBag::TriggerProfile | profileBag::RealProfile);
+    calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::TriggerProfile | profileBag::IdealProfile);
+#ifdef DEBUG_PERFORMANCE
+    std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeTrigger(): ";
+    t = time(NULL);
+    localt = localtime(&t);
+    endtime = clock();
+    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
+    t = time(NULL);
+    localt = localtime(&t);
+#endif
+    
+  }
+
     /**
      * The analysis function providing the resolution as a function of eta
      * using only the trigger modules
@@ -67,6 +268,9 @@ namespace insur {
      */
     void Analyzer::analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
 						MaterialBudget* pm) {
+
+      analyzeTrigger(mb, momenta, etaSteps, pm);
+      return;
 
         Tracker& tracker = mb.getTracker();
         double efficiency = tracker.getEfficiency();
@@ -93,7 +297,10 @@ namespace insur {
         setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
 
         // reset the list of tracks
-        tv.clear();
+	std::vector<Track> tv;
+        std::vector<Track> tvIdeal;
+        //tv.clear();
+	//tvIdeal.clear(); // ? why not here before ?
 
         // used fixed phi
         phi = PI / 2.0;
@@ -175,15 +382,14 @@ namespace insur {
         localt = localtime(&t);
 #endif
 
-
 #ifdef DEBUG_PERFORMANCE
         t = time(NULL);
         localt = localtime(&t);
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles);
-        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal);
+	calculateProfiles(momenta, tv, myProfileBag, profileBag::StandardProfile | profileBag::RealProfile);
+	calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::StandardProfile | profileBag::IdealProfile);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -230,7 +436,9 @@ namespace insur {
         setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
         setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, etaMax);
         // reset the list of tracks
-        tv.clear();
+	std::vector<Track> tv;
+        std::vector<Track> tvIdeal;
+        // tv.clear();
         // used fixed phi
         phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
@@ -448,8 +656,8 @@ namespace insur {
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-        calculateProfiles(momenta, tv, rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles);
-        calculateProfiles(momenta, tvIdeal, rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal);
+	calculateProfiles(momenta, tv, myProfileBag, profileBag::StandardProfile | profileBag::RealProfile);
+	calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::StandardProfile | profileBag::IdealProfile);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -698,7 +906,7 @@ namespace insur {
         }
         return res;
     }
-    
+
     /**
      * The module-level analysis function loops through all modules of a given layer, checking for collisions with the given track.
      * If one is found, the radiation and interaction lengths are scaled with respect to theta, then summed up into a grand total,
@@ -772,6 +980,104 @@ namespace insur {
         }
         return res;
     }
+
+  // protected
+  /**
+   * The layer-level function to find hits on modules and connect them to a track
+   * It loops through all layers and adds up the results returned from the analysis of each of them.
+   * @param tr A reference to the <i>ModuleCap</i> vector of vectors that sits on top of the tracker modules
+   * @param eta The pseudorapidity of the track
+   * @param theta The track angle in the yz-plane
+   * @param phi The track angle in the xy-plane
+   * @param t A reference to the current track object
+   * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
+   * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
+   */
+  Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
+				     double eta, double theta, double phi, Track& t, bool isPixel) {
+    std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
+    std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
+    Material res, tmp;
+    res.radiation= 0.0;
+    res.interaction = 0.0;
+    while (iter != guard) {
+      tmp = findHitsModuleLayer(*iter, eta, theta, phi, t, isPixel);
+      res.radiation = res.radiation + tmp.radiation;
+      res.interaction = res.interaction + tmp.interaction;
+      iter++;
+    }
+    return res;
+  }
+  
+  /**
+   * The module-level analysis function loops through all modules of a given layer, finds hits and connects them to the track.
+   * If one is found, the radiation and interaction lengths are scaled with respect to theta, then summed up into a grand total,
+   * which is returned. As phi is fixed at the moment and the tracks hit the modules orthogonally with respect to it, it is so far
+   * not used to scale the results further.
+   * @param layer A reference to the <i>ModuleCap</i> vector linking the collection of material properties to the current layer
+   * @param eta The pseudorapidity of the current track
+   * @param theta The track angle in the yz-plane
+   * @param phi The track angle in the xy-plane
+   * @param t A reference to the current track object
+   * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
+   * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
+   */
+  Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
+					 double eta, double theta, double phi, Track& t, bool isPixel) {
+    std::vector<ModuleCap>::iterator iter = layer.begin();
+    std::vector<ModuleCap>::iterator guard = layer.end();
+    Material res, tmp;
+    XYZVector origin, direction;
+    Polar3DVector dir;
+    double distance, r;
+    int hits = 0;
+    res.radiation = 0.0;
+    res.interaction = 0.0;
+    // set the track direction vector
+    dir.SetCoordinates(1, theta, phi);
+    direction = dir;
+    while (iter != guard) {
+      // collision detection: rays are in z+ only, so consider only modules that lie on that side
+      // only consider modules that have type BarrelModule or EndcapModule
+      if (iter->getModule().getMaxZ() > 0) {
+	if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
+	    (iter->getModule().getSubdetectorType() == Module::Endcap)) {
+	  // same method as in Tracker, same function used
+	  // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
+	  distance = iter->getModule().trackCross(origin, direction);
+	  if (distance > 0) {
+	    // module was hit
+	    hits++;
+	    r = distance * sin(theta);
+	    tmp.radiation = iter->getRadiationLength();
+	    tmp.interaction = iter->getInteractionLength();
+	    // radiation and interaction length scaling for barrels
+	    if (iter->getModule().getSubdetectorType() == Module::Barrel) {
+	      tmp.radiation = tmp.radiation / sin(theta);
+	      tmp.interaction = tmp.interaction / sin(theta);
+	    }
+	    // radiation and interaction length scaling for endcaps
+	    else {
+	      tmp.radiation = tmp.radiation / cos(theta);
+	      tmp.interaction = tmp.interaction / cos(theta);
+	    }
+	    res += tmp;
+	    // create Hit object with appropriate parameters, add to Track t
+	    Hit* hit = new Hit(distance, &(iter->getModule()));
+	    //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
+	    //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
+	    //hit->setObjectKind(Hit::Active); // should not be necessary
+	    hit->setCorrectedMaterial(tmp);
+	    hit->setPixel(isPixel);
+	    t.addHit(hit);
+	  }
+	}
+	else std::cout << msg_module_warning << std::endl;
+      }
+      iter++;
+    }
+    return res;
+  }
     
     /**
      * The analysis function for inactive volumes loops through the given vector of elements, checking for collisions with
@@ -937,6 +1243,93 @@ namespace insur {
         }
         return res;
     }
+
+    /**
+     * The analysis function for inactive volumes loops through the given vector of elements, checking for collisions with
+     * the given track. If one is found, the radiation and interaction lengths are scaled with respect to theta.
+     * All hits are added to the given track
+     * The total crossed material is returned.
+     * As all inactive volumes are symmetric with respect to rotation around the z-axis, the track angle phi is not necessary.
+     * @param elements A reference to the collection of inactive surfaces that is to be checked for collisions with the track
+     * @param eta The pseudorapidity of the current track
+     * @param theta The track angle in the yz-plane
+     * @param t A reference to the current track object
+     * @return The scaled and summed up crossed material amount
+     */
+    Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
+						double theta, Track& t, bool isPixel) {
+      std::vector<InactiveElement>::iterator iter = elements.begin();
+      std::vector<InactiveElement>::iterator guard = elements.end();
+      Material res, corr;
+      std::pair<double, double> tmp;
+      double s_normal = 0;
+      double s_alternate = 0;
+      while (iter != guard) {
+	// Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
+	// only volumes of the requested category, or those without one (which should not exist) are examined
+	if ((iter->getZOffset() + iter->getZLength()) > 0) {
+	  // collision detection: check eta range
+	  tmp = iter->getEtaMinMax();
+	  // Volume was hit if:
+	  if ((tmp.first < eta) && (tmp.second > eta)) {
+	    double r, z;
+	    // radiation and interaction lenth scaling for vertical volumes
+	    if (iter->isVertical()) { // Element is vertical
+	      z = iter->getZOffset() + iter->getZLength() / 2.0;
+	      r = z * tan(theta);
+
+	      // In case we are crossing the material with a very shallow angle
+	      // we have to take into account its finite radial size
+	      s_normal = iter->getZLength() / cos(theta);
+	      s_alternate = iter->getRWidth() / sin(theta);
+	      if (s_normal > s_alternate) { 
+		// Special case: it's easier to cross the material by going left-to-right than
+		// by going bottom-to-top, so I have to rescale the material amount computation
+		corr.radiation = iter->getRadiationLength() / iter->getZLength() * s_alternate;
+		corr.interaction = iter->getInteractionLength() / iter->getZLength() * s_alternate;
+		res += corr;
+	      } else {
+		// Standard computing of the crossed material amount
+		corr.radiation = iter->getRadiationLength() / cos(theta);
+		corr.interaction = iter->getInteractionLength() / cos(theta);
+		res += corr;
+	      }
+	    }
+	    // radiation and interaction length scaling for horizontal volumes
+	    else { // Element is horizontal
+	      r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+
+	      // In case we are crossing the material with a very shallow angle
+	      // we have to take into account its finite z length
+	      s_normal = iter->getRWidth() / sin(theta);
+	      s_alternate = iter->getZLength() / cos(theta);
+	      if (s_normal > s_alternate) { 
+		// Special case: it's easier to cross the material by going left-to-right than
+		// by going bottom-to-top, so I have to rescale the material amount computation
+		corr.radiation = iter->getRadiationLength() / iter->getRWidth() * s_alternate;
+		corr.interaction = iter->getInteractionLength() / iter->getRWidth() * s_alternate;
+		res += corr;
+	      } else {
+		// Standard computing of the crossed material amount
+		corr.radiation = iter->getRadiationLength() / sin(theta);
+		corr.interaction = iter->getInteractionLength() / sin(theta);
+		res += corr;
+	      }
+	    }
+	    // create Hit object with appropriate parameters, add to Track t
+	    Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+	    if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+	    else hit->setOrientation(Hit::Horizontal);
+	    hit->setObjectKind(Hit::Inactive);
+	    hit->setCorrectedMaterial(corr);
+	    hit->setPixel(isPixel);
+	    t.addHit(hit);
+	  }
+	}
+	iter++;
+      }
+      return res;
+    }
     
     /**
      * Calculate the error profiles for the radius curvature, the distance and the angle, for each momentum,
@@ -944,13 +1337,17 @@ namespace insur {
      * @param p The list of different momenta that the error profiles are calculated for
      */
   void Analyzer::calculateProfiles(std::vector<double>& p, 
-                                  std::vector<Track>& trackVector,
-                                  std::map<double, TGraph>& thisRhoProfiles,
-                                  std::map<double, TGraph>& thisPhiProfiles,
-                                  std::map<double, TGraph>& thisDProfiles,
-                                  std::map<double, TGraph>& thisCtgThetaProfiles,
-                                  std::map<double, TGraph>& thisZ0Profiles,
-                                  std::map<double, TGraph>& thisPProfiles) {
+				   std::vector<Track>& trackVector,
+				   profileBag& aProfileBag,
+				   int profileAttributes) {
+    
+    std::map<double, TGraph>& thisRhoProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::RhoProfile );
+    std::map<double, TGraph>& thisPhiProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::PhiProfile );
+    std::map<double, TGraph>& thisDProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::DProfile );
+    std::map<double, TGraph>& thisCtgThetaProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::CtgthetaProfile );
+    std::map<double, TGraph>& thisZ0Profiles = aProfileBag.getProfiles(profileAttributes | profileBag::Z0Profile );
+    std::map<double, TGraph>& thisPProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::PProfile );
+
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = trackVector.size();
@@ -1200,6 +1597,28 @@ namespace insur {
 	  hadronGoodTracksFraction.push_back(*myGraph);
 	}
     }
+
+  /**
+   * This convenience function resets and empties all histograms for
+   * the trigger performance, so they are ready for a new round of
+   * analysis.
+   */
+  void Analyzer::clearTriggerPerformanceHistograms() {
+    // There are no histograms of this kind for the moment
+  }
+
+  /**
+   * This convenience function sets the number of bins and the lower
+   * and upper range for their contents for the trigger performance
+   * histograms
+   *
+   * @param bins The number of bins in each 1D histogram
+   * @param min The minimal eta value that should be plotted
+   * @param max the maximal eta value that should be plotted
+   */
+  void Analyzer::setTriggerHistogramBinsBoundaries(int bins, double min, double max) {
+    // There are no histograms of this kind for the moment
+  }
     
     /**
      * This convenience function resets and empties all histograms for the
@@ -1221,7 +1640,6 @@ namespace insur {
 	while (powerDensity.GetN()) powerDensity.RemovePoint(0);
 	powerDensity.SetName("powerdensity");
         powerDensity.SetTitle("Power density;Total area [m^{2}];Power density [kW / m^{2}]");
-
     }
     
     /**
@@ -1989,6 +2407,55 @@ namespace insur {
     
     return averages;
   }
+
+
+  int profileBag::buildAttribute(bool ideal, bool isTrigger) {
+    int result;
+    if (ideal) result = IdealProfile;
+    else result = RealProfile;
+
+    if (isTrigger) result |= TriggerProfile;
+    else result |= StandardProfile;
+
+    return result;
+  }
+
+  std::map<double, TGraph>& Analyzer::getRhoProfiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::RhoProfile;
+    return myProfileBag.getProfiles(attribute);
+  }
+
+  std::map<double, TGraph>& Analyzer::getPhiProfiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::PhiProfile;
+    return myProfileBag.getProfiles(attribute);
+  }
+
+  std::map<double, TGraph>& Analyzer::getDProfiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::DProfile;
+    return myProfileBag.getProfiles(attribute);
+  }
+  
+  std::map<double, TGraph>& Analyzer::getCtgThetaProfiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::CtgthetaProfile;
+    return myProfileBag.getProfiles(attribute);
+  }
+  
+  std::map<double, TGraph>& Analyzer::getZ0Profiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::Z0Profile;
+    return myProfileBag.getProfiles(attribute);
+  }
+  
+  std::map<double, TGraph>& Analyzer::getPProfiles(bool ideal, bool isTrigger) {
+    int attribute = profileBag::buildAttribute(ideal, isTrigger);
+    attribute |= profileBag::PProfile;
+    return myProfileBag.getProfiles(attribute);
+  }
+
   
 }
 

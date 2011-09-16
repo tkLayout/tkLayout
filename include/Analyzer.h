@@ -56,6 +56,31 @@ namespace insur {
     };
 
     /**
+     * @class profileBag
+     * @brief A bag of profiles sorted by variable, scope and track's pt
+     */
+    class profileBag {
+    public:
+      static const int RhoProfile;
+      static const int PhiProfile;
+      static const int DProfile;
+      static const int CtgthetaProfile;
+      static const int Z0Profile;
+      static const int PProfile;
+      static const int IdealProfile;
+      static const int RealProfile;
+      static const int TriggerProfile;
+      static const int StandardProfile;
+      std::map<double, TGraph>& getProfiles(const int& attribute);
+      int clearTriggerProfiles();
+      int clearStandardProfiles();
+      static int buildAttribute(bool ideal, bool isTrigger);
+    private:
+      std::map<int, std::map<double, TGraph> > graphMap_;
+      int clearProfiles(const int& attributeMask);
+    };
+
+    /**
      * @class Analyzer
      * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
      *
@@ -107,15 +132,17 @@ namespace insur {
         TH2D& getHistoIsoI() { return isoi; }
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
-        std::vector<Track>& getTracks() { return tv; }
-        std::map<double, TGraph>& getRhoProfiles(bool ideal) { if (ideal) return rhoprofilesIdeal; else return rhoprofiles; }
-        std::map<double, TGraph>& getPhiProfiles(bool ideal) { if (ideal) return phiprofilesIdeal; else return phiprofiles; }
-        std::map<double, TGraph>& getDProfiles(bool ideal) { if (ideal) return dprofilesIdeal; else return dprofiles; }
-        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal) { if (ideal) return ctgThetaProfilesIdeal; else return ctgThetaProfiles; }
-        std::map<double, TGraph>& getZ0Profiles(bool ideal) { if (ideal) return z0ProfilesIdeal; return z0Profiles; }
-        std::map<double, TGraph>& getPProfiles(bool ideal) { if (ideal) return pProfilesIdeal; return pProfiles; }
+        //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
+        std::map<double, TGraph>& getRhoProfiles(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getPhiProfiles(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getDProfiles(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getZ0Profiles(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getPProfiles(bool ideal, bool isTrigger);
+	profileBag& getProfileBag() { return myProfileBag; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
         virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+	virtual void analyzeTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -195,10 +222,15 @@ namespace insur {
 
 
 	TH1D hitDistribution;
-        std::vector<Track> tv;
-        std::vector<Track> tvIdeal;
-        std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles;
-        std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal;
+        //std::vector<Track> tv;  // remove ?
+        //std::vector<Track> tvIdeal; // remove ?
+        //std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles;
+        //std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal;
+        //std::map<double, TGraph> rhoprofilesTrigger, phiprofilesTrigger, dprofilesTrigger, ctgThetaProfilesTrigger, z0ProfilesTrigger, pProfilesTrigger;
+        //std::map<double, TGraph> rhoprofilesTriggerIdeal, phiprofilesTriggerIdeal, dprofilesTriggerIdeal, ctgThetaProfilesTriggerIdeal, z0ProfilesTriggerIdeal, pProfilesTriggerIdeal;
+	profileBag myProfileBag;
+        //std::vector<Track> triggerTv; // remove ?
+        //std::vector<Track> triggerTvIdeal; //remove ?
 	
 	// Hadrons
 	TGraph hadronTotalHitsProfile;
@@ -213,25 +245,39 @@ namespace insur {
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
+	Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
+			     double& eta, double& theta, double& phi, Track& track);
+
 	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
-        virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer,
-                                                                                               double eta, double theta, double phi, Track& t, bool isPixel = false);
+        virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
+					 double eta, double theta, double phi, Track& t, bool isPixel = false);
+        virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
+
+        virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
 								  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+        virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
+						  Track& t, bool isPixel = false);
+
 	void calculateProfiles(std::vector<double>& p,
 			       std::vector<Track>& trackVector,
-			       std::map<double, TGraph>& thisRhoProfiles,
-			       std::map<double, TGraph>& thisPhiProfiles,
-			       std::map<double, TGraph>& thisDProfiles,
-                               std::map<double, TGraph>& thisCtgThetaProfiles,
-                               std::map<double, TGraph>& thisZ0Profiles,
-                               std::map<double, TGraph>& thisPProfiles);
+			       profileBag& aProfileBag,
+			       int profileAttributes);
+	//std::map<double, TGraph>& thisRhoProfiles,
+	//std::map<double, TGraph>& thisPhiProfiles,
+	//std::map<double, TGraph>& thisDProfiles,
+	//std::map<double, TGraph>& thisCtgThetaProfiles,
+	//std::map<double, TGraph>& thisZ0Profiles,
+	//std::map<double, TGraph>& thisPProfiles);
+
         void clearMaterialBudgetHistograms();
+        void clearTriggerPerformanceHistograms();
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
+        void setTriggerHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
         void fillCell(double r, double eta, double theta, Material mat);
         void fillMapRT(const double& r, const double& theta, const Material& mat);

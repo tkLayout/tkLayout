@@ -70,7 +70,8 @@ Hit::Hit(const Hit& h) {
 }
 
 /**
- * //TODO
+ * Constructor for a hit with no module at a given distance from the origin
+ * @param myDistance distance from the origin
  */
 Hit::Hit(double myDistance) {
     distance_ = myDistance;
@@ -83,7 +84,9 @@ Hit::Hit(double myDistance) {
 }
 
 /**
- * //TODO
+ * Constructor for a hit on a given module at a given distance from the origin
+ * @param myDistance distance from the origin
+ * @param myModule pointer to the module with the hit 
  */
 Hit::Hit(double myDistance, Module* myModule) {
     distance_ = myDistance;
@@ -132,6 +135,14 @@ Material Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
+/**
+ * Getter for the rPhi resolution (local x coordinate for a module)
+ * If the hit is not active it returns -1
+ * If the hit is connected to a module, then the module's resolution
+ * is retured (if the hit is trigger-type, then then module's trigger resultion is requested)
+ * if there is not any hit module, then the hit's resolution property is read and returned
+ * @return the hit's local resolution
+ */
 double Hit::getResolutionRphi() {
   if (objectKind_!=Active) {
     std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
@@ -146,6 +157,15 @@ double Hit::getResolutionRphi() {
   }
 }
 
+/**
+ * Getter for the y resolution (local y coordinate for a module)
+ * This corresponds to z coord for barrel modules and r coord for end-caps
+ * If the hit is not active it returns -1
+ * If the hit is connected to a module, then the module's resolution
+ * is retured (if the hit is trigger-type, then then module's trigger resultion is requested)
+ * if there is not any hit module, then the hit's resolution property is read and returned
+ * @return the hit's local resolution
+ */
 double Hit::getResolutionY() {
   if (objectKind_!=Active) {
     std::cerr << "ERROR: Hit::getResolutionY called on a non-active hit" << std::endl;
@@ -160,10 +180,14 @@ double Hit::getResolutionY() {
   }
 }
 
-
+/*
+ * Checks wether a module belongs to the outer endcap (no pixel allowed)
+ * and the hit module is made of a square sensor
+ * @return true if the module is in outer endcap and square
+ */
 bool Hit::isSquareEndcap() {
   bool result = false;
-  if (isPixel_) return false; // TODO: FIX THIS!!!!
+  if (isPixel_) return false;
   //std::cout << "Hit::isSquareEndcap() "; //debug
   if (hitModule_) {
     //std::cout << " hitModule_!= NULL "; //debug
@@ -731,14 +755,6 @@ void Track::computeCovarianceMatrixRZ() {
         // set up partial derivative matrices diffs and diffsT
         for (unsigned int i = 0; i < nhits; i++) {
 	  if (hitV_.at(i)->getObjectKind()  == Hit::Active) {
-	    // partial derivatives for y = p[0] * x + p[1]
-	    // diffs(i - offset, 0) = hitV_.at(i)->getDistance() * cos(theta_) ; // TODO: optimize this
-	    // diffs(i - offset, 1) = 1;
-
-	    // partial derivatives for y = (x - p[1]) / p[0]
-	    // diffs(i - offset, 0) = hitV_.at(i)->getDistance() * sinTimesTan;
-	    // diffs(i - offset, 1) = tanTheta;
-
 	    // partial derivatives for x = p[0] * y + p[1]
 	    diffs(i - offset, 0) = hitV_.at(i)->getRadius();
 	    diffs(i - offset, 1) = 1;

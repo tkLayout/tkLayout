@@ -1056,6 +1056,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<int, int> nSegments;
     map<int, string> type;
     map<int, double> dsDistance;
+    map<int, int> triggerWindow;
     map<int, double> dsRotation;
     map<int, int> divideBack;
     map<int, double> xResolution;
@@ -1068,6 +1069,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     map<pair<int, int>, int> nSegmentsSecond;
     map<pair<int, int>, string> typeSecond;
     map<pair<int, int>, double> dsDistanceSecond;
+    map<pair<int, int>, int> triggerWindowSecond;
     map<pair<int, int>, double> dsRotationSecond;
     map<pair<int, int>, int> divideBackSecond;
     map<pair<int, int>, bool> specialSecond;
@@ -1099,6 +1101,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         type[mainIndex]=parameterValue.c_str();
                     } else if (parameterName == "dsDistance") {
                         dsDistance[mainIndex]=atof(parameterValue.c_str());
+                    } else if (parameterName == "triggerWindow") {
+                        triggerWindow[mainIndex]=atoi(parameterValue.c_str());
                     } else if (parameterName == "dsRotation") {
                         dsRotation[mainIndex]=atof(parameterValue.c_str());
                     } else if (parameterName == "divideBack") {
@@ -1144,6 +1148,12 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                             specialSecond[specialIndex]=true;
                             isSpecial = true;
                         }
+                    } else if (parameterName=="triggerWindow") {
+                        if (atoi(parameterValue.c_str())!=triggerWindow[mainIndex]) {
+                            triggerWindowSecond[specialIndex]=atoi(parameterValue.c_str());
+                            specialSecond[specialIndex]=true;
+                            isSpecial = true;
+                        }
                     } else if (parameterName=="dsRotation") {
                         if (atoi(parameterValue.c_str())!=dsRotation[mainIndex]) {
                             dsRotationSecond[specialIndex]=atof(parameterValue.c_str());
@@ -1172,10 +1182,10 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
     }
     
     myTracker_->setModuleTypes(myName,
-            nStripsAcross, nSides, nSegments, type, dsDistance, dsRotation, divideBack,
-            xResolution, yResolution,
-            nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
-            dsDistanceSecond, dsRotationSecond, divideBackSecond, specialSecond);
+			       nStripsAcross, nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
+			       xResolution, yResolution,
+			       nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
+			       dsDistanceSecond, triggerWindowSecond, dsRotationSecond, divideBackSecond, specialSecond);
     
     return true;
     
