@@ -72,7 +72,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cin >> standardDirectory_;
   cout << endl;
 
-  cout << "*** Specify the list of transverse momenta to be used for the?" << endl
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
        << "    tracking performance test (in GeV/c)" << endl
        << "    Example: 1, 10, 100 : ";
   cin >> tempString;
@@ -80,6 +80,16 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   getline(cin,tempString2);
   tempString+=tempString2;
   momenta_ = parseDoubleList(tempString);
+
+  tempString = "";
+  tempString2 = "";
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+       << "    trigger efficiency performance test (in GeV/c)" << endl
+       << "    Example: 1, 2, 5, 10 : ";
+  cin >> tempString;
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  triggerMomenta_ = parseDoubleList(tempString2);
 
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
@@ -94,6 +104,13 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << MOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = momenta_.begin(); it!=momenta_.end(); ++it) {
       if (it!=momenta_.begin()) configFile << ", ";
+      configFile << std::fixed << std::setprecision(2) << (*it);
+    }
+    configFile << "\"" << std::endl;
+
+    configFile << TRIGGERMOMENTADEFINITION << "=\"";
+    for (std::vector<double>::iterator it = triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
+      if (it!=triggerMomenta_.begin()) configFile << ", ";
       configFile << std::fixed << std::setprecision(2) << (*it);
     }
     configFile << "\"" << std::endl;
@@ -155,6 +172,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   bool layoutFound=false;
   bool xmlFound=false;
   bool momentaFound=false;
+  bool triggerMomentaFound=false;
 
   // Parsing all the lines of the configuration file
   while (configFile.good()) {
@@ -176,6 +194,9 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       } else if (parameter==MOMENTADEFINITION) {
 	momenta_ = parseDoubleList(value);
 	momentaFound = true;
+      } else if (parameter==TRIGGERMOMENTADEFINITION) {
+	triggerMomenta_ = parseDoubleList(value);
+	triggerMomentaFound = true;
       } else {
 	cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
@@ -183,7 +204,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   }
 
   //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
-  return (layoutFound&&xmlFound&&momentaFound);
+  return (layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound);
 }
 
 bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
@@ -251,6 +272,11 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
 vector<double>& mainConfigHandler::getMomenta() {
   getConfiguration();
   return momenta_;
+}
+
+vector<double>& mainConfigHandler::getTriggerMomenta() {
+  getConfiguration();
+  return triggerMomenta_;
 }
 
 string mainConfigHandler::getLayoutDirectory() {

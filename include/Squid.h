@@ -44,6 +44,7 @@ namespace insur {
     static const std::string err_no_tracker = "Error: the tracker object does not exist. The tracker must be created before calling this function.";
     static const std::string err_no_inacsurf = "Error: the collection of inactive surfaces does not exist. It must be created before calling this function";
     static const std::string err_no_matbudget = "Error: the material budget does not exist. It must be created before calling this function.";
+    static const std::string err_no_triggerSummary = "Error: could not report on the trigger performance.";
     static const std::string warning_rootonly = "Warning: the collection of inactive surfaces does not exist. Only the .root file will be written.";
     static const std::string default_trackername = "defaultTrackerName";
 
@@ -89,6 +90,7 @@ namespace insur {
 	bool pureAnalyzeMaterialBudget(int tracks);
 	bool reportGeometrySite();
 	bool reportMaterialBudgetSite();
+	bool reportTriggerPerformanceSite();
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
 	bool makeSite(bool addLogPage = true);
 #endif

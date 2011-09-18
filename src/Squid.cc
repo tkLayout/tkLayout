@@ -617,7 +617,7 @@ namespace insur {
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
       }
       a.computeWeightSummary(*mb);
-      a.analyzeTrigger(*mb, mainConfiguration.getMomenta(), tracks, pm);
+      a.analyzeTrigger(*mb, mainConfiguration.getMomenta(), mainConfiguration.getTriggerMomenta(), tracks, pm);
 
       return true;
     } else {
@@ -660,6 +660,19 @@ namespace insur {
     else {
       std::cout << "Squid::reportMaterialBudgetSite(): " << err_no_matbudget << std::endl;
       return false;
+    }
+  }
+
+  /**
+   * Produces the output of the analysis of the material budget analysis
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportTriggerPerformanceSite() {
+    if (v.triggerSummary(a, site)) {
+      return true;
+    } else {
+      std::cout << "Squid::reportTriggerPerformanceSite(): " << err_no_triggerSummary << std::endl;
+      return true;
     }
   }
     

@@ -942,15 +942,15 @@ namespace insur {
 	myCanvas = new TCanvas("hadronsHitsNumber");
 	myCanvas->SetFillColor(color_plot_background);
 	myCanvas->cd();
-	TGraph* hadronTotalHitsProfile = new TGraph(a.getHadronTotalHitsProfile());
-	TGraph* hadronAverageHitsProfile = new TGraph(a.getHadronAverageHitsProfile());
-	hadronTotalHitsProfile->SetMarkerStyle(8);
-	hadronTotalHitsProfile->SetMarkerColor(kBlack);
-	hadronTotalHitsProfile->SetMinimum(0);
-	hadronTotalHitsProfile->Draw("alp");
-	hadronAverageHitsProfile->SetMarkerStyle(8);
-	hadronAverageHitsProfile->SetMarkerColor(kRed);
-	hadronAverageHitsProfile->Draw("same lp");
+	TGraph* hadronTotalHitsGraph = new TGraph(a.getHadronTotalHitsGraph());
+	TGraph* hadronAverageHitsGraph = new TGraph(a.getHadronAverageHitsGraph());
+	hadronTotalHitsGraph->SetMarkerStyle(8);
+	hadronTotalHitsGraph->SetMarkerColor(kBlack);
+	hadronTotalHitsGraph->SetMinimum(0);
+	hadronTotalHitsGraph->Draw("alp");
+	hadronAverageHitsGraph->SetMarkerStyle(8);
+	hadronAverageHitsGraph->SetMarkerColor(kRed);
+	hadronAverageHitsGraph->Draw("same lp");
 	myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Maximum and average number of points (hadrons)");
 	myImage->setName("hadHits");
@@ -2077,7 +2077,7 @@ namespace insur {
         
         // Here you should check if the TGraph
         // list is empty => maybe not?
-    if (!(a.getRhoProfiles(false, isTrigger).empty() && a.getDProfiles(false, isTrigger).empty() && a.getPhiProfiles(false, isTrigger).empty())) {
+    if (!(a.getRhoGraphs(false, isTrigger).empty() && a.getDGraphs(false, isTrigger).empty() && a.getPhiGraphs(false, isTrigger).empty())) {
 
             // Create a page for the errors
 	  std::string pageTitle = "Resolution";
@@ -2127,10 +2127,10 @@ namespace insur {
 	      std::map<double, TGraph>::iterator g_iter, g_guard;
 	      // momentum canvas loop
 	      int myColor=0;
-	      g_guard = a.getRhoProfiles(idealMaterial, isTrigger).end();
+	      g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
 	      gStyle->SetGridStyle(style_grid);
 	      gStyle->SetGridColor(color_hard_grid);
-	      for (g_iter = a.getRhoProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
 		if (idealMaterial) {
 		  momentumGraph.SetMinimum(1E-5*100);
@@ -2159,8 +2159,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // distance canvas loop
-	      g_guard = a.getDProfiles(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getDProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
 		if (idealMaterial) {
 		  distanceGraph.SetMinimum(4*1e-4);
@@ -2185,8 +2185,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // angle canvas loop
-	      g_guard = a.getPhiProfiles(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getPhiProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
 		if (idealMaterial) {
 		  angleGraph.SetMinimum(1E-5);
@@ -2211,8 +2211,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // ctgTheta canvas loop
-	      g_guard = a.getCtgThetaProfiles(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getCtgThetaProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
 		ctgThetaGraph.SetMinimum(1E-5);
 		ctgThetaGraph.SetMaximum(0.1*verticalScale);
@@ -2232,8 +2232,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // z0 canvas loop
-	      g_guard = a.getZ0Profiles(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getZ0Profiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
 		z0Graph.SetMinimum(1E-5);
 		z0Graph.SetMaximum(1*verticalScale);
@@ -2253,8 +2253,8 @@ namespace insur {
 	      plotOption = "Ap";
 	      myColor=0;
 	      // p canvas loop
-	      g_guard = a.getPProfiles(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getPProfiles(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+	      g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
+	      for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& pGraph = g_iter->second;
 		if (idealMaterial) {
 		  pGraph.SetMinimum(1E-5*100);
@@ -2359,12 +2359,12 @@ namespace insur {
 	    std::map<graphIndex, TGraph*> myPlotMap;
 	    graphIndex myIndex;
 
-	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoProfiles, isTrigger);
-	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDProfiles, isTrigger);
-	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiProfiles, isTrigger);
-	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaProfiles, isTrigger);
-	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Profiles, isTrigger);
-	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPProfiles, isTrigger);
+	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoGraphs, isTrigger);
+	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDGraphs, isTrigger);
+	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiGraphs, isTrigger);
+	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaGraphs, isTrigger);
+	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Graphs, isTrigger);
+	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPGraphs, isTrigger);
 
 	    // Cycle over the different measurements
 	    for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -2449,6 +2449,68 @@ namespace insur {
 	return false;
     }
 
+  bool Vizard::triggerSummary(Analyzer& a, RootWSite& site) {
+    //********************************//
+    //*                              *//
+    //*    Resolution estimate       *//
+    //*                              *//
+    //********************************//
+
+    graphBag aGraphBag = a.getGraphBag();
+    std::map<double, TGraph>& triggerGraphs = aGraphBag.getGraphs(graphBag::TriggerGraph | graphBag::TriggeredGraph);
+
+    // Check if graphs exist at all
+    if (!triggerGraphs.empty()) {
+      // Create a page for the errors
+      std::string pageTitle = "Trigger";
+      std::string pageAddress = "triggerPerf.html";
+      RootWPage& myPage = site.addPage(pageTitle);
+      myPage.setAddress(pageAddress);      
+            
+      // Create the contents
+      RootWContent& npointsContent = myPage.addContent("Trigger points");	      
+      TCanvas npointsCanvas;
+      npointsCanvas.SetGrid(1,1);
+      std::string plotOption = "Ap";
+
+      // momentum canvas loop
+      int myColor=0;
+      // Style things
+      gStyle->SetGridStyle(style_grid);
+      gStyle->SetGridColor(color_hard_grid);
+      
+      // Loop over the plots and draw on the canvas
+      for (std::map<double, TGraph>::iterator plot_iter = triggerGraphs.begin();
+	   plot_iter != triggerGraphs.end();
+	   ++plot_iter) {
+	TGraph& npointsGraph = plot_iter->second;
+	npointsGraph.SetMinimum(4E-3*100);
+	npointsGraph.GetXaxis()->SetLimits(0, 2.4);
+	npointsGraph.SetLineColor(momentumColor(myColor));
+	npointsGraph.SetMarkerColor(momentumColor(myColor));
+	myColor++;
+	npointsGraph.SetMarkerStyle(8);
+	npointsCanvas.SetFillColor(color_plot_background);
+
+	if (npointsGraph.GetN()>0) {
+	  npointsCanvas.cd();
+	  npointsGraph.Draw(plotOption.c_str());
+	  plotOption = "p same";
+	}	
+      }
+
+      RootWImage& npointsImage = npointsContent.addImage(npointsCanvas, 600, 600);
+      npointsImage.setComment("Number of triggered and triggerable points vs. eta");
+      npointsImage.setName("ntrigpoints");
+      
+    } else { // There are no graphs to plot here...
+      std::cerr << "ERROR: no trigger performance plots to show here" << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
   // TODO: describe this here, if it ever worked
   void Vizard::fillPlotMap(std::string& plotName, 
 			   std::map<graphIndex, TGraph*>& myPlotMap,
@@ -2465,13 +2527,13 @@ namespace insur {
     for (int i=0; i<2; ++i) {
       if (i==0) myIndex.ideal=false;
       else myIndex.ideal=true;
-      std::map<double, TGraph>& ptProfilesIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
-      std::map<double, TGraph>::iterator profilesIterator;
-      for (profilesIterator=ptProfilesIdeal.begin();
-	   profilesIterator!=ptProfilesIdeal.end();
-	   ++profilesIterator) {
-	myGraph = &(*profilesIterator).second;
-	p = (*profilesIterator).first;
+      std::map<double, TGraph>& ptGraphsIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
+      std::map<double, TGraph>::iterator graphsIterator;
+      for (graphsIterator=ptGraphsIdeal.begin();
+	   graphsIterator!=ptGraphsIdeal.end();
+	   ++graphsIterator) {
+	myGraph = &(*graphsIterator).second;
+	p = (*graphsIterator).first;
 	myIndex.p = p;
 	myPlotMap[myIndex] = myGraph;
 	//std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug

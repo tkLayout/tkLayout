@@ -12,26 +12,28 @@
 
 namespace insur {
 
-  const int profileBag::RhoProfile      = 0x01;
-  const int profileBag::PhiProfile      = 0x02;
-  const int profileBag::DProfile        = 0x03;
-  const int profileBag::CtgthetaProfile = 0x04;
-  const int profileBag::Z0Profile       = 0x05;
-  const int profileBag::PProfile        = 0x06;
-  const int profileBag::IdealProfile    = 0x08;
-  const int profileBag::RealProfile     = 0x10;
-  const int profileBag::TriggerProfile  = 0x20;
-  const int profileBag::StandardProfile = 0x40;
+  const double graphBag::Triggerable     = 0.;
+  const int graphBag::RhoGraph         = 0x001;
+  const int graphBag::PhiGraph         = 0x002;
+  const int graphBag::DGraph           = 0x003;
+  const int graphBag::CtgthetaGraph    = 0x004;
+  const int graphBag::Z0Graph          = 0x005;
+  const int graphBag::PGraph           = 0x006;
+  const int graphBag::TriggeredGraph   = 0x007;
+  const int graphBag::IdealGraph       = 0x010;
+  const int graphBag::RealGraph        = 0x020;
+  const int graphBag::TriggerGraph     = 0x040;
+  const int graphBag::StandardGraph    = 0x080;
 
-  int profileBag::clearTriggerProfiles() {
-    return clearProfiles(profileBag::TriggerProfile);
+  int graphBag::clearTriggerGraphs() {
+    return clearGraphs(graphBag::TriggerGraph);
   }
 
-  int profileBag::clearStandardProfiles() {
-    return clearProfiles(profileBag::StandardProfile);
+  int graphBag::clearStandardGraphs() {
+    return clearGraphs(graphBag::StandardGraph);
   }
 
-  int profileBag::clearProfiles(const int& attributeMask) {
+  int graphBag::clearGraphs(const int& attributeMask) {
     std::map<int, std::map<double, TGraph> >::iterator it;
     std::map<int, std::map<double, TGraph> >::iterator nextIt;
 
@@ -51,7 +53,7 @@ namespace insur {
     return deleteCounter;
   }
   
-  std::map<double, TGraph>& profileBag::getProfiles(const int& attribute) {
+  std::map<double, TGraph>& graphBag::getGraphs(const int& attribute) {
     return graphMap_[attribute];
   }
   
@@ -141,7 +143,10 @@ namespace insur {
    * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    */
-  void Analyzer::analyzeTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
+  void Analyzer::analyzeTrigger(MaterialBudget& mb,
+				const std::vector<double>& momenta,
+				const std::vector<double>& triggerMomenta,
+				int etaSteps,
 				MaterialBudget* pm) {
 
     Tracker& tracker = mb.getTracker();
@@ -159,7 +164,7 @@ namespace insur {
 #endif
     int nTracks;
     double etaStep, eta, theta, phi;
-    clearTriggerPerformanceHistograms();
+    prepareTriggerPerformanceHistograms(triggerMomenta);
     
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
@@ -206,12 +211,14 @@ namespace insur {
       track.addHit(hit);
       
       if (!track.noHits()) {
+	// Keep only triggering hits
+	track.keepTriggerOnly();
+
 	// Assume the IP constraint here
 	// TODO: make this configurable
 	if (tracker.getUseIPConstraint())
 	  track.addIPConstraint(tracker.getRError(),tracker.getZError());
 	track.sort();
-	track.keepTriggerOnly();
 	track.setTriggerResolution(true);
 	      
 	if (efficiency!=1) track.addEfficiency(efficiency, false);
@@ -223,10 +230,9 @@ namespace insur {
 	  trackIdeal.removeMaterial();
 	  trackIdeal.computeErrors(momenta);
 	  tvIdeal.push_back(trackIdeal);	
-	}
+	}    
       }
     }
-
 
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeTrigger(): ";
@@ -237,6 +243,9 @@ namespace insur {
     t = time(NULL);
     localt = localtime(&t);
 #endif
+
+    // Compute the number of triggering points along the selected tracks
+    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
     
 #ifdef DEBUG_PERFORMANCE
     t = time(NULL);
@@ -244,8 +253,8 @@ namespace insur {
     //std::cerr << asctime(localt) << std::endl;
     starttime = clock();
 #endif
-    calculateProfiles(momenta, tv, myProfileBag, profileBag::TriggerProfile | profileBag::RealProfile);
-    calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::TriggerProfile | profileBag::IdealProfile);
+    calculateGraphs(momenta, tv, graphBag::TriggerGraph | graphBag::RealGraph);
+    calculateGraphs(momenta, tvIdeal, graphBag::TriggerGraph | graphBag::IdealGraph);
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeTrigger(): ";
     t = time(NULL);
@@ -255,151 +264,32 @@ namespace insur {
     t = time(NULL);
     localt = localtime(&t);
 #endif
-    
+
   }
 
-    /**
-     * The analysis function providing the resolution as a function of eta
-     * using only the trigger modules
-     * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
-     * @param momenta A list of momentum values for the tracks that are shot through the layout
-     * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
-     * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
-     */
-    void Analyzer::analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
-						MaterialBudget* pm) {
+  void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+					       const std::vector<Track>& trackVector) {
+    
+    // Prepare the graphs to record the number of triggered points
+    std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
 
-      analyzeTrigger(mb, momenta, etaSteps, pm);
-      return;
+    double eta;
 
-        Tracker& tracker = mb.getTracker();
-        double efficiency = tracker.getEfficiency();
-        materialTracksUsed = etaSteps;
+    for (std::vector<Track>::const_iterator itTrack = trackVector.begin();
+	 itTrack != trackVector.end(); ++itTrack) {
+      const Track& myTrack=(*itTrack);
+      eta = - log(tan(myTrack.getTheta() / 2));
+      TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
+      totalGraph.SetPoint(totalGraph.GetN(), eta, myTrack.nActiveHits(false, false));
 
-#ifdef DEBUG_PERFORMANCE
-        struct tm *localt; // timing: debug
-        time_t t;          // timing: debug
-        t = time(NULL);
-        localt = localtime(&t);
-        //std::cerr << asctime(localt) << std::endl;
-        clock_t starttime = clock();
-#endif
-        int nTracks;
-        double etaStep, eta, theta, phi;
-        clearMaterialBudgetHistograms();
-
-        // prepare etaStep, phiStep, nTracks, nScans
-        if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
-        else etaStep = etaMax;
-        nTracks = etaSteps;
-
-        // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
-        setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
-
-        // reset the list of tracks
-	std::vector<Track> tv;
-        std::vector<Track> tvIdeal;
-        //tv.clear();
-	//tvIdeal.clear(); // ? why not here before ?
-
-        // used fixed phi
-        phi = PI / 2.0;
-
-        //      loop over nTracks (eta range [0, etaMax])
-        for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-            Material tmp;
-            Track track;
-            eta = i_eta * etaStep;
-            theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
-            track.setTheta(theta);
-
-            //      active volumes, barrel
-            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
-            //      active volumes, endcap
-            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
-            //      services, barrel
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
-            //      services, endcap
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
-            //      supports, barrel
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
-            //      supports, endcap
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
-            //      supports, tubes
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
-            //      supports, barrel tubes
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
-            //      supports, user defined
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
-            //      pixels, if they exist
-            if (pm != NULL) {
-                analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
-                analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
-                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, true);
-                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
-                analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
-            }
-
-            // Add the hit on the beam pipe
- 	    Hit* hit = new Hit(23./sin(theta));
- 	    hit->setOrientation(Hit::Horizontal);
- 	    hit->setObjectKind(Hit::Inactive);
- 	    Material beamPipeMat;
- 	    beamPipeMat.radiation = 0.0023 / sin(theta);
- 	    beamPipeMat.interaction = 0.0019 / sin(theta);
- 	    hit->setCorrectedMaterial(beamPipeMat);
- 	    track.addHit(hit);
-
-            if (!track.noHits()) {
-	      // Assume the IP constraint here
-	      // TODO: make this configurable
-	      if (tracker.getUseIPConstraint())
-		track.addIPConstraint(tracker.getRError(),tracker.getZError());
-	      track.sort();
-	      track.keepTriggerOnly();
-	      track.setTriggerResolution(true);
-	      
-	      if (efficiency!=1) track.addEfficiency(efficiency, false);
-	      if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-		track.computeErrors(momenta);
-		tv.push_back(track);
-
-		Track trackIdeal = track;
-		trackIdeal.removeMaterial();
-		trackIdeal.computeErrors(momenta);
-		tvIdeal.push_back(trackIdeal);	
-	      }
-            }
-        }
-
-#ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
-        t = time(NULL);
-        localt = localtime(&t);
-        clock_t endtime = clock();
-        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-        t = time(NULL);
-        localt = localtime(&t);
-#endif
-
-#ifdef DEBUG_PERFORMANCE
-        t = time(NULL);
-        localt = localtime(&t);
-        //std::cerr << asctime(localt) << std::endl;
-	starttime = clock();
-#endif
-	calculateProfiles(momenta, tv, myProfileBag, profileBag::StandardProfile | profileBag::RealProfile);
-	calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::StandardProfile | profileBag::IdealProfile);
-#ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
-        t = time(NULL);
-        localt = localtime(&t);
-        endtime = clock();
-        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-        t = time(NULL);
-        localt = localtime(&t);
-#endif
+      for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
+	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
+	TGraph& myGraph = trigGraphs[(*itMomentum)];
+	double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
+	myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
+      }
     }
+  }
 
     /**
      * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
@@ -410,7 +300,7 @@ namespace insur {
      * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
      * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
      */
-    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps,
+    void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps,
 					 MaterialBudget* pm ) {
 
         Tracker& tracker = mb.getTracker();
@@ -572,7 +462,7 @@ namespace insur {
 	      // @@ Hadrons
 	      int nActive = track.nActiveHits();
 	      if (nActive>0) {
-		hadronTotalHitsProfile.SetPoint(hadronTotalHitsProfile.GetN(),
+		hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(),
 						eta,
 						nActive);
 		double probability;
@@ -595,10 +485,10 @@ namespace insur {
 		  //averageSquaredHits+=((i+1)*(i+1))*exactProb;
 		  moreThanProb+=exactProb;
 		}
-		hadronAverageHitsProfile.SetPoint(hadronAverageHitsProfile.GetN(),
+		hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(),
 						  eta,
 						  averageHits);
-		//hadronAverageHitsProfile.SetPointError(hadronAverageHitsProfile.GetN()-1,
+		//hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1,
 		//					     0,
 		//					     sqrt( averageSquaredHits - averageHits*averageHits) );
 		
@@ -656,8 +546,8 @@ namespace insur {
         //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
-	calculateProfiles(momenta, tv, myProfileBag, profileBag::StandardProfile | profileBag::RealProfile);
-	calculateProfiles(momenta, tvIdeal, myProfileBag, profileBag::StandardProfile | profileBag::IdealProfile);
+	calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
+	calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         t = time(NULL);
@@ -1332,32 +1222,31 @@ namespace insur {
     }
     
     /**
-     * Calculate the error profiles for the radius curvature, the distance and the angle, for each momentum,
+     * Calculate the error graphs for the radius curvature, the distance and the angle, for each momentum,
      * and store them internally for later visualisation.
-     * @param p The list of different momenta that the error profiles are calculated for
+     * @param p The list of different momenta that the error graphs are calculated for
      */
-  void Analyzer::calculateProfiles(std::vector<double>& p, 
-				   std::vector<Track>& trackVector,
-				   profileBag& aProfileBag,
-				   int profileAttributes) {
+  void Analyzer::calculateGraphs(const std::vector<double>& p, 
+				   const std::vector<Track>& trackVector,
+				   int graphAttributes) {
     
-    std::map<double, TGraph>& thisRhoProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::RhoProfile );
-    std::map<double, TGraph>& thisPhiProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::PhiProfile );
-    std::map<double, TGraph>& thisDProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::DProfile );
-    std::map<double, TGraph>& thisCtgThetaProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::CtgthetaProfile );
-    std::map<double, TGraph>& thisZ0Profiles = aProfileBag.getProfiles(profileAttributes | profileBag::Z0Profile );
-    std::map<double, TGraph>& thisPProfiles = aProfileBag.getProfiles(profileAttributes | profileBag::PProfile );
+    std::map<double, TGraph>& thisRhoGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::RhoGraph );
+    std::map<double, TGraph>& thisPhiGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::PhiGraph );
+    std::map<double, TGraph>& thisDGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::DGraph );
+    std::map<double, TGraph>& thisCtgThetaGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::CtgthetaGraph );
+    std::map<double, TGraph>& thisZ0Graphs = myGraphBag.getGraphs(graphAttributes | graphBag::Z0Graph );
+    std::map<double, TGraph>& thisPGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::PGraph );
 
         std::map<double, double>::const_iterator miter, mguard;
         std::vector<double>::const_iterator iter, guard = p.end();
         int n = trackVector.size();
         double eta, R;
-        thisRhoProfiles.clear();
-        thisPhiProfiles.clear();
-        thisDProfiles.clear();
-	thisCtgThetaProfiles.clear();
-	thisZ0Profiles.clear();
-	thisPProfiles.clear();
+        thisRhoGraphs.clear();
+        thisPhiGraphs.clear();
+        thisDGraphs.clear();
+	thisCtgThetaGraphs.clear();
+	thisZ0Graphs.clear();
+	thisPGraphs.clear();
         // momentum loop
         std::ostringstream aName;
         for (iter = p.begin(); iter != guard; iter++) {
@@ -1366,35 +1255,35 @@ namespace insur {
             elem.first = *iter;
             elem.second = graph;
 	    // Prepare plots: pT
-            thisRhoProfiles.insert(elem);
-	    thisRhoProfiles[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+            thisRhoGraphs.insert(elem);
+	    thisRhoGraphs[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
             aName.str(""); aName << "pt_vs_eta" << *iter;
-            thisRhoProfiles[elem.first].SetName(aName.str().c_str());
+            thisRhoGraphs[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: phi
-            thisPhiProfiles.insert(elem);
-	    thisPhiProfiles[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+            thisPhiGraphs.insert(elem);
+	    thisPhiGraphs[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
             aName.str(""); aName << "phi_vs_eta" << *iter;
-            thisPhiProfiles[elem.first].SetName(aName.str().c_str());
+            thisPhiGraphs[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: d
-            thisDProfiles.insert(elem);
-	    thisDProfiles[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+            thisDGraphs.insert(elem);
+	    thisDGraphs[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
             aName.str(""); aName << "d_vs_eta" << *iter;
-            thisDProfiles[elem.first].SetName(aName.str().c_str());
+            thisDGraphs[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: ctg(theta)
-	    thisCtgThetaProfiles.insert(elem);
-	    thisCtgThetaProfiles[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
+	    thisCtgThetaGraphs.insert(elem);
+	    thisCtgThetaGraphs[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
             aName.str(""); aName << "ctgTheta_vs_eta" << *iter;
-            thisCtgThetaProfiles[elem.first].SetName(aName.str().c_str());
+            thisCtgThetaGraphs[elem.first].SetName(aName.str().c_str());
 	    // Prepare plots: z0
-	    thisZ0Profiles.insert(elem);
-	    thisZ0Profiles[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+	    thisZ0Graphs.insert(elem);
+	    thisZ0Graphs[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
             aName.str(""); aName << "z_vs_eta" << *iter;
-            thisZ0Profiles[elem.first].SetName(aName.str().c_str());
+            thisZ0Graphs[elem.first].SetName(aName.str().c_str());
             // Prepare plots: p
-            thisPProfiles.insert(elem);
-            thisPProfiles[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
+            thisPGraphs.insert(elem);
+            thisPGraphs[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
             aName.str(""); aName << "p_vs_eta" << *iter;
-            thisPProfiles[elem.first].SetName(aName.str().c_str());
+            thisPGraphs[elem.first].SetName(aName.str().c_str());
         }
         // track loop
 	std::map<double,int> rhoPointCount;
@@ -1405,61 +1294,61 @@ namespace insur {
 	std::map<double,int> pPointCount;
         double graphValue;
         for (int i = 0; i < n; i++) {
-            std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
-            std::map<double, double>& dphi = trackVector.at(i).getDeltaPhi();
-            std::map<double, double>& dd = trackVector.at(i).getDeltaD();
-            std::map<double, double>& dctg = trackVector.at(i).getDeltaCtgTheta();
-            std::map<double, double>& dz0 = trackVector.at(i).getDeltaZ0();
-            std::map<double, double>& dp = trackVector.at(i).getDeltaP();
+            const std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
+            const std::map<double, double>& dphi = trackVector.at(i).getDeltaPhi();
+            const std::map<double, double>& dd = trackVector.at(i).getDeltaD();
+            const std::map<double, double>& dctg = trackVector.at(i).getDeltaCtgTheta();
+            const std::map<double, double>& dz0 = trackVector.at(i).getDeltaZ0();
+            const std::map<double, double>& dp = trackVector.at(i).getDeltaP();
             eta = - log(tan(trackVector.at(i).getTheta() / 2));
             mguard = drho.end();
             // error by momentum loop
             for (miter = drho.begin(); miter != mguard; miter++) {
-                if (thisRhoProfiles.find(miter->first) != thisRhoProfiles.end()) {
+                if (thisRhoGraphs.find(miter->first) != thisRhoGraphs.end()) {
                   R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
 		  if ((miter->second)>0) {
 		    // deltaRho / rho = deltaRho * R
 		    graphValue = (miter->second * R) * 100; // in percent
-		    thisRhoProfiles[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
+		    thisRhoGraphs[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
 		  }
                 }
             }
             mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-	      if (thisPhiProfiles.find(miter->first) != thisPhiProfiles.end())
+	      if (thisPhiGraphs.find(miter->first) != thisPhiGraphs.end())
 		if ((miter->second)>0) {
 		  graphValue = miter->second; // radians is ok
-		  thisPhiProfiles[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
+		  thisPhiGraphs[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
 		}
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-	      if (thisDProfiles.find(miter->first) != thisDProfiles.end())
+	      if (thisDGraphs.find(miter->first) != thisDGraphs.end())
 		if ((miter->second)>0) {
 		  graphValue =  (miter->second) / 10.; // in cm
-		  thisDProfiles[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
+		  thisDGraphs[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
 		}
             }
             mguard = dctg.end();
             for (miter = dctg.begin(); miter != mguard; miter++) {
 	      // Ctg theta (absolute number)
-              if (thisCtgThetaProfiles.find(miter->first) != thisCtgThetaProfiles.end()) {
+              if (thisCtgThetaGraphs.find(miter->first) != thisCtgThetaGraphs.end()) {
 		graphValue = miter->second; // An absolute number
-		thisCtgThetaProfiles[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
+		thisCtgThetaGraphs[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
 	      }
             }
             mguard = dz0.end();
             for (miter = dz0.begin(); miter != mguard; miter++) {
-              if (thisZ0Profiles.find(miter->first) != thisZ0Profiles.end()) {
+              if (thisZ0Graphs.find(miter->first) != thisZ0Graphs.end()) {
 		graphValue =  (miter->second) / 10.; // in cm
-		thisZ0Profiles[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
+		thisZ0Graphs[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
 	      }
             }	    
             mguard = dp.end();
             for (miter = dp.begin(); miter != mguard; miter++) {
-              if (thisPProfiles.find(miter->first) != thisPProfiles.end()) {
+              if (thisPGraphs.find(miter->first) != thisPGraphs.end()) {
                 graphValue =  (miter->second) * 100.; // in percent 
-                thisPProfiles[miter->first].SetPoint(pPointCount[miter->first]++, eta, graphValue);
+                thisPGraphs[miter->first].SetPoint(pPointCount[miter->first]++, eta, graphValue);
               }
             }
         }
@@ -1563,10 +1452,10 @@ namespace insur {
 	mapInteractionCalib.SetTitle("Interaction length map;z [mm];r [mm]");
 
 	// Nuclear interactions
-	while (hadronTotalHitsProfile.GetN()) hadronTotalHitsProfile.RemovePoint(0);
-	hadronTotalHitsProfile.SetName("hadronTotalHitsProfile");
-	while (hadronAverageHitsProfile.GetN()) hadronAverageHitsProfile.RemovePoint(0);
-	hadronAverageHitsProfile.SetName("hadronAverageHitsProfile");
+	while (hadronTotalHitsGraph.GetN()) hadronTotalHitsGraph.RemovePoint(0);
+	hadronTotalHitsGraph.SetName("hadronTotalHitsGraph");
+	while (hadronAverageHitsGraph.GetN()) hadronAverageHitsGraph.RemovePoint(0);
+	hadronAverageHitsGraph.SetName("hadronAverageHitsGraph");
 
 	// Clear the list of requested good hadron hits
 	hadronNeededHitsFraction.clear();
@@ -1603,8 +1492,41 @@ namespace insur {
    * the trigger performance, so they are ready for a new round of
    * analysis.
    */
-  void Analyzer::clearTriggerPerformanceHistograms() {
-    // There are no histograms of this kind for the moment
+  void Analyzer::prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta) {
+    // There are no TH* histograms of this kind for the moment
+
+    // Clear the graph list
+    myGraphBag.clearTriggerGraphs();
+
+    // Prepare the graphs to record the number of triggered points
+    std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+
+    // Prepare the graphs for the trigger performace
+    std::ostringstream aName;
+
+    for (vector<double>::const_iterator iter = triggerMomenta.begin();
+	 iter != triggerMomenta.end();
+	 ++iter) {
+      std::pair<double, TGraph> elem;
+      TGraph graph;
+      elem.first = *iter;
+      elem.second = graph;
+      // Prepare plots: triggered graphs
+      trigGraphs.insert(elem);
+      trigGraphs[elem.first].SetTitle("Average triggered points;#eta;Triggered points <N>");
+      aName.str(""); aName << "triggered_vs_eta" << *iter;
+      trigGraphs[elem.first].SetName(aName.str().c_str());
+    }
+
+    std::pair<double, TGraph> elemTotal;
+    TGraph graphTotal;
+    elemTotal.first = graphBag::Triggerable;
+    elemTotal.second = graphTotal;
+    // Prepare plot: total trigger points
+    trigGraphs.insert(elemTotal);
+    trigGraphs[elemTotal.first].SetTitle("Average triggered points;#eta;Triggered points <N>");
+    aName.str(""); aName << "triggerable_vs_eta";
+    trigGraphs[elemTotal.first].SetName(aName.str().c_str());
   }
 
   /**
@@ -2409,51 +2331,51 @@ namespace insur {
   }
 
 
-  int profileBag::buildAttribute(bool ideal, bool isTrigger) {
+  int graphBag::buildAttribute(bool ideal, bool isTrigger) {
     int result;
-    if (ideal) result = IdealProfile;
-    else result = RealProfile;
+    if (ideal) result = IdealGraph;
+    else result = RealGraph;
 
-    if (isTrigger) result |= TriggerProfile;
-    else result |= StandardProfile;
+    if (isTrigger) result |= TriggerGraph;
+    else result |= StandardGraph;
 
     return result;
   }
 
-  std::map<double, TGraph>& Analyzer::getRhoProfiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::RhoProfile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getRhoGraphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::RhoGraph;
+    return myGraphBag.getGraphs(attribute);
   }
 
-  std::map<double, TGraph>& Analyzer::getPhiProfiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::PhiProfile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getPhiGraphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::PhiGraph;
+    return myGraphBag.getGraphs(attribute);
   }
 
-  std::map<double, TGraph>& Analyzer::getDProfiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::DProfile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getDGraphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::DGraph;
+    return myGraphBag.getGraphs(attribute);
   }
   
-  std::map<double, TGraph>& Analyzer::getCtgThetaProfiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::CtgthetaProfile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getCtgThetaGraphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::CtgthetaGraph;
+    return myGraphBag.getGraphs(attribute);
   }
   
-  std::map<double, TGraph>& Analyzer::getZ0Profiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::Z0Profile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getZ0Graphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::Z0Graph;
+    return myGraphBag.getGraphs(attribute);
   }
   
-  std::map<double, TGraph>& Analyzer::getPProfiles(bool ideal, bool isTrigger) {
-    int attribute = profileBag::buildAttribute(ideal, isTrigger);
-    attribute |= profileBag::PProfile;
-    return myProfileBag.getProfiles(attribute);
+  std::map<double, TGraph>& Analyzer::getPGraphs(bool ideal, bool isTrigger) {
+    int attribute = graphBag::buildAttribute(ideal, isTrigger);
+    attribute |= graphBag::PGraph;
+    return myGraphBag.getGraphs(attribute);
   }
 
   

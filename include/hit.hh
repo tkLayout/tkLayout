@@ -49,6 +49,7 @@ protected:
   Track* myTrack_;
   bool isPixel_;
   bool isTrigger_;
+  bool isIP_;
 
 private:
   double myResolutionRphi_; // Only used for virtual hits on non-modules
@@ -84,10 +85,12 @@ public:
   void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
   bool isTrigger() { return isTrigger_; };
+  bool isIP() { return isIP_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
   void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
   void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
+  bool setIP(bool newIP) { return isIP_ = newIP; }
 
   bool isSquareEndcap();
   double getD();
@@ -132,28 +135,29 @@ public:
   bool noHits() { return hitV_.empty(); }
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
-  double getTheta() {return theta_;}
+  double getTheta() const {return theta_;}
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
   map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; }
-  map<momentum, double>& getDeltaRho() { return deltarho_; }
-  map<momentum, double>& getDeltaPhi() { return deltaphi_; }
-  map<momentum, double>& getDeltaD() { return deltad_; }
-  map<momentum, double>& getDeltaCtgTheta() { return deltaCtgTheta_; }
-  map<momentum, double>& getDeltaZ0() { return deltaZ0_; }
-  map<momentum, double>& getDeltaP() { return deltaP_; }
+  const map<momentum, double>& getDeltaRho() const { return deltarho_; }
+  const map<momentum, double>& getDeltaPhi() const { return deltaphi_; }
+  const map<momentum, double>& getDeltaD() const { return deltad_; }
+  const map<momentum, double>& getDeltaCtgTheta() const { return deltaCtgTheta_; }
+  const map<momentum, double>& getDeltaZ0() const { return deltaZ0_; }
+  const map<momentum, double>& getDeltaP() const { return deltaP_; }
   // TODO: maybe updateradius is not necessary here. To be checked
   Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); newHit->updateRadius(); return newHit;}
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
   void removeMaterial();
-  int nActiveHits(bool usePixels = false );
+  int nActiveHits(bool usePixels = false, bool useIP = true) const;
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
   void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
+  double expectedTriggerPoints(const double& triggerMomentum) const { return 1 ; }
 #ifdef HIT_DEBUG_RZ
   static bool debugRZCovarianceMatrix;  // debug
   static bool debugRZCorrelationMatrix;  // debug

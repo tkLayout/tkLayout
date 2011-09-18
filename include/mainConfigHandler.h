@@ -12,6 +12,7 @@ using namespace std;
 #define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
 #define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
 #define MOMENTADEFINITION "TKG_MOMENTA" 
+#define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
 
 // This object wil read the configuration only once
 // If the configuration file is not present, wuations will
@@ -35,6 +36,7 @@ class mainConfigHandler {
   string getSummaryDirectory();
   string getConfigFileName();
   vector<double>& getMomenta();
+  vector<double>& getTriggerMomenta();
  private:
   bool goodConfigurationRead_;
   //string styleDirectory_;
@@ -42,6 +44,7 @@ class mainConfigHandler {
   //string xmlDirectory_;
   string standardDirectory_;
   vector<double> momenta_;
+  vector<double> triggerMomenta_;
   bool checkDirectory(string dirName) ;
   bool createConfigurationFileFromQuestions(string& configFileName);
   bool parseLine(const char* codeLine, string& parameter, string& value);

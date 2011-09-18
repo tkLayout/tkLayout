@@ -47,6 +47,7 @@ Hit::Hit() {
     myTrack_ = NULL;
     isPixel_ = false;
     isTrigger_ = false;
+    isIP_ = false;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
 }
@@ -65,6 +66,7 @@ Hit::Hit(const Hit& h) {
     myTrack_ = NULL;
     isPixel_ = h.isPixel_;
     isTrigger_ = h.isTrigger_;
+    isIP_ = h.isIP_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
 }
@@ -80,6 +82,7 @@ Hit::Hit(double myDistance) {
     orientation_ = Undefined;
     isTrigger_ = false;
     isPixel_ = false;
+    isIP_ = false;
     myTrack_ = NULL;
 }
 
@@ -94,6 +97,7 @@ Hit::Hit(double myDistance, Module* myModule) {
     orientation_ = Undefined; 
     isTrigger_ = false;
     isPixel_ = false;
+    isIP_ = false;
     setHitModule(myModule);
     myTrack_ = NULL;
 }
@@ -258,8 +262,8 @@ Track::Track(const Track& t) {
  * @param usePixels take into account also pixel hits
  * @return how many active hits there are in a track
  */
-int Track::nActiveHits(bool usePixels /* = false */ ) {
-  std::vector<Hit*>::iterator hitIt;
+int Track::nActiveHits (bool usePixels /* = false */, bool useIP /* = true */ ) const {
+  std::vector<Hit*>::const_iterator hitIt;
   Hit* myHit;
   int result=0;
   for (hitIt=hitV_.begin();
@@ -267,9 +271,11 @@ int Track::nActiveHits(bool usePixels /* = false */ ) {
        ++hitIt) {
     myHit=(*hitIt);
     if (myHit) {
-      if ( (usePixels) || (!myHit->isPixel()) ) {
-	if (myHit->getObjectKind()==Hit::Active)
-	  result++;
+      if ((useIP) || (!myHit->isIP())) {
+	if ( (usePixels) || (!myHit->isPixel()) ) {
+	  if (myHit->getObjectKind()==Hit::Active)
+	    result++;
+	}
       }
     }
   }
@@ -994,6 +1000,7 @@ void Track::setTriggerResolution(bool isTrigger) {
  */
 void Track::addIPConstraint(double dr, double dz) {
   Hit* newHit = new Hit(0.);
+  newHit->setIP(true);
   Material emptyMaterial;
   emptyMaterial.radiation = 0;
   emptyMaterial.interaction = 0;

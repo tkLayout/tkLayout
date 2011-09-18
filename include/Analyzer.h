@@ -56,28 +56,30 @@ namespace insur {
     };
 
     /**
-     * @class profileBag
-     * @brief A bag of profiles sorted by variable, scope and track's pt
+     * @class graphBag
+     * @brief A bag of graphs sorted by variable, scope and track's pt
      */
-    class profileBag {
+    class graphBag {
     public:
-      static const int RhoProfile;
-      static const int PhiProfile;
-      static const int DProfile;
-      static const int CtgthetaProfile;
-      static const int Z0Profile;
-      static const int PProfile;
-      static const int IdealProfile;
-      static const int RealProfile;
-      static const int TriggerProfile;
-      static const int StandardProfile;
-      std::map<double, TGraph>& getProfiles(const int& attribute);
-      int clearTriggerProfiles();
-      int clearStandardProfiles();
+      static const double Triggerable;
+      static const int RhoGraph;
+      static const int PhiGraph;
+      static const int DGraph;
+      static const int CtgthetaGraph;
+      static const int Z0Graph;
+      static const int PGraph;
+      static const int TriggeredGraph;
+      static const int IdealGraph;
+      static const int RealGraph;
+      static const int TriggerGraph;
+      static const int StandardGraph;
+      std::map<double, TGraph>& getGraphs(const int& attribute);
+      int clearTriggerGraphs();
+      int clearStandardGraphs();
       static int buildAttribute(bool ideal, bool isTrigger);
     private:
       std::map<int, std::map<double, TGraph> > graphMap_;
-      int clearProfiles(const int& attributeMask);
+      int clearGraphs(const int& attributeMask);
     };
 
     /**
@@ -133,16 +135,17 @@ namespace insur {
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
         //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
-        std::map<double, TGraph>& getRhoProfiles(bool ideal, bool isTrigger);
-        std::map<double, TGraph>& getPhiProfiles(bool ideal, bool isTrigger);
-        std::map<double, TGraph>& getDProfiles(bool ideal, bool isTrigger);
-        std::map<double, TGraph>& getCtgThetaProfiles(bool ideal, bool isTrigger);
-        std::map<double, TGraph>& getZ0Profiles(bool ideal, bool isTrigger);
-        std::map<double, TGraph>& getPProfiles(bool ideal, bool isTrigger);
-	profileBag& getProfileBag() { return myProfileBag; }
-        virtual void analyzeMaterialBudget(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
-        virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
-	virtual void analyzeTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+        std::map<double, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getDGraphs(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getCtgThetaGraphs(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
+        std::map<double, TGraph>& getPGraphs(bool ideal, bool isTrigger);
+	graphBag& getGraphBag() { return myGraphBag; }
+        virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+        //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+	virtual void analyzeTrigger(MaterialBudget& mb, const std::vector<double>& momenta, const std::vector<double>& triggerMomenta,
+				    int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -163,8 +166,8 @@ namespace insur {
 	int getGeometryTracksUsed() {return geometryTracksUsed; };
 	int getMaterialTracksUsed() {return materialTracksUsed; };
 	// Hadrons
-	TGraph& getHadronTotalHitsProfile() {return hadronTotalHitsProfile;};
-	TGraph& getHadronAverageHitsProfile() {return hadronAverageHitsProfile;};
+	TGraph& getHadronTotalHitsGraph() {return hadronTotalHitsGraph;};
+	TGraph& getHadronAverageHitsGraph() {return hadronAverageHitsGraph;};
 	std::vector<double>& getHadronNeededHitsFraction() {return hadronNeededHitsFraction;};
 	std::vector<TGraph>& getHadronGoodTracksFraction() { return hadronGoodTracksFraction; };
 
@@ -220,21 +223,12 @@ namespace insur {
 	std::map<std::string, SummaryTable> endcapComponentWeights;
 	std::map<std::string, double> typeWeight;
 
-
 	TH1D hitDistribution;
-        //std::vector<Track> tv;  // remove ?
-        //std::vector<Track> tvIdeal; // remove ?
-        //std::map<double, TGraph> rhoprofiles, phiprofiles, dprofiles, ctgThetaProfiles, z0Profiles, pProfiles;
-        //std::map<double, TGraph> rhoprofilesIdeal, phiprofilesIdeal, dprofilesIdeal, ctgThetaProfilesIdeal, z0ProfilesIdeal, pProfilesIdeal;
-        //std::map<double, TGraph> rhoprofilesTrigger, phiprofilesTrigger, dprofilesTrigger, ctgThetaProfilesTrigger, z0ProfilesTrigger, pProfilesTrigger;
-        //std::map<double, TGraph> rhoprofilesTriggerIdeal, phiprofilesTriggerIdeal, dprofilesTriggerIdeal, ctgThetaProfilesTriggerIdeal, z0ProfilesTriggerIdeal, pProfilesTriggerIdeal;
-	profileBag myProfileBag;
-        //std::vector<Track> triggerTv; // remove ?
-        //std::vector<Track> triggerTvIdeal; //remove ?
+	graphBag myGraphBag;
 	
 	// Hadrons
-	TGraph hadronTotalHitsProfile;
-	TGraph hadronAverageHitsProfile;
+	TGraph hadronTotalHitsGraph;
+	TGraph hadronAverageHitsGraph;
 	std::vector<double> hadronNeededHitsFraction;
 	std::vector<TGraph> hadronGoodTracksFraction;
 
@@ -261,19 +255,13 @@ namespace insur {
         virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
 						  Track& t, bool isPixel = false);
 
-	void calculateProfiles(std::vector<double>& p,
-			       std::vector<Track>& trackVector,
-			       profileBag& aProfileBag,
-			       int profileAttributes);
-	//std::map<double, TGraph>& thisRhoProfiles,
-	//std::map<double, TGraph>& thisPhiProfiles,
-	//std::map<double, TGraph>& thisDProfiles,
-	//std::map<double, TGraph>& thisCtgThetaProfiles,
-	//std::map<double, TGraph>& thisZ0Profiles,
-	//std::map<double, TGraph>& thisPProfiles);
-
+	void calculateGraphs(const std::vector<double>& p,
+			       const std::vector<Track>& trackVector,
+			       int graphAttributes);
+	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+					   const std::vector<Track>& trackVector);
         void clearMaterialBudgetHistograms();
-        void clearTriggerPerformanceHistograms();
+        void prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta);
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
