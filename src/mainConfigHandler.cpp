@@ -91,6 +91,18 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   tempString+=tempString2;
   triggerMomenta_ = parseDoubleList(tempString2);
 
+  tempString = "";
+  tempString2 = "";
+  cout << "*** Specify the list of trigger efficiency to be used for the" << endl
+       << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
+       << "    Example: 1, 50, 90, 95 : ";
+  cin >> tempString;
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  thresholdProbabilities_ = parseDoubleList(tempString2);
+  for (vector<double>::iterator it = thresholdProbabilities_.begin();
+       it!=thresholdProbabilities_.end(); ++it) (*it)/=100;
+
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
   if (!configFile.good()) {
@@ -111,6 +123,13 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << TRIGGERMOMENTADEFINITION << "=\"";
     for (std::vector<double>::iterator it = triggerMomenta_.begin(); it!=triggerMomenta_.end(); ++it) {
       if (it!=triggerMomenta_.begin()) configFile << ", ";
+      configFile << std::fixed << std::setprecision(2) << (*it);
+    }
+    configFile << "\"" << std::endl;
+
+    configFile << THRESHOLDPROBABILITIESDEFINITION << "=\"";
+    for (std::vector<double>::iterator it = thresholdProbabilities_.begin(); it!=thresholdProbabilities_.end(); ++it) {
+      if (it!=thresholdProbabilities_.begin()) configFile << ", ";
       configFile << std::fixed << std::setprecision(2) << (*it);
     }
     configFile << "\"" << std::endl;
@@ -173,6 +192,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   bool xmlFound=false;
   bool momentaFound=false;
   bool triggerMomentaFound=false;
+  bool thresholdProbabilitiesFound=false;
 
   // Parsing all the lines of the configuration file
   while (configFile.good()) {
@@ -197,6 +217,9 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       } else if (parameter==TRIGGERMOMENTADEFINITION) {
 	triggerMomenta_ = parseDoubleList(value);
 	triggerMomentaFound = true;
+      } else if (parameter==THRESHOLDPROBABILITIESDEFINITION) {
+	thresholdProbabilities_ = parseDoubleList(value);
+	thresholdProbabilitiesFound = true;
       } else {
 	cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
@@ -204,7 +227,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   }
 
   //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
-  return (layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound);
+  return (layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound);
 }
 
 bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
@@ -277,6 +300,11 @@ vector<double>& mainConfigHandler::getMomenta() {
 vector<double>& mainConfigHandler::getTriggerMomenta() {
   getConfiguration();
   return triggerMomenta_;
+}
+
+vector<double>& mainConfigHandler::getThresholdProbabilities() {
+  getConfiguration();
+  return thresholdProbabilities_;
 }
 
 string mainConfigHandler::getLayoutDirectory() {

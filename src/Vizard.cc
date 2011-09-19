@@ -1260,12 +1260,12 @@ namespace insur {
         LayerVector::iterator layIt;
         ModuleVector::iterator modIt;
         ModuleVector* aLay;
-        double totAreaPts=0;
-        double totAreaStrips=0;
-        int totCountMod=0;
-        int totCountSens=0;
-        long totChannelStrips=0;
-        long totChannelPts=0;
+        double totAreaPts = 0;
+        double totAreaStrips = 0;
+        int totCountMod = 0;
+        int totCountSens = 0;
+        long totChannelStrips = 0;
+        long totChannelPts = 0;
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
@@ -2452,7 +2452,21 @@ namespace insur {
   bool Vizard::triggerSummary(Analyzer& a, RootWSite& site) {
     //********************************//
     //*                              *//
-    //*    Resolution estimate       *//
+    //*   Page with the trigger      *//
+    //*   summary                    *//
+    //*                              *//
+    //********************************//
+    bool somethingFound = false;
+
+    // Create a page for the errors
+    std::string pageTitle = "Trigger";
+    std::string pageAddress = "triggerPerf.html";
+    RootWPage& myPage = site.addPage(pageTitle);
+    myPage.setAddress(pageAddress);      
+
+    //********************************//
+    //*                              *//
+    //*   Eta plot for the trigger   *//
     //*                              *//
     //********************************//
 
@@ -2461,16 +2475,12 @@ namespace insur {
 
     // Check if graphs exist at all
     if (!triggerGraphs.empty()) {
-      // Create a page for the errors
-      std::string pageTitle = "Trigger";
-      std::string pageAddress = "triggerPerf.html";
-      RootWPage& myPage = site.addPage(pageTitle);
-      myPage.setAddress(pageAddress);      
-            
+      somethingFound = true;
+
       // Create the contents
-      RootWContent& npointsContent = myPage.addContent("Trigger points");	      
-      TCanvas npointsCanvas;
-      npointsCanvas.SetGrid(1,1);
+      RootWContent& myContent = myPage.addContent("Trigger points");	      
+      TCanvas myCanvas;
+      myCanvas.SetGrid(1,1);
       std::string plotOption = "Ap";
 
       // momentum canvas loop
@@ -2490,25 +2500,105 @@ namespace insur {
 	npointsGraph.SetMarkerColor(momentumColor(myColor));
 	myColor++;
 	npointsGraph.SetMarkerStyle(8);
-	npointsCanvas.SetFillColor(color_plot_background);
+	myCanvas.SetFillColor(color_plot_background);
 
 	if (npointsGraph.GetN()>0) {
-	  npointsCanvas.cd();
+	  myCanvas.cd();
 	  npointsGraph.Draw(plotOption.c_str());
 	  plotOption = "p same";
 	}	
       }
 
-      RootWImage& npointsImage = npointsContent.addImage(npointsCanvas, 600, 600);
+      RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
       npointsImage.setComment("Number of triggered and triggerable points vs. eta");
       npointsImage.setName("ntrigpoints");
       
     } else { // There are no graphs to plot here...
-      std::cerr << "ERROR: no trigger performance plots to show here" << std::endl;
-      return false;
+      std::cerr << "ERROR: no trigger performance plot to show here" << std::endl;
     }
 
-    return true;
+    // Some helper string objects
+    ostringstream tempSS;
+    string tempString;
+
+
+    //********************************//
+    //*                              *//
+    //*   Trigger efficiency maps    *//
+    //*                              *//
+    //********************************//
+    mapBag myMapBag = a.getMapBag();
+    std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
+    // Check if the maps exist at all
+    if (!efficiencyMaps.empty()) {
+      somethingFound = true;
+      // Create the content holder for these maps
+      RootWContent& myContent = myPage.addContent("Efficiency maps");
+      for (std::map<double, TH2D>::iterator it = efficiencyMaps.begin();
+	   it != efficiencyMaps.end(); ++it) {
+	
+	// One canvas per map
+	TCanvas myCanvas;
+	double myPt = it->first;
+	TH2D& myMap = it->second;
+	myCanvas.SetFillColor(color_plot_background);
+	myCanvas.cd();
+
+	// Actually plot the map
+	myMap.SetMinimum(0);
+	myMap.SetMaximum(1.);
+	myMap.Draw("colz");
+
+	// Create the image object
+	RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
+	tempSS.str(""); tempSS << "Trigger efficiency map for pT = " << myPt << " GeV/c"; tempString = tempSS.str();
+	myImage.setComment(tempString.c_str());
+	tempSS.str(""); tempSS << "TriggerEfficiency_" << myPt; tempString = tempSS.str();
+	myImage.setName(tempString.c_str());
+      }
+    } else {
+      std::cerr << "ERROR: no trigger efficiency map to show here" << std::endl;
+    }
+
+    //********************************//
+    //*                              *//
+    //*   Trigger threshold maps     *//
+    //*                              *//
+    //********************************//
+    std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
+    // Check if the maps exist at all
+    if (!thresholdMaps.empty()) {
+      somethingFound = true;
+      // Create the content holder for these maps
+      RootWContent& myContent = myPage.addContent("Threshold maps");
+      for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
+	   it != thresholdMaps.end(); ++it) {
+	
+	// One canvas per map
+	TCanvas myCanvas;
+	double myEfficiency = it->first;
+	TH2D& myMap = it->second;
+	myCanvas.SetFillColor(color_plot_background);
+	myCanvas.cd();
+
+	// Actually plot the map
+	myMap.SetMinimum(0);
+	myMap.SetMaximum(10);
+	myMap.Draw("colz");
+
+	// Create the image object
+	RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
+	tempSS.str(""); tempSS << "Trigger threshold map for eff = " << myEfficiency * 100 << " %";
+	tempString = tempSS.str();
+	myImage.setComment(tempString.c_str());
+	tempSS.str(""); tempSS << "TriggerThreshold_" << myEfficiency; tempString = tempSS.str();
+	myImage.setName(tempString.c_str());
+      }
+    } else {
+      std::cerr << "ERROR: no threshold map to show here" << std::endl;
+    }
+    
+    return somethingFound;
   }
 
   // TODO: describe this here, if it ever worked

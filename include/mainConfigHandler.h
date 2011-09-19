@@ -13,6 +13,7 @@ using namespace std;
 #define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
 #define MOMENTADEFINITION "TKG_MOMENTA" 
 #define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
+#define THRESHOLDPROBABILITIESDEFINITION "TKG_THRESHOLD_PROB"
 
 // This object wil read the configuration only once
 // If the configuration file is not present, wuations will
@@ -37,6 +38,7 @@ class mainConfigHandler {
   string getConfigFileName();
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
+  vector<double>& getThresholdProbabilities();
  private:
   bool goodConfigurationRead_;
   //string styleDirectory_;
@@ -45,6 +47,7 @@ class mainConfigHandler {
   string standardDirectory_;
   vector<double> momenta_;
   vector<double> triggerMomenta_;
+  vector<double> thresholdProbabilities_;
   bool checkDirectory(string dirName) ;
   bool createConfigurationFileFromQuestions(string& configFileName);
   bool parseLine(const char* codeLine, string& parameter, string& value);

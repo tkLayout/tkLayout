@@ -275,7 +275,11 @@ protected:
   virtual int getDisk() const { return 0;};
 
   double getPtThreshold(const double& myEfficiency);
+  double getTriggerProbability(const double& trackPt);
+  double getPtCut();
 
+private:
+  void setPterrorParameters();
 };
 
 

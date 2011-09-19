@@ -157,7 +157,7 @@ public:
   void keepTriggerOnly();
   void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
-  double expectedTriggerPoints(const double& triggerMomentum) const { return 1 ; }
+  double expectedTriggerPoints(const double& triggerMomentum) const;
 #ifdef HIT_DEBUG_RZ
   static bool debugRZCovarianceMatrix;  // debug
   static bool debugRZCorrelationMatrix;  // debug

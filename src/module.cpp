@@ -289,17 +289,18 @@ double Module::getResolutionYTrigger() {
 }
 
 /**
- * Returns the pT for which we reach a given trigger efficiency
+ * Convenience function to copy the pt error parameters into the
+ * ptError object. TODO: solve this in a more elegant way
  *
- * @param myEfficiency the threshold efficiency
- *
- * @returns the pT corresponding to the selected efficiency, if it is
- * possible and within the range, returns -1 else
+ * @returns the pt cut for the module as it is configured
  */
-double Module::getPtThreshold(const double& myEfficiency) {
-  // TODO: avoid setting the variables each time!
+void Module::setPterrorParameters() {
   myPtError.setDistance( getStereoDistance() );
-  myPtError.setModuleType( getSubdetectorType() );
+  int myModuleType = getSubdetectorType();
+  myPtError.setModuleType( myModuleType );
+  if (myModuleType == Module::Endcap) {
+    myPtError.setEndcapType(shape_); // TODO: check if this is working properly
+  }
   myPtError.setPitch((getLowPitch()+getHighPitch())/2.);
   // TODO: in the error computation the strip length is used twice:
   // Once to calculate the geometric inefficiency, and also to compute
@@ -312,8 +313,51 @@ double Module::getPtThreshold(const double& myEfficiency) {
   XYZVector center = getMeanPoint();
   myPtError.setZ(center.Z());
   myPtError.setR(center.Rho());
+}
+
+
+/**
+ * Returns the pT for which we reach a given trigger efficiency
+ *
+ * @param myEfficiency the threshold efficiency
+ *
+ * @returns the pT corresponding to the selected efficiency, if it is
+ * possible and within the range, returns -1 else
+ */
+double Module::getPtThreshold(const double& myEfficiency) {
+  setPterrorParameters();
   double pt_cut = myPtError.stripsToP(triggerWindow_/2.);
   return myPtError.find_probability(myEfficiency, pt_cut);
+}
+
+/**
+ * Returns the probability for a track of given pT to be detected
+ * as high-pt track by this module
+ *
+ * @param trackPt the track's transverse momentum
+ *
+ * @returns the probability of the hit to be detected as high-pt
+ */
+double Module::getTriggerProbability(const double& trackPt) {
+  setPterrorParameters();
+  double pt_cut = myPtError.stripsToP(triggerWindow_/2.);
+  // Error on curvatre is the relative error of trackPt times the
+  // curvature (cur = 1/pt)
+  double cur_error = myPtError.computeError(trackPt) / trackPt; 
+  double result;
+  result = myPtError.probabilityInside(1/pt_cut, 1/trackPt, cur_error) * myPtError.geometricEfficiency();
+  // std::cerr << "trigger prob @ " << trackPt << " GeV/c is " << result <<std::endl; // debug
+  return result;
+}
+
+/**
+ * Returns the pt cut for this module
+ *
+ * @returns the pt cut for the module as it is configured
+ */
+double Module::getPtCut() {
+  setPterrorParameters();
+  return myPtError.stripsToP(triggerWindow_/2.);
 }
 
 // TODO: better special case for PT modules

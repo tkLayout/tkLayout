@@ -1012,3 +1012,30 @@ void Track::addIPConstraint(double dr, double dz) {
   newHit->setResolutionY(dz);
   this->addHit(newHit);
 }
+
+double Track::expectedTriggerPoints(const double& triggerMomentum) const {
+  std::vector<Hit*>::const_iterator hitIt;
+  Hit* myHit;
+  double result=0;
+
+  for (hitIt=hitV_.begin();
+       hitIt!=hitV_.end();
+       ++hitIt) {
+    myHit=(*hitIt);
+    if ((myHit) &&
+	(myHit->isTrigger()) &&
+	(!myHit->isIP()) &&
+	(myHit->getObjectKind()==Hit::Active)) {
+      // We've got a possible trigger here
+      // Let's find the corresponding module
+      Module* myModule = myHit->getHitModule();
+      if (myModule) {
+	result += myModule->getTriggerProbability(triggerMomentum);
+      } else {
+	// Whoops: problem here: an active hit is not linked to any module
+	std::cerr << "ERROR: this SHOULD NOT happen. in expectedTriggerPoints() an active hit does not correspond to any module!" << std::endl;
+      }
+    }
+  }
+  return result;
+}

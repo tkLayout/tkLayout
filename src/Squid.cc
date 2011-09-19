@@ -617,7 +617,17 @@ namespace insur {
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
       }
       a.computeWeightSummary(*mb);
-      a.analyzeTrigger(*mb, mainConfiguration.getMomenta(), mainConfiguration.getTriggerMomenta(), tracks, pm);
+      std::vector<double>& momenta =  mainConfiguration.getMomenta();
+      for (std::vector<double>::iterator it = momenta.begin(); it!=momenta.end(); ++it) std::cerr << "pt = " << (*it); std::cerr << std::endl;
+      std::vector<double>& triggerMomenta =  mainConfiguration.getTriggerMomenta();
+      for (std::vector<double>::iterator it = triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) std::cerr << "pt = " << (*it); std::cerr << std::endl;
+      std::vector<double>& thresholdProbabilities =  mainConfiguration.getThresholdProbabilities();
+      for (std::vector<double>::iterator it = thresholdProbabilities.begin(); it!=thresholdProbabilities.end(); ++it) std::cerr << "pt = " << (*it); std::cerr << std::endl;
+      a.analyzeTrigger(*mb,
+		       mainConfiguration.getMomenta(),
+		       mainConfiguration.getTriggerMomenta(),
+		       mainConfiguration.getThresholdProbabilities(),
+		       tracks, pm);
 
       return true;
     } else {

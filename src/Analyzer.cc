@@ -25,6 +25,9 @@ namespace insur {
   const int graphBag::TriggerGraph     = 0x040;
   const int graphBag::StandardGraph    = 0x080;
 
+  const int mapBag::efficiencyMap  = 0x001;
+  const int mapBag::thresholdMap = 0x002;
+
   int graphBag::clearTriggerGraphs() {
     return clearGraphs(graphBag::TriggerGraph);
   }
@@ -55,6 +58,31 @@ namespace insur {
   
   std::map<double, TGraph>& graphBag::getGraphs(const int& attribute) {
     return graphMap_[attribute];
+  }
+  
+  std::map<double, TH2D>& mapBag::getMaps(const int& attribute) {
+    return mapMap_[attribute];
+  }
+  
+  int mapBag::clearMaps(const int& attributeMask) {
+    std::map<int, std::map<double, TH2D> >::iterator it;
+    std::map<int, std::map<double, TH2D> >::iterator nextIt;
+
+    int deleteCounter = 0;
+    int anAttribute;
+    for (it=mapMap_.begin(); it!=mapMap_.end(); ) {
+      anAttribute=it->first;
+      if ((anAttribute&attributeMask)==attributeMask) {
+        nextIt = it;
+	++nextIt;
+	mapMap_.erase(it);
+	it=nextIt;
+	++deleteCounter;
+      } else {
+	++it;
+      }
+    }
+    return deleteCounter;
   }
   
   const double Analyzer::ZeroHitsRequired = 0;
@@ -146,6 +174,7 @@ namespace insur {
   void Analyzer::analyzeTrigger(MaterialBudget& mb,
 				const std::vector<double>& momenta,
 				const std::vector<double>& triggerMomenta,
+				const std::vector<double>& thresholdProbabilities,
 				int etaSteps,
 				MaterialBudget* pm) {
 
@@ -164,16 +193,12 @@ namespace insur {
 #endif
     int nTracks;
     double etaStep, eta, theta, phi;
-    prepareTriggerPerformanceHistograms(triggerMomenta);
+    prepareTriggerPerformanceHistograms(triggerMomenta, thresholdProbabilities);
     
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
     else etaStep = etaMax;
     nTracks = etaSteps;
-    
-    // reset the number of bins and the histogram boundaries (0.0 to
-    // etaMax) for all histograms (none for the moment)
-    setTriggerHistogramBinsBoundaries(nTracks, 0.0, etaMax);
     
     // reset the list of tracks
     std::vector<Track> tv;
@@ -246,6 +271,10 @@ namespace insur {
 
     // Compute the number of triggering points along the selected tracks
     fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+
+    // Fill the trigger performance maps
+    fillTriggerPerformanceMaps(tracker);
+
     
 #ifdef DEBUG_PERFORMANCE
     t = time(NULL);
@@ -1487,13 +1516,167 @@ namespace insur {
 	}
     }
 
+
+  /**
+   * This convenience function computes the trigger performance maps
+   * the trigger performance, so they are ready for a new round of
+   * analysis.
+   */  
+  void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
+    std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
+    std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
+
+    LayerVector& layerSet = tracker.getLayers();
+    LayerVector::iterator layIt;
+    Layer* aLayer;
+    ModuleVector::iterator modIt;
+    ModuleVector* moduleSet;
+    Module* aModule;
+    double myValue;
+
+    // Compute the trigger efficiency maps. The pT values are given by
+    // the maps
+    for (std::map<double, TH2D>::iterator it = efficiencyMaps.begin();
+	 it!=efficiencyMaps.end(); ++it) {
+      double myPt = it->first;
+      TH2D& myMap = it->second;
+
+      // Reset the our map, in case it is not empty
+      for (int i=1; i<=myMap.GetNbinsX(); ++i)
+	for (int j=1; j<=myMap.GetNbinsY(); ++j)
+	  myMap.SetBinContent(i,j,0);
+
+      // Create a map for teh counter
+      TH2D* counter = (TH2D*)myMap.Clone();
+
+      // Loop over all the modules
+      for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+	aLayer = (*layIt);
+	moduleSet = aLayer->getModuleVector();
+	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	  aModule = (*modIt);
+	  myValue = aModule->getTriggerProbability(myPt);
+	  
+	  if (myValue>=0) {
+	    // Draw the module
+	    XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+	    XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+	    XYZVector diff = end-start;
+	    XYZVector point;
+	    for (double l=0; l<=1; l+=0.1) {
+	      point = start + l * diff;
+	      myMap.Fill(point.Z(), point.Rho(), myValue);
+	      counter->Fill(point.Z(), point.Rho(), 1);
+	    }
+	  }
+	}
+      }
+
+      // Normalize the counts to the number of hits per bin ...
+      for (int i=1; i<=myMap.GetNbinsX(); ++i)
+	for (int j=1; j<=myMap.GetNbinsY(); ++j)
+	  if (counter->GetBinContent(i,j)!=0)
+	    myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      // ... and get rid of the counter
+      delete counter;
+    }
+
+    // Compute the trigger threshold maps. The efficiency values are
+    // given by the maps
+    for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
+	 it!=thresholdMaps.end(); ++it) {
+      double myEfficiency = it->first;
+      TH2D& myMap = it->second;
+
+      // Reset the our map, in case it is not empty
+      for (int i=1; i<=myMap.GetNbinsX(); ++i)
+	for (int j=1; j<=myMap.GetNbinsY(); ++j)
+	  myMap.SetBinContent(i,j,0);
+
+      // Create a map for teh counter
+      TH2D* counter = (TH2D*)myMap.Clone();
+
+      // Loop over all the modules
+      for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+	aLayer = (*layIt);
+	moduleSet = aLayer->getModuleVector();
+	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	  aModule = (*modIt);
+	  myValue = aModule->getPtThreshold(myEfficiency);
+
+	  if (myValue>=0) {
+	    // Draw the module
+	    XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+	    XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+	    XYZVector diff = end-start;
+	    XYZVector point;
+	    for (double l=0; l<1; l+=0.1) {
+	      point = start + l * diff;
+	      myMap.Fill(point.Z(), point.Rho(), myValue);
+	      counter->Fill(point.Z(), point.Rho(), 1);
+	    }
+	  }
+	}
+      }
+
+      // Normalize the counts to the number of hits per bin ...
+      for (int i=1; i<=myMap.GetNbinsX(); ++i)
+	for (int j=1; j<=myMap.GetNbinsY(); ++j)
+	  if (counter->GetBinContent(i,j)!=0)
+	    myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      // ... and get rid of the counter
+      delete counter;
+    }
+
+  }
+
   /**
    * This convenience function resets and empties all histograms for
    * the trigger performance, so they are ready for a new round of
    * analysis.
+   * @parameter triggerMomenta the vector of pt to test the trigger
    */
-  void Analyzer::prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta) {
-    // There are no TH* histograms of this kind for the moment
+  void Analyzer::prepareTriggerPerformanceHistograms(const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
+    // Clean-up and prepare the trigger performance maps
+    myMapBag.clearMaps(mapBag::efficiencyMap);
+    myMapBag.clearMaps(mapBag::thresholdMap);
+
+    std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
+    std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
+
+    // PT Threshold maps here
+    int triggerPerformanceMapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
+    int triggerPerformanceMapBinsX = int( (max_length) * 1.1 / 10.); // every cm
+    ostringstream tempSS;
+    string tempString;
+    for (std::vector<double>::const_iterator it = thresholdProbabilities.begin();
+	 it!=thresholdProbabilities.end(); ++it) {
+      TH2D& myMap = thresholdMaps[(*it)];
+      tempSS.str("");
+      tempSS << "ptThresholdMap_" << std::dec << (*it) * 100 << "perc";
+      tempString = tempSS.str();
+      myMap.SetName(tempString.c_str());
+      myMap.SetTitle(tempString.c_str());
+      myMap.SetXTitle("z [mm]");
+      myMap.SetYTitle("r [mm]");
+      myMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    }
+
+    // Efficiency maps here
+    for (std::vector<double>::const_iterator it = triggerMomenta.begin();
+	 it!=triggerMomenta.end(); ++it) {
+      TH2D& myMap = efficiencyMaps[(*it)];
+      tempSS.str("");
+      tempSS << "triggerEfficiencyMap_" << std::dec << (*it) << "GeV";
+      tempString = tempSS.str();
+      myMap.SetName(tempString.c_str());
+      myMap.SetTitle(tempString.c_str());
+      myMap.SetXTitle("z [mm]");
+      myMap.SetYTitle("r [mm]");
+      myMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    }
+    
+    
 
     // Clear the graph list
     myGraphBag.clearTriggerGraphs();
@@ -1529,19 +1712,6 @@ namespace insur {
     trigGraphs[elemTotal.first].SetName(aName.str().c_str());
   }
 
-  /**
-   * This convenience function sets the number of bins and the lower
-   * and upper range for their contents for the trigger performance
-   * histograms
-   *
-   * @param bins The number of bins in each 1D histogram
-   * @param min The minimal eta value that should be plotted
-   * @param max the maximal eta value that should be plotted
-   */
-  void Analyzer::setTriggerHistogramBinsBoundaries(int bins, double min, double max) {
-    // There are no histograms of this kind for the moment
-  }
-    
     /**
      * This convenience function resets and empties all histograms for the
      * geometry so they are ready for a new round of analysis.

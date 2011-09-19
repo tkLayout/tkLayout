@@ -83,6 +83,21 @@ namespace insur {
     };
 
     /**
+     * @class mapBag
+     * @brief A bag of graphs sorted by variable, scope and track's pt
+     */
+    class mapBag {
+    public:
+      static const int efficiencyMap;
+      static const int thresholdMap;
+      std::map<double, TH2D>& getMaps(const int& attribute);
+      int clearMaps(const int& attributeMask);
+    private:
+      std::map<int, std::map<double, TH2D> > mapMap_;
+    };
+
+
+    /**
      * @class Analyzer
      * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
      *
@@ -142,9 +157,10 @@ namespace insur {
         std::map<double, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
         std::map<double, TGraph>& getPGraphs(bool ideal, bool isTrigger);
 	graphBag& getGraphBag() { return myGraphBag; }
+	mapBag& getMapBag() { return myMapBag; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
         //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
-	virtual void analyzeTrigger(MaterialBudget& mb, const std::vector<double>& momenta, const std::vector<double>& triggerMomenta,
+	virtual void analyzeTrigger(MaterialBudget& mb, const std::vector<double>& momenta, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities,
 				    int etaSteps = 50, MaterialBudget* pm = NULL);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
@@ -225,6 +241,7 @@ namespace insur {
 
 	TH1D hitDistribution;
 	graphBag myGraphBag;
+	mapBag myMapBag;
 	
 	// Hadrons
 	TGraph hadronTotalHitsGraph;
@@ -260,12 +277,12 @@ namespace insur {
 			       int graphAttributes);
 	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
 					   const std::vector<Track>& trackVector);
+	void fillTriggerPerformanceMaps(Tracker& tracker);
         void clearMaterialBudgetHistograms();
-        void prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta);
+        void prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
-        void setTriggerHistogramBinsBoundaries(int bins, double min, double max);
         void setCellBoundaries(int bins, double minr, double maxr, double minz, double maxz);
         void fillCell(double r, double eta, double theta, Material mat);
         void fillMapRT(const double& r, const double& theta, const Material& mat);
