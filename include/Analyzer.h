@@ -77,6 +77,8 @@ namespace insur {
       int clearTriggerGraphs();
       int clearStandardGraphs();
       static int buildAttribute(bool ideal, bool isTrigger);
+      //static std::pair<double, double> splitMomenta(double momentum);
+      //static double joinMomenta(double momentum1, double momentum2);
     private:
       std::map<int, std::map<double, TGraph> > graphMap_;
       int clearGraphs(const int& attributeMask);
@@ -90,6 +92,9 @@ namespace insur {
     public:
       static const int efficiencyMap;
       static const int thresholdMap;
+      static const int thicknessMap;
+      static const int windowMap;
+      static const double dummyMomentum;
       std::map<double, TH2D>& getMaps(const int& attribute);
       int clearMaps(const int& attributeMask);
     private:
@@ -275,7 +280,7 @@ namespace insur {
 	void calculateGraphs(const std::vector<double>& p,
 			       const std::vector<Track>& trackVector,
 			       int graphAttributes);
-	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+	void fillTriggerEfficiencyGraphs(Tracker& tracker, const std::vector<double>& triggerMomenta,
 					   const std::vector<Track>& trackVector);
 	void fillTriggerPerformanceMaps(Tracker& tracker);
         void clearMaterialBudgetHistograms();

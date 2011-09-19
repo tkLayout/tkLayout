@@ -24,9 +24,14 @@ namespace insur {
   const int graphBag::RealGraph        = 0x020;
   const int graphBag::TriggerGraph     = 0x040;
   const int graphBag::StandardGraph    = 0x080;
+  //const int graphBag::TriggerCorrelationGraph = 0x100;
 
   const int mapBag::efficiencyMap  = 0x001;
-  const int mapBag::thresholdMap = 0x002;
+  const int mapBag::thresholdMap   = 0x002;
+  const int mapBag::thicknessMap   = 0x004;
+  const int mapBag::windowMap      = 0x008;
+
+  const double mapBag::dummyMomentum = 0.;
 
   int graphBag::clearTriggerGraphs() {
     return clearGraphs(graphBag::TriggerGraph);
@@ -270,7 +275,7 @@ namespace insur {
 #endif
 
     // Compute the number of triggering points along the selected tracks
-    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+    fillTriggerEfficiencyGraphs(tracker, triggerMomenta, tv);
 
     // Fill the trigger performance maps
     fillTriggerPerformanceMaps(tracker);
@@ -296,7 +301,7 @@ namespace insur {
 
   }
 
-  void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+  void Analyzer::fillTriggerEfficiencyGraphs(Tracker& tracker, const std::vector<double>& triggerMomenta,
 					       const std::vector<Track>& trackVector) {
     
     // Prepare the graphs to record the number of triggered points
@@ -318,6 +323,7 @@ namespace insur {
 	myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
       }
     }
+
   }
 
     /**
@@ -1526,6 +1532,9 @@ namespace insur {
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
     std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
 
+    TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
+    TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
+
     LayerVector& layerSet = tracker.getLayers();
     LayerVector::iterator layIt;
     Layer* aLayer;
@@ -1628,6 +1637,55 @@ namespace insur {
       delete counter;
     }
 
+    // Then: single maps
+    
+    // Reset the our map, in case it is not empty
+    for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
+	thicknessMap.SetBinContent(i,j,0);
+	windowMap.SetBinContent(i,j,0);
+      }
+    }
+
+    // Create a map for teh counter
+    TH2D* counter = (TH2D*)thicknessMap.Clone();
+    
+    double myThickness;
+    double myWindow;
+    // Loop over all the modules
+    for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+      aLayer = (*layIt);
+      moduleSet = aLayer->getModuleVector();
+      for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	aModule = (*modIt);
+	myThickness = aModule->getStereoDistance();
+	myWindow = aModule->getTriggerWindow();
+	
+	// Draw the module
+	XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+	XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+	XYZVector diff = end-start;
+	XYZVector point;
+	for (double l=0; l<1; l+=0.1) {
+	  point = start + l * diff;
+	  thicknessMap.Fill(point.Z(), point.Rho(), myThickness);
+	  windowMap.Fill(point.Z(), point.Rho(), myWindow);
+	  counter->Fill(point.Z(), point.Rho(), 1);
+	}
+      }
+    }
+    
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
+	if (counter->GetBinContent(i,j)!=0) {
+	  thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	  windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	}
+      }
+    }
+    // ... and get rid of the counter
+    delete counter;
   }
 
   /**
@@ -1640,6 +1698,8 @@ namespace insur {
     // Clean-up and prepare the trigger performance maps
     myMapBag.clearMaps(mapBag::efficiencyMap);
     myMapBag.clearMaps(mapBag::thresholdMap);
+    myMapBag.clearMaps(mapBag::thicknessMap);
+    myMapBag.clearMaps(mapBag::windowMap);
 
     std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
@@ -1675,9 +1735,25 @@ namespace insur {
       myMap.SetYTitle("r [mm]");
       myMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
     }
-    
-    
 
+    // Single maps here
+    TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
+    TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
+    thicknessMap.SetName("thicknessMap");
+    thicknessMap.SetTitle("Module thickness map");
+    thicknessMap.SetMinimum(0);
+    thicknessMap.SetMaximum(6);
+    thicknessMap.SetXTitle("z [mm]");
+    thicknessMap.SetYTitle("r [mm]");
+    thicknessMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+
+    windowMap.SetName("windowMap");
+    windowMap.SetTitle("Module window map");
+    windowMap.SetXTitle("z [mm]");
+    windowMap.SetYTitle("r [mm]");
+    windowMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);    
+    
+        
     // Clear the graph list
     myGraphBag.clearTriggerGraphs();
 
@@ -1710,7 +1786,45 @@ namespace insur {
     trigGraphs[elemTotal.first].SetTitle("Average triggered points;#eta;Triggered points <N>");
     aName.str(""); aName << "triggerable_vs_eta";
     trigGraphs[elemTotal.first].SetName(aName.str().c_str());
+
+    /*
+    // Prepare the graphs to record the correlation of triggers points
+    std::map<double, TGraph>& trigCorrGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggerCorrelationGraph);
+    std::vector<double> momentumCorrelation;
+    
+    momentumCorrelation.push_back(graphBag::joinMomenta(1, 2));
+    momentumCorrelation.push_back(graphBag::joinMomenta(1, 5));
+
+    for (std::vector<double>::const_iterator it = momentumCorrelation.begin();
+	 it!= momentumCorrelation.end(); ++it) {
+      std::pair<double, double> momentum = graphBag::splitMomenta(*it);
+      std::cerr << "Split momenta: " << momentum.first << ", " << momentum.second << std::endl; // debug
+      std::pair<double, TGraph> elem;
+      TGraph graph;
+      elem.first = *it;
+      elem.second = graph;
+      trigCorrGraphs.insert(elem);
+      aName.str(""); aName << "Trigger efficiency correlation;eff(" << momentum.first<< " GeV);eff("<< momentum.second<<" GeV)";
+      trigCorrGraphs[*it].SetTitle(aName.str().c_str());
+      aName.str(""); aName << "trigger_eff_corr" << momentum.first << "_" << momentum.second;
+      trigCorrGraphs[elem.first].SetName(aName.str().c_str());
+    }
+    */
+
   }
+
+  /*
+  double graphBag::joinMomenta(double momentum1, double momentum2) {
+    return momentum2*100000+momentum1;
+  }
+
+  std::pair<double, double> graphBag::splitMomenta(double momentum) {
+    std::pair<double, double> result;
+    result.second = int(momentum/100000.);
+    result.first = momentum - 100*result.second;
+    return result;
+  }
+  */
 
     /**
      * This convenience function resets and empties all histograms for the

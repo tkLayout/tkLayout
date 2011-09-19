@@ -191,7 +191,7 @@ protected:
   double getHeight() {return height_;};
   double getArea() { return area_;};
   double getDiameter() {return waferDiameter_; };
-  double getThickness() { return thickness_; };
+  double getThickness() { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'
   double getModuleThickness() { return moduleThickness_; };
   XYZVector getCorner(int index) { return corner_[index]; };
 

@@ -2601,6 +2601,39 @@ namespace insur {
     } else {
       std::cerr << "ERROR: no threshold map to show here" << std::endl;
     }
+
+
+
+    //********************************//
+    //*                              *//
+    //*   Configuration maps         *//
+    //*                              *//
+    //********************************//
+    TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
+    TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
+
+    // Create the content holder for these maps
+    RootWContent& myContent = myPage.addContent("Module configuration maps");
+
+    // One canvas per map
+    TCanvas thickCanvas;
+    TCanvas windowCanvas;
+    thickCanvas.SetFillColor(color_plot_background);
+    windowCanvas.SetFillColor(color_plot_background);
+
+    // Actually plot the maps
+    thickCanvas.cd();
+    thicknessMap.Draw("colz");
+    windowCanvas.cd();
+    windowMap.Draw("colz");
+    
+    // Create the image objects
+    RootWImage& thicknessImage = myContent.addImage(thickCanvas, 900, 400);
+    thicknessImage.setComment("Map of sensor distances");
+    thicknessImage.setName("ThicknessMap");
+    RootWImage& windowImage = myContent.addImage(windowCanvas, 900, 400);
+    windowImage.setComment("Map of selection windows");
+    windowImage.setName("WindowMap");
     
     return somethingFound;
   }
