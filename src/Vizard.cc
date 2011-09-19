@@ -2546,7 +2546,11 @@ namespace insur {
 
 	// Actually plot the map
 	myMap.SetMinimum(0);
-	myMap.SetMaximum(1.);
+	if (myPt<1.5) {
+	  myMap.SetMaximum(0.1);
+	} else {
+	  myMap.SetMaximum(1.0);
+	}
 	myMap.Draw("colz");
 
 	// Create the image object
