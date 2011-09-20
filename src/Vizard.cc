@@ -2494,7 +2494,7 @@ namespace insur {
 	   plot_iter != triggerGraphs.end();
 	   ++plot_iter) {
 	TGraph& npointsGraph = plot_iter->second;
-	npointsGraph.SetMinimum(4E-3*100);
+	npointsGraph.SetMinimum(1E-2);
 	npointsGraph.GetXaxis()->SetLimits(0, 2.4);
 	npointsGraph.SetLineColor(momentumColor(myColor));
 	npointsGraph.SetMarkerColor(momentumColor(myColor));
@@ -2512,6 +2512,11 @@ namespace insur {
       RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
       npointsImage.setComment("Number of triggered and triggerable points vs. eta");
       npointsImage.setName("ntrigpoints");
+
+      myCanvas.SetLogy();
+      RootWImage& npointsLogImage = myContent.addImage(myCanvas, 600, 600);
+      npointsLogImage.setComment("Number of triggered and triggerable points vs. eta (log scale)");
+      npointsLogImage.setName("ntrigpointsLog");
       
     } else { // There are no graphs to plot here...
       std::cerr << "ERROR: no trigger performance plot to show here" << std::endl;
