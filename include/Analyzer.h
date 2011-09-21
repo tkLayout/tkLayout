@@ -101,6 +101,22 @@ namespace insur {
       std::map<int, std::map<double, TH2D> > mapMap_;
     };
 
+    /**
+     * @class profileBag
+     * @brief A bag of TProfiles sorted by a double variable and scope
+     */
+    class profileBag {
+    public:
+      static const double Triggerable;
+      static const int TriggeredProfile;
+      static const int TriggerProfile;
+      std::map<double, TProfile>& getProfiles(const int& attribute);
+      int clearTriggerProfiles();
+    private:
+      int clearProfiles(const int& attributeMask);
+      std::map<int, std::map<double, TProfile> > profileMap_;
+    };     
+
 
     /**
      * @class Analyzer
@@ -163,6 +179,7 @@ namespace insur {
         std::map<double, TGraph>& getPGraphs(bool ideal, bool isTrigger);
 	graphBag& getGraphBag() { return myGraphBag; }
 	mapBag& getMapBag() { return myMapBag; }
+	profileBag& getProfileBag() { return myProfileBag; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
         //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
 	virtual void analyzeTrigger(MaterialBudget& mb, const std::vector<double>& momenta, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities,
@@ -247,6 +264,7 @@ namespace insur {
 	TH1D hitDistribution;
 	graphBag myGraphBag;
 	mapBag myMapBag;
+	profileBag myProfileBag;
 	
 	// Hadrons
 	TGraph hadronTotalHitsGraph;
@@ -284,7 +302,7 @@ namespace insur {
 					   const std::vector<Track>& trackVector);
 	void fillTriggerPerformanceMaps(Tracker& tracker);
         void clearMaterialBudgetHistograms();
-        void prepareTriggerPerformanceHistograms(const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
+        void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);

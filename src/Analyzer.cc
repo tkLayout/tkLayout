@@ -31,6 +31,11 @@ namespace insur {
   const int mapBag::thicknessMap   = 0x004;
   const int mapBag::windowMap      = 0x008;
 
+  const double profileBag::Triggerable = 0.;
+  const int profileBag::TriggeredProfile = 0x007;
+  const int profileBag::TriggerProfile   = 0x040;
+  
+
   const double mapBag::dummyMomentum = 0.;
 
   int graphBag::clearTriggerGraphs() {
@@ -81,6 +86,38 @@ namespace insur {
         nextIt = it;
 	++nextIt;
 	mapMap_.erase(it);
+	it=nextIt;
+	++deleteCounter;
+      } else {
+	++it;
+      }
+    }
+    return deleteCounter;
+  }
+  
+  int profileBag::clearTriggerProfiles() {
+    return clearProfiles(profileBag::TriggerProfile);
+  }
+
+
+  std::map<double, TProfile>& profileBag::getProfiles(const int& attribute) {
+    return profileMap_[attribute];
+  }
+
+  // TODO: this looks like an invitation to use template classes Will
+  // do as soon as I have time :D (copy-paste worked till now...)
+  int profileBag::clearProfiles(const int& attributeMask) {
+    std::map<int, std::map<double, TProfile> >::iterator it;
+    std::map<int, std::map<double, TProfile> >::iterator nextIt;
+
+    int deleteCounter = 0;
+    int anAttribute;
+    for (it=profileMap_.begin(); it!=profileMap_.end(); ) {
+      anAttribute=it->first;
+      if ((anAttribute&attributeMask)==attributeMask) {
+        nextIt = it;
+	++nextIt;
+	profileMap_.erase(it);
 	it=nextIt;
 	++deleteCounter;
       } else {
@@ -198,12 +235,13 @@ namespace insur {
 #endif
     int nTracks;
     double etaStep, eta, theta, phi;
-    prepareTriggerPerformanceHistograms(triggerMomenta, thresholdProbabilities);
     
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
     else etaStep = etaMax;
     nTracks = etaSteps;
+
+    prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
     
     // reset the list of tracks
     std::vector<Track> tv;
@@ -306,6 +344,7 @@ namespace insur {
     
     // Prepare the graphs to record the number of triggered points
     std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+    std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
 
     double eta;
 
@@ -314,13 +353,17 @@ namespace insur {
       const Track& myTrack=(*itTrack);
       eta = - log(tan(myTrack.getTheta() / 2));
       TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
+      TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
       totalGraph.SetPoint(totalGraph.GetN(), eta, myTrack.nActiveHits(false, false));
+      totalProfile.Fill(eta, myTrack.nActiveHits(false, false));
 
       for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
 	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
 	TGraph& myGraph = trigGraphs[(*itMomentum)];
+	TProfile& myProfile = trigProfiles[(*itMomentum)];
 	double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
 	myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
+	myProfile.Fill(eta, nExpectedTriggerPoints);
       }
     }
 
@@ -1694,7 +1737,7 @@ namespace insur {
    * analysis.
    * @parameter triggerMomenta the vector of pt to test the trigger
    */
-  void Analyzer::prepareTriggerPerformanceHistograms(const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
+  void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
     // Clean-up and prepare the trigger performance maps
     myMapBag.clearMaps(mapBag::efficiencyMap);
     myMapBag.clearMaps(mapBag::thresholdMap);
@@ -1754,38 +1797,59 @@ namespace insur {
     windowMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);    
     
         
-    // Clear the graph list
+    // Clear the graph (and profile) list
     myGraphBag.clearTriggerGraphs();
+    myProfileBag.clearTriggerProfiles();
 
     // Prepare the graphs to record the number of triggered points
     std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+    std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
 
     // Prepare the graphs for the trigger performace
     std::ostringstream aName;
 
+    // TODO: tune this parameter
+    int nbins = int(nTracks/10.);
     for (vector<double>::const_iterator iter = triggerMomenta.begin();
 	 iter != triggerMomenta.end();
 	 ++iter) {
-      std::pair<double, TGraph> elem;
+      std::pair<double, TGraph> elemGraph;
+      std::pair<double, TProfile> elemProfile;
       TGraph graph;
-      elem.first = *iter;
-      elem.second = graph;
+      TProfile profile("dummyName", "dummyTitle", nbins, 0, etaMax);
+      elemGraph.first = *iter;
+      elemGraph.second = graph;
+      elemProfile.first = *iter;
+      elemProfile.second = profile;
       // Prepare plots: triggered graphs
-      trigGraphs.insert(elem);
-      trigGraphs[elem.first].SetTitle("Average triggered points;#eta;Triggered points <N>");
-      aName.str(""); aName << "triggered_vs_eta" << *iter;
-      trigGraphs[elem.first].SetName(aName.str().c_str());
+      trigGraphs.insert(elemGraph);
+      trigProfiles.insert(elemProfile);
+      trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
+      trigProfiles[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
+      aName.str(""); aName << "triggered_vs_eta" << *iter << "_graph";
+      trigGraphs[*iter].SetName(aName.str().c_str());
+      aName.str(""); aName << "triggered_vs_eta" << *iter << "_profile";      
+      trigProfiles[*iter].SetName(aName.str().c_str());
     }
 
-    std::pair<double, TGraph> elemTotal;
-    TGraph graphTotal;
-    elemTotal.first = graphBag::Triggerable;
-    elemTotal.second = graphTotal;
+    std::pair<double, TGraph> elemTotalGraph;
+    std::pair<double, TProfile> elemTotalProfile;
+    TGraph totalGraph;
+    TProfile totalProfile("dummyName", "dummyTitle", nbins, 0, etaMax);
+    elemTotalGraph.first = graphBag::Triggerable;
+    elemTotalGraph.second = totalGraph;
+    elemTotalProfile.first = profileBag::Triggerable;
+    elemTotalProfile.second = totalProfile;
     // Prepare plot: total trigger points
-    trigGraphs.insert(elemTotal);
-    trigGraphs[elemTotal.first].SetTitle("Average triggered points;#eta;Triggered points <N>");
-    aName.str(""); aName << "triggerable_vs_eta";
-    trigGraphs[elemTotal.first].SetName(aName.str().c_str());
+    trigGraphs.insert(elemTotalGraph);
+    trigProfiles.insert(elemTotalProfile);
+    trigGraphs[graphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
+    trigProfiles[profileBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
+    aName.str(""); aName << "triggerable_vs_eta_graph";
+    trigGraphs[graphBag::Triggerable].SetName(aName.str().c_str());
+    aName.str(""); aName << "triggerable_vs_eta_profile";
+    trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
+
 
     /*
     // Prepare the graphs to record the correlation of triggers points

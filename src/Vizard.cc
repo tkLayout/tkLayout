@@ -2522,6 +2522,64 @@ namespace insur {
       std::cerr << "ERROR: no trigger performance plot to show here" << std::endl;
     }
 
+
+    //********************************//
+    //*                              *//
+    //*   Eta plot for the trigger   *//
+    //*   (Again, with TProfile)     *//
+    //*                              *//
+    //********************************//
+
+    profileBag aProfileBag = a.getProfileBag();
+    std::map<double, TProfile>& triggerProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredProfile);
+
+    // Check if profiles exist at all
+    if (!triggerProfiles.empty()) {
+      somethingFound = true;
+
+      // Create the contents
+      RootWContent& myContent = myPage.addContent("Trigger points");	      
+      TCanvas myCanvas;
+      myCanvas.SetGrid(1,1);
+      std::string plotOption = "E1";
+
+      // momentum canvas loop
+      int myColor=0;
+      // Style things
+      gStyle->SetGridStyle(style_grid);
+      gStyle->SetGridColor(color_hard_grid);
+      
+      // Loop over the plots and draw on the canvas
+      for (std::map<double, TProfile>::iterator plot_iter = triggerProfiles.begin();
+	   plot_iter != triggerProfiles.end();
+	   ++plot_iter) {
+	TProfile& npointsProfile = plot_iter->second;
+	npointsProfile.SetMinimum(1E-2);
+	npointsProfile.GetXaxis()->SetLimits(0, 2.4);
+	npointsProfile.SetLineColor(momentumColor(myColor));
+	npointsProfile.SetMarkerColor(momentumColor(myColor));
+	myColor++;
+	npointsProfile.SetMarkerStyle(8);
+	myCanvas.SetFillColor(color_plot_background);
+
+	myCanvas.cd();
+	npointsProfile.Draw(plotOption.c_str());
+	plotOption = "E1 same";
+      }
+
+      RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
+      npointsImage.setComment("Number of triggered and triggerable points vs. eta");
+      npointsImage.setName("ntrigpoints");
+
+      myCanvas.SetLogy();
+      RootWImage& npointsLogImage = myContent.addImage(myCanvas, 600, 600);
+      npointsLogImage.setComment("Number of triggered and triggerable points vs. eta (log scale)");
+      npointsLogImage.setName("ntrigpointsLog");
+      
+    } else { // There are no profiles to plot here...
+      std::cerr << "ERROR: no trigger performance profile plot to show here" << std::endl;
+    }
+
     // Some helper string objects
     ostringstream tempSS;
     string tempString;
