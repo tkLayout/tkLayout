@@ -4,6 +4,7 @@
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
 DEFINES+=-DDEBUG_PERFORMANCE
+DEFINES+=-DBOOST_FILESYSTEM_VERSION=2
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
@@ -319,9 +320,15 @@ cleantkmain:
 cleantuneptparam:
 	@rm -f #(BINDIR)/tunePtParam
 
+cleanmoduletype:
+	@rm -f $(LIBDIR)/moduleType.o
+
+cleanpt:
+	@rm -f $(LIBDIR)/ptError.o
+
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
 	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
-	cleanpalette cleanmaterialshow cleantuneptparam
+	cleanpalette cleanmaterialshow cleantuneptparam cleanpt cleanmoduletype
 
 doc: doxydoc
 

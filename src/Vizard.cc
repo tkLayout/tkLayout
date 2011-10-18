@@ -2462,7 +2462,11 @@ namespace insur {
     std::string pageTitle = "Trigger";
     std::string pageAddress = "triggerPerf.html";
     RootWPage& myPage = site.addPage(pageTitle);
-    myPage.setAddress(pageAddress);      
+    myPage.setAddress(pageAddress);  
+
+    // Some helper string objects
+    ostringstream tempSS;
+    std::string tempString;    
 
     //********************************//
     //*                              *//
@@ -2470,6 +2474,8 @@ namespace insur {
     //*                              *//
     //********************************//
 
+    /*
+    
     graphBag aGraphBag = a.getGraphBag();
     std::map<double, TGraph>& triggerGraphs = aGraphBag.getGraphs(graphBag::TriggerGraph | graphBag::TriggeredGraph);
 
@@ -2521,7 +2527,8 @@ namespace insur {
     } else { // There are no graphs to plot here...
       std::cerr << "ERROR: no trigger performance plot to show here" << std::endl;
     }
-
+    
+    */
 
     //********************************//
     //*                              *//
@@ -2537,11 +2544,16 @@ namespace insur {
     if (!triggerProfiles.empty()) {
       somethingFound = true;
 
+      tempString="";
+      tempSS.str(""); tempSS << "Number of triggered and triggerable points vs. eta for pT = ";
+
       // Create the contents
       RootWContent& myContent = myPage.addContent("Trigger points");	      
       TCanvas myCanvas;
       myCanvas.SetGrid(1,1);
+      //std::string plotOption = "E6";
       std::string plotOption = "E1";
+      //std::string plotOption = "";
 
       // momentum canvas loop
       int myColor=0;
@@ -2553,22 +2565,29 @@ namespace insur {
       for (std::map<double, TProfile>::iterator plot_iter = triggerProfiles.begin();
 	   plot_iter != triggerProfiles.end();
 	   ++plot_iter) {
+	const double& myPt = plot_iter->first;
+	if (myPt!=0) {
+	  tempSS << tempString.c_str() << myPt; tempString = ", ";
+	}
 	TProfile& npointsProfile = plot_iter->second;
 	npointsProfile.SetMinimum(1E-2);
-	npointsProfile.GetXaxis()->SetLimits(0, 2.4);
-	npointsProfile.SetLineColor(momentumColor(myColor));
-	npointsProfile.SetMarkerColor(momentumColor(myColor));
+	//npointsProfile.GetXaxis()->SetLimits(0, 2.4);
+	npointsProfile.SetLineColor(getNiceColor(myColor));
+	npointsProfile.SetMarkerColor(getNiceColor(myColor));
+	npointsProfile.SetFillColor(getNiceColor(myColor));
 	myColor++;
 	npointsProfile.SetMarkerStyle(8);
 	myCanvas.SetFillColor(color_plot_background);
 
 	myCanvas.cd();
 	npointsProfile.Draw(plotOption.c_str());
+	//plotOption = "E6 same";
 	plotOption = "E1 same";
+	//plotOption = "same";
       }
 
       RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
-      npointsImage.setComment("Number of triggered and triggerable points vs. eta");
+      npointsImage.setComment(tempSS.str().c_str());
       npointsImage.setName("ntrigpoints");
 
       myCanvas.SetLogy();
@@ -2580,11 +2599,6 @@ namespace insur {
       std::cerr << "ERROR: no trigger performance profile plot to show here" << std::endl;
     }
 
-    // Some helper string objects
-    ostringstream tempSS;
-    string tempString;
-
-
     //********************************//
     //*                              *//
     //*   Trigger efficiency maps    *//
@@ -2592,24 +2606,26 @@ namespace insur {
     //********************************//
     mapBag myMapBag = a.getMapBag();
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
+    double maxPt = -1;
     // Check if the maps exist at all
     if (!efficiencyMaps.empty()) {
       somethingFound = true;
       // Create the content holder for these maps
-      RootWContent& myContent = myPage.addContent("Efficiency maps");
+      RootWContent& myContent = myPage.addContent("Efficiency maps", false);
       for (std::map<double, TH2D>::iterator it = efficiencyMaps.begin();
 	   it != efficiencyMaps.end(); ++it) {
 	
 	// One canvas per map
 	TCanvas myCanvas;
 	double myPt = it->first;
+	if (myPt>maxPt) maxPt=myPt;
 	TH2D& myMap = it->second;
 	myCanvas.SetFillColor(color_plot_background);
 	myCanvas.cd();
 
 	// Actually plot the map
 	myMap.SetMinimum(0);
-	if (myPt<1.5) {
+	if (myPt<1.5) { // TODO: make this 1.5 a global constant (also in Analyzer)
 	  myMap.SetMaximum(0.1);
 	} else {
 	  myMap.SetMaximum(1.0);
@@ -2637,7 +2653,7 @@ namespace insur {
     if (!thresholdMaps.empty()) {
       somethingFound = true;
       // Create the content holder for these maps
-      RootWContent& myContent = myPage.addContent("Threshold maps");
+      RootWContent& myContent = myPage.addContent("Threshold maps", false);
       for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
 	   it != thresholdMaps.end(); ++it) {
 	
@@ -2650,7 +2666,8 @@ namespace insur {
 
 	// Actually plot the map
 	myMap.SetMinimum(0);
-	myMap.SetMaximum(10);
+	if (maxPt>0) myMap.SetMaximum(maxPt);
+	else myMap.SetMaximum(10);
 	myMap.Draw("colz");
 
 	// Create the image object
@@ -2666,7 +2683,6 @@ namespace insur {
     }
 
 
-
     //********************************//
     //*                              *//
     //*   Configuration maps         *//
@@ -2674,21 +2690,37 @@ namespace insur {
     //********************************//
     TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
+    TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
+    TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
+    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
 
     // Create the content holder for these maps
-    RootWContent& myContent = myPage.addContent("Module configuration maps");
+    RootWContent& myContent = myPage.addContent("Module configuration maps", false);
 
     // One canvas per map
     TCanvas thickCanvas;
     TCanvas windowCanvas;
+    TCanvas suggestedSpacingCanvas;
+    TCanvas suggestedSpacingAWCanvas;
+    TCanvas spacingWindowCanvas;
     thickCanvas.SetFillColor(color_plot_background);
     windowCanvas.SetFillColor(color_plot_background);
+    suggestedSpacingCanvas.SetFillColor(color_plot_background);
+    suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
+    spacingWindowCanvas.SetFillColor(color_plot_background);
 
     // Actually plot the maps
     thickCanvas.cd();
     thicknessMap.Draw("colz");
     windowCanvas.cd();
     windowMap.Draw("colz");
+    suggestedSpacingCanvas.cd();
+    suggestedSpacingMap.Draw("colz");
+    suggestedSpacingAWCanvas.cd();
+    suggestedSpacingMapAW.Draw("colz");
+    spacingWindowCanvas.cd();
+    spacingWindowCanvas.SetLogz();
+    spacingWindowMap.Draw("colz");
     
     // Create the image objects
     RootWImage& thicknessImage = myContent.addImage(thickCanvas, 900, 400);
@@ -2697,7 +2729,194 @@ namespace insur {
     RootWImage& windowImage = myContent.addImage(windowCanvas, 900, 400);
     windowImage.setComment("Map of selection windows");
     windowImage.setName("WindowMap");
+    RootWImage& suggestedSpacingImage = myContent.addImage(suggestedSpacingCanvas, 900, 400);
+    suggestedSpacingImage.setComment("Map of selection suggestedSpacings [default window]");
+    suggestedSpacingImage.setName("SuggestedSpacingMap");
+    RootWImage& suggestedSpacingAWImage = myContent.addImage(suggestedSpacingAWCanvas, 900, 400);
+    suggestedSpacingAWImage.setComment("Map of selection suggestedSpacings [selected windows]");
+    suggestedSpacingAWImage.setName("SuggestedSpacingMapAW");
+    RootWImage& spacingWindowImage = myContent.addImage(spacingWindowCanvas, 900, 400);
+    spacingWindowImage.setComment("Map of spacing/window");
+    spacingWindowImage.setName("SpacingWindowMap");
     
+    //********************************//
+    //*                              *//
+    //* Sensor spacing tuning plots  *//
+    //*                              *//
+    //********************************//
+
+    std::vector<std::string> profileNames = aProfileBag.getProfileNames(profileBag::TriggerProfileName);
+
+    if (profileNames.size()!=0) {
+      somethingFound = true;
+
+      // Create the content
+      RootWContent& spacingSummaryContent = myPage.addContent("Sensor spacing tuning summary", true);
+
+      //********************************//
+      //*                              *//
+      //* Spacing tuning summary       *//
+      //*                              *//
+      //********************************//
+
+      int nBins = profileNames.size();
+
+      TH1D myFrame("myFrame", "", nBins, 0, nBins);
+      myFrame.SetYTitle("Optimal distance range [mm]");
+      myFrame.SetMinimum(0);
+      myFrame.SetMaximum(6);
+      TAxis* xAxis = myFrame.GetXaxis();
+      
+      TGraphErrors rangeGraphBad;
+      TGraphErrors rangeGraph;
+      int rangeGraphPoints;
+
+      std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
+      TGraphErrors& availableSpacings = spacingTuningGraphs[-1];
+
+
+      for (unsigned int i=0; i<profileNames.size(); ++i) {
+	double min = a.getTriggerRangeLowLimit(profileNames[i]);
+	double max = a.getTriggerRangeHighLimit(profileNames[i]);
+	tempString = profileNames[i];
+	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	xAxis->SetBinLabel(i+1, tempString.c_str());
+	if (min<max) {
+	  rangeGraphPoints=rangeGraph.GetN();
+	  rangeGraph.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraph.SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
+	} else {
+	  rangeGraphPoints=rangeGraphBad.GetN();
+	  rangeGraphBad.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+	  rangeGraphBad.SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
+	}
+      }
+
+
+      std::cerr << "range" << std::endl;
+      TCanvas rangeCanvas;
+      rangeCanvas.SetFillColor(color_plot_background);
+      rangeCanvas.SetGrid(0,1);
+      myFrame.Draw();
+      rangeGraph.SetFillColor(getNiceColor(1));
+      rangeGraph.Draw("same 2");
+      rangeGraphBad.SetFillColor(getNiceColor(2));
+      rangeGraphBad.Draw("same 2");
+      availableSpacings.SetMarkerStyle(0);
+      availableSpacings.Draw("p same");
+
+      RootWImage& RangeImage = spacingSummaryContent.addImage(rangeCanvas, 900, 400);
+      tempSS.str(""); tempSS << "Sensor distance range tuning";
+      RangeImage.setComment(tempSS.str());
+      tempSS.str(""); tempSS << "TriggerRangeTuning";
+      RangeImage.setName(tempSS.str());
+
+      std::cerr << "tuning" << std::endl;
+      TCanvas tuningCanvas;
+      tuningCanvas.SetFillColor(color_plot_background);
+      tuningCanvas.SetGrid(0,1);
+      //std::map<int, TGraphErrors>& spacingTuningGraphs = a.getSpacingTuningGraphs();
+      std::map<int, TGraphErrors>& spacingTuningGraphsBad = a.getSpacingTuningGraphsBad();
+      TH1D& spacingTuningFrame = a.getSpacingTuningFrame();
+      spacingTuningFrame.Draw();
+
+      for (std::map<int, TGraphErrors>::iterator it = spacingTuningGraphs.begin();
+	   it!=spacingTuningGraphs.end(); ++it) {
+	const int& spacingTuningCounter= it->first;
+	TGraphErrors& tuningGraph = it->second;
+	if (spacingTuningCounter>0) {
+	  tuningGraph.SetFillColor(getNiceColor(spacingTuningCounter+1));
+	  tuningGraph.SetFillStyle(1001);
+	  tuningGraph.Draw("same 2");
+	} else {
+	  tuningGraph.SetMarkerStyle(0);
+	  tuningGraph.Draw("p same");
+	}
+      }
+      for (std::map<int, TGraphErrors>::iterator it = spacingTuningGraphsBad.begin();
+	   it!=spacingTuningGraphsBad.end(); ++it) {
+	const int& spacingTuningCounter= it->first;
+	TGraphErrors& tuningGraph = it->second;
+	tuningGraph.SetFillColor(getNiceColor(spacingTuningCounter+1));
+	tuningGraph.SetFillStyle(3007);
+	tuningGraph.Draw("same 2");
+      }
+
+      RootWImage& tuningImage = spacingSummaryContent.addImage(tuningCanvas, 900, 400);
+      tempSS.str(""); tempSS << "Sensor distance range tuning for different windows";
+      tuningImage.setComment(tempSS.str());
+      tempSS.str(""); tempSS << "TriggerRangeTuningWindows";
+      tuningImage.setName(tempSS.str());
+
+      std::cerr << "spacing" << std::endl;
+      TH1D& spacingDistribution = a.getHistoOptimalSpacing(false);
+      TCanvas spacingCanvas;
+      spacingCanvas.SetFillColor(color_plot_background);
+      spacingCanvas.cd();
+      spacingDistribution.SetFillColor(getNiceColor(1));
+      spacingDistribution.Draw();
+      RootWImage& spacingImage = spacingSummaryContent.addImage(spacingCanvas, 600, 600);
+      spacingImage.setComment("Distribution of minimal spacing for low pT rejection @ standard window");
+      spacingImage.setName("SpacingDistribution");
+      TH1D& spacingDistributionAW = a.getHistoOptimalSpacing(true);
+      TCanvas spacingCanvasAW;
+      spacingCanvasAW.SetFillColor(color_plot_background);
+      spacingCanvasAW.cd();
+      spacingDistributionAW.SetFillColor(getNiceColor(1));
+      spacingDistributionAW.Draw();
+      RootWImage& spacingImageAW = spacingSummaryContent.addImage(spacingCanvasAW, 600, 600);
+      spacingImageAW.setComment("Distribution of minimal spacing for low pT rejection @ selected window");
+      spacingImageAW.setName("SpacingDistributionAW");
+      
+
+
+      //********************************//
+      //*                              *//
+      //* Spacing tuning details       *//
+      //*                              *//
+      //********************************//
+
+      // Create the content
+      RootWContent& spacingDetailedContent = myPage.addContent("Sensor spacing tuning (detailed)", false);
+
+      for (std::vector<std::string>::const_iterator itName=profileNames.begin(); itName!=profileNames.end(); ++itName) {
+	std::map<double, TProfile>& tuningProfiles = aProfileBag.getNamedProfiles(*itName);
+
+	int myColor = 1;
+	TCanvas tuningCanvas;
+	tuningCanvas.SetFillColor(color_plot_background);
+	tuningCanvas.cd();
+
+	std::string plotOption = "E1";
+	for (std::map<double, TProfile>::iterator itProfile = tuningProfiles.begin() ; itProfile!= tuningProfiles.end(); ++itProfile) {
+	  TProfile& tuningProfile = itProfile->second;
+	  tuningProfile.SetMaximum(100);
+	  tuningProfile.SetMinimum(0);
+	  //tuningProfile.SetMaximum(10);
+	  //tuningProfile.SetMinimum(-10);
+	  tuningProfile.SetLineColor(getNiceColor(myColor));
+	  tuningProfile.SetFillColor(getNiceColor(myColor));
+	  tuningProfile.SetMarkerColor(getNiceColor(myColor));
+	  myColor++;
+	  //tuningProfile.SetMarkerStyle(8);
+	  tuningProfile.Draw(plotOption.c_str());
+	  plotOption = "same E1";
+	}
+
+	RootWImage& tuningImage = spacingDetailedContent.addImage(tuningCanvas, 900, 400);
+	tempString = (*itName);
+	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	tempSS.str(""); tempSS << "Sensor distance tuning for " << tempString.c_str();
+	tuningImage.setComment(tempSS.str());
+	tempSS.str(""); tempSS << "TriggerTuning" << tempString.c_str();
+	tuningImage.setName(tempSS.str());
+      }
+
+
+      
+    }
+
+
     return somethingFound;
   }
 
@@ -2776,41 +2995,12 @@ namespace insur {
         int gridStyle_solid = 1;
         std::string theOption(option);
         
-        int i;
-        int j;
-        int k;
         
         double topMax = (maxL > maxR) ? maxL : maxR;
         topMax = ceil(topMax/spacing)*spacing;
         
-        double aValue[3];
-        double minValue[3];
-        double maxValue[3];
-        
-        i=(noAxis)%3;
-        j=(noAxis+1)%3;
-        k=(noAxis+2)%3;
-        
         maxL *= 1.1;
         maxR *= 1.1;
-        
-        if (noAxis==1) {
-            minValue[0]=0;
-            maxValue[0]=+maxR;
-            minValue[1]=0;
-            maxValue[1]=+maxR;
-            minValue[2]=0;
-            maxValue[2]=+maxL;
-        } else {
-            minValue[0]=-maxR;
-            maxValue[0]=+maxR;
-            minValue[1]=-maxR;
-            maxValue[1]=+maxR;
-            minValue[2]=0;
-            maxValue[2]=+maxL;
-        }
-        
-        aValue[k]=-topMax;
         
         if (noAxis==1) {
             double etaStep=.2;
@@ -3212,6 +3402,66 @@ namespace insur {
     myGraph.SetPoint(myGraph.GetN(), x0,0);
   }
 
+
+  /*
+   * Returns the ROOT color code of a nice color, indexed like in
+   * libreOffice, with the following mapping: 0 -> black, any other
+   * index maps to the libreOffice plot colors from 1 to 12. For any
+   * number higher than 12 it cycles throught the colors
+   */
+  int Vizard::getNiceColor(unsigned int plotIndex) {
+    std::string colorCode;
+
+    if (plotIndex==0) colorCode = "#000000";
+    else {
+      int nColor=(plotIndex-1) % 12;
+      switch (nColor) {
+      case 0 :
+	colorCode="#004586";
+	break;
+      case 1 :
+	colorCode="#FF420E";
+	break;
+      case 2 :
+	colorCode="#FFD320";
+	break;
+      case 3 :
+	colorCode="#579D1C";
+	break;
+      case 4 :
+	colorCode="#7E0021";
+	break;
+      case 5 :
+	colorCode="#83CAFF";
+	break;
+      case 6 :
+	colorCode="#314004";
+	break;
+      case 7 :
+	colorCode="#AECF00";
+	break;
+      case 8 :
+	colorCode="#4B1F6F";
+	break;
+      case 9 :
+	colorCode="#FF950E";
+	break;
+      case 10 :
+	colorCode="#C5000B";
+	break;
+      case 11 :
+	colorCode="#0084D1";
+	break;
+      default :
+	std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
+	colorCode="#000000";
+	break;
+      }
+    }
+
+    return TColor::GetColor(colorCode.c_str());
+  }
+  
 
 }
 

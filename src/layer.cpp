@@ -162,7 +162,7 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
     BarrelModule* aModule;
     BarrelModule* stdModule;
     
-    setName(inputLayer.layerName_);
+    setName(inputLayer.layerName_, inputLayer.layerIndex_);
     averageRadius_ = inputLayer.averageRadius_;
     nOfRods_ = inputLayer.getRods();
     nModsOnString_ = inputLayer.getModulesOnRod();
@@ -1052,7 +1052,7 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
     EndcapModule* aModule;
     EndcapModule* stdModule;
     
-    setName(inputLayer.layerName_);
+    setName(inputLayer.layerName_, inputLayer.layerIndex_);
     averageZ_  = inputLayer.averageZ_;
     nOfRings_ = inputLayer.getRings();
     nModsOnRing_.clear();

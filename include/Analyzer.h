@@ -27,6 +27,7 @@
 #include <MaterialBudget.h>
 #include <TProfile.h>
 #include <TGraph.h>
+#include <TGraphErrors.h>
 #include "TRandom3.h"
 
 namespace insur {
@@ -94,6 +95,9 @@ namespace insur {
       static const int thresholdMap;
       static const int thicknessMap;
       static const int windowMap;
+      static const int suggestedSpacingMap;
+      static const int suggestedSpacingMapAW;
+      static const int spacingWindowMap;
       static const double dummyMomentum;
       std::map<double, TH2D>& getMaps(const int& attribute);
       int clearMaps(const int& attributeMask);
@@ -110,11 +114,18 @@ namespace insur {
       static const double Triggerable;
       static const int TriggeredProfile;
       static const int TriggerProfile;
+      static const std::string TriggerProfileName;
+      static const std::string TriggerProfileNameWindow;
       std::map<double, TProfile>& getProfiles(const int& attribute);
       int clearTriggerProfiles();
+      int clearTriggerNamedProfiles();
+      std::map<double, TProfile>& getNamedProfiles(const std::string& name);
+      std::vector<std::string> getProfileNames(const std::string& name);
     private:
       int clearProfiles(const int& attributeMask);
+      int clearNamedProfiles(const std::string& name);
       std::map<int, std::map<double, TProfile> > profileMap_;
+      std::map<std::string, std::map<double, TProfile> > namedProfileMap_;
     };     
 
 
@@ -170,6 +181,7 @@ namespace insur {
         TH2D& getHistoIsoI() { return isoi; }
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
+	TH1D& getHistoOptimalSpacing(bool actualWindow);
         //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
         std::map<double, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
         std::map<double, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
@@ -180,10 +192,19 @@ namespace insur {
 	graphBag& getGraphBag() { return myGraphBag; }
 	mapBag& getMapBag() { return myMapBag; }
 	profileBag& getProfileBag() { return myProfileBag; }
+	std::map<int, TGraphErrors>& getSpacingTuningGraphs() { return spacingTuningGraphs; }
+	std::map<int, TGraphErrors>& getSpacingTuningGraphsBad() { return spacingTuningGraphsBad; }
+	TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
+	const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
+	const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
         //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
-	virtual void analyzeTrigger(MaterialBudget& mb, const std::vector<double>& momenta, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities,
+	virtual void analyzeTrigger(MaterialBudget& mb,
+				    const std::vector<double>& momenta,
+				    const std::vector<double>& triggerMomenta,
+				    const std::vector<double>& thresholdProbabilities,
 				    int etaSteps = 50, MaterialBudget* pm = NULL);
+	void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -254,6 +275,8 @@ namespace insur {
 	TH1D chanHitDistribution;
 	TH1D bandwidthDistribution;
 	TH1D bandwidthDistributionSparsified;
+	TH1D optimalSpacingDistribution;
+	TH1D optimalSpacingDistributionAW;
 
 	std::map<std::string, SummaryTable> barrelWeights;
 	std::map<std::string, SummaryTable> endcapWeights;
@@ -265,6 +288,11 @@ namespace insur {
 	graphBag myGraphBag;
 	mapBag myMapBag;
 	profileBag myProfileBag;
+	std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
+	std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
+	TH1D spacingTuningFrame;
+	std::map<std::string, double> triggerRangeLowLimit;
+	std::map<std::string, double> triggerRangeHighLimit;
 	
 	// Hadrons
 	TGraph hadronTotalHitsGraph;
@@ -296,10 +324,10 @@ namespace insur {
 						  Track& t, bool isPixel = false);
 
 	void calculateGraphs(const std::vector<double>& p,
-			       const std::vector<Track>& trackVector,
-			       int graphAttributes);
-	void fillTriggerEfficiencyGraphs(Tracker& tracker, const std::vector<double>& triggerMomenta,
-					   const std::vector<Track>& trackVector);
+			     const std::vector<Track>& trackVector,
+			     int graphAttributes);
+	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+					 const std::vector<Track>& trackVector);
 	void fillTriggerPerformanceMaps(Tracker& tracker);
         void clearMaterialBudgetHistograms();
         void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
@@ -311,6 +339,7 @@ namespace insur {
         void fillMapRT(const double& r, const double& theta, const Material& mat);
         void fillMapRZ(const double& r, const double& z, const Material& mat);
         void transformEtaToZ();
+	double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     private:
         // A random number generator
 	TRandom3 myDice; 
@@ -326,6 +355,7 @@ namespace insur {
 	Color_t lastPickedColor;
 	int geometryTracksUsed;
 	int materialTracksUsed;
+	void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     };
 }
 #endif	/* _ANALYZER_H */

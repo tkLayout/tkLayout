@@ -24,6 +24,7 @@ protected:
   ModuleVector moduleSet_;
   std::string layerName_;
   std::string containerName_;
+  int layerIndex_;
   
 private:
   virtual void setDefaultParameters();
@@ -39,9 +40,10 @@ public:
   virtual Module* getSampleModule() { return NULL; }
 
   std::string getName() {return layerName_; };
+  int getIndex() {return layerIndex_; };
   std::string getContainerName() {return containerName_; };
-  void setName(const std::string newName ) { layerName_ = newName; setObjectName(layerName_); };
-  void setContainerName(const std::string newName ) { containerName_ = newName; };
+  void setName(const std::string& newName, const int& newIndex) { layerName_ = newName; layerIndex_ = newIndex; setObjectName(layerName_); };
+  void setContainerName(const std::string& newName ) { containerName_ = newName; };
   
   double getMaxZ();
   double getMinZ();

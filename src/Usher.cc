@@ -378,10 +378,12 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all) {
-        double zrl, ztl, zbo, zeo, ri, rrw, rtw;
+      double ztl, zbo, zeo, ri, rtw;
+      // double zrl;
+      // double rrw;
         int k = 0;
         // barrels
-        zrl = volume_width;
+        //zrl = volume_width;
         rtw = volume_width;
         if (findMaxBarrelZ(tracker) < (tracker.zOffsetDisc(tracker.totalDiscs() - 1) + tracker.lengthDisc(tracker.totalDiscs() - 1)))
             zeo = tracker.zOffsetDisc(tracker.totalDiscs() - 1) + tracker.lengthDisc(tracker.totalDiscs() - 1);
@@ -393,7 +395,7 @@ namespace insur {
             // layer loop
             for (int j = 0; j < tracker.nOfLayers(i); j++) {
                 ri = tracker.innerRadiusLayer(k);
-                rrw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
+                //rrw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
                 is = addBarrelServiceTube(is, ztl, zbo, ri, rtw, true);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);

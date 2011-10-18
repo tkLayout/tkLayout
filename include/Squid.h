@@ -24,7 +24,7 @@
 #include <Analyzer.h>
 #include <Vizard.h>
 #include <tk2CMSSW.h>
-#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>

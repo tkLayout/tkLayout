@@ -26,15 +26,20 @@ namespace insur {
   const int graphBag::StandardGraph    = 0x080;
   //const int graphBag::TriggerCorrelationGraph = 0x100;
 
-  const int mapBag::efficiencyMap  = 0x001;
-  const int mapBag::thresholdMap   = 0x002;
-  const int mapBag::thicknessMap   = 0x004;
-  const int mapBag::windowMap      = 0x008;
+  const int mapBag::efficiencyMap         = 0x001;
+  const int mapBag::thresholdMap          = 0x002;
+  const int mapBag::thicknessMap          = 0x004;
+  const int mapBag::windowMap             = 0x008;
+  const int mapBag::suggestedSpacingMap   = 0x010;
+  const int mapBag::suggestedSpacingMapAW = 0x020;
+  const int mapBag::spacingWindowMap      = 0x040;
 
-  const double profileBag::Triggerable = 0.;
-  const int profileBag::TriggeredProfile = 0x007;
-  const int profileBag::TriggerProfile   = 0x040;
-  
+  const double profileBag::Triggerable    = 0.;
+  const int profileBag::TriggeredProfile  = 0x0000007;
+  const int profileBag::TriggerProfile    = 0x0000040;
+
+  const std::string profileBag::TriggerProfileName = "trigger";
+  const std::string profileBag::TriggerProfileNameWindow = "windowTrigger";
 
   const double mapBag::dummyMomentum = 0.;
 
@@ -99,6 +104,10 @@ namespace insur {
     return clearProfiles(profileBag::TriggerProfile);
   }
 
+  int profileBag::clearTriggerNamedProfiles() {
+    return clearNamedProfiles(profileBag::TriggerProfileName);
+  }
+
 
   std::map<double, TProfile>& profileBag::getProfiles(const int& attribute) {
     return profileMap_[attribute];
@@ -126,9 +135,51 @@ namespace insur {
     }
     return deleteCounter;
   }
-  
+
+  int profileBag::clearNamedProfiles(const std::string& name) {
+    std::map<std::string, std::map<double, TProfile> >::iterator it;
+    std::map<std::string, std::map<double, TProfile> >::iterator nextIt;
+
+    int deleteCounter = 0;
+    std::string anAttribute;
+    for (it=namedProfileMap_.begin(); it!=namedProfileMap_.end(); ) {
+      anAttribute=it->first;
+      if (anAttribute.substr(0, name.size())==name) {
+        nextIt = it;
+	++nextIt;
+	namedProfileMap_.erase(it);
+	it=nextIt;
+	++deleteCounter;
+      } else {
+	++it;
+      }
+    }
+    return deleteCounter;    
+  }
+
+  std::vector<std::string> profileBag::getProfileNames(const std::string& name) {
+    std::vector<std::string> result;
+
+    std::map<std::string, std::map<double, TProfile> >::iterator it;
+
+    std::string anAttribute;
+    for (it=namedProfileMap_.begin(); it!=namedProfileMap_.end(); ++it) {
+      anAttribute=it->first;
+      if (anAttribute.substr(0, name.size())==name)
+	result.push_back(anAttribute);
+    }
+    return result;    
+  }
+
+
+  std::map<double, TProfile>& profileBag::getNamedProfiles(const std::string& name) {
+    return namedProfileMap_[name];
+  }
+
   const double Analyzer::ZeroHitsRequired = 0;
   const double Analyzer::OneHitRequired = 0.0001;
+
+
 
 
     
@@ -226,11 +277,6 @@ namespace insur {
     materialTracksUsed = etaSteps;
     
 #ifdef DEBUG_PERFORMANCE
-    struct tm *localt; // timing: debug
-    time_t t;          // timing: debug
-    t = time(NULL);
-    localt = localtime(&t);
-    //std::cerr << asctime(localt) << std::endl;
     clock_t starttime = clock();
 #endif
     int nTracks;
@@ -304,58 +350,373 @@ namespace insur {
 
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeTrigger(): ";
-    t = time(NULL);
-    localt = localtime(&t);
     clock_t endtime = clock();
     std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-    t = time(NULL);
-    localt = localtime(&t);
 #endif
 
     // Compute the number of triggering points along the selected tracks
-    fillTriggerEfficiencyGraphs(tracker, triggerMomenta, tv);
+    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
 
     // Fill the trigger performance maps
     fillTriggerPerformanceMaps(tracker);
 
-    
 #ifdef DEBUG_PERFORMANCE
-    t = time(NULL);
-    localt = localtime(&t);
-    //std::cerr << asctime(localt) << std::endl;
     starttime = clock();
 #endif
     calculateGraphs(momenta, tv, graphBag::TriggerGraph | graphBag::RealGraph);
     calculateGraphs(momenta, tvIdeal, graphBag::TriggerGraph | graphBag::IdealGraph);
 #ifdef DEBUG_PERFORMANCE
     std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeTrigger(): ";
-    t = time(NULL);
-    localt = localtime(&t);
     endtime = clock();
     std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-    t = time(NULL);
-    localt = localtime(&t);
 #endif
-
   }
 
-  void Analyzer::fillTriggerEfficiencyGraphs(Tracker& tracker, const std::vector<double>& triggerMomenta,
-					       const std::vector<Track>& trackVector) {
+  void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta) {
+
+    // TODO: put these in a configuration file somewhere
+    /************************************************/
+    std::pair<double, double> spacingTuningMomenta;
+    std::vector<double> spacingOptions;
+    //spacingOptions.push_back(1.1);
+    //spacingOptions.push_back(1.8);
+    //spacingOptions.push_back(2.5);
+    //spacingOptions.push_back(5);
+    spacingOptions.push_back(1.2);
+    spacingOptions.push_back(1.6);
+    spacingOptions.push_back(2.6);
+    spacingOptions.push_back(4);    
+    std::sort(spacingOptions.begin(), spacingOptions.end()); // TODO: keep this here!!
+    unsigned int nSpacingOptions = spacingOptions.size();             // TODO: keep this here!!
+    spacingTuningMomenta.first = 1.;
+    spacingTuningMomenta.second = 2.5;
+    const unsigned int nWindows = 5;
+    /************************************************/
+	
+    // TODO: clear only the relevant ones?
+    myProfileBag.clearTriggerNamedProfiles();
+    optimalSpacingDistribution.SetName("optimalSpacing");
+    optimalSpacingDistribution.SetTitle("Optimal spacing [default window]");
+    optimalSpacingDistribution.SetXTitle("Spacing [mm]");
+    optimalSpacingDistribution.SetYTitle("# modules");
+    optimalSpacingDistribution.SetBins(100, 0.5, 6);
+    optimalSpacingDistribution.Reset();
+
+    optimalSpacingDistributionAW.SetName("optimalSpacingAW");
+    optimalSpacingDistributionAW.SetTitle("Optimal spacing [actual window]");
+    optimalSpacingDistributionAW.SetXTitle("Spacing [mm]");
+    optimalSpacingDistributionAW.SetYTitle("# modules");
+    optimalSpacingDistributionAW.SetBins(100, 0.5, 6);
+    optimalSpacingDistributionAW.Reset();
+    
+    
+    std::string myName;
+    std::string myBaseName;
+    std::map<std::string, bool> preparedProfiles;
+
+    // Loop over all the tracker
+    LayerVector& layerSet = tracker.getLayers();
+    LayerVector::iterator layIt;
+    Layer* aLayer;
+    ModuleVector::iterator modIt;
+    ModuleVector* moduleSet;
+    Module* aModule;
+    double myValue;
+
+    BarrelLayer* aBarrelLayer;
+    EndcapLayer* anEndcapLayer;
+    EndcapModule* anEndcapModule;
+    std::ostringstream tempSS;
+
+
+    std::map<std::string, ModuleVector> selectedModules;
+
+    // Loop over all the layers
+    for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+      aLayer = (*layIt);
+      //std::cerr << "layer " << aLayer->getIndex() << std::endl; // debug
+      
+      aBarrelLayer = dynamic_cast<BarrelLayer*>(aLayer);
+      anEndcapLayer = dynamic_cast<EndcapLayer*>(aLayer);
+      
+      /****************/
+      /* BARREL LAYER */
+      /****************/
+      if (aBarrelLayer) { 
+	// If it's a barrel layer, scan over all its modules
+
+	// Sort the plot by layer
+	myName = aLayer->getContainerName() + "_" + aLayer->getName();
+	ModuleVector& theseBarrelModules = selectedModules[myName];
+
+	// Prepare the variables to hold the profiles
+	std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+
+	if (!preparedProfiles[myName]) {
+	  //std::cerr << "Profile name is " << myName << std::endl;
+	  preparedProfiles[myName] = true;
+	  for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+	    tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
+	    tuningProfiles[*it].SetTitle(tempSS.str().c_str());
+	    tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
+	    tuningProfiles[*it].SetName(tempSS.str().c_str());
+	    tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+	  }	  
+	}
+
+	// Actually scan the modules
+	moduleSet = aLayer->getModuleVector();
+	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	  aModule = (*modIt);
+	  XYZVector center = aModule->getMeanPoint();
+	  if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+	  theseBarrelModules.push_back(aModule);
+
+	  // Fill the tuning profiles for the windows actually set
+	  for (double dist=0.5; dist<=6; dist+=0.02) {
+	    for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+	      double myPt = (*it);
+	      myValue = 100 * aModule->getTriggerProbability(myPt, dist);
+	      tuningProfiles[myPt].Fill(dist, myValue);
+	    }
+	  }
+	}
+	
+      /****************/
+      /* ENDCAP LAYER */
+      /****************/
+      } else if (anEndcapLayer) {
+	// If it's an endcap layer, scan over all disk 1 modules
+	//if (anEndcapLayer->getIndex() == 1 && (aLayer->getContainerName()!="")) {
+	if (aLayer->getContainerName()!="") {
+
+	  // Sort the plot by ring (using only disk 1)
+	  tempSS.str(""); 
+	  tempSS << "_D";
+	  tempSS.width(2); tempSS.fill('0'); tempSS << anEndcapLayer->getIndex();
+	  myBaseName = aLayer->getContainerName() + tempSS.str();
+	  
+	  // Actually scan the modules
+	  moduleSet = aLayer->getModuleVector();
+	  for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	    aModule = (*modIt);
+	    anEndcapModule = dynamic_cast<EndcapModule*>(aModule);
+	    XYZVector center = aModule->getMeanPoint();
+	    // std::cerr << myBaseName << " z=" << center.Z() << ", Phi=" << center.Phi() << ", Rho=" << center.Rho() << std::endl; // debug
+	    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+
+
+	    if (anEndcapModule) {
+	      tempSS.str("");
+	      tempSS << "R";
+	      tempSS.width(2); tempSS.fill('0');
+	      tempSS << anEndcapModule->getRing();
+	      myName = myBaseName + tempSS.str();
+	      ModuleVector& theseEndcapModules = selectedModules[myName];
+	      theseEndcapModules.push_back(aModule);
+
+	      // Prepare the variables to hold the profiles
+	      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+
+	      if (!preparedProfiles[myName]) {
+		//std::cerr << "Profile name is " << myName << std::endl;
+		preparedProfiles[myName] = true;
+		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+		  tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
+		  tuningProfiles[*it].SetTitle(tempSS.str().c_str());
+		  tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it);
+		  tuningProfiles[*it].SetName(tempSS.str().c_str());
+		  tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+		}
+	      }
+
+	      // Fill the tuning profiles for the windows actually set
+	      for (double dist=0.5; dist<=6; dist+=0.02) {
+		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+		  double myPt = (*it);
+		  myValue = 100 * aModule->getTriggerProbability(myPt, dist);
+		  tuningProfiles[myPt].Fill(dist, myValue);
+		}
+	      }
+	    } else {
+	      std::cerr << "ERROR: this should not happen: a not-endcap module was found in an endcap layer! Contact the developers" << std::endl;
+	    }
+	  }
+	}
+      }   
+    }
+
+    // TODO: put also the limits into a configurable parameter
+    // Scan again over the plots I just made in order to find the
+    // interesting range, if we have 1 and 2 in the range (TODO: find
+    // a better way to find the interesting margins)
+    
+    // Run once per possible position in the tracker
+    std::vector<std::string> profileNames = myProfileBag.getProfileNames(profileBag::TriggerProfileName);
+    for (std::vector<std::string>::const_iterator itName=profileNames.begin(); itName!=profileNames.end(); ++itName) {
+      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(*itName);
+      TProfile& lowTuningProfile = tuningProfiles[spacingTuningMomenta.first];
+      TProfile& highTuningProfile = tuningProfiles[spacingTuningMomenta.second];
+      triggerRangeLowLimit[*itName] = findXThreshold(lowTuningProfile, 1, true);
+      triggerRangeHighLimit[*itName] = findXThreshold(highTuningProfile, 90, false);
+    }
+
+
+    // Now loop over the selected modules and build the curves for the
+    // hi-lo thingy (sensor spacing tuning)
+    int windowSize;
+    XYZVector center;
+    double myPt;
+    TProfile tempProfileLow("tempProfileLow", "", 100, 0.5, 6); // TODO: these numbers should go into some kind of const
+    TProfile tempProfileHigh("tempProfileHigh", "", 100, 0.5, 6); // TODO: these numbers should go into some kind of const
+
+    // TODO: IMPORTANT!!!!!! clear the spacing tuning graphs and frame here
+    spacingTuningFrame.SetBins(selectedModules.size(), 0, selectedModules.size());
+    spacingTuningFrame.SetYTitle("Optimal distance range [mm]");
+    spacingTuningFrame.SetMinimum(0);
+    spacingTuningFrame.SetMaximum(6);
+    TAxis* xAxis = spacingTuningFrame.GetXaxis();
+
+    int iType=0;
+    std::map<double, bool> availableThinkness;
+    // Loop over the selected module types
+    for(std::map<std::string, ModuleVector>::iterator itTypes = selectedModules.begin();
+	itTypes!=selectedModules.end(); ++itTypes) {
+      const std::string& myName = itTypes->first;
+      const ModuleVector& myModules = itTypes->second;
+      xAxis->SetBinLabel(iType+1, myName.c_str());
+
+      // Loop over the possible search windows
+      for (unsigned int iWindow = 0; iWindow<nWindows; ++iWindow) {
+	windowSize = 1 + iWindow * 2;
+	// Loop over the modules of type myName
+	for (ModuleVector::const_iterator itModule = myModules.begin(); itModule!=myModules.end(); ++itModule) {
+	  aModule = (*itModule);
+	  // Loop over the possible distances
+	  double minDistBelow = 0.;
+	  availableThinkness[aModule->getStereoDistance()] = true;
+	  for (double dist=0.5; dist<=6; dist+=0.02) { // TODO: constant here
+	    // First with the high momentum
+	    myPt = (spacingTuningMomenta.second);
+	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+	    tempProfileHigh.Fill(dist, myValue);
+	    // Then with low momentum
+	    myPt = (spacingTuningMomenta.first);
+	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+	    tempProfileLow.Fill(dist, myValue);
+	    if (myValue>1) minDistBelow = dist;
+	  }
+	  if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
+	  if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
+
+	  /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
+	    std::cout << myName << " - " << aModule->getTag() << " - minDistBelow = " << minDistBelow;
+	    std::cout <<  ", so[0]=" << spacingOptions[0] << ", so[n-1]=" << spacingOptions[nSpacingOptions-1];
+	    }*/
+	  if (minDistBelow<spacingOptions[0]) minDistBelow=spacingOptions[0];
+	  else if (minDistBelow>spacingOptions[nSpacingOptions-1]) minDistBelow=spacingOptions[nSpacingOptions-1];
+	  else {
+	    for (unsigned int iSpacing = 0; iSpacing < nSpacingOptions-1; ++iSpacing) {
+	      /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) {// debug
+	      	std::cout << " spacingOptions[" << iSpacing << "] = " << spacingOptions[iSpacing];
+	      	std::cout << " spacingOptions[" << iSpacing+1 << "] = " << spacingOptions[iSpacing+1];
+		}*/
+	      if ((minDistBelow>=spacingOptions[iSpacing]) && (minDistBelow<spacingOptions[iSpacing+1])) {
+		minDistBelow=spacingOptions[iSpacing+1];
+		/*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
+		  std::cout << " here it is: ";*/
+		break;
+	      }
+	    }
+	  }
+	  /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
+	    std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
+	  aModule->setOptimalSpacing(windowSize, minDistBelow);
+	}
+	// Find the "high" and "low" points
+	double lowEdge = findXThreshold(tempProfileLow, 1, true);
+	double highEdge = findXThreshold(tempProfileHigh, 90, false);
+	// std::cerr << myName << ": " << lowEdge << " -> " << highEdge << std::endl; // debug
+	double centerX; double sizeX;
+	centerX = iType+(double(iWindow)+0.5)/(double(nWindows));
+	sizeX = 1./ (double(nWindows)) * 0.8; // 80% of available space, so that they will not touch
+	if (lowEdge<highEdge) {
+	  spacingTuningGraphs[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+	  spacingTuningGraphs[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+	} else {
+	  spacingTuningGraphsBad[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+	  spacingTuningGraphsBad[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+	}
+	tempProfileLow.Reset();
+	tempProfileHigh.Reset();
+      }
+      iType++;
+    }
+
+    // TODO: properly reset this!
+    TGraphErrors& antani = spacingTuningGraphs[-1];
+    int iPoints=0;
+    for (std::map<double, bool>::iterator it = availableThinkness.begin(); it!= availableThinkness.end(); ++it) {
+      iPoints++;
+      antani.SetPoint(iPoints, selectedModules.size()/2., it->first);
+      antani.SetPointError(iPoints, selectedModules.size()/2., 0);
+      iPoints++;
+    }
+  }
+
+
+  double Analyzer::findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward) {  
+    // TODO: add a linear interpolation here
+    if (goForward) {
+      double xThreshold=0;
+      double binContent;
+      for (int i=1; i<=aProfile.GetNbinsX(); ++i) {
+	binContent = aProfile.GetBinContent(i);
+	if ((binContent!=0)&&(binContent<yThreshold)) {
+	  // TODO: add a linear interpolation here
+	  xThreshold = aProfile.GetBinCenter(i);
+	  return xThreshold;
+	}
+      }
+      return 100;
+    } else {
+      double xThreshold=100;
+      double binContent;
+      for (int i=aProfile.GetNbinsX(); i>=1; --i) {
+	binContent = aProfile.GetBinContent(i);
+	if ((binContent!=0)&&(binContent>yThreshold)) {
+	  // TODO: add a linear interpolation here
+	  xThreshold = aProfile.GetBinCenter(i);
+	  return xThreshold;
+	}
+      }
+      return 0;
+    }
+  }
+
+
+
+
+  void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+					     const std::vector<Track>& trackVector) {
     
     // Prepare the graphs to record the number of triggered points
     std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
     std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
 
+    TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
+    TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
+    
     double eta;
 
     for (std::vector<Track>::const_iterator itTrack = trackVector.begin();
 	 itTrack != trackVector.end(); ++itTrack) {
       const Track& myTrack=(*itTrack);
+
       eta = - log(tan(myTrack.getTheta() / 2));
-      TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
-      TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
-      totalGraph.SetPoint(totalGraph.GetN(), eta, myTrack.nActiveHits(false, false));
-      totalProfile.Fill(eta, myTrack.nActiveHits(false, false));
+      int nHits = myTrack.nActiveHits(false, false);
+      totalGraph.SetPoint(totalGraph.GetN(), eta, nHits);
+      totalProfile.Fill(eta, nHits);
 
       for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
 	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
@@ -385,11 +746,6 @@ namespace insur {
         double efficiency = tracker.getEfficiency();
         materialTracksUsed = etaSteps;
 #ifdef DEBUG_PERFORMANCE
-        struct tm *localt; // timing: debug
-        time_t t;          // timing: debug
-        t = time(NULL);
-        localt = localtime(&t);
-        //std::cerr << asctime(localt) << std::endl;
         clock_t starttime = clock();
 #endif
         int nTracks;
@@ -598,12 +954,8 @@ namespace insur {
 
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
-        t = time(NULL);
-        localt = localtime(&t);
         clock_t endtime = clock();
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-        t = time(NULL);
-        localt = localtime(&t);
 #endif
 #ifdef MATERIAL_SHADOW       
         // integration over eta
@@ -619,21 +971,14 @@ namespace insur {
 
         // fill TGraph map
 #ifdef DEBUG_PERFORMANCE
-        t = time(NULL);
-        localt = localtime(&t);
-        //std::cerr << asctime(localt) << std::endl;
 	starttime = clock();
 #endif
 	calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
 	calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
-        t = time(NULL);
-        localt = localtime(&t);
         endtime = clock();
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-        t = time(NULL);
-        localt = localtime(&t);
 #endif
     }
     
@@ -997,7 +1342,8 @@ namespace insur {
     Material res, tmp;
     XYZVector origin, direction;
     Polar3DVector dir;
-    double distance, r;
+    double distance;
+    //double r;
     int hits = 0;
     res.radiation = 0.0;
     res.interaction = 0.0;
@@ -1016,7 +1362,7 @@ namespace insur {
 	  if (distance > 0) {
 	    // module was hit
 	    hits++;
-	    r = distance * sin(theta);
+	    // r = distance * sin(theta);
 	    tmp.radiation = iter->getRadiationLength();
 	    tmp.interaction = iter->getInteractionLength();
 	    // radiation and interaction length scaling for barrels
@@ -1577,6 +1923,9 @@ namespace insur {
 
     TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
+    TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
+    TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
+    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
 
     LayerVector& layerSet = tracker.getLayers();
     LayerVector::iterator layIt;
@@ -1598,7 +1947,7 @@ namespace insur {
 	for (int j=1; j<=myMap.GetNbinsY(); ++j)
 	  myMap.SetBinContent(i,j,0);
 
-      // Create a map for teh counter
+      // Create a map for the counter
       TH2D* counter = (TH2D*)myMap.Clone();
 
       // Loop over all the modules
@@ -1645,7 +1994,7 @@ namespace insur {
 	for (int j=1; j<=myMap.GetNbinsY(); ++j)
 	  myMap.SetBinContent(i,j,0);
 
-      // Create a map for teh counter
+      // Create a map for the counter
       TH2D* counter = (TH2D*)myMap.Clone();
 
       // Loop over all the modules
@@ -1683,18 +2032,31 @@ namespace insur {
     // Then: single maps
     
     // Reset the our map, in case it is not empty
+    //thicknessMap.Reset();
+    //windowMap.Reset();
+    //suggestedSpacingMap.Reset();
+    //suggestedSpacingMapAW.Reset();
     for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
       for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
 	thicknessMap.SetBinContent(i,j,0);
 	windowMap.SetBinContent(i,j,0);
+	suggestedSpacingMap.SetBinContent(i,j,0);
+	suggestedSpacingMapAW.SetBinContent(i,j,0);
+	spacingWindowMap.SetBinContent(i,j,0);
       }
     }
 
-    // Create a map for teh counter
+    // Create a map for the counter
     TH2D* counter = (TH2D*)thicknessMap.Clone();
+    TH2D* counterSpacing = (TH2D*)suggestedSpacingMap.Clone();
+    TH2D* counterSpacingAW = (TH2D*)suggestedSpacingMapAW.Clone();
     
     double myThickness;
     double myWindow;
+    double mySuggestedSpacing;
+    double mySuggestedSpacingAW;
+    //double myPitch;
+    double myWindowmm;
     // Loop over all the modules
     for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
       aLayer = (*layIt);
@@ -1703,17 +2065,32 @@ namespace insur {
 	aModule = (*modIt);
 	myThickness = aModule->getStereoDistance();
 	myWindow = aModule->getTriggerWindow();
-	
+	myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
+	mySuggestedSpacing = aModule->getOptimalSpacing(5); // TODO: put this 5 in a configuration of some sort
+	mySuggestedSpacingAW = aModule->getOptimalSpacing(aModule->getTriggerWindow());
+
 	// Draw the module
 	XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
 	XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
 	XYZVector diff = end-start;
 	XYZVector point;
+	double myZ, myRho;
 	for (double l=0; l<1; l+=0.1) {
 	  point = start + l * diff;
-	  thicknessMap.Fill(point.Z(), point.Rho(), myThickness);
-	  windowMap.Fill(point.Z(), point.Rho(), myWindow);
-	  counter->Fill(point.Z(), point.Rho(), 1);
+	  myZ=point.Z();
+	  myRho=point.Rho();
+	  thicknessMap.Fill(myZ, myRho, myThickness);
+	  windowMap.Fill(myZ, myRho, myWindow);
+	  spacingWindowMap.Fill(myZ, myRho, myThickness/myWindowmm);
+	  counter->Fill(myZ, myRho, 1);
+	  if (mySuggestedSpacing!=0) {
+	    suggestedSpacingMap.Fill(myZ, myRho, mySuggestedSpacing);
+	    counterSpacing->Fill(myZ, myRho, 1);
+	  }
+	  if (mySuggestedSpacingAW!=0) {
+	    suggestedSpacingMapAW.Fill(myZ, myRho, mySuggestedSpacingAW);
+	    counterSpacingAW->Fill(myZ, myRho, 1);
+	  }
 	}
       }
     }
@@ -1724,12 +2101,34 @@ namespace insur {
 	if (counter->GetBinContent(i,j)!=0) {
 	  thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
 	  windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	  spacingWindowMap.SetBinContent(i,j, spacingWindowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	  if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
+	    std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
+		      << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
+	  }
+	  suggestedSpacingMap.SetBinContent(i,j, suggestedSpacingMap.GetBinContent(i,j) / counterSpacing->GetBinContent(i,j));
+	  suggestedSpacingMapAW.SetBinContent(i,j, suggestedSpacingMapAW.GetBinContent(i,j) / counterSpacingAW->GetBinContent(i,j));
 	}
       }
     }
     // ... and get rid of the counter
     delete counter;
+    delete counterSpacing;
+    delete counterSpacingAW;
   }
+
+  void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
+    int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
+    int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
+    myMap.SetName(name.c_str());
+    myMap.SetTitle(title.c_str());
+    myMap.SetXTitle("z [mm]");
+    myMap.SetYTitle("r [mm]");
+    myMap.SetBins(mapBinsX, 0.0, max_length*1.1, mapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    myMap.Reset();
+  }
+
+ 
 
   /**
    * This convenience function resets and empties all histograms for
@@ -1737,32 +2136,29 @@ namespace insur {
    * analysis.
    * @parameter triggerMomenta the vector of pt to test the trigger
    */
+  
   void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
     // Clean-up and prepare the trigger performance maps
     myMapBag.clearMaps(mapBag::efficiencyMap);
     myMapBag.clearMaps(mapBag::thresholdMap);
     myMapBag.clearMaps(mapBag::thicknessMap);
     myMapBag.clearMaps(mapBag::windowMap);
+    myMapBag.clearMaps(mapBag::suggestedSpacingMap);
+    myMapBag.clearMaps(mapBag::suggestedSpacingMapAW);
+    myMapBag.clearMaps(mapBag::spacingWindowMap);
 
     std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
 
     // PT Threshold maps here
-    int triggerPerformanceMapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
-    int triggerPerformanceMapBinsX = int( (max_length) * 1.1 / 10.); // every cm
     ostringstream tempSS;
-    string tempString;
+    // string tempString;
     for (std::vector<double>::const_iterator it = thresholdProbabilities.begin();
 	 it!=thresholdProbabilities.end(); ++it) {
       TH2D& myMap = thresholdMaps[(*it)];
       tempSS.str("");
       tempSS << "ptThresholdMap_" << std::dec << (*it) * 100 << "perc";
-      tempString = tempSS.str();
-      myMap.SetName(tempString.c_str());
-      myMap.SetTitle(tempString.c_str());
-      myMap.SetXTitle("z [mm]");
-      myMap.SetYTitle("r [mm]");
-      myMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+      prepareTrackerMap(myMap, tempSS.str(), tempSS.str());
     }
 
     // Efficiency maps here
@@ -1771,32 +2167,25 @@ namespace insur {
       TH2D& myMap = efficiencyMaps[(*it)];
       tempSS.str("");
       tempSS << "triggerEfficiencyMap_" << std::dec << (*it) << "GeV";
-      tempString = tempSS.str();
-      myMap.SetName(tempString.c_str());
-      myMap.SetTitle(tempString.c_str());
-      myMap.SetXTitle("z [mm]");
-      myMap.SetYTitle("r [mm]");
-      myMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+      prepareTrackerMap(myMap, tempSS.str(), tempSS.str());
     }
 
     // Single maps here
     TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
-    thicknessMap.SetName("thicknessMap");
-    thicknessMap.SetTitle("Module thickness map");
-    thicknessMap.SetMinimum(0);
-    thicknessMap.SetMaximum(6);
-    thicknessMap.SetXTitle("z [mm]");
-    thicknessMap.SetYTitle("r [mm]");
-    thicknessMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
+    TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
+    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
 
-    windowMap.SetName("windowMap");
-    windowMap.SetTitle("Module window map");
-    windowMap.SetXTitle("z [mm]");
-    windowMap.SetYTitle("r [mm]");
-    windowMap.SetBins(triggerPerformanceMapBinsX, 0.0, max_length*1.1, triggerPerformanceMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);    
+    prepareTrackerMap(thicknessMap, "thicknessMap", "Module thickness map");
+    //thicknessMap.SetMinimum(0);
+    //thicknessMap.SetMaximum(6);
+    prepareTrackerMap(windowMap, "windowMap", "Module window map");
+    prepareTrackerMap(suggestedSpacingMap, "suggestedSpacingMap", "Map of nearest available spacing [using standard window]");
+    prepareTrackerMap(suggestedSpacingMapAW, "suggestedSpacingMapAW", "Map of nearest available spacing [using selected windows]");
+    prepareTrackerMap(spacingWindowMap, "spacingWindowMap", "Map of module spacing/window");
+
     
-        
     // Clear the graph (and profile) list
     myGraphBag.clearTriggerGraphs();
     myProfileBag.clearTriggerProfiles();
@@ -1816,7 +2205,7 @@ namespace insur {
       std::pair<double, TGraph> elemGraph;
       std::pair<double, TProfile> elemProfile;
       TGraph graph;
-      TProfile profile("dummyName", "dummyTitle", nbins, 0, etaMax);
+      TProfile profile("dummyName", "dummyTitle", nbins, 0, 2.4);
       elemGraph.first = *iter;
       elemGraph.second = graph;
       elemProfile.first = *iter;
@@ -1835,7 +2224,7 @@ namespace insur {
     std::pair<double, TGraph> elemTotalGraph;
     std::pair<double, TProfile> elemTotalProfile;
     TGraph totalGraph;
-    TProfile totalProfile("dummyName", "dummyTitle", nbins, 0, etaMax);
+    TProfile totalProfile("dummyName", "dummyTitle", nbins, 0, 2.4); // where is this 2.4 defined normally? TODO: fix it
     elemTotalGraph.first = graphBag::Triggerable;
     elemTotalGraph.second = totalGraph;
     elemTotalProfile.first = profileBag::Triggerable;
@@ -1850,50 +2239,12 @@ namespace insur {
     aName.str(""); aName << "triggerable_vs_eta_profile";
     trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 
-
-    /*
-    // Prepare the graphs to record the correlation of triggers points
-    std::map<double, TGraph>& trigCorrGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggerCorrelationGraph);
-    std::vector<double> momentumCorrelation;
-    
-    momentumCorrelation.push_back(graphBag::joinMomenta(1, 2));
-    momentumCorrelation.push_back(graphBag::joinMomenta(1, 5));
-
-    for (std::vector<double>::const_iterator it = momentumCorrelation.begin();
-	 it!= momentumCorrelation.end(); ++it) {
-      std::pair<double, double> momentum = graphBag::splitMomenta(*it);
-      std::cerr << "Split momenta: " << momentum.first << ", " << momentum.second << std::endl; // debug
-      std::pair<double, TGraph> elem;
-      TGraph graph;
-      elem.first = *it;
-      elem.second = graph;
-      trigCorrGraphs.insert(elem);
-      aName.str(""); aName << "Trigger efficiency correlation;eff(" << momentum.first<< " GeV);eff("<< momentum.second<<" GeV)";
-      trigCorrGraphs[*it].SetTitle(aName.str().c_str());
-      aName.str(""); aName << "trigger_eff_corr" << momentum.first << "_" << momentum.second;
-      trigCorrGraphs[elem.first].SetName(aName.str().c_str());
-    }
-    */
-
   }
 
-  /*
-  double graphBag::joinMomenta(double momentum1, double momentum2) {
-    return momentum2*100000+momentum1;
-  }
-
-  std::pair<double, double> graphBag::splitMomenta(double momentum) {
-    std::pair<double, double> result;
-    result.second = int(momentum/100000.);
-    result.first = momentum - 100*result.second;
-    return result;
-  }
-  */
-
-    /**
-     * This convenience function resets and empties all histograms for the
-     * geometry so they are ready for a new round of analysis.
-     */
+  /**
+   * This convenience function resets and empties all histograms for the
+   * geometry so they are ready for a new round of analysis.
+   */
     void Analyzer::clearGeometryHistograms() {
         // geometry analysis
         mapPhiEta.Reset();
@@ -2299,11 +2650,6 @@ namespace insur {
         ModuleVector hitModules;
         
 #ifdef DEBUG_PERFORMANCE
-        struct tm *localt; // timing: debug
-        time_t t;          // timing: debug
-        t = time(NULL);
-        localt = localtime(&t);
-        //std::cerr << asctime(localt) << std::endl;
         clock_t starttime = clock();
 #endif
         
@@ -2359,12 +2705,8 @@ namespace insur {
         savingGeometryV.push_back(mapPhiEta);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeGeometry(): ";
-        t = time(NULL);
-        localt = localtime(&t);
         clock_t endtime = clock();
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-        t = time(NULL);
-        localt = localtime(&t);
 #endif
 
         // Eta profile compute
@@ -2726,6 +3068,10 @@ namespace insur {
     return myGraphBag.getGraphs(attribute);
   }
 
-  
+  TH1D& Analyzer::getHistoOptimalSpacing(bool actualWindow) {
+    if (actualWindow) return optimalSpacingDistributionAW;
+    else return optimalSpacingDistribution;
+  }
+
 }
 

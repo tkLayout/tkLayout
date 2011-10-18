@@ -311,7 +311,7 @@ void Module::setPterrorParameters() {
   // possibility
   myPtError.setStripLength( height_ / (double)(nSegmentsFace_[findMinSegmentsFace_()]) );
   XYZVector center = getMeanPoint();
-  myPtError.setZ(center.Z());
+  myPtError.setZ(fabs(center.Z()));
   myPtError.setR(center.Rho());
 }
 
@@ -335,12 +335,17 @@ double Module::getPtThreshold(const double& myEfficiency) {
  * as high-pt track by this module
  *
  * @param trackPt the track's transverse momentum
+ * @param stereoDistance if defined: use this instead of teh actual module stereodist_
  *
  * @returns the probability of the hit to be detected as high-pt
  */
-double Module::getTriggerProbability(const double& trackPt) {
+double Module::getTriggerProbability(const double& trackPt, const double& stereoDistance /*= 0*/, const int& triggerWindow /* = 0 */ ) {
   setPterrorParameters();
-  double pt_cut = myPtError.stripsToP(triggerWindow_/2.);
+  if (stereoDistance!=0) myPtError.setDistance(stereoDistance);
+  int thisTriggerWindow;
+  if (triggerWindow!=0) thisTriggerWindow = triggerWindow;
+  else thisTriggerWindow = triggerWindow_;
+  double pt_cut = myPtError.stripsToP(thisTriggerWindow/2.);
   // Error on curvatre is the relative error of trackPt times the
   // curvature (cur = 1/pt)
   double cur_error = myPtError.computeError(trackPt) / trackPt; 
@@ -882,12 +887,10 @@ edge Module::getEdgeRhoSide(int direction) {
     Module fakeModule;
     XYZVector* marginBorder;
     
-    int nextIndex;
     for (int i=0; i<4; i++) {
-        nextIndex=(i+1) % 4;
-        marginBorder = marginBorderSide(0, i);
-        fakeModule.corner_[i]=(*marginBorder);
-        delete marginBorder;
+      marginBorder = marginBorderSide(0, i);
+      fakeModule.corner_[i]=(*marginBorder);
+      delete marginBorder;
     }
     
     return fakeModule.getEdgeRho(direction);
@@ -1377,9 +1380,7 @@ edge BarrelModule::getEdgeZSide(int direction, double margin /*= 0*/) {
     
     XYZVector* marginBorder;
     
-    int nextIndex;
     for (int i=0; i<4; i++) {
-        nextIndex=(i+1) % 4;
         marginBorder = marginBorderSide(margin, i);
         fakeModule.corner_[i]=(*marginBorder);
         delete marginBorder;

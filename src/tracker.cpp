@@ -326,7 +326,7 @@ void Tracker::buildBarrel(int nLayer,
         aBarrelLayer = new BarrelLayer(sampleModule);
         layerName.str("");
         layerName << "L" << std::dec << i+1;
-        aBarrelLayer->setName(layerName.str());
+        aBarrelLayer->setName(layerName.str(), i+1);
 	aBarrelLayer->setContainerName(barrelName);
        
         tempString.str(""); tempString << "Desired radius: " << radius;
@@ -687,7 +687,7 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
         thisZ = pow(alpha, iDisk) * minZ;
         deltaZ=-1*(minZ+maxZ)/2+thisZ;
         anotherDisk = new EndcapLayer(*defaultDisk);
-        anotherDisk->setName(layerName.str());
+        anotherDisk->setName(layerName.str(), iDisk+1);
 	anotherDisk->setContainerName(endcapName);
         anotherDisk->translateZ(deltaZ);
         addLayer(anotherDisk, endcapName, TypeEndcap);
@@ -1147,41 +1147,11 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
     
     std::string theOption(option);
     
-    int i;
-    int j;
-    int k;
-    
     double topMax = (maxL > maxR) ? maxL : maxR;
     topMax = ceil(topMax/spacing)*spacing;
     
-    double aValue[3];
-    double minValue[3];
-    double maxValue[3];
-    
-    i=(noAxis)%3;
-    j=(noAxis+1)%3;
-    k=(noAxis+2)%3;
-    
     maxL *= 1.1;
     maxR *= 1.1;
-    
-    if (noAxis==1) {
-        minValue[0]=0;
-        maxValue[0]=+maxR;
-        minValue[1]=0;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
-    } else {
-        minValue[0]=-maxR;
-        maxValue[0]=+maxR;
-        minValue[1]=-maxR;
-        maxValue[1]=+maxR;
-        minValue[2]=0;
-        maxValue[2]=+maxL;
-    }
-    
-    aValue[k]=-topMax;
     
     if (noAxis==1) {
         double etaStep=.2;

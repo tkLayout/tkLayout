@@ -30,6 +30,7 @@
 #include <TView.h>
 #include <TLegend.h>
 #include <TGraph.h>
+#include <TGraphErrors.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
@@ -202,6 +203,8 @@ namespace insur {
 	void addOccupancyElement(double element);
 	void addOccupancyElement(std::string element);
 	void addOccupancyEOL();
+
+	int getNiceColor(unsigned int plotIndex);
     };
 }
 #endif	/* _VIZARD_H */

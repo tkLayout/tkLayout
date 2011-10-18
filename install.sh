@@ -22,6 +22,7 @@ echo "Where should I install the binary?"
 echo -n "(Choose a directory in your PATH) [ $HOME/bin ]: "
 read TKG_BIN_TARGET
 if [ "${TKG_BIN_TARGET}" == "" ] ; then TKG_BIN_TARGET="$HOME/bin" ; fi
+mkdir -p $TKG_BIN_TARGET
 
 if [ ! -d $TKG_BIN_TARGET ] ; then
     echo I cannot find the target directory $(TKG_BIN_TARGET)

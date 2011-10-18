@@ -45,6 +45,7 @@ protected:
   double boundaryMaxPhi_;
   double boundaryMinEta_;
   double boundaryMaxEta_;
+  std::map<int, double> optimalSpacing_;
   bool isAcrossPi_;
   bool computedBoundaries_;
 
@@ -148,6 +149,8 @@ protected:
 
   void print();
   
+  void setOptimalSpacing(const int& windowSize, const double& newSpacing) { optimalSpacing_[windowSize] = newSpacing ; }
+  const double& getOptimalSpacing(const int& windowSize) { return optimalSpacing_[windowSize] ; }
 
   int projectSideZ(int side, double destZ, double displaceZ = 0);
   int projectSideRho(int side, double destRho, double displaceZ = 0);
@@ -171,7 +174,7 @@ protected:
   double getStereoDistance() { return (nFaces_ -1) * stereodist_; }; // TODO: check if this creates any problem around!
 
   void setTriggerWindow(const int& newWindow) { triggerWindow_ = newWindow ; }
-  int getTriggerWindow() { return triggerWindow_ ; }
+  const int& getTriggerWindow() { return triggerWindow_ ; }
 
   void setStereoRotation(double srot) { stereorot_=srot; }
   double getStereoRotation() { return stereorot_; };
@@ -275,7 +278,7 @@ protected:
   virtual int getDisk() const { return 0;};
 
   double getPtThreshold(const double& myEfficiency);
-  double getTriggerProbability(const double& trackPt);
+  double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
 
 private:
