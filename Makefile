@@ -4,12 +4,12 @@
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
 DEFINES+=-DDEBUG_PERFORMANCE
-DEFINES+=-DBOOST_FILESYSTEM_VERSION=2
 
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-BOOSTLIBFLAGS=-lboost_filesystem -lboost_regex -lboost_program_options
+#BOOSTLIBFLAGS=-lboost_system -lboost_filesystem /usr/lib/libboost_regex.so.1.42.0 -lboost_program_options
+BOOSTLIBFLAGS=-lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS=-Iinclude/
@@ -28,10 +28,10 @@ COMPILERFLAGS+=-O2
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tklayout setup materialShow tunePtParam
+bin: tklayout setup tunePtParam
 	@echo "Executable built."
 
-all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest materialShow
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest
 	@echo "Full build successful."
 
 install:
@@ -42,7 +42,9 @@ $(LIBDIR)/ptError.o: $(SRCDIR)/ptError.cpp $(INCDIR)/ptError.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ptError.o $(SRCDIR)/ptError.cpp
 
 $(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
-	$(COMP) $(ROOTLIBFLAGS) $(ROOTFLAGS) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp -o $(BINDIR)/tunePtParam
+	$(COMP) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp \
+	$(ROOTLIBFLAGS) $(ROOTFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/tunePtParam
 
 #TRACKS
 hit: $(LIBDIR)/hit.o
@@ -222,18 +224,10 @@ $(LIBDIR)/Palette.o: $(SRCDIR)/Palette.cc  $(INCDIR)/Palette.h
 setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
-$(BINDIR)/setup.bin: setup.cpp $(LIBDIR)/mainConfigHandler.o
-	$(COMP) $(BOOSTLIBFLAGS) $(LIBDIR)/mainConfigHandler.o setup.cpp -o $(BINDIR)/setup.bin
-
-materialShow: $(BINDIR)/materialShow
-	@echo "materialShow built"
-
-$(BINDIR)/materialShow: materialShow.cpp \
-	$(LIBDIR)/mainConfigHandler.o $(INCDIR)/mainConfigHandler.h \
-	$(LIBDIR)/Palette.o $(INCDIR)/Palette.h
-	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) \
-	materialShow.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/Palette.o \
-	-o $(BINDIR)/materialShow
+$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o setup.cpp
+	$(COMP) $(LIBDIR)/mainConfigHandler.o setup.cpp \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/setup.bin
 
 #FINAL
 tklayout: $(BINDIR)/tklayout
@@ -311,9 +305,6 @@ cleanrootweb:
 cleanpalette:
 	@rm -f $(LIBDIR)/Palette.o
 
-cleanmaterialshow:
-	@rm -f $(BINDIR)/materialShow
-
 cleantkmain:
 	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
 
@@ -328,7 +319,7 @@ cleanpt:
 
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
 	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
-	cleanpalette cleanmaterialshow cleantuneptparam cleanpt cleanmoduletype
+	cleanpalette cleantuneptparam cleanpt cleanmoduletype
 
 doc: doxydoc
 
