@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include <boost/regex.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <sys/types.h>
 #include <regex.h>

@@ -2,7 +2,8 @@
 #define _ROOTWEB_HH_
 
 #define USING_ROOTWEB // TODO: remove this everywhere
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <iomanip>
 #include <iostream>

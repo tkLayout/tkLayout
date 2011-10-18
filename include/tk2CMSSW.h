@@ -22,7 +22,8 @@
 #include <XMLWriter.h>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
 
 /**
  * A shorter alias for the filesystem library namespace

@@ -20,7 +20,8 @@
 #include <MatCalc.h>
 #include <MaterialTable.h>
 #include <global_constants.h>
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/exception.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/trim.hpp>
 /**
  * A shorter alias for the filesystem library namespace
