@@ -8,7 +8,6 @@ DEFINES+=-DDEBUG_PERFORMANCE
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-#BOOSTLIBFLAGS=-lboost_system -lboost_filesystem /usr/lib/libboost_regex.so.1.42.0 -lboost_program_options
 BOOSTLIBFLAGS=-lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`

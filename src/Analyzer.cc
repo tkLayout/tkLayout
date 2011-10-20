@@ -36,10 +36,14 @@ namespace insur {
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
+  const int profileBag::TriggeredFractionProfile  = 0x0000008;
   const int profileBag::TriggerProfile    = 0x0000040;
 
+  // These strings should be different from one another
+  // Also one should never be a substring of the other
   const std::string profileBag::TriggerProfileName = "trigger";
   const std::string profileBag::TriggerProfileNameWindow = "windowTrigger";
+  const std::string profileBag::TurnOnCurveName = "turnOnCurveTrigger";
 
   const double mapBag::dummyMomentum = 0.;
 
@@ -381,7 +385,7 @@ namespace insur {
     //spacingOptions.push_back(1.1);
     //spacingOptions.push_back(1.8);
     //spacingOptions.push_back(2.5);
-    //spacingOptions.push_back(5);
+    //spacingOptions.push_back(5); // TODO: make these configurable
     spacingOptions.push_back(1.2);
     spacingOptions.push_back(1.6);
     spacingOptions.push_back(2.6);
@@ -413,6 +417,7 @@ namespace insur {
     std::string myName;
     std::string myBaseName;
     std::map<std::string, bool> preparedProfiles;
+    std::map<std::string, bool> preparedTurnOn;
 
     // Loop over all the tracker
     LayerVector& layerSet = tracker.getLayers();
@@ -451,9 +456,11 @@ namespace insur {
 
 	// Prepare the variables to hold the profiles
 	std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+	// Prepare the variables to hold the turn-on curve profiles
+	std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
+	//  Profiles
 	if (!preparedProfiles[myName]) {
-	  //std::cerr << "Profile name is " << myName << std::endl;
 	  preparedProfiles[myName] = true;
 	  for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
 	    tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
@@ -461,6 +468,19 @@ namespace insur {
 	    tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
 	    tuningProfiles[*it].SetName(tempSS.str().c_str());
 	    tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+	  }	  
+	}
+
+	// Turn-on curve
+	if (!preparedTurnOn[myName]) {
+	  preparedTurnOn[myName] = true;
+	  for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+	    double windowSize=iWindow*2+1;
+	    tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+	    turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
+	    tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
+	    turnonProfiles[windowSize].SetName(tempSS.str().c_str());
+	    turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
 	  }	  
 	}
 
@@ -477,7 +497,19 @@ namespace insur {
 	    for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
 	      double myPt = (*it);
 	      myValue = 100 * aModule->getTriggerProbability(myPt, dist);
-	      tuningProfiles[myPt].Fill(dist, myValue);
+	      if ((myValue>=0) && (myValue<=100))
+		tuningProfiles[myPt].Fill(dist, myValue);
+	    }
+	  }
+
+	  // Fill the turnon curves profiles for the distance actually set
+	  for (double myPt=0.5; myPt<=10; myPt+=0.02) {
+	    for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+	      double windowSize=iWindow*2+1;
+	      double distance = aModule->getStereoDistance();
+	      myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
+	      if ((myValue>=0) && (myValue<=100))
+		turnonProfiles[windowSize].Fill(myPt, myValue);
 	    }
 	  }
 	}
@@ -517,9 +549,11 @@ namespace insur {
 
 	      // Prepare the variables to hold the profiles
 	      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+	      // Prepare the variables to hold the turn-on curve profiles
+	      std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
+	      // Tuning profile
 	      if (!preparedProfiles[myName]) {
-		//std::cerr << "Profile name is " << myName << std::endl;
 		preparedProfiles[myName] = true;
 		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
 		  tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
@@ -530,14 +564,42 @@ namespace insur {
 		}
 	      }
 
+	      // Turn-on curve
+	      if (!preparedTurnOn[myName]) {
+		preparedTurnOn[myName] = true;
+		for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+		  double windowSize=iWindow*2+1;
+		  tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+		  turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
+		  tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << windowSize;
+		  turnonProfiles[windowSize].SetName(tempSS.str().c_str());
+		  turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
+		}	  
+	      }
+
+
+
 	      // Fill the tuning profiles for the windows actually set
 	      for (double dist=0.5; dist<=6; dist+=0.02) {
 		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
 		  double myPt = (*it);
 		  myValue = 100 * aModule->getTriggerProbability(myPt, dist);
-		  tuningProfiles[myPt].Fill(dist, myValue);
+		  if ((myValue>=0) && (myValue<=100))
+		    tuningProfiles[myPt].Fill(dist, myValue);
 		}
 	      }
+
+	      // Fill the turnon curves profiles for the distance actually set
+	      for (double myPt=0.5; myPt<=10; myPt+=0.02) {
+		for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+		  double windowSize=iWindow*2+1;
+		  double distance = aModule->getStereoDistance();
+		  myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
+		  if ((myValue>=0) && (myValue<=100))
+		    turnonProfiles[windowSize].Fill(myPt, myValue);
+		}
+	      }
+
 	    } else {
 	      std::cerr << "ERROR: this should not happen: a not-endcap module was found in an endcap layer! Contact the developers" << std::endl;
 	    }
@@ -701,10 +763,11 @@ namespace insur {
 					     const std::vector<Track>& trackVector) {
     
     // Prepare the graphs to record the number of triggered points
-    std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+    //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
     std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
+    std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
 
-    TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
+    //TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
     TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
     
     double eta;
@@ -715,16 +778,18 @@ namespace insur {
 
       eta = - log(tan(myTrack.getTheta() / 2));
       int nHits = myTrack.nActiveHits(false, false);
-      totalGraph.SetPoint(totalGraph.GetN(), eta, nHits);
+      //totalGraph.SetPoint(totalGraph.GetN(), eta, nHits);
       totalProfile.Fill(eta, nHits);
 
       for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
 	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
-	TGraph& myGraph = trigGraphs[(*itMomentum)];
+	//TGraph& myGraph = trigGraphs[(*itMomentum)];
 	TProfile& myProfile = trigProfiles[(*itMomentum)];
+	TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
 	double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
-	myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
+	//myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
 	myProfile.Fill(eta, nExpectedTriggerPoints);
+	myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
       }
     }
 
@@ -2191,8 +2256,9 @@ namespace insur {
     myProfileBag.clearTriggerProfiles();
 
     // Prepare the graphs to record the number of triggered points
-    std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+    // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
     std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
+    std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
 
     // Prepare the graphs for the trigger performace
     std::ostringstream aName;
@@ -2202,40 +2268,45 @@ namespace insur {
     for (vector<double>::const_iterator iter = triggerMomenta.begin();
 	 iter != triggerMomenta.end();
 	 ++iter) {
-      std::pair<double, TGraph> elemGraph;
+      //std::pair<double, TGraph> elemGraph;
       std::pair<double, TProfile> elemProfile;
-      TGraph graph;
+      std::pair<double, TProfile> elemFractionProfile;
+      //TGraph graph;
       TProfile profile("dummyName", "dummyTitle", nbins, 0, 2.4);
-      elemGraph.first = *iter;
-      elemGraph.second = graph;
+      //elemGraph.first = *iter;
+      //elemGraph.second = graph;
       elemProfile.first = *iter;
       elemProfile.second = profile;
+      elemFractionProfile.first = *iter;
+      elemFractionProfile.second = profile;
       // Prepare plots: triggered graphs
-      trigGraphs.insert(elemGraph);
+      // trigGraphs.insert(elemGraph);
       trigProfiles.insert(elemProfile);
-      trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
+      trigFractionProfiles.insert(elemFractionProfile);
+      // trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
       trigProfiles[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
-      aName.str(""); aName << "triggered_vs_eta" << *iter << "_graph";
-      trigGraphs[*iter].SetName(aName.str().c_str());
+      trigFractionProfiles[*iter].SetTitle("Average trigger efficiency;#eta;Efficiency [%]");
       aName.str(""); aName << "triggered_vs_eta" << *iter << "_profile";      
       trigProfiles[*iter].SetName(aName.str().c_str());
+      aName.str(""); aName << "triggered_vs_eta" << *iter << "_fractionProfile";
+      trigFractionProfiles[*iter].SetName(aName.str().c_str());
     }
 
-    std::pair<double, TGraph> elemTotalGraph;
+    //std::pair<double, TGraph> elemTotalGraph;
     std::pair<double, TProfile> elemTotalProfile;
-    TGraph totalGraph;
+    //TGraph totalGraph;
     TProfile totalProfile("dummyName", "dummyTitle", nbins, 0, 2.4); // where is this 2.4 defined normally? TODO: fix it
-    elemTotalGraph.first = graphBag::Triggerable;
-    elemTotalGraph.second = totalGraph;
+    //elemTotalGraph.first = graphBag::Triggerable;
+    //elemTotalGraph.second = totalGraph;
     elemTotalProfile.first = profileBag::Triggerable;
     elemTotalProfile.second = totalProfile;
     // Prepare plot: total trigger points
-    trigGraphs.insert(elemTotalGraph);
+    //trigGraphs.insert(elemTotalGraph);
     trigProfiles.insert(elemTotalProfile);
-    trigGraphs[graphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
+    //trigGraphs[graphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
     trigProfiles[profileBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
-    aName.str(""); aName << "triggerable_vs_eta_graph";
-    trigGraphs[graphBag::Triggerable].SetName(aName.str().c_str());
+    //aName.str(""); aName << "triggerable_vs_eta_graph";
+    //trigGraphs[graphBag::Triggerable].SetName(aName.str().c_str());
     aName.str(""); aName << "triggerable_vs_eta_profile";
     trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 

@@ -2069,6 +2069,7 @@ namespace insur {
     }
     
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
+
         //********************************//
         //*                              *//
         //*    Resolution estimate       *//
@@ -2471,92 +2472,33 @@ namespace insur {
     //********************************//
     //*                              *//
     //*   Eta plot for the trigger   *//
-    //*                              *//
-    //********************************//
-
-    /*
-    
-    graphBag aGraphBag = a.getGraphBag();
-    std::map<double, TGraph>& triggerGraphs = aGraphBag.getGraphs(graphBag::TriggerGraph | graphBag::TriggeredGraph);
-
-    // Check if graphs exist at all
-    if (!triggerGraphs.empty()) {
-      somethingFound = true;
-
-      // Create the contents
-      RootWContent& myContent = myPage.addContent("Trigger points");	      
-      TCanvas myCanvas;
-      myCanvas.SetGrid(1,1);
-      std::string plotOption = "Ap";
-
-      // momentum canvas loop
-      int myColor=0;
-      // Style things
-      gStyle->SetGridStyle(style_grid);
-      gStyle->SetGridColor(color_hard_grid);
-      
-      // Loop over the plots and draw on the canvas
-      for (std::map<double, TGraph>::iterator plot_iter = triggerGraphs.begin();
-	   plot_iter != triggerGraphs.end();
-	   ++plot_iter) {
-	TGraph& npointsGraph = plot_iter->second;
-	npointsGraph.SetMinimum(1E-2);
-	npointsGraph.GetXaxis()->SetLimits(0, 2.4);
-	npointsGraph.SetLineColor(momentumColor(myColor));
-	npointsGraph.SetMarkerColor(momentumColor(myColor));
-	myColor++;
-	npointsGraph.SetMarkerStyle(8);
-	myCanvas.SetFillColor(color_plot_background);
-
-	if (npointsGraph.GetN()>0) {
-	  myCanvas.cd();
-	  npointsGraph.Draw(plotOption.c_str());
-	  plotOption = "p same";
-	}	
-      }
-
-      RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
-      npointsImage.setComment("Number of triggered and triggerable points vs. eta");
-      npointsImage.setName("ntrigpoints");
-
-      myCanvas.SetLogy();
-      RootWImage& npointsLogImage = myContent.addImage(myCanvas, 600, 600);
-      npointsLogImage.setComment("Number of triggered and triggerable points vs. eta (log scale)");
-      npointsLogImage.setName("ntrigpointsLog");
-      
-    } else { // There are no graphs to plot here...
-      std::cerr << "ERROR: no trigger performance plot to show here" << std::endl;
-    }
-    
-    */
-
-    //********************************//
-    //*                              *//
-    //*   Eta plot for the trigger   *//
     //*   (Again, with TProfile)     *//
     //*                              *//
     //********************************//
 
     profileBag aProfileBag = a.getProfileBag();
     std::map<double, TProfile>& triggerProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredProfile);
+    std::map<double, TProfile>& triggerFractionProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredFractionProfile);
 
     // Check if profiles exist at all
     if (!triggerProfiles.empty()) {
       somethingFound = true;
 
+      std::string plotOption;
+      int myColor;
+
+      // Create the contents
+      RootWContent& myContent = myPage.addContent("Overall trigger");
+      TCanvas pointsCanvas;
+      pointsCanvas.SetGrid(1,1);
+      plotOption = "E1"; // or "E6"
+
+      // Strings according to the content
       tempString="";
       tempSS.str(""); tempSS << "Number of triggered and triggerable points vs. eta for pT = ";
 
-      // Create the contents
-      RootWContent& myContent = myPage.addContent("Trigger points");	      
-      TCanvas myCanvas;
-      myCanvas.SetGrid(1,1);
-      //std::string plotOption = "E6";
-      std::string plotOption = "E1";
-      //std::string plotOption = "";
-
       // momentum canvas loop
-      int myColor=0;
+      myColor=0;
       // Style things
       gStyle->SetGridStyle(style_grid);
       gStyle->SetGridColor(color_hard_grid);
@@ -2577,23 +2519,72 @@ namespace insur {
 	npointsProfile.SetFillColor(getNiceColor(myColor));
 	myColor++;
 	npointsProfile.SetMarkerStyle(8);
-	myCanvas.SetFillColor(color_plot_background);
+	pointsCanvas.SetFillColor(color_plot_background);
 
-	myCanvas.cd();
+	pointsCanvas.cd();
 	npointsProfile.Draw(plotOption.c_str());
 	//plotOption = "E6 same";
 	plotOption = "E1 same";
 	//plotOption = "same";
       }
 
-      RootWImage& npointsImage = myContent.addImage(myCanvas, 600, 600);
+      RootWImage& npointsImage = myContent.addImage(pointsCanvas, 600, 600);
       npointsImage.setComment(tempSS.str().c_str());
       npointsImage.setName("ntrigpoints");
 
-      myCanvas.SetLogy();
-      RootWImage& npointsLogImage = myContent.addImage(myCanvas, 600, 600);
-      npointsLogImage.setComment("Number of triggered and triggerable points vs. eta (log scale)");
+      pointsCanvas.SetLogy();
+      RootWImage& npointsLogImage = myContent.addImage(pointsCanvas, 600, 600);
+      tempSS << " (log scale)";
+      npointsLogImage.setComment(tempSS.str().c_str());
       npointsLogImage.setName("ntrigpointsLog");
+
+
+      TCanvas fractionCanvas;
+      fractionCanvas.SetGrid(1,1);
+      plotOption = "E1";
+
+      // Strings according to the content
+      tempString="";
+      tempSS.str(""); tempSS << "Average trigger efficiency vs. eta for pT = ";
+
+      // momentum canvas loop
+      myColor=1;
+      // Style things
+      gStyle->SetGridStyle(style_grid);
+      gStyle->SetGridColor(color_hard_grid);
+      
+      // Loop over the plots and draw on the canvas
+      for (std::map<double, TProfile>::iterator plot_iter = triggerFractionProfiles.begin();
+	   plot_iter != triggerFractionProfiles.end();
+	   ++plot_iter) {
+	const double& myPt = plot_iter->first;
+	if (myPt!=0) {
+	  tempSS << tempString.c_str() << myPt; tempString = ", ";
+	}
+	TProfile& fractionProfile = plot_iter->second;
+	fractionProfile.SetMinimum(1E-2);
+	fractionProfile.SetMaximum(100);
+	fractionProfile.SetLineColor(getNiceColor(myColor));
+	fractionProfile.SetMarkerColor(getNiceColor(myColor));
+	fractionProfile.SetFillColor(getNiceColor(myColor));
+	myColor++;
+	fractionProfile.SetMarkerStyle(8);
+	fractionCanvas.SetFillColor(color_plot_background);
+
+	fractionCanvas.cd();
+	fractionProfile.Draw(plotOption.c_str());
+	plotOption = "E1 same";
+      }
+
+      RootWImage& fractionImage = myContent.addImage(fractionCanvas, 600, 600);
+      fractionImage.setComment(tempSS.str().c_str());
+      fractionImage.setName("fractiontrigpoints");
+
+      fractionCanvas.SetLogy();
+      RootWImage& fractionLogImage = myContent.addImage(fractionCanvas, 600, 600);
+      tempSS << " (log scale)";
+      fractionLogImage.setComment(tempSS.str().c_str());
+      fractionLogImage.setName("fractiontrigpointsLog");
       
     } else { // There are no profiles to plot here...
       std::cerr << "ERROR: no trigger performance profile plot to show here" << std::endl;
@@ -2793,7 +2784,6 @@ namespace insur {
       }
 
 
-      std::cerr << "range" << std::endl;
       TCanvas rangeCanvas;
       rangeCanvas.SetFillColor(color_plot_background);
       rangeCanvas.SetGrid(0,1);
@@ -2811,7 +2801,6 @@ namespace insur {
       tempSS.str(""); tempSS << "TriggerRangeTuning";
       RangeImage.setName(tempSS.str());
 
-      std::cerr << "tuning" << std::endl;
       TCanvas tuningCanvas;
       tuningCanvas.SetFillColor(color_plot_background);
       tuningCanvas.SetGrid(0,1);
@@ -2848,7 +2837,6 @@ namespace insur {
       tempSS.str(""); tempSS << "TriggerRangeTuningWindows";
       tuningImage.setName(tempSS.str());
 
-      std::cerr << "spacing" << std::endl;
       TH1D& spacingDistribution = a.getHistoOptimalSpacing(false);
       TCanvas spacingCanvas;
       spacingCanvas.SetFillColor(color_plot_background);
@@ -2905,7 +2893,7 @@ namespace insur {
 
 	RootWImage& tuningImage = spacingDetailedContent.addImage(tuningCanvas, 900, 400);
 	tempString = (*itName);
-	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+	tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
 	tempSS.str(""); tempSS << "Sensor distance tuning for " << tempString.c_str();
 	tuningImage.setComment(tempSS.str());
 	tempSS.str(""); tempSS << "TriggerTuning" << tempString.c_str();
@@ -2914,6 +2902,61 @@ namespace insur {
 
 
       
+    }
+
+    //********************************//
+    //*                              *//
+    //* Turn-on curves plots         *//
+    //*                              *//
+    //********************************//
+
+    std::vector<std::string> turnonNames = aProfileBag.getProfileNames(profileBag::TurnOnCurveName);
+
+    if (turnonNames.size()!=0) {
+      somethingFound = true;
+      
+      //********************************//
+      //*                              *//
+      //* Per-module type turn-on      *//
+      //*                              *//
+      //********************************//
+
+      // Create the content
+      RootWContent& turnOnDetailedContent = myPage.addContent("Modules turnon curves (detailed)", false);
+
+      for (std::vector<std::string>::const_iterator itName=turnonNames.begin(); itName!=turnonNames.end(); ++itName) {
+	std::map<double, TProfile>& turnonProfiles = aProfileBag.getNamedProfiles(*itName);
+	
+	int myColor = 1;
+	TCanvas turnonCanvas;
+	turnonCanvas.SetFillColor(color_plot_background);
+	turnonCanvas.cd();
+
+	std::string plotOption = "E1";
+	tempSS.str("");
+	std::string windowsStringSeparator = "";
+	for (std::map<double, TProfile>::iterator itProfile = turnonProfiles.begin() ; itProfile!= turnonProfiles.end(); ++itProfile) {
+	  TProfile& turnonProfile = itProfile->second;
+	  turnonProfile.SetMaximum(100);
+	  turnonProfile.SetMinimum(0);
+	  turnonProfile.SetLineColor(getNiceColor(myColor));
+	  turnonProfile.SetFillColor(getNiceColor(myColor));
+	  turnonProfile.SetMarkerColor(getNiceColor(myColor));
+	  myColor++;
+	  turnonProfile.Draw(plotOption.c_str());
+	  plotOption = "same E1";
+	  tempSS << windowsStringSeparator << std::setprecision(0) << itProfile->first;
+	  windowsStringSeparator = ", ";
+	}
+	std::string windowList = tempSS.str();
+
+	tempString = (*itName);
+	tempString = tempString.substr(profileBag::TurnOnCurveName.size(), tempString.size()-profileBag::TurnOnCurveName.size());
+	RootWImage& turnonImage = turnOnDetailedContent.addImage(turnonCanvas, 900, 400);
+	tempSS.str(""); tempSS << "Sensor turnon curve for " << tempString.c_str() << " with windows of " << windowList;
+	turnonImage.setComment(tempSS.str());
+	tempSS.str(""); tempSS << "TriggerTurnon" << tempString.c_str();
+	turnonImage.setName(tempSS.str());}
     }
 
 

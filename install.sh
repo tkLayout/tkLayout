@@ -2,7 +2,7 @@
 
 myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
-TKG_MATSHOW=$myDir/bin/materialShow
+#TKG_MATSHOW=$myDir/bin/materialShow
 TKG_TUNE=$myDir/bin/tunePtParam
 TKG_SETUP_BIN=$myDir/bin/setup.bin
 
@@ -58,9 +58,9 @@ if $TKG_SETUP_BIN ; then
     cp -f $TKG_MAIN $TKG_BIN_TARGET \
 	&& echo Main program installed/updated \
 	|| echo Failed copying the main program $TKG_MAIN to $TKG_BIN_TARGET
-    cp -f $TKG_MATSHOW $TKG_BIN_TARGET \
-	&& echo Material helper program installed/updated \
-	|| echo Failed the material helper $TKG_MATSHOW to $TKG_BIN_TARGET
+#    cp -f $TKG_MATSHOW $TKG_BIN_TARGET \
+#	&& echo Material helper program installed/updated \
+#	|| echo Failed the material helper $TKG_MATSHOW to $TKG_BIN_TARGET
     cp -f $TKG_TUNE $TKG_BIN_TARGET \
 	&& echo Pt-cut tuner installed/updated \
 	|| echo Failed copying the Pt-cut tuner $TKG_TUNE to $TKG_BIN_TARGET
