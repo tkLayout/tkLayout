@@ -4,14 +4,13 @@
 REVISION=$(which svnversion > /dev/null && svnversion)
 DEFINES=`./getVersionDefine`
 DEFINES+=-DDEBUG_PERFORMANCE
-
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-BOOSTLIBFLAGS=-lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
+BOOSTLIBFLAGS=-L/usr/lib64/boost141 -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
-INCLUDEFLAGS=-Iinclude/
+INCLUDEFLAGS=-I/usr/include/boost141/ -Iinclude/
 SRCDIR=src
 INCDIR=include
 LIBDIR=lib
@@ -23,7 +22,6 @@ COMPILERFLAGS+=-Wall
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-Werror
 COMPILERFLAGS+=-O2
-
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
