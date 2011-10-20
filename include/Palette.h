@@ -1,3 +1,6 @@
+#ifndef palette_h
+#define palette_h
+
 #include <TColor.h>
 #include <TROOT.h>
 #include <iostream>
@@ -19,3 +22,5 @@ class Palette {
   //static unsigned int myColorBase;
   //static unsigned int myColors;
 };
+
+#endif
