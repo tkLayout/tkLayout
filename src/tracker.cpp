@@ -105,11 +105,10 @@ void Tracker::setDefaultParameters() {
     maxR_ = 0;
     phiSegments_ = 4;
     efficiency_ = 1;
-    lastPickedColor_ = STARTCOLOR; // remove (obsolete)
-    colorPicker("ptOut"); // remove these three from here
-    colorPicker("rphi");
-    colorPicker("stereo");
-    colorPicker("ptIn");
+    //colorPicker("ptOut"); // remove these three from here
+    //colorPicker("rphi");
+    //colorPicker("stereo");
+    //colorPicker("ptIn");
 }
 
 void Tracker::shapeVolume() {
@@ -1270,22 +1269,6 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
 }
 
 
-/* Returns the same color for the same module type across all the
- * program
- * @param module type
- * @return corresponding color
- */
-Color_t Tracker::colorPicker(std::string type) {
-    if (type=="") return COLOR_INVALID_MODULE;
-    if (colorPickMap_[type]==0) {
-        // New type! I'll pick a new color
-        lastPickedColor_++;
-        if (lastPickedColor_==5) lastPickedColor_++;
-        colorPickMap_[type]=lastPickedColor_;
-    }
-    return colorPickMap_[type];
-}
-
 void Tracker::setModuleTypes(std::string sectionName,
         std::map<int, int> nStripsAcross,
         std::map<int, int> nFaces,
@@ -1445,7 +1428,8 @@ void Tracker::setModuleTypes(std::string sectionName,
             aModule->setStereoRotation(aRotation);
             aModule->setTag(myTag.str());
 	    aModule->setContainerName(sectionName);
-            aModule->setColor(colorPicker(aType));
+            // aModule->setColor(colorPicker(aType));
+            aModule->setColor(Palette::color(aType));
             aModule->setReadoutType(myReadoutType);
 
             if (aXResolution) aModule->setResolutionRphi(aXResolution);

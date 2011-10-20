@@ -8,6 +8,7 @@
 #include "module.hh"
 #include "moduleType.hh"
 #include "layer.hh"
+#include <Palette.h>
 
 #include "TCanvas.h"
 #include "TRandom3.h"
@@ -21,7 +22,6 @@
 
 #define DEFAULTBARRELNAME "defaultBarrel"
 #define DEFAULTENDCAPNAME "defaultEndcap"
-#define STARTCOLOR kBlack
 #define COLOR_PLOT_BACKGROUND kWhite
 #define COLOR_BACKGROUND kGray
 #define COLOR_GRID kGreen-10
@@ -80,8 +80,8 @@ private:
   void placeModuleLite(Module* aModule);
 
   // Color picking according to type
-  std::map<std::string, Color_t> colorPickMap_; // obsolete
-  Color_t lastPickedColor_;                     // obsolete
+  //std::map<std::string, Color_t> colorPickMap_; // obsolete
+  //Color_t lastPickedColor_;                     // obsolete
 
   int iModule_;
   double efficiency_;
@@ -128,7 +128,7 @@ private:
   std::map<int,LayerOption> layerOptions_;
 
   // Color picking
-  Color_t colorPicker(std::string); // obsolete
+  //Color_t colorPicker(std::string); // obsolete
 
   // Internal stats
   std::vector<int> LpB_, DpE_;

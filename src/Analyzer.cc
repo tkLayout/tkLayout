@@ -7,6 +7,7 @@
 #include <Analyzer.h>
 #include <TProfile.h>
 #include <TLegend.h>
+#include <Palette.h>
 
 #undef MATERIAL_SHADOW
 
@@ -214,11 +215,11 @@ namespace insur {
     Analyzer::Analyzer() {
         // Not strictly necessary, but it's useful to keep
         // the color the same for the most used module types
-        lastPickedColor = STARTCOLOR;
-        colorPicker("ptOut");
-        colorPicker("rphi");
-        colorPicker("stereo");
-        colorPicker("ptIn");
+        lastPickedColor = 1;
+        //colorPicker("ptOut");
+        //colorPicker("rphi");
+        //colorPicker("stereo");
+        //colorPicker("ptIn");
         geomLite = NULL;   geomLiteCreated=false;
         geomLiteXY = NULL; geomLiteXYCreated=false;
         geomLiteYZ = NULL; geomLiteYZCreated=false;
@@ -2804,7 +2805,7 @@ namespace insur {
             myProfile=(*it).second.ProfileX();
             savingGeometryV.push_back(*myProfile);
             myProfile->SetMarkerStyle(8);
-            myProfile->SetMarkerColor(colorPicker((*it).first));
+            myProfile->SetMarkerColor(Palette::color((*it).first));
             myProfile->SetMarkerSize(1);
             profileName = "etaProfile"+(*it).first;
             myProfile->SetName(profileName.c_str());
@@ -2972,26 +2973,6 @@ namespace insur {
         double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
         return diffms;
     }
-    
-    // private
-    /**
-     * Returns the same color for the same module type across
-     * all the program
-     * @param type string containing the type identifier
-     * @return a color
-     */
-    
-    Color_t Analyzer::colorPicker(std::string type) {
-        if (type=="") return COLOR_INVALID_MODULE;
-        if (colorPickMap[type]==0) {
-            // New type! I'll pick a new color
-            lastPickedColor++;
-            if (lastPickedColor==5) lastPickedColor++;
-            colorPickMap[type]=lastPickedColor;
-        }
-        return colorPickMap[type];
-    }
-    
     
     std::vector<TObject> Analyzer::getSavingVector() {
         std::vector<TObject> result;

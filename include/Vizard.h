@@ -204,7 +204,7 @@ namespace insur {
 	void addOccupancyElement(std::string element);
 	void addOccupancyEOL();
 
-	int getNiceColor(unsigned int plotIndex);
+	// int getNiceColor(unsigned int plotIndex);
     };
 }
 #endif	/* _VIZARD_H */

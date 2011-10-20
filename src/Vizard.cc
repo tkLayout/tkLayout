@@ -963,7 +963,9 @@ namespace insur {
 	myCanvas->SetFillColor(color_plot_background);
 	myCanvas->cd();
 	TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
-	Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
+	// Old-style palette by Stefano, with custom-generated colors
+	// Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
+	// Replaced by the libreOffice-like palette
 	TH1D* ranger = new TH1D("hadTrackRanger","", 100, 0, 3);
 	ranger->SetMaximum(1.);
 	TAxis* myAxis;
@@ -980,7 +982,7 @@ namespace insur {
 	  TGraph& myGraph = hadronGoodTracksFraction.at(i);
 	  averages[i] = Analyzer::average(myGraph, cuts);
 	  closeGraph(myGraph);
-	  myGraph.SetFillColor(Palette::color(i));
+	  myGraph.SetFillColor(Palette::color(i+1));
 	  myGraph.Draw("same F");
 	  tempSS.str("");
 	  if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
@@ -2514,9 +2516,9 @@ namespace insur {
 	TProfile& npointsProfile = plot_iter->second;
 	npointsProfile.SetMinimum(1E-2);
 	//npointsProfile.GetXaxis()->SetLimits(0, 2.4);
-	npointsProfile.SetLineColor(getNiceColor(myColor));
-	npointsProfile.SetMarkerColor(getNiceColor(myColor));
-	npointsProfile.SetFillColor(getNiceColor(myColor));
+	npointsProfile.SetLineColor(Palette::color(myColor));
+	npointsProfile.SetMarkerColor(Palette::color(myColor));
+	npointsProfile.SetFillColor(Palette::color(myColor));
 	myColor++;
 	npointsProfile.SetMarkerStyle(8);
 	pointsCanvas.SetFillColor(color_plot_background);
@@ -2564,9 +2566,9 @@ namespace insur {
 	TProfile& fractionProfile = plot_iter->second;
 	fractionProfile.SetMinimum(1E-2);
 	fractionProfile.SetMaximum(100);
-	fractionProfile.SetLineColor(getNiceColor(myColor));
-	fractionProfile.SetMarkerColor(getNiceColor(myColor));
-	fractionProfile.SetFillColor(getNiceColor(myColor));
+	fractionProfile.SetLineColor(Palette::color(myColor));
+	fractionProfile.SetMarkerColor(Palette::color(myColor));
+	fractionProfile.SetFillColor(Palette::color(myColor));
 	myColor++;
 	fractionProfile.SetMarkerStyle(8);
 	fractionCanvas.SetFillColor(color_plot_background);
@@ -2788,9 +2790,9 @@ namespace insur {
       rangeCanvas.SetFillColor(color_plot_background);
       rangeCanvas.SetGrid(0,1);
       myFrame.Draw();
-      rangeGraph.SetFillColor(getNiceColor(1));
+      rangeGraph.SetFillColor(Palette::color(1));
       rangeGraph.Draw("same 2");
-      rangeGraphBad.SetFillColor(getNiceColor(2));
+      rangeGraphBad.SetFillColor(Palette::color(2));
       rangeGraphBad.Draw("same 2");
       availableSpacings.SetMarkerStyle(0);
       availableSpacings.Draw("p same");
@@ -2814,7 +2816,7 @@ namespace insur {
 	const int& spacingTuningCounter= it->first;
 	TGraphErrors& tuningGraph = it->second;
 	if (spacingTuningCounter>0) {
-	  tuningGraph.SetFillColor(getNiceColor(spacingTuningCounter+1));
+	  tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
 	  tuningGraph.SetFillStyle(1001);
 	  tuningGraph.Draw("same 2");
 	} else {
@@ -2826,7 +2828,7 @@ namespace insur {
 	   it!=spacingTuningGraphsBad.end(); ++it) {
 	const int& spacingTuningCounter= it->first;
 	TGraphErrors& tuningGraph = it->second;
-	tuningGraph.SetFillColor(getNiceColor(spacingTuningCounter+1));
+	tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
 	tuningGraph.SetFillStyle(3007);
 	tuningGraph.Draw("same 2");
       }
@@ -2841,7 +2843,7 @@ namespace insur {
       TCanvas spacingCanvas;
       spacingCanvas.SetFillColor(color_plot_background);
       spacingCanvas.cd();
-      spacingDistribution.SetFillColor(getNiceColor(1));
+      spacingDistribution.SetFillColor(Palette::color(1));
       spacingDistribution.Draw();
       RootWImage& spacingImage = spacingSummaryContent.addImage(spacingCanvas, 600, 600);
       spacingImage.setComment("Distribution of minimal spacing for low pT rejection @ standard window");
@@ -2850,7 +2852,7 @@ namespace insur {
       TCanvas spacingCanvasAW;
       spacingCanvasAW.SetFillColor(color_plot_background);
       spacingCanvasAW.cd();
-      spacingDistributionAW.SetFillColor(getNiceColor(1));
+      spacingDistributionAW.SetFillColor(Palette::color(1));
       spacingDistributionAW.Draw();
       RootWImage& spacingImageAW = spacingSummaryContent.addImage(spacingCanvasAW, 600, 600);
       spacingImageAW.setComment("Distribution of minimal spacing for low pT rejection @ selected window");
@@ -2882,9 +2884,9 @@ namespace insur {
 	  tuningProfile.SetMinimum(0);
 	  //tuningProfile.SetMaximum(10);
 	  //tuningProfile.SetMinimum(-10);
-	  tuningProfile.SetLineColor(getNiceColor(myColor));
-	  tuningProfile.SetFillColor(getNiceColor(myColor));
-	  tuningProfile.SetMarkerColor(getNiceColor(myColor));
+	  tuningProfile.SetLineColor(Palette::color(myColor));
+	  tuningProfile.SetFillColor(Palette::color(myColor));
+	  tuningProfile.SetMarkerColor(Palette::color(myColor));
 	  myColor++;
 	  //tuningProfile.SetMarkerStyle(8);
 	  tuningProfile.Draw(plotOption.c_str());
@@ -2939,9 +2941,9 @@ namespace insur {
 	  TProfile& turnonProfile = itProfile->second;
 	  turnonProfile.SetMaximum(100);
 	  turnonProfile.SetMinimum(0);
-	  turnonProfile.SetLineColor(getNiceColor(myColor));
-	  turnonProfile.SetFillColor(getNiceColor(myColor));
-	  turnonProfile.SetMarkerColor(getNiceColor(myColor));
+	  turnonProfile.SetLineColor(Palette::color(myColor));
+	  turnonProfile.SetFillColor(Palette::color(myColor));
+	  turnonProfile.SetMarkerColor(Palette::color(myColor));
 	  myColor++;
 	  turnonProfile.Draw(plotOption.c_str());
 	  plotOption = "same E1";
@@ -3445,66 +3447,6 @@ namespace insur {
     myGraph.SetPoint(myGraph.GetN(), x0,0);
   }
 
-
-  /*
-   * Returns the ROOT color code of a nice color, indexed like in
-   * libreOffice, with the following mapping: 0 -> black, any other
-   * index maps to the libreOffice plot colors from 1 to 12. For any
-   * number higher than 12 it cycles throught the colors
-   */
-  int Vizard::getNiceColor(unsigned int plotIndex) {
-    std::string colorCode;
-
-    if (plotIndex==0) colorCode = "#000000";
-    else {
-      int nColor=(plotIndex-1) % 12;
-      switch (nColor) {
-      case 0 :
-	colorCode="#004586";
-	break;
-      case 1 :
-	colorCode="#FF420E";
-	break;
-      case 2 :
-	colorCode="#FFD320";
-	break;
-      case 3 :
-	colorCode="#579D1C";
-	break;
-      case 4 :
-	colorCode="#7E0021";
-	break;
-      case 5 :
-	colorCode="#83CAFF";
-	break;
-      case 6 :
-	colorCode="#314004";
-	break;
-      case 7 :
-	colorCode="#AECF00";
-	break;
-      case 8 :
-	colorCode="#4B1F6F";
-	break;
-      case 9 :
-	colorCode="#FF950E";
-	break;
-      case 10 :
-	colorCode="#C5000B";
-	break;
-      case 11 :
-	colorCode="#0084D1";
-	break;
-      default :
-	std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
-	colorCode="#000000";
-	break;
-      }
-    }
-
-    return TColor::GetColor(colorCode.c_str());
-  }
-  
 
 }
 

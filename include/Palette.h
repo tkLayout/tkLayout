@@ -1,12 +1,21 @@
 #include <TColor.h>
 #include <TROOT.h>
+#include <iostream>
+#include <string>
+#include <map>
 
 class Palette {
  public:
-  static void prepare(unsigned int nColors, double phase=0, double luminosity=0.42, double saturation=0.9);
-  static unsigned int color(unsigned int colorIndex);
-  static void skipColors(unsigned int colorIndex);
+  static Color_t color(const std::string& objectName);
+  static Color_t color(const unsigned int& colorIndex);
+  static const Color_t color_invalid_module = kGray + 1;
  private:
-  static unsigned int myColorBase;
-  static unsigned int myColors;
+  static std::map<std::string, int> colorPickMap;
+  static Color_t color_int(const unsigned int& plotIndex);
+  static bool initialized;
+  static void initializeMe();
+  // static void skipColors(unsigned int colorIndex);
+  //private:
+  //static unsigned int myColorBase;
+  //static unsigned int myColors;
 };

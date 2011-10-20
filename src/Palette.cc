@@ -1,51 +1,95 @@
 #include <Palette.h>
 
-unsigned int Palette::myColorBase=10000;
-unsigned int Palette::myColors=0;
+bool Palette::initialized = false;  
+std::map<std::string, int> Palette::colorPickMap;
 
-// Skips a number of colors on the palette
-// @param nColors the number of colors to be skipped
-void Palette::skipColors(unsigned int nColors) {
-  myColorBase+=nColors;
+
+void Palette::initializeMe() {
+  Palette::colorPickMap["ptOut"] = 2;
+  Palette::colorPickMap["rphi"] = 4;
+  Palette::colorPickMap["stereo"] = 1;
+  Palette::colorPickMap["ptIn"] = 9;
+  Palette::colorPickMap["ptMixed"] = 6;
+  initialized = true;
 }
 
-// Sets the colors of my palette
-// between myColorBase and myColorBase+nColors
-// @param nColors number of colors to be booked
-// @param phase the absolute phase of the color multiplet
-//        in the hue circle, starting from 210
-// @param luminosity the colors' luminosity (defaults to 0.75)
-// @param saturation the colors' saturation (defaults to 0.8)
-void Palette::prepare(unsigned int nColors,
-		      double phase /*=0*/,
-		      double luminosity /*=0.75*/,
-		      double saturation /*=0.8*/) {
-  myColorBase+=myColors;
-  myColors = nColors;
-  
-  Float_t r, g, b;
-  Float_t h, l, s;
-  //TColor* aColor;
-  
-  l=luminosity;  // luminosity
-  s=saturation;  // saturation
-
-  // nColors different colors
-  for (unsigned int iColor=0; iColor<nColors; ++iColor) {
-    h = double(iColor)/double(nColors)*360.; 
-    h += phase;
-    h -= int(h/360)*360.;
-    TColor::HLStoRGB(h, l, s, r, g, b);
-    TColor* myColor = gROOT->GetColor(iColor+myColorBase);
-    if (myColor) myColor->SetRGB(r, g, b);
-    else new TColor(iColor+myColorBase, r, g, b);
+Color_t Palette::color(const std::string& type) {
+  if (!initialized) initializeMe();
+  if (type=="") return color_invalid_module;
+  if (colorPickMap[type]==0) {
+    // New type! I'll pick a new color
+    int iColor=0;
+    bool found=true;
+    while (found) {
+      ++iColor;
+      found=false;
+      for (std::map<std::string, int>::iterator it=colorPickMap.begin(); it!=colorPickMap.end(); ++it) {
+	if (it->first==iColor) {
+	  found = true;
+	  break;
+	}
+      }
+    }
+    colorPickMap[type]=Palette::color(iColor);
   }
+  return color_int(colorPickMap[type]);
 }
 
-unsigned int Palette::color(unsigned int colorIndex) {
-  if (myColors==0) return 0;
-  if (colorIndex<0) return 0;
-  colorIndex = (colorIndex % myColors);
-  if (colorIndex>=myColors) return 0;
-  return myColorBase+colorIndex;
+Color_t Palette::color(const unsigned int& plotIndex) {
+  if (!initialized) initializeMe();
+  return color_int(plotIndex);
 }
+
+Color_t Palette::color_int(const unsigned int& plotIndex) {
+  std::string colorCode;
+  
+  if (plotIndex==0) colorCode = "#000000";
+  else {
+    int nColor=(plotIndex-1) % 12;
+    switch (nColor) {
+    case 0 :
+      colorCode="#004586";
+      break;
+    case 1 :
+      colorCode="#FF420E";
+      break;
+    case 2 :
+      colorCode="#FFD320";
+      break;
+    case 3 :
+      colorCode="#579D1C";
+      break;
+    case 4 :
+      colorCode="#7E0021";
+      break;
+    case 5 :
+      colorCode="#83CAFF";
+      break;
+    case 6 :
+      colorCode="#314004";
+      break;
+    case 7 :
+      colorCode="#AECF00";
+      break;
+    case 8 :
+      colorCode="#4B1F6F";
+      break;
+    case 9 :
+      colorCode="#FF950E";
+      break;
+    case 10 :
+      colorCode="#C5000B";
+      break;
+    case 11 :
+      colorCode="#0084D1";
+      break;
+    default :
+      std::cerr << "ERROR: in Vizard::getNiceColor() n%12 is not an int between 0 and 11! This should not happen." << std::endl;
+      colorCode="#000000";
+      break;
+    }
+  }
+  
+  return TColor::GetColor(colorCode.c_str());
+}
+
