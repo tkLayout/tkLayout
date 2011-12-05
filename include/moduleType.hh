@@ -13,8 +13,6 @@ protected:
   std::map<int,double> perModulePower_;
   double triggerErrorX_;
   double triggerErrorY_;
-  int sparsifiedHeaderBits_;
-  int sparsifiedPayloadBits_;
 private:
   bool checkPowerType(int powerType);
 public:
@@ -30,10 +28,6 @@ public:
   void setTriggerErrorY(double newError);
   double getTriggerErrorX() const ;
   double getTriggerErrorY() const ;
-  void setSparsifiedHeaderBits(int bits);
-  void setSparsifiedPayloadBits(int bits);
-  int  getSparsifiedHeaderBits() const;
-  int  getSparsifiedPayloadBits() const;
 };
 
 #endif

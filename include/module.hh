@@ -61,7 +61,6 @@ protected:
   int triggerWindow_;
   double stereorot_;
   double dphideta_;
-  double phiWidth_, etaWidth_;
   int nSegmentsFace_[maxNFaces];
   int nStripAcross_;
   int nFaces_;
@@ -281,9 +280,6 @@ protected:
   double getPtThreshold(const double& myEfficiency);
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
-
-  double getTriggerFrequencyTruePerEvent();
-  double getTriggerFrequencyFakePerEvent();
 
 private:
   void setPterrorParameters();

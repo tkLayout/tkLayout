@@ -7,7 +7,7 @@ DEFINES+=-DDEBUG_PERFORMANCE
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
-BOOSTLIBFLAGS=-L/usr/lib64/boost141 -L/usr/lib/boost141 -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
+BOOSTLIBFLAGS=-L/usr/lib64/boost141 -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
 INCLUDEFLAGS=-I/usr/include/boost141/ -Iinclude/
@@ -19,9 +19,9 @@ TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-Wall
-COMPILERFLAGS+=-g
+#COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-Werror
-#COMPILERFLAGS+=-O2
+COMPILERFLAGS+=-O2
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 

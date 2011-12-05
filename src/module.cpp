@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cmath>
 #include "module.hh"
-#include "global_constants.h"
 
 #include "Math/RotationZ.h"
 #include "Math/RotationX.h"
@@ -1123,11 +1122,12 @@ void Module::computeMaxDphiDeta() {
         if (aPhi<minPhi) minPhi=aPhi;
     }
     
-    phiWidth_ = maxPhi-minPhi;
-    etaWidth_ = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
+    double phiWidth, etaWidth;
+    phiWidth = maxPhi-minPhi;
+    etaWidth = log(tan(maxTheta/2.))-1*log(tan(minTheta/2.));
     
     double minNSegments = nSegmentsFace_[findMinSegmentsFace_()];
-    dphideta_ = phiWidth_ * etaWidth_ / minNSegments;
+    dphideta_ = phiWidth * etaWidth / minNSegments;
     
     delete anotherModule;
 }
@@ -1301,28 +1301,6 @@ bool Module::couldHit(double eta, double phi) {
     return (withinPhi||withinPhiSub||withinPhiAdd);
     
 }
-
-const double ptCut = 1.0;
-
-double Module::getTriggerFrequencyTruePerEvent() {
-	computeMaxDphiDeta();
-	double r = getMeanPoint().Rho()/1000;
-	double ptMin = max(0.3 * insur::magnetic_field * r, ptCut);
-	double integral = 0.0;
-	double dPt = 0.5;
-	double etaphi = phiWidth_/(2.0*3.141592)*fabs(etaWidth_)/6.0;	
-	for (double pt = ptMin; pt < 10.0; pt += dPt) {
-        double nPt = exp(1.55173 - 1.24070*pt + 7.93426*pow(pt,-0.1) + 4.31883e-02 * pow(pt,2))/12000;
-		integral += getTriggerProbability(pt) * (nPt/4e-2) * etaphi * dPt;
-	}
-
-	return integral;
-}
-
-double Module::getTriggerFrequencyFakePerEvent() {
-	return pow(getOccupancyPerEvent(),2)*triggerWindow_*getNChannelsFace(1);
-}
-
 
 /******************/
 /*                */
