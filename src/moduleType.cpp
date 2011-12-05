@@ -3,6 +3,8 @@
 ModuleType::ModuleType() {
   triggerErrorX_=1;
   triggerErrorY_=1;
+  sparsifiedHeaderBits_  = 13;
+  sparsifiedPayloadBits_ = 9;  
 }
 
 bool ModuleType::checkPowerType(int powerType) {
@@ -62,3 +64,8 @@ void ModuleType::setTriggerErrorX(double newError) { triggerErrorX_ = newError; 
 void ModuleType::setTriggerErrorY(double newError) { triggerErrorY_ = newError; }
 double ModuleType::getTriggerErrorX() const { return triggerErrorX_ ; }
 double ModuleType::getTriggerErrorY() const { return triggerErrorY_ ; }
+
+void ModuleType::setSparsifiedHeaderBits(int bits)  { sparsifiedHeaderBits_  = bits; }
+void ModuleType::setSparsifiedPayloadBits(int bits) { sparsifiedPayloadBits_ = bits; }
+int  ModuleType::getSparsifiedHeaderBits()  const { return sparsifiedHeaderBits_;  }
+int  ModuleType::getSparsifiedPayloadBits() const { return sparsifiedPayloadBits_; }

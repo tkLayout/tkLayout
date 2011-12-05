@@ -1047,6 +1047,92 @@ namespace insur {
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
 #endif
     }
+
+
+	void Analyzer::computeTriggerFrequency(Tracker& tracker) {
+		std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
+		std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+		LayerVector& layers = tracker.getLayers();
+
+        triggerFrequencyTrueSummaries_.clear();
+        triggerFrequencyFakeSummaries_.clear();
+		triggerRateSummaries_.clear();
+		triggerPuritySummaries_.clear();
+
+		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+			ModuleVector* modules = (*layIt)->getModuleVector();
+			if (!modules) {
+				std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
+				return;
+			}
+			std::string cntName = (*layIt)->getContainerName();
+			if (cntName == "") {
+				cout << "computeTriggerFrequency(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
+				continue;
+			}
+			for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+				Module* module = (*modIt);
+				XYZVector center = module->getMeanPoint();
+				if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module->getStereoDistance()==0.0)) continue;
+				int curCnt = triggerFrequencyCounts[cntName][make_pair(module->getLayer(), module->getRing())]++;
+				double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(),module->getRing())];
+				double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
+
+				curAvgTrue = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+				curAvgFake = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*tracker.getNMB() - curAvgFake)/(curCnt+1);
+
+				triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;			
+				triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;	
+
+				std::stringstream ss1(""), ss2(""), ss3(""), ss4("");
+				ss1.precision(6);
+				ss2.precision(6);
+				ss3.precision(6);
+				ss4.precision(6);
+				ss1.setf(ios::fixed, ios::floatfield);
+				ss2.setf(ios::fixed, ios::floatfield);
+				ss3.setf(ios::fixed, ios::floatfield);
+				ss4.setf(ios::fixed, ios::floatfield);
+				ss1 << curAvgTrue;
+				ss2 << curAvgFake;
+				ss3 << curAvgTrue+curAvgFake;
+				ss4 << curAvgTrue/(curAvgTrue+curAvgFake);
+				triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss1.str());
+				triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss2.str());
+				triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss3.str());				
+				triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss4.str());				
+
+				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+					std::stringstream ss("");
+					ss << module->getLayer();
+					triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+					triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				}
+				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(0, module->getRing())) {
+					std::stringstream ss("");
+					ss << module->getRing();
+					triggerFrequencyTrueSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+					triggerFrequencyFakeSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				}
+				if (!triggerRateSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+					std::stringstream ss("");
+					ss << module->getLayer();
+					triggerRateSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+					triggerPuritySummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				}
+				if (!triggerRateSummaries_[cntName].hasCell(0, module->getRing())) {
+					std::stringstream ss("");
+					ss << module->getRing();
+					triggerRateSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+					triggerPuritySummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				}
+			}
+			triggerFrequencyTrueSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerFrequencyFakeSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerRateSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerPuritySummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+		}
+	}
     
   // protected
   /**
@@ -3027,8 +3113,13 @@ namespace insur {
                 
 		// Binary unsparsified (bps)
 		bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsFace(nFace))*100E3);
+		
+		int spHdr = tracker.getSparsifiedHeaderBits((*modIt)->getType());
+		int spPay = tracker.getSparsifiedPayloadBits((*modIt)->getType());		
+
+		//cout << "sparsified header: " << spHdr << " payload: " << spPay << endl;
 		// Binary sparsified
-		bandwidthDistributionSparsified.Fill((23*nChips+hitChannels*9)*100E3);
+		bandwidthDistributionSparsified.Fill(((spHdr*nChips)+(hitChannels*spPay))*100E3);
 	      }
 	    }
 	  }

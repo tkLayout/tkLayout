@@ -578,6 +578,7 @@ namespace insur {
             a.createGeometryLite(*tr);
             v.geometrySummary(a, *tr, site);
             a.computeBandwidth(*tr);
+            a.computeTriggerFrequency(*tr);
             v.bandwidthSummary(a, *tr, site);
             return true; // TODO: is not really meaningful
         } else {
@@ -595,6 +596,7 @@ namespace insur {
       a.analyzeGeometry(*tr, tracks);
       a.createGeometryLite(*tr);
       a.computeBandwidth(*tr);
+      a.computeTriggerFrequency(*tr);
       return true; // TODO: is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -660,7 +662,6 @@ namespace insur {
       v.weigthSummart(a, site, "outer");
       v.errorSummary(a, site, "", false);
       v.errorSummary(a, site, "trigger", true);
-      
       return true;
     }
     else {

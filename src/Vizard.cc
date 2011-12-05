@@ -631,6 +631,8 @@ namespace insur {
       }
     }
 
+
+
     /**
      * This function draws some of the histograms that were filled during material budget analysis
      * with the rootweb library
@@ -2067,6 +2069,30 @@ namespace insur {
         aStringStream <<" minimum bias events assumed</br>";
         myDescription->addText( aStringStream.str() );
                 
+		
+		
+		std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
+		std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
+		std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
+		std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
+	
+//		std::map<pair<int,int>,std::string>& tsm = trueSummary.getContent();
+//		cout << "TRUE TRIGGER COUNT: " << tsm.size() << endl;
+//		for (std::map<pair<int,int>,std::string>::iterator it = tsm.begin(); it != tsm.end(); ++it) {
+//			cout << it->first.first << '\t' << it->first.second << '\t' << it->second << endl;
+//		}
+		for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
+			myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+		}
+		for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
+			myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+		}
+		for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
+			myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+		}
+		for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
+			myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+		}
         return true;
     }
     
