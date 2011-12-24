@@ -331,7 +331,9 @@ namespace insur {
       
       if (!track.noHits()) {
 	// Keep only triggering hits
+        // std::cerr << "Material before = " << track.getCorrectedMaterial().radiation;
 	track.keepTriggerOnly();
+        // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
 
 	// Assume the IP constraint here
 	// TODO: make this configurable
@@ -377,21 +379,54 @@ namespace insur {
 #endif
   }
 
+  void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions) {
+    LayerVector& layerSet = tracker.getLayers();
+    LayerVector::iterator layIt;
+    ModuleVector* moduleSet;
+    ModuleVector::iterator modIt; 
+    Layer* aLayer;
+    Module* aModule;
+    double aSpacing;
+    std::set<double> foundSpacing;
+
+    // Loop over all the layers
+    for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+      aLayer = (*layIt);
+      // Actually scan the modules
+      moduleSet = aLayer->getModuleVector();
+      for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+	aModule = (*modIt);
+	if (aModule->getReadoutType()==Module::Pt) {
+	  aSpacing = aModule->getStereoDistance();
+	  if (aSpacing>0) {
+	    foundSpacing.insert(aSpacing);
+	  }
+	}
+      }
+    }
+
+    spacingOptions.clear();
+    for(std::set<double>::iterator it=foundSpacing.begin(); it!=foundSpacing.end(); ++it) {
+      spacingOptions.push_back(*it);
+    }
+
+  }
+
   void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta) {
 
     // TODO: put these in a configuration file somewhere
     /************************************************/
     std::pair<double, double> spacingTuningMomenta;
     std::vector<double> spacingOptions;
+    fillAvailableSpacing(tracker, spacingOptions);
     //spacingOptions.push_back(1.1);
     //spacingOptions.push_back(1.8);
     //spacingOptions.push_back(2.5);
     //spacingOptions.push_back(5); // TODO: make these configurable
-    spacingOptions.push_back(1.2);
-    spacingOptions.push_back(1.6);
-    spacingOptions.push_back(2.6);
-    spacingOptions.push_back(4);    
-    std::sort(spacingOptions.begin(), spacingOptions.end()); // TODO: keep this here!!
+    //spacingOptions.push_back(0.8);
+    //spacingOptions.push_back(1.6);
+    //spacingOptions.push_back(3);
+    //std::sort(spacingOptions.begin(), spacingOptions.end()); // TODO: keep this here!!
     unsigned int nSpacingOptions = spacingOptions.size();             // TODO: keep this here!!
     spacingTuningMomenta.first = 1.;
     spacingTuningMomenta.second = 2.5;
@@ -455,40 +490,48 @@ namespace insur {
 	myName = aLayer->getContainerName() + "_" + aLayer->getName();
 	ModuleVector& theseBarrelModules = selectedModules[myName];
 
-	// Prepare the variables to hold the profiles
-	std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
-	// Prepare the variables to hold the turn-on curve profiles
-	std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
-
-	//  Profiles
-	if (!preparedProfiles[myName]) {
-	  preparedProfiles[myName] = true;
-	  for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-	    tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
-	    tuningProfiles[*it].SetTitle(tempSS.str().c_str());
-	    tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
-	    tuningProfiles[*it].SetName(tempSS.str().c_str());
-	    tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
-	  }	  
-	}
-
-	// Turn-on curve
-	if (!preparedTurnOn[myName]) {
-	  preparedTurnOn[myName] = true;
-	  for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
-	    double windowSize=iWindow*2+1;
-	    tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
-	    turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
-	    tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
-	    turnonProfiles[windowSize].SetName(tempSS.str().c_str());
-	    turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
-	  }	  
-	}
-
 	// Actually scan the modules
 	moduleSet = aLayer->getModuleVector();
 	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
 	  aModule = (*modIt);
+
+	  if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
+	  if (aModule->getReadoutType() != Module::Pt) {
+	    std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
+	    continue;
+	  }
+	  
+	  // Prepare the variables to hold the profiles
+	  std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+	  // Prepare the variables to hold the turn-on curve profiles
+	  std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
+
+	  //  Profiles
+	  if (!preparedProfiles[myName]) {
+	    preparedProfiles[myName] = true;
+	    for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+	      tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
+	      tuningProfiles[*it].SetTitle(tempSS.str().c_str());
+	      tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
+	      tuningProfiles[*it].SetName(tempSS.str().c_str());
+	      tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+	    }	  
+	  }
+
+	  // Turn-on curve
+	  if (!preparedTurnOn[myName]) {
+	    preparedTurnOn[myName] = true;
+	    for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+	      double windowSize=iWindow*2+1;
+	      tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+	      turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
+	      tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
+	      turnonProfiles[windowSize].SetName(tempSS.str().c_str());
+	      turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
+	    }	  
+	  }
+
+
 	  XYZVector center = aModule->getMeanPoint();
 	  if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
 	  theseBarrelModules.push_back(aModule);
@@ -533,6 +576,12 @@ namespace insur {
 	  moduleSet = aLayer->getModuleVector();
 	  for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
 	    aModule = (*modIt);
+	    if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
+	    if (aModule->getReadoutType() != Module::Pt) {
+	      std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
+	      continue;
+	    }
+
 	    anEndcapModule = dynamic_cast<EndcapModule*>(aModule);
 	    XYZVector center = aModule->getMeanPoint();
 	    // std::cerr << myBaseName << " z=" << center.Z() << ", Phi=" << center.Phi() << ", Rho=" << center.Rho() << std::endl; // debug
@@ -662,15 +711,19 @@ namespace insur {
 	    // First with the high momentum
 	    myPt = (spacingTuningMomenta.second);
 	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
-	    tempProfileHigh.Fill(dist, myValue);
+	    if ((myValue>=0)&&(myValue<=100))
+	      tempProfileHigh.Fill(dist, myValue);
 	    // Then with low momentum
 	    myPt = (spacingTuningMomenta.first);
 	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
-	    tempProfileLow.Fill(dist, myValue);
+	    if ((myValue>=0)&&(myValue<=100))
+	      tempProfileLow.Fill(dist, myValue);
 	    if (myValue>1) minDistBelow = dist;
 	  }
-	  if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
-	  if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
+	  if (minDistBelow>=0) {
+	    if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
+	    if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
+	  }
 
 	  /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
 	    std::cout << myName << " - " << aModule->getTag() << " - minDistBelow = " << minDistBelow;
@@ -768,7 +821,6 @@ namespace insur {
     std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
     std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
 
-    //TGraph& totalGraph = trigGraphs[graphBag::Triggerable];
     TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
     
     double eta;
@@ -779,18 +831,19 @@ namespace insur {
 
       eta = - log(tan(myTrack.getTheta() / 2));
       int nHits = myTrack.nActiveHits(false, false);
-      //totalGraph.SetPoint(totalGraph.GetN(), eta, nHits);
       totalProfile.Fill(eta, nHits);
 
       for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
 	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
-	//TGraph& myGraph = trigGraphs[(*itMomentum)];
 	TProfile& myProfile = trigProfiles[(*itMomentum)];
 	TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
 	double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
-	//myGraph.SetPoint(myGraph.GetN(), eta, nExpectedTriggerPoints);
-	myProfile.Fill(eta, nExpectedTriggerPoints);
-	myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
+	if (nExpectedTriggerPoints>=0) { // sanity check (! nan)
+	  myProfile.Fill(eta, nExpectedTriggerPoints);
+	  if (nHits>0) {
+	    myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
+	  }
+	}
       }
     }
 
@@ -810,6 +863,7 @@ namespace insur {
 
         Tracker& tracker = mb.getTracker();
         double efficiency = tracker.getEfficiency();
+        double pixelEfficiency = tracker.getPixelEfficiency();
         materialTracksUsed = etaSteps;
 #ifdef DEBUG_PERFORMANCE
         clock_t starttime = clock();
@@ -942,6 +996,7 @@ namespace insur {
             if (!track.noHits()) {
 	      track.sort();
               if (efficiency!=1) track.addEfficiency(efficiency, false);
+              if (pixelEfficiency!=1) track.addEfficiency(efficiency, true);
 	      if (track.nActiveHits(true)>2) { // At least 3 points needed
 		//#ifdef HIT_DEBUG_RZ
 		//		if ((eta >1.617) &&(theta>0.383)) {
@@ -2129,12 +2184,13 @@ namespace insur {
       moduleSet = aLayer->getModuleVector();
       for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
 	aModule = (*modIt);
+	if (aModule->getReadoutType()!=Module::Pt) continue;
 	myThickness = aModule->getStereoDistance();
 	myWindow = aModule->getTriggerWindow();
 	myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
 	mySuggestedSpacing = aModule->getOptimalSpacing(5); // TODO: put this 5 in a configuration of some sort
 	mySuggestedSpacingAW = aModule->getOptimalSpacing(aModule->getTriggerWindow());
-
+	
 	// Draw the module
 	XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
 	XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;

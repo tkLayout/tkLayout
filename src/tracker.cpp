@@ -105,6 +105,7 @@ void Tracker::setDefaultParameters() {
     maxR_ = 0;
     phiSegments_ = 4;
     efficiency_ = 1;
+    pixelEfficiency_ = 1;
     //colorPicker("ptOut"); // remove these three from here
     //colorPicker("rphi");
     //colorPicker("stereo");
@@ -620,18 +621,21 @@ double Tracker::getMaxBarrelZ(int direction) {
     return maxZ;
 }
 
+// TODO: remove this
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
         EndcapModule* sampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
-    buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, sampleModule, DEFAULTENDCAPNAME, diskParity,  sectioned);
+  std::map<int, EndcapModule*> aMap;
+  aMap[0] = sampleModule;
+  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, aMap, DEFAULTENDCAPNAME, diskParity,  sectioned);
 }
 
 void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
-        EndcapModule* sampleModule, std::string endcapName, int diskParity,
-        int sectioned /* = Layer::NoSection */ ) {
+				std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+				int sectioned /* = Layer::NoSection */ ) {
     
-    double minTheta = 2*atan(exp(-1*maxEta));
-    double minRadius = minZ * tan(minTheta);
-    
+  double minTheta = 2*atan(exp(-1*maxEta));
+  double minRadius = minZ * tan(minTheta);
+  
     buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
 		 sampleModule, endcapName, diskParity, sectioned );
     
@@ -639,10 +643,10 @@ void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double max
 
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-        EndcapModule* sampleModule, std::string endcapName, int diskParity,
-        int sectioned /* = Layer::NoSection */ ) {
+			   std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+			   int sectioned /* = Layer::NoSection */ ) {
     
-    //EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
+    // EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
     
     maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
     maxL_=(maxZ>maxL_)?maxZ:maxL_;
@@ -1434,8 +1438,11 @@ void Tracker::setModuleTypes(std::string sectionName,
 
             if (aXResolution) aModule->setResolutionRphi(aXResolution);
 	    else aModule->setResolutionRphi();
-            if (aYResolution) aModule->setResolutionY(aYResolution);
-	    else aModule->setResolutionY();
+            if (aYResolution) {
+              aModule->setResolutionY(aYResolution);
+            } else {
+              aModule->setResolutionY();
+            }
 
 	    // Make the back side of the module with longer strips
 	    // if applicable (and complain otherwise)

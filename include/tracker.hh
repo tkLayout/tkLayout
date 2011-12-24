@@ -61,7 +61,8 @@ protected:
 
   // Default variables (distances in mm)
   static const double defaultZError_ = 70.;    // Vertex displacement sigma in z (7 cm)
-  static const double defaultRError_ = 0.02;   // Vertex displacement sigma in r (20 um)
+  //static const double defaultRError_ = 0.02;   // Vertex displacement sigma in r (20 um)
+  static const double defaultRError_ = 5.00;   // Vertex displacement sigma in r (5 mm)
   static const double defaultSmallDelta_ = 2.; // Space between overlapping modules
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
@@ -85,6 +86,7 @@ private:
 
   int iModule_;
   double efficiency_;
+  double pixelEfficiency_;
 
   std::string comment_;
 
@@ -186,10 +188,10 @@ public:
 
   // Standard endcap builder
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-		    EndcapModule* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+		    std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
   // Gets the minimum radius from eta and minimum Z
   void buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
-		    EndcapModule* sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
+			 std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity, int sectioned = Layer::NoSection ); 
   // Endcap builder for backwards compatibility with the command-line version
   void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
 		    EndcapModule* sampleModule, int diskParity, int sectioned = Layer::NoSection );
@@ -255,6 +257,10 @@ public:
   // Module efficiency
   double getEfficiency() {return efficiency_ ; }
   void setEfficiency(double newEfficiency) { efficiency_ = newEfficiency ; }
+
+  // Pixel module efficiency
+  double getPixelEfficiency() {return pixelEfficiency_ ; }
+  void setPixelEfficiency(double newEfficiency) { pixelEfficiency_ = newEfficiency ; }
 
   // Access to layer vectors
   LayerVector* getBarrelLayers() { return &barrelLayerSet_; }

@@ -103,6 +103,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             } else if (parameterName=="efficiency") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setEfficiency(doubleValue);
+            } else if (parameterName=="pixelEfficiency") {
+                doubleValue=atof(parameterValue.c_str());
+                myTracker_->setPixelEfficiency(doubleValue);
             } else if (parameterName=="smallDelta") {
                 doubleValue=atof(parameterValue.c_str());
                 myTracker_->setSmallDelta(doubleValue);
@@ -431,12 +434,23 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     double rhoOut = 0;
     double innerEta = 0;
     int diskParity = 0;
-    int shapeType = Module::Wedge;
-    bool explicitShapeType = false;
-    double aspectRatio = 1.;
-    bool explicitAspectRatio = false;
+    std::map<int, int> shapeType;
+    std::map<int, bool> explicitShapeType;
+    std::map<int, double> aspectRatio;
+    std::map<int, std::pair<double, double> > size;
+    std::map<int, bool> explicitAspectRatio;
+    std::map<int, bool> explicitSize;
+    std::map<int, bool> specialRing;
     int phiSegments = 4;
-    
+
+    // Ring 0 represents the default
+    shapeType[0] = Module::Wedge;
+    explicitShapeType[0] = false;
+    aspectRatio[0] = 1.;
+    explicitAspectRatio[0] = false;
+    explicitSize[0] = false;
+    specialRing[0] = true;
+
     // Fetch the generic Delta of the tracker
     double genericSmallDelta = myTracker_->getSmallDelta();
     double genericBigDelta = myTracker_->getBigDelta();
@@ -458,7 +472,72 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
             parameterNameCopy = parameterName;
             correctlyBroken = breakParameterName(parameterNameCopy, mainIndex, secondaryIndex);
-            if (parameterName=="nDisks") {
+	    if (correctlyBroken) {
+	      if ((mainIndex==0)||(secondaryIndex!=0)) {
+		cerr << "ERROR: parameter setting for " << parameterNameCopy << " must have the following structure: "
+		     << "parameter[ring] = value , with greater-than-zero ring index" << endl;
+		throw parsingException();
+	      }
+	      if (parameterNameCopy=="smallDelta") {
+                double deltaValue =  atof(parameterValue.c_str());
+		// Put smallDelta [layer] as a special option
+		myTracker_->setSpecialSmallDelta(mainIndex, deltaValue);
+	      } else if (parameterNameCopy=="bigDelta") {
+		double deltaValue =  atof(parameterValue.c_str());
+		// Put bigDelta [layer] as a special option
+		myTracker_->setSpecialBigDelta(mainIndex, deltaValue);
+	      } else if (parameterNameCopy=="aspectRatio") {
+		double myValue = atof(parameterValue.c_str());
+                if (myValue<=0) {
+		  cerr << "ERROR: Parsing endcap \"" << myName
+		       << "\": wrong aspect ratio (height/width): " << parameterValue
+		       << " should be a positive number" << endl;
+		  throw parsingException();
+                }
+                aspectRatio[mainIndex] = myValue;
+                explicitAspectRatio[mainIndex] = true;
+		specialRing[mainIndex] = true;
+	      } else if (parameterNameCopy=="size") {
+                double widthValue, lengthValue;
+                if (sscanf(parameterValue.c_str(), "%lfx%lf", &widthValue, &lengthValue)==2) {
+		  if ((widthValue>0)&&(lengthValue>0)) {
+		    size[mainIndex].first = widthValue;
+		    size[mainIndex].second = lengthValue;
+		    explicitSize[mainIndex] = true;
+		    explicitShapeType[mainIndex] = true;
+		    shapeType[mainIndex] = Module::Rectangular;
+		    specialRing[mainIndex] = true;
+		  } else {
+		    cerr << "ERROR: parsing the module size for endcap " << myName
+			 << ": \"" << parameterValue.c_str() << "\"I got a negative width or length." << endl;
+		    throw parsingException();
+		  }
+                } else {
+		  cerr << "ERROR: Parsing size of modules for endcap \"" << myName
+		       << "\": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
+		  throw parsingException();
+                }
+	      } else if (parameterNameCopy=="shape") {
+                if (parameterValue=="wedge") {
+		  shapeType[mainIndex]=Module::Wedge;
+		  explicitShapeType[mainIndex] = true;
+		  specialRing[mainIndex] = true;
+                } else if (parameterValue=="rectangular") {
+		  shapeType[mainIndex]=Module::Rectangular;
+		  explicitShapeType[mainIndex] = true;
+		  specialRing[mainIndex] = true;  
+                } else {
+		  cerr << "ERROR: Parsing endcap \"" << myName
+		       << "\": wrong syntax for a shape: \"" << parameterValue
+		       << "\" should be \"rectangular\" or \"wedge\"" << endl;
+		  throw parsingException();
+                }
+	      } else {
+		cerr << "ERROR: parameter " << parameterNameCopy << " is not allowed to have"
+		     << "parameter[ring] = value" << endl;
+		throw parsingException();
+	      }
+	    } else if (parameterName=="nDisks") {
 	      nDisks=atoi(parameterValue.c_str());
 	    } else if (parameterName=="readout") { // TODO: move this to the types
 	      if (parameterValue=="cluster") readoutMode=Module::Cluster;
@@ -472,27 +551,6 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
                 myTracker_->setSmallDelta(atof(parameterValue.c_str()));
             } else if (parameterName=="bigDelta") {
                 myTracker_->setBigDelta(atof(parameterValue.c_str()));
-            } else if ((correctlyBroken)&&((parameterNameCopy=="smallDelta")||(parameterNameCopy=="bigDelta"))) {
-                double deltaValue =  atof(parameterValue.c_str());
-                if ((mainIndex==0)||(secondaryIndex!=0)||(deltaValue==0)) {
-                    cerr << "ERROR: parameter setting for " << parameterNameCopy << " must have the following structure: "
-                            << "parameter[ring] = value , with non-zero ring index and non-zero value" << endl;
-                    throw parsingException();
-                } else {
-                    if (parameterNameCopy=="smallDelta") {
-                        // put smallDelta [layer] as a special option
-                        myTracker_->setSpecialSmallDelta(mainIndex, deltaValue);
-                    } else if (parameterNameCopy=="bigDelta") {
-                        // put bigDelta [layer] as a special option
-                        myTracker_->setSpecialBigDelta(mainIndex, deltaValue);
-                    } else {
-                        cerr << "BAD error: this should never happen. contact the developers..." << endl;
-                        throw parsingException();
-                    }
-                    // TODO: fix this
-                    cerr << "ERROR: per-ring small and big deltas are not yet imlpemented" << endl;
-                    throw parsingException();
-                }
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="innerEta") {
@@ -509,24 +567,43 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
                 maxZ=atof(parameterValue.c_str());
             } else if (parameterName=="diskParity") {
                 diskParity=atoi(parameterValue.c_str());
-                if (diskParity>0) diskParity=1; else diskParity=-1;
-            } else if (parameterName=="aspectRatio") {
-                aspectRatio=atof(parameterValue.c_str());
-                explicitAspectRatio = true;
-                if (aspectRatio<=0) {
+		if (diskParity>0) diskParity=1; else diskParity=-1;
+            } else if (parameterName=="aspectRatio") { // Can also be ring-dependent
+                aspectRatio[0]=atof(parameterValue.c_str());
+                explicitAspectRatio[0] = true;
+                if (aspectRatio[0]<=0) {
                     cerr << "ERROR: Parsing endcap \"" << myName
                             << "\": wrong aspect ratio (height/width): " << parameterValue
                             << " should be a positive number" << endl;
                     throw parsingException();
                 }
-            } else if (parameterName=="shape") {
+            } else if (parameterName=="size") { // Can also be ring-dependent
+                double widthValue, lengthValue;
+                if (sscanf(parameterValue.c_str(), "%lfx%lf", &widthValue, &lengthValue)==2) {
+                    if ((widthValue>0)&&(lengthValue>0)) {
+                        size[0].first = widthValue;
+                        size[0].second = lengthValue;
+                        explicitSize[0] = true;
+			explicitShapeType[0] = true;
+			shapeType[0] = Module::Rectangular;
+                    } else {
+                        cerr << "ERROR: parsing the module size for endcap " << myName
+                        << ": \"" << parameterValue.c_str() << "\"I got a negative width or length." << endl;
+                        throw parsingException();
+                    }
+                } else {
+                    cerr << "ERROR: Parsing size of modules for endcap \"" << myName
+                            << "\": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
+                    throw parsingException();
+                }
+            } else if (parameterName=="shape") { // Can also be ring-dependent
                 bool syntaxOk=true;
                 if (parameterValue=="wedge") {
-                    shapeType=Module::Wedge;
-                    explicitShapeType = true;
+                    shapeType[0]=Module::Wedge;
+                    explicitShapeType[0] = true;
                 } else if (parameterValue=="rectangular") {
-                    shapeType=Module::Rectangular;
-                    explicitShapeType = true;
+                    shapeType[0]=Module::Rectangular;
+                    explicitShapeType[0] = true;
                 } else {
                     syntaxOk=false;
                 }
@@ -599,66 +676,110 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     if (minZ==0) {
         minZ=myTracker_->getMaxBarrelZ(+1)+barrelToEndcap;
     }
+
     
-    // Check consistency in module shape type assigned
-    if (explicitShapeType) {
-        if ((shapeType==Module::Wedge)&&(explicitAspectRatio)) {
-            cerr << "Parsing endcap \"" << myName
-                    << "\": I see module shape 'wedge' ans aspect ratio assigned. This is inconsistent. I quit." << endl;
-            throw parsingException();
-        }
+    for (int iRing=0; iRing<1; ++iRing) {
+      // Check consistency in module shape type assigned
+      if (explicitShapeType[iRing]) {
+        if (shapeType[iRing]==Module::Wedge) { 
+	  // It's wedge-shaped
+	  if ((explicitAspectRatio[iRing]) || (explicitSize[iRing])) {
+	    // And the aspect ratio or size was explicitly given!
+	    // This is an error...
+	    cerr << "Parsing endcap \"" << myName << "\"";
+	    if (iRing!=0) cerr << " (ring " << iRing << ")";
+	    cerr << ": I see module shape 'wedge' and aspect ratio or size assigned. This is inconsistent. I quit." << endl;
+	    throw parsingException();
+	  }
+	}
+      }
+      // TODO: check also that aspectratio and size are not given at the same time
     }
+
+    
     
     // Actually creating the endcap if all the mandatory parameters were set
     if ( (nDisks != 0) &&
-    ((rhoIn != 0)||(innerEta!=0)) &&
-    (rhoOut != 0) &&
-    (minZ != 0) &&
-    (maxZ != 0) &&
-    (diskParity != 0)) {
+	 ((rhoIn != 0)||(innerEta!=0)) &&
+	 (rhoOut != 0) &&
+	 (minZ != 0) &&
+	 (maxZ != 0) &&
+	 (diskParity != 0)) {
+
+      std::map<int, EndcapModule*> sampleModule;
+
+
+      std::string mess;
+      for (std::map<int, bool>::iterator it = specialRing.begin();
+	   it != specialRing.end(); ++it) {
+	
+	const int& iRing = it->first;
+	EndcapModule* aModule;
+	
         // The same old sample module
-        EndcapModule* sampleModule;
-        if (shapeType==Module::Wedge) {
-            sampleModule = new EndcapModule(Module::Wedge);
-        } else if (shapeType==Module::Rectangular) {
-            sampleModule = new EndcapModule(aspectRatio);
+        if (shapeType[iRing]==Module::Wedge) {
+	  aModule = new EndcapModule(Module::Wedge);
+	  mess = "wedge";
+        } else if (shapeType[iRing]==Module::Rectangular) {
+	  mess = "rect_";
+	  if (explicitSize[iRing]) {
+	    mess += "size";
+	    // TODO: create a sample module with the right size here
+	    // instead of the really big one
+            double waferDiameter = pow((pow(size[iRing].first, 2) + pow(size[iRing].second, 2)), 0.5);
+	    double aspectRatio = size[iRing].second / size[iRing].first; // height / width
+	    aModule = new EndcapModule(waferDiameter, aspectRatio);
+	  } else {
+	    mess += "square";
+            aModule = new EndcapModule(aspectRatio[iRing]);
+	  }
         } else {
-            cerr << "ERROR: an unknown module shape type was generated inside the configuration parser."
-                    << "this should never happen!" << std::endl;
-            throw parsingException();
+	  cerr << "ERROR: an unknown module shape type was generated inside the configuration parser."
+	       << "this should never happen!" << std::endl;
+	  throw parsingException();
         }
-        // Important: if no directive was given, the following line will clear
-        // possible previous directives coming from a different endcap
-        myTracker_->setRingDirectives(ringDirective);
-        myTracker_->setPhiSegments(phiSegments);
-        
-	sampleModule->setReadoutMode(readoutMode);
-        sampleModule->setResolutionRphi();
-        sampleModule->setResolutionY();
-        
-        if (rhoIn!=0) {
-            myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
-                    minZ,  // minZ
-                    maxZ,
-                    rhoIn,
-                    rhoOut,
-                    sampleModule,
-                    myName,
-                    diskParity,
-                    Layer::NoSection);
-        } else {
-            myTracker_->buildEndcapsAtEta(nDisks,     // nDisks (per side)
-                    minZ,  // minZ
-                    maxZ,
-                    innerEta,
-                    rhoOut,
-                    sampleModule,
-                    myName,
-                    diskParity,
-                    Layer::NoSection);
-        }
-        
-        delete sampleModule; // Dispose of the sample module
+
+	aModule->setReadoutMode(readoutMode);
+	aModule->setResolutionRphi();
+	aModule->setResolutionY();
+	sampleModule[iRing] = aModule;
+
+	// std::cerr << "Module in ring " << iRing << " is " << mess << std::endl; // debug
+      }
+    
+      // Important: if no directive was given, the following line will clear
+      // possible previous directives coming from a different endcap
+      myTracker_->setRingDirectives(ringDirective);
+      myTracker_->setPhiSegments(phiSegments);
+      
+      
+      if (rhoIn!=0) {
+	myTracker_->buildEndcaps(nDisks,     // nDisks (per side)
+				 minZ,  // minZ
+				 maxZ,
+				 rhoIn,
+				 rhoOut,
+				 sampleModule, // TODO: give the full map of sample modules
+				 myName,
+				 diskParity,
+				 Layer::NoSection);
+      } else {
+	myTracker_->buildEndcapsAtEta(nDisks,     // nDisks (per side)
+				      minZ,  // minZ
+				      maxZ,
+				      innerEta,
+				      rhoOut,
+				      sampleModule, // TODO: give the full map of sample modules
+				      myName,
+				      diskParity,
+				      Layer::NoSection);
+      }
+      
+      for (std::map<int, EndcapModule*>::iterator it = sampleModule.begin();
+	   it != sampleModule.end(); ++it) {
+	delete it->second;
+      }
+      sampleModule.clear();
         
         // Remove the deleted rings
         
@@ -892,12 +1013,13 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     if (nDisks > 0) {
         waferDiameter = pow((pow(emsize.first, 2) + pow(emsize.second, 2)), 0.5);
         aspectRatio = emsize.second / emsize.first; // height / width
-        EndcapModule* sampleEndcapModule = new EndcapModule(waferDiameter, aspectRatio);
-        sampleEndcapModule->setResolutionRphi();
-        sampleEndcapModule->setResolutionY();
+	std::map<int, EndcapModule*> sampleEndcapModule;
+	sampleEndcapModule[0] = new EndcapModule(waferDiameter, aspectRatio);
+        sampleEndcapModule[0]->setResolutionRphi();
+        sampleEndcapModule[0]->setResolutionY();
         myTracker_->buildEndcaps(nDisks, myTracker_->getMaxBarrelZ(+1) + barrelToEndcap,
                 maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, Layer::NoSection);
-        delete sampleEndcapModule;
+        delete sampleEndcapModule[0];
     }
     
     return true;
@@ -1108,9 +1230,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                     } else if (parameterName == "divideBack") {
                         divideBack[mainIndex]=atoi(parameterValue.c_str());
                     } else if (parameterName == "xResolution") {
-                        xResolution[mainIndex]=atoi(parameterValue.c_str());
+                        xResolution[mainIndex]=atof(parameterValue.c_str());
                     } else if (parameterName == "yResolution") {
-                        yResolution[mainIndex]=atoi(parameterValue.c_str());
+                        yResolution[mainIndex]=atof(parameterValue.c_str());
 		    }
                     // cout << "\t" << parameterName << "[" << mainIndex << "] = " << parameterValue << ";" << endl; // debug
                 } else { // Special assignment per disk/ring
@@ -1143,7 +1265,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                             isSpecial = true;
                         }
                     } else if (parameterName=="dsDistance") {
-                        if (atoi(parameterValue.c_str())!=dsDistance[mainIndex]) {
+		      if (atof(parameterValue.c_str())!=dsDistance[mainIndex]) { // TODO: BUG! if you put atoi it will likely crash in the logger
                             dsDistanceSecond[specialIndex]=atof(parameterValue.c_str());
                             specialSecond[specialIndex]=true;
                             isSpecial = true;
@@ -1155,7 +1277,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                             isSpecial = true;
                         }
                     } else if (parameterName=="dsRotation") {
-                        if (atoi(parameterValue.c_str())!=dsRotation[mainIndex]) {
+                        if (atof(parameterValue.c_str())!=dsRotation[mainIndex]) {
                             dsRotationSecond[specialIndex]=atof(parameterValue.c_str());
                             specialSecond[specialIndex]=true;
                             isSpecial = true;

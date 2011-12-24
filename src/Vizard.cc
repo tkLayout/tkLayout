@@ -1030,13 +1030,15 @@ namespace insur {
 	    if (fractionTitles[i]!="") {
 	      summaryTable.setContent(i+delta,0,fractionTitles[i]);
 	      int j=0;
+              double myValue;
 	      for ( std::vector<double>::iterator it = averages[i].begin();
 		    it != averages[i].end(); ++it ) {
 		//std::cout << "average: " << (*it) << std::endl;
-		summaryTable.setContent(i+delta,j+1, (*it),2);
+                myValue = 100 * (1 - (*it));
+		summaryTable.setContent(i+delta,j+1, myValue,2);
 		summaryTable.setContent(0,j+1, cutNames[j]);
 		addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
-		addSummaryElement(*it);
+		addSummaryElement(myValue);
 		j++;
 	      }
 	    } else delta--;
@@ -2486,8 +2488,11 @@ namespace insur {
     if (!triggerProfiles.empty()) {
       somethingFound = true;
 
+      // std::cerr << "found " << triggerProfiles.size() <<" profiles for trigger" << std::endl; // debug
+
       std::string plotOption;
       int myColor;
+      double miny, maxy;
 
       // Create the contents
       RootWContent& myContent = myPage.addContent("Overall trigger");
@@ -2498,6 +2503,7 @@ namespace insur {
       // Strings according to the content
       tempString="";
       tempSS.str(""); tempSS << "Number of triggered and triggerable points vs. eta for pT = ";
+
 
       // momentum canvas loop
       myColor=0;
@@ -2510,10 +2516,17 @@ namespace insur {
 	   plot_iter != triggerProfiles.end();
 	   ++plot_iter) {
 	const double& myPt = plot_iter->first;
+
+	TProfile& npointsProfile = plot_iter->second;
+
+	miny = npointsProfile.GetBinContent(npointsProfile.GetMinimumBin());
+	maxy = npointsProfile.GetBinContent(npointsProfile.GetMaximumBin());
+	if ((miny==0)&&(maxy==0)) continue;
+
 	if (myPt!=0) {
 	  tempSS << tempString.c_str() << myPt; tempString = ", ";
 	}
-	TProfile& npointsProfile = plot_iter->second;
+
 	npointsProfile.SetMinimum(1E-2);
 	//npointsProfile.GetXaxis()->SetLimits(0, 2.4);
 	npointsProfile.SetLineColor(Palette::color(myColor));
@@ -2524,6 +2537,7 @@ namespace insur {
 	pointsCanvas.SetFillColor(color_plot_background);
 
 	pointsCanvas.cd();
+	// std::cerr << "About to draw plot " << myPt << std::endl; // debug
 	npointsProfile.Draw(plotOption.c_str());
 	//plotOption = "E6 same";
 	plotOption = "E1 same";
@@ -2534,12 +2548,15 @@ namespace insur {
       npointsImage.setComment(tempSS.str().c_str());
       npointsImage.setName("ntrigpoints");
 
+      // std::cerr << "now to log scale..." << std::endl; // debug
+
       pointsCanvas.SetLogy();
       RootWImage& npointsLogImage = myContent.addImage(pointsCanvas, 600, 600);
       tempSS << " (log scale)";
       npointsLogImage.setComment(tempSS.str().c_str());
       npointsLogImage.setName("ntrigpointsLog");
 
+      // std::cerr << "done..." << std::endl; // debug
 
       TCanvas fractionCanvas;
       fractionCanvas.SetGrid(1,1);
@@ -2556,14 +2573,23 @@ namespace insur {
       gStyle->SetGridColor(color_hard_grid);
       
       // Loop over the plots and draw on the canvas
+      //miny=1000;
+      //maxy=0;
       for (std::map<double, TProfile>::iterator plot_iter = triggerFractionProfiles.begin();
 	   plot_iter != triggerFractionProfiles.end();
 	   ++plot_iter) {
 	const double& myPt = plot_iter->first;
+	TProfile& fractionProfile = plot_iter->second;
+
+	miny = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
+	maxy = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
+	//std::cerr << "miny = " << miny << std::endl; // debug
+	//std::cerr << "maxy = " << maxy << std::endl; // debug
+
 	if (myPt!=0) {
 	  tempSS << tempString.c_str() << myPt; tempString = ", ";
 	}
-	TProfile& fractionProfile = plot_iter->second;
+
 	fractionProfile.SetMinimum(1E-2);
 	fractionProfile.SetMaximum(100);
 	fractionProfile.SetLineColor(Palette::color(myColor));
@@ -2574,14 +2600,20 @@ namespace insur {
 	fractionCanvas.SetFillColor(color_plot_background);
 
 	fractionCanvas.cd();
+	// std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
 	fractionProfile.Draw(plotOption.c_str());
 	plotOption = "E1 same";
+	//aValue = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
+	//if (aValue>maxy) maxy=aValue;
+	//aValue = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
+	//if (aValue<miny) miny=aValue;
+	//std::cerr << "Fraction plots between " << miny << " and " << maxy << std::endl;
       }
+
 
       RootWImage& fractionImage = myContent.addImage(fractionCanvas, 600, 600);
       fractionImage.setComment(tempSS.str().c_str());
       fractionImage.setName("fractiontrigpoints");
-
       fractionCanvas.SetLogy();
       RootWImage& fractionLogImage = myContent.addImage(fractionCanvas, 600, 600);
       tempSS << " (log scale)";
@@ -2602,6 +2634,7 @@ namespace insur {
     double maxPt = -1;
     // Check if the maps exist at all
     if (!efficiencyMaps.empty()) {
+      // std::cerr << "Found " << efficiencyMaps.size() << " efficiency maps"<< std::endl; // debug
       somethingFound = true;
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Efficiency maps", false);
@@ -2645,6 +2678,8 @@ namespace insur {
     // Check if the maps exist at all
     if (!thresholdMaps.empty()) {
       somethingFound = true;
+      // std::cerr << "Found " << thresholdMaps.size() << " threshold maps"<< std::endl; // debug
+
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Threshold maps", false);
       for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
@@ -2742,6 +2777,8 @@ namespace insur {
 
     if (profileNames.size()!=0) {
       somethingFound = true;
+
+      // std::cerr << "Found " << profileNames.size() << " spacing tuning profiles" << std::endl; // debug
 
       // Create the content
       RootWContent& spacingSummaryContent = myPage.addContent("Sensor spacing tuning summary", true);
@@ -2960,7 +2997,6 @@ namespace insur {
 	tempSS.str(""); tempSS << "TriggerTurnon" << tempString.c_str();
 	turnonImage.setName(tempSS.str());}
     }
-
 
     return somethingFound;
   }

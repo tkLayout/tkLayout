@@ -18,6 +18,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <hit.hh>
 #include <module.hh>
@@ -358,6 +359,7 @@ namespace insur {
 	int geometryTracksUsed;
 	int materialTracksUsed;
 	void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
+	void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     };
 }
 #endif	/* _ANALYZER_H */

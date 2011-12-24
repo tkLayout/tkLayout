@@ -990,9 +990,9 @@ int main(int argc, char** argv) {
 	  s.pureAnalyzeGeometry(tracks_geom);
 	  std::cout << "Calling analyzer with " << tracks << " tracks." << std::endl;
 	  if (!s.pureAnalyzeMaterialBudget(tracks)) return (EXIT_FAILURE);
-	  if (!(s.reportGeometrySite())) return (EXIT_FAILURE);
+	  if (!(s.reportGeometrySite())) return (EXIT_FAILURE); // TODO: make these optional through command line
 	  if (!(s.reportMaterialBudgetSite())) return (EXIT_FAILURE);
-	   if (!(s.reportTriggerPerformanceSite())) return (EXIT_FAILURE); // TODO: put this back
+          if (!(s.reportTriggerPerformanceSite())) return (EXIT_FAILURE);
 	  if (!(s.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile))) return (EXIT_FAILURE);
 	  if (!(s.makeSite())) return (EXIT_FAILURE);
         }

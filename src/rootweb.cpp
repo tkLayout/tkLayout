@@ -293,6 +293,7 @@ string RootWImage::saveFiles(int smallWidth, int smallHeight) {
   gErrorIgnoreLevel = 1500;
   myCanvas_->cd();
   myCanvas_->SetCanvasSize(canW, canH);
+  // std::cerr << "Saving " << largeCanvasCompleteFileName << std::endl; // debug
   myCanvas_->Print(smallCanvasCompleteFileName.c_str());
   myCanvas_->SetCanvasSize(zoomedWidth_, zoomedHeight_);
   myCanvas_->Print(largeCanvasCompleteFileName.c_str());

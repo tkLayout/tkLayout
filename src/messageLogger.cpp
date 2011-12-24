@@ -59,7 +59,8 @@ string MessageLogger::getLatestLog(int level) {
     std::vector<LogMessage>::iterator itMessage;
     std::vector<LogMessage>::iterator nextMessage;
     for (itMessage=logMessageV.begin();
-	 itMessage != logMessageV.end(); ) {
+	 itMessage!=logMessageV.end(); ) {
+      // std::cerr << "==" << (itMessage->message).c_str() << "==" << std::endl;
       if (itMessage->level==level) {
         result += (*itMessage).sender+": "+(*itMessage).message+"\n";
 	nextMessage=itMessage+1;

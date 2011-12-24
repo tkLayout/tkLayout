@@ -931,10 +931,15 @@ void Track::printErrors() {
  * @param efficiency the modules active fraction
  * @param alsoPixel true if the efficiency removal applies to the pixel hits also
  */
-void Track::addEfficiency(double efficiency, bool alsoPixel /* = false */ ) {
+void Track::addEfficiency(double efficiency, bool pixel /* = false */ ) {
   for (std::vector<Hit*>::iterator it = hitV_.begin(); it!=hitV_.end(); ++it) {
     if ((*it)->getObjectKind() == Hit::Active) {
-      if ((alsoPixel)||(!(*it)->isPixel())) {
+      if ((pixel)&&(*it)->isPixel()) {
+	if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
+	  (*it)->setObjectKind(Hit::Inactive);
+	}
+      }
+      if ((!pixel)&&(!(*it)->isPixel())) {
 	if ((double(random())/RAND_MAX) > efficiency) { // This hit is LOST
 	  (*it)->setObjectKind(Hit::Inactive);
 	}
@@ -999,7 +1004,10 @@ void Track::setTriggerResolution(bool isTrigger) {
  * Adds the constraint of the IP in the form of a virtual module
  */
 void Track::addIPConstraint(double dr, double dz) {
-  Hit* newHit = new Hit(0.);
+  // This modeling of the IP constraint waas validated:
+  // By placing dr = 0.5 mm and dz = 1 mm one obtains
+  // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
+  Hit* newHit = new Hit(dr);
   newHit->setIP(true);
   Material emptyMaterial;
   emptyMaterial.radiation = 0;
@@ -1011,6 +1019,22 @@ void Track::addIPConstraint(double dr, double dz) {
   newHit->setResolutionRphi(dr);
   newHit->setResolutionY(dz);
   this->addHit(newHit);
+}
+
+Material Track::getCorrectedMaterial() {
+  std::vector<Hit*>::const_iterator hitIt;
+  Hit* myHit;
+  Material result;
+  result.radiation = 0;
+  result.interaction = 0;
+  for (hitIt=hitV_.begin();
+       hitIt!=hitV_.end();
+       ++hitIt) {
+    myHit=(*hitIt);
+    result += myHit->getCorrectedMaterial();
+  }
+
+  return result;
 }
 
 double Track::expectedTriggerPoints(const double& triggerMomentum) const {

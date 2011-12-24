@@ -1152,7 +1152,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 				  double overlap,
 				  double zError,
 				  int base,
-				  EndcapModule* sampleModule,
+				  std::map<int, EndcapModule*> sampleModules,
 				  std::map<int, int> ringDirectives,
 				  int diskParity, /*=-1*/
 				  int sectioned /*=NoSection*/) {
@@ -1180,6 +1180,14 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     std::ostringstream tag;
     
     for (nRing=1; lastRho<maxRadius; nRing++) {
+        EndcapModule* sampleModule = sampleModules[nRing];
+	if (sampleModule==NULL) sampleModule = sampleModules[0];
+	if (sampleModule==NULL) {
+	  std::cerr << "ERROR: a module prototype is not available for ring " << nRing
+		    << " i will not populate this ring" << std::endl;
+	  // TODO (important!): put a proper error handling here
+	  // For the moment it will just segfault (hi hi hi)
+	}
         tempString.str(""); tempString  << "Ring number " << nRing;
         addMessage(tempString, DEBUG);
         // Ring parity is 1, -1, 1, -1 for

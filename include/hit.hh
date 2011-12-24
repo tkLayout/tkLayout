@@ -164,5 +164,6 @@ public:
   static bool debugRZErrorPropagation;  // debug
 #endif
   void addIPConstraint(double dr, double dz);
+  Material getCorrectedMaterial();
 };
 #endif

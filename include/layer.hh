@@ -227,7 +227,7 @@ public:
 		       double overlap, 
 		       double zError,
 		       int base, 
-		       EndcapModule* sampleModule, 
+		       std::map<int, EndcapModule*> sampleModule, 
 		       std::map<int, int> ringDirectives, 
 		       int diskParity = -1,
 		       int sectioned = NoSection);
