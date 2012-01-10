@@ -110,6 +110,11 @@ void Tracker::setDefaultParameters() {
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
+
+	numInvFemtobarns_ = 3000;
+	chargeDepletionVoltage_ = 600;
+	operatingTemp_ = -20;
+	alphaParam_ = 7.1e-18;
 }
 
 void Tracker::shapeVolume() {

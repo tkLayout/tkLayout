@@ -80,6 +80,8 @@ namespace insur {
     // mainConfigHandler
     static const std::string default_mattabdir = "config";
     static const std::string default_mattabfile = "mattab.list";
+    static const std::string default_irradiationdir = "config";
+    static const std::string default_irradiationfile = "irradiation.map";
     static const std::string default_rootfiledir = "rootfiles";
     static const std::string default_rootfile = "trackergeometry.root";
     static const std::string default_graphdir = "graphs";

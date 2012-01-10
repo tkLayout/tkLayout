@@ -1055,6 +1055,7 @@ int main(int argc, char** argv) {
         if (settingsfile.empty()) std::cout << "Warning: using tracker geometry without a settings file to dress it from." << std::endl;
         else {
             if (!s.dressTracker(settingsfile)) return (EXIT_FAILURE);
+            if (!s.irradiateTracker()) return (EXIT_FAILURE);
         }
         if (!s.buildInactiveSurfaces(u)) return (EXIT_FAILURE);
         if (m && !matfile.empty()) s.createMaterialBudget(matfile, m);

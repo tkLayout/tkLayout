@@ -332,6 +332,11 @@ string mainConfigHandler::getMattabDirectory() {
   return getMattabDirectory_();
 }
 
+string mainConfigHandler::getIrradiationDirectory() {
+  getConfiguration();
+  return getIrradiationDirectory_();
+}
+
 string mainConfigHandler::getRootfileDirectory() {
   getConfiguration();
   return getRootfileDirectory_();
@@ -352,6 +357,7 @@ string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
 string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
 string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; } 
 string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
+string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
 string mainConfigHandler::getRootfileDirectory_() { return standardDirectory_+"/"+insur::default_rootfiledir; }
 string mainConfigHandler::getGraphDirectory_() { return standardDirectory_+"/"+insur::default_graphdir; }
 string mainConfigHandler::getSummaryDirectory_() { return standardDirectory_+"/"+insur::default_summarypath; }

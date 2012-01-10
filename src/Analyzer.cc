@@ -34,6 +34,7 @@ namespace insur {
   const int mapBag::suggestedSpacingMap   = 0x010;
   const int mapBag::suggestedSpacingMapAW = 0x020;
   const int mapBag::spacingWindowMap      = 0x040;
+  const int mapBag::irradiatedPowerConsumptionMap = 0x080;
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
@@ -1102,7 +1103,186 @@ namespace insur {
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
 #endif
     }
-    
+
+	void Analyzer::analyzePower(Tracker& tracker) {
+		computeIrradiatedPowerConsumption(tracker);
+		preparePowerHistograms();
+		fillPowerMap(tracker);
+	}
+
+	void Analyzer::computeTriggerFrequency(Tracker& tracker) {
+		std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
+		std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+		LayerVector& layers = tracker.getLayers();
+
+        triggerFrequencyTrueSummaries_.clear();
+        triggerFrequencyFakeSummaries_.clear();
+		triggerRateSummaries_.clear();
+		triggerPuritySummaries_.clear();
+		triggerDataBandwidthSummaries_.clear();
+
+		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+			ModuleVector* modules = (*layIt)->getModuleVector();
+			if (!modules) {
+				std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
+				return;
+			}
+			std::string cntName = (*layIt)->getContainerName();
+			if (cntName == "") {
+				cout << "computeTriggerFrequency(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
+				continue;
+			}
+			for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+				Module* module = (*modIt);
+				XYZVector center = module->getMeanPoint();
+				if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module->getStereoDistance()==0.0)) continue;
+				int curCnt = triggerFrequencyCounts[cntName][make_pair(module->getLayer(), module->getRing())]++;
+				double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(),module->getRing())];
+				double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
+
+				curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+				curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+				double curAvgTotal = curAvgTrue + curAvgFake;
+
+				triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;			
+				triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;	
+
+				int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
+				int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
+
+
+				std::stringstream ss1(""), ss2(""), ss3(""), ss4(""), ss5("");
+				ss1.precision(6);
+				ss2.precision(6);
+				ss3.precision(6);
+				ss4.precision(6);
+				ss5.precision(6);
+				ss1.setf(ios::fixed, ios::floatfield);
+				ss2.setf(ios::fixed, ios::floatfield);
+				ss3.setf(ios::fixed, ios::floatfield);
+				ss4.setf(ios::fixed, ios::floatfield);
+				ss5.setf(ios::fixed, ios::floatfield);
+				ss1 << curAvgTrue;
+				ss2 << curAvgFake;
+				ss3 << curAvgTotal;
+				ss4 << curAvgTrue/(curAvgTrue+curAvgFake);
+				ss5 << triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits;
+				triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss1.str());
+				triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss2.str());
+				triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss3.str());				
+				triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss4.str());				
+				triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss5.str());
+
+				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+					std::stringstream ss("");
+					ss << module->getLayer();
+					triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+					triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				}
+				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(0, module->getRing())) {
+					std::stringstream ss("");
+					ss << module->getRing();
+					triggerFrequencyTrueSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+					triggerFrequencyFakeSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				}
+				if (!triggerRateSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+					std::stringstream ss("");
+					ss << module->getLayer();
+					triggerRateSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+					triggerPuritySummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+					triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				}
+				if (!triggerRateSummaries_[cntName].hasCell(0, module->getRing())) {
+					std::stringstream ss("");
+					ss << module->getRing();
+					triggerRateSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+					triggerPuritySummaries_[cntName].setCell(0, module->getRing(), ss.str());
+					triggerDataBandwidthSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				}
+			}
+			triggerFrequencyTrueSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerFrequencyFakeSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerRateSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerPuritySummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+			triggerDataBandwidthSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+		}
+	}
+	
+void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
+	// loop over layers
+	// 	  loop over modules
+	// 	     compute the power formula for the given module P(V*, I(Fluence(Z, r), T*, alpha*))
+	//		 populate R-Z table
+	
+	double numInvFemtobarns = tracker.getNumInvFemtobarns();
+	double operatingTemp    = tracker.getOperatingTemp();
+	double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
+	double alphaParam       = tracker.getAlphaParam();
+
+	cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
+	cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
+	cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
+	cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
+	irradiatedPowerConsumptionSummaries_.clear();
+	
+
+	LayerVector& layers = tracker.getLayers();
+	for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+		ModuleVector* modules = (*layIt)->getModuleVector();
+		if (!modules) {
+			std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
+			return;
+		}
+		std::string cntName = (*layIt)->getContainerName();
+		if (cntName == "") {
+			cout << "computeIrradiatedPowerConsumption(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
+			continue;
+		}
+		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+			Module* module = (*modIt); 
+			XYZVector center = module->getMeanPoint();
+			if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
+			double x  = center.Z()/25;
+			double y  = center.Rho()/25;
+			double x1 = floor(x);
+			double x2 = ceil(x);
+			double y1 = floor(y);
+			double y2 = ceil(y);
+			double irr11 = tracker.getIrradiationMap()[make_pair(x1, y1)]; 
+			double irr21 = tracker.getIrradiationMap()[make_pair(x2, y1)];
+			double irr12 = tracker.getIrradiationMap()[make_pair(x1, y2)];
+			double irr22 = tracker.getIrradiationMap()[make_pair(x2, y2)];
+			double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
+			double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / 273.15, 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/273.15)); 
+			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;			
+			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
+			module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
+			std::stringstream ss("");
+			ss.precision(6);
+			ss.setf(ios::fixed, ios::floatfield);
+			ss << irradiatedPowerConsumption;
+			irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss.str());
+			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(module->getLayer(), 0)) {
+				std::stringstream ss("");
+				ss << module->getLayer();
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
+			}
+			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(0, module->getRing())) {
+				std::stringstream ss("");
+				ss << module->getRing();
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
+			}
+		}
+		irradiatedPowerConsumptionSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
+	}
+}
+
+
   // protected
   /**
    * Looping on the layers, and picking only modules on the YZ section
@@ -2239,6 +2419,76 @@ namespace insur {
     delete counterSpacingAW;
   }
 
+
+  void Analyzer::fillPowerMap(Tracker& tracker) {
+    TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+
+    LayerVector& layerSet = tracker.getLayers();
+    LayerVector::iterator layIt;
+    Layer* aLayer;
+    ModuleVector::iterator modIt;
+    ModuleVector* moduleSet;
+    Module* aModule;
+    string cntName;
+    
+    // Then: single maps
+    
+    // Reset the our map, in case it is not empty
+    //thicknessMap.Reset();
+    //windowMap.Reset();
+    //suggestedSpacingMap.Reset();
+    //suggestedSpacingMapAW.Reset();
+    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
+	irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+      }
+    }
+
+    // Create a map for the counter
+    TH2D* counter = (TH2D*)irradiatedPowerConsumptionMap.Clone();
+    
+    // Loop over all the modules
+    for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
+      aLayer = (*layIt);
+      moduleSet = aLayer->getModuleVector();
+
+      cntName = aLayer->getContainerName();
+      if (cntName == "") continue;      
+
+      for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+		aModule = (*modIt);
+
+		if ((aModule->getMeanPoint().Z()<0) || (aModule->getMeanPoint().Phi()<0) || (aModule->getMeanPoint().Phi()>M_PI/2)) continue;
+		double myPower = aModule->getIrradiatedPowerConsumption();
+		// Draw the module
+		XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+		XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+		XYZVector diff = end-start;
+		XYZVector point;
+		double myZ, myRho;
+		for (double l=0; l<1; l+=0.1) {
+	  		point = start + l * diff;
+	  		myZ=point.Z();
+	  		myRho=point.Rho();
+      		irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
+	  		counter->Fill(myZ, myRho, 1);
+		}
+      }
+    }
+    
+    // Normalize the counts to the number of hits per bin ...
+    for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
+      for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
+	if (counter->GetBinContent(i,j)!=0) {
+	  irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	}
+      }
+    }
+    // ... and get rid of the counter
+    delete counter;
+
+  }
+
   void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
     int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
     int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
@@ -2367,6 +2617,13 @@ namespace insur {
     aName.str(""); aName << "triggerable_vs_eta_profile";
     trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 
+  }
+
+
+  void Analyzer::preparePowerHistograms() {
+    myMapBag.clearMaps(mapBag::irradiatedPowerConsumptionMap);
+    TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
+    prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of irradiated power consumption");
   }
 
   /**

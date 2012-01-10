@@ -32,6 +32,7 @@ class mainConfigHandler {
   string getStyleDirectory();
   string getXmlDirectory();
   string getMattabDirectory();
+  string getIrradiationDirectory();
   string getRootfileDirectory();
   string getGraphDirectory();
   string getSummaryDirectory();
@@ -59,6 +60,7 @@ class mainConfigHandler {
   string getStyleDirectory_();
   string getXmlDirectory_();
   string getMattabDirectory_();
+  string getIrradiationDirectory_();
   string getRootfileDirectory_();
   string getGraphDirectory_();
   string getSummaryDirectory_();

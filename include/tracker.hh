@@ -50,6 +50,7 @@ protected:
 
   std::map<int, double> mapTypeToCost_;
   std::map<std::string, ModuleType> mapType_;
+  std::map<std::pair<int, int>, double> mapIrradiation_;
 
   SpecialDelta specialSmallDelta_;
   SpecialDelta specialBigDelta_;
@@ -119,6 +120,11 @@ private:
   double overlap_;
   double etaCut_;
   int phiSegments_;
+
+  double numInvFemtobarns_;
+  double operatingTemp_;
+  int chargeDepletionVoltage_;
+  double alphaParam_;
 
   std::string summaryDirectory_;
   std::string storeDirectory_;
@@ -229,6 +235,16 @@ public:
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
   void setComment(const std::string &newComment) {comment_=newComment;};
   void setNMB(const double nMB) {nMB_=nMB;};
+  void setSparsifiedHeaderBits(string typeIndex, int bits)  { mapType_[typeIndex].setSparsifiedHeaderBits(bits);  }
+  void setSparsifiedPayloadBits(string typeIndex, int bits) { mapType_[typeIndex].setSparsifiedPayloadBits(bits); }
+  void setTriggerDataHeaderBits(string typeIndex, int bits)  { mapType_[typeIndex].setTriggerDataHeaderBits(bits);  }
+  void setTriggerDataPayloadBits(string typeIndex, int bits) { mapType_[typeIndex].setTriggerDataPayloadBits(bits); }
+  void setSensorThickness(string typeIndex, double thickness) { mapType_[typeIndex].setSensorThickness(thickness); }
+  void setNumInvFemtobarns(double numInvFemtobarns) { numInvFemtobarns_ = numInvFemtobarns; }
+  void setOperatingTemp(double operatingTemp) { operatingTemp_ = operatingTemp; }
+  void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
+  void setAlphaParam(double alphaParam) { alphaParam_ = alphaParam; }
+
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); }; // should be made obsolete (should go into Analyzer)
@@ -283,7 +299,17 @@ public:
   TCanvas* getGeomLiteXY() {return geomLiteXY_;};
   TCanvas* getGeomLiteYZ() {return geomLiteYZ_;};
   TCanvas* getGeomLiteEC() {return geomLiteEC_;};
-  
+
+  int  getSparsifiedHeaderBits(string typeIndex)  { return mapType_[typeIndex].getSparsifiedHeaderBits();  }
+  int  getSparsifiedPayloadBits(string typeIndex) { return mapType_[typeIndex].getSparsifiedPayloadBits(); }
+  int  getTriggerDataHeaderBits(string typeIndex)  { return mapType_[typeIndex].getTriggerDataHeaderBits();  }
+  int  getTriggerDataPayloadBits(string typeIndex) { return mapType_[typeIndex].getTriggerDataPayloadBits(); }
+  double  getSensorThickness(string typeIndex) { return mapType_[typeIndex].getSensorThickness(); }
+  std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
+  double getNumInvFemtobarns() const { return numInvFemtobarns_; }
+  double getOperatingTemp() const { return operatingTemp_; }
+  int getChargeDepletionVoltage() const { return chargeDepletionVoltage_; }  
+  double getAlphaParam() const { return alphaParam_; }
 
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {

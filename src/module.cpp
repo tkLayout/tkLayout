@@ -1156,7 +1156,7 @@ double BarrelModule::getOccupancyPerEvent() {
     double myOccupancyBarrel=(1.63e-4)+(2.56e-4)*rho-(1.92e-6)*rho*rho;
     //std::cerr << "Rho: " << rho << ", "
     //	    << "myOcc: " << myOccupancyBarrel << std::endl;
-    double factor=fabs(sin(theta));
+    double factor=fabs(sin(theta))*2; // 2 is a magic adjustment factor
     computeMaxDphiDeta();
     
     return myOccupancyBarrel*dphideta_/factor;
@@ -1171,7 +1171,7 @@ double EndcapModule::getOccupancyPerEvent() {
     double myOccupancyEndcap=(-6.20e-5)+(1.75e-4)*rho-(1.08e-6)*rho*rho+(1.50e-5)*(z);
     //std::cerr << "Rho: " << rho << ", z: " << z << ", "
     //	    << "myOcc: " << myOccupancyEndcap << std::endl;
-    double factor=fabs(cos(theta));
+    double factor=fabs(cos(theta))*2; // 2 is a magic adjustment factor
     computeMaxDphiDeta();
     
     return myOccupancyEndcap*dphideta_/factor;

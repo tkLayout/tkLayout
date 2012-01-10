@@ -25,6 +25,9 @@ public:
   // Parse the module type config file and "dresses" a Tracker object
   bool dressTracker(Tracker* aTracker, string configFileName);
   bool dressPixels(Tracker* aTracker, string configFileName);
+  
+  // Parse an irradiation map so that modules can be assigned radiation levels
+  bool irradiateTracker(Tracker* aTracker, string irrFileName);
 
   // Extract the user-defined support structures from the geometry config file
   std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);

@@ -68,6 +68,7 @@ namespace insur {
         bool buildTracker(std::string geomfile);
         bool dressTracker(std::string settingsfile);
         bool buildTrackerSystem(std::string geomfile, std::string settingsfile);
+		bool irradiateTracker();
         bool buildInactiveSurfaces(bool verbose = false);
         bool buildInactiveSurfaces(std::string geomfile, bool verbose = false);
         bool buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose = false);
