@@ -4,6 +4,10 @@ ModuleType::ModuleType() {
   triggerErrorX_=1;
   triggerErrorY_=1;
   sensorThickness_ = 0.2;
+  sparsifiedHeaderBits_  = 13;
+  sparsifiedPayloadBits_ = 9;  
+  triggerDataHeaderBits_  = 20;
+  triggerDataPayloadBits_ = 20;  
 }
 
 bool ModuleType::checkPowerType(int powerType) {

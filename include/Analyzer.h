@@ -51,7 +51,8 @@ namespace insur {
     public:
       SummaryTable() {};
       void setCell(const int row, const int column, std::string content) { summaryTable[std::make_pair(row,column)]=content;};
-      std::string getCell(const int row, const int column) { return summaryTable[make_pair(row,column)];};
+      std::string getCell(const int row, const int column) { return summaryTable[make_pair(row,column)];}; // this actually alters the map if the cell's not there = DANGEROUS
+      bool hasCell(int row, int column) const { return summaryTable.count(make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
       std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; };
     private:
       std::map<std::pair<int, int>, std::string> summaryTable;
@@ -211,6 +212,7 @@ namespace insur {
 	void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
+	void computeTriggerFrequency(Tracker& tracker);
 	void computeIrradiatedPowerConsumption(Tracker& tracker);
 	void analyzePower(Tracker& tracker);
 	void createGeometryLite(Tracker& tracker);
@@ -248,7 +250,12 @@ namespace insur {
 	std::map<std::string, SummaryTable>& getBarrelWeightComponentSummary() { return barrelComponentWeights;};
 	std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
 	std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
-    std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    	std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
+    	std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
+    	std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
+    	std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
+    	std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
+    	std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
     protected:
         /**
          * @struct Cell
@@ -321,6 +328,7 @@ namespace insur {
 
 	Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
 			     double& eta, double& theta, double& phi, Track& track);
+
 
 	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,

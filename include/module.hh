@@ -61,6 +61,7 @@ protected:
   int triggerWindow_;
   double stereorot_;
   double dphideta_;
+  double phiWidth_, etaWidth_;
   int nSegmentsFace_[maxNFaces];
   int nStripAcross_;
   int nFaces_;
@@ -286,6 +287,9 @@ protected:
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
 
+  double getTriggerFrequencyTruePerEvent();
+  double getTriggerFrequencyFakePerEvent();
+
 private:
   void setPterrorParameters();
 };
@@ -389,7 +393,7 @@ public:
   double getWidthHi() const { return widthHi_ ; };
 
   int getDisk() const { return disk_;};
-  void setDisk(const int& newDisk) {disk_ = newDisk;};
+  void setDisk(const int& newDisk) { disk_ = newDisk;};
 
   void setLayer(int newLayer) { disk_ = newLayer; }  // Layer == Disk for EndCap modules!
   int getLayer() const { return disk_; }

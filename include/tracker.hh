@@ -255,6 +255,7 @@ public:
   std::map<std::string, ModuleType>& getTypes() { return mapType_ ; }
   ModuleType& getModuleType(std::string typeName) { return mapType_[typeName] ; }
 
+
   // Trigger module types error increase
   void setTriggerErrorX(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorX(errorIncrease); }
   void setTriggerErrorY(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorY(errorIncrease); }

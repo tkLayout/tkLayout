@@ -1818,8 +1818,12 @@ std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string f
 
 
 bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
+	cout << "Trying to open irradiation map file " << fileName << endl;
 	std::ifstream filein(fileName.c_str());
-	if (!filein.is_open()) { return false; }
+	if (!filein.is_open()) { 
+		cerr << "Failed opening irradiation map file!" << endl;
+		return false; 
+	}
 	std::string line;
 	while(std::getline(filein, line)) {
 		if (line.find_first_of("#//;")==0 || line=="") continue;

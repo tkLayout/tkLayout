@@ -1292,8 +1292,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
    */
   void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
 					bool byMaterial) {
-    map<std::pair<int, int>, bool> typeTaken;
-    map<std::pair<int, int>, bool> typeWritten;
+    map<std::string, map<std::pair<int, int>, bool> > typeTaken;
+    map<std::string, map<std::pair<int, int>, bool> > typeWritten;
 
     string tempString;
     ostringstream tempSS;
@@ -1325,10 +1325,10 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	myModuleCap = &(*moduleIt);
 	myModule = &(myModuleCap->getModule());
 	if (myModule->getSection()==Layer::YZSection) {
-	  pair<int, int> myIndex = make_pair(myModule->getLayer()+myModule->getDisk(), myModule->getRing());
-	  if (!typeTaken[myIndex]) {
-	    typeTaken[myIndex]=true;
-	    tempString = myModule->getContainerName();
+	  pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
+	  tempString = myModule->getContainerName();
+	  if (!typeTaken[tempString][myIndex]) {
+	    typeTaken[tempString][myIndex]=true;
 	    if (tempString!="") {
 	      // TODO: put this in a better place
 	      // (and make a better module typing)
@@ -1338,7 +1338,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 		tempString+=" (L"+tempSS.str()+")";
 	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
 		if (EndcapModule* myEcMod = dynamic_cast<EndcapModule*>(myModule))  {
-		  tempSS << myEcMod->getDisk();
+		  tempSS << myEcMod->getLayer(); //getDisk();
 		  tempString+=" (D"+tempSS.str()+")";
 		} else {
 		  cerr << "ERROR in Analyzer::detailedWeights(): "
@@ -1408,10 +1408,10 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	}
 	if (myModule->getSection()==Layer::YZSection) {
 	  // If we did not write this module type yet
-	  pair<int, int> myIndex = make_pair(myModule->getLayer()+myModule->getDisk(), myModule->getRing());
-	  if (!typeWritten[myIndex]) {
-	    typeWritten[myIndex]=true;
-	    tempString = myModule->getContainerName();
+	  pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
+	  tempString = myModule->getContainerName();
+	  if (!typeWritten[tempString][myIndex]) {
+	    typeWritten[tempString][myIndex]=true;
 	    if (tempString!="") {
 	      // TODO: put this in a better place
 	      // (and make a better module typing)
@@ -1420,7 +1420,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 		tempSS << myModule->getLayer();
 		tempString+=" (L"+tempSS.str()+")";
 	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
-		tempSS << myModule->getDisk();
+		tempSS << myModule->getLayer(); //getDisk();
 		tempString+=" (D"+tempSS.str()+")";
 	      } else {
 		cerr << "ERROR in Analyzer::detailedWeights(): "
@@ -3340,8 +3340,13 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                 
 		// Binary unsparsified (bps)
 		bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsFace(nFace))*100E3);
+		
+		int spHdr = tracker.getSparsifiedHeaderBits((*modIt)->getType());
+		int spPay = tracker.getSparsifiedPayloadBits((*modIt)->getType());		
+
+		//cout << "sparsified header: " << spHdr << " payload: " << spPay << endl;
 		// Binary sparsified
-		bandwidthDistributionSparsified.Fill((23*nChips+hitChannels*9)*100E3);
+		bandwidthDistributionSparsified.Fill(((spHdr*nChips)+(hitChannels*spPay))*100E3);
 	      }
 	    }
 	  }

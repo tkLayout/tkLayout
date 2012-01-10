@@ -13,6 +13,8 @@ protected:
   std::map<int,double> perModulePower_;
   double triggerErrorX_;
   double triggerErrorY_;
+  int sparsifiedHeaderBits_, sparsifiedPayloadBits_;
+  int triggerDataHeaderBits_, triggerDataPayloadBits_;
   double sensorThickness_;
 private:
   bool checkPowerType(int powerType);
