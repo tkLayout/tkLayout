@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
         if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
         if (mattracks < 1) throw po::invalid_option_value("material-tracks");
-        if (!vm.count("base-name")) throw po::too_few_positional_options_error("Missing required config basename argument"); 
+        if (!vm.count("base-name")) throw po::error("Missing required config basename argument"); 
 
     } catch(po::error e) {
         std::cerr << e.what() << std::endl << std::endl;
