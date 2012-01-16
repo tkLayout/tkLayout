@@ -91,8 +91,11 @@ namespace insur {
 	bool pureAnalyzeGeometry(int tracks);
 	bool pureAnalyzeMaterialBudget(int tracks);
 	bool reportGeometrySite();
+	bool reportBandwidthSite();
+	bool reportPowerSite();
 	bool reportMaterialBudgetSite();
-	bool reportTriggerPerformanceSite();
+	bool reportTriggerPerformanceSite(bool extended);
+    bool reportNeighbourGraphSite();
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
 	bool makeSite(bool addLogPage = true);
 #endif

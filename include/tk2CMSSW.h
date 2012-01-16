@@ -22,6 +22,7 @@
 #include <XMLWriter.h>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
+#include <mainConfigHandler.h>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -40,8 +41,9 @@ namespace insur {
      * results for the new files are discarded.
      */
     class tk2CMSSW {
+        mainConfigHandler& mainConfiguration;
     public:
-        tk2CMSSW() {}
+        tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
     protected:

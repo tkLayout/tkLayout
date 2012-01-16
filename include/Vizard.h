@@ -134,6 +134,7 @@ namespace insur {
         void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
         void writeNeighbourGraph(InactiveSurfaces& is);
         void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
+    	void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
 #ifdef USING_ROOTWEB
@@ -145,8 +146,9 @@ namespace insur {
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, RootWSite& site);
-        bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-        bool triggerSummary(Analyzer& a, RootWSite& site);
+    bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
+    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
+    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
 	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 	bool makeLogPage(RootWSite& site);
 	std::string getSummaryString();

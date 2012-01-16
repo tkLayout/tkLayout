@@ -9,14 +9,14 @@ namespace insur {
     /**
      * The constructor sets the internal pointers to <i>NULL</i>.
      */
-    Squid::Squid() {
+    Squid::Squid() : t2c(mainConfiguration) {
         tr = NULL;
         is = NULL;
         mb = NULL;
         px = NULL;
         pi = NULL;
         pm = NULL;
-	pixelAnalyzer = NULL;
+    pixelAnalyzer = NULL;
 #ifdef USING_ROOTWEB
         sitePrepared = false;
 #endif
@@ -32,7 +32,7 @@ namespace insur {
         if (pm) delete pm;
         if (pi) delete pi;
         if (px) delete px;
-	if (pixelAnalyzer) delete pixelAnalyzer;	
+    if (pixelAnalyzer) delete pixelAnalyzer;    
     }
     
     /**
@@ -79,19 +79,19 @@ namespace insur {
         }
     }
 
-	/**
- 	 * Irradiate a previously created tracker.
- 	 * @return True if there was an existing tracker to irradiate, false otherwise
- 	 */
-	bool Squid::irradiateTracker() {
-		if (tr) {
-			cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
-			return true;
-		} else {
-			std::cout << "Squid::irradiateTracker(): " << err_no_tracker << std::endl;
-			return false;
-		}
-	}
+    /**
+     * Irradiate a previously created tracker.
+     * @return True if there was an existing tracker to irradiate, false otherwise
+     */
+    bool Squid::irradiateTracker() {
+        if (tr) {
+            cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
+            return true;
+        } else {
+            std::cout << "Squid::irradiateTracker(): " << err_no_tracker << std::endl;
+            return false;
+        }
+    }
 
     
     /**
@@ -240,18 +240,18 @@ namespace insur {
                     mb->materialsAll(tkMaterialCalc);
                     if (verbose) mb->print();
                     if (px) {
-		      if (fileExists(pixmatfile)) {
+              if (fileExists(pixmatfile)) {
                         if (mp.initMatCalc(pixmatfile, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-			  if (!pi) pi = new InactiveSurfaces();
-			  if (pm) delete pm;
-			  pm = new MaterialBudget(*px, *pi);
-			  pm->materialsAll(pxMaterialCalc);
-			  if (verbose) pm->print();
+              if (!pi) pi = new InactiveSurfaces();
+              if (pm) delete pm;
+              pm = new MaterialBudget(*px, *pi);
+              pm->materialsAll(pxMaterialCalc);
+              if (verbose) pm->print();
                         }
-		      } else {
-			std::cout << "Squid::createMaterialBudget(): " << err_no_pixmatfile << std::endl;
-			return false;
-		      }
+              } else {
+            std::cout << "Squid::createMaterialBudget(): " << err_no_pixmatfile << std::endl;
+            return false;
+              }
                     } else pixmatfile="";
                     return true;
                 }
@@ -508,7 +508,7 @@ namespace insur {
             std::cout << "Squid::trackerSummary(): " << err_no_tracker << std::endl;
             return false;
         }
-	} */
+    } */
     
     // private
     /**
@@ -592,11 +592,11 @@ namespace insur {
             a.analyzeGeometry(*tr, tracks);
             a.createGeometryLite(*tr);
             v.geometrySummary(a, *tr, site);
-            a.computeBandwidth(*tr);
-            a.computeTriggerFrequency(*tr);
-	    a.analyzePower(*tr);
-            v.bandwidthSummary(a, *tr, site);
-	    v.irradiatedPowerSummary(a, site);
+          //  a.computeBandwidth(*tr);
+          //  a.computeTriggerFrequency(*tr);
+          //  a.analyzePower(*tr);
+          //  v.bandwidthSummary(a, *tr, site);
+          //  v.irradiatedPowerSummary(a, site);
             return true; // TODO: is not really meaningful
         } else {
             std::cout << "Squid::analyzeGeometrySite(): " << err_no_tracker << std::endl;
@@ -612,9 +612,9 @@ namespace insur {
     if (tr) {
       a.analyzeGeometry(*tr, tracks);
       a.createGeometryLite(*tr);
-      a.computeBandwidth(*tr);
-      a.computeTriggerFrequency(*tr);
-      a.analyzePower(*tr);
+   //   a.computeBandwidth(*tr);
+   //   a.computeTriggerFrequency(*tr);
+   //   a.analyzePower(*tr);
       return true; // TODO: is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -631,19 +631,19 @@ namespace insur {
     if (mb) {
       a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
       if (pm) {
-	// TODO: make this much neater!
-	if (pixelAnalyzer) delete pixelAnalyzer;
-	pixelAnalyzer = new Analyzer;
-	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
+    // TODO: make this much neater!
+    if (pixelAnalyzer) delete pixelAnalyzer;
+    pixelAnalyzer = new Analyzer;
+    pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
       }
       a.computeWeightSummary(*mb);
       // Call this before analyzetrigger if you want to have the map of suggested spacings
       a.createTriggerDistanceTuningPlots(*tr, mainConfiguration.getTriggerMomenta());
       a.analyzeTrigger(*mb,
-		       mainConfiguration.getMomenta(),
-		       mainConfiguration.getTriggerMomenta(),
-		       mainConfiguration.getThresholdProbabilities(),
-		       tracks, pm);
+               mainConfiguration.getMomenta(),
+               mainConfiguration.getTriggerMomenta(),
+               mainConfiguration.getThresholdProbabilities(),
+               tracks, pm);
 
       return true;
     } else {
@@ -659,8 +659,6 @@ namespace insur {
   bool Squid::reportGeometrySite() {
     if (tr) {
       v.geometrySummary(a, *tr, site);
-      v.bandwidthSummary(a, *tr, site);
-	  v.irradiatedPowerSummary(a, site);
       return true;
     } else {
       std::cout << "Squid::reportGeometrySite(): " << err_no_tracker << std::endl;
@@ -668,6 +666,28 @@ namespace insur {
     }
   }
 
+bool Squid::reportBandwidthSite() {
+    if (tr) {
+        a.computeBandwidth(*tr);
+        a.computeTriggerFrequency(*tr);
+        v.bandwidthSummary(a, *tr, site);
+        return true;
+    } else {
+    std::cerr << "Squid::reportBandwidthSite(): " << err_no_tracker << std::endl;
+    return false;
+    }
+  }
+
+bool Squid::reportPowerSite() {
+    if (tr) {
+        a.analyzePower(*tr);
+        v.irradiatedPowerSummary(a, site);
+        return true;
+    } else {
+        std::cerr << "Squid::reportPowerSite(): " << err_no_tracker << std::endl;
+        return false;
+    }
+}
   /**
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise
@@ -676,7 +696,7 @@ namespace insur {
     if (mb) {
       v.histogramSummary(a, site, "outer");
       if ((pm)&&(pixelAnalyzer)) {
-	v.histogramSummary(*pixelAnalyzer, site, "pixel");
+    v.histogramSummary(*pixelAnalyzer, site, "pixel");
       }
       v.weigthSummart(a, site, "outer");
       v.errorSummary(a, site, "", false);
@@ -693,14 +713,22 @@ namespace insur {
    * Produces the output of the analysis of the material budget analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportTriggerPerformanceSite() {
-    if (v.triggerSummary(a, site)) {
+  bool Squid::reportTriggerPerformanceSite(bool extended) {
+    if (v.triggerSummary(a, site, extended)) {
       return true;
     } else {
       std::cout << "Squid::reportTriggerPerformanceSite(): " << err_no_triggerSummary << std::endl;
-      return true;
+      return false;
     }
   }
+
+    bool Squid::reportNeighbourGraphSite() {
+        if (v.neighbourGraphSummary(*is, site)) return true;
+        else {
+            std::cout << "Squid::reportNeighbourGraphSite(): " << err_no_inacsurf << std::endl;
+            return false;
+        }
+    }
     
   bool Squid::additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile) {
         if (!tr) {

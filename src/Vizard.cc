@@ -235,7 +235,18 @@ namespace insur {
     void Vizard::writeNeighbourGraph(InactiveSurfaces& is) {
         writeNeighbourGraph(is, default_graphfile);
     }
+
     
+    void Vizard::writeNeighbourGraph(InactiveSurfaces& is, std::string outfile) {
+        std::string filename = default_graphdir + "/";
+        if (outfile.empty()) filename = filename + default_graphfile;
+        else filename = filename + outfile;
+        std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
+        std::ofstream outstream(filename.c_str());
+        writeNeighbourGraph(is, outstream);
+        outstream.close();    
+        std::cout << "Neighbour graph written to " << filename << "." << std::endl;
+    }
     /**
      * This function writes the feeder/neighbour relations in a collection of inactive surfaces to a very simple text
      * file. It essentially lists all edges of the neighbour graph, first those in the barrels, then those in the endcaps,
@@ -244,13 +255,8 @@ namespace insur {
      * @param is A reference to the collection of inactive surfaces
      * @param outfile The name of the output file that will be written to the application's default directory for graph files
      */
-    void Vizard::writeNeighbourGraph(InactiveSurfaces& is, std::string outfile) {
-        std::string filename = default_graphdir + "/";
-        if (outfile.empty()) filename = filename + default_graphfile;
-        else filename = filename + outfile;
-        std::cout << "Preparing to write neighbour graph to " << filename << "..." << std::endl;
+    void Vizard::writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream) {
         try {
-            std::ofstream outstream(filename.c_str());
             if (outstream) {
                 // barrel services loop
                 outstream << "BARREL SERVICES:" << std::endl << std::endl;
@@ -324,8 +330,6 @@ namespace insur {
                     outstream << "neighbour index = " << is.getEndcapServicePart(i).getNeighbourIndex() << ".";
                     outstream << std::endl << std::endl;
                 }
-                outstream.close();
-                std::cout << "Neighbour graph written to " << filename << "." << std::endl;
             }
             else std::cout << graph_wrong << std::endl;
         }
@@ -604,30 +608,30 @@ namespace insur {
 
       // Write the summary for barrel first and endcap second
       for (int i=0; i<2; ++i) {
-	if (i==0) summaryTables = &a.getBarrelWeightSummary();
-	else summaryTables = &a.getEndcapWeightSummary();
+    if (i==0) summaryTables = &a.getBarrelWeightSummary();
+    else summaryTables = &a.getEndcapWeightSummary();
 
-	std::map<std::string, SummaryTable>::iterator it;
-	for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
-	  // Create one content per layer
-	  RootWContent& myContent = myPage.addContent(it->first, false);
-	  RootWTable& myTable = myContent.addTable();
-	  myTable.setContent(it->second.getContent());
-	}
+    std::map<std::string, SummaryTable>::iterator it;
+    for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
+      // Create one content per layer
+      RootWContent& myContent = myPage.addContent(it->first, false);
+      RootWTable& myTable = myContent.addTable();
+      myTable.setContent(it->second.getContent());
+    }
       }
 
       // Write the category summary for barrel first and endcap second
       for (int i=0; i<2; ++i) {
-	if (i==0) summaryTables = &a.getBarrelWeightComponentSummary();
-	else summaryTables = &a.getEndcapWeightComponentSummary();
+    if (i==0) summaryTables = &a.getBarrelWeightComponentSummary();
+    else summaryTables = &a.getEndcapWeightComponentSummary();
 
-	std::map<std::string, SummaryTable>::iterator it;
-	for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
-	  // Create one content per layer
-	  RootWContent& myContent = myPage.addContent(it->first + " - components", false);
-	  RootWTable& myTable = myContent.addTable();
-	  myTable.setContent(it->second.getContent());
-	}
+    std::map<std::string, SummaryTable>::iterator it;
+    for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
+      // Create one content per layer
+      RootWContent& myContent = myPage.addContent(it->first + " - components", false);
+      RootWTable& myTable = myContent.addTable();
+      myTable.setContent(it->second.getContent());
+    }
       }
     }
 
@@ -681,7 +685,7 @@ namespace insur {
 #ifdef MATERIAL_SHADOW
         TH2D *ir = NULL, *ii = NULL;
 #endif
-	TH2D *mapRad = NULL, *mapInt = NULL;
+    TH2D *mapRad = NULL, *mapInt = NULL;
         
         // Output initialisation and headers
         myCanvas = new TCanvas("overviewMaterial");
@@ -720,20 +724,20 @@ namespace insur {
         // Put the total plots to the site
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material in full volume");
-	myImage->setName("matFull");
+    myImage->setName("matFull");
         myTable = new RootWTable();
-	std::ostringstream anEtaMaxAvg;
-	anEtaMaxAvg.str("");
-	anEtaMaxAvg << "Average radiation length in full volume (eta = [0, ";
-	anEtaMaxAvg << std::dec << std::fixed
-		    << std::setprecision(1) << etaMaxAvg;
-	anEtaMaxAvg << "])";
+    std::ostringstream anEtaMaxAvg;
+    anEtaMaxAvg.str("");
+    anEtaMaxAvg << "Average radiation length in full volume (eta = [0, ";
+    anEtaMaxAvg << std::dec << std::fixed
+            << std::setprecision(1) << etaMaxAvg;
+    anEtaMaxAvg << "])";
         myTable->setContent(1, 1, anEtaMaxAvg.str().c_str());
-	anEtaMaxAvg.str("");
-	anEtaMaxAvg << "Average interaction length in full volume (eta = [0, ";
-	anEtaMaxAvg << std::dec << std::fixed
-		    << std::setprecision(1) << etaMaxAvg;
-	anEtaMaxAvg << "])";
+    anEtaMaxAvg.str("");
+    anEtaMaxAvg << "Average interaction length in full volume (eta = [0, ";
+    anEtaMaxAvg << std::dec << std::fixed
+            << std::setprecision(1) << etaMaxAvg;
+    anEtaMaxAvg << "])";
         myTable->setContent(2, 1, anEtaMaxAvg.str().c_str());
         myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
         myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
@@ -742,36 +746,36 @@ namespace insur {
 
         // Material summary table
         RootWTable* materialSummaryTable = new RootWTable();
-	{
-	  double averageValue;
-	  materialSummaryTable->setContent(0,0,"Material");
-	  materialSummaryTable->setContent(1,0,"Rad. length");
-	  materialSummaryTable->setContent(2,0,"Int. length");
-	  materialSummaryTable->setContent(3,0,"Photon conversion");
-	  for (unsigned int j=0; j< cutNames.size(); ++j) {
-	    // Column: the cut name
-	    materialSummaryTable->setContent(0,j+1, cutNames[j]);
+    {
+      double averageValue;
+      materialSummaryTable->setContent(0,0,"Material");
+      materialSummaryTable->setContent(1,0,"Rad. length");
+      materialSummaryTable->setContent(2,0,"Int. length");
+      materialSummaryTable->setContent(3,0,"Photon conversion");
+      for (unsigned int j=0; j< cutNames.size(); ++j) {
+        // Column: the cut name
+        materialSummaryTable->setContent(0,j+1, cutNames[j]);
 
-	    // First row: the radiation length
-	    averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
-	    materialSummaryTable->setContent(1,j+1, averageValue ,2);
-	    addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
-	    addSummaryElement(averageValue);
+        // First row: the radiation length
+        averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
+        materialSummaryTable->setContent(1,j+1, averageValue ,2);
+        addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
+        addSummaryElement(averageValue);
 
-	    // Third row: the photon conversion probability
-	    averageValue *= -7./9.;
-	    averageValue = 1 - exp(averageValue);
-	    materialSummaryTable->setContent(3,j+1, averageValue ,2);
-	    addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
-	    addSummaryElement(averageValue);
+        // Third row: the photon conversion probability
+        averageValue *= -7./9.;
+        averageValue = 1 - exp(averageValue);
+        materialSummaryTable->setContent(3,j+1, averageValue ,2);
+        addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
+        addSummaryElement(averageValue);
 
-	    // Second row: the interaction length
-	    averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
-	    materialSummaryTable->setContent(2,j+1, averageValue ,2);
-	    addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
-	    addSummaryElement(averageValue);
-	  }
-	}
+        // Second row: the interaction length
+        averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
+        materialSummaryTable->setContent(2,j+1, averageValue ,2);
+        addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
+        addSummaryElement(averageValue);
+      }
+    }
 
         // Detailed plots
         myContent = new RootWContent("Tracking volume", false);
@@ -801,7 +805,7 @@ namespace insur {
         // Write global tracking volume plots to web pag
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material in tracking volume");
-	myImage->setName("matTrack");
+    myImage->setName("matTrack");
         myTable = new RootWTable();
         myTable->setContent(1, 1, "Average radiation length in tracking volume (eta = [0, 2.4])");
         myTable->setContent(2, 1, "Average interaction length in tracking volume (eta = [0, 2.4])");
@@ -855,7 +859,7 @@ namespace insur {
         // Write asl category plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Detailed");
-	myImage->setName("matTrackDet");
+    myImage->setName("matTrackDet");
         myTable = new RootWTable();
         // Average values by active, service and passive
         myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
@@ -907,149 +911,149 @@ namespace insur {
         // Write isoline plots to web page
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Material 2D distributions");
-	myImage->setName("matShadow");
+    myImage->setName("matShadow");
         myContent->addItem(myImage);
 #endif // MATERIAL_SHADOW
 
-	// Radiation length plot
+    // Radiation length plot
         myCanvas = new TCanvas("mapMaterialRadiation");
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
-	mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
-	mapRad->SetContour(temperature_levels, NULL);
-	//myCanvas->SetLogz();
-	mapRad->Draw("COLZ");
+    mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
+    mapRad->SetContour(temperature_levels, NULL);
+    //myCanvas->SetLogz();
+    mapRad->Draw("COLZ");
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Radiation length material map");
-	myImage->setName("matMapR");
+    myImage->setName("matMapR");
         myContent->addItem(myImage);
 
-	// Interaction length plot
+    // Interaction length plot
         myCanvas = new TCanvas("mapMaterialInteraction");
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
-	mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
-	mapInt->SetContour(temperature_levels, NULL);
-	mapInt->Draw("COLZ");
+    mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
+    mapInt->SetContour(temperature_levels, NULL);
+    mapInt->Draw("COLZ");
         myImage = new RootWImage(myCanvas, 900, 400);
         myImage->setComment("Interaction length material map");
-	myImage->setName("matMapI");
+    myImage->setName("matMapI");
         myContent->addItem(myImage);
 
         // Nuclear interactions
         myContent = new RootWContent("Nuclear interactions", true);
         myPage->addContent(myContent);
-	
-	// Number of hits
-	myCanvas = new TCanvas("hadronsHitsNumber");
-	myCanvas->SetFillColor(color_plot_background);
-	myCanvas->cd();
-	TGraph* hadronTotalHitsGraph = new TGraph(a.getHadronTotalHitsGraph());
-	TGraph* hadronAverageHitsGraph = new TGraph(a.getHadronAverageHitsGraph());
-	hadronTotalHitsGraph->SetMarkerStyle(8);
-	hadronTotalHitsGraph->SetMarkerColor(kBlack);
-	hadronTotalHitsGraph->SetMinimum(0);
-	hadronTotalHitsGraph->Draw("alp");
-	hadronAverageHitsGraph->SetMarkerStyle(8);
-	hadronAverageHitsGraph->SetMarkerColor(kRed);
-	hadronAverageHitsGraph->Draw("same lp");
-	myImage = new RootWImage(myCanvas, 600, 600);
+    
+    // Number of hits
+    myCanvas = new TCanvas("hadronsHitsNumber");
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->cd();
+    TGraph* hadronTotalHitsGraph = new TGraph(a.getHadronTotalHitsGraph());
+    TGraph* hadronAverageHitsGraph = new TGraph(a.getHadronAverageHitsGraph());
+    hadronTotalHitsGraph->SetMarkerStyle(8);
+    hadronTotalHitsGraph->SetMarkerColor(kBlack);
+    hadronTotalHitsGraph->SetMinimum(0);
+    hadronTotalHitsGraph->Draw("alp");
+    hadronAverageHitsGraph->SetMarkerStyle(8);
+    hadronAverageHitsGraph->SetMarkerColor(kRed);
+    hadronAverageHitsGraph->Draw("same lp");
+    myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Maximum and average number of points (hadrons)");
-	myImage->setName("hadHits");
-        myContent->addItem(myImage);	
+    myImage->setName("hadHits");
+        myContent->addItem(myImage);    
 
-	// Number of hits
-	std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
-	std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
-	myCanvas = new TCanvas("hadronsTracksFraction");
-	myCanvas->SetFillColor(color_plot_background);
-	myCanvas->cd();
-	TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
-	// Old-style palette by Stefano, with custom-generated colors
-	// Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
-	// Replaced by the libreOffice-like palette
-	TH1D* ranger = new TH1D("hadTrackRanger","", 100, 0, 3);
-	ranger->SetMaximum(1.);
-	TAxis* myAxis;
-	myAxis = ranger->GetXaxis();
-	myAxis->SetTitle("#eta");
-	myAxis = ranger->GetYaxis();
-	myAxis->SetTitle("Tracks fraction");
-	ranger->Draw();
-	ostringstream tempSS;
-	std::map<int, std::string> fractionTitles;
-	for (unsigned int i=0;
-	     i<hadronGoodTracksFraction.size();
-	     ++i) {
-	  TGraph& myGraph = hadronGoodTracksFraction.at(i);
-	  averages[i] = Analyzer::average(myGraph, cuts);
-	  closeGraph(myGraph);
-	  myGraph.SetFillColor(Palette::color(i+1));
-	  myGraph.Draw("same F");
-	  tempSS.str("");
-	  if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
-	    if (hadronNeededHitsFraction.at(i)==Analyzer::OneHitRequired)
-	      tempSS << "1 hit required";
-	    else
-	      tempSS << int(hadronNeededHitsFraction.at(i)*100)
-		     << "% hits required";
-	    fractionTitles[i]=tempSS.str();
-	    myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
-	  }
-	}
-	ranger->Draw("sameaxis");
-	myLegend->Draw();
-	myImage = new RootWImage(myCanvas, 600, 600);
+    // Number of hits
+    std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
+    std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
+    myCanvas = new TCanvas("hadronsTracksFraction");
+    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->cd();
+    TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
+    // Old-style palette by Stefano, with custom-generated colors
+    // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
+    // Replaced by the libreOffice-like palette
+    TH1D* ranger = new TH1D("hadTrackRanger","", 100, 0, 3);
+    ranger->SetMaximum(1.);
+    TAxis* myAxis;
+    myAxis = ranger->GetXaxis();
+    myAxis->SetTitle("#eta");
+    myAxis = ranger->GetYaxis();
+    myAxis->SetTitle("Tracks fraction");
+    ranger->Draw();
+    ostringstream tempSS;
+    std::map<int, std::string> fractionTitles;
+    for (unsigned int i=0;
+         i<hadronGoodTracksFraction.size();
+         ++i) {
+      TGraph& myGraph = hadronGoodTracksFraction.at(i);
+      averages[i] = Analyzer::average(myGraph, cuts);
+      closeGraph(myGraph);
+      myGraph.SetFillColor(Palette::color(i+1));
+      myGraph.Draw("same F");
+      tempSS.str("");
+      if (hadronNeededHitsFraction.at(i)!=Analyzer::ZeroHitsRequired) {
+        if (hadronNeededHitsFraction.at(i)==Analyzer::OneHitRequired)
+          tempSS << "1 hit required";
+        else
+          tempSS << int(hadronNeededHitsFraction.at(i)*100)
+             << "% hits required";
+        fractionTitles[i]=tempSS.str();
+        myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
+      }
+    }
+    ranger->Draw("sameaxis");
+    myLegend->Draw();
+    myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Fraction of tracks with a given fraction of good hits (hadrons)");
-	myImage->setName("hadTracks");
+    myImage->setName("hadTracks");
         myContent->addItem(myImage);
 
-	//if (name=="outer") {	  
-	  // Summary table
-	  RootWContent& summaryContent = myPage->addContent("Summary", false);
-	  RootWTable& cutsTable = summaryContent.addTable();
-	  RootWTable& summaryTable = summaryContent.addTable();
-	  summaryTable.setContent(0,0,"Clean pions");
-	  
-	  // Table explaining the cuts
-	  cutsTable.setContent(0,0,"Region");
-	  cutsTable.setContent(1,0,"etaMin");
-	  cutsTable.setContent(2,0,"etaMax");
-	  
-	  myTable = &cutsTable;
-	  for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-	    myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-	    label.str(""); label << cuts[iBorder];
-	    myTable->setContent(1,iBorder+1,label.str());
-	    label.str(""); label << cuts[iBorder+1];
-	    myTable->setContent(2,iBorder+1,label.str());
-	  }
-	  
-	  int delta=1;
-	  for (unsigned int i=0;
-	       i<hadronGoodTracksFraction.size();
-	       ++i) {
-	    if (fractionTitles[i]!="") {
-	      summaryTable.setContent(i+delta,0,fractionTitles[i]);
-	      int j=0;
+    //if (name=="outer") {    
+      // Summary table
+      RootWContent& summaryContent = myPage->addContent("Summary", false);
+      RootWTable& cutsTable = summaryContent.addTable();
+      RootWTable& summaryTable = summaryContent.addTable();
+      summaryTable.setContent(0,0,"Clean pions");
+      
+      // Table explaining the cuts
+      cutsTable.setContent(0,0,"Region");
+      cutsTable.setContent(1,0,"etaMin");
+      cutsTable.setContent(2,0,"etaMax");
+      
+      myTable = &cutsTable;
+      for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
+        myTable->setContent(0,iBorder+1,cutNames[iBorder]);
+        label.str(""); label << cuts[iBorder];
+        myTable->setContent(1,iBorder+1,label.str());
+        label.str(""); label << cuts[iBorder+1];
+        myTable->setContent(2,iBorder+1,label.str());
+      }
+      
+      int delta=1;
+      for (unsigned int i=0;
+           i<hadronGoodTracksFraction.size();
+           ++i) {
+        if (fractionTitles[i]!="") {
+          summaryTable.setContent(i+delta,0,fractionTitles[i]);
+          int j=0;
               double myValue;
-	      for ( std::vector<double>::iterator it = averages[i].begin();
-		    it != averages[i].end(); ++it ) {
-		//std::cout << "average: " << (*it) << std::endl;
+          for ( std::vector<double>::iterator it = averages[i].begin();
+            it != averages[i].end(); ++it ) {
+        //std::cout << "average: " << (*it) << std::endl;
                 myValue = 100 * (1 - (*it));
-		summaryTable.setContent(i+delta,j+1, myValue,2);
-		summaryTable.setContent(0,j+1, cutNames[j]);
-		addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
-		addSummaryElement(myValue);
-		j++;
-	      }
-	    } else delta--;
-	  }
-	  summaryContent.addItem(materialSummaryTable);
-	//} else {
-	//  delete materialSummaryTable;
-	//}
-	
+        summaryTable.setContent(i+delta,j+1, myValue,2);
+        summaryTable.setContent(0,j+1, cutNames[j]);
+        addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
+        addSummaryElement(myValue);
+        j++;
+          }
+        } else delta--;
+      }
+      summaryContent.addItem(materialSummaryTable);
+    //} else {
+    //  delete materialSummaryTable;
+    //}
+    
     }
     
 #endif
@@ -1253,7 +1257,7 @@ namespace insur {
         std::map<std::string, Module*> typeMap;
         std::map<std::string, int> typeMapCount;
         std::map<std::string, long> typeMapCountChan;
-	std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
+    std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
         std::map<std::string, double> typeMapMaxOccupancy;
         std::map<std::string, double> typeMapAveOccupancy;
         std::map<std::string, double> typeMapAveRphiResolution;
@@ -1275,7 +1279,7 @@ namespace insur {
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
-	myPage->setAddress("index.html");
+    myPage->setAddress("index.html");
         site.addPage(myPage);
         RootWContent* myContent;
         
@@ -1349,10 +1353,10 @@ namespace insur {
                     typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
                 }
                 typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
-		typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
-		typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
-		typeMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
-		typeMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
+        typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
+        typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
+        typeMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
+        typeMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
                 if ((*modIt)->getReadoutType()==Module::Strip) {
@@ -1406,8 +1410,8 @@ namespace insur {
         std::vector<std::string> areastrips;
         std::vector<std::string> areapts;
         std::vector<std::string> occupancies;
-	std::vector<std::string> rphiresolutions;
-	std::vector<std::string> yresolutions;
+    std::vector<std::string> rphiresolutions;
+    std::vector<std::string> yresolutions;
         std::vector<std::string> pitchpairs;
         std::vector<std::string> striplengths;
         std::vector<std::string> segments;
@@ -1429,10 +1433,10 @@ namespace insur {
         std::ostringstream aType;
         std::ostringstream anArea;
         std::ostringstream anOccupancy;
-	std::ostringstream anRphiResolution;
-	std::ostringstream aYResolution;
-	std::ostringstream anRphiResolutionTrigger;
-	std::ostringstream aYResolutionTrigger;
+    std::ostringstream anRphiResolution;
+    std::ostringstream aYResolution;
+    std::ostringstream anRphiResolutionTrigger;
+    std::ostringstream aYResolutionTrigger;
         std::ostringstream aPitchPair;
         std::ostringstream aStripLength;
         std::ostringstream aSegment;
@@ -1443,7 +1447,7 @@ namespace insur {
         std::ostringstream aPower;
         std::ostringstream aPowerPerModule;
         std::ostringstream aCost;
-	std::ostringstream aWeight;
+    std::ostringstream aWeight;
         int barrelCount=0;
         int endcapCount=0;
         Module* aModule;
@@ -1462,10 +1466,10 @@ namespace insur {
         static const int areastripRow = 3;
         static const int areaptRow = 4;
         static const int occupancyRow = 5;
-	static const int rphiResolutionRow = 6;
-	static const int yResolutionRow = 7;
-	static const int rphiResolutionTriggerRow = 8;
-	static const int yResolutionTriggerRow = 9;
+    static const int rphiResolutionRow = 6;
+    static const int yResolutionRow = 7;
+    static const int rphiResolutionTriggerRow = 8;
+    static const int yResolutionTriggerRow = 9;
         static const int pitchpairsRow = 10;
         static const int striplengthRow = 11;
         static const int segmentsRow = 12;
@@ -1477,7 +1481,7 @@ namespace insur {
         static const int powerRow = 18;
         static const int powerPerModuleRow = 19;
         static const int costRow = 20;
-	static const int weightRow = 21;
+    static const int weightRow = 21;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
@@ -1505,15 +1509,15 @@ namespace insur {
         int loPitch;
         int hiPitch;
 
-	setOccupancyString("");
+    setOccupancyString("");
 
-	addOccupancyElement(tracker.getName());
-	addOccupancyElement("");
-	addOccupancyElement("");
-	addOccupancyEOL();
-	addOccupancyElement("radius");
-	addOccupancyElement("occupancy [%]");
-	addOccupancyElement("rphi resolution [um]");
+    addOccupancyElement(tracker.getName());
+    addOccupancyElement("");
+    addOccupancyElement("");
+    addOccupancyEOL();
+    addOccupancyElement("radius");
+    addOccupancyElement("occupancy [%]");
+    addOccupancyElement("rphi resolution [um]");
         
         // Summary cycle: prepares the rows cell by cell
         int iType=0;
@@ -1541,30 +1545,30 @@ namespace insur {
             // Occupancy
             anOccupancy.str("");
             anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
-	    
-	    addOccupancyEOL();
-	    addOccupancyElement((aModule->getMinRho() + aModule->getMaxRho())/2);
-	    addOccupancyElement(typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
-	    
-	    // RphiResolution
-	    anRphiResolution.str("");
-	    anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
-	    // YResolution
-	    aYResolution.str("");
-	    aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+        
+        addOccupancyEOL();
+        addOccupancyElement((aModule->getMinRho() + aModule->getMaxRho())/2);
+        addOccupancyElement(typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
+        
+        // RphiResolution
+        anRphiResolution.str("");
+        anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+        // YResolution
+        aYResolution.str("");
+        aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
 
-	    // RphiResolution (trigger)
-	    anRphiResolutionTrigger.str("");
-	    if ( typeMapAveRphiResolutionTrigger[(*typeMapIt).first] != typeMapAveRphiResolution[(*typeMapIt).first] )
-	      anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolutionTrigger[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
-	    // YResolution (trigger)
-	    aYResolutionTrigger.str("");
-	    if ( typeMapAveYResolutionTrigger[(*typeMapIt).first] != typeMapAveYResolution[(*typeMapIt).first] )
-	      aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolutionTrigger [(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+        // RphiResolution (trigger)
+        anRphiResolutionTrigger.str("");
+        if ( typeMapAveRphiResolutionTrigger[(*typeMapIt).first] != typeMapAveRphiResolution[(*typeMapIt).first] )
+          anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolutionTrigger[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+        // YResolution (trigger)
+        aYResolutionTrigger.str("");
+        if ( typeMapAveYResolutionTrigger[(*typeMapIt).first] != typeMapAveYResolution[(*typeMapIt).first] )
+          aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolutionTrigger [(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
 
 
             // Pitches
-	    aPitchPair.str("");
+        aPitchPair.str("");
             loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
             hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
             addOccupancyElement((loPitch+hiPitch)/2);
@@ -1578,40 +1582,40 @@ namespace insur {
 
             // Strip Lengths and segmentation
             aStripLength.str("");
-	    aSegment.str("");
-	    // One number only if all the same
-	    if ((*typeMapIt).second->getNMinSegments() == (*typeMapIt).second->getNMaxSegments()) {
-	      // Strip length
-	      aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-			   << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(1);
-	      // Segments
-	      aSegment << std::dec << (*typeMapIt).second->getNSegments(1)
-		       << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
-	    } else { // They are different
-	      for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
-		// Strip length
-		aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-			     << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(iFace);
-		// Segments
-		aSegment << std::dec << (*typeMapIt).second->getNSegments(iFace)
-			 << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
-		if (iFace!=(*typeMapIt).second->getNFaces()) {
-		  aStripLength << " - ";
-		  aSegment << " - ";
-		}
-	      }
-	    }
+        aSegment.str("");
+        // One number only if all the same
+        if ((*typeMapIt).second->getNMinSegments() == (*typeMapIt).second->getNMaxSegments()) {
+          // Strip length
+          aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+               << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(1);
+          // Segments
+          aSegment << std::dec << (*typeMapIt).second->getNSegments(1)
+               << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+        } else { // They are different
+          for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
+        // Strip length
+        aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
+                 << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(iFace);
+        // Segments
+        aSegment << std::dec << (*typeMapIt).second->getNSegments(iFace)
+             << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+        if (iFace!=(*typeMapIt).second->getNFaces()) {
+          aStripLength << " - ";
+          aSegment << " - ";
+        }
+          }
+        }
 
             // Nstrips
             anNstrips.str("");
-	    if ( (*typeMapIt).second->getNMinChannelsFace() == (*typeMapIt).second->getNMaxChannelsFace()) {
-	      anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(1);
-	    } else {
-	      for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
-		anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(iFace);
-		if (iFace!=(*typeMapIt).second->getNFaces()) anNstrips << " - ";
-	      }
-	    }
+        if ( (*typeMapIt).second->getNMinChannelsFace() == (*typeMapIt).second->getNMaxChannelsFace()) {
+          anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(1);
+        } else {
+          for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
+        anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(iFace);
+        if (iFace!=(*typeMapIt).second->getNFaces()) anNstrips << " - ";
+          }
+        }
 
 
             // Number Mod
@@ -1627,19 +1631,19 @@ namespace insur {
 
             // Power (per module and total)
             aPower.str("");
-	    ModuleType& myType = tracker.getModuleType((*typeMapIt).second->getType());
-	    double powerPerModule;
-	    powerPerModule =  myType.getPower( (typeMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
+        ModuleType& myType = tracker.getModuleType((*typeMapIt).second->getType());
+        double powerPerModule;
+        powerPerModule =  myType.getPower( (typeMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
             aPower << std::fixed << std::setprecision(powerPrecision)
-		   << powerPerModule * typeMapCount[typeMapIt->first] * 1e-3; // conversion from W to kW
-	                                                                      // number of modules of this type
+           << powerPerModule * typeMapCount[typeMapIt->first] * 1e-3; // conversion from W to kW
+                                                                          // number of modules of this type
 
-	    aPowerPerModule.str("");
+        aPowerPerModule.str("");
             aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
-			    << powerPerModule ;
+                << powerPerModule ;
             totalPower += powerPerModule * typeMapCount[typeMapIt->first] * 1e-3;
 
-	    // Cost
+        // Cost
             aCost.str("");
             aCost  << std::fixed << std::setprecision(costPrecision) <<
             (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
@@ -1650,10 +1654,10 @@ namespace insur {
             totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
 
             // Weight
-	    aWeight.str("");
-	    aWeight << std::fixed << std::setprecision(weightPrecision) <<
-	      typeMapWeight[aModule->getTag()] / typeMapCount[(*typeMapIt).first];
-	    totalWeight += typeMapWeight[aModule->getTag()];
+        aWeight.str("");
+        aWeight << std::fixed << std::setprecision(weightPrecision) <<
+          typeMapWeight[aModule->getTag()] / typeMapCount[(*typeMapIt).first];
+        totalWeight += typeMapWeight[aModule->getTag()];
             
             moduleTable->setContent(0, iType, aName.str());
             moduleTable->setContent(tagRow, iType, aTag.str());
@@ -1688,30 +1692,30 @@ namespace insur {
             }
         }
 
-	// Summary in short
-	setSummaryString(tracker.getName());
-	setSummaryLabelString("Name");
-	addSummaryElement(totAreaStrips/1e6);
-	addSummaryElement(totAreaPts/1e6);
-	addSummaryElement(totAreaPts/1e6 + totAreaStrips/1e6);
-	addSummaryElement(totCountMod);
-	addSummaryElement(totCountSens);
-	addSummaryElement(totChannelStrips / 1e6);
-	addSummaryElement(totChannelPts / 1e6);
-	addSummaryElement(totalPower);
-	addSummaryElement(totalCost);
-	addSummaryElement(totalWeight/1.e3);
+    // Summary in short
+    setSummaryString(tracker.getName());
+    setSummaryLabelString("Name");
+    addSummaryElement(totAreaStrips/1e6);
+    addSummaryElement(totAreaPts/1e6);
+    addSummaryElement(totAreaPts/1e6 + totAreaStrips/1e6);
+    addSummaryElement(totCountMod);
+    addSummaryElement(totCountSens);
+    addSummaryElement(totChannelStrips / 1e6);
+    addSummaryElement(totChannelPts / 1e6);
+    addSummaryElement(totalPower);
+    addSummaryElement(totalCost);
+    addSummaryElement(totalWeight/1.e3);
 
-	addSummaryLabelElement("Area (strips) mq");
-	addSummaryLabelElement("Area (pt) mq");
-	addSummaryLabelElement("Area (total) mq");
-	addSummaryLabelElement("Modules");
-	addSummaryLabelElement("Sensors");
-	addSummaryLabelElement("Standard channels (M)");
-	addSummaryLabelElement("pt channels (M)");
-	addSummaryLabelElement("Power (kW)");
-	addSummaryLabelElement("Cost (MCHF)");
-	addSummaryLabelElement("Weight (kg)");
+    addSummaryLabelElement("Area (strips) mq");
+    addSummaryLabelElement("Area (pt) mq");
+    addSummaryLabelElement("Area (total) mq");
+    addSummaryLabelElement("Modules");
+    addSummaryLabelElement("Sensors");
+    addSummaryLabelElement("Standard channels (M)");
+    addSummaryLabelElement("pt channels (M)");
+    addSummaryLabelElement("Power (kW)");
+    addSummaryLabelElement("Cost (MCHF)");
+    addSummaryLabelElement("Weight (kg)");
 
         // Score totals
         ++iType;
@@ -1750,13 +1754,13 @@ namespace insur {
         << totChannelPts / 1e6 << emphEnd;
         moduleTable->setContent(channelptRow, iType, aChannel.str());
         aPower.str("");
-	aPowerPerModule.str("");
+    aPowerPerModule.str("");
         aCost.str("");
-	aWeight.str("");
+    aWeight.str("");
         aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
         aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
         aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
-		 << " (kg)";
+         << " (kg)";
         moduleTable->setContent(powerRow, iType, aPower.str());
         moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
         moduleTable->setContent(costRow, iType, aCost.str());
@@ -1774,8 +1778,8 @@ namespace insur {
         TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
         //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-	createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
-	
+    createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
+    
         
         //TVirtualPad* myPad;
         myContent = new RootWContent("Plots");
@@ -1823,11 +1827,11 @@ namespace insur {
          * myImage->setComment("XY View of the tracker endcap");
          * myContent->addItem(myImage);
          * }
-	*/
+    */
 
-	// Eta profile big plot
+    // Eta profile big plot
         myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
-	drawEtaProfiles(*myCanvas, analyzer);
+    drawEtaProfiles(*myCanvas, analyzer);
         myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Hit coverage in eta");
         myContent->addItem(myImage);
@@ -1847,19 +1851,19 @@ namespace insur {
         myImage->setComment("Hit coverage in eta, phi");
         myContent->addItem(myImage);
 
-	// Power density
-	myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
-	myCanvas->cd();
-	//myCanvas->SetLogx();
-	//myCanvas->SetLogy();
-	TGraph& pd = analyzer.getPowerDensity();
-	pd.SetMarkerStyle(8);
-	pd.SetMarkerColor(kBlue);
-	pd.Draw("ap");
-	myCanvas->SetFillColor(color_plot_background);
-	myImage = new RootWImage(myCanvas, 600, 600);
-	myImage->setComment("Power density distribution");
-	myContent->addItem(myImage);        
+    // Power density
+    myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
+    myCanvas->cd();
+    //myCanvas->SetLogx();
+    //myCanvas->SetLogy();
+    TGraph& pd = analyzer.getPowerDensity();
+    pd.SetMarkerStyle(8);
+    pd.SetMarkerColor(kBlue);
+    pd.Draw("ap");
+    myCanvas->SetFillColor(color_plot_background);
+    myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setComment("Power density distribution");
+    myContent->addItem(myImage);        
 
         
         // TODO: make this meaningful!
@@ -1879,8 +1883,8 @@ namespace insur {
 
     totalEtaProfile.Draw();
     for (etaProfileIterator=etaProfiles.begin();
-	 etaProfileIterator!=etaProfiles.end();
-	 ++etaProfileIterator) {
+     etaProfileIterator!=etaProfiles.end();
+     ++etaProfileIterator) {
       (*etaProfileIterator).Draw("same");
     }
     return true; // TODO: make this meaningful
@@ -1895,8 +1899,8 @@ namespace insur {
   }
     
   bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile,
-				  std::string& matfile, std::string& pixmatfile,
-				  Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+                  std::string& matfile, std::string& pixmatfile,
+                  Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         RootWPage* myPage = new RootWPage("Info");
         myPage->setAddress("info.html");
         site.addPage(myPage);
@@ -1935,11 +1939,11 @@ namespace insur {
             myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
             simulationContent->addItem(myBinaryFile);
         }
-	if (pixmatfile!="") {
+    if (pixmatfile!="") {
             std::string destinationFilename = trackerName + "_Materials.cfg.pix";
             myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
             simulationContent->addItem(myBinaryFile);
-	}
+    }
         
         RootWInfo* myInfo;
         myInfo = new RootWInfo("Minimum bias per bunch crossing");
@@ -1975,30 +1979,30 @@ namespace insur {
         myTable->setContent(1, 2, tracker.getCost(Module::Strip), costPerUnitPrecision);
         simulationContent->addItem(myTable);
 
-	RootWTable& typesTable = simulationContent->addTable();
-	typesTable.setContent(1,0,"mW / channel [chip]");
-	typesTable.setContent(2,0,"mW / channel [opto]");
-	typesTable.setContent(3,0,"mW / channel [total]");
-	typesTable.setContent(4,0,"mW / module [chip]");
-	typesTable.setContent(5,0,"mW / module [opto]");
-	typesTable.setContent(6,0,"mW / module [total]");
-	int iType=1;
-	std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
-	for (std::map<std::string, ModuleType>::iterator it=typeMap.begin();
-	     it != typeMap.end(); ++it) {
-	  typesTable.setContent(0,iType, it->first);
-	  typesTable.setContent(1,iType,1e3*(it->second).getPowerPerStrip(ModuleType::ChipPower),2);
-	  typesTable.setContent(2,iType,1e3*(it->second).getPowerPerStrip(ModuleType::OpticalPower),2);
-	  typesTable.setContent(3,iType,1e3*(
-				(it->second).getPowerPerStrip(ModuleType::OpticalPower)+
-				(it->second).getPowerPerStrip(ModuleType::ChipPower)), 2);
-	  typesTable.setContent(4,iType,1e3*(it->second).getPowerPerModule(ModuleType::ChipPower),2);
-	  typesTable.setContent(5,iType,1e3*(it->second).getPowerPerModule(ModuleType::OpticalPower),2);
-	  typesTable.setContent(6,iType,1e3*(
-				(it->second).getPowerPerModule(ModuleType::OpticalPower)+
-				(it->second).getPowerPerModule(ModuleType::ChipPower)), 2);
-	  iType++;
-	}
+    RootWTable& typesTable = simulationContent->addTable();
+    typesTable.setContent(1,0,"mW / channel [chip]");
+    typesTable.setContent(2,0,"mW / channel [opto]");
+    typesTable.setContent(3,0,"mW / channel [total]");
+    typesTable.setContent(4,0,"mW / module [chip]");
+    typesTable.setContent(5,0,"mW / module [opto]");
+    typesTable.setContent(6,0,"mW / module [total]");
+    int iType=1;
+    std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
+    for (std::map<std::string, ModuleType>::iterator it=typeMap.begin();
+         it != typeMap.end(); ++it) {
+      typesTable.setContent(0,iType, it->first);
+      typesTable.setContent(1,iType,1e3*(it->second).getPowerPerStrip(ModuleType::ChipPower),2);
+      typesTable.setContent(2,iType,1e3*(it->second).getPowerPerStrip(ModuleType::OpticalPower),2);
+      typesTable.setContent(3,iType,1e3*(
+                (it->second).getPowerPerStrip(ModuleType::OpticalPower)+
+                (it->second).getPowerPerStrip(ModuleType::ChipPower)), 2);
+      typesTable.setContent(4,iType,1e3*(it->second).getPowerPerModule(ModuleType::ChipPower),2);
+      typesTable.setContent(5,iType,1e3*(it->second).getPowerPerModule(ModuleType::OpticalPower),2);
+      typesTable.setContent(6,iType,1e3*(
+                (it->second).getPowerPerModule(ModuleType::OpticalPower)+
+                (it->second).getPowerPerModule(ModuleType::ChipPower)), 2);
+      iType++;
+    }
        
         //********************************//
         //*                              *//
@@ -2006,24 +2010,24 @@ namespace insur {
         //*                              *//
         //********************************//
 
-	// Summary of layout and performance
-	myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
-	myTextFile->addText(getSummaryLabelString()+"\n");
-	myTextFile->addText(getSummaryString());
-	summaryContent->addItem(myTextFile);
+    // Summary of layout and performance
+    myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
+    myTextFile->addText(getSummaryLabelString()+"\n");
+    myTextFile->addText(getSummaryString());
+    summaryContent->addItem(myTextFile);
 
-	// Occupancy vs. radius
-	myTextFile = new RootWTextFile("occupancy.csv", "Occupancy vs. radius");
-	myTextFile->addText(occupancyCsv_);
-	summaryContent->addItem(myTextFile);
-	
-	
+    // Occupancy vs. radius
+    myTextFile = new RootWTextFile("occupancy.csv", "Occupancy vs. radius");
+    myTextFile->addText(occupancyCsv_);
+    summaryContent->addItem(myTextFile);
+    
+    
         return true; // TODO: make this meaningful
     }
     
     
     bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
-        RootWPage* myPage = new RootWPage("Band width");
+        RootWPage* myPage = new RootWPage("Bandwidth");
         myPage->setAddress("bandwidth.html");
         site.addPage(myPage);
         RootWContent* myContent;
@@ -2071,68 +2075,68 @@ namespace insur {
         aStringStream <<" minimum bias events assumed</br>";
         myDescription->addText( aStringStream.str() );
                 
-		
-		
-		std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
-		std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
-		std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
-		std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
-		std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
-	
-//		std::map<pair<int,int>,std::string>& tsm = trueSummary.getContent();
-//		cout << "TRUE TRIGGER COUNT: " << tsm.size() << endl;
-//		for (std::map<pair<int,int>,std::string>::iterator it = tsm.begin(); it != tsm.end(); ++it) {
-//			cout << it->first.first << '\t' << it->first.second << '\t' << it->second << endl;
-//		}
-		for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
-		for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
-			myPage->addContent(std::string("Trigger data bandwidth Mbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-		}
+        
+        
+        std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
+        std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
+        std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
+        std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
+        std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
+    
+//      std::map<pair<int,int>,std::string>& tsm = trueSummary.getContent();
+//      cout << "TRUE TRIGGER COUNT: " << tsm.size() << endl;
+//      for (std::map<pair<int,int>,std::string>::iterator it = tsm.begin(); it != tsm.end(); ++it) {
+//          cout << it->first.first << '\t' << it->first.second << '\t' << it->second << endl;
+//      }
+        for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
+        for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
+            myPage->addContent(std::string("Trigger data bandwidth Mbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+        }
         return true;
     }
 
   bool Vizard::irradiatedPowerSummary(Analyzer& a, RootWSite& site) {
-  	RootWPage* myPage = new RootWPage("Power");
+    RootWPage* myPage = new RootWPage("Power");
     myPage->setAddress("power.html");
     site.addPage(myPage);
-	
-	std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
-	for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-		myPage->addContent(std::string("Irradiated power consumption (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-	}
+    
+    std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
+    for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
+        myPage->addContent(std::string("Irradiated power consumption (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
 
     // Some helper string objects
     ostringstream tempSS;
     std::string tempString;    
 
     mapBag myMapBag = a.getMapBag();
-	TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+    TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
 
     RootWContent& myContent = myPage->addContent("Irradiated power maps", true);
 
-	TCanvas irradiatedPowerCanvas;
+    TCanvas irradiatedPowerCanvas;
     irradiatedPowerCanvas.SetFillColor(color_plot_background);
 
-	irradiatedPowerCanvas.cd();
-	irradiatedPowerMap.Draw("colz");
+    irradiatedPowerCanvas.cd();
+    irradiatedPowerMap.Draw("colz");
     
-	
-	RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
-	irradiatedPowerImage.setComment("Map of power consumptions of irradiated modules (W)");
-	irradiatedPowerImage.setName("irradiatedPowerMap");
+    
+    RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
+    irradiatedPowerImage.setComment("Map of power consumptions of irradiated modules (W)");
+    irradiatedPowerImage.setName("irradiatedPowerMap");
 
-	return true;
+    return true;
   }
     
   bool Vizard::errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger) {
@@ -2148,24 +2152,24 @@ namespace insur {
     if (!(a.getRhoGraphs(false, isTrigger).empty() && a.getDGraphs(false, isTrigger).empty() && a.getPhiGraphs(false, isTrigger).empty())) {
 
             // Create a page for the errors
-	  std::string pageTitle = "Resolution";
-	  std::string additionalSummaryTag;
-	  double verticalScale=1;
-	  if (additionalTag!="") {
-	    pageTitle += " ("+additionalTag+")";
-	    additionalSummaryTag = "_"+additionalTag+"_";
-	    verticalScale = 10;
-	  } else {
-	    additionalSummaryTag = "";
-	  }
-	  std::string pageAddress = "errors" + additionalTag + ".html";
-	  RootWPage& myPage = site.addPage(pageTitle);
-	  myPage.setAddress(pageAddress);
+      std::string pageTitle = "Resolution";
+      std::string additionalSummaryTag;
+      double verticalScale=1;
+      if (additionalTag!="") {
+        pageTitle += " ("+additionalTag+")";
+        additionalSummaryTag = "_"+additionalTag+"_";
+        verticalScale = 10;
+      } else {
+        additionalSummaryTag = "";
+      }
+      std::string pageAddress = "errors" + additionalTag + ".html";
+      RootWPage& myPage = site.addPage(pageTitle);
+      myPage.setAddress(pageAddress);
             
             // Create the contents
             RootWContent& resolutionContent = myPage.addContent("Track resolution");
             RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
-	    
+        
             for (int scenario=0; scenario<2; ++scenario) {
               bool idealMaterial;
               RootWContent* myContent;
@@ -2176,348 +2180,348 @@ namespace insur {
                 idealMaterial=true;
                 myContent = &idealResolutionContent;
               }
-	      
-	      TCanvas linearMomentumCanvas;
-	      TCanvas momentumCanvas;
-	      TCanvas distanceCanvas;
-	      TCanvas angleCanvas;
-	      TCanvas ctgThetaCanvas;
-	      TCanvas z0Canvas;
-	      TCanvas pCanvas;
-	      linearMomentumCanvas.SetGrid(1,1);
-	      momentumCanvas.SetGrid(1,1);
-	      distanceCanvas.SetGrid(1,1);
-	      angleCanvas.SetGrid(1,1);
-	      ctgThetaCanvas.SetGrid(1,1);
-	      z0Canvas.SetGrid(1,1);
-	      pCanvas.SetGrid(1,1);
-	      std::string plotOption = "Ap";
-	      std::map<double, TGraph>::iterator g_iter, g_guard;
-	      // momentum canvas loop
-	      int myColor=0;
-	      g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
-	      gStyle->SetGridStyle(style_grid);
-	      gStyle->SetGridColor(color_hard_grid);
-	      for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+          
+          TCanvas linearMomentumCanvas;
+          TCanvas momentumCanvas;
+          TCanvas distanceCanvas;
+          TCanvas angleCanvas;
+          TCanvas ctgThetaCanvas;
+          TCanvas z0Canvas;
+          TCanvas pCanvas;
+          linearMomentumCanvas.SetGrid(1,1);
+          momentumCanvas.SetGrid(1,1);
+          distanceCanvas.SetGrid(1,1);
+          angleCanvas.SetGrid(1,1);
+          ctgThetaCanvas.SetGrid(1,1);
+          z0Canvas.SetGrid(1,1);
+          pCanvas.SetGrid(1,1);
+          std::string plotOption = "Ap";
+          std::map<double, TGraph>::iterator g_iter, g_guard;
+          // momentum canvas loop
+          int myColor=0;
+          g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
+          gStyle->SetGridStyle(style_grid);
+          gStyle->SetGridColor(color_hard_grid);
+          for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& momentumGraph = g_iter->second;
-		if (idealMaterial) {
-		  momentumGraph.SetMinimum(1E-5*100);
-		  momentumGraph.SetMaximum(.11*100*verticalScale);
-		} else {
-		  momentumGraph.SetMinimum(4E-3*100);
-		  momentumGraph.SetMaximum(.11*100*verticalScale);
-		}
+        if (idealMaterial) {
+          momentumGraph.SetMinimum(1E-5*100);
+          momentumGraph.SetMaximum(.11*100*verticalScale);
+        } else {
+          momentumGraph.SetMinimum(4E-3*100);
+          momentumGraph.SetMaximum(.11*100*verticalScale);
+        }
                 momentumGraph.GetXaxis()->SetLimits(0, 2.4);
-		linearMomentumCanvas.SetLogy(0);		
-		momentumCanvas.SetLogy(1);
-		momentumGraph.SetLineColor(momentumColor(myColor));
-		momentumGraph.SetMarkerColor(momentumColor(myColor));
+        linearMomentumCanvas.SetLogy(0);        
+        momentumCanvas.SetLogy(1);
+        momentumGraph.SetLineColor(momentumColor(myColor));
+        momentumGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		momentumGraph.SetMarkerStyle(8);
+        momentumGraph.SetMarkerStyle(8);
                 momentumCanvas.SetFillColor(color_plot_background);
                 linearMomentumCanvas.SetFillColor(color_plot_background);
-		if (momentumGraph.GetN()>0) {
-		  momentumCanvas.cd();
-		  momentumGraph.Draw(plotOption.c_str());
-		  linearMomentumCanvas.cd();
-		  momentumGraph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      plotOption = "Ap";
-	      myColor=0;
-	      // distance canvas loop
-	      g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+        if (momentumGraph.GetN()>0) {
+          momentumCanvas.cd();
+          momentumGraph.Draw(plotOption.c_str());
+          linearMomentumCanvas.cd();
+          momentumGraph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          plotOption = "Ap";
+          myColor=0;
+          // distance canvas loop
+          g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
+          for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& distanceGraph = g_iter->second;
-		if (idealMaterial) {
-		  distanceGraph.SetMinimum(4*1e-4);
-		  distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
-		} else {
-		  distanceGraph.SetMinimum(4*1e-4);
-		  distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
-		}
+        if (idealMaterial) {
+          distanceGraph.SetMinimum(4*1e-4);
+          distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
+        } else {
+          distanceGraph.SetMinimum(4*1e-4);
+          distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
+        }
                 distanceGraph.GetXaxis()->SetLimits(0, 2.4);
-		distanceCanvas.SetLogy();
-		distanceGraph.SetLineColor(momentumColor(myColor));
-		distanceGraph.SetMarkerColor(momentumColor(myColor));
+        distanceCanvas.SetLogy();
+        distanceGraph.SetLineColor(momentumColor(myColor));
+        distanceGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		distanceGraph.SetMarkerStyle(8);
+        distanceGraph.SetMarkerStyle(8);
                 distanceCanvas.cd();
                 distanceCanvas.SetFillColor(color_plot_background);
-		if (distanceGraph.GetN()>0) {
-		  distanceGraph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      plotOption = "Ap";
-	      myColor=0;
-	      // angle canvas loop
-	      g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+        if (distanceGraph.GetN()>0) {
+          distanceGraph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          plotOption = "Ap";
+          myColor=0;
+          // angle canvas loop
+          g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
+          for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& angleGraph = g_iter->second;
-		if (idealMaterial) {
-		  angleGraph.SetMinimum(1E-5);
-		  angleGraph.SetMaximum(0.01*verticalScale);
-		} else {
-		  angleGraph.SetMinimum(1E-5);
-		  angleGraph.SetMaximum(0.01*verticalScale);
-		}
+        if (idealMaterial) {
+          angleGraph.SetMinimum(1E-5);
+          angleGraph.SetMaximum(0.01*verticalScale);
+        } else {
+          angleGraph.SetMinimum(1E-5);
+          angleGraph.SetMaximum(0.01*verticalScale);
+        }
                 angleGraph.GetXaxis()->SetLimits(0, 2.4);
                 angleCanvas.SetLogy();
-		angleGraph.SetLineColor(momentumColor(myColor));
-		angleGraph.SetMarkerColor(momentumColor(myColor));
+        angleGraph.SetLineColor(momentumColor(myColor));
+        angleGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		angleGraph.SetMarkerStyle(8);
+        angleGraph.SetMarkerStyle(8);
                 angleCanvas.cd();
                 angleCanvas.SetFillColor(color_plot_background);
-		if (angleGraph.GetN() > 0) {
-		  angleGraph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      plotOption = "Ap";
-	      myColor=0;
-	      // ctgTheta canvas loop
-	      g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+        if (angleGraph.GetN() > 0) {
+          angleGraph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          plotOption = "Ap";
+          myColor=0;
+          // ctgTheta canvas loop
+          g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
+          for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& ctgThetaGraph = g_iter->second;
-		ctgThetaGraph.SetMinimum(1E-5);
-		ctgThetaGraph.SetMaximum(0.1*verticalScale);
+        ctgThetaGraph.SetMinimum(1E-5);
+        ctgThetaGraph.SetMaximum(0.1*verticalScale);
                 ctgThetaGraph.GetXaxis()->SetLimits(0, 2.4);
                 ctgThetaCanvas.SetLogy();
-		ctgThetaGraph.SetLineColor(momentumColor(myColor));
-		ctgThetaGraph.SetMarkerColor(momentumColor(myColor));
+        ctgThetaGraph.SetLineColor(momentumColor(myColor));
+        ctgThetaGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		ctgThetaGraph.SetMarkerStyle(8);
+        ctgThetaGraph.SetMarkerStyle(8);
                 ctgThetaCanvas.cd();
                 ctgThetaCanvas.SetFillColor(color_plot_background);
-		if (ctgThetaGraph.GetN() > 0) {
-		  ctgThetaGraph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      plotOption = "Ap";
-	      myColor=0;
-	      // z0 canvas loop
-	      g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+        if (ctgThetaGraph.GetN() > 0) {
+          ctgThetaGraph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          plotOption = "Ap";
+          myColor=0;
+          // z0 canvas loop
+          g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
+          for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& z0Graph = g_iter->second;
-		z0Graph.SetMinimum(1E-5);
-		z0Graph.SetMaximum(1*verticalScale);
+        z0Graph.SetMinimum(1E-5);
+        z0Graph.SetMaximum(1*verticalScale);
                 z0Graph.GetXaxis()->SetLimits(0, 2.4);
                 z0Canvas.SetLogy();
-		z0Graph.SetLineColor(momentumColor(myColor));
-		z0Graph.SetMarkerColor(momentumColor(myColor));
+        z0Graph.SetLineColor(momentumColor(myColor));
+        z0Graph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		z0Graph.SetMarkerStyle(8);
+        z0Graph.SetMarkerStyle(8);
                 z0Canvas.cd();
                 z0Canvas.SetFillColor(color_plot_background);
-		if (z0Graph.GetN() > 0) {
-		  z0Graph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      plotOption = "Ap";
-	      myColor=0;
-	      // p canvas loop
-	      g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
-	      for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
+        if (z0Graph.GetN() > 0) {
+          z0Graph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          plotOption = "Ap";
+          myColor=0;
+          // p canvas loop
+          g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
+          for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
                 TGraph& pGraph = g_iter->second;
-		if (idealMaterial) {
-		  pGraph.SetMinimum(1E-5*100);
-		  pGraph.SetMaximum(.11*100*verticalScale);		  
-		} else {
-		  pGraph.SetMinimum(4E-3*100);
-		  pGraph.SetMaximum(.11*100*verticalScale);
-		}
+        if (idealMaterial) {
+          pGraph.SetMinimum(1E-5*100);
+          pGraph.SetMaximum(.11*100*verticalScale);       
+        } else {
+          pGraph.SetMinimum(4E-3*100);
+          pGraph.SetMaximum(.11*100*verticalScale);
+        }
                 pGraph.GetXaxis()->SetLimits(0, 2.4);
-		pCanvas.SetLogy();
-		pGraph.SetLineColor(momentumColor(myColor));
-		pGraph.SetMarkerColor(momentumColor(myColor));
+        pCanvas.SetLogy();
+        pGraph.SetLineColor(momentumColor(myColor));
+        pGraph.SetMarkerColor(momentumColor(myColor));
                 myColor++;
-		pGraph.SetMarkerStyle(8);
+        pGraph.SetMarkerStyle(8);
                 pCanvas.cd();
                 pCanvas.SetFillColor(color_plot_background);
-		if (pGraph.GetN() > 0) {
-		  pGraph.Draw(plotOption.c_str());
-		  plotOption = "p same";
-		}
-	      }
-	      RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
-	      linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
-	      linearMomentumImage.setName("linptres");
-	      RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
-	      momentumImage.setComment("Transverse momentum resolution vs. eta");
-	      momentumImage.setName("ptres");
-	      RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
-	      distanceImage.setComment("Distance of closest approach resolution vs. eta");
-	      distanceImage.setName("dxyres");
-	      RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
-	      angleImage.setComment("Angle resolution vs. eta");
-	      angleImage.setName("phires");
-	      RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
-	      ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-	      ctgThetaImage.setName("cotThetares");
-	      RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
-	      z0Image.setComment("z0 resolution vs. eta");
-	      z0Image.setName("dzres");
-	      RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
-	      pImage.setComment("Momentum resolution vs. eta");
-	      pImage.setName("pres");
+        if (pGraph.GetN() > 0) {
+          pGraph.Draw(plotOption.c_str());
+          plotOption = "p same";
+        }
+          }
+          RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
+          linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
+          linearMomentumImage.setName("linptres");
+          RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
+          momentumImage.setComment("Transverse momentum resolution vs. eta");
+          momentumImage.setName("ptres");
+          RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
+          distanceImage.setComment("Distance of closest approach resolution vs. eta");
+          distanceImage.setName("dxyres");
+          RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
+          angleImage.setComment("Angle resolution vs. eta");
+          angleImage.setName("phires");
+          RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
+          ctgThetaImage.setComment("CtgTheta resolution vs. eta");
+          ctgThetaImage.setName("cotThetares");
+          RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
+          z0Image.setComment("z0 resolution vs. eta");
+          z0Image.setName("dzres");
+          RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
+          pImage.setComment("Momentum resolution vs. eta");
+          pImage.setName("pres");
             }
 
-	    // Check that the ideal and real have the same pts
-	    // Otherwise the table cannot be prepared
+        // Check that the ideal and real have the same pts
+        // Otherwise the table cannot be prepared
 
             RootWContent& summaryContent = myPage.addContent("Summary", false);
-	    RootWTable& cutsTable = summaryContent.addTable();
-	    std::vector<std::string> plotNames;
-	    std::map<std::string, RootWTable*> tableMap;
-	    std::map<std::string, RootWTable*>::iterator tableMapIt;
-	    plotNames.push_back("pt");
-	    plotNames.push_back("d");
-	    plotNames.push_back("phi");
-	    plotNames.push_back("ctg(theta)");
-	    plotNames.push_back("z0");
-	    plotNames.push_back("p");
-	    for (std::vector<std::string>::iterator it=plotNames.begin();
-		 it!=plotNames.end(); ++it) {
-	      tableMap[(*it)] = &(summaryContent.addTable());
-	      tableMap[(*it)]->setContent(0,0,(*it));
-	    }
+        RootWTable& cutsTable = summaryContent.addTable();
+        std::vector<std::string> plotNames;
+        std::map<std::string, RootWTable*> tableMap;
+        std::map<std::string, RootWTable*>::iterator tableMapIt;
+        plotNames.push_back("pt");
+        plotNames.push_back("d");
+        plotNames.push_back("phi");
+        plotNames.push_back("ctg(theta)");
+        plotNames.push_back("z0");
+        plotNames.push_back("p");
+        for (std::vector<std::string>::iterator it=plotNames.begin();
+         it!=plotNames.end(); ++it) {
+          tableMap[(*it)] = &(summaryContent.addTable());
+          tableMap[(*it)]->setContent(0,0,(*it));
+        }
 
-	    // Prepare the cuts for the averages
-	    std::vector<std::string> cutNames;
-	    std::vector<double> cuts;
-	    ostringstream label;
-	    std::string name;	   
-	    RootWTable* myTable;
+        // Prepare the cuts for the averages
+        std::vector<std::string> cutNames;
+        std::vector<double> cuts;
+        ostringstream label;
+        std::string name;      
+        RootWTable* myTable;
 
             // Three slices of 0.8 each
             // Or 0.7 for the trigger
             cuts.push_back(0.01);
             if (additionalTag=="trigger") {
-	      cuts.push_back(0.7);
-	      cuts.push_back(1.4);
-	      cuts.push_back(2.1);
+          cuts.push_back(0.7);
+          cuts.push_back(1.4);
+          cuts.push_back(2.1);
             } else {
-	      cuts.push_back(0.8);
-	      cuts.push_back(1.6);
-	      cuts.push_back(2.4);
+          cuts.push_back(0.8);
+          cuts.push_back(1.6);
+          cuts.push_back(2.4);
             }
-	    cutNames.push_back("C");
-	    cutNames.push_back("I");
-	    cutNames.push_back("F");
-	    unsigned int nCuts = cutNames.size();
-	    
-	    // Table explaining the cuts
-	    cutsTable.setContent(0,0,"Region");
-	    cutsTable.setContent(1,0,"etaMin");
-	    cutsTable.setContent(2,0,"etaMax");
-	    myTable = &cutsTable;
-	    for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-	      myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-	      label.str(""); label << cuts[iBorder];
-	      myTable->setContent(1,iBorder+1,label.str());
-	      label.str(""); label << cuts[iBorder+1];
-	      myTable->setContent(2,iBorder+1,label.str());
-	    }
-	    
-	    std::map<graphIndex, TGraph*> myPlotMap;
-	    graphIndex myIndex;
+        cutNames.push_back("C");
+        cutNames.push_back("I");
+        cutNames.push_back("F");
+        unsigned int nCuts = cutNames.size();
+        
+        // Table explaining the cuts
+        cutsTable.setContent(0,0,"Region");
+        cutsTable.setContent(1,0,"etaMin");
+        cutsTable.setContent(2,0,"etaMax");
+        myTable = &cutsTable;
+        for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
+          myTable->setContent(0,iBorder+1,cutNames[iBorder]);
+          label.str(""); label << cuts[iBorder];
+          myTable->setContent(1,iBorder+1,label.str());
+          label.str(""); label << cuts[iBorder+1];
+          myTable->setContent(2,iBorder+1,label.str());
+        }
+        
+        std::map<graphIndex, TGraph*> myPlotMap;
+        graphIndex myIndex;
 
-	    fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoGraphs, isTrigger);
-	    fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDGraphs, isTrigger);
-	    fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiGraphs, isTrigger);
-	    fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaGraphs, isTrigger);
-	    fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Graphs, isTrigger);
-	    fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPGraphs, isTrigger);
+        fillPlotMap(plotNames[0], myPlotMap, &a, &Analyzer::getRhoGraphs, isTrigger);
+        fillPlotMap(plotNames[1], myPlotMap, &a, &Analyzer::getDGraphs, isTrigger);
+        fillPlotMap(plotNames[2], myPlotMap, &a, &Analyzer::getPhiGraphs, isTrigger);
+        fillPlotMap(plotNames[3], myPlotMap, &a, &Analyzer::getCtgThetaGraphs, isTrigger);
+        fillPlotMap(plotNames[4], myPlotMap, &a, &Analyzer::getZ0Graphs, isTrigger);
+        fillPlotMap(plotNames[5], myPlotMap, &a, &Analyzer::getPGraphs, isTrigger);
 
-	    // Cycle over the different measurements
-	    for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
-		 plotNameIt!=plotNames.end(); ++plotNameIt) {
-	      
-	      //std::cerr << "tableMap[\""<< *plotNameIt <<"\"] = " << tableMap[*plotNameIt] << std::endl; // debug
-	      myTable = tableMap[*plotNameIt];
-	      if (!myTable) continue;
+        // Cycle over the different measurements
+        for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
+         plotNameIt!=plotNames.end(); ++plotNameIt) {
+          
+          //std::cerr << "tableMap[\""<< *plotNameIt <<"\"] = " << tableMap[*plotNameIt] << std::endl; // debug
+          myTable = tableMap[*plotNameIt];
+          if (!myTable) continue;
 
-	      // Count the realistic plots' momenta
-	      std::vector<double> momentum;
-	      std::vector<double>::iterator momentumIt;
+          // Count the realistic plots' momenta
+          std::vector<double> momentum;
+          std::vector<double>::iterator momentumIt;
 
-	      for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
-		   myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
-		myIndex =  (*myPlotMapIt).first;
-		//std::cerr << "Check3: myIndex.name = " << myIndex.name << std::endl; // debug
-		if (myIndex.name==(*plotNameIt)) {
-		  //std::cerr << "found momentum " << myIndex.p <<std::endl; // debug
-		  momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
-		  if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
-		}
-	      }
-	      
-	      std::sort(momentum.begin(), momentum.end());
-	      //std::cerr << "momentum.size() = " << momentum.size() <<std::endl; // debug
+          for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
+           myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
+        myIndex =  (*myPlotMapIt).first;
+        //std::cerr << "Check3: myIndex.name = " << myIndex.name << std::endl; // debug
+        if (myIndex.name==(*plotNameIt)) {
+          //std::cerr << "found momentum " << myIndex.p <<std::endl; // debug
+          momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
+          if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
+        }
+          }
+          
+          std::sort(momentum.begin(), momentum.end());
+          //std::cerr << "momentum.size() = " << momentum.size() <<std::endl; // debug
 
-	      // Fill the table with the values
-	      // First the heading of momentum
-	      int baseColumn;
-	      std::vector<double> averagesReal;
-	      std::vector<double> averagesIdeal;
-	      TGraph* myGraph;
-	      int myColor = kBlack;
-	      myIndex.name=(*plotNameIt);
-	      std::ostringstream myLabel;
-	      for (unsigned int i=0; i<momentum.size(); ++i) {
-		baseColumn = nCuts*i+1;
-		myTable->setContent(0, baseColumn, momentum[i],0);
-		myIndex.p=momentum[i];
-		myIndex.ideal = false;
-		myGraph = myPlotMap[myIndex];
-		myTable->setContent(2, 0, "Real");
-		myTable->setContent(3, 0, "Ideal");
-		myTable->setContent(4, 0, "Loss");
-		if (myGraph) {
-		  averagesReal=Analyzer::average(*myGraph, cuts);
-		  myColor = myGraph->GetMarkerColor();
-		  myTable->setColor(0, baseColumn, myColor);
-		}
-		myIndex.ideal = true;
-		myGraph = myPlotMap[myIndex];
-		if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
-		for (unsigned int j=0; j<nCuts; ++j) {
-		  myTable->setContent(1, baseColumn+j, cutNames[j]);
-		  myTable->setColor(1, baseColumn+j, myColor);
-		  if (averagesReal.size() > j) {
-		    myTable->setContent(2, baseColumn+j,averagesReal[j],5);
-		    myTable->setColor(2, baseColumn+j, myColor);
-		  }
-		  if (averagesIdeal.size() > j) {
-		    myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
-		    myTable->setColor(3, baseColumn+j, myColor);
-		  }
-		  if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
-		    myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
-		    myTable->setColor(4, baseColumn+j, myColor);
-		  }
-		  myLabel.str("");
-		  myLabel << myIndex.name
-			  << std::dec << std::fixed << std::setprecision(0) 
-			  << myIndex.p << "(" << cutNames[j] << ")";
-		  addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
-		  addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
-		  addSummaryElement(averagesReal[j]);
-		  addSummaryElement(averagesIdeal[j]);
-		}
-	      }
-	    }
+          // Fill the table with the values
+          // First the heading of momentum
+          int baseColumn;
+          std::vector<double> averagesReal;
+          std::vector<double> averagesIdeal;
+          TGraph* myGraph;
+          int myColor = kBlack;
+          myIndex.name=(*plotNameIt);
+          std::ostringstream myLabel;
+          for (unsigned int i=0; i<momentum.size(); ++i) {
+        baseColumn = nCuts*i+1;
+        myTable->setContent(0, baseColumn, momentum[i],0);
+        myIndex.p=momentum[i];
+        myIndex.ideal = false;
+        myGraph = myPlotMap[myIndex];
+        myTable->setContent(2, 0, "Real");
+        myTable->setContent(3, 0, "Ideal");
+        myTable->setContent(4, 0, "Loss");
+        if (myGraph) {
+          averagesReal=Analyzer::average(*myGraph, cuts);
+          myColor = myGraph->GetMarkerColor();
+          myTable->setColor(0, baseColumn, myColor);
+        }
+        myIndex.ideal = true;
+        myGraph = myPlotMap[myIndex];
+        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
+        for (unsigned int j=0; j<nCuts; ++j) {
+          myTable->setContent(1, baseColumn+j, cutNames[j]);
+          myTable->setColor(1, baseColumn+j, myColor);
+          if (averagesReal.size() > j) {
+            myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+            myTable->setColor(2, baseColumn+j, myColor);
+          }
+          if (averagesIdeal.size() > j) {
+            myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+            myTable->setColor(3, baseColumn+j, myColor);
+          }
+          if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
+            myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
+            myTable->setColor(4, baseColumn+j, myColor);
+          }
+          myLabel.str("");
+          myLabel << myIndex.name
+              << std::dec << std::fixed << std::setprecision(0) 
+              << myIndex.p << "(" << cutNames[j] << ")";
+          addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
+          addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
+          addSummaryElement(averagesReal[j]);
+          addSummaryElement(averagesIdeal[j]);
+        }
+          }
+        }
             return true;
         }
-	return false;
+    return false;
     }
 
-  bool Vizard::triggerSummary(Analyzer& a, RootWSite& site) {
+  bool Vizard::triggerSummary(Analyzer& a, RootWSite& site, bool extended) {
     //********************************//
     //*                              *//
     //*   Page with the trigger      *//
@@ -2576,35 +2580,35 @@ namespace insur {
       
       // Loop over the plots and draw on the canvas
       for (std::map<double, TProfile>::iterator plot_iter = triggerProfiles.begin();
-	   plot_iter != triggerProfiles.end();
-	   ++plot_iter) {
-	const double& myPt = plot_iter->first;
+       plot_iter != triggerProfiles.end();
+       ++plot_iter) {
+    const double& myPt = plot_iter->first;
 
-	TProfile& npointsProfile = plot_iter->second;
+    TProfile& npointsProfile = plot_iter->second;
 
-	miny = npointsProfile.GetBinContent(npointsProfile.GetMinimumBin());
-	maxy = npointsProfile.GetBinContent(npointsProfile.GetMaximumBin());
-	if ((miny==0)&&(maxy==0)) continue;
+    miny = npointsProfile.GetBinContent(npointsProfile.GetMinimumBin());
+    maxy = npointsProfile.GetBinContent(npointsProfile.GetMaximumBin());
+    if ((miny==0)&&(maxy==0)) continue;
 
-	if (myPt!=0) {
-	  tempSS << tempString.c_str() << myPt; tempString = ", ";
-	}
+    if (myPt!=0) {
+      tempSS << tempString.c_str() << myPt; tempString = ", ";
+    }
 
-	npointsProfile.SetMinimum(1E-2);
-	//npointsProfile.GetXaxis()->SetLimits(0, 2.4);
-	npointsProfile.SetLineColor(Palette::color(myColor));
-	npointsProfile.SetMarkerColor(Palette::color(myColor));
-	npointsProfile.SetFillColor(Palette::color(myColor));
-	myColor++;
-	npointsProfile.SetMarkerStyle(8);
-	pointsCanvas.SetFillColor(color_plot_background);
+    npointsProfile.SetMinimum(1E-2);
+    //npointsProfile.GetXaxis()->SetLimits(0, 2.4);
+    npointsProfile.SetLineColor(Palette::color(myColor));
+    npointsProfile.SetMarkerColor(Palette::color(myColor));
+    npointsProfile.SetFillColor(Palette::color(myColor));
+    myColor++;
+    npointsProfile.SetMarkerStyle(8);
+    pointsCanvas.SetFillColor(color_plot_background);
 
-	pointsCanvas.cd();
-	// std::cerr << "About to draw plot " << myPt << std::endl; // debug
-	npointsProfile.Draw(plotOption.c_str());
-	//plotOption = "E6 same";
-	plotOption = "E1 same";
-	//plotOption = "same";
+    pointsCanvas.cd();
+    // std::cerr << "About to draw plot " << myPt << std::endl; // debug
+    npointsProfile.Draw(plotOption.c_str());
+    //plotOption = "E6 same";
+    plotOption = "E1 same";
+    //plotOption = "same";
       }
 
       RootWImage& npointsImage = myContent.addImage(pointsCanvas, 600, 600);
@@ -2639,38 +2643,38 @@ namespace insur {
       //miny=1000;
       //maxy=0;
       for (std::map<double, TProfile>::iterator plot_iter = triggerFractionProfiles.begin();
-	   plot_iter != triggerFractionProfiles.end();
-	   ++plot_iter) {
-	const double& myPt = plot_iter->first;
-	TProfile& fractionProfile = plot_iter->second;
+       plot_iter != triggerFractionProfiles.end();
+       ++plot_iter) {
+    const double& myPt = plot_iter->first;
+    TProfile& fractionProfile = plot_iter->second;
 
-	miny = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
-	maxy = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
-	//std::cerr << "miny = " << miny << std::endl; // debug
-	//std::cerr << "maxy = " << maxy << std::endl; // debug
+    miny = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
+    maxy = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
+    //std::cerr << "miny = " << miny << std::endl; // debug
+    //std::cerr << "maxy = " << maxy << std::endl; // debug
 
-	if (myPt!=0) {
-	  tempSS << tempString.c_str() << myPt; tempString = ", ";
-	}
+    if (myPt!=0) {
+      tempSS << tempString.c_str() << myPt; tempString = ", ";
+    }
 
-	fractionProfile.SetMinimum(1E-2);
-	fractionProfile.SetMaximum(100);
-	fractionProfile.SetLineColor(Palette::color(myColor));
-	fractionProfile.SetMarkerColor(Palette::color(myColor));
-	fractionProfile.SetFillColor(Palette::color(myColor));
-	myColor++;
-	fractionProfile.SetMarkerStyle(8);
-	fractionCanvas.SetFillColor(color_plot_background);
+    fractionProfile.SetMinimum(1E-2);
+    fractionProfile.SetMaximum(100);
+    fractionProfile.SetLineColor(Palette::color(myColor));
+    fractionProfile.SetMarkerColor(Palette::color(myColor));
+    fractionProfile.SetFillColor(Palette::color(myColor));
+    myColor++;
+    fractionProfile.SetMarkerStyle(8);
+    fractionCanvas.SetFillColor(color_plot_background);
 
-	fractionCanvas.cd();
-	// std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
-	fractionProfile.Draw(plotOption.c_str());
-	plotOption = "E1 same";
-	//aValue = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
-	//if (aValue>maxy) maxy=aValue;
-	//aValue = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
-	//if (aValue<miny) miny=aValue;
-	//std::cerr << "Fraction plots between " << miny << " and " << maxy << std::endl;
+    fractionCanvas.cd();
+    // std::cerr << "About to draw fraction plot " << myPt << std::endl; // debug
+    fractionProfile.Draw(plotOption.c_str());
+    plotOption = "E1 same";
+    //aValue = fractionProfile.GetBinContent(fractionProfile.GetMaximumBin());
+    //if (aValue>maxy) maxy=aValue;
+    //aValue = fractionProfile.GetBinContent(fractionProfile.GetMinimumBin());
+    //if (aValue<miny) miny=aValue;
+    //std::cerr << "Fraction plots between " << miny << " and " << maxy << std::endl;
       }
 
 
@@ -2702,31 +2706,31 @@ namespace insur {
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Efficiency maps", false);
       for (std::map<double, TH2D>::iterator it = efficiencyMaps.begin();
-	   it != efficiencyMaps.end(); ++it) {
-	
-	// One canvas per map
-	TCanvas myCanvas;
-	double myPt = it->first;
-	if (myPt>maxPt) maxPt=myPt;
-	TH2D& myMap = it->second;
-	myCanvas.SetFillColor(color_plot_background);
-	myCanvas.cd();
+       it != efficiencyMaps.end(); ++it) {
+    
+    // One canvas per map
+    TCanvas myCanvas;
+    double myPt = it->first;
+    if (myPt>maxPt) maxPt=myPt;
+    TH2D& myMap = it->second;
+    myCanvas.SetFillColor(color_plot_background);
+    myCanvas.cd();
 
-	// Actually plot the map
-	myMap.SetMinimum(0);
-	if (myPt<1.5) { // TODO: make this 1.5 a global constant (also in Analyzer)
-	  myMap.SetMaximum(0.1);
-	} else {
-	  myMap.SetMaximum(1.0);
-	}
-	myMap.Draw("colz");
+    // Actually plot the map
+    myMap.SetMinimum(0);
+    if (myPt<1.5) { // TODO: make this 1.5 a global constant (also in Analyzer)
+      myMap.SetMaximum(0.1);
+    } else {
+      myMap.SetMaximum(1.0);
+    }
+    myMap.Draw("colz");
 
-	// Create the image object
-	RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
-	tempSS.str(""); tempSS << "Trigger efficiency map for pT = " << myPt << " GeV/c"; tempString = tempSS.str();
-	myImage.setComment(tempString.c_str());
-	tempSS.str(""); tempSS << "TriggerEfficiency_" << myPt; tempString = tempSS.str();
-	myImage.setName(tempString.c_str());
+    // Create the image object
+    RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
+    tempSS.str(""); tempSS << "Trigger efficiency map for pT = " << myPt << " GeV/c"; tempString = tempSS.str();
+    myImage.setComment(tempString.c_str());
+    tempSS.str(""); tempSS << "TriggerEfficiency_" << myPt; tempString = tempSS.str();
+    myImage.setName(tempString.c_str());
       }
     } else {
       std::cerr << "ERROR: no trigger efficiency map to show here" << std::endl;
@@ -2746,28 +2750,28 @@ namespace insur {
       // Create the content holder for these maps
       RootWContent& myContent = myPage.addContent("Threshold maps", false);
       for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
-	   it != thresholdMaps.end(); ++it) {
-	
-	// One canvas per map
-	TCanvas myCanvas;
-	double myEfficiency = it->first;
-	TH2D& myMap = it->second;
-	myCanvas.SetFillColor(color_plot_background);
-	myCanvas.cd();
+       it != thresholdMaps.end(); ++it) {
+    
+    // One canvas per map
+    TCanvas myCanvas;
+    double myEfficiency = it->first;
+    TH2D& myMap = it->second;
+    myCanvas.SetFillColor(color_plot_background);
+    myCanvas.cd();
 
-	// Actually plot the map
-	myMap.SetMinimum(0);
-	if (maxPt>0) myMap.SetMaximum(maxPt);
-	else myMap.SetMaximum(10);
-	myMap.Draw("colz");
+    // Actually plot the map
+    myMap.SetMinimum(0);
+    if (maxPt>0) myMap.SetMaximum(maxPt);
+    else myMap.SetMaximum(10);
+    myMap.Draw("colz");
 
-	// Create the image object
-	RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
-	tempSS.str(""); tempSS << "Trigger threshold map for eff = " << myEfficiency * 100 << " %";
-	tempString = tempSS.str();
-	myImage.setComment(tempString.c_str());
-	tempSS.str(""); tempSS << "TriggerThreshold_" << myEfficiency; tempString = tempSS.str();
-	myImage.setName(tempString.c_str());
+    // Create the image object
+    RootWImage& myImage = myContent.addImage(myCanvas, 900, 400);
+    tempSS.str(""); tempSS << "Trigger threshold map for eff = " << myEfficiency * 100 << " %";
+    tempString = tempSS.str();
+    myImage.setComment(tempString.c_str());
+    tempSS.str(""); tempSS << "TriggerThreshold_" << myEfficiency; tempString = tempSS.str();
+    myImage.setName(tempString.c_str());
       }
     } else {
       std::cerr << "ERROR: no threshold map to show here" << std::endl;
@@ -2805,14 +2809,16 @@ namespace insur {
     thicknessMap.Draw("colz");
     windowCanvas.cd();
     windowMap.Draw("colz");
-    suggestedSpacingCanvas.cd();
-    suggestedSpacingMap.Draw("colz");
-    suggestedSpacingAWCanvas.cd();
-    suggestedSpacingMapAW.Draw("colz");
-    spacingWindowCanvas.cd();
-    spacingWindowCanvas.SetLogz();
-    spacingWindowMap.Draw("colz");
-    
+    if (extended) {
+        suggestedSpacingCanvas.cd();
+        suggestedSpacingMap.Draw("colz");
+        suggestedSpacingAWCanvas.cd();
+        suggestedSpacingMapAW.Draw("colz");
+        spacingWindowCanvas.cd();
+        spacingWindowCanvas.SetLogz();
+        spacingWindowMap.Draw("colz");
+    }
+
     // Create the image objects
     RootWImage& thicknessImage = myContent.addImage(thickCanvas, 900, 400);
     thicknessImage.setComment("Map of sensor distances");
@@ -2820,16 +2826,21 @@ namespace insur {
     RootWImage& windowImage = myContent.addImage(windowCanvas, 900, 400);
     windowImage.setComment("Map of selection windows");
     windowImage.setName("WindowMap");
-    RootWImage& suggestedSpacingImage = myContent.addImage(suggestedSpacingCanvas, 900, 400);
-    suggestedSpacingImage.setComment("Map of selection suggestedSpacings [default window]");
-    suggestedSpacingImage.setName("SuggestedSpacingMap");
-    RootWImage& suggestedSpacingAWImage = myContent.addImage(suggestedSpacingAWCanvas, 900, 400);
-    suggestedSpacingAWImage.setComment("Map of selection suggestedSpacings [selected windows]");
-    suggestedSpacingAWImage.setName("SuggestedSpacingMapAW");
-    RootWImage& spacingWindowImage = myContent.addImage(spacingWindowCanvas, 900, 400);
-    spacingWindowImage.setComment("Map of spacing/window");
-    spacingWindowImage.setName("SpacingWindowMap");
+    if (extended) {
+        RootWImage& suggestedSpacingImage = myContent.addImage(suggestedSpacingCanvas, 900, 400);
+        suggestedSpacingImage.setComment("Map of selection suggestedSpacings [default window]");
+        suggestedSpacingImage.setName("SuggestedSpacingMap");
+        RootWImage& suggestedSpacingAWImage = myContent.addImage(suggestedSpacingAWCanvas, 900, 400);
+        suggestedSpacingAWImage.setComment("Map of selection suggestedSpacings [selected windows]");
+        suggestedSpacingAWImage.setName("SuggestedSpacingMapAW");
+        RootWImage& spacingWindowImage = myContent.addImage(spacingWindowCanvas, 900, 400);
+        spacingWindowImage.setComment("Map of spacing/window");
+        spacingWindowImage.setName("SpacingWindowMap");
+    }
     
+
+    if (!extended) return somethingFound;
+
     //********************************//
     //*                              *//
     //* Sensor spacing tuning plots  *//
@@ -2869,20 +2880,20 @@ namespace insur {
 
 
       for (unsigned int i=0; i<profileNames.size(); ++i) {
-	double min = a.getTriggerRangeLowLimit(profileNames[i]);
-	double max = a.getTriggerRangeHighLimit(profileNames[i]);
-	tempString = profileNames[i];
-	tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
-	xAxis->SetBinLabel(i+1, tempString.c_str());
-	if (min<max) {
-	  rangeGraphPoints=rangeGraph.GetN();
-	  rangeGraph.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-	  rangeGraph.SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
-	} else {
-	  rangeGraphPoints=rangeGraphBad.GetN();
-	  rangeGraphBad.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
-	  rangeGraphBad.SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
-	}
+    double min = a.getTriggerRangeLowLimit(profileNames[i]);
+    double max = a.getTriggerRangeHighLimit(profileNames[i]);
+    tempString = profileNames[i];
+    tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+    xAxis->SetBinLabel(i+1, tempString.c_str());
+    if (min<max) {
+      rangeGraphPoints=rangeGraph.GetN();
+      rangeGraph.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+      rangeGraph.SetPointError(rangeGraphPoints, 0.25, (max-min)/2.);
+    } else {
+      rangeGraphPoints=rangeGraphBad.GetN();
+      rangeGraphBad.SetPoint(rangeGraphPoints, i+0.5, (min+max)/2.);
+      rangeGraphBad.SetPointError(rangeGraphPoints, 0.25, (min-max)/2.);
+    }
       }
 
 
@@ -2912,25 +2923,25 @@ namespace insur {
       spacingTuningFrame.Draw();
 
       for (std::map<int, TGraphErrors>::iterator it = spacingTuningGraphs.begin();
-	   it!=spacingTuningGraphs.end(); ++it) {
-	const int& spacingTuningCounter= it->first;
-	TGraphErrors& tuningGraph = it->second;
-	if (spacingTuningCounter>0) {
-	  tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
-	  tuningGraph.SetFillStyle(1001);
-	  tuningGraph.Draw("same 2");
-	} else {
-	  tuningGraph.SetMarkerStyle(0);
-	  tuningGraph.Draw("p same");
-	}
+       it!=spacingTuningGraphs.end(); ++it) {
+    const int& spacingTuningCounter= it->first;
+    TGraphErrors& tuningGraph = it->second;
+    if (spacingTuningCounter>0) {
+      tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
+      tuningGraph.SetFillStyle(1001);
+      tuningGraph.Draw("same 2");
+    } else {
+      tuningGraph.SetMarkerStyle(0);
+      tuningGraph.Draw("p same");
+    }
       }
       for (std::map<int, TGraphErrors>::iterator it = spacingTuningGraphsBad.begin();
-	   it!=spacingTuningGraphsBad.end(); ++it) {
-	const int& spacingTuningCounter= it->first;
-	TGraphErrors& tuningGraph = it->second;
-	tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
-	tuningGraph.SetFillStyle(3007);
-	tuningGraph.Draw("same 2");
+       it!=spacingTuningGraphsBad.end(); ++it) {
+    const int& spacingTuningCounter= it->first;
+    TGraphErrors& tuningGraph = it->second;
+    tuningGraph.SetFillColor(Palette::color(spacingTuningCounter+1));
+    tuningGraph.SetFillStyle(3007);
+    tuningGraph.Draw("same 2");
       }
 
       RootWImage& tuningImage = spacingSummaryContent.addImage(tuningCanvas, 900, 400);
@@ -2970,36 +2981,36 @@ namespace insur {
       RootWContent& spacingDetailedContent = myPage.addContent("Sensor spacing tuning (detailed)", false);
 
       for (std::vector<std::string>::const_iterator itName=profileNames.begin(); itName!=profileNames.end(); ++itName) {
-	std::map<double, TProfile>& tuningProfiles = aProfileBag.getNamedProfiles(*itName);
+    std::map<double, TProfile>& tuningProfiles = aProfileBag.getNamedProfiles(*itName);
 
-	int myColor = 1;
-	TCanvas tuningCanvas;
-	tuningCanvas.SetFillColor(color_plot_background);
-	tuningCanvas.cd();
+    int myColor = 1;
+    TCanvas tuningCanvas;
+    tuningCanvas.SetFillColor(color_plot_background);
+    tuningCanvas.cd();
 
-	std::string plotOption = "E1";
-	for (std::map<double, TProfile>::iterator itProfile = tuningProfiles.begin() ; itProfile!= tuningProfiles.end(); ++itProfile) {
-	  TProfile& tuningProfile = itProfile->second;
-	  tuningProfile.SetMaximum(100);
-	  tuningProfile.SetMinimum(0);
-	  //tuningProfile.SetMaximum(10);
-	  //tuningProfile.SetMinimum(-10);
-	  tuningProfile.SetLineColor(Palette::color(myColor));
-	  tuningProfile.SetFillColor(Palette::color(myColor));
-	  tuningProfile.SetMarkerColor(Palette::color(myColor));
-	  myColor++;
-	  //tuningProfile.SetMarkerStyle(8);
-	  tuningProfile.Draw(plotOption.c_str());
-	  plotOption = "same E1";
-	}
+    std::string plotOption = "E1";
+    for (std::map<double, TProfile>::iterator itProfile = tuningProfiles.begin() ; itProfile!= tuningProfiles.end(); ++itProfile) {
+      TProfile& tuningProfile = itProfile->second;
+      tuningProfile.SetMaximum(100);
+      tuningProfile.SetMinimum(0);
+      //tuningProfile.SetMaximum(10);
+      //tuningProfile.SetMinimum(-10);
+      tuningProfile.SetLineColor(Palette::color(myColor));
+      tuningProfile.SetFillColor(Palette::color(myColor));
+      tuningProfile.SetMarkerColor(Palette::color(myColor));
+      myColor++;
+      //tuningProfile.SetMarkerStyle(8);
+      tuningProfile.Draw(plotOption.c_str());
+      plotOption = "same E1";
+    }
 
-	RootWImage& tuningImage = spacingDetailedContent.addImage(tuningCanvas, 900, 400);
-	tempString = (*itName);
-	tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
-	tempSS.str(""); tempSS << "Sensor distance tuning for " << tempString.c_str();
-	tuningImage.setComment(tempSS.str());
-	tempSS.str(""); tempSS << "TriggerTuning" << tempString.c_str();
-	tuningImage.setName(tempSS.str());
+    RootWImage& tuningImage = spacingDetailedContent.addImage(tuningCanvas, 900, 400);
+    tempString = (*itName);
+    tempString = tempString.substr(profileBag::TriggerProfileName.size(), tempString.size()-profileBag::TriggerProfileName.size());
+    tempSS.str(""); tempSS << "Sensor distance tuning for " << tempString.c_str();
+    tuningImage.setComment(tempSS.str());
+    tempSS.str(""); tempSS << "TriggerTuning" << tempString.c_str();
+    tuningImage.setName(tempSS.str());
       }
 
 
@@ -3027,49 +3038,65 @@ namespace insur {
       RootWContent& turnOnDetailedContent = myPage.addContent("Modules turnon curves (detailed)", false);
 
       for (std::vector<std::string>::const_iterator itName=turnonNames.begin(); itName!=turnonNames.end(); ++itName) {
-	std::map<double, TProfile>& turnonProfiles = aProfileBag.getNamedProfiles(*itName);
-	
-	int myColor = 1;
-	TCanvas turnonCanvas;
-	turnonCanvas.SetFillColor(color_plot_background);
-	turnonCanvas.cd();
+    std::map<double, TProfile>& turnonProfiles = aProfileBag.getNamedProfiles(*itName);
+    
+    int myColor = 1;
+    TCanvas turnonCanvas;
+    turnonCanvas.SetFillColor(color_plot_background);
+    turnonCanvas.cd();
 
-	std::string plotOption = "E1";
-	tempSS.str("");
-	std::string windowsStringSeparator = "";
-	for (std::map<double, TProfile>::iterator itProfile = turnonProfiles.begin() ; itProfile!= turnonProfiles.end(); ++itProfile) {
-	  TProfile& turnonProfile = itProfile->second;
-	  turnonProfile.SetMaximum(100);
-	  turnonProfile.SetMinimum(0);
-	  turnonProfile.SetLineColor(Palette::color(myColor));
-	  turnonProfile.SetFillColor(Palette::color(myColor));
-	  turnonProfile.SetMarkerColor(Palette::color(myColor));
-	  myColor++;
-	  turnonProfile.Draw(plotOption.c_str());
-	  plotOption = "same E1";
-	  tempSS << windowsStringSeparator << std::setprecision(0) << itProfile->first;
-	  windowsStringSeparator = ", ";
-	}
-	std::string windowList = tempSS.str();
+    std::string plotOption = "E1";
+    tempSS.str("");
+    std::string windowsStringSeparator = "";
+    for (std::map<double, TProfile>::iterator itProfile = turnonProfiles.begin() ; itProfile!= turnonProfiles.end(); ++itProfile) {
+      TProfile& turnonProfile = itProfile->second;
+      turnonProfile.SetMaximum(100);
+      turnonProfile.SetMinimum(0);
+      turnonProfile.SetLineColor(Palette::color(myColor));
+      turnonProfile.SetFillColor(Palette::color(myColor));
+      turnonProfile.SetMarkerColor(Palette::color(myColor));
+      myColor++;
+      turnonProfile.Draw(plotOption.c_str());
+      plotOption = "same E1";
+      tempSS << windowsStringSeparator << std::setprecision(0) << itProfile->first;
+      windowsStringSeparator = ", ";
+    }
+    std::string windowList = tempSS.str();
 
-	tempString = (*itName);
-	tempString = tempString.substr(profileBag::TurnOnCurveName.size(), tempString.size()-profileBag::TurnOnCurveName.size());
-	RootWImage& turnonImage = turnOnDetailedContent.addImage(turnonCanvas, 900, 400);
-	tempSS.str(""); tempSS << "Sensor turnon curve for " << tempString.c_str() << " with windows of " << windowList;
-	turnonImage.setComment(tempSS.str());
-	tempSS.str(""); tempSS << "TriggerTurnon" << tempString.c_str();
-	turnonImage.setName(tempSS.str());}
+    tempString = (*itName);
+    tempString = tempString.substr(profileBag::TurnOnCurveName.size(), tempString.size()-profileBag::TurnOnCurveName.size());
+    RootWImage& turnonImage = turnOnDetailedContent.addImage(turnonCanvas, 900, 400);
+    tempSS.str(""); tempSS << "Sensor turnon curve for " << tempString.c_str() << " with windows of " << windowList;
+    turnonImage.setComment(tempSS.str());
+    tempSS.str(""); tempSS << "TriggerTurnon" << tempString.c_str();
+    turnonImage.setName(tempSS.str());}
     }
 
     return somethingFound;
   }
 
+
+
+    bool Vizard::neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site) {
+        std::stringstream ss;
+        writeNeighbourGraph(is, ss);
+        
+        RootWPage& myPage = site.addPage("Neighbours");
+        RootWContent& newContent = myPage.addContent("Neighbour graph", true);
+        newContent.addText("<pre>"+ss.str()+"</pre>");
+        
+        return true; 
+    }
+
+
+
+
   // TODO: describe this here, if it ever worked
   void Vizard::fillPlotMap(std::string& plotName, 
-			   std::map<graphIndex, TGraph*>& myPlotMap,
-			   Analyzer *a,
-			   std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
-			   bool isTrigger) {
+               std::map<graphIndex, TGraph*>& myPlotMap,
+               Analyzer *a,
+               std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool),
+               bool isTrigger) {
     graphIndex myIndex;
     double p;
     TGraph* myGraph;
@@ -3083,13 +3110,13 @@ namespace insur {
       std::map<double, TGraph>& ptGraphsIdeal = (a->*retriveFunction)(myIndex.ideal, isTrigger);
       std::map<double, TGraph>::iterator graphsIterator;
       for (graphsIterator=ptGraphsIdeal.begin();
-	   graphsIterator!=ptGraphsIdeal.end();
-	   ++graphsIterator) {
-	myGraph = &(*graphsIterator).second;
-	p = (*graphsIterator).first;
-	myIndex.p = p;
-	myPlotMap[myIndex] = myGraph;
-	//std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
+       graphsIterator!=ptGraphsIdeal.end();
+       ++graphsIterator) {
+    myGraph = &(*graphsIterator).second;
+    p = (*graphsIterator).first;
+    myIndex.p = p;
+    myPlotMap[myIndex] = myGraph;
+    //std::cerr << "myIndex.name=" << myIndex.name << std::endl; // debug
       }
     }
     
@@ -3104,19 +3131,19 @@ namespace insur {
     bool Vizard::makeLogPage(RootWSite& site) {
         bool anythingFound=false;
         RootWPage& myPage = site.addPage("Log page");
-	if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))
-	  myPage.setAlert(1);
-	else if (!MessageLogger::hasEmptyLog(MessageLogger::WARNING))
-	  myPage.setAlert(0.5);
+    if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))
+      myPage.setAlert(1);
+    else if (!MessageLogger::hasEmptyLog(MessageLogger::WARNING))
+      myPage.setAlert(0.5);
         for (int iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
-	  if (!MessageLogger::hasEmptyLog(iLevel)) {
+      if (!MessageLogger::hasEmptyLog(iLevel)) {
                 bool defaultOpen=false;
                 if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
                 anythingFound=true;
                 RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
                 newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
                 //MessageLogger::getLatestLog(iLevel);
-	  }
+      }
         }
         return anythingFound;
     }
@@ -3163,7 +3190,7 @@ namespace insur {
             Double_t pn[3];
             TText* aLabel;
             char labelChar[10];
-	    double eta;
+        double eta;
             for (eta=0; eta<etaMax+etaStep; eta+=etaStep) {
                 aLine = new TPolyLine3D(2);
                 theta = 2 * atan(exp(-eta));
@@ -3366,7 +3393,7 @@ namespace insur {
     // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
     // @return a pointer to the new TCanvas
     void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas,
-				     TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
+                     TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
         Int_t irep;
         TVirtualPad* myPad;
 
@@ -3397,8 +3424,8 @@ namespace insur {
             myPad = YZCanvas->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
-	    myPad->SetBorderMode(0);
-	    myPad->SetFillColor(color_plot_background);
+        myPad->SetBorderMode(0);
+        myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -3418,8 +3445,8 @@ namespace insur {
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
 
-	    XYCanvas->cd();
-	    myPad = XYCanvas->GetPad(0);
+        XYCanvas->cd();
+        myPad = XYCanvas->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteXY()->DrawClonePad();
             myPad->SetFillColor(color_plot_background);
@@ -3431,7 +3458,7 @@ namespace insur {
         // Third pad
         // Plots
         myPad = summaryCanvas->GetPad(padProfile);
-	drawEtaProfiles(*myPad, analyzer);
+    drawEtaProfiles(*myPad, analyzer);
         
         // Fourth pad
         // XYView (EndCap)
@@ -3446,8 +3473,8 @@ namespace insur {
             myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
             myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
 
-	    XYCanvasEC->cd();
-	    myPad = XYCanvasEC->GetPad(0);
+        XYCanvasEC->cd();
+        myPad = XYCanvasEC->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteEC()->DrawClonePad();
             myPad->SetFillColor(color_plot_background);
@@ -3470,8 +3497,8 @@ namespace insur {
     // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
     // @return a pointer to the new TCanvas
   void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer,
-				   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
-				   TCanvas *&XYCanvasEC) {
+                   TCanvas *&YZCanvas, TCanvas *&XYCanvas,
+                   TCanvas *&XYCanvasEC) {
         Int_t irep;
         TVirtualPad* myPad;
 
@@ -3485,8 +3512,8 @@ namespace insur {
             myPad = YZCanvas->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionYZ);
             analyzer.getGeomLiteYZ()->DrawClonePad();
-	    myPad->SetBorderMode(0);
-	    myPad->SetFillColor(color_plot_background);
+        myPad->SetBorderMode(0);
+        myPad->SetFillColor(color_plot_background);
             myPad->GetView()->SetParallel();
             myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
             myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
@@ -3495,8 +3522,8 @@ namespace insur {
         
         // XYView (barrel)
         if (analyzer.getGeomLiteXY()) {
-	    XYCanvas->cd();
-	    myPad = XYCanvas->GetPad(0);
+        XYCanvas->cd();
+        myPad = XYCanvas->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteXY()->DrawClonePad();
             myPad->SetFillColor(color_plot_background);
@@ -3507,8 +3534,8 @@ namespace insur {
         
         // XYView (EndCap)
         if (analyzer.getGeomLiteEC()) {
-	    XYCanvasEC->cd();
-	    myPad = XYCanvasEC->GetPad(0);
+        XYCanvasEC->cd();
+        myPad = XYCanvasEC->GetPad(0);
             drawGrid(maxZ, maxRho, ViewSectionXY);
             analyzer.getGeomLiteEC()->DrawClonePad();
             myPad->SetFillColor(color_plot_background);
