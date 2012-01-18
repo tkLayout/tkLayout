@@ -20,6 +20,8 @@ void ptError::defaultParameters() {
   Module_z = defaultModuleZ;
   Module_r = defaultModuleR;
   Module_d = defaultModuleD;
+  Module_h = defaultModuleHeight;
+  inefficiencyType = defaultInefficiencyType;
   moduleType = Module::Barrel; // Barrel is the default moduleType 
   endcapType = Module::Rectangular; // Barrel is the default moduleType 
 }
@@ -28,10 +30,10 @@ double ptError::geometricEfficiency() {
   double inefficiency;
   switch ( moduleType ) {
   case Module::Barrel:
-    inefficiency = Module_d * Module_z / Module_strip_l / Module_r ;
+    inefficiency = Module_d * Module_z / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_r ;
     break;
   case Module::Endcap:
-    inefficiency = Module_d * Module_r / Module_strip_l / Module_z ;
+    inefficiency = Module_d * Module_r / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_z ;
     break;
   default:
     // This should never happen

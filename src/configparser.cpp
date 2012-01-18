@@ -144,44 +144,51 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		} else if (parameterName=="alphaParam") {
 				doubleValue = atof(parameterValue.c_str());
 				myTracker_->setAlphaParam(doubleValue);
-            } else if (correctlyBroken) { // Per module type parameters
-              if (parameterNameCopy == "triggerErrorIncreaseX") {
-	        doubleValue = atof(parameterValue.c_str());
+        } else if (correctlyBroken) { // Per module type parameters
+            if (parameterNameCopy == "triggerErrorIncreaseX") {
+	            doubleValue = atof(parameterValue.c_str());
                 myTracker_->setTriggerErrorX(stringIndex, doubleValue);
-              } else if (parameterNameCopy == "triggerErrorIncreaseY") {
-	        doubleValue = atof(parameterValue.c_str());
+            } else if (parameterNameCopy == "triggerErrorIncreaseY") {
+	            doubleValue = atof(parameterValue.c_str());
                 myTracker_->setTriggerErrorY(stringIndex, doubleValue);
-              } else if (parameterNameCopy == "opticalPower") {
-		// Input is in mW, while we always store in SI units internally
-		doubleValue = atof(parameterValue.c_str()) * 1e-3;
-		myTracker_->setPower(stringIndex, ModuleType::OpticalPower, doubleValue);
-	      } else if (parameterNameCopy == "chipPower") {
-		// Input is in mW, while we always store in SI units internally
-		doubleValue = atof(parameterValue.c_str()) * 1e-3;
-		myTracker_->setPower(stringIndex, ModuleType::ChipPower, doubleValue);
-	      } else if (parameterNameCopy == "sparsifiedHeaderBits") {
-		intValue = atoi(parameterValue.c_str());
-		myTracker_->setSparsifiedHeaderBits(stringIndex, intValue);
-	      } else if (parameterNameCopy == "sparsifiedPayloadBits") {
-		intValue = atoi(parameterValue.c_str());
-		myTracker_->setSparsifiedPayloadBits(stringIndex, intValue);
-	      } else if (parameterNameCopy == "triggerDataHeaderBits") { 
-		intValue = atoi(parameterValue.c_str());
-		myTracker_->setTriggerDataHeaderBits(stringIndex, intValue);
-		  } else if (parameterNameCopy == "triggerDataPayloadBits") {
-		intValue = atoi(parameterValue.c_str());
-		myTracker_->setTriggerDataPayloadBits(stringIndex, intValue);
-		  } else if (parameterNameCopy == "sensorThickness") {
-		doubleValue = atof(parameterValue.c_str());
-		myTracker_->setSensorThickness(stringIndex, doubleValue);
-		  } else {
+            } else if (parameterNameCopy == "opticalPower") {
+                // Input is in mW, while we always store in SI units internally
+	    	    doubleValue = atof(parameterValue.c_str()) * 1e-3;
+	    	    myTracker_->setPower(stringIndex, ModuleType::OpticalPower, doubleValue);
+	        } else if (parameterNameCopy == "chipPower") {
+                // Input is in mW, while we always store in SI units internally
+                doubleValue = atof(parameterValue.c_str()) * 1e-3;
+                myTracker_->setPower(stringIndex, ModuleType::ChipPower, doubleValue);
+            } else if (parameterNameCopy == "sparsifiedHeaderBits") {
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setSparsifiedHeaderBits(stringIndex, intValue);
+	        } else if (parameterNameCopy == "sparsifiedPayloadBits") {
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setSparsifiedPayloadBits(stringIndex, intValue);
+	        } else if (parameterNameCopy == "triggerDataHeaderBits") { 
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setTriggerDataHeaderBits(stringIndex, intValue);
+		    } else if (parameterNameCopy == "triggerDataPayloadBits") {
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setTriggerDataPayloadBits(stringIndex, intValue);
+		    } else if (parameterNameCopy == "sensorThickness") {
+                doubleValue = atof(parameterValue.c_str());
+                myTracker_->setSensorThickness(stringIndex, doubleValue);
+            } else if (parameterNameCopy == "inefficiencyType") {
+                if (parameterValue == "edgeonly" || parameterValue == "EdgeOnly" || parameterValue == "eo") myTracker_->setInefficiencyType(stringIndex, ptError::EdgeOnly);
+                else if (parameterValue == "stripwise" || parameterValue == "StripWise" || parameterValue == "sw") myTracker_->setInefficiencyType(stringIndex, ptError::StripWise);
+                else {
+                    cerr << "ERROR: Cannot parse value: " << parameterValue << endl;
+                    throw parsingException();
+                }
+		    } else {
                 cerr << "ERROR: Unknown parameter name: " << parameterNameCopy << endl;
                 throw parsingException();
-	      }
-            } else {
+	        }
+        } else {
                 cerr << "ERROR: Unknown parameter name: " << parameterName << endl;
                 throw parsingException();
-            }
+        }
             // cout << "\t" << parameterName << " = " << doubleValue << ";" << endl; // debug
         }
     }

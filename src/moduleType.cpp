@@ -8,6 +8,7 @@ ModuleType::ModuleType() {
   sparsifiedPayloadBits_ = 9;  
   triggerDataHeaderBits_  = 20;
   triggerDataPayloadBits_ = 20;  
+  inefficiencyType_ = ptError::StripWise;
 }
 
 bool ModuleType::checkPowerType(int powerType) {
@@ -80,3 +81,6 @@ int  ModuleType::getTriggerDataPayloadBits() const { return triggerDataPayloadBi
 
 void ModuleType::setSensorThickness(double thickness) { sensorThickness_ = thickness; }
 double ModuleType::getSensorThickness() const { return sensorThickness_; }
+
+void ModuleType::setInefficiencyType(ptError::InefficiencyType type) { inefficiencyType_ = type; }
+ptError::InefficiencyType ModuleType::getInefficiencyType() const { return inefficiencyType_; }

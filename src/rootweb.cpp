@@ -944,7 +944,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
   std::ofstream outputFile;
   string destinationFileName = targetDirectory_ +"/" + fileName_;
 
-  if (boost::filesystem::exists(originalFileName_)) {
+  if (boost::filesystem::exists(originalFileName_) && originalFileName_ != destinationFileName) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
     try {
       if (boost::filesystem::exists(destinationFileName))
 	boost::filesystem::remove(destinationFileName);

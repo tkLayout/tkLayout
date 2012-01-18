@@ -240,6 +240,7 @@ public:
   void setTriggerDataHeaderBits(string typeIndex, int bits)  { mapType_[typeIndex].setTriggerDataHeaderBits(bits);  }
   void setTriggerDataPayloadBits(string typeIndex, int bits) { mapType_[typeIndex].setTriggerDataPayloadBits(bits); }
   void setSensorThickness(string typeIndex, double thickness) { mapType_[typeIndex].setSensorThickness(thickness); }
+  void setInefficiencyType(string typeIndex, ptError::InefficiencyType type) { mapType_[typeIndex].setInefficiencyType(type); }
   void setNumInvFemtobarns(double numInvFemtobarns) { numInvFemtobarns_ = numInvFemtobarns; }
   void setOperatingTemp(double operatingTemp) { operatingTemp_ = operatingTemp; }
   void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
@@ -306,6 +307,7 @@ public:
   int  getTriggerDataHeaderBits(string typeIndex)  { return mapType_[typeIndex].getTriggerDataHeaderBits();  }
   int  getTriggerDataPayloadBits(string typeIndex) { return mapType_[typeIndex].getTriggerDataPayloadBits(); }
   double  getSensorThickness(string typeIndex) { return mapType_[typeIndex].getSensorThickness(); }
+  ptError::InefficiencyType getInefficiencyType(string typeIndex) { return mapType_[typeIndex].getInefficiencyType(); }
   std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
   double getNumInvFemtobarns() const { return numInvFemtobarns_; }
   double getOperatingTemp() const { return operatingTemp_; }

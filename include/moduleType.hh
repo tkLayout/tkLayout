@@ -7,6 +7,8 @@
 #include <string>
 #include <iostream>
 
+#include "ptError.h"
+
 class ModuleType {
 protected:
   std::map<int,double> perStripPower_;
@@ -16,6 +18,7 @@ protected:
   int sparsifiedHeaderBits_, sparsifiedPayloadBits_;
   int triggerDataHeaderBits_, triggerDataPayloadBits_;
   double sensorThickness_;
+  ptError::InefficiencyType inefficiencyType_;
 private:
   bool checkPowerType(int powerType);
 public:
@@ -41,6 +44,8 @@ public:
   int  getTriggerDataPayloadBits() const;
   void setSensorThickness(double thickness);
   double getSensorThickness() const;
+  void setInefficiencyType(ptError::InefficiencyType type);
+  ptError::InefficiencyType getInefficiencyType() const;
 };
 
 #endif

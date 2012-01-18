@@ -5,6 +5,8 @@
 
 
 class ptError {
+  public:
+   enum InefficiencyType { StripWise, EdgeOnly }; 
   private:
    
    // Global parameters
@@ -21,6 +23,9 @@ class ptError {
    double Module_z;        // in mm
    double Module_r;        // Module's distance form z axis [mm] 
    double Module_d;        // Module thickness [mm]
+   double Module_h;        // Module height [mm]
+   InefficiencyType inefficiencyType;
+ 
    Material material;      // Material amount prior to this module
    int moduleType;
    int endcapType;
@@ -30,6 +35,8 @@ class ptError {
    static const double defaultModuleZ = 1346; // mm // Disk 1
    static const double defaultModuleR = 1080; // last layer 
    static const double defaultModuleD = 2; // mm
+   static const double defaultModuleHeight = 100;
+   static const InefficiencyType defaultInefficiencyType = StripWise;
 
    // Internal computers
    void defaultParameters();
@@ -47,6 +54,8 @@ class ptError {
    void setZ(double newz) { Module_z = newz ; }
    void setR(double newr) { Module_r = newr ; }
    void setDistance(double newDistance) { Module_d = newDistance ; }
+   void setHeight(double newHeight) { Module_h = newHeight; }
+   void setInefficiencyType(InefficiencyType newInefficiencyType) { inefficiencyType = newInefficiencyType; }
    void setModuleType(int newType) { moduleType = newType ; }
    void setEndcapType(int newType) { endcapType = newType ; }
    void setMaterial(Material newMaterial) { material = newMaterial; }
@@ -57,6 +66,8 @@ class ptError {
    double getZ() { return Module_z ; }
    double getR() { return Module_r ; }
    double getDistance() { return Module_d ; }
+   double getHeight() { return Module_h ; }
+   InefficiencyType getInefficiencyType() { return inefficiencyType ; }
    int getModuleType() { return moduleType ; }
    int getEndcapType() { return endcapType ; }
    Material getMaterial() { return material ; }

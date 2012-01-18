@@ -314,6 +314,8 @@ void Module::setPterrorParameters() {
   XYZVector center = getMeanPoint();
   myPtError.setZ(fabs(center.Z()));
   myPtError.setR(center.Rho());
+  myPtError.setHeight(getHeight());
+  myPtError.setInefficiencyType(moduleType_->getInefficiencyType());
 }
 
 
