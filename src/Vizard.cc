@@ -2787,7 +2787,7 @@ namespace insur {
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
-    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
+    TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
 
     // Create the content holder for these maps
     RootWContent& myContent = myPage.addContent("Module configuration maps", false);
@@ -2797,12 +2797,12 @@ namespace insur {
     TCanvas windowCanvas;
     TCanvas suggestedSpacingCanvas;
     TCanvas suggestedSpacingAWCanvas;
-    TCanvas spacingWindowCanvas;
+    TCanvas nominalCutCanvas;
     thickCanvas.SetFillColor(color_plot_background);
     windowCanvas.SetFillColor(color_plot_background);
     suggestedSpacingCanvas.SetFillColor(color_plot_background);
     suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
-    spacingWindowCanvas.SetFillColor(color_plot_background);
+    nominalCutCanvas.SetFillColor(color_plot_background);
 
     // Actually plot the maps
     thickCanvas.cd();
@@ -2814,9 +2814,9 @@ namespace insur {
         suggestedSpacingMap.Draw("colz");
         suggestedSpacingAWCanvas.cd();
         suggestedSpacingMapAW.Draw("colz");
-        spacingWindowCanvas.cd();
-        spacingWindowCanvas.SetLogz();
-        spacingWindowMap.Draw("colz");
+        nominalCutCanvas.cd();
+        //nominalCutCanvas.SetLogz();
+        nominalCutMap.Draw("colz");
     }
 
     // Create the image objects
@@ -2833,9 +2833,9 @@ namespace insur {
         RootWImage& suggestedSpacingAWImage = myContent.addImage(suggestedSpacingAWCanvas, 900, 400);
         suggestedSpacingAWImage.setComment("Map of selection suggestedSpacings [selected windows]");
         suggestedSpacingAWImage.setName("SuggestedSpacingMapAW");
-        RootWImage& spacingWindowImage = myContent.addImage(spacingWindowCanvas, 900, 400);
-        spacingWindowImage.setComment("Map of spacing/window");
-        spacingWindowImage.setName("SpacingWindowMap");
+        RootWImage& nominalCutImage = myContent.addImage(nominalCutCanvas, 900, 400);
+        nominalCutImage.setComment("Map of nominal pT cut");
+        nominalCutImage.setName("NominalCutMap");
     }
     
 

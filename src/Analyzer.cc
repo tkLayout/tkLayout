@@ -33,7 +33,7 @@ namespace insur {
   const int mapBag::windowMap             = 0x008;
   const int mapBag::suggestedSpacingMap   = 0x010;
   const int mapBag::suggestedSpacingMapAW = 0x020;
-  const int mapBag::spacingWindowMap      = 0x040;
+  const int mapBag::nominalCutMap      = 0x040;
   const int mapBag::irradiatedPowerConsumptionMap = 0x080;
 
   const double profileBag::Triggerable    = 0.;
@@ -2226,7 +2226,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
-    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
+    TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
 
     LayerVector& layerSet = tracker.getLayers();
     LayerVector::iterator layIt;
@@ -2343,7 +2343,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	windowMap.SetBinContent(i,j,0);
 	suggestedSpacingMap.SetBinContent(i,j,0);
 	suggestedSpacingMapAW.SetBinContent(i,j,0);
-	spacingWindowMap.SetBinContent(i,j,0);
+	nominalCutMap.SetBinContent(i,j,0);
       }
     }
 
@@ -2357,7 +2357,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     double mySuggestedSpacing;
     double mySuggestedSpacingAW;
     //double myPitch;
-    double myWindowmm;
+    //double myWindowmm;
     // Loop over all the modules
     for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
       aLayer = (*layIt);
@@ -2367,9 +2367,16 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	if (aModule->getReadoutType()!=Module::Pt) continue;
 	myThickness = aModule->getStereoDistance();
 	myWindow = aModule->getTriggerWindow();
-	myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
+	//myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
 	mySuggestedSpacing = aModule->getOptimalSpacing(5); // TODO: put this 5 in a configuration of some sort
 	mySuggestedSpacingAW = aModule->getOptimalSpacing(aModule->getTriggerWindow());
+        double nominalCut = aModule->getPtCut();
+/*        XYZVector modCenter = aModule->getMeanPoint();
+        if (aModule->getSubdetectorType()==Module::Endcap) {
+          corrFactor = pow(modCenter.Rho(),2) / modCenter.Z();
+        } else {
+          corrFactor = modCenter.Rho();
+        }*/
 	
 	// Draw the module
 	XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
@@ -2383,7 +2390,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	  myRho=point.Rho();
 	  thicknessMap.Fill(myZ, myRho, myThickness);
 	  windowMap.Fill(myZ, myRho, myWindow);
-	  spacingWindowMap.Fill(myZ, myRho, myThickness/myWindowmm);
+	  nominalCutMap.Fill(myZ, myRho, nominalCut);
 	  counter->Fill(myZ, myRho, 1);
 	  if (mySuggestedSpacing!=0) {
 	    suggestedSpacingMap.Fill(myZ, myRho, mySuggestedSpacing);
@@ -2403,7 +2410,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	if (counter->GetBinContent(i,j)!=0) {
 	  thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
 	  windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	  spacingWindowMap.SetBinContent(i,j, spacingWindowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	  nominalCutMap.SetBinContent(i,j, nominalCutMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
 	  if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
 	    std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
 		      << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
@@ -2517,7 +2524,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     myMapBag.clearMaps(mapBag::windowMap);
     myMapBag.clearMaps(mapBag::suggestedSpacingMap);
     myMapBag.clearMaps(mapBag::suggestedSpacingMapAW);
-    myMapBag.clearMaps(mapBag::spacingWindowMap);
+    myMapBag.clearMaps(mapBag::nominalCutMap);
 
     std::map<double, TH2D>& thresholdMaps = myMapBag.getMaps(mapBag::thresholdMap);
     std::map<double, TH2D>& efficiencyMaps = myMapBag.getMaps(mapBag::efficiencyMap);
@@ -2547,7 +2554,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
-    TH2D& spacingWindowMap = myMapBag.getMaps(mapBag::spacingWindowMap)[mapBag::dummyMomentum];
+    TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
 
     prepareTrackerMap(thicknessMap, "thicknessMap", "Module thickness map");
     //thicknessMap.SetMinimum(0);
@@ -2555,7 +2562,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     prepareTrackerMap(windowMap, "windowMap", "Module window map");
     prepareTrackerMap(suggestedSpacingMap, "suggestedSpacingMap", "Map of nearest available spacing [using standard window]");
     prepareTrackerMap(suggestedSpacingMapAW, "suggestedSpacingMapAW", "Map of nearest available spacing [using selected windows]");
-    prepareTrackerMap(spacingWindowMap, "spacingWindowMap", "Map of module spacing/window");
+    prepareTrackerMap(nominalCutMap, "nominalCutMap", "Map of nominal pT cut");
 
     
     // Clear the graph (and profile) list

@@ -99,7 +99,7 @@ namespace insur {
       static const int windowMap;
       static const int suggestedSpacingMap;
       static const int suggestedSpacingMapAW;
-      static const int spacingWindowMap;
+      static const int nominalCutMap;
 	  static const int irradiatedPowerConsumptionMap;
       static const double dummyMomentum;
       std::map<double, TH2D>& getMaps(const int& attribute);
