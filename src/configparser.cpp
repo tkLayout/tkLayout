@@ -393,10 +393,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     
     // Actually creating the barrel if all the mandatory parameters were set
-    if ( (nBarrelLayers != 0) &&
-    (barrelRhoIn != 0) &&
-    (barrelRhoOut != 0) &&
-    (nBarrelModules != 0) ) {
+    if (((nBarrelLayers > 1) && (barrelRhoIn != 0) && (barrelRhoOut != 0) && (nBarrelModules != 0)) || 
+        ((nBarrelLayers == 1)&& (barrelRhoIn != 0) && (nBarrelModules != 0))) { // single-layer barrel disregard the outerRadius parameter and place the layer at the innerRadius
         
         
         if ((size.first==0)||(size.second==0)) {

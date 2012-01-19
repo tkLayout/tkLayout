@@ -284,7 +284,7 @@ void Tracker::buildBarrel(int nLayer,
     BarrelLayer* aBarrelLayer;
     
     for (int i=0; i<nLayer; i++) {
-        double radius = minRadius + (maxRadius-minRadius)/double(nLayer-1)*i;
+        double radius = minRadius + (nLayer > 1 ? (maxRadius-minRadius)/double(nLayer-1)*i : 0);
         
         sampleModule->setLayer(i+1);
         
@@ -332,7 +332,7 @@ void Tracker::buildBarrel(int nLayer,
         layerName.str("");
         layerName << "L" << std::dec << i+1;
         aBarrelLayer->setName(layerName.str(), i+1);
-	aBarrelLayer->setContainerName(barrelName);
+	    aBarrelLayer->setContainerName(barrelName);
        
         tempString.str(""); tempString << "Desired radius: " << radius;
         addMessage(tempString.str(), INFO);
