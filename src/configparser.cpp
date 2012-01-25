@@ -210,6 +210,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     int readoutMode = Module::Binary;
     int nBarrelLayers = 0;
     double minZ=0;
+    double maxZ=0;
     double barrelRhoIn = 0;
     double barrelRhoOut = 0;
     int nBarrelModules = 0;
@@ -277,6 +278,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="minimumZ") {
                 minZ=atof(parameterValue.c_str());
+            } else if (parameterName=="maximumZ") {
+                maxZ=atof(parameterValue.c_str());
             } else if (parameterName=="aspectRatio") {
                 aspectRatio=atof(parameterValue.c_str());
                 aspectRatioManual = true;
@@ -424,7 +427,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         sampleBarrelModule->setReadoutMode(readoutMode); 
         sampleBarrelModule->setResolutionRphi();
         sampleBarrelModule->setResolutionY();
-        
+      
+        LayerVector myBarrelLayers =  
         myTracker_->buildBarrel(nBarrelLayers,
                 barrelRhoIn,
                 barrelRhoOut,
@@ -436,6 +440,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 minZ); // Actually build a compressed barrel (mezzanine or normal)
         
         delete sampleBarrelModule; // Dispose of the sample module
+        if (maxZ!=0)
+          myTracker_->compressBarrelLayers(myBarrelLayers, minZ!=0, maxZ);
+
     } else {
         cerr << "ERROR: Missing mandatory parameter for barrel " << myName << endl;
         throw parsingException();

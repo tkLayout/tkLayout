@@ -379,6 +379,7 @@ namespace insur {
 	int materialTracksUsed;
 	void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
 	void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
+        static const double maximum_n_planes = 13;
     };
 }
 #endif	/* _ANALYZER_H */

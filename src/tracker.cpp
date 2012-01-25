@@ -249,21 +249,22 @@ void Tracker::placeModuleLite(Module* aModule) {
     
 }
 
-void Tracker::buildBarrel(int nLayer,
-        double minRadius,
-        double maxRadius,
-        int nModules,
-        BarrelModule* sampleModule,
-        int section /* = NoSection */,
-        bool compressed /* = false */) {
+
+//void Tracker::buildBarrel(int nLayer,
+//        double minRadius,
+//        double maxRadius,
+//        int nModules,
+//        BarrelModule* sampleModule,
+//        int section /* = NoSection */,
+ //       bool compressed /* = false */) {
     
-    buildBarrel(nLayer, minRadius, maxRadius, nModules, sampleModule, DEFAULTBARRELNAME, section, compressed);
-    
-}
+//    buildBarrel(nLayer, minRadius, maxRadius, nModules, sampleModule, DEFAULTBARRELNAME, section, compressed);
+//    
+//}
 
 
 // All the measures in mm as usual!
-void Tracker::buildBarrel(int nLayer,
+LayerVector Tracker::buildBarrel(int nLayer,
         double minRadius,
         double maxRadius,
         int nModules,
@@ -410,10 +411,13 @@ void Tracker::buildBarrel(int nLayer,
     rMinpB_.push_back(minRadius);
     rMaxpB_.push_back(maxRadius);
     dZpB_.push_back(maxZ);
+
+    return thisBarrelLayerSet;
 }
 
 // Barrel "compactification"
-void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
+// destZ is 0 by default
+void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided, double destZ ) {
     LayerVector::iterator layIt;
     BarrelLayer* aBarrelLayer;
     
@@ -421,7 +425,7 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
     double minZp = 0;
     double aZp;
     double aZm;
-    
+   
     // Take the shortest barrel
     for (layIt = aLayerSet.begin(); layIt!= aLayerSet.end(); layIt++) {
         if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
@@ -462,6 +466,8 @@ void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided) {
             compactOrigin = minZm;
         }
     }
+
+    if (destZ!=0) minZt=destZ;
     
     // std::cerr << "compact origin : " << compactOrigin << std::endl; // debug
     // std::cerr << "compact to z   : " << minZt << std::endl; // debug
@@ -652,7 +658,9 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
 			   int sectioned /* = Layer::NoSection */ ) {
     
     // EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
-    
+
+       
+ 
     maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
     maxL_=(maxZ>maxL_)?maxZ:maxL_;
     

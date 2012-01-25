@@ -2719,7 +2719,7 @@ namespace insur {
     // Actually plot the map
     myMap.SetMinimum(0);
     if (myPt<1.5) { // TODO: make this 1.5 a global constant (also in Analyzer)
-      myMap.SetMaximum(0.1);
+      myMap.SetMaximum(0.025);
     } else {
       myMap.SetMaximum(1.0);
     }

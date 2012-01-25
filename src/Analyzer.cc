@@ -847,6 +847,7 @@ namespace insur {
 	}
       }
     }
+    if (totalProfile.GetMaximum() < maximum_n_planes) totalProfile.SetMaximum(maximum_n_planes);
 
   }
 
@@ -3115,7 +3116,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         totalEtaProfile.SetMarkerColor(1);
         totalEtaProfile.SetMarkerSize(1.5);
         totalEtaProfile.SetTitle("Number of hit modules;#eta;Number of hits");
-        if (totalEtaProfile.GetMaximum()<9) totalEtaProfile.SetMaximum(9.);
+        if (totalEtaProfile.GetMaximum()<maximum_n_planes) totalEtaProfile.SetMaximum(maximum_n_planes);
         totalEtaProfile.Draw();
         std::string profileName;
         TProfile* myProfile;
