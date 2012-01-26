@@ -1251,10 +1251,10 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 			double x2 = ceil(x);
 			double y1 = floor(y);
 			double y2 = ceil(y);
-			double irr11 = tracker.getIrradiationMap()[make_pair(x1, y1)]; 
-			double irr21 = tracker.getIrradiationMap()[make_pair(x2, y1)];
-			double irr12 = tracker.getIrradiationMap()[make_pair(x1, y2)];
-			double irr22 = tracker.getIrradiationMap()[make_pair(x2, y2)];
+			double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; 
+			double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
+			double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
+			double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
 			double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
 			double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
 			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / 273.15, 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/273.15)); 

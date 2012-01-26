@@ -1846,7 +1846,7 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 		ss >> fluence;
 		ss >> error;
 		if (r < 0.0 || fluence < 0.0) cerr << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error << endl;
-		tracker->getIrradiationMap()[make_pair(z/2.5,r/2.5)] = fluence;
+		tracker->getIrradiationMap()[make_pair(int(z/2.5),int(r/2.5))] = fluence;
 	}
 	return true;
 }
