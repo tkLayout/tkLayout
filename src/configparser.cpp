@@ -138,6 +138,9 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		} else if (parameterName=="operatingTemp") {
 				doubleValue = atof(parameterValue.c_str());
 				myTracker_->setOperatingTemp(doubleValue);
+		} else if (parameterName=="referenceTemp") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setReferenceTemp(doubleValue);
 		} else if (parameterName=="chargeDepletionVoltage") {
 				intValue = atoi(parameterValue.c_str());
 				myTracker_->setChargeDepletionVoltage(intValue);

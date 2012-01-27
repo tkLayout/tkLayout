@@ -123,6 +123,7 @@ private:
 
   double numInvFemtobarns_;
   double operatingTemp_;
+  double referenceTemp_;
   int chargeDepletionVoltage_;
   double alphaParam_;
 
@@ -245,6 +246,7 @@ public:
   void setInefficiencyType(string typeIndex, ptError::InefficiencyType type) { mapType_[typeIndex].setInefficiencyType(type); }
   void setNumInvFemtobarns(double numInvFemtobarns) { numInvFemtobarns_ = numInvFemtobarns; }
   void setOperatingTemp(double operatingTemp) { operatingTemp_ = operatingTemp; }
+  void setReferenceTemp(double referenceTemp) { referenceTemp_ = referenceTemp; }
   void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
   void setAlphaParam(double alphaParam) { alphaParam_ = alphaParam; }
 
@@ -313,6 +315,7 @@ public:
   std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
   double getNumInvFemtobarns() const { return numInvFemtobarns_; }
   double getOperatingTemp() const { return operatingTemp_; }
+  double getReferenceTemp() const { return referenceTemp_; }
   int getChargeDepletionVoltage() const { return chargeDepletionVoltage_; }  
   double getAlphaParam() const { return alphaParam_; }
 

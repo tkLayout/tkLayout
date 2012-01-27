@@ -115,6 +115,7 @@ void Tracker::setDefaultParameters() {
 	chargeDepletionVoltage_ = 600;
 	operatingTemp_ = -20;
 	alphaParam_ = 7.1e-18;
+    referenceTemp_ = 0;
 }
 
 void Tracker::shapeVolume() {
@@ -222,6 +223,10 @@ void Tracker::shapeModuleVolumes(bool lite /* = false */, int section /* = Layer
                     } else {
                         placeModuleLite(*modIt);
                     }
+                    //BarrelModule* bm;
+                    //if ((bm = dynamic_cast<BarrelModule*>(*modIt))) cout << "mod: " << bm->getContainerName() << bm->getLayer() << ", mp: " << bm->getMeanPoint().Z() 
+                    //                                                   << ", ez: " << bm->getEdgeZ(-1).first << ", " << bm->getEdgeZ(-1).second 
+                    //                                                   << ", ezs: " << bm->getEdgeZSide(-1).first << ", " << bm->getEdgeZSide(-1).second << endl;
                 }
             }
         }
@@ -382,7 +387,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
         
     }
     
-    if (compressed) {
+    if (compressed && minZ==0) {
         compressBarrelLayers(thisBarrelLayerSet, (minZ!=0.));
     }
     

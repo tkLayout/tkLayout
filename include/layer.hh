@@ -108,6 +108,15 @@ private:
 		  BarrelModule* sampleModule,
 		  double minZ = 0);
   
+  int buildMezzanineString(ModuleVector& thisModuleSet,
+		  double stringAverageRadius,
+		  double smallDelta, // Half the distance between inner and outer modules
+		  double zOverlap,
+		  double safetyOrigin,
+		  int nModules,
+		  BarrelModule* sampleModule,
+		  double farthestZ = 0);
+
   void buildStringPair(ModuleVector& thisModuleSet,
 		       double stringAverageRadius,
 		       double smallDelta, // Half the distance between inner and outer modules

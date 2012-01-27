@@ -432,6 +432,119 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
     
 }
 
+int BarrelLayer::buildMezzanineString(ModuleVector& thisModuleSet,
+        double stringAverageRadius,
+        double smallDelta, // Half the distance between inner and outer modules
+        // In smalldelta it is included the string's parity
+        double zOverlap,
+        double safetyOrigin,
+        int nDesiredModules,
+        BarrelModule* sampleModule,
+        double farthestZ /* = 0 used to build mezzanine layers */ ) {  // minZ has to become farthestZ
+    
+    int parity;
+    int nModules;
+    
+    // Parity of modules in the string
+    // for n=1 smallParity=1
+    // for n=2 smallParity=-1
+    int smallParity;
+    edge myEdge;
+    
+    if (nDesiredModules>0) {
+        parity = +1;
+    } else {
+        parity = -1;
+    }
+    
+    nDesiredModules /= parity;
+    
+    BarrelModule* aModule;
+    BarrelModule* trialModule[3];
+    
+    aModule = new BarrelModule(*sampleModule);
+    
+    aModule->translate(XYZVector(0, stringAverageRadius-(parity)*smallDelta, 0));
+    
+    // The first module is half displeced because the module from the opposite
+    // string will also be displaced.
+    aModule->setEdgeZ(parity*farthestZ, parity);
+    // std::cout << "pushing back one module out of " << nDesiredModules << " desired modules" << std::endl; // debug
+    aModule->setRing(1);
+    thisModuleSet.push_back(aModule);
+    
+    edge minSafetyEdge;
+    
+    // I start counting from one, as I already created module #0
+    for (nModules = 1; nModules<nDesiredModules; nModules++) {
+        
+        // The smallParity parameter sets the direction of
+        // the smallDelta (rho difference of modules within the same string)
+        // smallParity will be -1 the first time here
+        // [nModules=2]
+        smallParity=1-(nModules%2)*2;
+        
+        // Two conditions may apply: either we ask for an overlap
+        // with respect to the projection from the origin (CASE 0)
+        // or we ask for the exact projection from a displaced origin (CASE 1,2)
+        
+        // CASE 0 // CUIDADO I've inverted all the parities (-1*)
+        trialModule[0] = new BarrelModule(*aModule);             // Clone the previous
+        myEdge = trialModule[0]->getEdgeZSide(-1*parity, zOverlap); // Measure the overlapping point at the far end
+        trialModule[0]->setEdgeZ(myEdge.first, -1*parity);          // Move the near end there
+        myEdge = trialModule[0]->getEdgeZSide(parity, 0.);     // Pick the near end
+        trialModule[0]->projectSideRho(myEdge.second,            // Project the module with no origin displacement
+                stringAverageRadius-(smallParity)*(-1*parity)*smallDelta);
+        // ... and let's write down were we put it...
+        minSafetyEdge=trialModule[0]->getEdgeZSide(parity, 0.);
+        // and its index
+        minSafetyEdge.second=0;
+        
+        // CASE 1 and 2
+        trialModule[1] = new BarrelModule(*aModule);          // Clone the previous
+        myEdge = trialModule[1]->getEdgeZSide(-1*parity, 0.);    // Measure the far end with no overlap
+        trialModule[1]->setEdgeZ(myEdge.first, -1*parity);       // Move the near end there
+        myEdge = trialModule[0]->getEdgeZSide(parity, 0.);  // Pick the near end
+        trialModule[2] = new BarrelModule(*trialModule[1]);   // Clone the module
+        // Now we only need to project it twice, with two different origin
+        // displacements: in fact we project the module to its destination twice
+        // using +- safetyOrigin safety margin along the beam axis
+        for (int i=1; i<3; i++) {
+            int safetyDirection=i*2-3;
+            trialModule[i]->projectSideRho(myEdge.second,
+                    stringAverageRadius-(smallParity)*(-1*parity)*smallDelta,
+                    safetyOrigin*safetyDirection);
+            myEdge = trialModule[i]->getEdgeZSide(parity, 0.);
+            
+            // If the measured margin is the safest...
+            if ((-1*parity*myEdge.first)<(-1*parity*minSafetyEdge.first)) {
+                // ..then we record it
+                minSafetyEdge.first=myEdge.first;
+                minSafetyEdge.second=i;
+            }
+        }
+        
+        // Debug output
+        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
+        
+        // Now we just keep the safest, while we delete the others
+        for (int i=0; i<3; i++) {
+            if (minSafetyEdge.second==i) {
+                aModule=trialModule[i];
+            } else {
+                delete trialModule[i];
+            }
+        }
+        
+        // std::cout << "pushing back module "<< nModules <<" out of " << nDesiredModules << " desired modules" << std::endl; // debug
+        // Finally we add this module in the list of built
+        aModule->setRing(nModules+1);
+        thisModuleSet.push_back(aModule);
+    }
+    
+    return nModules;
+    
+}
 
 void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
         double stringAverageRadius,
@@ -607,7 +720,7 @@ void BarrelLayer::buildLayer(double averageRadius,
         // the same or opposite module parity (in/out)
         BarrelModule* sampleModule,
         int sectioned, // = NoSection  (deprecated)
-        double minZ // = 0 not zero in case you build a mezzanine
+        double farthestZ // = 0 not zero in case you build a mezzanine
 ) {
     
     int stringParity;      // Parity of string in the shell (inner, outer)
@@ -655,7 +768,7 @@ void BarrelLayer::buildLayer(double averageRadius,
         // std::cout << "Building a string" << std::endl; // debug
         
         std::vector<Module*> aString;
-        if (minZ==0) { // Build a standard (double) string
+        if (farthestZ==0) { // Build a standard (double) string
             buildStringPair(aString,
                     goodRadius+stringParity*bigDelta,
                     stringSmallParity*smallDelta,
@@ -664,13 +777,13 @@ void BarrelLayer::buildLayer(double averageRadius,
                     nModules,
                     sampleModule);
         } else { // Build a mezzanine (single) string
-            buildString(aString,
+            buildMezzanineString(aString,
                     goodRadius+stringParity*bigDelta,
                     stringSmallParity*smallDelta,
                     overlap,
                     safetyOrigin,
                     nModules,
-                    sampleModule,	minZ);
+                    sampleModule,	farthestZ);
         }
         
         if (i==0) {
@@ -748,6 +861,7 @@ void BarrelLayer::buildLayer(double averageRadius,
     nOfRods_ = nStrings;
     nModsOnString_ = nModules;
 }
+
 
 // Always look for this plot when changing the geometry!
 // Execute the program with 2> aaa

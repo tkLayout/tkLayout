@@ -302,8 +302,8 @@ class BarrelModule : public Module {
 
  private:
   void setSensorRectGeometry(double heightOverWidth);
-  edge getEdgeZ(int direction, double margin = 0);
   edge getEdgePhi(int direction, double margin = 0);
+  edge getEdgeZ(int direction, double margin = 0);
   double width_;
   int layer_;
   
