@@ -35,6 +35,7 @@ namespace insur {
   const int mapBag::suggestedSpacingMapAW = 0x020;
   const int mapBag::nominalCutMap      = 0x040;
   const int mapBag::irradiatedPowerConsumptionMap = 0x080;
+  const int mapBag::totalPowerConsumptionMap = 0x100;
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
@@ -300,10 +301,11 @@ namespace insur {
     std::vector<Track> tvIdeal;
     
     // used fixed phi
-    phi = PI / 2.0;
+    //phi = PI / 2.0;
     
     // Loop over nTracks (eta range [0, etaMax])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+      phi = myDice.Rndm() * PI * 2.0;
       Material tmp;
       Track track;
       eta = i_eta * etaStep;
@@ -886,9 +888,10 @@ namespace insur {
         std::vector<Track> tvIdeal;
         // tv.clear();
         // used fixed phi
-        phi = PI / 2.0;
+        // phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
         for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+            phi = myDice.Rndm() * PI * 2.0;
             Material tmp;
             Track track;
             eta = i_eta * etaStep;
@@ -2432,6 +2435,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
   void Analyzer::fillPowerMap(Tracker& tracker) {
     TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+    TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
     LayerVector& layerSet = tracker.getLayers();
     LayerVector::iterator layIt;
@@ -2451,6 +2455,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
       for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
 	irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+	totalPowerConsumptionMap.SetBinContent(i,j,0);
       }
     }
 
@@ -2470,6 +2475,9 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
 		if ((aModule->getMeanPoint().Z()<0) || (aModule->getMeanPoint().Phi()<0) || (aModule->getMeanPoint().Phi()>M_PI/2)) continue;
 		double myPower = aModule->getIrradiatedPowerConsumption();
+		ModuleType& myType = tracker.getModuleType( aModule->getType() );
+		double myPowerChip = myType.getPower( aModule->getNChannels() );
+
 		// Draw the module
 		XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
 		XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
@@ -2480,7 +2488,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	  		point = start + l * diff;
 	  		myZ=point.Z();
 	  		myRho=point.Rho();
-      		irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
+			irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
+			totalPowerConsumptionMap.Fill(myZ, myRho, myPowerChip+myPower);
 	  		counter->Fill(myZ, myRho, 1);
 		}
       }
@@ -2491,6 +2500,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
 	if (counter->GetBinContent(i,j)!=0) {
 	  irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+	  totalPowerConsumptionMap.SetBinContent(i,j, totalPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
 	}
       }
     }
@@ -2632,8 +2642,11 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
   void Analyzer::preparePowerHistograms() {
     myMapBag.clearMaps(mapBag::irradiatedPowerConsumptionMap);
+    myMapBag.clearMaps(mapBag::totalPowerConsumptionMap);
     TH2D& irradiatedPowerConsumptionMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
-    prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of irradiated power consumption");
+    TH2D& totalPowerConsumptionMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum]; // dummyMomentum is supplied because it is a single map. Multiple maps are indexed like arrays (see above efficiency maps)
+    prepareTrackerMap(irradiatedPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in sensors (after irradiation)");
+    prepareTrackerMap(totalPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
   }
 
   /**

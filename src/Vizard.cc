@@ -2122,19 +2122,27 @@ namespace insur {
 
     mapBag myMapBag = a.getMapBag();
     TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+    TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-    RootWContent& myContent = myPage->addContent("Irradiated power maps", true);
+    RootWContent& myContent = myPage->addContent("Power maps", true);
 
     TCanvas irradiatedPowerCanvas;
+    TCanvas totalPowerCanvas;
     irradiatedPowerCanvas.SetFillColor(color_plot_background);
+    totalPowerCanvas.SetFillColor(color_plot_background);
 
     irradiatedPowerCanvas.cd();
     irradiatedPowerMap.Draw("colz");
-    
+    totalPowerCanvas.cd();
+    totalPowerMap.Draw("colz");
     
     RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
-    irradiatedPowerImage.setComment("Map of power consumptions of irradiated modules (W)");
+    irradiatedPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
     irradiatedPowerImage.setName("irradiatedPowerMap");
+    RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, 900, 400);
+    totalPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
+    totalPowerImage.setName("totalPowerMap");
+    
 
     return true;
   }

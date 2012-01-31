@@ -257,6 +257,7 @@ public:
   void setCost(const int& type, const double& newCost) { mapTypeToCost_[type]=newCost; }; // should be made obsolete (should go into Analyzer)
   //void setPower(const int& type, const double& newPower) { mapTypeToPower_[type]=newPower; }; // should be made obsolete (should go into Analyzer)
   void setPower(string typeIndex, int powerIndex, double newPower) { mapType_[typeIndex].setPowerPerStrip(newPower, powerIndex); }
+  void setPowerFixed(string typeIndex, int powerIndex, double newPower) { mapType_[typeIndex].setPowerPerModule(newPower, powerIndex); }
   std::map<std::string, ModuleType>& getTypes() { return mapType_ ; }
   ModuleType& getModuleType(std::string typeName) { return mapType_[typeName] ; }
 

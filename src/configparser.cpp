@@ -154,6 +154,14 @@ bool configParser::parseTracker(string myName, istream& inStream) {
             } else if (parameterNameCopy == "triggerErrorIncreaseY") {
 	            doubleValue = atof(parameterValue.c_str());
                 myTracker_->setTriggerErrorY(stringIndex, doubleValue);
+            } else if (parameterNameCopy == "opticalPowerFixed") {
+                // Input is in mW, while we always store in SI units internally
+	    	    doubleValue = atof(parameterValue.c_str()) * 1e-3;
+	    	    myTracker_->setPowerFixed(stringIndex, ModuleType::OpticalPower, doubleValue);
+	        } else if (parameterNameCopy == "chipPowerFixed") {
+                // Input is in mW, while we always store in SI units internally
+                doubleValue = atof(parameterValue.c_str()) * 1e-3;
+                myTracker_->setPowerFixed(stringIndex, ModuleType::ChipPower, doubleValue);
             } else if (parameterNameCopy == "opticalPower") {
                 // Input is in mW, while we always store in SI units internally
 	    	    doubleValue = atof(parameterValue.c_str()) * 1e-3;
