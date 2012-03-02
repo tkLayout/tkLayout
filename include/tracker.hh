@@ -182,7 +182,7 @@ public:
   // Standard barrel builder
   LayerVector buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
-		   bool compressed = false, double minZ = 0 );
+		   bool compressed = false, bool shortBarrel = false );
   // Barrel builder for backwards compatibility with the command-line version
 /*  void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,

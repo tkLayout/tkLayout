@@ -277,7 +277,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
         std::string barrelName,
         int section /* = NoSection */,
         bool compressed /* = false */,
-        double minZ /* = 0 used to build mezzanine barrels */ ) {
+        bool shortBarrel /* = false, used to build mezzanine barrels */) {
     
     maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
     
@@ -343,7 +343,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
         tempString.str(""); tempString << "Desired radius: " << radius;
         addMessage(tempString.str(), INFO);
 
-        if (minZ==0) { // Standard Barrel
+        if (!shortBarrel) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
                     getSmallDelta(i+1) ,
                     getBigDelta(i+1),
@@ -352,12 +352,13 @@ LayerVector Tracker::buildBarrel(int nLayer,
                     nModules,     // maxZ
                     push,
                     phiSegments_, // modules multiple of ...
-                    false,        // false = Strings with opposite parity
+                    true,        // false = Strings with opposite parity
                     sampleModule, section);
             
             addLayer(aBarrelLayer, barrelName, TypeBarrel);
             thisBarrelLayerSet.push_back(aBarrelLayer);
         } else { // Mezzanine Barrel
+            double farthestZ=getMaxBarrelZ(+1); // get the farthest Z reached up to now (WARNING: this implies that mezzanine barrels need to be declared LAST in the config file!)
             aBarrelLayer->buildLayer(radius,       // averageRadius
                     getSmallDelta(i+1) ,
                     getBigDelta(i+1),
@@ -366,8 +367,8 @@ LayerVector Tracker::buildBarrel(int nLayer,
                     nModules,     // maxZ
                     push,
                     phiSegments_, // modules multiple of ...
-                    false,        // false = Strings with opposite parity
-                    sampleModule, section, minZ);
+                    true,        // false = Strings with opposite parity
+                    sampleModule, section, farthestZ);
             
             addLayer(aBarrelLayer, barrelName, TypeBarrel);
             thisBarrelLayerSet.push_back(aBarrelLayer);
@@ -387,13 +388,13 @@ LayerVector Tracker::buildBarrel(int nLayer,
         
     }
     
-    if (compressed && minZ==0) {
-        compressBarrelLayers(thisBarrelLayerSet, (minZ!=0.));
+    if (compressed) {
+       compressBarrelLayers(thisBarrelLayerSet, shortBarrel);
     }
     
     
     // Mezzanine barrel needs to be duplicated and reflected
-    if (minZ!=0.) {
+   /* if (shortBarrel) { // CUIDADO: made obsolete by new mezzanine string generation code - TBR
         LayerVector::iterator layIt;
         BarrelLayer* anotherLayer;
         LayerVector justDoneBarrelLayerSet=thisBarrelLayerSet;
@@ -406,7 +407,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                 thisBarrelLayerSet.push_back(anotherLayer);
             }
         }
-    }
+    }*/
     
     double maxZ=getMaxBarrelZ(+1);
     maxL_=(maxZ>maxL_)?maxZ:maxL_;

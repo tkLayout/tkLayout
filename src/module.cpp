@@ -471,13 +471,26 @@ void Module::reflectZ() {
 void Module::shiftRho(double Delta) {
     XYZVector mean = getMeanPoint();
     double thisRho = mean.Rho();
-    double newRho=thisRho+Delta;
-    double factor=newRho/thisRho;
+
+    if (thisRho != 0.) {
     
-    XYZVector vDelta(mean.X()*(factor-1), mean.Y()*(factor-1), 0);
+        double newRho=thisRho+Delta;
+        double factor=newRho/thisRho;
     
-    for (int i=0; i<4; i++) {
-        corner_[i] = corner_[i] + vDelta;
+        XYZVector vDelta(mean.X()*(factor-1), mean.Y()*(factor-1), 0);
+    
+        for (int i=0; i<4; i++) {
+            corner_[i] = corner_[i] + vDelta;
+        }
+    
+    } else {
+        
+        XYZVector vDelta(0 , Delta, 0);
+    
+        for (int i=0; i<4; i++) {
+            corner_[i] = corner_[i] + vDelta;
+        }
+
     }
 }
 

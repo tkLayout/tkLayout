@@ -220,7 +220,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     
     int readoutMode = Module::Binary;
     int nBarrelLayers = 0;
-    double minZ=0;
+    //double minZ=0;
+    bool shortBarrel;
     double maxZ=0;
     double barrelRhoIn = 0;
     double barrelRhoOut = 0;
@@ -287,8 +288,10 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 }
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
-            } else if (parameterName=="minimumZ") {
-                minZ=atof(parameterValue.c_str());
+            } else if (parameterName=="shortBarrel") {
+                shortBarrel=(parameterValue=="true");
+            } else if (parameterName=="minimumZ") {  // deprecated. mantained for backwards compatibility
+                shortBarrel=(atof(parameterValue.c_str())>0.);
             } else if (parameterName=="maximumZ") {
                 maxZ=atof(parameterValue.c_str());
             } else if (parameterName=="aspectRatio") {
@@ -448,17 +451,20 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 myName,
                 Layer::NoSection,
                 true,
-                minZ); // Actually build a compressed barrel (mezzanine or normal)
+                shortBarrel); // Actually build a compressed barrel (mezzanine or normal)
         
         delete sampleBarrelModule; // Dispose of the sample module
         if (maxZ!=0)
-          myTracker_->compressBarrelLayers(myBarrelLayers, minZ!=0, maxZ);
+            myTracker_->compressBarrelLayers(myBarrelLayers, shortBarrel, maxZ);
 
     } else {
         cerr << "ERROR: Missing mandatory parameter for barrel " << myName << endl;
         throw parsingException();
     }
-    
+   
+    std::cout << "SSSS max barrel z(+1) = " << myTracker_->getMaxBarrelZ(+1)  << std::endl;
+    std::cout << "SSSS max barrel z(-1) = " << myTracker_->getMaxBarrelZ(-1)  << std::endl;
+ 
     // Set back the generic small and big deltas
     myTracker_->setSmallDelta(genericSmallDelta);
     myTracker_->setBigDelta(genericBigDelta);
@@ -1572,7 +1578,7 @@ Tracker* configParser::parseFile(string configFileName) {
         if (myTracker_) delete myTracker_; myTracker_ = NULL;
         return NULL;
     }
-    myTracker_->alignShortBarrels();
+    //myTracker_->alignShortBarrels();
     myTracker_->sortLayers();
     
     // Eta cut and other post-operations

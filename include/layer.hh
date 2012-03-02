@@ -117,14 +117,46 @@ private:
 		  BarrelModule* sampleModule,
 		  double farthestZ = 0);
 
-  void buildStringPair(ModuleVector& thisModuleSet,
+double computeListZ(  // New-fangled kickass function
+    std::vector<double>& listZ,
+    double startZ,
+    double radiiRatio,  // r_max / r_min
+    double modLengthZ,
+    double originDeltaZ,
+    double baseOverlapZ,
+    int numModules,
+    int parity,
+    int direction,
+    bool looseStartZ = false); 
+
+  void buildStringPair(  // New-fangled kickass function
+          ModuleVector& thisModuleSet,
+          double averageRadius,
+          double smallDelta,
+          double baseOverlap,
+          double zDelta,
+          double startZ,
+          int numModules,
+          int smallParity,
+          BarrelModule* sampleModule);
+  void buildMezzanineStringPair(  // New-fangled kickass function
+          ModuleVector& thisModuleSet,
+          double averageRadius,
+          double smallDelta,
+          double baseOverlap,
+          double zDelta,
+          double startZ,
+          int numModules,
+          int smallParity,
+          BarrelModule* sampleModule);
+/*  void buildStringPair(ModuleVector& thisModuleSet, // CUIDADO: TBR
 		       double stringAverageRadius,
 		       double smallDelta, // Half the distance between inner and outer modules
 		       double zOverlap,
 		       double safetyOrigin,
 		       double maxZ,
-		       BarrelModule* sampleModule);
-  void buildStringPair(ModuleVector& thisModuleSet,
+		       BarrelModule* sampleModule); */
+  void buildStringPair(ModuleVector& thisModuleSet, // CUIDADO: maybe TBR
 		       double stringAverageRadius,
 		       double smallDelta, // Half the distance between inner and outer modules
 		       double zOverlap,
