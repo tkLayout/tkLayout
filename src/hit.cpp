@@ -385,7 +385,7 @@ Track::~Track() {
 }
 
 /**
- * Setter for the track angle.
+ * Setter for the track azimuthal angle.
  * @param newTheta A reference to the value of the angle from the z-axis of the track
  */
 double Track::setTheta(double& newTheta) {
@@ -394,6 +394,18 @@ double Track::setTheta(double& newTheta) {
     for (iter = hitV_.begin(); iter != guard; iter++) (*iter)->updateRadius();
     return theta_;
 };
+
+/**
+ * Setter for the track polar angle.
+ * @param newTheta A reference to the value of the angle from the z-axis of the track
+ */
+double Track::setPhi(double& newPhi) {
+    phi_ = newPhi;
+    //std::vector<Hit*>::iterator iter, guard = hitV_.end();
+    //for (iter = hitV_.begin(); iter != guard; iter++) (*iter)->updateRadius();
+    return phi_;
+};
+
 
 /**
  * This function sorts the hits in the internal vector by their distance to the z-axis.

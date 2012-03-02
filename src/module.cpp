@@ -1160,8 +1160,8 @@ double BarrelModule::getOccupancyPerEvent() {
     //	    << "myOcc: " << myOccupancyBarrel << std::endl;
     double factor=fabs(sin(theta))*2; // 2 is a magic adjustment factor
     computeMaxDphiDeta();
-    
-    return myOccupancyBarrel*dphideta_/factor;
+
+    return myOccupancyBarrel*dphideta_/factor / (90/1e3) * (getWidth() / nStripAcross_ );
 }
 
 double EndcapModule::getOccupancyPerEvent() {
@@ -1175,8 +1175,8 @@ double EndcapModule::getOccupancyPerEvent() {
     //	    << "myOcc: " << myOccupancyEndcap << std::endl;
     double factor=fabs(cos(theta))*2; // 2 is a magic adjustment factor
     computeMaxDphiDeta();
-    
-    return myOccupancyEndcap*dphideta_/factor;
+
+    return myOccupancyEndcap*dphideta_/factor / (90/1e3) * ((getWidthLo() + getWidthHi()/2.) / nStripAcross_ );
 }
 
 double Module::getLowPitch() {

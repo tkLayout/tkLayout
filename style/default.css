@@ -48,7 +48,7 @@ a
 }
 #header h1
 {
-	text-transform: lowercase;
+/*	text-transform: lowercase;*/
 	font-size: 1.6em;
 }
 #header h2

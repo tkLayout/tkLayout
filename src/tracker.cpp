@@ -114,8 +114,8 @@ void Tracker::setDefaultParameters() {
 	numInvFemtobarns_ = 3000;
 	chargeDepletionVoltage_ = 600;
 	operatingTemp_ = -20;
-	alphaParam_ = 7.1e-18;
-    referenceTemp_ = 0;
+	alphaParam_ = 4e-17;
+    referenceTemp_ = +20;
 }
 
 void Tracker::shapeVolume() {

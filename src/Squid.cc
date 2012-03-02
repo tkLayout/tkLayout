@@ -444,7 +444,7 @@ namespace insur {
      */
     bool Squid::analyzeMaterialBudget(std::string htmlout, int tracks) {
         if (mb) {
-            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
+            a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, false);
             v.histogramSummary(a, htmlout);
             return true;
         }
@@ -560,6 +560,7 @@ namespace insur {
         site.setTitle(trackerName);
         site.setComment("layouts");
         site.setCommentLink("../");
+        site.addAuthor("Giovanni Bianchi");
         site.addAuthor("Nicoletta De Maio");
         site.addAuthor("Stefano Mersi");
 #ifdef REVISIONNUMBER
@@ -629,12 +630,12 @@ namespace insur {
    */
   bool Squid::pureAnalyzeMaterialBudget(int tracks) {
     if (mb) {
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
       if (pm) {
     // TODO: make this much neater!
     if (pixelAnalyzer) delete pixelAnalyzer;
     pixelAnalyzer = new Analyzer;
-    pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks);
+    pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
       }
       a.computeWeightSummary(*mb);
       // Call this before analyzetrigger if you want to have the map of suggested spacings

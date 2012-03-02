@@ -111,6 +111,7 @@ bool sortSmallerR(Hit* h1, Hit* h2);
 class Track {
 protected:
   double theta_;
+  double phi_;
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
   map<momentum, TMatrixTSym<double> > correlations_;
@@ -136,6 +137,8 @@ public:
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
   double getTheta() const {return theta_;}
+  double setPhi(double& newPhi);
+  double getPhi() const {return phi_;}
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
   map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; }
   const map<momentum, double>& getDeltaRho() const { return deltarho_; }

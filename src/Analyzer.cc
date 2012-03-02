@@ -311,6 +311,7 @@ namespace insur {
       eta = i_eta * etaStep;
       theta = 2 * atan(exp(-eta));
       track.setTheta(theta);      
+      track.setPhi(phi);
 
       tmp = findAllHits(mb, pm, eta, theta, phi, track);
 
@@ -863,7 +864,7 @@ namespace insur {
      * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps,
-					 MaterialBudget* pm ) {
+					 MaterialBudget* pm , bool computeResolution) {
 
         Tracker& tracker = mb.getTracker();
         double efficiency = tracker.getEfficiency();
@@ -897,6 +898,7 @@ namespace insur {
             eta = i_eta * etaStep;
             theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
             track.setTheta(theta);
+            track.setPhi(phi);
             //      active volumes, barrel
             tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
             ractivebarrel.Fill(eta, tmp.radiation);
@@ -989,6 +991,7 @@ namespace insur {
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
             }
+
             // Add the hit on the beam pipe
  	    Hit* hit = new Hit(23./sin(theta));
  	    hit->setOrientation(Hit::Horizontal);
@@ -1010,13 +1013,15 @@ namespace insur {
 		//		  Track::debugRZErrorPropagation = true;
 		//		}
 		//#endif
-		track.computeErrors(momenta);
+                if (computeResolution) track.computeErrors(momenta);
 		tv.push_back(track);
 
+if (computeResolution) {
 		Track trackIdeal = track;
 		trackIdeal.removeMaterial();
 		trackIdeal.computeErrors(momenta);
 		tvIdeal.push_back(trackIdeal);
+}
 	      }
 
 	      // @@ Hadrons
@@ -1095,6 +1100,7 @@ namespace insur {
         transformEtaToZ();
 #endif // MATERIAL_SHADOW
 
+if (computeResolution) {
         // fill TGraph map
 #ifdef DEBUG_PERFORMANCE
 	starttime = clock();
@@ -1106,6 +1112,7 @@ namespace insur {
         endtime = clock();
         std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
 #endif
+}
     }
 
 	void Analyzer::analyzePower(Tracker& tracker) {
