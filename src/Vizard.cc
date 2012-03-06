@@ -1258,8 +1258,10 @@ namespace insur {
         std::map<std::string, int> typeMapCount;
         std::map<std::string, long> typeMapCountChan;
     std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
-        std::map<std::string, double> typeMapMaxOccupancy;
-        std::map<std::string, double> typeMapAveOccupancy;
+        std::map<std::string, double> typeMapMaxStripOccupancy;
+        std::map<std::string, double> typeMapAveStripOccupancy;
+        std::map<std::string, double> typeMapMaxHitOccupancy;
+        std::map<std::string, double> typeMapAveHitOccupancy;
         std::map<std::string, double> typeMapAveRphiResolution;
         std::map<std::string, double> typeMapAveYResolution;
         std::map<std::string, double> typeMapAveRphiResolutionTrigger;
@@ -1349,10 +1351,14 @@ namespace insur {
                 aSensorTag=(*modIt)->getSensorTag();
                 typeMapCount[aSensorTag]++;
                 typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
-                if (((*modIt)->getOccupancyPerEvent()*nMB)>typeMapMaxOccupancy[aSensorTag]) {
-                    typeMapMaxOccupancy[aSensorTag]=(*modIt)->getOccupancyPerEvent()*nMB;
+                if (((*modIt)->getStripOccupancyPerEvent()*nMB)>typeMapMaxStripOccupancy[aSensorTag]) {
+                    typeMapMaxStripOccupancy[aSensorTag]=(*modIt)->getStripOccupancyPerEvent()*nMB;
                 }
-                typeMapAveOccupancy[aSensorTag]+=(*modIt)->getOccupancyPerEvent()*nMB;
+                if (((*modIt)->getHitOccupancyPerEvent()*nMB)>typeMapMaxHitOccupancy[aSensorTag]) {
+                    typeMapMaxHitOccupancy[aSensorTag]=(*modIt)->getHitOccupancyPerEvent()*nMB;
+                }
+                typeMapAveStripOccupancy[aSensorTag]+=(*modIt)->getStripOccupancyPerEvent()*nMB;
+                typeMapAveHitOccupancy[aSensorTag]+=(*modIt)->getHitOccupancyPerEvent()*nMB;
         typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
         typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
         typeMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
@@ -1432,7 +1438,8 @@ namespace insur {
         std::ostringstream aTag;
         std::ostringstream aType;
         std::ostringstream anArea;
-        std::ostringstream anOccupancy;
+        std::ostringstream aStripOccupancy;
+        std::ostringstream aHitOccupancy;
     std::ostringstream anRphiResolution;
     std::ostringstream aYResolution;
     std::ostringstream anRphiResolutionTrigger;
@@ -1465,30 +1472,32 @@ namespace insur {
         static const int typeRow = 2;
         static const int areastripRow = 3;
         static const int areaptRow = 4;
-        static const int occupancyRow = 5;
-    static const int rphiResolutionRow = 6;
-    static const int yResolutionRow = 7;
-    static const int rphiResolutionTriggerRow = 8;
-    static const int yResolutionTriggerRow = 9;
-        static const int pitchpairsRow = 10;
-        static const int striplengthRow = 11;
-        static const int segmentsRow = 12;
-        static const int nstripsRow = 13;
-        static const int numbermodsRow = 14;
-        static const int numbersensRow = 15;
-        static const int channelstripRow = 16;
-        static const int channelptRow = 17;
-        static const int powerRow = 18;
-        static const int powerPerModuleRow = 19;
-        static const int costRow = 20;
-    static const int weightRow = 21;
+        static const int stripOccupancyRow = 5;
+        static const int hitOccupancyRow = 6;
+    static const int rphiResolutionRow = 7;
+    static const int yResolutionRow = 8;
+    static const int rphiResolutionTriggerRow = 9;
+    static const int yResolutionTriggerRow = 10;
+        static const int pitchpairsRow = 11;
+        static const int striplengthRow = 12;
+        static const int segmentsRow = 13;
+        static const int nstripsRow = 14;
+        static const int numbermodsRow = 15;
+        static const int numbersensRow = 16;
+        static const int channelstripRow = 17;
+        static const int channelptRow = 18;
+        static const int powerRow = 19;
+        static const int powerPerModuleRow = 20;
+        static const int costRow = 21;
+    static const int weightRow = 22;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
         moduleTable->setContent(typeRow, 0, "Type");
         moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
         moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
-        moduleTable->setContent(occupancyRow, 0, "Occup (max/av)");
+        moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
+        moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
         moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um)");
         moduleTable->setContent(yResolutionRow, 0, "Y resolution (um)");
         moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] (um)");
@@ -1543,12 +1552,15 @@ namespace insur {
             anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
             if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
             // Occupancy
-            anOccupancy.str("");
-            anOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+            aStripOccupancy.str("");
+            aHitOccupancy.str("");
+            aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxStripOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveStripOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+            aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxHitOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveHitOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
         
         addOccupancyEOL();
         addOccupancyElement((aModule->getMinRho() + aModule->getMaxRho())/2);
-        addOccupancyElement(typeMapAveOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
+        addOccupancyElement(typeMapAveStripOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
+        addOccupancyElement(typeMapAveHitOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
         
         // RphiResolution
         anRphiResolution.str("");
@@ -1662,7 +1674,8 @@ namespace insur {
             moduleTable->setContent(0, iType, aName.str());
             moduleTable->setContent(tagRow, iType, aTag.str());
             moduleTable->setContent(typeRow, iType, aType.str());
-            moduleTable->setContent(occupancyRow, iType, anOccupancy.str());
+            moduleTable->setContent(stripOccupancyRow, iType, aStripOccupancy.str());
+            moduleTable->setContent(hitOccupancyRow, iType, aHitOccupancy.str());
             moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
             moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
             moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
@@ -1730,7 +1743,8 @@ namespace insur {
         anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
         << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
         moduleTable->setContent(areaptRow, iType, anArea.str());
-        moduleTable->setContent(occupancyRow, iType, "");
+        moduleTable->setContent(stripOccupancyRow, iType, "");
+        moduleTable->setContent(hitOccupancyRow, iType, "");
         moduleTable->setContent(rphiResolutionRow, iType, "");
         moduleTable->setContent(yResolutionRow, iType, "");
         moduleTable->setContent(pitchpairsRow, iType, "");

@@ -264,7 +264,9 @@ protected:
   double getResolutionY();
   double getResolutionYTrigger();
 
-  virtual double getOccupancyPerEvent();
+  //virtual double getOccupancyPerEvent();
+  virtual double getStripOccupancyPerEvent();
+  virtual double getHitOccupancyPerEvent();
 
   // Boundaries to ease the computation of tracks
   void computeBoundaries(double zError);
@@ -336,7 +338,9 @@ private:
   int getLayer() const {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
 
-  double getOccupancyPerEvent();
+ // double getOccupancyPerEvent();
+  virtual double getStripOccupancyPerEvent();
+  virtual double getHitOccupancyPerEvent();
 };
 
 
@@ -400,7 +404,9 @@ public:
   void setLayer(int newLayer) { disk_ = newLayer; }  // Layer == Disk for EndCap modules!
   int getLayer() const { return disk_; }
 
-  double getOccupancyPerEvent();
+  //double getOccupancyPerEvent();
+  virtual double getStripOccupancyPerEvent();
+  virtual double getHitOccupancyPerEvent();
 };
 
 #endif

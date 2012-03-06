@@ -3359,7 +3359,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	  for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
 	    if ((*modIt)->getReadoutType()==Module::Strip) {
 	      for (int nFace=1; nFace<=(*modIt)->getNFaces() ; nFace++) {
-		hitChannels = (*modIt)->getOccupancyPerEvent()*nMB*((*modIt)->getNChannelsFace(nFace));
+		hitChannels = (*modIt)->getHitOccupancyPerEvent()*nMB*((*modIt)->getNChannelsFace(nFace));
 		chanHitDistribution.Fill(hitChannels);
 		nChips=int(ceil((*modIt)->getNChannelsFace(nFace)/128.));
                         

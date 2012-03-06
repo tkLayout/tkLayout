@@ -1148,7 +1148,11 @@ void Module::computeMaxDphiDeta() {
 }
 
 
-double Module::getOccupancyPerEvent() {
+double Module::getStripOccupancyPerEvent() {
+    std::cout << "ERROR: you are somehow accessing the deprecated generic getOccupancyPerEvent" << std::endl;
+    return 0;
+}
+double Module::getHitOccupancyPerEvent() {
     std::cout << "ERROR: you are somehow accessing the deprecated generic getOccupancyPerEvent" << std::endl;
     return 0;
 }
@@ -1163,7 +1167,7 @@ double Module::getOccupancyPerEvent() {
 //    sin(theta) for barrel
 //    cos(theta) for endcap
 
-double BarrelModule::getOccupancyPerEvent() {
+double BarrelModule::getStripOccupancyPerEvent() {
     XYZVector meanPoint = getMeanPoint();
     double rho = meanPoint.Rho()/10.;
     double theta = meanPoint.Theta();
@@ -1177,7 +1181,13 @@ double BarrelModule::getOccupancyPerEvent() {
     return myOccupancyBarrel*dphideta_/factor / (90/1e3) * (getWidth() / nStripAcross_ );
 }
 
-double EndcapModule::getOccupancyPerEvent() {
+
+double BarrelModule::getHitOccupancyPerEvent() {
+    return getStripOccupancyPerEvent()/2; // CUIDADO: placeholder formula
+}
+
+
+double EndcapModule::getStripOccupancyPerEvent() {
     XYZVector meanPoint = getMeanPoint();
     double z = fabs(meanPoint.Z())/10.;
     double rho = meanPoint.Rho()/10.;
@@ -1190,6 +1200,10 @@ double EndcapModule::getOccupancyPerEvent() {
     computeMaxDphiDeta();
 
     return myOccupancyEndcap*dphideta_/factor / (90/1e3) * ((getWidthLo() + getWidthHi()/2.) / nStripAcross_ );
+}
+
+double EndcapModule::getHitOccupancyPerEvent() {
+    return getStripOccupancyPerEvent()/2; // CUIDADO: placeholder formula
 }
 
 double Module::getLowPitch() {
@@ -1335,7 +1349,7 @@ double Module::getTriggerFrequencyTruePerEvent() {
 }
 
 double Module::getTriggerFrequencyFakePerEvent() {
-	return pow(getOccupancyPerEvent(),2)*triggerWindow_*getNChannelsFace(1);
+	return pow(getHitOccupancyPerEvent(),2)*triggerWindow_*getNChannelsFace(1);
 }
 
 

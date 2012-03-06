@@ -147,6 +147,15 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		} else if (parameterName=="alphaParam") {
 				doubleValue = atof(parameterValue.c_str());
 				myTracker_->setAlphaParam(doubleValue);
+       /* } else if (parameterName=="numTriggerProcessorsEta") {
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setNumTriggerProcessorsEta(intValue);
+        } else if (parameterName=="numTriggerProcessorsPhi") {
+                intValue = atoi(parameterValue.c_str());
+                myTracker_->setNumTriggerProcessorsPhi(intValue);
+        } else if (parameterName=="ptCut") {
+                doubleValue = atof(parameterValue.c_str());
+                myTracker_->setPtCut(doubleValue);    */    
         } else if (correctlyBroken) { // Per module type parameters
             if (parameterNameCopy == "triggerErrorIncreaseX") {
 	            doubleValue = atof(parameterValue.c_str());
