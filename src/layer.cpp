@@ -644,7 +644,7 @@ void BarrelLayer::buildStringPair(
     double farthestNegZ = computeListZ(listZNeg, startZ, radiiRatio, modLengthZ, zDelta, baseOverlap, numModules, -smallParity, -1, true);
 
     double zUnbalance = abs(farthestPosZ) - abs(farthestNegZ); // balancing uneven pos/neg strings
-    if (abs(zUnbalance) > 1) { // 1 mm unbalance is tolerated
+    if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
         buildStringPair(thisModuleSet,
                         averageRadius,
                         smallDelta,
