@@ -26,7 +26,9 @@
 #include <THStack.h>
 #include <TStyle.h>
 #include <TText.h>
+#include <TLatex.h>
 #include <TColor.h>
+#include <TLine.h>
 #include <TView.h>
 #include <TLegend.h>
 #include <TGraph.h>
@@ -39,9 +41,11 @@
 #include <InactiveSurfaces.h>
 #include <rootweb.hh>
 #include <vector>
+#include <set>
 #include <Palette.h>
 
 namespace insur {
+
     /*
      * Assorted messages that may pop up
      */
@@ -178,10 +182,11 @@ namespace insur {
         TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
         double averageHistogramValues(TH1D& histo, double cutoff);
         double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
-        // deprecated:
-	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+
 	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvasNice(Analyzer& analyzer, Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
+	void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize);
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
@@ -209,6 +214,62 @@ namespace insur {
 
 	// int getNiceColor(unsigned int plotIndex);
     };
+
+    //    /**
+    //     * @class moduleGraphicPosition
+    //     *
+    //     * @brief a class to hold a simplifies (2D) representation of the
+    //     * module position in a selected plane with the purpose of drawing
+    //     * it on a canvas. The apporximation allows to avoid duplication
+    //     * of drawing (which is heavy for vector graphics)
+    //     */
+    //    class moduleGraphicPosition {
+    //    private:df
+    //      // Approximate to the tenth of millimiter
+    //      static const double fraction=10;
+    //      double round(const double& x);
+    //    public:
+    //      double x[4];
+    //      double y[4];
+    //      Color_t color;
+    //      void setRZ(const Module&);
+    //      void setRPhi(const Module&);
+    //      bool operator <(const moduleGraphicPosition& b) const;
+    //    };
+
+    /**
+     * @class linePosition
+     *
+     * @brief a class to hold a the position and color of a line
+     */
+    class linePosition {
+    public:
+      double x[2];
+      double y[2];
+      Color_t color;
+      bool operator <(const linePosition& b) const;
+      void draw() const;
+      void draw(Width_t lwidth) const;
+    };
+
+    /**
+     * @class linePlacer
+     *
+     * @brief a class to place lines in the right position and color,
+     * depending on the module
+     */
+    class linePlacer {
+    private:
+      // Approximate to the tenth of millimiter
+      static const double fraction=10;
+      static double round(const double& x);
+    public:
+      static void setRZ(const Module&, std::set<linePosition>&);
+      static void setRPhi(const Module&, std::set<linePosition>&);
+    };
+
+    
+
 }
 #endif	/* _VIZARD_H */
 

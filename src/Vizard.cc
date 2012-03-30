@@ -1787,12 +1787,12 @@ namespace insur {
         //********************************//
         RootWImage* myImage;
         TCanvas *summaryCanvas = NULL;
-        TCanvas *YZCanvas = NULL;
+        TCanvas *RZCanvas = NULL;
         TCanvas *XYCanvas = NULL;
         TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
         //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-    createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, YZCanvas, XYCanvas, XYCanvasEC);
+	createSummaryCanvasNice(analyzer, tracker, RZCanvas, XYCanvas, XYCanvasEC);
     
         
         //TVirtualPad* myPad;
@@ -1805,9 +1805,9 @@ namespace insur {
             myContent->addItem(myImage);
         }
         
-        if (YZCanvas) {
-            myImage = new RootWImage(YZCanvas, 600, 600);
-            myImage->setComment("YZ Section of the tracker barrel");
+        if (RZCanvas) {
+            myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
+            myImage->setComment("RZ position of the modules");
             myContent->addItem(myImage);
         }
         if (XYCanvas) {
@@ -3309,6 +3309,76 @@ namespace insur {
             }
         }
     }
+  
+  // private
+  // Draws tickmarks on 2d a canvas
+  // @param maxL maximum tracker length in z
+  // @param maxR maximum tracker radius in rho
+  void Vizard::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+			    Style_t labelFont, Float_t labelSize) {
+    double etaStep=.2;
+    double etaMax = 2.1;
+    // Add the eta ticks
+    double theta;
+    double startR = maxR + tickDistance;
+    double startL = maxL + tickDistance;
+    double endR = maxR + tickLength + tickDistance;
+    double endL = maxL + tickLength + tickDistance;
+    linePosition aTick;
+    double textX, textY;
+
+    TText* aLabel;
+    char labelChar[10];
+    double eta;
+
+    double thetaLimit = atan(startR/startL);
+    std::vector<double> etaSteps;
+    for (eta=0; eta<etaMax+etaStep; eta+=etaStep) etaSteps.push_back(eta);
+    etaSteps.push_back(2.5);
+
+    for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
+      eta=*it;
+      theta = 2 * atan(exp(-eta));
+
+      if (theta>thetaLimit) {
+	aTick.x[0] = startR / tan(theta);
+	aTick.y[0] = startR;
+	aTick.x[1] = endR / tan(theta);
+	aTick.y[1] = endR;
+      } else {
+	aTick.x[0] = startL;
+	aTick.y[0] = startL * tan(theta);
+	aTick.x[1] = endL;
+	aTick.y[1] = endL * tan(theta);	
+      }
+      if (eta==2.5) {
+	linePosition anotherTick = aTick;
+	anotherTick.color = color_hard_grid;
+	anotherTick.x[0] = 0; anotherTick.y[0] = 0;
+	anotherTick.draw(1);
+	labelSize*=2;
+      }
+      aTick.color = kBlack;
+      aTick.draw(1);
+
+      textX = (endR+textDistance) / tan(theta);
+      textY = (endL + textDistance) * tan(theta);
+      if (textX>endL+textDistance) textX = endL+textDistance;
+      if (textY>endR+textDistance) textY = endR+textDistance;
+
+      sprintf(labelChar, "%.01f", eta);
+      aLabel = new TText(textX, textY, labelChar);
+      aLabel->SetTextAlign(21);
+      aLabel->SetTextSize(labelSize);
+      aLabel->SetTextFont(labelFont);
+      aLabel->Draw();
+    }
+    textY-=3*tickLength;
+    aLabel = new TLatex(textX, textY, "#eta");
+    aLabel->SetTextFont(labelFont);
+    aLabel->SetTextSize(labelSize);
+    aLabel->Draw();
+  }
     
     // private
     // Draws a grid on the current canvas
@@ -3414,101 +3484,102 @@ namespace insur {
     // @param maxRho maximum tracker's Rho coordinate to be shown
     // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
     // @return a pointer to the new TCanvas
-    void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas,
-                     TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
-        Int_t irep;
-        TVirtualPad* myPad;
+    // void Vizard::createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&summaryCanvas,
+    //                  TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC) {
+    //     Int_t irep;
+    //     TVirtualPad* myPad;
 
-        YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
-        XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
-        XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
-        summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
-        summaryCanvas->SetFillColor(color_pad_background);
-        summaryCanvas->Divide(2, 2);
+    //     YZCanvas = new TCanvas("YZCanvas", "YZView Canvas", 600, 600 );
+    //     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    //     XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+    //     summaryCanvas = new TCanvas("summaryCanvas", "Summary Canvas", 600, 600);
+    //     summaryCanvas->SetFillColor(color_pad_background);
+    //     summaryCanvas->Divide(2, 2);
         
-        for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetFillColor(color_plot_background);  }
+    //     for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetFillColor(color_plot_background);  }
         
-        // First pad
-        // YZView
-        myPad = summaryCanvas->GetPad(padYZ);
-        myPad->SetFillColor(color_plot_background);
-        myPad->cd();
-        if (analyzer.getGeomLiteYZ()) {
-            drawGrid(maxZ, maxRho, ViewSectionYZ);
-            analyzer.getGeomLiteYZ()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
-            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+    //     // First pad
+    //     // YZView
+    //     myPad = summaryCanvas->GetPad(padYZ);
+    //     myPad->SetFillColor(color_plot_background);
+    //     myPad->cd();
+    //     if (analyzer.getGeomLiteYZ()) {
+    //         drawGrid(maxZ, maxRho, ViewSectionYZ);
+    //         analyzer.getGeomLiteYZ()->DrawClonePad();
+    //         myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+    //         myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+    //         drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
             
-            YZCanvas->cd();
-            myPad = YZCanvas->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionYZ);
-            analyzer.getGeomLiteYZ()->DrawClonePad();
-        myPad->SetBorderMode(0);
-        myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
-            myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-            drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
-        }
+    //         YZCanvas->cd();
+    //         myPad = YZCanvas->GetPad(0);
+    //         drawGrid(maxZ, maxRho, ViewSectionYZ);
+    //         analyzer.getGeomLiteYZ()->DrawClonePad();
+    //     myPad->SetBorderMode(0);
+    //     myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
+    //         myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
+    //         drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+    //     }
         
-        // Second pad
-        // XYView (barrel)
-        myPad = summaryCanvas->GetPad(padXY);
-        myPad->cd();
-        myPad->SetFillColor(color_plot_background);
-        if (analyzer.getGeomLiteXY()) {
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteXY()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    //     // Second pad
+    //     // XYView (barrel)
+    //     myPad = summaryCanvas->GetPad(padXY);
+    //     myPad->cd();
+    //     myPad->SetFillColor(color_plot_background);
+    //     if (analyzer.getGeomLiteXY()) {
+    //         drawGrid(maxZ, maxRho, ViewSectionXY);
+    //         analyzer.getGeomLiteXY()->DrawClonePad();
+    //         myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+    //         myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
 
-        XYCanvas->cd();
-        myPad = XYCanvas->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteXY()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-        }
+    //     XYCanvas->cd();
+    //     myPad = XYCanvas->GetPad(0);
+    //         drawGrid(maxZ, maxRho, ViewSectionXY);
+    //         analyzer.getGeomLiteXY()->DrawClonePad();
+    //         myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+    //         myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    //     }
         
-        // Third pad
-        // Plots
-        myPad = summaryCanvas->GetPad(padProfile);
-    drawEtaProfiles(*myPad, analyzer);
+    //     // Third pad
+    //     // Plots
+    //     myPad = summaryCanvas->GetPad(padProfile);
+    // drawEtaProfiles(*myPad, analyzer);
         
-        // Fourth pad
-        // XYView (EndCap)
-        myPad = summaryCanvas->GetPad(padEC);
-        myPad->cd();
-        myPad->SetFillColor(color_plot_background);
-        if (analyzer.getGeomLiteEC()) {
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteEC()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    //     // Fourth pad
+    //     // XYView (EndCap)
+    //     myPad = summaryCanvas->GetPad(padEC);
+    //     myPad->cd();
+    //     myPad->SetFillColor(color_plot_background);
+    //     if (analyzer.getGeomLiteEC()) {
+    //         drawGrid(maxZ, maxRho, ViewSectionXY);
+    //         analyzer.getGeomLiteEC()->DrawClonePad();
+    //         myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+    //         myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
 
-        XYCanvasEC->cd();
-        myPad = XYCanvasEC->GetPad(0);
-            drawGrid(maxZ, maxRho, ViewSectionXY);
-            analyzer.getGeomLiteEC()->DrawClonePad();
-            myPad->SetFillColor(color_plot_background);
-            myPad->GetView()->SetParallel();
-            myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
-            myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
-        }
+    //     XYCanvasEC->cd();
+    //     myPad = XYCanvasEC->GetPad(0);
+    //         drawGrid(maxZ, maxRho, ViewSectionXY);
+    //         analyzer.getGeomLiteEC()->DrawClonePad();
+    //         myPad->SetFillColor(color_plot_background);
+    //         myPad->GetView()->SetParallel();
+    //         myPad->GetView()->SetRange(-maxRho, -maxRho, -maxRho, maxRho, maxRho, maxRho);
+    //         myPad->GetView()->SetView(0 /*long*/, 0/*lat*/, 270/*psi*/, irep);
+    //     }
         
-        for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
-        summaryCanvas->Modified();
-        //return summaryCanvas;
-    }
+    //     for (int i=1; i<=4; i++) { myPad=summaryCanvas->GetPad(i); myPad->SetBorderMode(0); }
+    //     summaryCanvas->Modified();
+    //     //return summaryCanvas;
+    // }
+
 
 
     // private
@@ -3569,6 +3640,95 @@ namespace insur {
         //return summaryCanvas;
   }    
   
+  // private
+  //
+  // Creates 4 new canvas with XY and YZ views with all the useful
+  // details, like the axis ticks and the eta reference. This is done
+  // only using a 2d tool (thus: you can later zoom in and there is no
+  // need for Sections
+  //
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+  // @return a pointer to the new TCanvas
+  void Vizard::createSummaryCanvasNice(Analyzer& analyzer,
+				       Tracker& tracker,
+				       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+				       TCanvas *&XYCanvasEC) {
+
+    double maxZ;// = tracker.getMaxL();
+    double maxRho;// = tracker.getMaxR();
+
+    maxZ = max_length;// * 1.1;
+    maxRho = (outer_radius+volume_width);// * 1.1;
+
+    double scaleFactor = maxRho/600;
+
+    int rzCanvasX = int(maxZ/scaleFactor);
+    int rzCanvasY = int(maxRho/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+        
+    // YZView
+    std::set<linePosition>::iterator lineIt;
+    std::set<linePosition> rzLines;
+    std::set<linePosition> rphiBarrelLines;
+    std::set<linePosition> rphiEndcapLines;
+
+    LayerVector allLayers = tracker.getLayers();
+    LayerVector::iterator layIt;
+    for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
+      Layer* aLayer = *layIt;
+      ModuleVector* layerModules = aLayer->getModuleVector();
+      ModuleVector::iterator modIt;
+      for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	Module* aModule = *modIt;
+	if (aModule->getMeanPoint().Z()>0)
+	  linePlacer::setRZ(*aModule, rzLines);
+	int subDet = (aModule->getSubdetectorType());
+	if (subDet==Module::Barrel) {
+	  linePlacer::setRPhi(*aModule, rphiBarrelLines);
+	} else if (subDet==Module::Endcap) {
+	  linePlacer::setRPhi(*aModule, rphiEndcapLines);
+	}
+      }
+    }
+    RZCanvas->cd();
+    TH2D* myFrame = new TH2D("myFrameRZ", ";z [mm];r [mm]", 1, 0, maxZ, 1, 0, maxRho);
+    myFrame->GetXaxis()->SetTitleOffset(1.3);
+    myFrame->GetXaxis()->SetTickLength(-0.03);
+    myFrame->GetXaxis()->SetLabelOffset(0.03);
+    myFrame->GetXaxis()->SetNdivisions(10);
+
+    myFrame->GetYaxis()->SetTitleOffset(1.2);
+    myFrame->GetYaxis()->SetTickLength(-0.015);
+    myFrame->GetYaxis()->SetLabelOffset(0.015);
+    myFrame->GetYaxis()->SetNdivisions(10);
+    myFrame->Draw();
+    for (lineIt = rzLines.begin(); lineIt!=rzLines.end(); ++lineIt) lineIt->draw();
+    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize());
+    
+      
+    // XYView (barrel)
+    XYCanvas->cd();
+    myFrame = new TH2D("myFrameXYBarrel", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
+    myFrame->GetYaxis()->SetTitleOffset(1.3);
+    myFrame->Draw();
+    for (lineIt = rphiBarrelLines.begin(); lineIt!=rphiBarrelLines.end(); ++lineIt) lineIt->draw();
+        
+    // XYView (EndCap)
+    XYCanvasEC->cd();
+    myFrame = new TH2D("myFrameXYEndcap", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
+    myFrame->GetYaxis()->SetTitleOffset(1.3);
+    myFrame->Draw();
+    for (lineIt = rphiEndcapLines.begin(); lineIt!=rphiEndcapLines.end(); ++lineIt) lineIt->draw();
+
+  }    
+  
+
+
   /*
    * Returns always the same color for a given momentum index
    * @param iMomentum index of the momentum
@@ -3595,6 +3755,83 @@ namespace insur {
     myGraph.SetPoint(myGraph.GetN(), x0,0);
   }
 
+
+
+  // Auxiliary function to round to the nearest integer
+  // @param x number to round
+  // @return the nearest (odd) integer to x
+  double linePlacer::round(const double& x) { 
+    return (floor(x*fraction+.5))/fraction;
+  }
+
+  /*
+   * Sets the internal variables of moduleGraphicPosition to the
+   * RZ-view of the module
+   *
+   * @param aModule the reference module
+   */  
+  void linePlacer::setRZ(const Module& aModule, std::set<linePosition>& linePositions) {
+    linePosition aPosition;
+    for (int i=0; i<4; ++i) {
+      const XYZVector& aCorner = aModule.getCorner(i);
+      const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
+      aPosition.x[0] = round(aCorner.Z());
+      aPosition.y[0] = round(aCorner.Rho());
+      aPosition.x[1] = round(nextCorner.Z());
+      aPosition.y[1] = round(nextCorner.Rho());
+      if ((aPosition.x[0]!=aPosition.x[1])||(aPosition.y[0]!=aPosition.y[1])) {
+	aPosition.color = aModule.getColor();
+	linePositions.insert(aPosition);
+      }
+    }
+  }
+
+  /*
+   * Sets the internal variables of moduleGraphicPosition to the
+   * RPhi-view of the module
+   *
+   * @param aModule the reference module
+   */  
+  void linePlacer::setRPhi(const Module& aModule, std::set<linePosition>& linePositions) {
+    linePosition aPosition;
+    for (int i=0; i<4; ++i) {
+      const XYZVector& aCorner = aModule.getCorner(i);
+      const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
+      aPosition.x[0] = round(aCorner.X());
+      aPosition.y[0] = round(aCorner.Y());
+      aPosition.x[1] = round(nextCorner.X());
+      aPosition.y[1] = round(nextCorner.Y());
+      if ((aPosition.x[0]!=aPosition.x[1])||(aPosition.y[0]!=aPosition.y[1])) {
+	aPosition.color = aModule.getColor();
+	linePositions.insert(aPosition);
+      }
+    }
+  }
+
+  /*
+   * Helper function to order a set
+   *
+   * @param b the other position to compare to
+   */  
+  bool linePosition::operator <(const linePosition& b) const {
+    if (x[0]<b.x[0]) return true;
+    if (x[1]<b.x[1]) return true;
+    if (y[0]<b.y[0]) return true;
+    if (y[1]<b.y[1]) return true;
+    return false;
+  }
+
+  void linePosition::draw() const {
+    draw(2);
+  }
+
+  void linePosition::draw(Width_t lwidth) const {
+    TLine* aLine = new TLine(x[0], y[0], x[1], y[1]);
+    aLine->SetLineColor(color);
+    aLine->SetLineWidth(lwidth);
+    aLine->Draw();
+  }
+  
 
 }
 

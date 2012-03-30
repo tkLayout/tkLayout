@@ -1822,12 +1822,14 @@ double EndcapLayer::buildRing(double minRadius,
     addMessage(tempString, INFO);
 
     // Additional rotation to align the module edges
-    double alignmentRotation = 0;
-    if (alignEdges) {
-      if ((nOpt/phiSegments)%2==0) {
-	alignmentRotation = 0.5;
-      }
-    }
+    double alignmentRotation;
+    if (alignEdges) alignmentRotation = 0.5;
+    else alignmentRotation = 0;
+    //if (alignEdges) {
+    //  if ((nOpt/phiSegments)%2==0) {
+    //alignmentRotation = 0.5;
+    // }
+    //}
     
     double goodAlpha;
     goodAlpha = 2*M_PI/double(nOpt);
@@ -1844,7 +1846,8 @@ double EndcapLayer::buildRing(double minRadius,
     //   std::cout << "diskShift:  " << diskZ << std::endl
     // 	    << "petalShift: " << smallDelta << std::endl
     // 	    << "ringShift:  " << bigDelta << std::endl;
-    
+
+    bool YZSectionTaken = false;
     for (int i=0; i<nOpt; i++) {
         ringParity = ((i%2)*2)-1;
         if (wedges) {
@@ -1852,17 +1855,22 @@ double EndcapLayer::buildRing(double minRadius,
         } else {
             myModule = new EndcapModule(*sampleModule, minRadius);
         }
-        myModule->rotatePhi(2.*M_PI*(i+alignmentRotation)/double(nOpt));
+        myModule->rotatePhi(M_PI/2+2.*M_PI*((i+alignmentRotation)/double(nOpt)));
         XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
         myModule->translate(shift);
-        if (i==0) myModule->setSection(YZSection);
+
+	// Find the correct module for the YZ section
+	double phase = double(i)/nOpt;
+	bool inYZ = ((phase>=0.75)&&(!YZSectionTaken));
+	//std::cout << "Phase = " << phase << " , inYZ = "  << inYZ << std::endl;
+	if (inYZ) YZSectionTaken = true;
+	
+        if (inYZ) myModule->setSection(YZSection);
         if (sectioned == NoSection) {
             moduleSet_.push_back(myModule);
         } else {
             if (sectioned == YZSection) {
-                if (i==0) {
-                    moduleSet_.push_back(myModule);
-                }
+	      if (inYZ) moduleSet_.push_back(myModule);
             }
         }
     }
@@ -1926,7 +1934,7 @@ double EndcapLayer::getMaxModuleThickness() {
 // @param x number to round
 // @param odd if true rounds to the nearest odd natural number
 // (integer) instead of just the nearest integer
-// @result the nearest (odd) integer to x
+// @return the nearest (odd) integer to x
 int Layer::round(const double& x, const bool& odd) {
   if (!odd) return int(floor(x+.5));
   else return round((x-1)/2, false)*2+1;

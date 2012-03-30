@@ -183,7 +183,7 @@ protected:
   double getStereoRotation() { return stereorot_; };
 
   void setColor(const Color_t newColor) {color_ = newColor;}
-  Color_t getColor() {return color_;}
+  Color_t getColor() const {return color_;}
 
   void resetNHits() { nHits_ = defaultNHits_ ; };
   int getNHits() { return nHits_ ;};
@@ -199,7 +199,7 @@ protected:
   double getDiameter() {return waferDiameter_; };
   double getThickness() { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
   double getModuleThickness() { return moduleThickness_; };
-  XYZVector getCorner(int index) { return corner_[index]; };
+  const XYZVector& getCorner(int index) const { return corner_[index]; };
 
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
