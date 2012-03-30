@@ -74,6 +74,9 @@ public:
   // Other constants
   enum {InvalidRadius = -1 }; // It needs to be negative
 
+protected:
+  int round(const double& x, const bool& odd);
+
 };
 
 
@@ -267,10 +270,11 @@ public:
 		       double diskZ, 
 		       double overlap, 
 		       double zError,
-		       int base, 
+		       int phiSegments, 
+		       bool oddSegments, bool alignEdges,
 		       std::map<int, EndcapModule*> sampleModule, 
 		       std::map<int, int> ringDirectives, 
-		       int diskParity = -1,
+		       int diskParity,
 		       int sectioned = NoSection);
 
   double buildRing(double minRadius,
@@ -278,7 +282,8 @@ public:
 		   double bigDelta, 
 		   double diskZ, 
 		   double overlap, 
-		   int base,
+		   int phiSegments,
+		   bool oddSegments, bool alignEdges,
 		   int nearDirection, 
 		   EndcapModule* sampleModule,
 		   double maxRadius = -1,
@@ -295,6 +300,7 @@ public:
   double getAverageZ() {return averageZ_;};
   
   double getMaxModuleThickness();
+
 };
 
 

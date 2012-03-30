@@ -638,35 +638,25 @@ double Tracker::getMaxBarrelZ(int direction) {
     return maxZ;
 }
 
-// TODO: remove this
-void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-        EndcapModule* sampleModule, int diskParity, int sectioned /* = Layer::NoSection */ ) {
-  std::map<int, EndcapModule*> aMap;
-  aMap[0] = sampleModule;
-  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius, aMap, DEFAULTENDCAPNAME, diskParity,  sectioned);
-}
-
 void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
 				std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+				bool oddSegments, bool alignEdges,
 				int sectioned /* = Layer::NoSection */ ) {
     
   double minTheta = 2*atan(exp(-1*maxEta));
   double minRadius = minZ * tan(minTheta);
   
-    buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
-		 sampleModule, endcapName, diskParity, sectioned );
+  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
+	       sampleModule, endcapName, diskParity, oddSegments, alignEdges, sectioned );
     
 }
 
 
 void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
 			   std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+			   bool oddSegments, bool alignEdges,
 			   int sectioned /* = Layer::NoSection */ ) {
     
-    // EndcapModule* sampleModule = new EndcapModule(*genericSampleModule);
-
-       
- 
     maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
     maxL_=(maxZ>maxL_)?maxZ:maxL_;
     
@@ -680,13 +670,14 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
     EndcapLayer* anotherDisk;
     
     defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
-            bigDelta_, (minZ+maxZ)/2, overlap_,
-            zError_+(maxZ-minZ)/2,
-            phiSegments_, // Base
-            sampleModule,
-            ringDirectives_,
-            diskParity,
-            sectioned );
+				  bigDelta_, (minZ+maxZ)/2, overlap_,
+				  zError_+(maxZ-minZ)/2,
+				  phiSegments_, // Base
+				  oddSegments, alignEdges,
+				  sampleModule,
+				  ringDirectives_,
+				  diskParity,
+				  sectioned );
     
     
     std::ostringstream layerName;

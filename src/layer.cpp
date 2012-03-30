@@ -1512,10 +1512,11 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 				  double diskZ,
 				  double overlap,
 				  double zError,
-				  int base,
+				  int phiSegments,
+				  bool oddSegments, bool alignEdges,
 				  std::map<int, EndcapModule*> sampleModules,
 				  std::map<int, int> ringDirectives,
-				  int diskParity, /*=-1*/
+				  int diskParity,
 				  int sectioned /*=NoSection*/) {
     
     averageZ_=diskZ;
@@ -1545,9 +1546,9 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 	    if (sampleModule==NULL) sampleModule = sampleModules[0];
 	    if (sampleModule==NULL) {
 	        std::cerr << "ERROR: a module prototype is not available for ring " << nRing
-		              << " i will not populate this ring" << std::endl;
-	    // TODO (important!): put a proper error handling here
-	    // For the moment it will just segfault (hi hi hi)
+			  << " i will not populate this ring" << std::endl;
+		// TODO (important!): put a proper error handling here
+		// For the moment it will just segfault (hi hi hi)
 	    }
         tempString.str(""); tempString  << "Ring number " << nRing;
         addMessage(tempString, DEBUG);
@@ -1577,7 +1578,8 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 			    ringParity*bigDelta,
 			    diskZ,
 			    overlap,
-			    base,
+			    phiSegments,
+			    oddSegments, alignEdges,
 			    nearDirection,
 			    sampleModule,
 			    maxRadius,
@@ -1689,7 +1691,8 @@ double EndcapLayer::buildRing(double minRadius,
         double bigDelta,
         double diskZ,
         double overlap,
-        int base,
+        int phiSegments,
+        bool oddSegments, bool alignEdges,
         int nearDirection,
         EndcapModule* sampleModule,
         double maxRadius /* = -1 */,
@@ -1792,18 +1795,39 @@ double EndcapLayer::buildRing(double minRadius,
     int nOpt;
     
     if (wedges) {
-        // We round to the nearest multiple of base
-        nOpt = int(floor((n/double(base))+.5)) * base;
-	tempString.str(""); tempString << "I would use " << nOpt << " modules (optimized), ";
-	nOpt += (addModules*base);
-        tempString << "i will use " << nOpt << " modules (user request)";
+      // We round to the nearest multiple of phiSegments
+      //nOpt = int(floor((n/double(phiSegments))+.5)) * phiSegments;
+      nOpt = round(n/double(phiSegments), oddSegments) * phiSegments;
+      tempString.str(""); tempString << "I would use " << nOpt << " modules (optimized), ";
+      nOpt += (addModules*phiSegments);
+      tempString << "i will use " << nOpt << " modules (user request)";
     } else {
-        // For square modules we can only increase the number of sensors to
-        // cover the whole area
-        nOpt = int(ceil(n/double(base))) * base;
-        tempString.str(""); tempString << "I will use " << nOpt << " modules";
+      // For square modules we can only increase the number of sensors to
+      // cover the whole area
+      nOpt = int(ceil(n/double(phiSegments))) * phiSegments;
+      tempString.str("");
+      if (oddSegments) {
+	int nInSegment = nOpt/phiSegments;
+	if ((nInSegment%2)==0) { // Number of modules in a segment is not zero (as it was required)
+	  nInSegment++; // The nearest possible even number
+	  tempString << "Number of modules in this ring was increased from " << nOpt;
+	  nOpt = nInSegment * phiSegments;
+	  tempString << " to " << nOpt << " to comply with user request of oddSegments.";
+	  addMessage(tempString, INFO);
+	}
+      }
+      tempString.str("");
+      tempString << "I will use " << nOpt << " modules";
     }
     addMessage(tempString, INFO);
+
+    // Additional rotation to align the module edges
+    double alignmentRotation = 0;
+    if (alignEdges) {
+      if ((nOpt/phiSegments)%2==0) {
+	alignmentRotation = 0.5;
+      }
+    }
     
     double goodAlpha;
     goodAlpha = 2*M_PI/double(nOpt);
@@ -1828,7 +1852,7 @@ double EndcapLayer::buildRing(double minRadius,
         } else {
             myModule = new EndcapModule(*sampleModule, minRadius);
         }
-        myModule->rotatePhi(2.*M_PI*i/double(nOpt));
+        myModule->rotatePhi(2.*M_PI*(i+alignmentRotation)/double(nOpt));
         XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
         myModule->translate(shift);
         if (i==0) myModule->setSection(YZSection);
@@ -1896,4 +1920,14 @@ double EndcapLayer::getMaxModuleThickness() {
         if ((*iter)->getModuleThickness() > res) res = (*iter)->getModuleThickness();
     }
     return res;
+}
+
+// Rounds to the nearest (odd) integer
+// @param x number to round
+// @param odd if true rounds to the nearest odd natural number
+// (integer) instead of just the nearest integer
+// @result the nearest (odd) integer to x
+int Layer::round(const double& x, const bool& odd) {
+  if (!odd) return int(floor(x+.5));
+  else return round((x-1)/2, false)*2+1;
 }

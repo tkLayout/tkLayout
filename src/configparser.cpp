@@ -507,6 +507,8 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     std::map<int, bool> explicitSize;
     std::map<int, bool> specialRing;
     int phiSegments = 4;
+    bool alignEdges = false;
+    bool oddSegments = false;
 
     // Ring 0 represents the default
     shapeType[0] = Module::Wedge;
@@ -618,6 +620,22 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
                 myTracker_->setBigDelta(atof(parameterValue.c_str()));
             } else if (parameterName=="phiSegments") {
                 phiSegments=atoi(parameterValue.c_str());
+            } else if (parameterName=="alignEdges") {
+                if (parameterValue=="true") alignEdges = true;
+                else if (parameterValue=="false") alignEdges = false;
+                else {
+                  cerr << "Error in alignEdges. Boolean value (true|false) expected. Value '"
+		       << parameterValue << "' was found" << std::endl;
+                  throw parsingException();
+                }
+            } else if (parameterName=="oddSegments") {
+                if (parameterValue=="true") oddSegments = true;
+                else if (parameterValue=="false") oddSegments = false;
+                else {
+                  cerr << "Error in oddSegments. Boolean value (true|false) expected. Value '"
+		       << parameterValue << "' was found" << std::endl;
+                  throw parsingException();
+                }
             } else if (parameterName=="innerEta") {
                 innerEta=atof(parameterValue.c_str());
             } else if (parameterName=="innerRadius") {
@@ -721,7 +739,16 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
             // cout << "\t" << parameterName << " = " << parameterValue << ";" << endl; // debug
         }
     }
-    
+   
+    // Check the consistency in oddSegments and phiSegments
+    if (((phiSegments%2)!=0)&&(oddSegments)) {
+      cerr << "ERROR: inconsistent requirements in endcap \"" << myName
+	   << "\": oddSegments was set to true and the number of segments was"
+	   << " set to " << oddSegments << ". This makes it possible to have an even number"
+	   << " of modules in a ring, so the first and last one could clash." << endl;
+      throw parsingException();
+    }
+ 
     // Chose the proper endcap minimum Z according to the parsed parameters
     if ((innerEta!=0)&&(rhoIn!=0)) {
         cerr << "ERROR: Parsing endcap \"" << myName
@@ -827,6 +854,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 				 sampleModule, // TODO: give the full map of sample modules
 				 myName,
 				 diskParity,
+				 oddSegments, alignEdges,
 				 Layer::NoSection);
       } else {
 	myTracker_->buildEndcapsAtEta(nDisks,     // nDisks (per side)
@@ -837,6 +865,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
 				      sampleModule, // TODO: give the full map of sample modules
 				      myName,
 				      diskParity,
+				      oddSegments, alignEdges,
 				      Layer::NoSection);
       }
       
@@ -1083,7 +1112,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         sampleEndcapModule[0]->setResolutionRphi();
         sampleEndcapModule[0]->setResolutionY();
         myTracker_->buildEndcaps(nDisks, myTracker_->getMaxBarrelZ(+1) + barrelToEndcap,
-                maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, Layer::NoSection);
+				 maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, false, false, Layer::NoSection);
         delete sampleEndcapModule[0];
     }
     
