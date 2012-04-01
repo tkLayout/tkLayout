@@ -1792,7 +1792,8 @@ namespace insur {
         TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
         //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-	createSummaryCanvasNice(analyzer, tracker, RZCanvas, XYCanvas, XYCanvasEC);
+	createSummaryCanvasNice(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+	// createColorPlotCanvas(tracker, 1, RZCanvas);
     
         
         //TVirtualPad* myPad;
@@ -1845,7 +1846,7 @@ namespace insur {
 
     // Eta profile big plot
         myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
-    drawEtaProfiles(*myCanvas, analyzer);
+	drawEtaProfiles(*myCanvas, analyzer);
         myImage = new RootWImage(myCanvas, 600, 600);
         myImage->setComment("Hit coverage in eta");
         myContent->addItem(myImage);
@@ -3315,9 +3316,8 @@ namespace insur {
   // @param maxL maximum tracker length in z
   // @param maxR maximum tracker radius in rho
   void Vizard::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
-			    Style_t labelFont, Float_t labelSize) {
-    double etaStep=.2;
-    double etaMax = 2.1;
+			    Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) {
+
     // Add the eta ticks
     double theta;
     double startR = maxR + tickDistance;
@@ -3333,51 +3333,50 @@ namespace insur {
 
     double thetaLimit = atan(startR/startL);
     std::vector<double> etaSteps;
-    for (eta=0; eta<etaMax+etaStep; eta+=etaStep) etaSteps.push_back(eta);
-    etaSteps.push_back(2.5);
+    for (eta=0; eta<=etaMax; eta+=etaStep) etaSteps.push_back(eta);
+    if (etaLongLine>0) etaSteps.push_back(2.5);
 
     for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
       eta=*it;
       theta = 2 * atan(exp(-eta));
 
       if (theta>thetaLimit) {
-	aTick.x[0] = startR / tan(theta);
-	aTick.y[0] = startR;
-	aTick.x[1] = endR / tan(theta);
-	aTick.y[1] = endR;
+	aTick.setCoordinates(startR / tan(theta), startR, endR / tan(theta),  endR);
       } else {
-	aTick.x[0] = startL;
-	aTick.y[0] = startL * tan(theta);
-	aTick.x[1] = endL;
-	aTick.y[1] = endL * tan(theta);	
+	aTick.setCoordinates(startL, startL * tan(theta), endL, endL * tan(theta));
       }
-      if (eta==2.5) {
+      if ((eta==etaLongLine)&&(etaLongLine!=0)) {
 	linePosition anotherTick = aTick;
 	anotherTick.color = color_hard_grid;
-	anotherTick.x[0] = 0; anotherTick.y[0] = 0;
+	anotherTick.setPointCoordinates(0, 0., 0.);
 	anotherTick.draw(1);
 	labelSize*=2;
       }
       aTick.color = kBlack;
       aTick.draw(1);
 
-      textX = (endR+textDistance) / tan(theta);
-      textY = (endL + textDistance) * tan(theta);
-      if (textX>endL+textDistance) textX = endL+textDistance;
-      if (textY>endR+textDistance) textY = endR+textDistance;
+      if (labelSize!=0) {
+	textX = (endR+textDistance) / tan(theta);
+	textY = (endL + textDistance) * tan(theta);
+	if (textX>endL+textDistance) textX = endL+textDistance;
+	if (textY>endR+textDistance) textY = endR+textDistance;
 
-      sprintf(labelChar, "%.01f", eta);
-      aLabel = new TText(textX, textY, labelChar);
-      aLabel->SetTextAlign(21);
-      aLabel->SetTextSize(labelSize);
+	sprintf(labelChar, "%.01f", eta);
+	aLabel = new TText(textX, textY, labelChar);
+	aLabel->SetTextAlign(21);
+	aLabel->SetTextSize(labelSize);
+	aLabel->SetTextFont(labelFont);
+	aLabel->Draw();
+      }
+    }
+
+    if (labelSize>0) {
+      textY-=3*tickLength;
+      aLabel = new TLatex(textX, textY, "#eta");
       aLabel->SetTextFont(labelFont);
+      aLabel->SetTextSize(labelSize);
       aLabel->Draw();
     }
-    textY-=3*tickLength;
-    aLabel = new TLatex(textX, textY, "#eta");
-    aLabel->SetTextFont(labelFont);
-    aLabel->SetTextSize(labelSize);
-    aLabel->Draw();
   }
     
     // private
@@ -3642,7 +3641,7 @@ namespace insur {
   
   // private
   //
-  // Creates 4 new canvas with XY and YZ views with all the useful
+  // Creates 4 new canvas with XY and RZ views with all the useful
   // details, like the axis ticks and the eta reference. This is done
   // only using a 2d tool (thus: you can later zoom in and there is no
   // need for Sections
@@ -3651,8 +3650,7 @@ namespace insur {
   // @param maxRho maximum tracker's Rho coordinate to be shown
   // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
   // @return a pointer to the new TCanvas
-  void Vizard::createSummaryCanvasNice(Analyzer& analyzer,
-				       Tracker& tracker,
+  void Vizard::createSummaryCanvasNice(Tracker& tracker,
 				       TCanvas *&RZCanvas, TCanvas *&XYCanvas,
 				       TCanvas *&XYCanvasEC) {
 
@@ -3671,11 +3669,14 @@ namespace insur {
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
     XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
         
-    // YZView
-    std::set<linePosition>::iterator lineIt;
-    std::set<linePosition> rzLines;
-    std::set<linePosition> rphiBarrelLines;
-    std::set<linePosition> rphiEndcapLines;
+    // RZView
+    //std::set<linePosition>::iterator lineIt;
+    //std::set<linePosition> rzLines;
+    //std::set<linePosition> rphiBarrelLines;
+    //std::set<linePosition> rphiEndcapLines;
+    linePlacer rzLinePlacer;
+    linePlacer rphiBarrelLinePlacer;
+    linePlacer rphiEndcapLinePlacer;
 
     LayerVector allLayers = tracker.getLayers();
     LayerVector::iterator layIt;
@@ -3686,12 +3687,12 @@ namespace insur {
       for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
 	Module* aModule = *modIt;
 	if (aModule->getMeanPoint().Z()>0)
-	  linePlacer::setRZ(*aModule, rzLines);
+	  rzLinePlacer.setRZ(*aModule);
 	int subDet = (aModule->getSubdetectorType());
 	if (subDet==Module::Barrel) {
-	  linePlacer::setRPhi(*aModule, rphiBarrelLines);
+	  rphiBarrelLinePlacer.setRPhi(*aModule);
 	} else if (subDet==Module::Endcap) {
-	  linePlacer::setRPhi(*aModule, rphiEndcapLines);
+	  rphiEndcapLinePlacer.setRPhi(*aModule);
 	}
       }
     }
@@ -3707,8 +3708,8 @@ namespace insur {
     myFrame->GetYaxis()->SetLabelOffset(0.015);
     myFrame->GetYaxis()->SetNdivisions(10);
     myFrame->Draw();
-    for (lineIt = rzLines.begin(); lineIt!=rzLines.end(); ++lineIt) lineIt->draw();
-    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize());
+    rzLinePlacer.drawLines();
+    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
     
       
     // XYView (barrel)
@@ -3716,18 +3717,89 @@ namespace insur {
     myFrame = new TH2D("myFrameXYBarrel", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
     myFrame->GetYaxis()->SetTitleOffset(1.3);
     myFrame->Draw();
-    for (lineIt = rphiBarrelLines.begin(); lineIt!=rphiBarrelLines.end(); ++lineIt) lineIt->draw();
+    rphiBarrelLinePlacer.drawLines();
         
     // XYView (EndCap)
     XYCanvasEC->cd();
     myFrame = new TH2D("myFrameXYEndcap", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
     myFrame->GetYaxis()->SetTitleOffset(1.3);
     myFrame->Draw();
-    for (lineIt = rphiEndcapLines.begin(); lineIt!=rphiEndcapLines.end(); ++lineIt) lineIt->draw();
+    rphiEndcapLinePlacer.drawLines();
 
   }    
   
 
+  // private
+  //
+  // Creates one canvas with the RZ view. The modules are colored according
+  // to a parameter of choice
+  //
+  // @param maxZ maximum tracker's Z coordinate to be shown
+  // @param maxRho maximum tracker's Rho coordinate to be shown
+  // @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
+  // @return a pointer to the new TCanvas
+  void Vizard::createColorPlotCanvas(Tracker& tracker,
+                                     int plotVariable,
+				     TCanvas *&RZCanvas) {
+
+    double maxZ;
+    double maxRho;
+
+    maxZ = max_length;
+    maxRho = (outer_radius+volume_width);
+
+    double scaleFactor = maxRho/600;
+
+    int rzCanvasX = int(maxZ/scaleFactor);
+    int rzCanvasY = int(maxRho/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+        
+
+    // RZView
+    linePlacer rzLinePlacer;
+    //linePlacer rphiBarrelLinePlacer;
+    //linePlacer rphiEndcapLinePlacer;
+
+    LayerVector allLayers = tracker.getLayers();
+    LayerVector::iterator layIt;
+    for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
+      Layer* aLayer = *layIt;
+      ModuleVector* layerModules = aLayer->getModuleVector();
+      ModuleVector::iterator modIt;
+      for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	Module* aModule = *modIt;
+	if (aModule->getMeanPoint().Z()>0)
+	  rzLinePlacer.setRZValue(*aModule, aModule->getMeanPoint().Z()); // test fill with an evident value
+      }
+    }
+    RZCanvas->cd();
+    TH2D* myFrame = new TH2D("myFrameRZ", ";z [mm];r [mm]", 1, 0, maxZ, 1, 0, maxRho);
+    //    myFrame->SetX2NDC(.8);
+    myFrame->Fill(1, 1, 0);
+    myFrame->GetXaxis()->SetTitleOffset(1.3);
+    myFrame->GetXaxis()->SetTickLength(-0.03);
+    myFrame->GetXaxis()->SetLabelOffset(0.03);
+    myFrame->GetXaxis()->SetNdivisions(10);
+
+    myFrame->GetYaxis()->SetTitleOffset(1.2);
+    myFrame->GetYaxis()->SetTickLength(-0.015);
+    myFrame->GetYaxis()->SetLabelOffset(0.015);
+    myFrame->GetYaxis()->SetNdivisions(10);
+    rzLinePlacer.setMinMax(*myFrame);
+    myFrame->Draw("colz");
+
+    // This is essential in order to have the palette later on
+    RZCanvas->Update();
+
+    TPaletteAxis *palette = (TPaletteAxis*)myFrame->GetListOfFunctions()->FindObject("palette");
+    rzLinePlacer.setPalette(palette);
+
+    myFrame->Draw("AXIS colz");
+    rzLinePlacer.drawLineValues();
+    drawEtaTicks(maxZ, maxRho, 0, -50, 0, 0, 0, .8, 2.41, 0);
+    
+  }
 
   /*
    * Returns always the same color for a given momentum index
@@ -3760,9 +3832,23 @@ namespace insur {
   // Auxiliary function to round to the nearest integer
   // @param x number to round
   // @return the nearest (odd) integer to x
-  double linePlacer::round(const double& x) { 
-    return (floor(x*fraction+.5))/fraction;
+  int linePosition::round(const double& x) { 
+    return int(floor(x*fraction+.5));
   }
+  
+  void linePosition::setPointCoordinates(const int& iPoint, const double& newx, const double& newy) {
+    if ((iPoint<0)||(iPoint>1)) return;
+    x[iPoint]=newx;
+    y[iPoint]=newy;
+  }
+
+  void linePosition::setCoordinates(const double& x0, const double& y0, const double& x1, const double& y1) {
+    x[0] = round(x0);
+    y[0] = round(y0);
+    x[1] = round(x1);
+    y[1] = round(y1);
+  }
+
 
   /*
    * Sets the internal variables of moduleGraphicPosition to the
@@ -3770,16 +3856,16 @@ namespace insur {
    *
    * @param aModule the reference module
    */  
-  void linePlacer::setRZ(const Module& aModule, std::set<linePosition>& linePositions) {
+  void linePlacer::setRZ(const Module& aModule) {
     linePosition aPosition;
     for (int i=0; i<4; ++i) {
       const XYZVector& aCorner = aModule.getCorner(i);
       const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
-      aPosition.x[0] = round(aCorner.Z());
-      aPosition.y[0] = round(aCorner.Rho());
-      aPosition.x[1] = round(nextCorner.Z());
-      aPosition.y[1] = round(nextCorner.Rho());
-      if ((aPosition.x[0]!=aPosition.x[1])||(aPosition.y[0]!=aPosition.y[1])) {
+      aPosition.setCoordinates(aCorner.Z(),
+			       aCorner.Rho(),
+			       nextCorner.Z(),
+			       nextCorner.Rho());
+      if (!aPosition.isTrivial()) {
 	aPosition.color = aModule.getColor();
 	linePositions.insert(aPosition);
       }
@@ -3792,46 +3878,173 @@ namespace insur {
    *
    * @param aModule the reference module
    */  
-  void linePlacer::setRPhi(const Module& aModule, std::set<linePosition>& linePositions) {
+  void linePlacer::setRPhi(const Module& aModule) {
     linePosition aPosition;
     for (int i=0; i<4; ++i) {
       const XYZVector& aCorner = aModule.getCorner(i);
       const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
-      aPosition.x[0] = round(aCorner.X());
-      aPosition.y[0] = round(aCorner.Y());
-      aPosition.x[1] = round(nextCorner.X());
-      aPosition.y[1] = round(nextCorner.Y());
-      if ((aPosition.x[0]!=aPosition.x[1])||(aPosition.y[0]!=aPosition.y[1])) {
+      aPosition.setCoordinates(aCorner.X(),
+			       aCorner.Y(),
+			       nextCorner.X(),
+			       nextCorner.Y());
+      if (!aPosition.isTrivial()) {
 	aPosition.color = aModule.getColor();
 	linePositions.insert(aPosition);
       }
     }
   }
 
+
+  /*
+   * Sets the internal variables of moduleGraphicPosition to the
+   * RZ-view of the module
+   *
+   * @param aModule the reference module
+   * @param value the value to be averaged
+   */  
+  void linePlacer::setRZValue(const Module& aModule, const double& value) {
+    linePosition aPosition;
+    for (int i=0; i<4; ++i) {
+      const XYZVector& aCorner = aModule.getCorner(i);
+      const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
+      aPosition.setCoordinates(aCorner.Z(),
+			       aCorner.Rho(),
+			       nextCorner.Z(),
+			       nextCorner.Rho());
+      if (!aPosition.isTrivial()) {
+	aPosition.color = 1;
+	moduleValue& mV = lineValues[aPosition];
+	mV.fill(value);
+      }
+    }
+  }
+
+  bool linePosition::isTrivial() {
+    return ((x[0]==x[1])&&(y[0]==y[1]));
+  }
+
+  /*
+   * Sets the internal variables of moduleGraphicPosition to the
+   * RPhi-view of the module
+   *
+   * @param aModule the reference module
+   * @param value the value to be averaged
+   */  
+  void linePlacer::setRPhiValue(const Module& aModule, const double& value) {
+    linePosition aPosition;
+    for (int i=0; i<4; ++i) {
+      const XYZVector& aCorner = aModule.getCorner(i);
+      const XYZVector& nextCorner = aModule.getCorner((i+1)%4);
+      aPosition.setCoordinates(aCorner.X(), aCorner.Y(), nextCorner.X(), nextCorner.Y());
+      if (!aPosition.isTrivial()) {
+	aPosition.color = 1;
+	moduleValue& mV = lineValues[aPosition];
+	mV.fill(value);
+      }
+    }
+  }
+
+  void linePlacer::drawLines() {
+    drawLines(default_linewidth);
+  }
+
+  void linePlacer::drawLines(Width_t lineWidth) {
+    std::set<linePosition>::iterator lineIt;
+    for (lineIt = linePositions.begin(); lineIt!=linePositions.end(); ++lineIt) lineIt->draw(lineWidth);
+  }
+
+  void linePlacer::drawLineValues() {
+    drawLineValues(default_linewidth);
+  }
+
+  void linePlacer::drawLineValues(Width_t lineWidth) {
+    if (myPalette==NULL) {
+      std::cerr << "ERROR: drawValues called with no palette assigned" << std::endl;
+      return;
+    }
+
+    std::map<linePosition, moduleValue>::iterator lineIt;
+    for (lineIt = lineValues.begin(); lineIt!=lineValues.end(); ++lineIt) {
+      linePosition myPosition = lineIt->first;
+      moduleValue& mV = lineIt->second;
+      double value = mV.getAverage();
+      myPosition.color = myPalette->GetValueColor(value);
+      myPosition.draw(lineWidth);
+    }
+  }
+
+  void linePlacer::setMinMax(TH2D& myFrame) {
+    std::map<linePosition, moduleValue>::iterator lineIt;
+    double minValue, maxValue, thisValue;
+    for (lineIt = lineValues.begin(); lineIt!=lineValues.end(); ++lineIt) {
+      thisValue = lineIt->second.getAverage();
+      if (lineIt==lineValues.begin()){
+	minValue = thisValue;
+	maxValue = thisValue;
+      } else {
+	if (thisValue<minValue)minValue=thisValue;
+	if (thisValue>maxValue)maxValue=thisValue;
+      }
+    }  
+    myFrame.SetMinimum(minValue * 1.001 - maxValue * 0.001);
+    myFrame.SetMaximum(maxValue * 1.001 - minValue * 0.001);
+  }
+
+  moduleValue::moduleValue() {
+    sumValues = 0;
+    nValues = 0;
+  }
+
+  void moduleValue::fill(const double& value) {
+    sumValues += value;
+    nValues++;
+  }
+
+  double moduleValue::getAverage() const {
+    return sumValues/nValues;
+  }
+  
   /*
    * Helper function to order a set
    *
    * @param b the other position to compare to
    */  
   bool linePosition::operator <(const linePosition& b) const {
-    if (x[0]<b.x[0]) return true;
-    if (x[1]<b.x[1]) return true;
-    if (y[0]<b.y[0]) return true;
-    if (y[1]<b.y[1]) return true;
+    for (int i=0; i<2; ++i) {
+      if (x[i]<b.x[i]) return true; // my x[i] is smaller
+      if (b.x[i]<x[i]) return false; // his x[i] is smaller
+      // our x[i] are equal
+      if (y[i]<b.y[i]) return true; // my y[i] is smaller
+      if (b.y[i]<y[i]) return false; // his y[i] is smaller
+      // our y[i] are equal
+    }
     return false;
   }
 
-  void linePosition::draw() const {
-    draw(2);
-  }
+  // assignment operator from another XString
+  linePosition& linePosition::operator=(const linePosition& lp)
+  {
+    x[0] = lp.x[0];
+    x[0] = lp.x[1];
+    y[0] = lp.x[0];
+    y[1] = lp.y[1];
+    color = lp.color;
+    return *this;
+  };
+
+
 
   void linePosition::draw(Width_t lwidth) const {
-    TLine* aLine = new TLine(x[0], y[0], x[1], y[1]);
+    TLine* aLine = new TLine(x[0]/fraction, y[0]/fraction, x[1]/fraction, y[1]/fraction);
     aLine->SetLineColor(color);
     aLine->SetLineWidth(lwidth);
     aLine->Draw();
   }
   
+  linePlacer::linePlacer() {
+    myPalette = NULL;
+  }
+
+  
 
 }
-

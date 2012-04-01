@@ -7,6 +7,7 @@ DEFINES+=-DDEBUG_PERFORMANCE
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
+ROOTLIBFLAGS+=-lHistPainter
 BOOSTLIBFLAGS=-L/usr/lib64/boost141 -L/usr/lib/boost141 -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`

@@ -33,6 +33,7 @@
 #include <TLegend.h>
 #include <TGraph.h>
 #include <TGraphErrors.h>
+#include <TPaletteAxis.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
@@ -184,9 +185,12 @@ namespace insur {
         double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
 	void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
-	void createSummaryCanvasNice(Analyzer& analyzer, Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createSummaryCanvasNice(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+	void createColorPlotCanvas(Tracker& tracker, int plotVariable, TCanvas *&RZCanvas);
+
 	enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
-	void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize);
+	void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,
+			  double etaStep, double etaMax, double etaLongLine);
 	void drawTicks(TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
 	bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
@@ -243,13 +247,37 @@ namespace insur {
      * @brief a class to hold a the position and color of a line
      */
     class linePosition {
+    private:
+      int x[2];
+      int y[2];
+      static int round(const double& x);
     public:
-      double x[2];
-      double y[2];
+      // Member variables
+      // Approximate to the tenth of millimiter
+      static const double fraction=10;
       Color_t color;
+      // Member functions
       bool operator <(const linePosition& b) const;
-      void draw() const;
+      linePosition& operator=(const linePosition& lp);
       void draw(Width_t lwidth) const;
+      void setCoordinates(const double& x1, const double& y1, const double& x2, const double& y2);
+      void setPointCoordinates(const int& iPoint, const double& x, const double& y);
+      bool isTrivial();
+    };
+
+    /**
+     * @class moduleValue
+     *
+     * @brief a class to hold values for the modules to be drawn
+     */
+    class moduleValue {
+    private:
+      double nValues;
+      double sumValues;
+    public:
+      moduleValue();
+      void fill(const double& value);
+      double getAverage() const;
     };
 
     /**
@@ -260,12 +288,22 @@ namespace insur {
      */
     class linePlacer {
     private:
-      // Approximate to the tenth of millimiter
-      static const double fraction=10;
-      static double round(const double& x);
+      std::set<linePosition> linePositions;
+      std::map<linePosition, moduleValue> lineValues;
+      TPaletteAxis *myPalette;
+      static const Width_t default_linewidth = 2;
     public:
-      static void setRZ(const Module&, std::set<linePosition>&);
-      static void setRPhi(const Module&, std::set<linePosition>&);
+      linePlacer();
+      void setPalette(TPaletteAxis* newPalette) { myPalette = newPalette ; }
+      void setRZ(const Module&);
+      void setRPhi(const Module&);
+      void setRZValue(const Module&, const double& value);
+      void setRPhiValue(const Module&, const double& value);
+      void drawLines();
+      void drawLineValues();
+      void drawLines(Width_t lwidth);
+      void drawLineValues(Width_t lwidth);
+      void setMinMax(TH2D& myFrame);
     };
 
     

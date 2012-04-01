@@ -507,7 +507,7 @@ bool configParser::parseEndcap(string myName, istream &inStream) {
     std::map<int, bool> explicitSize;
     std::map<int, bool> specialRing;
     int phiSegments = 4;
-    bool alignEdges = false;
+    bool alignEdges = true;
     bool oddSegments = false;
 
     // Ring 0 represents the default
