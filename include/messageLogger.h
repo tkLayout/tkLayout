@@ -7,25 +7,26 @@
 #include <string>
 #include <sstream>
 
+#define logERROR(message) MessageLogger::instance()->addMessage(message, MessageLogger::ERROR)
+#define logWARNING(message) MessageLogger::instance()->addMessage(message, MessageLogger::WARNING)
+#define logINFO(message) MessageLogger::instance()->addMessage(message, MessageLogger::INFO)
+#define logDEBUG(message) MessageLogger::instance()->addMessage(message, MessageLogger::DEBUG)
+
 using namespace std;
 
 class LogMessage {
  public:
   LogMessage() {};
   ~LogMessage() {};
-  string sender;
   int level;
   string message;
 };
 
 class MessageLogger {
  public:
-  ~MessageLogger();
-  MessageLogger();
-  MessageLogger(string newObjectName);
+  static MessageLogger* instance();
   bool addMessage(string message, int level=UNKNOWN);
   bool addMessage(ostringstream& message, int level=UNKNOWN);
-  //string getCompleteLog(int level);
   static string getLatestLog();
   static string getLatestLog(int level);
   // NumberOfLevels should always be the last here
@@ -33,13 +34,12 @@ class MessageLogger {
   static std::string shortLevelCode[];
   static string getLevelName(int level);
   static bool hasEmptyLog(int level);
-  string getObjectName() { return objectName; };
-  string setObjectName(string newObjectName) { return objectName=newObjectName; };
- protected:
-  ostringstream tempString;
  private:
-  string objectName;
-  //static bool wasModified[];
+  ~MessageLogger();
+  MessageLogger();
+  MessageLogger(MessageLogger const&){};
+  MessageLogger& operator=(MessageLogger const&){return *this;};
+  static MessageLogger* myInstance_;
   static std::vector<LogMessage> logMessageV;
   static int countInstances;
   static int messageCounter[];

@@ -23,7 +23,7 @@ Layer::~Layer() {
     moduleSet_.clear();
 }
 
-Layer::Layer() : MessageLogger("Layer") {
+Layer::Layer() {
     setDefaultParameters();
 }
 
@@ -176,7 +176,7 @@ BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) {
             aModule = new BarrelModule(*stdModule);
             moduleSet_.push_back(aModule);
         } else {
-	  addMessage("In BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) I found a non-barrel module in the source", ERROR);
+	  logERROR("In BarrelLayer::BarrelLayer(BarrelLayer& inputLayer) I found a non-barrel module in the source");
         }
     }
 }
@@ -209,7 +209,7 @@ int BarrelLayer::buildString(ModuleVector& thisModuleSet,
         double maxZ,
         BarrelModule* sampleModule) {
     
-    addMessage("buildString() with maxZ option is an obsolete function: no more mantained, you should not be using this function", ERROR);
+    logERROR("buildString() with maxZ option is an obsolete function: no more mantained, you should not be using this function");
     
     int parity;
     int nModules;
@@ -645,7 +645,7 @@ void BarrelLayer::buildStringPairRecursion(
         tempString.str("");
         tempString << "Balanced module placement in string at avg radius " << averageRadius << " didn't converge!! String badly skewed";
         tempString << "Unbalance is " << startZ << " mm";
-        addMessage(tempString.str(), WARNING);
+        logWARNING(tempString.str());
         return;
     }  
     // create Z lists and balance them
@@ -755,7 +755,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     n1 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, maxZ, sampleModule);
     n2 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, -1*maxZ, sampleModule);
     
-    if (n1!=n2) addMessage("Building an asymmetric layer. This should not happen", ERROR);
+    if (n1!=n2) logERROR("Building an asymmetric layer. This should not happen");
 }
 */
 
@@ -771,7 +771,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     n1 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, nModules, sampleModule);
     n2 = buildString(thisModuleSet, stringAverageRadius, smallDelta, zOverlap, safetyOrigin, -1*nModules, sampleModule);
     
-    if (n1!=n2) addMessage("Building an asymmetric layer. This should not happen", ERROR);
+    if (n1!=n2) logERROR("Building an asymmetric layer. This should not happen");
 }
 
 // Computes the optimal radius of the inner of two
@@ -945,11 +945,11 @@ void BarrelLayer::buildLayer(double averageRadius,
     
     tempString.str(""); tempString << "GoodRadius: " << goodRadius
 				   << ", nStrings:   " << nStrings;
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     
     
     if (nStrings%2!=0) {
-      addMessage("WARNING: you just asked for a layer with a number of strings not multiple of 2", WARNING);
+      logWARNING("You just asked for a layer with a number of strings not multiple of 2");
     }
     
     double stringPhiShift = 2*M_PI/double(nStrings);
@@ -1056,7 +1056,7 @@ void BarrelLayer::buildLayer(double averageRadius,
                     }
                 } else {
 		  // This should never happen
-		  addMessage("In building a string: found a non-barrel module", ERROR);
+		  logERROR("In building a string: found a non-barrel module");
                 }
             }
             //std::cerr << "done. The best is: " << rightAngle << std::endl; // debug
@@ -1167,21 +1167,21 @@ void BarrelLayer::neededModulesPlot(double smallDelta, // Half distance between 
         maxnOppd = (OppdOuter.second > OppdInner.second) ? OppdOuter.second : OppdInner.second ;
         
         if (SameOuter.second > SameInner.second) {
-	  addMessage("SameOuter is bigger than SameInner", DEBUG);
+	  logDEBUG("SameOuter is bigger than SameInner");
         }
         if (SameOuter.second < SameInner.second) {
-	  addMessage("SameInner is bigger than SameOuter", DEBUG);
+	  logDEBUG("SameInner is bigger than SameOuter");
         }
         
         if (OppdOuter.second > OppdInner.second) {
-	  addMessage("OppdOuter is bigger than OppdInner", DEBUG);
+	  logDEBUG("OppdOuter is bigger than OppdInner");
         }
         if (OppdOuter.second < OppdInner.second) {
-	  addMessage("OppdInner is bigger than OppdOuter", DEBUG);
+	  logDEBUG("OppdInner is bigger than OppdOuter");
         }
         
-        if (maxnSame>maxnOppd) addMessage("Same is bigger than Oppd", DEBUG);
-        if (maxnSame<maxnOppd) addMessage("Oppd is bigger than Same", DEBUG);
+        if (maxnSame>maxnOppd) logDEBUG("Same is bigger than Oppd");
+        if (maxnSame<maxnOppd) logDEBUG("Oppd is bigger than Same");
     }
     
     return;
@@ -1238,7 +1238,7 @@ double BarrelLayer::getMaxZ(int direction) {
     bool firstModule=true;
     
     if (direction==0) {
-      addMessage("BarrelLayer::getMaxZ was called with direction == 0", ERROR);
+      logERROR("BarrelLayer::getMaxZ was called with direction == 0");
       return 0;
     }
     direction/=int(fabs(direction));
@@ -1331,7 +1331,7 @@ void BarrelLayer::compressToZ(double newMaxZ) {
             }
         }
     } else {
-      addMessage("int BarrelLayer::compactToZ couldn't find the maxZ module", ERROR);
+      logERROR("int BarrelLayer::compactToZ couldn't find the maxZ module");
     }
     
     
@@ -1385,7 +1385,7 @@ void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
             }
         }
     } else {
-      addMessage("int BarrelLayer::compressExceeding couldn't find the maxZ module", ERROR);
+      logERROR("int BarrelLayer::compressExceeding couldn't find the maxZ module");
     }
     
     
@@ -1447,7 +1447,7 @@ EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) {
             aModule = new EndcapModule(*stdModule);
             moduleSet_.push_back(aModule);
         } else {
-	  addMessage("in EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) I found a non-endcap module in the source", ERROR);
+	  logERROR("in EndcapLayer::EndcapLayer(EndcapLayer& inputLayer) I found a non-endcap module in the source");
         }
     }
 }
@@ -1568,7 +1568,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 		// For the moment it will just segfault (hi hi hi)
 	    }
         tempString.str(""); tempString  << "Ring number " << nRing;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         // Ring parity is 1, -1, 1, -1 for
         //      nRing=    1,  2, 3,  4
         // if diskParity==1 and the opposite, otherwise
@@ -1578,15 +1578,15 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         
         // Debug
 	    tempString.str(""); tempString  << "Looking for directives of ring " << nRing;
-	    addMessage(tempString, INFO);
+	    logINFO(tempString);
         
         aDirective = ringDirectives.find(nRing);
         if (aDirective!=ringDirectives.end()) {
             addModules = ringDirectives[nRing];
-            addMessage("Found a directive", INFO);
+            logINFO("Found a directive");
         } else {
             addModules = 0;
-            addMessage("Found no directive", INFO);
+            logINFO("Found no directive");
         }
         
         // ringParity = 1 means the ring is nearer to the interaction point
@@ -1604,14 +1604,14 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 			    sectioned);
         
         tempString.str(""); tempString << "smallDelta: " << smallDelta;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         tempString.str(""); tempString << "bigDelta: " << bigDelta;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         tempString.str(""); tempString << "lastrho: " << lastRho;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         tempString.str(""); tempString << "aRingModule = new EndcapModule(*sampleModule, "
                            << 100/lastRho << ", " << lastRho << ", -1);";
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho, -1);
 
         aRingModule->setRing(nRing);
@@ -1624,7 +1624,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         tempString << std::endl;
         tempString << "aRingModule->getEdgeRhoSide(-1).first = "
                << aRingModule->getEdgeRhoSide(-1).first;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
             
         
         // Place the mock-up module so as to simulate the worst position for this ring
@@ -1639,9 +1639,9 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         tempString.str(""); tempString << "Pushing from z="
                            << diskZ + -1*nearDirection*smallDelta + ringParity*nearDirection*bigDelta
                            << " to z=" << destZ;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         tempString.str(""); tempString << "aRingModule->getEdgeRhoSide(-1).first = " << aRingModule->getEdgeRhoSide(-1).first;
-        addMessage(tempString, DEBUG);
+        logDEBUG(tempString);
         
         for (int i=0; i<3; i++) {
             trialModule[i] = new EndcapModule(*aRingModule);
@@ -1657,7 +1657,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
             aSide = trialModule[i]->getEdgeRhoSide(-1);
             trialModule[i]->projectSideZ(aSide.second, destZ, direct*zError);
 	        tempString.str(""); tempString << "Fake module base: " << trialModule[i]->getEdgeRhoSide(-1).first;
-	        addMessage(tempString, DEBUG);
+	        logDEBUG(tempString);
             
             if (i==1) {
                 // trialModule[1] is the one with no zError, but overlap
@@ -1677,7 +1677,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 	        tempString << "safetyEdge["
 		        << i << "]="
 		        << trialModule[i]->getEdgeRhoSide(-1).first;
-	        addMessage(tempString, DEBUG);
+	        logDEBUG(tempString);
         }
         for (int i=1; i<3; i++) {
             aSide = trialModule[i]->getEdgeRhoSide(-1);
@@ -1695,7 +1695,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
         tempString.str(""); tempString << "Ring computation: using safety rule #" << minSafetyEdge.second;
         nextRho = minSafetyEdge.first;
         tempString << " next radius at rho: " << nextRho;
-	    addMessage(tempString, DEBUG);
+	    logDEBUG(tempString);
     }
 
     nOfRings_ = nRing - 1;
@@ -1772,7 +1772,7 @@ double EndcapLayer::buildRing(double minRadius,
         alpha=asin(sqrt(x))*2;
         
         tempString << "mod aperture: " << alpha*180./M_PI;
-	addMessage(tempString, DEBUG);
+	logDEBUG(tempString);
     } else if ( sampleModule->getShape()==Module::Rectangular ) { // it's a barrel module
         modMaxRadius=minRadius + sampleModule->getHeight();
         // widthHi or widthLo would give the same number: it's a square module!
@@ -1780,7 +1780,7 @@ double EndcapLayer::buildRing(double minRadius,
     } else { // It's not a barrel or an endcap module
       tempString.str("");
       tempString << "The sample EndcapModule was not Barrel nor Endcap... this should never happen!";
-      addMessage(tempString, ERROR);
+      logERROR(tempString);
       alpha = 0;
     }
     
@@ -1797,16 +1797,16 @@ double EndcapLayer::buildRing(double minRadius,
     
     
     tempString.str(""); tempString << "overlap delta: " << delta*180./M_PI;
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     tempString.str(""); tempString << "mod aperture (effective): " << effectiveAlpha*180./M_PI;
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     
     
     double n;
     n = 2*M_PI / effectiveAlpha;
     
     tempString.str(""); tempString << "Number of modules: " << n;
-    addMessage(tempString, INFO);
+    logINFO(tempString);
    
     // Optimal number of modules 
     int nOpt;
@@ -1830,13 +1830,13 @@ double EndcapLayer::buildRing(double minRadius,
 	  tempString << "Number of modules in this ring was increased from " << nOpt;
 	  nOpt = nInSegment * phiSegments;
 	  tempString << " to " << nOpt << " to comply with user request of oddSegments.";
-	  addMessage(tempString, INFO);
+	  logINFO(tempString);
 	}
       }
       tempString.str("");
       tempString << "I will use " << nOpt << " modules";
     }
-    addMessage(tempString, INFO);
+    logINFO(tempString);
 
     // Additional rotation to align the module edges
     double alignmentRotation;
@@ -1898,11 +1898,11 @@ double EndcapLayer::buildRing(double minRadius,
         EndcapModule* aRingModule = new EndcapModule(*sampleModule, goodAlpha, minRadius, maxRadius);
         lastRho = minRadius + aRingModule->getHeight();
 	tempString.str(""); tempString << "Actual module area: " << aRingModule->getArea();
-	addMessage(tempString, INFO);
+	logINFO(tempString);
         // Just to be sure...!
         if (aRingModule->wasCut()) {
 	  tempString.str(""); tempString << "The ring Module was cut, losing: " << aRingModule->getLost();
-	  addMessage(tempString, INFO);
+	  logINFO(tempString);
 	  lastRho=maxRadius;
         }
         delete aRingModule;

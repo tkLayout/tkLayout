@@ -18,13 +18,14 @@ using namespace ROOT::Math;
 typedef std::vector<Module* > ModuleVector;
 typedef std::pair<int,double> LayerOption;
 
-class Layer : public MessageLogger {
+class Layer {
 
 protected:
   ModuleVector moduleSet_;
   std::string layerName_;
   std::string containerName_;
   int layerIndex_;
+  std::ostringstream tempString;
   
 private:
   virtual void setDefaultParameters();
@@ -42,7 +43,7 @@ public:
   std::string getName() {return layerName_; };
   int getIndex() {return layerIndex_; };
   std::string getContainerName() {return containerName_; };
-  void setName(const std::string& newName, const int& newIndex) { layerName_ = newName; layerIndex_ = newIndex; setObjectName(layerName_); };
+  void setName(const std::string& newName, const int& newIndex) { layerName_ = newName; layerIndex_ = newIndex; };
   void setContainerName(const std::string& newName ) { containerName_ = newName; };
   
   double getMaxZ();

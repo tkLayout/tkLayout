@@ -10,7 +10,7 @@
 
 using namespace std;
 
-configParser::configParser() : MessageLogger("configParser") {
+configParser::configParser() {
     myTracker_= NULL;
 }
 
@@ -56,8 +56,9 @@ bool configParser::parseParameter(string &parameterName, string &parameterValue,
             if (myLineStr >> parameterValue) {
                 string dummy;
                 if (myLineStr >> dummy) {
+                    std::ostringstream tempString;
                     tempString.str(""); tempString << "Ignoring extra parameter value " << dummy;
-                    addMessage(tempString, WARNING);
+                    logWARNING(tempString);
                 }
                 return true;
             }
@@ -352,8 +353,9 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                             layerOptions[layerNum].first=Layer::Stacked;
                             layerOptions[layerNum].second=aVal;
                             gotIt=true;
+                            std::ostringstream tempString;
                             tempString.str(""); tempString << "Option: stacked for layer " << layerNum << " at " << aVal;
-                            addMessage(tempString, DEBUG);
+                            logDEBUG(tempString);
                         } else {
                             cerr << "ERROR: Wrong stack distance: (" << aVal << ") must be negative." << std::endl;
                             throw parsingException();
@@ -1010,8 +1012,9 @@ bool configParser::parsePixels(string myName, istream &inStream) {
                             layerOptions[layerNum].first=Layer::Stacked;
                             layerOptions[layerNum].second=aVal;
                             gotIt=true;
+                            std::ostringstream tempString;
                             tempString.str(""); tempString << "Option: stacked for layer " << layerNum << " at " << aVal;
-                            addMessage(tempString, DEBUG);
+                            logDEBUG(tempString);
                         } else {
                             cerr << "ERROR: Wrong stack distance: (" << aVal << ") must be negative." << std::endl;
                             throw parsingException();
@@ -1384,11 +1387,12 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
                         }
                     }
                     if (!isSpecial) {
+                        std::ostringstream tempString;
 		        tempString.str(""); tempString << "The special parameter "
                                 << parameterName << "[" << mainIndex << "," << secondaryIndex << "] is setting the same "
                                 << "values as the default parameter "
                                 << parameterName << "[" << mainIndex << "]. Ignoring it.";
-                        addMessage(tempString, WARNING);
+                        logWARNING(tempString);
                     } // else { // debug
                     // cout << "\t" << parameterName << "[" << mainIndex << ","<<secondaryIndex<<"] = " << parameterValue << ";" << endl; // debug
                     // }
@@ -1622,10 +1626,11 @@ Tracker* configParser::parseFile(string configFileName) {
     // Eta cut and other post-operations
     std::pair<double, double> minMaxEta;
     minMaxEta = myTracker_->getEtaMinMax();
+    std::ostringstream tempString;
     tempString.str("");
     tempString << "Eta coverage (min, max) of the tracker (prior to module purging): ("
             << minMaxEta.first << ", " << minMaxEta.second << ")";
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     myTracker_->cutOverEta(myTracker_->getEtaCut());
     minMaxEta = myTracker_->getEtaMinMax();
     tempString.str("");
@@ -1633,7 +1638,7 @@ Tracker* configParser::parseFile(string configFileName) {
 	       << myTracker_->getEtaCut() << "): ("
 	       << minMaxEta.first << ", " << minMaxEta.second << ")";
 
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     result = myTracker_;
     myTracker_ = NULL;
     return result;
@@ -1702,17 +1707,18 @@ Tracker* configParser::parsePixelsFromFile(string configFileName) {
     // Eta cut and other post-operations
     std::pair<double, double> minMaxEta;
     minMaxEta = myTracker_->getEtaMinMax();
+    std::ostringstream tempString;
     tempString.str("");
     tempString << "Eta coverage (min, max) of the pixel detector (prior to module purging): ("
             << minMaxEta.first << ", " << minMaxEta.second << ")";
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     myTracker_->cutOverEta(myTracker_->getEtaCut());
     minMaxEta = myTracker_->getEtaMinMax();
     tempString.str("");
     tempString << "Eta coverage (min, max) of the pixel detector (after module purging at eta "
     << myTracker_->getEtaCut() << "): ("
     << minMaxEta.first << ", " << minMaxEta.second << ")";
-    addMessage(tempString, INFO);
+    logINFO(tempString);
     result = myTracker_;
     myTracker_ = NULL;
     return result;

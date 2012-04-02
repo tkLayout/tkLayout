@@ -8,8 +8,15 @@ int MessageLogger::countInstances = 0;
 std::string MessageLogger::shortLevelCode[] = { "??", "EE", "WW", "II", "DD" };
 int MessageLogger::messageCounter[NumberOfLevels];
 
+// Global static pointer used to ensure a single instance of the class.
+MessageLogger* MessageLogger::myInstance_ = NULL;
+
+// Returns the instance (if already present) or creates one if needed
+MessageLogger* MessageLogger::instance() {
+  return myInstance_ ? myInstance_ : (myInstance_ = new MessageLogger);
+}
+
 MessageLogger::MessageLogger() {
-  objectName="unknownObject";
   if (countInstances==0) {
     for (unsigned int i=0; i<NumberOfLevels; ++i)
       messageCounter[i]=0;
@@ -17,15 +24,9 @@ MessageLogger::MessageLogger() {
   ++countInstances;
 }
 
-MessageLogger::MessageLogger(string newObjectName) {
-  objectName=newObjectName;
-  ++countInstances;
-}
-
 bool MessageLogger::addMessage(string message, int level /*=UNKNOWN*/ ) {
   if ((level>=0)&&(level<NumberOfLevels)) {
     LogMessage newMessage;
-    newMessage.sender=objectName;
     newMessage.level=level;
     newMessage.message=message;
     logMessageV.push_back(newMessage);
@@ -42,13 +43,6 @@ bool MessageLogger::addMessage(ostringstream& message, int level /*=UNKNOWN*/ ) 
 bool MessageLogger::hasEmptyLog(int level) {
   if ((level>=0)&&(level<NumberOfLevels)) {
     return (messageCounter[level]==0);
-    
-    /*
-    for(unsigned int i=0; i<logMessageV.size(); ++i) {
-      if (logMessageV[i].level==level) return false;
-    }
-    */
-
   }
   return true;
 }
@@ -60,9 +54,8 @@ string MessageLogger::getLatestLog(int level) {
     std::vector<LogMessage>::iterator nextMessage;
     for (itMessage=logMessageV.begin();
 	 itMessage!=logMessageV.end(); ) {
-      // std::cerr << "==" << (itMessage->message).c_str() << "==" << std::endl;
       if (itMessage->level==level) {
-        result += (*itMessage).sender+": "+(*itMessage).message+"\n";
+        result += (*itMessage).message+"\n";
 	nextMessage=itMessage+1;
 	messageCounter[itMessage->level]--;
         logMessageV.erase(itMessage);
@@ -79,7 +72,7 @@ string MessageLogger::getLatestLog() {
   string result="";
   std::vector<LogMessage>::iterator itMessage=logMessageV.begin();
   while (itMessage!=logMessageV.end()) {
-    result += "(" + shortLevelCode[itMessage->level]+ ") " + itMessage->sender+": "+ itMessage->message+"\n";
+    result += "(" + shortLevelCode[itMessage->level]+ ") " + itMessage->message+"\n";
     messageCounter[itMessage->level]--;
     logMessageV.erase(itMessage);
     itMessage=logMessageV.begin();

@@ -80,11 +80,11 @@ Tracker::~Tracker()  {
     layerSet_.clear();
 }
 
-Tracker::Tracker() : MessageLogger("Tracker") {
+Tracker::Tracker() {
     setDefaultParameters();
 }
 
-Tracker::Tracker(std::string trackerName) :  MessageLogger("Tracker") {
+Tracker::Tracker(std::string trackerName) {
     setDefaultParameters();
     setName(trackerName);
 }
@@ -116,6 +116,8 @@ void Tracker::setDefaultParameters() {
 	operatingTemp_ = -20;
 	alphaParam_ = 4e-17;
     referenceTemp_ = +20;
+
+    std::string testMe = "test me!";
 }
 
 void Tracker::shapeVolume() {
@@ -309,7 +311,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
         aDirective = layerDirectives_.find(i+1);
         if (aDirective!=layerDirectives_.end()) {
             if  ((i==0)||(i==(nLayer-1))) {
-	      addMessage("We just read a directive for the first or last layer. This will be ignored", WARNING);
+	      logWARNING("We just read a directive for the first or last layer. This will be ignored");
 	      /*std::cout << "*******************************" << std::endl;
                 std::cout << "*                             *" << std::endl;
                 std::cout << "* WARNING:              /\\    *" << std::endl;
@@ -320,18 +322,19 @@ LayerVector Tracker::buildBarrel(int nLayer,
                 std::cout << "*                             *" << std::endl;
                 std::cout << "*******************************" << std::endl;*/
             }
+            std::ostringstream tempString;
 	    tempString.str(""); tempString << "Found a directive: " << layerDirectives_[i+1];
-	    addMessage(tempString.str(), INFO);
+	    logINFO(tempString.str());
             if (layerDirectives_[i+1]>0) {
                 radius = layerDirectives_[i+1];
                 push   = Layer::FIXED;
                 tempString.str(""); tempString << "Fixing radius of layer " << i+1 << " to " << radius;
-                addMessage(tempString.str(), INFO);
+                logINFO(tempString.str());
             } else {
                 push = int(layerDirectives_[i+1]);
             }
         } else {
-            addMessage("Found no directive: auto adjusting layer", INFO);
+            logINFO("Found no directive: auto adjusting layer");
         }
         
         aBarrelLayer = new BarrelLayer(sampleModule);
@@ -340,8 +343,9 @@ LayerVector Tracker::buildBarrel(int nLayer,
         aBarrelLayer->setName(layerName.str(), i+1);
 	    aBarrelLayer->setContainerName(barrelName);
        
+        std::ostringstream tempString;
         tempString.str(""); tempString << "Desired radius: " << radius;
-        addMessage(tempString.str(), INFO);
+        logINFO(tempString.str());
 
         if (!shortBarrel) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius

@@ -37,7 +37,7 @@ typedef std::vector<Layer*> LayerVector;
 typedef std::map<std::string, LayerVector> SectionMap;
 typedef std::map<int, double> SpecialDelta;
 
-class Tracker : public MessageLogger {
+class Tracker {
 public:
   enum {TypeBarrel, TypeEndcap};
 protected:

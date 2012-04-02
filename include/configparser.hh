@@ -12,7 +12,7 @@
 
 using namespace std;
 
-class configParser : public MessageLogger {
+class configParser {
 public:
   // Constructor and destructor
   configParser();
