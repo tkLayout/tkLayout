@@ -55,7 +55,6 @@ namespace insur {
       if (px) delete px;
       px = cp.parsePixelsFromFile(getGeometryFile());
       if (px) px->setZError(tr->getZError());
-      //g = geomfile;
       return true;
     }
     return false;
@@ -78,7 +77,7 @@ namespace insur {
       return true;
     }
     else {
-      std::cout << "Squid::dressTracker(): " << err_no_tracker << std::endl;
+      logERROR(err_no_tracker);
       return false;
     }
   }
@@ -89,10 +88,12 @@ namespace insur {
    */
   bool Squid::irradiateTracker() {
     if (tr) {
+      userInfo("Evaluating modules irradiation");
       cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
+      userInfoEnd();
       return true;
     } else {
-      std::cout << "Squid::irradiateTracker(): " << err_no_tracker << std::endl;
+      logERROR(err_no_tracker);
       return false;
     }
   }
@@ -135,12 +136,12 @@ namespace insur {
 	return true;
       }
       else {
-	std::cout << "Squid::buildInactiveSurfaces(): " << err_no_tracker << std::endl;
+	logERROR(err_no_tracker);
 	return false;
       }
     }
     else {
-      std::cout << "Squid::buildInactiveSurfaces(): " << err_no_geomfile << std::endl;
+      logERROR(err_no_geomfile);
       return false;
     }
   }
@@ -187,11 +188,11 @@ namespace insur {
 	mb = NULL;
 	if (pm) delete pm;
 	pm = NULL;
-	std::cout << "Squid::createMaterialBudget(): " << err_init_failed << std::endl;
+	logERROR(err_init_failed);
 	return false;
       }
     } else {
-      std::cout << "Squid::createMaterialBudget(): " << err_no_tracker << std::endl;
+      logERROR(err_no_tracker);
       return false;
     }
   }
@@ -220,7 +221,9 @@ namespace insur {
    */
   bool Squid::analyzeNeighbours(std::string graphout) {
     if (is) {
+      userInfo("Creating inactive materials hierarchy");
       v.writeNeighbourGraph(*is, graphout);
+      userInfoEnd();
       return true;
     }
     else {
@@ -309,12 +312,19 @@ namespace insur {
    * @return a boolean with the operation success
    */
   bool Squid::makeSite(bool addLogPage /* = true */) {
-    if (!prepareWebsite()) return false;
+    userInfo("Creating website");
+    if (!prepareWebsite()) {
+      logERROR("Problem in preparing website");
+      return false;
+    }
+
     if (addLogPage) {
       v.makeLogPage(site);
     }
         
-    return site.makeSite();
+    bool result = site.makeSite();
+    userInfoEnd();
+    return result;
   }
     
   /**
@@ -323,8 +333,9 @@ namespace insur {
    */
   bool Squid::pureAnalyzeGeometry(int tracks) {
     if (tr) {
+      userInfo("Analyzing geometry");
       a.analyzeGeometry(*tr, tracks);
-      // a.createGeometryLite(*tr); // not needed any more
+      userInfoEnd();
       return true; // TODO: this return value is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -334,11 +345,17 @@ namespace insur {
 
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
-    if (detailed) a.createTriggerDistanceTuningPlots(*tr, mainConfiguration.getTriggerMomenta());
+    if (detailed) {
+      userInfo("Creating distance tuning plots");
+      a.createTriggerDistanceTuningPlots(*tr, mainConfiguration.getTriggerMomenta());
+      userInfoEnd();
+    }
+    userInfo("Creating trigger efficiency plots");
     a.analyzeTriggerEfficiency(*tr,
 			       mainConfiguration.getTriggerMomenta(),
 			       mainConfiguration.getThresholdProbabilities(),
 			       tracks);
+    userInfoEnd();
     return true;
   }
 
@@ -349,20 +366,26 @@ namespace insur {
    */
   bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
     if (mb) {
+      userInfo("Analyzing material budget and estimating resolution");
       a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
+      userInfoEnd();
       if (pm) {
 	// TODO: make this much neater!
 	if (pixelAnalyzer) delete pixelAnalyzer;
 	pixelAnalyzer = new Analyzer;
+	userInfo("Analyzing pixel material budget");
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
+	userInfoEnd();
       }
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
+	userInfo("Estimating tracking resolution of track-trigger");
 	a.analyzeTrigger(*mb,
 			 mainConfiguration.getMomenta(),
 			 mainConfiguration.getTriggerMomenta(),
 			 mainConfiguration.getThresholdProbabilities(),
 			 tracks, pm);
+	userInfoEnd();
       }
       return true;
     } else {
@@ -377,7 +400,9 @@ namespace insur {
    */
   bool Squid::reportGeometrySite() {
     if (tr) {
+      userInfo("Creating geometry report");
       v.geometrySummary(a, *tr, site);
+      userInfoEnd();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -387,9 +412,13 @@ namespace insur {
 
   bool Squid::reportBandwidthSite() {
     if (tr) {
+      userInfo("Computing bandwidth and rates");
       a.computeBandwidth(*tr);
       a.computeTriggerFrequency(*tr);
+      userInfoEnd();
+      userInfo("Creating bandwidth and rates report");
       v.bandwidthSummary(a, *tr, site);
+      userInfoEnd();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -399,8 +428,12 @@ namespace insur {
 
   bool Squid::reportPowerSite() {
     if (tr) {
+      userInfo("Computing dissipated power");
       a.analyzePower(*tr);
+      userInfoEnd();
+      userInfo("Creating power report");
       v.irradiatedPowerSummary(a, site);
+      userInfoEnd();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -414,11 +447,13 @@ namespace insur {
    */
   bool Squid::reportMaterialBudgetSite() {
     if (mb) {
+      userInfo("Creating material budget report");
       v.histogramSummary(a, site, "outer");
       if ((pm)&&(pixelAnalyzer)) {
 	v.histogramSummary(*pixelAnalyzer, site, "pixel");
       }
       v.weigthSummart(a, site, "outer");
+      userInfoEnd();
       return true;
     }
     else {
@@ -433,8 +468,10 @@ namespace insur {
    */
   bool Squid::reportResolutionSite() {
     if (mb) {
+      userInfo("Creating resolution report");
       v.errorSummary(a, site, "", false);
       v.errorSummary(a, site, "trigger", true);
+      userInfoEnd();
       return true;
     }
     else {
@@ -449,7 +486,9 @@ namespace insur {
    * @return True if there were no errors during processing, false otherwise
    */
   bool Squid::reportTriggerPerformanceSite(bool extended) {
+    userInfo("Creating trigger summary report");
     if (v.triggerSummary(a, site, extended)) {
+      userInfoEnd();
       return true;
     } else {
       logERROR(err_no_triggerSummary);
@@ -470,10 +509,14 @@ namespace insur {
       logERROR(err_no_tracker);
       return false;
     } else {
+      getMaterialFile();
+      getPixelMaterialFile();
+      userInfo("Saving additional information");
       v.additionalInfoSite(getGeometryFile(), getSettingsFile(),
 			   getMaterialFile(), getPixelMaterialFile(),
 			   defaultMaterialFile, defaultPixelMaterialFile,
 			   a, *tr, site);
+      userInfoEnd();
       return true;
     }
   }

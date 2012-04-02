@@ -1959,7 +1959,7 @@ namespace insur {
 	  simulationContent->addItem(myBinaryFile);
         }
         if (matfile!="") {
-	  if (defaultPixelMaterial) destinationFilename = default_tracker_materials_file;
+	  if (defaultMaterial) destinationFilename = default_tracker_materials_file;
 	  else destinationFilename = trackerName + suffix_tracker_material_file;
 	  myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
 	  simulationContent->addItem(myBinaryFile);

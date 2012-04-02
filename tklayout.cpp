@@ -102,7 +102,6 @@ int main(int argc, char* argv[]) {
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
     if (!squid.makeSite()) return EXIT_FAILURE;
     
-
     return EXIT_SUCCESS;
 }
 

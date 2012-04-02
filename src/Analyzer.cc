@@ -295,7 +295,7 @@ namespace insur {
     else etaStep = etaMax;
     nTracks = etaSteps;
 
-    prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
+    // prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
     
     // reset the list of tracks
     std::vector<Track> tv;
@@ -367,10 +367,10 @@ namespace insur {
 #endif
 
     // Compute the number of triggering points along the selected tracks
-    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+    // fillTriggerEfficiencyGraphs(triggerMomenta, tv);
 
     // Fill the trigger performance maps
-    fillTriggerPerformanceMaps(tracker);
+    // fillTriggerPerformanceMaps(tracker);
 
 #ifdef DEBUG_PERFORMANCE
     starttime = clock();
@@ -3189,7 +3189,6 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         clock_t starttime = clock();
 #endif
         
-        std::cout << "Shooting tracks..." << std::endl;
         int nTrackHits;
         int nTracksPerSide = int(pow(nTracks, 0.5));
         int nBlocks = int(nTracksPerSide/2.);

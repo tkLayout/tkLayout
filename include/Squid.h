@@ -30,6 +30,9 @@
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
 
+#define userInfo(message) std::cout << message << "..." << std::flush
+#define userInfoEnd() std::cout << "done" << std::endl;
+
 /**
  * A shorter alias for the filesystem library namespace
  */
