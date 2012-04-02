@@ -14,6 +14,7 @@
 #include <map>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
+#include <messageLogger.h>
 
 //using namespace ROOT::Math;
 using namespace std;

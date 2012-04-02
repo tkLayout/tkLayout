@@ -352,6 +352,11 @@ string mainConfigHandler::getSummaryDirectory() {
   return getSummaryDirectory_();
 }
 
+string mainConfigHandler::getDefaultMaterialsDirectory() {
+  getConfiguration();
+  return getDefaultMaterialsDirectory_();
+}
+
 string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
 string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
 string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
@@ -361,4 +366,5 @@ string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_
 string mainConfigHandler::getRootfileDirectory_() { return standardDirectory_+"/"+insur::default_rootfiledir; }
 string mainConfigHandler::getGraphDirectory_() { return standardDirectory_+"/"+insur::default_graphdir; }
 string mainConfigHandler::getSummaryDirectory_() { return standardDirectory_+"/"+insur::default_summarypath; }
+string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
 

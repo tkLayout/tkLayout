@@ -210,6 +210,10 @@ namespace insur {
 				    const std::vector<double>& triggerMomenta,
 				    const std::vector<double>& thresholdProbabilities,
 				    int etaSteps = 50, MaterialBudget* pm = NULL);
+	virtual void analyzeTriggerEfficiency(Tracker& tracker,
+					      const std::vector<double>& triggerMomenta,
+					      const std::vector<double>& thresholdProbabilities,
+					      int etaSteps = 50);
 	void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
 	void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
 	void computeBandwidth(Tracker& tracker);
@@ -334,6 +338,9 @@ namespace insur {
 	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
+
+	int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
+
         virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
 					 double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);

@@ -82,6 +82,13 @@ namespace insur {
     static const std::string default_mattabfile = "mattab.list";
     static const std::string default_irradiationdir = "config";
     static const std::string default_irradiationfile = "irradiation.map";
+    static const std::string default_materialsdir = "config";
+    static const std::string default_tracker_materials_file = "Materials.cfg";
+    static const std::string default_pixel_materials_file = "PixelMaterials.cfg";
+    static const std::string suffix_tracker_material_file = "_Materials.cfg";
+    static const std::string suffix_pixel_material_file = "_Materials.cfg.pix";
+    static const std::string suffix_geometry_file = ".cfg";
+    static const std::string suffix_types_file = "_Types.cfg";
     static const std::string default_rootfiledir = "rootfiles";
     static const std::string default_rootfile = "trackergeometry.root";
     static const std::string default_graphdir = "graphs";

@@ -23,7 +23,6 @@ namespace insur {
      */
     bool MatParser::fillTable(std::string materialfile, MaterialTable& mattab) {
         // Material file name gymnastics
-        std::cerr << "Trying to read material file "<<materialfile << std::endl;
         if (materialfile.empty()) materialfile = default_mattabfile;
         bfs::path mpath(materialfile);
         if (bfs::exists(mpath)) {
@@ -63,7 +62,7 @@ namespace insur {
                 infilestream.close();
             }
             catch (bfs::filesystem_error& bfe) {
-                std::cerr << bfe.what() << std::endl;
+	        std::cerr << bfe.what() << std::endl;
                 return false;
             }
             catch (std::bad_alloc& ba) {
@@ -72,7 +71,7 @@ namespace insur {
             }
             return true;
         }
-        else std::cerr << "MatParser::fillTable()" << msg_no_mat_file << std::endl;
+        else logERROR(msg_no_mat_file);
         return false;
     }
     

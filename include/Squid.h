@@ -38,17 +38,19 @@ namespace insur {
     /*
      * Error messages and warnings that may be reported.
      */
-    static const std::string err_no_geomfile = "Error: there is no recorded name for the geometry configuration file. Initialise the tracker first.";
-    static const std::string err_no_matfile = "Error: the provided material configuration file does not exist.";
-    static const std::string err_no_pixmatfile = "Error: the material configuration file for the pixels does not exist.";
-    static const std::string err_init_failed = "Error: initialisation of the material calculator failed.";
-    static const std::string err_no_tracker = "Error: the tracker object does not exist. The tracker must be created before calling this function.";
-    static const std::string err_no_inacsurf = "Error: the collection of inactive surfaces does not exist. It must be created before calling this function";
-    static const std::string err_no_matbudget = "Error: the material budget does not exist. It must be created before calling this function.";
-    static const std::string err_no_triggerSummary = "Error: could not report on the trigger performance.";
-    static const std::string warning_rootonly = "Warning: the collection of inactive surfaces does not exist. Only the .root file will be written.";
-    static const std::string default_trackername = "defaultTrackerName";
+    static const std::string err_no_geomfile = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
+    static const std::string err_no_matfile = "The provided material configuration file does not exist.";
+    static const std::string err_no_matfile_pixel = "The material configuration file for the pixels does not exist.";
+    static const std::string err_init_failed = "Initialisation of the material calculator failed.";
+    static const std::string err_no_tracker = "The tracker object does not exist. The tracker must be created before calling this function.";
+    static const std::string err_no_inacsurf = "The collection of inactive surfaces does not exist. It must be created before calling this function";
+    static const std::string err_no_matbudget = "The material budget does not exist. It must be created before calling this function.";
+    static const std::string err_no_triggerSummary = "Could not report on the trigger performance.";
+    static const std::string warn_rootonly = "The collection of inactive surfaces does not exist. Only the .root file will be written.";
+    static const std::string warn_custom_matfile = "A customized material file was used for the tracker";
+    static const std::string warn_custom_matfile_pixel = "A customized material file was used for the pixel";
 
+    static const std::string default_trackername = "defaultTrackerName";
     
     /**
      * @class Squid
@@ -65,42 +67,33 @@ namespace insur {
     public:
         Squid();
         virtual ~Squid();
-        bool buildTracker(std::string geomfile);
-        bool dressTracker(std::string settingsfile);
-        bool buildTrackerSystem(std::string geomfile, std::string settingsfile);
-		bool irradiateTracker();
+        bool buildTracker();
+        bool dressTracker();
+        bool buildTrackerSystem();
+	bool irradiateTracker();
         bool buildInactiveSurfaces(bool verbose = false);
-        bool buildInactiveSurfaces(std::string geomfile, bool verbose = false);
-        bool buildInactiveSurfaces(std::string geomfile, std::string settingsfile, bool verbose = false);
-        bool createMaterialBudget(std::string matfile, bool verbose = false);
-        bool createMaterialBudget(std::string matfile, std::string& pixmatfile, bool verbose = false);
-        bool buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, bool usher_verbose = false, bool mat_verbose = false);
-        bool buildFullSystem(std::string geomfile, std::string settingsfile, std::string matfile, std::string& pixmatfile, bool usher_verbose = false, bool mat_verbose = false);
-        bool analyzeFullSystem(std::string htmlout = "", std::string rootout = "", std::string graphout = "", int tracks = 50, bool simplified = true);
-        bool analyzeGeoMat(std::string htmlout = "", std::string rootout = "", int tracks = 50, bool simplified = true);
-        bool analyzeGraphMat(std::string htmlout = "", std::string graphout = "", int tracks = 50);
-        bool analyzeGeometry(std::string rootout = "", std::string graphout = "", bool simplified = true);
-        bool analyzeGeometry(std::string rootout = "", bool simplified = true);
+        bool createMaterialBudget(bool verbose = false);
+        //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
         bool analyzeNeighbours(std::string graphout = "");
-        bool analyzeMaterialBudget(std::string htmlout = "", int tracks = 50);
         bool translateFullSystemToXML(std::string xmlout = "", bool wt = false);
-        //bool trackerSummary(std::string configFileName, std::string dressFileName);
-#ifdef USING_ROOTWEB
+
 	// Functions using rootweb
-	bool analyzeGeometrySite(int tracks = 1000);
+	bool analyzeTriggerEfficiency(int tracks, bool detailed);
 	bool pureAnalyzeGeometry(int tracks);
-	bool pureAnalyzeMaterialBudget(int tracks);
+	bool pureAnalyzeMaterialBudget(int tracks, bool triggerResolution);
 	bool reportGeometrySite();
 	bool reportBandwidthSite();
 	bool reportPowerSite();
 	bool reportMaterialBudgetSite();
+	bool reportResolutionSite();
 	bool reportTriggerPerformanceSite(bool extended);
-    bool reportNeighbourGraphSite();
-	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile);
+	bool reportNeighbourGraphSite();
+	bool additionalInfoSite();
 	bool makeSite(bool addLogPage = true);
-#endif
+	void setBasename(std::string newBaseName);
+
     private:
-        std::string g;
+        //std::string g;
         Tracker* tr;
         InactiveSurfaces* is;
         MaterialBudget* mb;
@@ -122,11 +115,22 @@ namespace insur {
         Squid(const Squid& s);
         Squid& operator=(const Squid& s);
         void resetVizard();
-#ifdef USING_ROOTWEB
+	std::string baseName_;
+        std::string getGeometryFile();
+        std::string getSettingsFile();
+        std::string getMaterialFile();
+        std::string getPixelMaterialFile();
+        std::string myGeometryFile_;
+        std::string mySettingsFile_;
+        std::string myMaterialFile_;
+        std::string myPixelMaterialFile_;
+        bool defaultMaterialFile;
+        bool defaultPixelMaterialFile;
+
 	RootWSite site;
 	bool prepareWebsite();
 	bool sitePrepared;
-#endif
+
     };
 }
 #endif	/* _SQUID_H */

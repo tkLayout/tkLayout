@@ -17,6 +17,7 @@ MessageLogger* MessageLogger::instance() {
 }
 
 MessageLogger::MessageLogger() {
+  screenLevel_ = ERROR;
   if (countInstances==0) {
     for (unsigned int i=0; i<NumberOfLevels; ++i)
       messageCounter[i]=0;
@@ -24,7 +25,12 @@ MessageLogger::MessageLogger() {
   ++countInstances;
 }
 
-bool MessageLogger::addMessage(string message, int level /*=UNKNOWN*/ ) {
+bool MessageLogger::addMessage(string sourceFunction, string message, int level /*=UNKNOWN*/ ) {
+  if (level<=screenLevel_) {
+    std::cout << "(" + shortLevelCode[level]+ ") "
+	      << sourceFunction<<": " << message << std::endl;
+  }
+
   if ((level>=0)&&(level<NumberOfLevels)) {
     LogMessage newMessage;
     newMessage.level=level;
@@ -35,9 +41,9 @@ bool MessageLogger::addMessage(string message, int level /*=UNKNOWN*/ ) {
   } else return false;
 }
 
-bool MessageLogger::addMessage(ostringstream& message, int level /*=UNKNOWN*/ ) {
+bool MessageLogger::addMessage(string sourceFunction, ostringstream& message, int level /*=UNKNOWN*/ ) {
   string newMessage = message.str();
-  return addMessage(newMessage, level);
+  return addMessage(sourceFunction, newMessage, level);
 }
 
 bool MessageLogger::hasEmptyLog(int level) {
@@ -51,15 +57,15 @@ string MessageLogger::getLatestLog(int level) {
   string result="";
   if ((level>=0)&&(level<NumberOfLevels)) {
     std::vector<LogMessage>::iterator itMessage;
-    std::vector<LogMessage>::iterator nextMessage;
+    //std::vector<LogMessage>::iterator nextMessage;
     for (itMessage=logMessageV.begin();
 	 itMessage!=logMessageV.end(); ) {
       if (itMessage->level==level) {
         result += (*itMessage).message+"\n";
-	nextMessage=itMessage+1;
+	//nextMessage=itMessage+1;
 	messageCounter[itMessage->level]--;
         logMessageV.erase(itMessage);
-	itMessage=nextMessage;
+	//itMessage=nextMessage;
       } else {
 	++itMessage;
       }

@@ -142,7 +142,7 @@ namespace insur {
     	void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
         void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
         void histogramSummary(Analyzer& a, std::string outfilename);
-#ifdef USING_ROOTWEB
+
 	// TODO: all these functions should check if the corresponding data is present
 	// and return true or false, depending if they created the output or not
 	void histogramSummary(Analyzer& a, RootWSite& site);
@@ -150,15 +150,18 @@ namespace insur {
 	void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
 	bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site);
 	bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiatedPowerSummary(Analyzer& a, RootWSite& site);
-    bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
-    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-	bool additionalInfoSite(std::string& geomfile, std::string& settingsfile, std::string& matfile, std::string& pixmatfile, Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+	bool irradiatedPowerSummary(Analyzer& a, RootWSite& site);
+	bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
+	bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
+	bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
+	bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
+				const std::string& matfile, const std::string& pixmatfile,
+				bool defaultMaterial, bool defaultPixelMaterial,
+				Analyzer& analyzer, Tracker& tracker, RootWSite& site);
 	bool makeLogPage(RootWSite& site);
 	std::string getSummaryString();
 	std::string getSummaryLabelString();
-#endif
+
     protected:
         TGeoManager* gm;
         TGeoVolume* top;

@@ -676,9 +676,14 @@ void BarrelLayer::buildStringPairRecursion(
                         sampleModule);
     } else {
     
-        // actual module creation
-        std::cout << "Balanced module placement in string at avg radius " << averageRadius << " converged after " << recursionCounter << " step(s). Residual Z unbalance is " << zUnbalance << std::endl;
-        recursionCounter = 0; // we made it so we reset the recursion counter for the next string
+      ostringstream tempSS;
+      // actual module creation
+      tempSS << "Balanced module placement in string at avg radius "
+	     << averageRadius << " converged after "
+	     << recursionCounter << " step(s)."
+	     << " Residual Z unbalance is " << zUnbalance;
+      logINFO(tempSS);
+      recursionCounter = 0; // we made it so we reset the recursion counter for the next string
 
         // positive Z string
         for (int i=0, parity = smallParity; i<numModules; i++, parity = -parity) {

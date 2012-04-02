@@ -264,6 +264,7 @@ namespace insur {
     return totalMaterial;
   }
   
+
   /**
    * The analysis function performing all necessary the trigger resolution
    * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
@@ -381,6 +382,75 @@ namespace insur {
     endtime = clock();
     std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
 #endif
+  }
+
+
+
+
+  /**
+   * The analysis function performing all necessary the trigger efficiencies
+   * @param tracker 
+   * @param thresholdProbabilities
+   * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
+   */
+  void Analyzer::analyzeTriggerEfficiency(Tracker& tracker,
+					  const std::vector<double>& triggerMomenta,
+					  const std::vector<double>& thresholdProbabilities,
+					  int etaSteps) {
+
+    double efficiency = tracker.getEfficiency();
+
+    materialTracksUsed = etaSteps;
+    
+    int nTracks;
+    double etaStep, z0, eta, theta, phi;
+    double zError = tracker.getZError();
+    
+    // prepare etaStep, phiStep, nTracks, nScans
+    if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
+    else etaStep = etaMax;
+    nTracks = etaSteps;
+
+    prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
+
+    // reset the list of tracks
+    std::vector<Track> tv;
+    
+    // Loop over nTracks (eta range [0, etaMax])
+    for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+      phi = myDice.Rndm() * PI * 2.0;
+      z0 = myDice.Gaus(0, zError);
+      int nHits;
+      Track track;
+      eta = i_eta * etaStep;
+      theta = 2 * atan(exp(-eta));
+      track.setTheta(theta);      
+      track.setPhi(phi);
+
+      nHits = findHitsModules(tracker, z0, eta, theta, phi, track);
+
+      if (nHits) {
+	// Keep only triggering hits
+        // std::cerr << "Material before = " << track.getCorrectedMaterial().radiation;
+	track.keepTriggerOnly();
+	track.sort();
+	track.setTriggerResolution(true);
+
+        // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
+
+	if (efficiency!=1) track.addEfficiency(efficiency, false);
+	if (track.nActiveHits(true)>0) { // At least 3 points are needed to measure the arrow
+	  tv.push_back(track);
+	}    
+      }
+    }
+
+    // Compute the number of triggering points along the selected tracks
+    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+
+    // Fill the trigger performance maps
+    fillTriggerPerformanceMaps(tracker);
+
   }
 
   void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions) {
@@ -1135,13 +1205,15 @@ if (computeResolution) {
 		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
 			ModuleVector* modules = (*layIt)->getModuleVector();
 			if (!modules) {
-				std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
-				return;
+			  logERROR("Cannot retrieve moduleVector from the layer");
+			  return;
 			}
 			std::string cntName = (*layIt)->getContainerName();
 			if (cntName == "") {
-				cout << "computeTriggerFrequency(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
-				continue;
+			  ostringstream tempSS;
+			  tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
+			  logWARNING(tempSS);
+			  continue;
 			}
 			for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
 				Module* module = (*modIt);
@@ -1230,27 +1302,28 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 	double operatingTemp    = tracker.getOperatingTemp();
 	double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
 	double alphaParam       = tracker.getAlphaParam();
-    double referenceTemp    = tracker.getReferenceTemp();
+	double referenceTemp    = tracker.getReferenceTemp();
 
-	cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
-	cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
-	cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
-	cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
-    cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
-	irradiatedPowerConsumptionSummaries_.clear();
-	
+	// cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
+	// cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
+	// cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
+	// cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
+	// cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
+	irradiatedPowerConsumptionSummaries_.clear();	
 
 	LayerVector& layers = tracker.getLayers();
 	for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
 		ModuleVector* modules = (*layIt)->getModuleVector();
 		if (!modules) {
-			std::cerr << "ERROR in Analyzer::computeTriggerFrequency: cannot retrieve moduleVector from the layer\n";
-			return;
+		  logERROR("cannot retrieve moduleVector from the layer");
+		  return;
 		}
 		std::string cntName = (*layIt)->getContainerName();
 		if (cntName == "") {
-			cout << "computeIrradiatedPowerConsumption(): Skipping layer with no container name (" << modules->size() << " modules)." << endl;
-			continue;
+		  ostringstream tempSS;
+		  tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
+		  logWARNING(tempSS);
+		  continue;
 		}
 		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
 			Module* module = (*modIt); 
@@ -1621,6 +1694,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
    * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
    */
   Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
+				     // TODO: add z0 here and in the hit finder for inactive surfaces
 				     double eta, double theta, double phi, Track& t, bool isPixel) {
     std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
     std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
@@ -1635,6 +1709,53 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     }
     return res;
   }
+
+  int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t) {
+
+    Material emptyMaterial;
+    XYZVector origin(0,0,z0);
+    XYZVector direction;
+    Polar3DVector dir;
+    double distance;
+    
+    int hits = 0;
+    emptyMaterial.radiation = 0.0;
+    emptyMaterial.interaction = 0.0;
+    
+    // set the track direction vector
+    dir.SetCoordinates(1, theta, phi);
+    direction = dir;
+    
+    LayerVector allLayers = tracker.getLayers();
+    LayerVector::iterator layIt;
+    for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
+      Layer* aLayer = *layIt;
+      ModuleVector* layerModules = aLayer->getModuleVector();
+      ModuleVector::iterator modIt;
+      for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	Module* aModule = *modIt;
+	
+	// collision detection: rays are in z+ only, so consider only modules that lie on that side
+	// only consider modules that have type BarrelModule or EndcapModule
+	if (aModule->getMaxZ() > 0) {
+	  
+	  // same method as in Tracker, same function used
+	  distance = aModule->trackCross(origin, direction);
+	  if (distance > 0) {
+	    // module was hit
+	    hits++;
+	    
+	    // create Hit object with appropriate parameters, add to Track t
+	    Hit* hit = new Hit(distance, aModule);
+	    hit->setCorrectedMaterial(emptyMaterial);
+	    t.addHit(hit);
+	  }
+	}
+      }
+    }
+    return hits;
+  }
+
   
   /**
    * The module-level analysis function loops through all modules of a given layer, finds hits and connects them to the track.

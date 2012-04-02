@@ -23,6 +23,7 @@
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <messageLogger.h>
 /**
  * A shorter alias for the filesystem library namespace
  */

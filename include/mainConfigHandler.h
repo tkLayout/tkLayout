@@ -36,6 +36,7 @@ class mainConfigHandler {
   string getRootfileDirectory();
   string getGraphDirectory();
   string getSummaryDirectory();
+  string getDefaultMaterialsDirectory();
   string getConfigFileName();
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
@@ -64,6 +65,7 @@ class mainConfigHandler {
   string getRootfileDirectory_();
   string getGraphDirectory_();
   string getSummaryDirectory_();
+  string getDefaultMaterialsDirectory_();
 };
 
 #endif

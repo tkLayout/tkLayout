@@ -64,30 +64,44 @@ int main(int argc, char* argv[]) {
 
             
     insur::Squid squid;
+    bool verboseMaterial = false;
 
-    std::string geomfile = basename + ".cfg";
-    std::string settingsfile = basename + "_Types.cfg";
-    std::string matfile = basename + "_Materials.cfg";
-    std::string pixmatfile = basename + "_Materials.cfg.pix";
+    squid.setBasename(basename);
 
-    if (!squid.buildFullSystem(geomfile, settingsfile, matfile, pixmatfile, true, true)) return EXIT_FAILURE; // CUIDADO: true, true might need to be replaced by proper boolean switches 
+    // The tracker (and possibly pixel) must be build in any case
+    if (!squid.buildTracker()) return EXIT_FAILURE;
 
-    squid.pureAnalyzeGeometry(mattracks);
+    // The tracker should pick the types here but in case it does not,
+    // we can still write something
+    if (squid.dressTracker()) {
+      if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
 
-    std::cout << "Calling analyzer with " << geomtracks << std::endl;
+      if ((vm.count("all") || vm.count("bandwidth")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("power")) && (!squid.irradiateTracker() || !squid.reportPowerSite()) ) return EXIT_FAILURE;
 
-    if (!squid.pureAnalyzeMaterialBudget(geomtracks)) return EXIT_FAILURE;
+      // If we need to have the material model, then we build it
+      if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
+	if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+	  if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
+	    // TODO: the following call should know whether to compute resolution or material (or both)
+	    if (!squid.pureAnalyzeMaterialBudget(mattracks, verboseMaterial)) return EXIT_FAILURE;
+	    if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
+	    if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
+	  }
+	  if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
+	  if (vm.count("xml") && !squid.translateFullSystemToXML(xmlname.empty() ? basename : xmlname, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+	}
+      }
+
+      if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
+	  ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
+    } else if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
+
 
     if (!squid.reportGeometrySite()) return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("bandwidth")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("power"))     && !squid.reportPowerSite()) return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) && !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) return EXIT_FAILURE;
-    if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
-    if (!squid.additionalInfoSite(geomfile, settingsfile, matfile, pixmatfile)) return EXIT_FAILURE;
+    if (!squid.additionalInfoSite()) return EXIT_FAILURE;
     if (!squid.makeSite()) return EXIT_FAILURE;
     
-    if (vm.count("xml") && !squid.translateFullSystemToXML(xmlname.empty() ? basename : xmlname, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
 
     return EXIT_SUCCESS;
 }

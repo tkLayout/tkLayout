@@ -14,11 +14,11 @@ using namespace ROOT::Math;
 using namespace std;
 
 // bool Track::debugRemoval = false; // debug
-#ifdef HIT_DEBUG_RZ
-bool Track::debugRZCovarianceMatrix = false;  // debug
-bool Track::debugRZCorrelationMatrix = false;  // debug
-bool Track::debugRZErrorPropagation = false;  // debug
-#endif
+//#ifdef HIT_DEBUG_RZ
+//bool Track::debugRZCovarianceMatrix = false;  // debug
+//bool Track::debugRZCorrelationMatrix = false;  // debug
+//bool Track::debugRZErrorPropagation = false;  // debug
+//#endif
 
 /**
  * This is a comparator for two Hit objects.
@@ -425,21 +425,21 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
     int n = hitV_.size();
 
     
-#ifdef HIT_DEBUG
-    std::cerr << std::endl
-	      << std::endl
-	      << "=== Track::computeCorrelationMatrix() == " << std::endl
-	      << " theta = " << theta_ << std::endl;
-#endif
+    //#ifdef HIT_DEBUG
+    //    std::cerr << std::endl
+    //	      << std::endl
+    //	      << "=== Track::computeCorrelationMatrix() == " << std::endl
+    //	      << " theta = " << theta_ << std::endl;
+    //#endif
     
 
 
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
 
-#ifdef HIT_DEBUG
-      std::cerr << " p = " << momenta.at(p) << std::endl;
-#endif
+      //#ifdef HIT_DEBUG
+      //      std::cerr << " p = " << momenta.at(p) << std::endl;
+      //#endif
 
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
@@ -452,9 +452,9 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
 	double rho = 1E-3 * insur::magnetic_field * 0.3 / momenta.at(p);
         for (int i = 0; i < n - 1; i++) {
             double th = hitV_.at(i)->getCorrectedMaterial().radiation;
-#ifdef HIT_DEBUG
-	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
-#endif
+	    //#ifdef HIT_DEBUG
+	    //	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
+	    //#endif
 	    if (th>0)
 	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p)) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
 	    else
@@ -479,10 +479,11 @@ void Track::computeCorrelationMatrix(const vector<double>& momenta) {
                             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
                         if (r == c) {
                             double prec = hitV_.at(r)->getResolutionRphi();
-#ifdef HIT_DEBUG
-			    std::cerr << "Hit precision: " << prec << std::endl;
-			    std::cerr << "Radius: " << hitV_.at(r)->getRadius() << std::endl;
-#endif
+			    //#ifdef HIT_DEBUG
+			    //			    ostringstream tempSS;
+			    //			    tempSS << "Hit precision: " << prec << " at radius: " << hitV_.at(r)->getRadius();
+			    //			    logDEBUG(tempSS);
+			    //#endif
 			    if (hitV_.at(r)->getOrientation()==Hit::Vertical) {
 			      // I have to introduce an additional error in the position
 			      // to account for the uncertainty on r
@@ -554,10 +555,10 @@ corr(r, c)=0;
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
 
-#ifdef HIT_DEBUG
-	std::cerr << "Correlation matrix: " << std::endl;
-	corr.Print();
-#endif
+	//#ifdef HIT_DEBUG
+	// std::cerr << "Correlation matrix: " << std::endl;
+	// corr.Print();
+	//#endif
 
         // check if matrix is sane and worth keeping
         if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
@@ -575,12 +576,12 @@ void Track::computeCovarianceMatrix() {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlations_.end();
     covariances_.clear();
 
-#ifdef HIT_DEBUG
-    std::cerr << std::endl
-	      << std::endl
-	      << "=== Track::computeCovarianceMatrix() == " << std::endl
-	      << " theta = " << theta_ << std::endl;
-#endif
+    //#ifdef HIT_DEBUG
+    //std::cerr << std::endl
+    //	      << std::endl
+    //	      << "=== Track::computeCovarianceMatrix() == " << std::endl
+    //	      << " theta = " << theta_ << std::endl;
+    //#endif
 
     for (iter = correlations_.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
@@ -601,14 +602,14 @@ void Track::computeCovarianceMatrix() {
             else offset++;
         }
         diffsT.Transpose(diffs);
-#ifdef HIT_DEBUG
-	diffs.Print();
-#endif
+	//#ifdef HIT_DEBUG
+	//	diffs.Print();
+	//#endif
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C.Invert() * diffs;
-#ifdef HIT_DEBUG
-	cov.Print();
-#endif
+	//#ifdef HIT_DEBUG
+	//	cov.Print();
+	//#endif
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariances_.insert(par);
     }
@@ -624,23 +625,23 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
     // matrix size
     int n = hitV_.size();
     
-#ifdef HIT_DEBUG_RZ
-    if (debugRZCorrelationMatrix)
-      std::cerr << std::endl
-		<< std::endl
-		<< "=== Track::computeCorrelationMatrixRZ() == " << std::endl
-		<< " theta = " << theta_ << std::endl;
-#endif
+    //#ifdef HIT_DEBUG_RZ
+    //    if (debugRZCorrelationMatrix)
+    //      std::cerr << std::endl
+    //		<< std::endl
+    //		<< "=== Track::computeCorrelationMatrixRZ() == " << std::endl
+    //		<< " theta = " << theta_ << std::endl;
+    //#endif
 
     double ctgTheta = 1/tan(theta_);
     
     // set up correlation matrix
     for (unsigned int p = 0; p < momenta.size(); p++) {
 
-#ifdef HIT_DEBUG_RZ
-    if (debugRZCorrelationMatrix)
-      std::cerr << " p = " << momenta.at(p) << std::endl;
-#endif
+      //#ifdef HIT_DEBUG_RZ
+      //    if (debugRZCorrelationMatrix)
+      //      std::cerr << " p = " << momenta.at(p) << std::endl;
+      //#endif
 
         TMatrixTSym<double> corr(n);
         // pre-compute the squares of the scattering angles
@@ -649,15 +650,15 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
 	// needed factor to project the scattering angle on an horizontal surface
         std::vector<double> thetaOverSin_sq;
         for (int i = 0; i < n - 1; i++) {
-            double th = hitV_.at(i)->getCorrectedMaterial().radiation;
-#ifdef HIT_DEBUG_RZ
-    if (debugRZCorrelationMatrix)
-	    std::cerr << "material (" << i << ") = " << th
-		      << "\t at r=" << hitV_.at(i)->getRadius()
-		      << "\t " << ((hitV_.at(i)->getOrientation()==Hit::Horizontal) ? "Horizontal" : "Vertical")
-		      << "\t " << ((hitV_.at(i)->getObjectKind()==Hit::Active) ? "Active" : "Inactive")
-		      << std::endl;
-#endif
+	  double th = hitV_.at(i)->getCorrectedMaterial().radiation;
+	  // #ifdef HIT_DEBUG_RZ
+	  //     if (debugRZCorrelationMatrix)
+	  // 	    std::cerr << "material (" << i << ") = " << th
+	  // 		      << "\t at r=" << hitV_.at(i)->getRadius()
+	  // 		      << "\t " << ((hitV_.at(i)->getOrientation()==Hit::Horizontal) ? "Horizontal" : "Vertical")
+	  // 		      << "\t " << ((hitV_.at(i)->getObjectKind()==Hit::Active) ? "Active" : "Inactive")
+	  // 		      << std::endl;
+	  // #endif
 	    if (th>0)
 	      // equivalent to p=momenta.at(p)/sin(theta_); and then computing th/sin(theta)/sin(theta) using p in place of p_T
 	      th = (13.6 * 13.6) / (1000 * 1000 * momenta.at(p) * momenta.at(p) ) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
@@ -686,12 +687,12 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
                         if (r == c) {
 			  double prec = hitV_.at(r)->getResolutionY();
 			  if (hitV_.at(r)->getOrientation()==Hit::Vertical) prec *= ctgTheta;
-#ifdef HIT_DEBUG_RZ
-			    if (debugRZCorrelationMatrix) {
-			      std::cerr << "Hit precision: " << prec << "\t";
-			      std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
-			    }
-#endif
+			  // #ifdef HIT_DEBUG_RZ
+			  // 			    if (debugRZCorrelationMatrix) {
+			  // 			      std::cerr << "Hit precision: " << prec << "\t";
+			  // 			      std::cerr << "Distance: " << hitV_.at(r)->getDistance() << std::endl;
+			  // 			    }
+			  // #endif
                             sum = sum + prec * prec;
                         }
                         corr(r, c) = sum;
@@ -727,13 +728,13 @@ corr(r, c)=0;
         // resize matrix if necessary
         if (ia != -1) corr.ResizeTo(ia, ia);
 
-#ifdef HIT_DEBUG_RZ
-	if (debugRZCorrelationMatrix) {
-	  std::cerr << "Correlation matrix: " << std::endl;
-	  corr.Print();
-	  debugRZCorrelationMatrix = false;
-	}
-#endif
+	// #ifdef HIT_DEBUG_RZ
+	// 	if (debugRZCorrelationMatrix) {
+	// 	  std::cerr << "Correlation matrix: " << std::endl;
+	// 	  corr.Print();
+	// 	  debugRZCorrelationMatrix = false;
+	// 	}
+	// #endif
 
         // check if matrix is sane and worth keeping
         if ((corr.GetNoElements() > 0) && (corr.Determinant() != 0.0)) {
@@ -752,14 +753,14 @@ void Track::computeCovarianceMatrixRZ() {
     map<momentum, TMatrixTSym<double> >::const_iterator iter, guard = correlationsRZ_.end();
     covariancesRZ_.clear();
 
-#ifdef HIT_DEBUG_RZ
-    if (debugRZCovarianceMatrix) {
-      std::cerr << std::endl
-		<< std::endl
-		<< "=== Track::computeCovarianceMatrixRZ() == " << std::endl
-		<< " theta = " << theta_ << std::endl;
-    }
-#endif
+    // #ifdef HIT_DEBUG_RZ
+    //     if (debugRZCovarianceMatrix) {
+    //       std::cerr << std::endl
+    // 		<< std::endl
+    // 		<< "=== Track::computeCovarianceMatrixRZ() == " << std::endl
+    // 		<< " theta = " << theta_ << std::endl;
+    //     }
+    // #endif
 
     for (iter = correlationsRZ_.begin(); iter != guard; iter++) {
         unsigned int offset = 0;
@@ -780,31 +781,31 @@ void Track::computeCovarianceMatrixRZ() {
 	  else offset++;
         }
         diffsT.Transpose(diffs);
-#ifdef HIT_DEBUG_RZ
-	if (debugRZCovarianceMatrix) {
-	  std::cerr << "Partial derivatives matrix" << std::endl;
-	  diffs.Print();
-	  diffsT.Print();
-	  std::cerr << "Error correlation matrix:" << std::endl;
-	  C.Print();
-	}
-#endif
+	//#ifdef HIT_DEBUG_RZ
+	// 	if (debugRZCovarianceMatrix) {
+	// 	  std::cerr << "Partial derivatives matrix" << std::endl;
+	// 	  diffs.Print();
+	// 	  diffsT.Print();
+	// 	  std::cerr << "Error correlation matrix:" << std::endl;
+	// 	  C.Print();
+	// 	}
+	// #endif
 	// Invert the C matrix
 	C.Invert();
-#ifdef HIT_DEBUG_RZ
-	if (debugRZCovarianceMatrix) {
-	  std::cerr << "Error correlation matrix (inverted):" << std::endl;	  
-	  C.Print();
-	}
-#endif
+	// #ifdef HIT_DEBUG_RZ
+	// 	if (debugRZCovarianceMatrix) {
+	// 	  std::cerr << "Error correlation matrix (inverted):" << std::endl;	  
+	// 	  C.Print();
+	// 	}
+	// #endif
         // compute cov from diffsT, the correlation matrix and diffs
         cov = diffsT * C * diffs;
-#ifdef HIT_DEBUG_RZ
-	if (debugRZCovarianceMatrix) {
-	  cov.Print();
-	  debugRZCovarianceMatrix = false;
-	}
-#endif
+	// #ifdef HIT_DEBUG_RZ
+	// 	if (debugRZCovarianceMatrix) {
+	// 	  cov.Print();
+	// 	  debugRZCovarianceMatrix = false;
+	// 	}
+	// #endif
         pair<momentum, TMatrixT<double> > par(iter->first, cov);
         covariancesRZ_.insert(par);
     }
@@ -833,30 +834,30 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
-#ifdef HIT_DEBUG_RZ
-	if (debugRZErrorPropagation) {
-	  std::cerr << "Matrix S" << std::endl;
-	  data.Print();
-	}
-#endif
+	// #ifdef HIT_DEBUG_RZ
+	// 	if (debugRZErrorPropagation) {
+	// 	  std::cerr << "Matrix S" << std::endl;
+	// 	  data.Print();
+	// 	}
+	// #endif
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltaCtgTheta_.insert(err);
-#ifdef HIT_DEBUG_RZ
-	if (debugRZErrorPropagation) {
-	  std::cerr << err.second << std::endl;
-	}
-#endif
+	// #ifdef HIT_DEBUG_RZ
+	// 	if (debugRZErrorPropagation) {
+	// 	  std::cerr << err.second << std::endl;
+	// 	}
+	// #endif
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaZ0_.insert(err);
 
-#ifdef HIT_DEBUG_RZ
-	if (debugRZErrorPropagation) {
-	  std::cerr << err.second << std::endl;
-	  debugRZErrorPropagation = false;
-	}
-#endif
+	//#ifdef HIT_DEBUG_RZ
+	//	if (debugRZErrorPropagation) {
+	// 	  std::cerr << err.second << std::endl;
+	// 	  debugRZErrorPropagation = false;
+	// 	}
+	// #endif
     }
 
     // rPhi plane
@@ -869,16 +870,16 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
         pair<momentum, double> err;
         err.first = iter->first;
         data = data.Invert();
-#ifdef HIT_DEBUG
-	std::cerr << "Matrix S" << std::endl;
-	data.Print();
-#endif
+	//#ifdef HIT_DEBUG
+	//	std::cerr << "Matrix S" << std::endl;
+	//	data.Print();
+	//#endif
         if (data(0, 0) >= 0) err.second = sqrt(data(0, 0));
         else err.second = -1;
         deltarho_.insert(err);
-#ifdef HIT_DEBUG
-	std::cerr << err.second << std::endl;
-#endif
+	//#ifdef HIT_DEBUG
+	//	std::cerr << err.second << std::endl;
+	//#endif
         if (data(1, 1) >= 0) err.second = sqrt(data(1, 1));
         else err.second = -1;
         deltaphi_.insert(err);

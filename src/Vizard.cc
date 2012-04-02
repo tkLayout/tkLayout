@@ -17,7 +17,7 @@ namespace insur {
         // internal flag
         geometry_created = false;
         // ROOT geometry manager
-        gm = new TGeoManager("display", "Tracker");
+	gm = new TGeoManager("display", "Tracker");
         // dummy material definitions for each category
         matvac = new TGeoMaterial("Vacuum", 0, 0, 0);
         matact = new TGeoMaterial("Si", a_silicon, z_silicon, d_silicon);
@@ -583,7 +583,6 @@ namespace insur {
         std::cout << "HTML file written to " << outfile << std::endl;
     }
     
-#ifdef USING_ROOTWEB
 
     void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
         histogramSummary(a, site, "outer");
@@ -658,6 +657,17 @@ namespace insur {
         std::string pageAddress="material"+name+".html";
         myPage->setAddress(pageAddress);
         site.addPage(myPage);
+
+	std::string name_overviewMaterial = std::string("overviewMaterial") + name ;
+	std::string name_materialInTrackingVolume = std::string("materialInTrackingVolume") + name ;
+	std::string name_detailedMaterial = std::string("detailedMaterial") + name ;
+	std::string name_countourMaterial = std::string("countourMaterial") + name ;
+	std::string name_mapMaterialRadiation = std::string("mapMaterialRadiation") + name ;
+	std::string name_mapMaterialInteraction = std::string("mapMaterialInteraction") + name ;
+	std::string name_hadronsHitsNumber = std::string("hadronsHitsNumber") + name ;
+	std::string name_hadronsTracksFraction = std::string("hadronsTracksFraction") + name ;
+	std::string name_hadTrackRanger = std::string("hadTrackRanger") + name ;
+
         
         // 1D Overview
         myContent = new RootWContent("1D Overview");
@@ -685,10 +695,10 @@ namespace insur {
 #ifdef MATERIAL_SHADOW
         TH2D *ir = NULL, *ii = NULL;
 #endif
-    TH2D *mapRad = NULL, *mapInt = NULL;
+	TH2D *mapRad = NULL, *mapInt = NULL;
         
         // Output initialisation and headers
-        myCanvas = new TCanvas("overviewMaterial");
+        myCanvas = new TCanvas(name_overviewMaterial.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->Divide(2, 1);
         myPad = myCanvas->GetPad(0);
@@ -781,7 +791,7 @@ namespace insur {
         myContent = new RootWContent("Tracking volume", false);
         myPage->addContent(myContent);
         // Work area re-init
-        myCanvas = new TCanvas("materialInTrackingVolume");
+        myCanvas = new TCanvas(name_materialInTrackingVolume.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->Divide(2, 1);
         myPad = myCanvas->GetPad(0);
@@ -818,7 +828,7 @@ namespace insur {
         myContent = new RootWContent("Detailed", false);
         myPage->addContent(myContent);
         // Work area re-init
-        myCanvas = new TCanvas("detailedMaterial");
+        myCanvas = new TCanvas(name_detailedMaterial.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->Divide(2, 1);
         myPad = myCanvas->GetPad(0);
@@ -879,7 +889,7 @@ namespace insur {
         
         
         // Work area re-init
-        myCanvas = new TCanvas("countourMaterial");
+        myCanvas = new TCanvas(name_countourMaterial.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->Divide(2, 1);
         myPad = myCanvas->GetPad(0);
@@ -916,7 +926,7 @@ namespace insur {
 #endif // MATERIAL_SHADOW
 
     // Radiation length plot
-        myCanvas = new TCanvas("mapMaterialRadiation");
+        myCanvas = new TCanvas(name_mapMaterialRadiation.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
     mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
@@ -929,7 +939,7 @@ namespace insur {
         myContent->addItem(myImage);
 
     // Interaction length plot
-        myCanvas = new TCanvas("mapMaterialInteraction");
+        myCanvas = new TCanvas(name_mapMaterialInteraction.c_str());
         myCanvas->SetFillColor(color_plot_background);
         myCanvas->cd();
     mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
@@ -945,7 +955,7 @@ namespace insur {
         myPage->addContent(myContent);
     
     // Number of hits
-    myCanvas = new TCanvas("hadronsHitsNumber");
+    myCanvas = new TCanvas(name_hadronsHitsNumber.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     TGraph* hadronTotalHitsGraph = new TGraph(a.getHadronTotalHitsGraph());
@@ -965,14 +975,14 @@ namespace insur {
     // Number of hits
     std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
     std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
-    myCanvas = new TCanvas("hadronsTracksFraction");
+    myCanvas = new TCanvas(name_hadronsTracksFraction.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
     // Old-style palette by Stefano, with custom-generated colors
     // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
     // Replaced by the libreOffice-like palette
-    TH1D* ranger = new TH1D("hadTrackRanger","", 100, 0, 3);
+    TH1D* ranger = new TH1D(name_hadTrackRanger.c_str(),"", 100, 0, 3);
     ranger->SetMaximum(1.);
     TAxis* myAxis;
     myAxis = ranger->GetXaxis();
@@ -1055,8 +1065,6 @@ namespace insur {
     //}
     
     }
-    
-#endif
     
     // private
     /**
@@ -1243,7 +1251,6 @@ namespace insur {
     occupancyCsv_ += "\n";
   }
     
-#ifdef USING_ROOTWEB
     /**
      * This function draws the profile of hits obtained by the analysis of the geometry
      * together with the summaries in tables with the rootweb library. It also actually does a couple of
@@ -1913,9 +1920,10 @@ namespace insur {
     return drawEtaProfiles(*myVirtualPad, analyzer);
   }
     
-  bool Vizard::additionalInfoSite(std::string& geomfile, std::string& settingsfile,
-                  std::string& matfile, std::string& pixmatfile,
-                  Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  bool Vizard::additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
+				  const std::string& matfile, const std::string& pixmatfile,
+				  bool defaultMaterial, bool defaultPixelMaterial,
+				  Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
         RootWPage* myPage = new RootWPage("Info");
         myPage->setAddress("info.html");
         site.addPage(myPage);
@@ -1939,26 +1947,29 @@ namespace insur {
         summaryContent = new RootWContent("Summary");
         myPage->addContent(summaryContent);
         
+	std::string destinationFilename;
         if (geomfile!="") {
-            std::string destinationFilename = trackerName + ".cfg";
-            myBinaryFile = new RootWBinaryFile(destinationFilename, "Geometry configuration file", geomfile);
-            simulationContent->addItem(myBinaryFile);
+	  destinationFilename = trackerName + suffix_geometry_file;
+	  myBinaryFile = new RootWBinaryFile(destinationFilename, "Geometry configuration file", geomfile);
+	  simulationContent->addItem(myBinaryFile);
         }
         if (settingsfile!="") {
-            std::string destinationFilename = trackerName + "_Types.cfg";
-            myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
-            simulationContent->addItem(myBinaryFile);
+	  destinationFilename = trackerName + suffix_types_file;
+	  myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
+	  simulationContent->addItem(myBinaryFile);
         }
         if (matfile!="") {
-            std::string destinationFilename = trackerName + "_Materials.cfg";
-            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
-            simulationContent->addItem(myBinaryFile);
+	  if (defaultPixelMaterial) destinationFilename = default_tracker_materials_file;
+	  else destinationFilename = trackerName + suffix_tracker_material_file;
+	  myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
+	  simulationContent->addItem(myBinaryFile);
         }
-    if (pixmatfile!="") {
-            std::string destinationFilename = trackerName + "_Materials.cfg.pix";
-            myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
-            simulationContent->addItem(myBinaryFile);
-    }
+	if (pixmatfile!="") {
+	  if (defaultPixelMaterial) destinationFilename = default_pixel_materials_file;
+	  else destinationFilename = trackerName + suffix_pixel_material_file;
+	  myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
+	  simulationContent->addItem(myBinaryFile);
+	}
         
         RootWInfo* myInfo;
         myInfo = new RootWInfo("Minimum bias per bunch crossing");
@@ -3172,7 +3183,6 @@ namespace insur {
     }
     
     
-#endif
     
     // private
     // Draws tickmarks on 3d canvases

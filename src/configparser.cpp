@@ -473,9 +473,6 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         throw parsingException();
     }
    
-    std::cout << "SSSS max barrel z(+1) = " << myTracker_->getMaxBarrelZ(+1)  << std::endl;
-    std::cout << "SSSS max barrel z(-1) = " << myTracker_->getMaxBarrelZ(-1)  << std::endl;
- 
     // Set back the generic small and big deltas
     myTracker_->setSmallDelta(genericSmallDelta);
     myTracker_->setBigDelta(genericBigDelta);
@@ -1891,11 +1888,11 @@ std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string f
 
 
 bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
-	cout << "Trying to open irradiation map file " << fileName << endl;
+        // cout << "Trying to open irradiation map file " << fileName << endl;
 	std::ifstream filein(fileName.c_str());
 	if (!filein.is_open()) { 
-		cerr << "Failed opening irradiation map file!" << endl;
-		return false; 
+	  logERROR("Failed opening irradiation map file!");
+	  return false;
 	}
 	std::string line;
 	while(std::getline(filein, line)) {
@@ -1906,7 +1903,11 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 		ss >> r;
 		ss >> fluence;
 		ss >> error;
-		if (r < 0.0 || fluence < 0.0) cerr << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error << endl;
+		if (r < 0.0 || fluence < 0.0) {
+		  ostringstream tempSS;
+		  tempSS << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error;
+		  logERROR(tempSS);
+		}
 		tracker->getIrradiationMap()[make_pair(int(z/2.5),int(r/2.5))] = fluence;
 	}
 	return true;
