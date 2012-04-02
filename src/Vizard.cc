@@ -2184,7 +2184,6 @@ namespace insur {
         // Here you should check if the TGraph
         // list is empty => maybe not?
     if (!(a.getRhoGraphs(false, isTrigger).empty() && a.getDGraphs(false, isTrigger).empty() && a.getPhiGraphs(false, isTrigger).empty())) {
-
             // Create a page for the errors
       std::string pageTitle = "Resolution";
       std::string additionalSummaryTag;
