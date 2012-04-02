@@ -138,7 +138,6 @@ double computeListZ(  // New-fangled kickass function
           double smallDelta,
           double baseOverlap,
           double zDelta,
-          double startZ,
           int numModules,
           int smallParity,
           BarrelModule* sampleModule);
@@ -152,6 +151,18 @@ double computeListZ(  // New-fangled kickass function
           int numModules,
           int smallParity,
           BarrelModule* sampleModule);
+ void buildStringPairRecursion(  // New-fangled kickass function
+          ModuleVector& thisModuleSet,
+          double averageRadius,
+          double smallDelta,
+          double baseOverlap,
+          double zDelta,
+          double startZ,
+          int numModules,
+          int smallParity,
+          int recursionCounter,
+          BarrelModule* sampleModule);
+
 /*  void buildStringPair(ModuleVector& thisModuleSet, // CUIDADO: TBR
 		       double stringAverageRadius,
 		       double smallDelta, // Half the distance between inner and outer modules

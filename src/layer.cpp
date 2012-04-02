@@ -611,8 +611,25 @@ double BarrelLayer::computeListZ(
     return lastZ;
 }
 
-
 void BarrelLayer::buildStringPair(
+    ModuleVector& thisModuleSet,
+    double averageRadius,
+    double smallDelta,
+    double baseOverlap,
+    double zDelta,
+    int numModules,
+    int smallParity,
+    BarrelModule* sampleModule)  {
+
+    buildStringPairRecursion(thisModuleSet, averageRadius,
+                             smallDelta, baseOverlap,
+                             zDelta, 0, numModules,
+                             smallParity,
+                             0, // recursion counter
+                             sampleModule);
+    } 
+
+void BarrelLayer::buildStringPairRecursion(
     ModuleVector& thisModuleSet,
     double averageRadius,
     double smallDelta,
@@ -621,12 +638,14 @@ void BarrelLayer::buildStringPair(
     double startZ,
     int numModules,
     int smallParity,
+    int recursionCounter,
     BarrelModule* sampleModule) {
 
-    static int recursionCounter = 0;
-
     if (recursionCounter++ == 100) { // this stops infinite recursion if the balancing doesn't converge
-        std::cerr << "Balanced module placement in string at avg radius " << averageRadius << " didn't converge!! String badly skewed" << std::endl;
+        tempString.str("");
+        tempString << "Balanced module placement in string at avg radius " << averageRadius << " didn't converge!! String badly skewed";
+        tempString << "Unbalance is " << startZ << " mm";
+        addMessage(tempString.str(), WARNING);
         return;
     }  
     // create Z lists and balance them
@@ -643,16 +662,17 @@ void BarrelLayer::buildStringPair(
     std::vector<double> listZNeg;
     double farthestNegZ = computeListZ(listZNeg, startZ, radiiRatio, modLengthZ, zDelta, baseOverlap, numModules, -smallParity, -1, true);
 
-    double zUnbalance = abs(farthestPosZ) - abs(farthestNegZ); // balancing uneven pos/neg strings
+    double zUnbalance = farthestPosZ + farthestNegZ; // balancing uneven pos/neg strings
     if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
-        buildStringPair(thisModuleSet,
+        buildStringPairRecursion(thisModuleSet,
                         averageRadius,
                         smallDelta,
                         baseOverlap,
                         zDelta,
-                        -zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
+                        startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
                         numModules,
                         smallParity,
+                        recursionCounter,
                         sampleModule);
     } else {
     
@@ -948,7 +968,6 @@ void BarrelLayer::buildLayer(double averageRadius,
                 smallDelta,
                 overlap,
                 safetyOrigin,
-                0, // startZ
                 nModules,
                 smallParity,
                 sampleModule);
@@ -957,7 +976,6 @@ void BarrelLayer::buildLayer(double averageRadius,
                 smallDelta,
                 overlap,
                 safetyOrigin,
-                0, // startZ
                 nModules,
                 stringSameParity ? smallParity : -smallParity,
                 sampleModule);
@@ -1048,7 +1066,7 @@ void BarrelLayer::buildLayer(double averageRadius,
         int aSection;
         std::vector<Module* >::iterator secondMod;
         secondMod=aString.begin()++;
-        
+
         for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
             aSection=NoSection;
             if ((itMod==aString.begin())||(itMod==secondMod)) {
@@ -1064,7 +1082,6 @@ void BarrelLayer::buildLayer(double averageRadius,
 
             Module* tempMod = new BarrelModule((BarrelModule&)**itMod);
             tempMod->rotatePhi(i*stringPhiShift);
-            
             if (i==0) {
                 aSection |= YZSection;
             }
@@ -1089,7 +1106,7 @@ void BarrelLayer::buildLayer(double averageRadius,
                     }
                     break;
             }
-            
+
             tempMod->setSection(aSection);
             
             //  if (firstOnes)
