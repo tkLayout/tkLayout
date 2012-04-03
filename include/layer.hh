@@ -21,6 +21,8 @@ typedef std::pair<int,double> LayerOption;
 class Layer {
 
 protected:
+  // If you add another member variable, please update the copy
+  // constructor accordingly
   ModuleVector moduleSet_;
   std::string layerName_;
   std::string containerName_;
@@ -83,6 +85,8 @@ protected:
 
 class BarrelLayer : public Layer {
 private:
+  // If you add another member variable, please update the copy
+  // constructor accordingly
   int nOfRods_, nModsOnString_;
   BarrelModule* sampleModule_;
   BarrelModule* getSampleModule() { return sampleModule_; }
