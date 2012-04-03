@@ -31,6 +31,11 @@ bool MessageLogger::addMessage(string sourceFunction, string message, int level 
 	      << sourceFunction<<": " << message << std::endl;
   }
 
+  if (level==DEBUG) { // TODO: this could be more efficient
+     for (int i=sourceFunction.length(); i<20; ++i) message=" "+ message;
+     message = "[" + sourceFunction+"]: " + message;
+  }
+
   if ((level>=0)&&(level<NumberOfLevels)) {
     LogMessage newMessage;
     newMessage.level=level;
