@@ -105,6 +105,7 @@ public:
   void setCanvas(TCanvas& myCanvas);
   void setComment(string newComment);
   void setName(string newName);
+  std::string getName();
   void setZoomedSize(int witdh, int height);
   void setRelativeHtmlDirectory(string newDirectory); 
   void setTargetDirectory(string newDirectory); 
@@ -252,7 +253,7 @@ public:
   void addAuthor(string newAuthor);
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
-  bool makeSite();
+  bool makeSite(bool verbose);
 };
 
 class RootWPage {

@@ -322,7 +322,7 @@ namespace insur {
       v.makeLogPage(site);
     }
         
-    bool result = site.makeSite();
+    bool result = site.makeSite(false);
     userInfoEnd();
     return result;
   }

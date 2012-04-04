@@ -205,6 +205,10 @@ void RootWImage::setName(string newName) {
   name_ = newName;
 }
 
+std::string RootWImage::getName() {
+  return name_ ;
+}
+
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
@@ -829,7 +833,7 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
   
 }
 
-bool RootWSite::makeSite() {
+bool RootWSite::makeSite(bool verbose) {
   ofstream myPageFile;
   RootWPage* myPage;
   string myPageFileName;
@@ -859,12 +863,14 @@ bool RootWSite::makeSite() {
   vector<RootWPage*>::iterator it;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
+    if (verbose) std::cout << " " << myPage->getTitle() << std::flush;
     myPageFileName = targetDirectory_+"/"+myPage->getAddress();
     myPageFile.open(myPageFileName.c_str(), ios::out);
     myPage->setTargetDirectory(targetDirectory_);
     myPage->dump(myPageFile);
     myPageFile.close();
   }
+  if (verbose) std::cout << " ";
 
   return true;
 }
