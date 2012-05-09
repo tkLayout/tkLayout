@@ -1288,8 +1288,8 @@ namespace insur {
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
-    myPage->setAddress("index.html");
-        site.addPage(myPage);
+	myPage->setAddress("index.html");
+        site.addPage(myPage, 100);
         RootWContent* myContent;
         
         // Grab a list of layers from teh tracker object
@@ -1325,8 +1325,10 @@ namespace insur {
         
         layerTable->setContent(0, 0, "Layer");
         layerTable->setContent(1, 0, "r");
+        layerTable->setContent(2, 0, "# mod");
         diskTable->setContent(0, 0, "Disk");
         diskTable->setContent(1, 0, "z");
+        diskTable->setContent(2, 0, "# mod");
         ringTable->setContent(0, 0, "Ring");
         ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
         ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
@@ -1336,21 +1338,29 @@ namespace insur {
         // Build the layer summary BTW
         int nBarrelLayers=0;
         int nDisks=0;
+        int totalBarrelModules = 0;
+        int totalEndcapModules = 0;
         for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
             aLayer = (*layIt);
             if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(aLayer)) ) {
                 if (aBarrelLayer->getMaxZ(+1)>0) {
                     ++nBarrelLayers;
                     //std::cerr << "Layer number " << nBarrelLayers << std::endl;
+                    int nModules = aBarrelLayer->getNModules();
+                    totalBarrelModules += nModules;
                     layerTable->setContent(0, nBarrelLayers, aBarrelLayer->getName());
                     layerTable->setContent(1, nBarrelLayers, aBarrelLayer->getAverageRadius(), coordPrecision);
+                    layerTable->setContent(2, nBarrelLayers, nModules);
                 }
             }
             if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {
                 if (anEndcapDisk->getAverageZ()>0) {
                     ++nDisks;
+                    int nModules = anEndcapDisk->getNModules();
+                    totalEndcapModules += nModules;
                     diskTable->setContent(0, nDisks, anEndcapDisk->getName());
                     diskTable->setContent(1, nDisks, anEndcapDisk->getAverageZ(), coordPrecision);
+                    diskTable->setContent(2, nDisks, nModules);
                 }
             }
             aLay = (*layIt)->getModuleVector();
@@ -1386,6 +1396,10 @@ namespace insur {
                 }
             }
         }
+        layerTable->setContent(0, nBarrelLayers+1, "Total");
+        layerTable->setContent(2, nBarrelLayers+1, totalBarrelModules);
+        diskTable->setContent(0, nDisks+1, "Total");
+        diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
         
         EndcapModule* anEC;
         int aRing;
@@ -3852,10 +3866,32 @@ namespace insur {
   }
 
   void linePosition::setCoordinates(const double& x0, const double& y0, const double& x1, const double& y1) {
-    x[0] = round(x0);
-    y[0] = round(y0);
-    x[1] = round(x1);
-    y[1] = round(y1);
+    // double X0, Y0, X1, Y1;
+    if (x0==x1) { // Sort by y
+      if (y0<y1) {
+	x[0] = round(x0);
+	y[0] = round(y0);
+	x[1] = round(x1);
+	y[1] = round(y1);
+      } else {
+	x[1] = round(x0);
+	y[1] = round(y0);
+	x[0] = round(x1);
+	y[0] = round(y1);
+      }
+    } else { // Sort by x
+      if (x0<x1) {
+	x[0] = round(x0);
+	y[0] = round(y0);
+	x[1] = round(x1);
+	y[1] = round(y1);
+      } else {
+	x[1] = round(x0);
+	y[1] = round(y0);
+	x[0] = round(x1);
+	y[0] = round(y1);
+      }
+    }
   }
 
 

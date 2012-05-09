@@ -652,6 +652,16 @@ ostream& RootWPage::dump(ostream& output) {
   
 }
 
+
+void RootWPage::setRelevance(int newRelevance) {
+  relevance = newRelevance;
+}
+
+int RootWPage::getRelevance() {
+  return relevance;
+}
+
+
 //*******************************************//
 // RootWSite                                 //
 //*******************************************//
@@ -724,14 +734,31 @@ void RootWSite::setRevision(string newRevision) {
   revision_ = newRevision;
 }
 
-void RootWSite::addPage(RootWPage* newPage) {
-  pageList_.push_back(newPage);
+void RootWSite::addPage(RootWPage* newPage, int relevance /* = least_relevant */ ) {
+  newPage->setRelevance(relevance);
+  if (relevance == least_relevant) {
+    pageList_.push_back(newPage);
+  } else {
+    // Go through the vector to find the first element which has a
+    // lower relevance than 'relevance'
+    vector<RootWPage*>::iterator it = pageList_.begin();
+    vector<RootWPage*>::iterator beforeThis = pageList_.end();
+    RootWPage* aPage;
+    for (; it!=pageList_.end(); ++it) {
+      aPage = *it;
+      if (aPage->getRelevance()<relevance) {
+	beforeThis = it;
+	break;
+      }
+    }
+    pageList_.insert(beforeThis, newPage);
+  }
   newPage->setSite(this);
 }
 
-RootWPage& RootWSite::addPage(string newTitle) {
+RootWPage& RootWSite::addPage(string newTitle, int relevance /* = least_relevant */ ) {
   RootWPage* newPage = new RootWPage(newTitle);
-  addPage(newPage);
+  addPage(newPage, relevance);
   return (*newPage);
 }
 

@@ -232,7 +232,7 @@ private:
   string revision_;
   string targetDirectory_;
   //string styleDirectory_;
-
+  static const int least_relevant = -1000;
 public:
   ~RootWSite();
   RootWSite();
@@ -248,8 +248,8 @@ public:
   void setRevision (string newRevision);
   ostream& dumpHeader(ostream& output, RootWPage* thisPage);
   ostream& dumpFooter(ostream& output);
-  void addPage(RootWPage* newPage); // TODO: deprecate this
-  RootWPage& addPage(string title);
+  RootWPage& addPage(string title, int relevance = least_relevant);
+  void addPage(RootWPage* newPage, int relevance = least_relevant);
   void addAuthor(string newAuthor);
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
@@ -264,7 +264,7 @@ private:
   RootWSite* site_;
   string targetDirectory_;
   double alert_;
-
+  int relevance;
 public:
   ~RootWPage();
   RootWPage();
@@ -280,6 +280,8 @@ public:
   RootWContent& addContent(string title, bool visible=true);
   void setAlert(double alert);
   double getAlert();
+  void setRelevance(int newRelevance);
+  int getRelevance();
 };
 
 class RootWItemCollection {
