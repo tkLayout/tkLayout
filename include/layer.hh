@@ -56,6 +56,8 @@ public:
   virtual double getStartAngle() { return 0.0; }
   virtual double getMaxModuleThickness() { return 0.0; }
 
+  int getNModules() const;
+
   virtual int cutOverEta(double etaCut) { return 0; }
 
   virtual void decreaseModCount(int ring) {}

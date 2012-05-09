@@ -142,6 +142,10 @@ double Layer::getMinRho() {
     return minRho;
 };
 
+int Layer::getNModules() const {
+  return moduleSet_.size();
+}
+
 /******************/
 /*                */
 /* Barrel layer   */

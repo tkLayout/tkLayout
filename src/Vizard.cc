@@ -3861,8 +3861,8 @@ namespace insur {
   
   void linePosition::setPointCoordinates(const int& iPoint, const double& newx, const double& newy) {
     if ((iPoint<0)||(iPoint>1)) return;
-    x[iPoint]=newx;
-    y[iPoint]=newy;
+    x[iPoint]=round(newx);
+    y[iPoint]=round(newy);
   }
 
   void linePosition::setCoordinates(const double& x0, const double& y0, const double& x1, const double& y1) {
