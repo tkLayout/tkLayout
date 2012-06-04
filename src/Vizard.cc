@@ -54,6 +54,7 @@ namespace insur {
         Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
         Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
         Int_t myPalette[temperature_levels];
+        gStyle->SetNumberContours(temperature_levels);
         
         Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
         for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
