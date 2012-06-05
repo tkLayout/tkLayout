@@ -27,7 +27,7 @@ public:
   void setPowerPerStrip(double W, int powerType);
   void setPowerPerModule(double W, int powerType);
   double getPower(int powerType, int nStrips);
-  double getPower(int nStrips);
+  double getPower(int nStrips) const;
   double getPowerPerStrip(int powerType);
   double getPowerPerModule(int powerType);
   void setTriggerErrorX(double newError);

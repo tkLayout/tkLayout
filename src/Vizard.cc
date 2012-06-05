@@ -1814,7 +1814,7 @@ namespace insur {
         TCanvas *XYCanvasEC = NULL;
         TCanvas *myCanvas = NULL;
         //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-	createSummaryCanvasNice(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+	createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
 	// createColorPlotCanvas(tracker, 1, RZCanvas);
     
         
@@ -2124,11 +2124,6 @@ namespace insur {
         std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
         std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
     
-//      std::map<pair<int,int>,std::string>& tsm = trueSummary.getContent();
-//      cout << "TRUE TRIGGER COUNT: " << tsm.size() << endl;
-//      for (std::map<pair<int,int>,std::string>::iterator it = tsm.begin(); it != tsm.end(); ++it) {
-//          cout << it->first.first << '\t' << it->first.second << '\t' << it->second << endl;
-//      }
         for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
             myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
         }
@@ -2142,12 +2137,158 @@ namespace insur {
             myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
         }
         for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
-            myPage->addContent(std::string("Trigger data bandwidth Mbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+            myPage->addContent(std::string("Trigger data bandwidth Gbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
         }
+
+        myContent = &myPage->addContent("Trigger bandwidth and frequency maps", true);
+
+        TCanvas triggerDataBandwidthCanvas;
+        TCanvas triggerFrequencyPerEventCanvas;
+
+        PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // CUIDADO: kludgy at best. we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
+        PlotDrawer<YZ, Property, Max> yztfDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
+
+        yzbwDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+        yztfDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+
+        yzbwDrawer.drawFrame<HistogramFrameStyle>(triggerDataBandwidthCanvas);
+        yztfDrawer.drawFrame<HistogramFrameStyle>(triggerFrequencyPerEventCanvas);
+
+        yzbwDrawer.drawModules<ContourStyle>(triggerDataBandwidthCanvas);
+        yztfDrawer.drawModules<ContourStyle>(triggerFrequencyPerEventCanvas);
+
+        RootWImage& triggerDataBandwidthImage = myContent->addImage(triggerDataBandwidthCanvas, 900, 400);
+        triggerDataBandwidthImage.setComment("Map of the bandwidth for trigger data in Gbps");
+        triggerDataBandwidthImage.setName("triggerDataBandwidthMap");
+
+        RootWImage& triggerFrequencyPerEventImage = myContent->addImage(triggerFrequencyPerEventCanvas, 900, 400);
+        triggerFrequencyPerEventImage.setComment("Map of the trigger frequency per event (a.k.a. stubs per event)");
+        triggerFrequencyPerEventImage.setName("triggerFrequencyPerEventMap");
+
+
+        
+
+        StubRateHistos& totalHistos = analyzer.getTotalStubRateHistos();
+        StubRateHistos& trueHistos = analyzer.getTrueStubRateHistos();
+        
+        std::string currCntName = "";
+        for (StubRateHistos::iterator totalIt = totalHistos.begin(), trueIt = trueHistos.begin(); totalIt != totalHistos.end(); ++totalIt, ++trueIt) {
+            std::pair<std::string, int> layer = totalIt->first;
+            TH1D* totalHisto = totalIt->second;
+            TH1D* trueHisto = trueIt->second;
+            if (layer.first != currCntName) {
+                myContent = &myPage->addContent(std::string("Stub rate plots (") + layer.first + ")", false);
+                currCntName = layer.first;
+            }
+            TCanvas graphCanvas;
+            graphCanvas.cd();
+            totalHisto->SetLineColor(1);
+            totalHisto->SetMinimum(trueHisto->GetMinimum()*.9 < 0.1 ? 0 : trueHisto->GetMinimum()*.9);
+            totalHisto->Draw();
+            trueHisto->SetLineColor(2);
+            trueHisto->Draw("SAME");
+            RootWImage& graphImage = myContent->addImage(graphCanvas, 600, 600);
+            graphImage.setComment("Stub rate for layer " + any2str(layer.second) + " (MHz/cm^2)");
+            graphImage.setName("stubRate" + layer.first + any2str(layer.second));
+
+        }
+        
+
         return true;
     }
 
-  bool Vizard::irradiatedPowerSummary(Analyzer& a, RootWSite& site) {
+
+bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+    RootWPage* myPage = new RootWPage("Trigger CPUs");
+    myPage->setAddress("trigger_cpus.html");
+    site.addPage(myPage);
+
+    SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
+    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
+    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
+    std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
+
+    myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
+    myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
+    myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
+
+    for (std::map<std::string, SummaryTable>::iterator it = moduleSummaries.begin(); it != moduleSummaries.end(); ++it) {
+        myPage->addContent(std::string("Module outbound connections (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
+
+    // Some helper string objects
+    ostringstream tempSS;
+    std::string tempString;    
+
+    //mapBag myMapBag = analyzer.getMapBag();
+    //TH2D& moduleConnectionEtaMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
+    //TH2D& moduleConnectionPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
+    //TH2D& moduleConnectionEndcapPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
+
+
+    RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
+
+    TCanvas moduleConnectionEtaCanvas;
+    TCanvas moduleConnectionPhiCanvas;
+    TCanvas moduleConnectionEndcapPhiCanvas;
+
+    PlotDrawer<YZ, Method<int, &Module::getProcessorConnections> > yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections> > xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Average> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+
+    yzDrawer.addModules(tracker.getLayers());
+    xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
+    xyecDrawer.addModules<CheckType<Module::Endcap> >(tracker.getLayers());
+
+    yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
+    xyDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionPhiCanvas);
+    xyecDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEndcapPhiCanvas);
+
+    yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
+    xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);
+    xyecDrawer.drawModules<ContourStyle>(moduleConnectionEndcapPhiCanvas);
+
+
+/*
+    moduleConnectionEtaCanvas.SetFillColor(color_plot_background);
+    moduleConnectionPhiCanvas.SetFillColor(color_plot_background);
+    //moduleConnectionEndcapPhiCanvas.SetFillColor(color_plot_background);
+
+    moduleConnectionEtaCanvas.cd();
+    moduleConnectionEtaMap.Draw("colz");
+  */  
+    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, 900, 400);
+    moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
+    moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
+/*
+    moduleConnectionPhiCanvas.cd();
+    moduleConnectionPhiMap.Draw("colz");
+  */  
+    RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, 600, 600);
+    moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
+    moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
+
+   // moduleConnectionEndcapPhiCanvas.cd();
+   // moduleConnectionEndcapPhiMap.Draw("colz");
+    
+   // RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
+   // moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
+   // moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
+
+//    myContent = myPage->addContent("Module Connections distribution", true);
+
+    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", 600, 400);
+    moduleConnectionsCanvas.cd();
+    TH1I& moduleConnectionsDistribution = analyzer.getModuleConnectionsDistribution();
+    moduleConnectionsDistribution.SetFillColor(Palette::color(2));
+    moduleConnectionsDistribution.Draw();
+    RootWImage& myImage = myContent.addImage(moduleConnectionsCanvas, 600, 400);
+    myImage.setComment("Module connections distribution");
+
+    return true;
+}
+
+bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Power");
     myPage->setAddress("power.html");
     site.addPage(myPage);
@@ -2161,21 +2302,27 @@ namespace insur {
     ostringstream tempSS;
     std::string tempString;    
 
-    mapBag myMapBag = a.getMapBag();
-    TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
-    TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
+   // mapBag myMapBag = a.getMapBag();
+    //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+   // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
+
+    PlotDrawer<YZ, Property, Average> yzPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "irradiatedPowerConsumption");
+    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+
+    yzPowerDrawer.addModules<CheckType<Module::Barrel | Module::Endcap> >(tracker.getLayers());
+    yzTotalPowerDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
 
     RootWContent& myContent = myPage->addContent("Power maps", true);
 
     TCanvas irradiatedPowerCanvas;
     TCanvas totalPowerCanvas;
-    irradiatedPowerCanvas.SetFillColor(color_plot_background);
-    totalPowerCanvas.SetFillColor(color_plot_background);
 
-    irradiatedPowerCanvas.cd();
-    irradiatedPowerMap.Draw("colz");
-    totalPowerCanvas.cd();
-    totalPowerMap.Draw("colz");
+    yzPowerDrawer.drawFrame<HistogramFrameStyle>(irradiatedPowerCanvas);
+    yzPowerDrawer.drawModules<ContourStyle>(irradiatedPowerCanvas);
+
+
+    yzTotalPowerDrawer.drawFrame<HistogramFrameStyle>(totalPowerCanvas);
+    yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
     
     RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
     irradiatedPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
@@ -3702,26 +3849,31 @@ namespace insur {
     linePlacer rphiBarrelLinePlacer;
     linePlacer rphiEndcapLinePlacer;
 
+
     LayerVector allLayers = tracker.getLayers();
     LayerVector::iterator layIt;
     for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
-      Layer* aLayer = *layIt;
-      ModuleVector* layerModules = aLayer->getModuleVector();
-      ModuleVector::iterator modIt;
-      for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-	Module* aModule = *modIt;
-	if (aModule->getMeanPoint().Z()>0)
-	  rzLinePlacer.setRZ(*aModule);
-	int subDet = (aModule->getSubdetectorType());
-	if (subDet==Module::Barrel) {
-	  rphiBarrelLinePlacer.setRPhi(*aModule);
-	} else if (subDet==Module::Endcap) {
-	  rphiEndcapLinePlacer.setRPhi(*aModule);
-	}
-      }
+        Layer* aLayer = *layIt;
+        ModuleVector* layerModules = aLayer->getModuleVector();
+        ModuleVector::iterator modIt;
+        for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	        Module* aModule = *modIt;
+	        if (aModule->getMeanPoint().Z()>0) {
+	            rzLinePlacer.setRZ(*aModule);
+            }
+            int subDet = (aModule->getSubdetectorType());
+            if (subDet==Module::Barrel) {
+                rphiBarrelLinePlacer.setRPhi(*aModule);
+            } else if (subDet==Module::Endcap) {
+                rphiEndcapLinePlacer.setRPhi(*aModule);
+            }
+        }
     }
     RZCanvas->cd();
     TH2D* myFrame = new TH2D("myFrameRZ", ";z [mm];r [mm]", 1, 0, maxZ, 1, 0, maxRho);
+
+    //TPaletteAxis *palette = (TPaletteAxis*)myFrame->GetListOfFunctions()->FindObject("palette");
+
     myFrame->GetXaxis()->SetTitleOffset(1.3);
     myFrame->GetXaxis()->SetTickLength(-0.03);
     myFrame->GetXaxis()->SetLabelOffset(0.03);
@@ -3733,16 +3885,15 @@ namespace insur {
     myFrame->GetYaxis()->SetNdivisions(10);
     myFrame->Draw();
     rzLinePlacer.drawLines();
-    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
-    
       
+    drawEtaTicks(maxZ, maxRho, 0, 50, 50, myFrame->GetXaxis()->GetLabelFont(), myFrame->GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
+
     // XYView (barrel)
     XYCanvas->cd();
     myFrame = new TH2D("myFrameXYBarrel", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
     myFrame->GetYaxis()->SetTitleOffset(1.3);
     myFrame->Draw();
     rphiBarrelLinePlacer.drawLines();
-        
     // XYView (EndCap)
     XYCanvasEC->cd();
     myFrame = new TH2D("myFrameXYEndcap", ";x [mm];y [mm]", 1, -maxRho, maxRho, 1, -maxRho, maxRho);
@@ -3752,6 +3903,41 @@ namespace insur {
 
   }    
   
+  
+void Vizard::createSummaryCanvasNicer(Tracker& tracker,
+				                      TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+				                      TCanvas *&XYCanvasEC) {
+  
+    double scaleFactor = tracker.getMaxR()/600;
+
+    int rzCanvasX = int(tracker.getMaxL()/scaleFactor);
+    int rzCanvasY = int(tracker.getMaxR()/scaleFactor);
+
+    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+    RZCanvas->cd();
+    PlotDrawer<YZ, Type> yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    yzDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+
+
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvas->cd();
+    PlotDrawer<XY, Type> xyBarrelDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    xyBarrelDrawer.addModules(tracker.getLayers(), Module::Barrel);
+    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
+    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+    XYCanvasEC->cd();
+    PlotDrawer<XY, Type> xyEndcapDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    xyEndcapDrawer.addModules(tracker.getLayers(), Module::Endcap);
+    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+
+}
+
+
 
   // private
   //
@@ -3764,7 +3950,7 @@ namespace insur {
   // @return a pointer to the new TCanvas
   void Vizard::createColorPlotCanvas(Tracker& tracker,
                                      int plotVariable,
-				     TCanvas *&RZCanvas) {
+				                     TCanvas *&RZCanvas) {
 
     double maxZ;
     double maxRho;
@@ -3788,13 +3974,13 @@ namespace insur {
     LayerVector allLayers = tracker.getLayers();
     LayerVector::iterator layIt;
     for (layIt=allLayers.begin(); layIt!=allLayers.end(); ++layIt) {
-      Layer* aLayer = *layIt;
-      ModuleVector* layerModules = aLayer->getModuleVector();
-      ModuleVector::iterator modIt;
-      for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-	Module* aModule = *modIt;
-	if (aModule->getMeanPoint().Z()>0)
-	  rzLinePlacer.setRZValue(*aModule, aModule->getMeanPoint().Z()); // test fill with an evident value
+        Layer* aLayer = *layIt;
+        ModuleVector* layerModules = aLayer->getModuleVector();
+        ModuleVector::iterator modIt;
+        for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+	        Module* aModule = *modIt;
+	        if (aModule->getMeanPoint().Z()>0)
+	        rzLinePlacer.setRZValue(*aModule, aModule->getMeanPoint().Z()); // test fill with an evident value
       }
     }
     RZCanvas->cd();

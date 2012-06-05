@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
+#include <algorithm>
 #include "layer.hh"
 #include "Math/RotationZ.h"
 #include "Math/Vector3D.h"
@@ -203,368 +204,13 @@ BarrelLayer::BarrelLayer(BarrelModule* mySample) {
 }
 
 
-// Builds a string and places into a module vector
-// Obsolete function to be removed)
-int BarrelLayer::buildString(ModuleVector& thisModuleSet,
-        double stringAverageRadius,
-        double smallDelta, // Half the distance between inner and outer modules
-        // In smalldelta it is included the string's parity
-        double zOverlap,
-        double safetyOrigin,
-        double maxZ,
-        BarrelModule* sampleModule) {
-    
-    logERROR("buildString() with maxZ option is an obsolete function: no more mantained, you should not be using this function");
-    
-    int parity;
-    int nModules;
-    
-    // Parity of modules in the string
-    // for n=1 smallParity=1
-    // for n=2 smallParity=-1
-    int smallParity;
-    edge myEdge;
-    
-    if (maxZ>0) {
-        parity = +1;
-    } else {
-        parity = -1;
-    }
-    
-    BarrelModule* aModule;
-    BarrelModule* trialModule[3];
-    
-    aModule = new BarrelModule(*sampleModule);
-    
-    aModule->translate(XYZVector(0, stringAverageRadius-(parity)*smallDelta, 0));
-    
-    // The first module is half displeced because the module from the opposite
-    // string will also be displaced.
-    aModule->setEdgeZ(-1*parity*zOverlap/2., parity);
-    thisModuleSet.push_back(aModule);
-    
-    // Number of modules already in this string
-    nModules=1;
-    
-    edge minSafetyEdge;
-    
-    while( fabs(aModule->getEdgeZSide(parity, 0).first)<fabs(maxZ) ) {
-        // I already take into account the new module
-        nModules++;
-        
-        // The smallParity parameter sets the direction of
-        // the smallDelta (rho difference of modules within the same string)
-        // smallParity will be -1 the first time here
-        // [nModules=2]
-        smallParity=(nModules%2)*2-1;
-        
-        // Two conditions may apply: either we ask for an overlap
-        // with respect to the projection from the origin (CASE 0)
-        // or we ask for the exact projection from a displaced origin (CASE 1,2)
-        
-        // CASE 0
-        trialModule[0] = new BarrelModule(*aModule);             // Clone the previous
-        myEdge = trialModule[0]->getEdgeZSide(parity, zOverlap); // Measure the overlapping point at the far end
-        trialModule[0]->setEdgeZ(myEdge.first, parity);          // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-1*parity, 0.);     // Pick the near end
-        trialModule[0]->projectSideRho(myEdge.second,            // Project the module with no origin displacement
-                stringAverageRadius-(smallParity)*(parity)*smallDelta);
-        // ... and let's write down were we put it...
-        minSafetyEdge=trialModule[0]->getEdgeZSide(-1*parity, 0.);
-        // and its index
-        minSafetyEdge.second=0;
-        
-        // CASE 1 and 2
-        trialModule[1] = new BarrelModule(*aModule);          // Clone the previous
-        myEdge = trialModule[1]->getEdgeZSide(parity, 0.);    // Measure the far end with no overlap
-        trialModule[1]->setEdgeZ(myEdge.first, parity);       // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-1*parity, 0.);  // Pick the near end
-        trialModule[2] = new BarrelModule(*trialModule[1]);   // Clone the module
-        // Now we only need to project it twice, with two different origin
-        // displacements: in fact we project the module to its destination twice
-        // using +- safetyOrigin safety margin along the beam axis
-        for (int i=1; i<3; i++) {
-            int safetyDirection=i*2-3;
-            trialModule[i]->projectSideRho(myEdge.second,
-                    stringAverageRadius-(smallParity)*(parity)*smallDelta,
-                    safetyOrigin*safetyDirection);
-            myEdge = trialModule[i]->getEdgeZSide(-1*parity, 0.);
-            
-            // If the measured margin is the safest...
-            if ((parity*myEdge.first)<(parity*minSafetyEdge.first)) {
-                // ..then we record it
-                minSafetyEdge.first=myEdge.first;
-                minSafetyEdge.second=i;
-            }
-        }
-        
-        // Debug output
-        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
-        
-        // Now we just keep the safest, while we delete the others
-        for (int i=0; i<3; i++) {
-            if (minSafetyEdge.second==i) {
-                aModule=trialModule[i];
-            } else {
-                delete trialModule[i];
-            }
-        }
-        
-        // Finally we add this module in the list of built
-        thisModuleSet.push_back(aModule);
-    }
-    
-    return nModules;
-    
-}
-
-// Builds a string and places into a module vector
-int BarrelLayer::buildString(ModuleVector& thisModuleSet,
-        double stringAverageRadius,
-        double smallDelta, // Half the distance between inner and outer modules
-        // In smalldelta it is included the string's parity
-        double zOverlap,
-        double safetyOrigin,
-        int nDesiredModules,
-        BarrelModule* sampleModule,
-        double minZ /* = 0 used to build mezzanine layers */ ) {
-    
-    int parity;
-    int nModules;
-    
-    // Parity of modules in the string
-    // for n=1 smallParity=1
-    // for n=2 smallParity=-1
-    int smallParity;
-    edge myEdge;
-    
-    if (nDesiredModules>0) {
-        parity = +1;
-    } else {
-        parity = -1;
-    }
-    
-    nDesiredModules /= parity;
-    
-    BarrelModule* aModule;
-    BarrelModule* trialModule[3];
-    
-    aModule = new BarrelModule(*sampleModule);
-    
-    aModule->translate(XYZVector(0, stringAverageRadius-(parity)*smallDelta, 0));
-    
-    // The first module is half displeced because the module from the opposite
-    // string will also be displaced.
-    if (minZ==0) { // A string of a standard barrel
-        aModule->setEdgeZ(-1*parity*zOverlap/2., parity);
-    } else { // A special string starting at minZ (mezzanine barrel)
-        aModule->setEdgeZ(parity*minZ, parity);
-    }
-    // std::cout << "pushing back one module out of " << nDesiredModules << " desired modules" << std::endl; // debug
-    aModule->setRing(1);
-    thisModuleSet.push_back(aModule);
-    
-    edge minSafetyEdge;
-    
-    std::cout << "Mod #0, par=" << parity << ", avgR=" << stringAverageRadius << ",  edgeZ=" << aModule->getEdgeZ(-1*parity).first << ", R=" << aModule->getMeanPoint().Rho() << std::endl; // CUIDADO: debug
-    
-    // I start counting from one, as I already created module #0
-    for (nModules = 1; nModules<nDesiredModules; nModules++) {
-        
-        // The smallParity parameter sets the direction of
-        // the smallDelta (rho difference of modules within the same string)
-        // smallParity will be -1 the first time here
-        // [nModules=2]
-        smallParity=1-(nModules%2)*2;
-        
-        // Two conditions may apply: either we ask for an overlap
-        // with respect to the projection from the origin (CASE 0)
-        // or we ask for the exact projection from a displaced origin (CASE 1,2)
-        
-        // CASE 0
-        trialModule[0] = new BarrelModule(*aModule);             // Clone the previous
-        myEdge = trialModule[0]->getEdgeZSide(parity, zOverlap); // Measure the overlapping point at the far end
-        trialModule[0]->setEdgeZ(myEdge.first, parity);          // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-1*parity, 0.);     // Pick the near end
-        trialModule[0]->projectSideRho(myEdge.second,            // Project the module with no origin displacement
-                stringAverageRadius-(smallParity)*(parity)*smallDelta);
-        // ... and let's write down were we put it...
-        minSafetyEdge=trialModule[0]->getEdgeZSide(-1*parity, 0.);
-        // and its index
-        minSafetyEdge.second=0;
-        
-        // CASE 1 and 2
-        trialModule[1] = new BarrelModule(*aModule);          // Clone the previous
-        myEdge = trialModule[1]->getEdgeZSide(parity, 0.);    // Measure the far end with no overlap
-        trialModule[1]->setEdgeZ(myEdge.first, parity);       // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-1*parity, 0.);  // Pick the near end
-        trialModule[2] = new BarrelModule(*trialModule[1]);   // Clone the module
-        // Now we only need to project it twice, with two different origin
-        // displacements: in fact we project the module to its destination twice
-        // using +- safetyOrigin safety margin along the beam axis
-        for (int i=1; i<3; i++) {
-            int safetyDirection=i*2-3;
-            trialModule[i]->projectSideRho(myEdge.second,
-                    stringAverageRadius-(smallParity)*(parity)*smallDelta,
-                    safetyOrigin*safetyDirection);
-            myEdge = trialModule[i]->getEdgeZSide(-1*parity, 0.);
-            
-            // If the measured margin is the safest...
-            if ((parity*myEdge.first)<(parity*minSafetyEdge.first)) {
-                // ..then we record it
-                minSafetyEdge.first=myEdge.first;
-                minSafetyEdge.second=i;
-            }
-        }
-        
-        // Debug output
-        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
-        
-        // Now we just keep the safest, while we delete the others
-        for (int i=0; i<3; i++) {
-            if (minSafetyEdge.second==i) {
-                aModule=trialModule[i];
-            } else {
-                delete trialModule[i];
-            }
-        }
-        
-        // std::cout << "pushing back module "<< nModules <<" out of " << nDesiredModules << " desired modules" << std::endl; // debug
-        // Finally we add this module in the list of built
-        aModule->setRing(nModules+1);
-        thisModuleSet.push_back(aModule);
-
-        std::cout << "Mod #" << nModules << ", par=" << parity << ", avgR=" << stringAverageRadius << ",  edgeZ=" << aModule->getEdgeZ(1).first << ", R=" << aModule->getMeanPoint().Rho() << std::endl; // CUIDADO: debug
-    }
-    
-    // std::cout << "STEFANO last module of the string has egdeZ = " << aModule->getEdgeZ(parity).first << " and this is the " << std::string((parity>0)?"positive": "negative") << " side of the barrel" << std::endl; // debug stefano
-    return nModules;
-    
-}
-
-int BarrelLayer::buildMezzanineString(ModuleVector& thisModuleSet,
-        double stringAverageRadius,
-        double smallDelta, // Half the distance between inner and outer modules
-        // In smalldelta it is included the string's parity
-        double zOverlap,
-        double safetyOrigin,
-        int nDesiredModules,
-        BarrelModule* sampleModule,
-        double farthestZ /* = 0 used to build mezzanine layers */ ) {  // minZ has to become farthestZ
-    
-    int parity;
-    int nModules;
-    
-    // Parity of modules in the string
-    // for n=1 smallParity=1
-    // for n=2 smallParity=-1
-    int smallParity;
-    edge myEdge;
-   
-    // TODO: levare 
-    if (nDesiredModules>0) {
-        parity = +1;
-    } else {
-        parity = -1;
-    }
-    
-    nDesiredModules /= parity;
-    
-    BarrelModule* aModule;
-    BarrelModule* trialModule[3];
-    
-    aModule = new BarrelModule(*sampleModule);
-    
-    aModule->translate(XYZVector(0, stringAverageRadius-(parity)*smallDelta, 0));
-    
-    // The first module is half displeced because the module from the opposite
-    // string will also be displaced.
-    aModule->setEdgeZ(parity*farthestZ, -parity);
-
-    // std::cout << "pushing back one module out of " << nDesiredModules << " desired modules" << std::endl; // debug
-    aModule->setRing(nDesiredModules);
-    thisModuleSet.push_back(aModule);
-    std::cout << "Mod Mz #0" << ", par=" << parity << ", avgR=" << stringAverageRadius << ",  edgeZ=" << aModule->getEdgeZ(1).first << ", R=" << aModule->getMeanPoint().Rho() << std::endl; // CUIDADO: debug
-    edge minSafetyEdge;
-    
-    // I start counting from one, as I already created module #0
-    for (nModules = 1; nModules<nDesiredModules; nModules++) {
-        
-        // The smallParity parameter sets the direction of
-        // the smallDelta (rho difference of modules within the same string)
-        // smallParity will be -1 the first time here
-        // [nModules=2]
-        smallParity=1-(nModules%2)*2;
-        
-        // Two conditions may apply: either we ask for an overlap
-        // with respect to the projection from the origin (CASE 0)
-        // or we ask for the exact projection from a displaced origin (CASE 1,2)
-        
-        // CASE 0 // CUIDADO I've inverted all the parities but the one in the project Rho method (-1*)
-        trialModule[0] = new BarrelModule(*aModule);             // Clone the previous
-        myEdge = trialModule[0]->getEdgeZSide(-parity, zOverlap); // Measure the overlapping point at the far end
-        trialModule[0]->setEdgeZ(myEdge.first, -parity);          // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-parity, 0.);     // Pick the near end
-        trialModule[0]->projectSideRho(myEdge.second,            // Project the module with no origin displacement
-                stringAverageRadius-(smallParity)*(parity)*smallDelta);
-        // ... and let's write down were we put it...
-        minSafetyEdge=trialModule[0]->getEdgeZSide(parity, 0.);
-        // and its index
-        minSafetyEdge.second=0;
-        
-        // CASE 1 and 2
-        trialModule[1] = new BarrelModule(*aModule);          // Clone the previous
-        myEdge = trialModule[1]->getEdgeZSide(-parity, 0.);    // Measure the far end with no overlap
-        trialModule[1]->setEdgeZ(myEdge.first, -parity);       // Move the near end there
-        myEdge = trialModule[0]->getEdgeZSide(-parity, 0.);  // Pick the near end
-        trialModule[2] = new BarrelModule(*trialModule[1]);   // Clone the module
-        // Now we only need to project it twice, with two different origin
-        // displacements: in fact we project the module to its destination twice
-        // using +- safetyOrigin safety margin along the beam axis
-        for (int i=1; i<3; i++) {
-            int safetyDirection=i*2-3;
-            trialModule[i]->projectSideRho(myEdge.second,
-                    stringAverageRadius-(smallParity)*(parity)*smallDelta,
-                    safetyOrigin*safetyDirection);
-            myEdge = trialModule[i]->getEdgeZSide(parity, 0.);
-            
-            // If the measured margin is the safest...
-            if ((-1*parity*myEdge.first)<(-parity*minSafetyEdge.first)) {
-                // ..then we record it
-                minSafetyEdge.first=myEdge.first;
-                minSafetyEdge.second=i;
-            }
-        }
-        
-        // Debug output
-        // std::cerr << "Safety index: " << minSafetyEdge.second << std::endl; // debug
-        
-        // Now we just keep the safest, while we delete the others
-        for (int i=0; i<3; i++) {
-            if (minSafetyEdge.second==i) {
-                aModule=trialModule[i];
-            } else {
-                delete trialModule[i];
-            }
-        }
-        
-        // std::cout << "pushing back module "<< nModules <<" out of " << nDesiredModules << " desired modules" << std::endl; // debug
-        // Finally we add this module in the list of built
-        aModule->setRing(nDesiredModules-nModules);
-        thisModuleSet.push_back(aModule);
-
-        std::cout << "Mod Mz #" << nModules << ", par=" << parity << ", avgR=" << stringAverageRadius << ",  edgeZ=" << aModule->getEdgeZ(1).first << ", R=" << aModule->getMeanPoint().Rho() << std::endl; // CUIDADO: debug
-    }
-
- 
-    return nModules;
-    
-}
-
 double BarrelLayer::computeListZ(
     std::vector<double>& listZ,
     double startZ,
-    double radiiRatio,  // r_max / r_min
+    double averageRadius,
+    double bigDelta,
+    double smallDelta,
+    const vector<double>& dsDistances, // sensor spacings
     double modLengthZ,
     double originDeltaZ,
     double baseOverlapZ,
@@ -573,26 +219,78 @@ double BarrelLayer::computeListZ(
     int direction,
     bool looseStartZ) {
 
+    double newZ = startZ;
+
+    int i = 0;
+    if (!looseStartZ) {
+        listZ.push_back(startZ);
+        newZ = startZ + (direction > 0 ? modLengthZ : -modLengthZ);
+        i++;
+        parity = -parity;
+    }
+
+    for (; i<numModules; i++) {
+        double newR = (parity > 0 ? averageRadius + bigDelta + smallDelta : averageRadius - bigDelta - smallDelta) - dsDistances[i]/2; 
+        double lastR = (parity > 0 ? averageRadius + bigDelta - smallDelta : averageRadius - bigDelta + smallDelta) + dsDistances[i > 0 ? i-1 : 0]/2; // (if looseStart) the previous module (opposite rod) has the same dsDistance
+        if (direction > 0) {
+            double originZ = parity > 0 ? originDeltaZ : -originDeltaZ;
+            double newZorigin = (newZ - baseOverlapZ)*newR/lastR;
+            double newZshifted = (newZ - originZ)*newR/lastR + originZ;
+            newZ = newZorigin < newZshifted ? newZorigin : newZshifted;
+            listZ.push_back(newZ);
+            newZ += modLengthZ;
+        } else {
+            double originZ = parity > 0 ? -originDeltaZ : originDeltaZ;
+            double newZorigin = (newZ + baseOverlapZ)*newR/lastR;
+            double newZshifted = (newZ - originZ)*newR/lastR + originZ;
+            newZ = newZorigin > newZshifted ? newZorigin : newZshifted;
+            listZ.push_back(newZ);
+            newZ -= modLengthZ;
+        }
+        parity = -parity;
+    }
+
+    return newZ;
+}
+
+/* CUIDADO - TBR
+double BarrelLayer::computeListZ(
+    std::vector<double>& listZ,
+    double startZ,
+    double minRadius,
+    double maxRadius,  // r_max / r_min
+    double modLengthZ,
+    const vector<double>& dsDistances, // sensor spacings
+    double originDeltaZ,
+    double baseOverlapZ,
+    int numModules,
+    int parity,
+    int direction,
+    bool looseStartZ) {
+
+    double radiiRatioOut = (maxRadius-dsDistance/2)/(minRadius+dsDistances[0]/2);
+    double radiiRatioIn = (maxRadius+dsDistance/2)/(minRadius-dsDistance[0]/2);
+
     double overlapOut;
-    if (radiiRatio < 1 - (baseOverlapZ/originDeltaZ)) overlapOut = originDeltaZ*(1-radiiRatio);
-    else if (radiiRatio > 1 + (baseOverlapZ/originDeltaZ)) overlapOut = originDeltaZ*(radiiRatio-1);
+    if (radiiRatioOut < 1 - (baseOverlapZ/originDeltaZ)) overlapOut = originDeltaZ*(1-radiiRatioOut);
+    else if (radiiRatioOut > 1 + (baseOverlapZ/originDeltaZ)) overlapOut = originDeltaZ*(radiiRatioOut-1);
     else overlapOut = baseOverlapZ;
 
     double overlapIn;
-    if (1/radiiRatio < 1 - (baseOverlapZ/originDeltaZ)) overlapIn = originDeltaZ*(1-1/radiiRatio);
-    else if (1/radiiRatio > 1 + (baseOverlapZ/originDeltaZ)) overlapIn = originDeltaZ*(1/radiiRatio-1);
+    if (1/radiiRatioIn < 1 - (baseOverlapZ/originDeltaZ)) overlapIn = originDeltaZ*(1-1/radiiRatioIn);
+    else if (1/radiiRatioIn > 1 + (baseOverlapZ/originDeltaZ)) overlapIn = originDeltaZ*(1/radiiRatioIn-1);
     else overlapIn = baseOverlapZ;
 
     double lastZ;
     double newZ; 
 
     // first module treated here
-    if (looseStartZ) { // looseStartZ causes the first module to be aligned according to the formula instead of to StartZ 
+    if (looseStartZ) { // looseStartZ causes the first module to be aligned not exactly at StartZ but at the best position around StartZ 
         if (direction > 0) {
-            newZ = parity > 0 ? startZ*radiiRatio - overlapOut : startZ/radiiRatio - overlapIn;
+            newZ = parity > 0 ? startZ*radiiRatioOut - overlapOut : startZ/radiiRatioIn - overlapIn;
             lastZ = newZ;
         } else {
-            newZ = parity > 0 ? startZ*radiiRatio + overlapOut : startZ/radiiRatio + overlapIn;
+            newZ = parity > 0 ? startZ*radiiRatioOut + overlapOut : startZ/radiiRatioIn + overlapIn;
             lastZ = newZ;
         }
     } else {
@@ -605,21 +303,24 @@ double BarrelLayer::computeListZ(
     for (int i=1; i<numModules; i++) {
         parity = -parity;
         if (direction > 0) {
-            newZ = (parity > 0 ? newZ*radiiRatio - overlapOut : newZ/radiiRatio - overlapIn) + modLengthZ;
+            newZ = (parity > 0 ? newZ*radiiRatioOut - overlapOut : newZ/radiiRatioIn - overlapIn) + modLengthZ;
             lastZ = newZ > lastZ ? newZ : lastZ;
         } else {
-            newZ = (parity > 0 ? newZ*radiiRatio + overlapOut : newZ/radiiRatio + overlapIn) - modLengthZ;
+            newZ = (parity > 0 ? newZ*radiiRatioOut + overlapOut : newZ/radiiRatioIn + overlapIn) - modLengthZ;
             lastZ = newZ < lastZ ? newZ : lastZ;
         }
         listZ.push_back(newZ);
     }
     return lastZ;
 }
+*/
 
 void BarrelLayer::buildStringPair(
     ModuleVector& thisModuleSet,
     double averageRadius,
+    double bigDelta,
     double smallDelta,
+    const vector<double>& dsDistances,
     double baseOverlap,
     double zDelta,
     int numModules,
@@ -627,17 +328,20 @@ void BarrelLayer::buildStringPair(
     BarrelModule* sampleModule)  {
 
     buildStringPairRecursion(thisModuleSet, averageRadius,
-                             smallDelta, baseOverlap,
+                             bigDelta, smallDelta, dsDistances, baseOverlap,
                              zDelta, 0, numModules,
                              smallParity,
                              0, // recursion counter
                              sampleModule);
     } 
 
+
 void BarrelLayer::buildStringPairRecursion(
     ModuleVector& thisModuleSet,
     double averageRadius,
+    double bigDelta,
     double smallDelta,
+    const vector<double>& dsDistances,
     double baseOverlap,
     double zDelta,
     double startZ,
@@ -657,21 +361,24 @@ void BarrelLayer::buildStringPairRecursion(
 
     // pre-compute parameters
     double modLengthZ = sampleModule->getMaxZ() - sampleModule->getMinZ();
-    double radiiRatio = (averageRadius+smallDelta)/(averageRadius-smallDelta);
+    //double radiiRatio = (averageRadius+smallDelta)/(averageRadius-smallDelta);
 
     // compute Z list for positive strings
     std::vector<double> listZPos;
-    double farthestPosZ = computeListZ(listZPos, startZ, radiiRatio, modLengthZ, zDelta, baseOverlap, numModules, smallParity, 1, true);
+    //double farthestPosZ = computeListZ(listZPos, startZ, averageRadius-smallDelta, averageRadius+smallDelta, modLengthZ, DSDISTANCE, zDelta, baseOverlap, numModules, smallParity, 1, false);
+    double farthestPosZ = computeListZ(listZPos, startZ, averageRadius, bigDelta, smallDelta, dsDistances, modLengthZ, zDelta, baseOverlap, numModules, smallParity, 1, false);
 
     // compute Z list for negative strings
     std::vector<double> listZNeg;
-    double farthestNegZ = computeListZ(listZNeg, startZ, radiiRatio, modLengthZ, zDelta, baseOverlap, numModules, -smallParity, -1, true);
+    double farthestNegZ = computeListZ(listZNeg, startZ, averageRadius, bigDelta, smallDelta, dsDistances, modLengthZ, zDelta, baseOverlap, numModules, -smallParity, -1, true);
 
     double zUnbalance = farthestPosZ + farthestNegZ; // balancing uneven pos/neg strings
     if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
         buildStringPairRecursion(thisModuleSet,
                         averageRadius,
+                        bigDelta,
                         smallDelta,
+                        dsDistances,
                         baseOverlap,
                         zDelta,
                         startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
@@ -714,7 +421,9 @@ void BarrelLayer::buildStringPairRecursion(
 void BarrelLayer::buildMezzanineStringPair(
     ModuleVector& thisModuleSet,
     double averageRadius,
+    double bigDelta,
     double smallDelta,
+    const vector<double>& dsDistances,
     double baseOverlap,
     double zDelta,
     double startZ, // the first mezzanine string of the pair will start at startZ with direction, the second at -startZ, both with a direction of -sign(startZ)
@@ -724,14 +433,16 @@ void BarrelLayer::buildMezzanineStringPair(
 
     // pre-compute parameters
     double modLengthZ = sampleModule->getMaxZ() - sampleModule->getMinZ();
-    double radiiRatio = (averageRadius+smallDelta)/(averageRadius-smallDelta);
+    //double radiiRatio = (averageRadius+smallDelta)/(averageRadius-smallDelta);
 
+    vector<double> reversedDsDistances(dsDistances.size());
+    std::reverse_copy(dsDistances.begin(), dsDistances.end(), reversedDsDistances.begin()); // Mezzanine modules are placed from farthest to closest, therefore the dsDistances must be reversed as they are ordered from closest to farthest
 
     int direction = -((startZ>0) || (startZ<0));
 
     // compute Z list (only once since the second mezzanine has just inverted signs for z) 
     std::vector<double> listZ;
-    computeListZ(listZ, startZ, radiiRatio, modLengthZ, zDelta, baseOverlap, numModules, smallParity, direction, false);
+    computeListZ(listZ, startZ, averageRadius, bigDelta, smallDelta, reversedDsDistances, modLengthZ, zDelta, baseOverlap, numModules, smallParity, direction, false);
 
     for (int i=0, parity = smallParity; i<numModules; i++, parity = -parity) {
         BarrelModule* m = new BarrelModule(*sampleModule);
@@ -767,7 +478,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     
     if (n1!=n2) logERROR("Building an asymmetric layer. This should not happen");
 }
-*/
+
 
 void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
         double stringAverageRadius,
@@ -783,6 +494,7 @@ void BarrelLayer::buildStringPair(ModuleVector& thisModuleSet,
     
     if (n1!=n2) logERROR("Building an asymmetric layer. This should not happen");
 }
+*/
 
 // Computes the optimal radius of the inner of two
 // layers, which should cover each other
@@ -805,6 +517,107 @@ double BarrelLayer::layerRadius(const double& nMod,  // number of strings in a l
     
     return result;
 }
+
+
+
+// The following formula is used:
+//     alpha + beta = gamma
+//     
+//     where: alpha is the outer rod top sensor coverage angle (unknown, depends on the radius)
+//            beta  is the inner rod top sensor coverage angle (unknown, depends on the radius)
+//            gamma is the target coverage angle (known given the number of modules)
+//
+//              f                 f         2 * PI
+//     atan( ------- ) + atan( ------- ) =  ------
+//            r + R             r + S       nmods
+//
+//     where: r is the average radius (unknown)
+//            f is the half length of a module minus the overlap (known) with the next one.
+//            r + R is the radius of the top sensor of the outer rod, expressed as distance (known) from the average radius (unknown)
+//            r + S is the radius of the top sensor of the inner rod, expressed as distance (known) from the average radius (unknown)
+//
+//      the above formula results in a quadratic equation to solve for r. Only the positive solution is taken (negative radius impossible)
+//
+double BarrelLayer::layerRadius(int numMods,
+                                double bigD,
+                                double smallD,
+                                double dsDist,
+                                double modW,
+                                double overlap) {
+    
+    double d = dsDist/2;
+
+    double f = (modW/2) - (overlap/2);
+
+    double R = bigD + smallD + d;
+    double S = -bigD + smallD + d;
+    
+    double T = tan(2*M_PI/numMods);
+
+    double a = T;
+    double b = R*T + S*T - 2*f;
+    double c = R*S*T - R*f - S*f - T*f*f;
+
+    double r = (-b + sqrt(b*b - 4*a*c))/(2*a);
+
+    return r;
+}
+
+
+std::pair<double, int> BarrelLayer::computeRadius(double avgR,
+                                                  double bigD,
+                                                  double smallD,
+                                                  double dsDist,
+                                                  double modW,
+                                                  double overlap,
+                                                  int optimal,
+                                                  int sliceMods) { // number of mods forming a slice. the ring will be composed of a certain number of slices each with sliceMods modules, so that the total number of mods will be multiple of this number
+
+    std::pair<double, int> result;
+    
+    double d = dsDist/2;
+    double f = (modW/2) - (overlap/2);
+   
+    double gamma = atan(f/(avgR + bigD + smallD + d)) + atan(f/(avgR - bigD + smallD + d));
+
+    double slices = 2*M_PI/(gamma * sliceMods); // number of slices
+
+    switch (optimal) {
+        case SHRINK:
+            slices = floor(slices);
+            result.first = layerRadius(slices*sliceMods, bigD, smallD, dsDist, modW, overlap);
+            break;
+        case ENLARGE:
+            slices = ceil(slices);
+            result.first = layerRadius(slices*sliceMods, bigD, smallD, dsDist, modW, overlap);
+            break;
+        case FIXED:
+            result.first= avgR;
+            slices = ceil(slices);
+            break;
+        case AUTO:
+            double nLo, nHi;
+            double rLo, rHi;
+            
+            nLo = floor(slices);
+            nHi = ceil(slices);
+            rLo = layerRadius(nLo*sliceMods, bigD, smallD, dsDist, modW, overlap);
+            rHi = layerRadius(nHi*sliceMods, bigD, smallD, dsDist, modW, overlap);
+            
+            if (fabs(rHi-avgR)<fabs(rLo-avgR)) {
+                result.first = rHi;
+                slices = nHi;
+            } else {
+                result.first = rLo;
+                slices = nLo;
+            }
+            break;
+    }
+    result.second = slices * sliceMods;
+
+    return result;
+}
+
 
 
 // Computes the optimal radius of the inner of two
@@ -876,10 +689,11 @@ std::pair<double, int> BarrelLayer::computeRadius(const double& x,    // radius 
 // It only requires the number of strings in a layer to be
 // multiple of 2
 std::pair<double, int> BarrelLayer::layerPhi(double avRad,          // Desired layer average radius
-        double smallDelta,     // Half distance between modules in the same string
         double bigDelta,       // String half gap
+        double smallDelta,     // Half distance between modules in the same string
+        double maxDsDistance,  // Maximum sensor spacing in a rod
         double o,              // overlap
-        double b,              // Module half width
+        double b,              // Module width
         int optim,             // wether to shrink or enlarge, fix or auto
         int base,              // base number of modules (nMod=base*m)
         bool stringSameParity  // Wether the strings should have
@@ -893,8 +707,11 @@ std::pair<double, int> BarrelLayer::layerPhi(double avRad,          // Desired l
     
     if (stringSameParity) {
         // SameOuter; (it's always like this)
-        result = computeRadius(avRad-bigDelta+smallDelta, 2*bigDelta, o, b, optim, base);
-        result.first -= -bigDelta+smallDelta;
+        //result = computeRadius(avRad-bigDelta+smallDelta, 2*bigDelta, o, b, optim, base);
+        //result.first -= -bigDelta+smallDelta;
+        
+        result = computeRadius(avRad, bigDelta, smallDelta, maxDsDistance, b, o, optim, base);  
+
         
         // SameInner;
         // result = computeRadius(avRad-bigDelta-smallDelta, 2*bigDelta, o, b, optim, base);
@@ -902,9 +719,11 @@ std::pair<double, int> BarrelLayer::layerPhi(double avRad,          // Desired l
     } else {
         // Here the worst condition depends on the parameters
         // OppdInner;
-        result = computeRadius(avRad-bigDelta+smallDelta, 2*(bigDelta-smallDelta), o, b, optim, base);
-        result.first -= -bigDelta+smallDelta;
+        //result = computeRadius(avRad-bigDelta+smallDelta, 2*(bigDelta-smallDelta), o, b, optim, base);
+        //result.first -= -bigDelta+smallDelta;
         
+        result = computeRadius(avRad, bigDelta, smallDelta, maxDsDistance, b, o, optim, base);  
+
         // OppdOuter;
         // result = computeRadius(avRad-bigDelta-smallDelta, 2*(bigDelta-smallDelta), o, b, optim, base);
         // result.first -= bigDelta+smallDelta;
@@ -915,8 +734,9 @@ std::pair<double, int> BarrelLayer::layerPhi(double avRad,          // Desired l
 
 
 void BarrelLayer::buildLayer(double averageRadius,
-        double smallDelta,
         double bigDelta,
+        double smallDelta,
+        const vector<double>& dsDistances,
         double overlap,
         double safetyOrigin,
         int nModules,
@@ -939,11 +759,12 @@ void BarrelLayer::buildLayer(double averageRadius,
     
     nOfRods_ = 0;
     nModsOnString_ = 0;
-    optimalBarrel = layerPhi(averageRadius   , // tentativeX
-            smallDelta,
+    optimalBarrel = layerPhi(averageRadius   , // tentativeX     // layerPhi must become maximum dsDistance aware
             bigDelta,
+            smallDelta,
+            *std::max_element(dsDistances.begin(), dsDistances.end()), // maximum sensor spacing in the rod
             overlap,
-            sampleModule->getWidth()/2. , // Module half width
+            sampleModule->getWidth() , // Module half width
             pushDirection, // wether to shrink or enlarge (>0 means enlarge)
             base,
             stringSameParity
@@ -975,7 +796,9 @@ void BarrelLayer::buildLayer(double averageRadius,
     if (farthestZ==0) { // Build a standard (double) string
         buildStringPair(archetypeIn,
                 goodRadius, // wanna-be in
+                bigDelta,
                 smallDelta,
+                dsDistances,
                 overlap,
                 safetyOrigin,
                 nModules,
@@ -983,7 +806,9 @@ void BarrelLayer::buildLayer(double averageRadius,
                 sampleModule);
         buildStringPair(archetypeOut, // wanna-be out
                 goodRadius,
+                bigDelta,
                 smallDelta,
+                dsDistances,
                 overlap,
                 safetyOrigin,
                 nModules,
@@ -992,7 +817,9 @@ void BarrelLayer::buildLayer(double averageRadius,
     } else { // Build a mezzanine (double) string
         buildMezzanineStringPair(archetypeIn, // wanna-be in
                 goodRadius,
+                bigDelta,
                 smallDelta,
+                dsDistances,
                 overlap,
                 safetyOrigin,
                 farthestZ,
@@ -1001,7 +828,9 @@ void BarrelLayer::buildLayer(double averageRadius,
                 sampleModule);
         buildMezzanineStringPair(archetypeOut, // wanna-be out
                 goodRadius,
+                bigDelta,
                 smallDelta,
+                dsDistances,
                 overlap,
                 safetyOrigin,
                 farthestZ,
@@ -1077,6 +906,8 @@ void BarrelLayer::buildLayer(double averageRadius,
         std::vector<Module* >::iterator secondMod;
         secondMod=aString.begin()++;
 
+        int zIndex = 0;
+
         for (itMod=aString.begin(); itMod!=aString.end(); itMod++) {
             aSection=NoSection;
             if ((itMod==aString.begin())||(itMod==secondMod)) {
@@ -1090,8 +921,9 @@ void BarrelLayer::buildLayer(double averageRadius,
             // not crossing the XZ plane
             //(*itMod)->rotatePhi(i*stringPhiShift-rightAngle);
 
-            Module* tempMod = new BarrelModule((BarrelModule&)**itMod);
+            BarrelModule* tempMod = new BarrelModule((BarrelModule&)**itMod);
             tempMod->rotatePhi(i*stringPhiShift);
+            tempMod->setPhiIndex(i);
             if (i==0) {
                 aSection |= YZSection;
             }
@@ -1118,6 +950,8 @@ void BarrelLayer::buildLayer(double averageRadius,
             }
 
             tempMod->setSection(aSection);
+
+            zIndex++;
             
             //  if (firstOnes)
             // 	std::cout << "its section is " << (*itMod)->getSection() << std::endl; //debug
@@ -1883,6 +1717,7 @@ double EndcapLayer::buildRing(double minRadius,
         } else {
             myModule = new EndcapModule(*sampleModule, minRadius);
         }
+        myModule->setPhiIndex(i);
         myModule->rotatePhi(M_PI/2+2.*M_PI*((i+alignmentRotation)/double(nOpt)));
         XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
         myModule->translate(shift);

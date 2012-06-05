@@ -18,6 +18,9 @@ using namespace ROOT::Math;
 typedef std::vector<Module* > ModuleVector;
 typedef std::pair<int,double> LayerOption;
 
+
+#define DSDISTANCE 2 
+
 class Layer {
 
 protected:
@@ -95,42 +98,31 @@ private:
   double averageRadius_;
   void setDefaultParameters(){ averageRadius_=0;};
 
+  // CUIDADO: DEPRECATED, TBR
   std::pair<double, int> computeRadius(const double& x,    // radius of the inner module
 				       const double& g,    // Gap between inner and outer
 				       const double& o,    // Needed overlap in mm
 				       const double& b,    // Module's half width
 				       const int& optimal, // wether to shrink or enlarge, fix or auto
 				       const int& base );
+  // CUIDADO: NEW VERSION
+  std::pair<double, int> computeRadius(double avgR,
+                                       double bigD,
+                                       double smallD,
+                                       double dsDist,
+                                       double modW,
+                                       double overlap,
+                                       int optimal,
+                                       int sliceMods);
 
-  int buildString(ModuleVector& thisModuleSet,
-		  double stringAverageRadius,
-		  double smallDelta, // Half the distance between inner and outer modules
-		  double zOverlap,
-		  double safetyOrigin,
-		  double maxZ,
-		  BarrelModule* sampleModule);
-  int buildString(ModuleVector& thisModuleSet,
-		  double stringAverageRadius,
-		  double smallDelta, // Half the distance between inner and outer modules
-		  double zOverlap,
-		  double safetyOrigin,
-		  int nModules,
-		  BarrelModule* sampleModule,
-		  double minZ = 0);
-  
-  int buildMezzanineString(ModuleVector& thisModuleSet,
-		  double stringAverageRadius,
-		  double smallDelta, // Half the distance between inner and outer modules
-		  double zOverlap,
-		  double safetyOrigin,
-		  int nModules,
-		  BarrelModule* sampleModule,
-		  double farthestZ = 0);
 
-double computeListZ(  // New-fangled kickass function
+double computeListZ(  // NEW new-fangled kickass function
     std::vector<double>& listZ,
     double startZ,
-    double radiiRatio,  // r_max / r_min
+    double averageRadius,
+    double bigDelta,
+    double smallDelta,
+    const vector<double>& dsDistances, 
     double modLengthZ,
     double originDeltaZ,
     double baseOverlapZ,
@@ -138,30 +130,50 @@ double computeListZ(  // New-fangled kickass function
     int parity,
     int direction,
     bool looseStartZ = false); 
-
-  void buildStringPair(  // New-fangled kickass function
+/* CUIDADO TBR
+double computeListZ(  // New-fangled kickass function
+    std::vector<double>& listZ,
+    double startZ,
+    double maxRadius,
+    double minRadius,
+    double modLengthZ,
+    double dsDistance,
+    double originDeltaZ,
+    double baseOverlapZ,
+    int numModules,
+    int parity,
+    int direction,
+    bool looseStartZ = false); 
+*/
+  void buildStringPair(
           ModuleVector& thisModuleSet,
           double averageRadius,
+          double bigDelta,
           double smallDelta,
+          const vector<double>& dsDistances,
           double baseOverlap,
           double zDelta,
           int numModules,
           int smallParity,
           BarrelModule* sampleModule);
-  void buildMezzanineStringPair(  // New-fangled kickass function
+  void buildMezzanineStringPair(
           ModuleVector& thisModuleSet,
           double averageRadius,
+          double bigDelta,
           double smallDelta,
+          const vector<double>& dsDistances,
           double baseOverlap,
           double zDelta,
           double startZ,
           int numModules,
           int smallParity,
           BarrelModule* sampleModule);
- void buildStringPairRecursion(  // New-fangled kickass function
+ void buildStringPairRecursion( 
           ModuleVector& thisModuleSet,
           double averageRadius,
+          double bigDelta,
           double smallDelta,
+          const vector<double>& dsDistances,
           double baseOverlap,
           double zDelta,
           double startZ,
@@ -170,26 +182,20 @@ double computeListZ(  // New-fangled kickass function
           int recursionCounter,
           BarrelModule* sampleModule);
 
-/*  void buildStringPair(ModuleVector& thisModuleSet, // CUIDADO: TBR
-		       double stringAverageRadius,
-		       double smallDelta, // Half the distance between inner and outer modules
-		       double zOverlap,
-		       double safetyOrigin,
-		       double maxZ,
-		       BarrelModule* sampleModule); */
-  void buildStringPair(ModuleVector& thisModuleSet, // CUIDADO: maybe TBR
-		       double stringAverageRadius,
-		       double smallDelta, // Half the distance between inner and outer modules
-		       double zOverlap,
-		       double safetyOrigin,
-		       int nModules,
-		       BarrelModule* sampleModule);
+  // CUIDADO: DEPRECATED, TBR
   double layerRadius(const double& nMod,  // number of strings in a layer
 		     const double& g,     // Gap between inner and outer
 		     const double& o,     // Needed overlap in mm
 		     const double& b);    // Module's half width
+  // CUIDADO: NEW VERSION 
+  double layerRadius(int numMods,
+                     double bigD,
+                     double smallD,
+                     double dsDist,
+                     double modW,
+                     double overlap);
   // This function was tuned "by hand" (see code for comments)
-  std::pair<double, int> layerPhi(double, double, double, double, double, int, int, bool);
+  std::pair<double, int> layerPhi(double, double, double, double, double, double, int, int, bool);
 
   
 public:
@@ -210,20 +216,9 @@ public:
 
 
   void buildLayer (double averageRadius,
-		   double smallDelta, 
 		   double bigDelta, 
-		   double overlap, 
-		   double safetyOrigin, 
-		   double maxZ, 
-		   int pushDirection, 
-		   int base,
-		   bool stringSameParity,
-		   BarrelModule* sampleModule,
-		   int sectioned=NoSection) { std::cout << "DEPRECATED" << std::endl; } ; // TODO: remove this
-
-  void buildLayer (double averageRadius,
 		   double smallDelta, 
-		   double bigDelta, 
+           const vector<double>& dsDistances,
 		   double overlap, 
 		   double safetyOrigin, 
 		   int nModules, 

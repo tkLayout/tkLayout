@@ -15,21 +15,23 @@ int main(int argc, char* argv[]) {
     po::options_description shown("Allowed options");
     int geomtracks, mattracks;
 
-    std::string basename, xmlname;
+    std::string basename, xmldir, htmldir;
 
     shown.add_options()
         ("help", "Display this help message.")
         ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(50), "N. of tracks for geometry calculations.")
         ("material-tracks,N", po::value<int>(&mattracks)->default_value(2000), "N. of tracks for material calculations.")
         ("power,p", "Report irradiated power analysis.")
-        ("bandwidth,b", "Report bandwidth analysis.")
+        ("bandwidth,b", "Report base bandwidth analysis.")
+        ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
         ("material,m", "Report materials and weights analyses.")
         ("resolution,r", "Report resolution analysis.")
         ("trigger,t", "Report base trigger analysis.")
         ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
         ("all,a", "Report all analyses, except extended\ntrigger. (implies all other relevant\nreport options)")
         ("graph,g", "Build and report neighbour graph.")
-        ("xml", po::value<std::string>(&xmlname)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, basename will be used\nas subdir.")
+        ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, basename will be used\nas subdir.")
+        ("html-dir", po::value<std::string>(&htmldir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
     ;
 
     po::options_description hidden;
@@ -67,6 +69,7 @@ int main(int argc, char* argv[]) {
     bool verboseMaterial = false;
 
     squid.setBasename(basename);
+    if (htmldir != "") squid.setHtmlDir(htmldir);
 
     // The tracker (and possibly pixel) must be build in any case
     if (!squid.buildTracker()) return EXIT_FAILURE;
@@ -76,7 +79,8 @@ int main(int argc, char* argv[]) {
     if (squid.dressTracker()) {
       if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
 
-      if ((vm.count("all") || vm.count("bandwidth")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite()) return EXIT_FAILURE;
+      if ((vm.count("all") || vm.count("bandwidth-cpu")) && (!squid.reportTriggerProcessorsSite()) ) return EXIT_FAILURE;
       if ((vm.count("all") || vm.count("power")) && (!squid.irradiateTracker() || !squid.reportPowerSite()) ) return EXIT_FAILURE;
 
       // If we need to have the material model, then we build it
@@ -89,7 +93,7 @@ int main(int argc, char* argv[]) {
 	    if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
 	  }
 	  if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
-	  if (vm.count("xml") && !squid.translateFullSystemToXML(xmlname.empty() ? basename : xmlname, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+	  if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir.empty() ? basename : xmldir, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
 	}
       }
 

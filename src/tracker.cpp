@@ -91,6 +91,7 @@ Tracker::Tracker(std::string trackerName) {
 
 void Tracker::setDefaultParameters() {
     nMB_ = defaultNMB_;
+    bunchSpacingNs_ = defaultBunchSpacingNs_;
     rError_ = defaultRError_;
     zError_ = defaultZError_;
     useIPConstraint_ = defaultUseIPConstraint_;
@@ -116,6 +117,11 @@ void Tracker::setDefaultParameters() {
 	operatingTemp_ = -20;
 	alphaParam_ = 4e-17;
     referenceTemp_ = +20;
+
+    triggerProcessorsPhi_ = 1;
+    triggerProcessorsEta_ = 1;
+    triggerEtaCut_        = 2.5;
+    triggerPtCut_         = 1;
 
     std::string testMe = "test me!";
 }
@@ -349,30 +355,35 @@ LayerVector Tracker::buildBarrel(int nLayer,
 
         if (!shortBarrel) { // Standard Barrel
             aBarrelLayer->buildLayer(radius,       // averageRadius
-                    getSmallDelta(i+1) ,
                     getBigDelta(i+1),
+                    getSmallDelta(i+1) ,
+                    getGeometryDsDistances(barrelName, i+1, nModules),
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
                     push,
                     phiSegments_, // modules multiple of ...
                     true,        // false = Strings with opposite parity
-                    sampleModule, section);
+                    sampleModule, 
+                    section);
             
             addLayer(aBarrelLayer, barrelName, TypeBarrel);
             thisBarrelLayerSet.push_back(aBarrelLayer);
         } else { // Mezzanine Barrel
             double farthestZ=getMaxBarrelZ(+1); // get the farthest Z reached up to now (WARNING: this implies that mezzanine barrels need to be declared LAST in the config file!)
             aBarrelLayer->buildLayer(radius,       // averageRadius
-                    getSmallDelta(i+1) ,
                     getBigDelta(i+1),
+                    getSmallDelta(i+1) ,
+                    getGeometryDsDistances(barrelName, i+1, nModules),
                     overlap_,     // overlap
                     zError_,      // safetyOrigin
                     nModules,     // maxZ
                     push,
                     phiSegments_, // modules multiple of ...
                     true,        // false = Strings with opposite parity
-                    sampleModule, section, farthestZ);
+                    sampleModule, 
+                    section, 
+                    farthestZ);
             
             addLayer(aBarrelLayer, barrelName, TypeBarrel);
             thisBarrelLayerSet.push_back(aBarrelLayer);
@@ -917,6 +928,8 @@ void Tracker::printBarrelModuleZ(ostream& outfile) {
   int myR, myZ;
   XYZVector meanPoint;
 
+  int mmFraction = 1000;
+
   outfile << "BarrelLayer name, r(mm), z(mm), number of modules" <<std::endl;
   myBarrels = getBarrelLayers();
   for (itLayer = myBarrels->begin();
@@ -930,8 +943,8 @@ void Tracker::printBarrelModuleZ(ostream& outfile) {
 	 itModule != myModules->end();
 	 itModule++) {
       meanPoint = (*itModule)->getMeanPoint();
-      myR = int(ceil(meanPoint.Rho()-0.5));
-      myZ = int(ceil(meanPoint.Z()-0.5));
+      myR = int(ceil(meanPoint.Rho()*mmFraction-0.5));
+      myZ = int(ceil(meanPoint.Z()*mmFraction-0.5));
       myRZ.first=myR;
       myRZ.second=myZ;
       posCount[myRZ]++;
@@ -945,8 +958,8 @@ void Tracker::printBarrelModuleZ(ostream& outfile) {
       outfile << (*itLayer)->getContainerName() << "-"
 	      << (*itLayer)->getName() << ", ";
       
-      outfile << (*itPos).first.first << ", " // r
-	      << (*itPos).first.second << ", "   // z
+      outfile << (*itPos).first.first/(double)mmFraction << ", " // r
+	      << (*itPos).first.second/(double)mmFraction << ", "   // z
 	      << (*itPos).second // number of modules
 	      << std::endl;
     }
@@ -1321,6 +1334,7 @@ void Tracker::setModuleTypes(std::string sectionName,
     std::map<int, bool> warningType;
     std::map<int, bool> warningDistance;
     std::map<int, bool> warningRotation;
+
     
     int aStripsAcross;
     int aFaces;
@@ -1514,6 +1528,27 @@ void Tracker::setModuleTypes(std::string sectionName,
     
 }
 
+void Tracker::setGeometryDsDistance(std::string cntName, int firstIndex, int secondIndex, double value) {
+    geometryDsDistanceSecond_[cntName][std::make_pair(firstIndex, secondIndex)] = value;
+}
+
+void Tracker::setGeometryDsDistance(std::string cntName, int firstIndex, double value) {
+    geometryDsDistance_[cntName][firstIndex] = value;
+}
+
+
+std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a Layer in case of barrel or a Ring in case of endcap
+    std::vector<double> dsDistances(numModules, 0);
+    if (geometryDsDistance_.count(cntName) && geometryDsDistance_.at(cntName).count(index)) {
+        dsDistances.assign(numModules, geometryDsDistance_.at(cntName).at(index));
+    }
+    if (geometryDsDistanceSecond_.count(cntName) > 0) {
+        for (std::map<std::pair<int, int>, double>::const_iterator it = geometryDsDistanceSecond_.at(cntName).begin(); it != geometryDsDistanceSecond_.at(cntName).end(); ++it) {
+            if (index == it->first.first && it->first.second <= numModules) dsDistances[it->first.second-1] = it->second; // it->first is the coordinate pair (layer, ring) for barrel or (ring, disk) for endcap. numbering starts from 1
+        }
+    }
+    return dsDistances;
+}
 
 void Tracker::changeRingModules(std::string diskName, int ringN, std::string newType, Color_t newColor) {
     ModuleVector::iterator modIt;

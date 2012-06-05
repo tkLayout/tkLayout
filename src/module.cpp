@@ -64,6 +64,8 @@ void Module::setDefaultParameters() {
     resolutionRphi_     = defaultResolutionRphi_;
     resolutionY_        = defaultResolutionY_;
     moduleType_         = NULL;
+    processorConnections_ = 0;
+    irradiatedPowerConsumption_ = 0;
     for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
 }
 
@@ -117,7 +119,7 @@ void Module::setNSegments(const int& face, const int& newNSegments) {
  * the different faces
  * @return total number of channels
  */
-int Module::getNChannels() {
+int Module::getNChannels() const {
   int countChannels=0;
   for (int i=0; i<nFaces_; ++i) {
     countChannels += nStripAcross_ * nSegmentsFace_[i] ;
@@ -129,7 +131,7 @@ int Module::getNChannels() {
  * Computes on the fly the number of channels in a given face
  * @return number of channels in a given face
  */
-int Module::getNChannelsFace(int nFace) {
+int Module::getNChannelsFace(int nFace) const {
   if (nFace<=0) {
     std::cerr << "ERROR in Module::getNChannelsFace: zero or negative face index" << std::endl;
     return 0;
@@ -998,7 +1000,7 @@ int Module::setEdgeRhoSide(double newRho, int direction) {
     return 1;
 }
 
-const double Module::getMinTheta() const {
+double Module::getMinTheta() const {
     double result, aTheta;
     result = corner_[0].Theta();
     for (int i=1; i<4; i++) {
@@ -1008,7 +1010,7 @@ const double Module::getMinTheta() const {
     return result;
 }
 
-const double Module::getMaxTheta() const {
+double Module::getMaxTheta() const {
     double result, aTheta;
     result = corner_[0].Theta();
     for (int i=1; i<4; i++) {
@@ -1018,7 +1020,7 @@ const double Module::getMaxTheta() const {
     return result;
 }
 
-const double Module::getMeanTheta() const {
+double Module::getMeanTheta() const {
     XYZVector meanPoint(0, 0, 0);
     for (int i=0; i<4; i++) {
         meanPoint += corner_[i];
@@ -1028,7 +1030,7 @@ const double Module::getMeanTheta() const {
     return meanPoint.Theta();
 }
 
-const double Module::getMaxRho() const {
+double Module::getMaxRho() const {
     double maxRho=-1;
     for (uint i = 0; i < 4 ; i++) {
         if (corner_[i].Rho()>maxRho) maxRho=corner_[i].Rho();
@@ -1036,7 +1038,7 @@ const double Module::getMaxRho() const {
     return maxRho;
 }
 
-const double Module::getMinRho() const {
+double Module::getMinRho() const {
     double minRho=corner_[0].Rho();
     unsigned int i1 = 0, i2 = 0;
     for (uint i = 1; i < 4 ; i++) {
@@ -1052,7 +1054,7 @@ const double Module::getMinRho() const {
     return minRho;
 }
 
-const double Module::getMaxZ() const {
+double Module::getMaxZ() const {
     double maxZ=corner_[0].Z();
     for (uint i = 1; i < 4 ; i++) {
         if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
@@ -1060,7 +1062,7 @@ const double Module::getMaxZ() const {
     return maxZ;
 }
 
-const double Module::getMinZ() const {
+double Module::getMinZ() const {
     double minZ=corner_[0].Z();
     for (uint i = 1; i < 4 ; i++) {
         if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
@@ -1624,8 +1626,16 @@ int BarrelModule::setEdgePhi(double newPhi, int direction) {
     return 1;
 }
 
+double BarrelModule::getMaxPhi() const {
+    XYZVector center = getMeanPoint();
+    return fmod(atan(getWidth()/(2*center.R()))+center.Phi(), 2*M_PI);
+}
 
 
+double BarrelModule::getMinPhi() const {
+    XYZVector center = getMeanPoint();
+    return -atan(getWidth()/(2*center.R()))+center.Phi();
+}
 
 /******************/
 /*                */
@@ -1701,6 +1711,16 @@ EndcapModule::EndcapModule(const Module& aModule, double d) : Module(aModule) {
         std::cout << "ERROR: creating a rectangular endcap module out of an unknown-shaped module" << std::endl;
     }
     setSensorRectGeometry(aspectRatio_, d);
+}
+
+
+double EndcapModule::getMaxPhi() const {
+    return getCorner(0).Phi();
+}
+
+
+double EndcapModule::getMinPhi() const {
+    return getCorner(1).Phi();
 }
 
 

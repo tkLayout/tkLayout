@@ -11,7 +11,7 @@
  */
 
 #ifndef _ANALYZER_H
-#define	_ANALYZER_H
+#define _ANALYZER_H
 
 #define MY_RANDOM_SEED 0xcaffe
 
@@ -28,7 +28,10 @@
 #include <MaterialBudget.h>
 #include <TProfile.h>
 #include <TGraph.h>
+#include <TMultiGraph.h>
 #include <TGraphErrors.h>
+#include <global_funcs.h>
+
 #include "TRandom3.h"
 
 namespace insur {
@@ -47,15 +50,33 @@ namespace insur {
      * @class SummaryTable
      * @brief A generic object to build summary tables
      */
+
     class SummaryTable {
     public:
-      SummaryTable() {};
-      void setCell(const int row, const int column, std::string content) { summaryTable[std::make_pair(row,column)]=content;};
-      std::string getCell(const int row, const int column) { return summaryTable[make_pair(row,column)];}; // this actually alters the map if the cell's not there = DANGEROUS
-      bool hasCell(int row, int column) const { return summaryTable.count(make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
-      std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; };
+        SummaryTable() : numRows_(0), numColumns_(0), rowOffset_(0), columnOffset_(0), precision_(-1), summaryCellPosition_(0,0), summaryLabelPosition_(0,0) {};
+        void setHeader(std::string rowHeader, std::string columnHeader, int rowOffset = 0, int columnOffset = 0) { // has to be called before filling the table with content or the row and column numbering will not be correctly set
+            rowOffset_ = rowOffset; columnOffset_ = columnOffset;
+            summaryTable[make_pair(0,0)] = columnHeader + " &rarr;<br>" + rowHeader + " &darr;";
+        }
+        void setPrecision(int precision) { precision_ = precision; } // has to be called before filling the table or conversions from floating point won't have the desired precision
+        
+        template<typename T> void setCell(const int row, const int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
+        template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCell(label, any2str(content, precision_)); }
+
+        std::string getCell(int row, int column) { return summaryTable[make_pair(row,column)];} // this actually alters the map if the cell's not there = DANGEROUS
+
+        bool hasCell(int row, int column) const { return summaryTable.count(make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
+        bool hasSummaryCell() const { return summaryCellPosition_ > std::make_pair(0, 0); }
+
+        std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; }
+
+        void clear() { summaryTable.clear(); }
     private:
-      std::map<std::pair<int, int>, std::string> summaryTable;
+        std::map<std::pair<int, int>, std::string> summaryTable;
+        int numRows_, numColumns_;
+        int rowOffset_, columnOffset_; // from which number rows and columns headers should start
+        int precision_; // precision to convert floating point numbers with
+        std::pair<int, int> summaryCellPosition_, summaryLabelPosition_;
     };
 
     /**
@@ -102,6 +123,9 @@ namespace insur {
       static const int nominalCutMap;
       static const int irradiatedPowerConsumptionMap;
       static const int totalPowerConsumptionMap;
+      static const int moduleConnectionEtaMap;
+      static const int moduleConnectionPhiMap;
+      static const int moduleConnectionEndcapPhiMap;
       static const double dummyMomentum;
       std::map<double, TH2D>& getMaps(const int& attribute);
       int clearMaps(const int& attributeMask);
@@ -145,6 +169,9 @@ namespace insur {
      * stored in a series of histograms that give a complete profile of the expected interaction of the tracker itself with
      * the particles that pass through it.
      */
+
+    typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
+
     class Analyzer {
     public:
         Analyzer();
@@ -187,7 +214,7 @@ namespace insur {
         TH2D& getHistoIsoI() { return isoi; }
         TH2D& getHistoMapRadiation();
         TH2D& getHistoMapInteraction();
-	TH1D& getHistoOptimalSpacing(bool actualWindow);
+    TH1D& getHistoOptimalSpacing(bool actualWindow);
         //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
         std::map<double, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
         std::map<double, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
@@ -195,16 +222,17 @@ namespace insur {
         std::map<double, TGraph>& getCtgThetaGraphs(bool ideal, bool isTrigger);
         std::map<double, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
         std::map<double, TGraph>& getPGraphs(bool ideal, bool isTrigger);
-	graphBag& getGraphBag() { return myGraphBag; }
-	mapBag& getMapBag() { return myMapBag; }
-	profileBag& getProfileBag() { return myProfileBag; }
-	std::map<int, TGraphErrors>& getSpacingTuningGraphs() { return spacingTuningGraphs; }
-	std::map<int, TGraphErrors>& getSpacingTuningGraphsBad() { return spacingTuningGraphsBad; }
-	TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
-	const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
-	const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
+    graphBag& getGraphBag() { return myGraphBag; }
+    mapBag& getMapBag() { return myMapBag; }
+    profileBag& getProfileBag() { return myProfileBag; }
+    std::map<int, TGraphErrors>& getSpacingTuningGraphs() { return spacingTuningGraphs; }
+    std::map<int, TGraphErrors>& getSpacingTuningGraphsBad() { return spacingTuningGraphsBad; }
+    TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
+    const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
+    const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
         virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL, bool computeResolution = false);
         //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+    void computeTriggerProcessorsBandwidth(Tracker& tracker);
 	virtual void analyzeTrigger(MaterialBudget& mb,
 				    const std::vector<double>& momenta,
 				    const std::vector<double>& triggerMomenta,
@@ -225,42 +253,52 @@ namespace insur {
         TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
         TH1D& getHitDistribution() {return hitDistribution;};
         TProfile& getTotalEtaProfile() {return totalEtaProfile;};
-	TGraph& getPowerDensity() {return powerDensity;};
+    TGraph& getPowerDensity() {return powerDensity;};
         std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;};
         std::vector<TObject> getSavingVector();
-	TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
-	TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
-	TCanvas* getGeomLiteYZ() {if (geomLiteYZCreated) return geomLiteYZ; else return NULL; };
-	TCanvas* getGeomLiteEC() {if (geomLiteECCreated) return geomLiteEC; else return NULL; };
-	TH1D& getChanHitDistribution() { return chanHitDistribution; };
-	TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
-	TH1D& getBandwidthDistributionSparsified() {return bandwidthDistributionSparsified; } ;
-	int getGeometryTracksUsed() {return geometryTracksUsed; };
-	int getMaterialTracksUsed() {return materialTracksUsed; };
-	// Hadrons
-	TGraph& getHadronTotalHitsGraph() {return hadronTotalHitsGraph;};
-	TGraph& getHadronAverageHitsGraph() {return hadronAverageHitsGraph;};
-	std::vector<double>& getHadronNeededHitsFraction() {return hadronNeededHitsFraction;};
-	std::vector<TGraph>& getHadronGoodTracksFraction() { return hadronGoodTracksFraction; };
+    TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
+    TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
+    TCanvas* getGeomLiteYZ() {if (geomLiteYZCreated) return geomLiteYZ; else return NULL; };
+    TCanvas* getGeomLiteEC() {if (geomLiteECCreated) return geomLiteEC; else return NULL; };
+    TH1D& getChanHitDistribution() { return chanHitDistribution; };
+    TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
+    TH1D& getBandwidthDistributionSparsified() { return bandwidthDistributionSparsified; }
+    TH1I& getModuleConnectionsDistribution() { return moduleConnectionsDistribution; }
+    int getGeometryTracksUsed() {return geometryTracksUsed; }
+    int getMaterialTracksUsed() {return materialTracksUsed; }
+    // Hadrons
+    TGraph& getHadronTotalHitsGraph() {return hadronTotalHitsGraph;};
+    TGraph& getHadronAverageHitsGraph() {return hadronAverageHitsGraph;};
+
+    StubRateHistos& getTotalStubRateHistos() { return totalStubRateHistos_; }
+    StubRateHistos& getTrueStubRateHistos() { return trueStubRateHistos_; }
+
+    std::vector<double>& getHadronNeededHitsFraction() {return hadronNeededHitsFraction;};
+    std::vector<TGraph>& getHadronGoodTracksFraction() { return hadronGoodTracksFraction; };
 
 
-	static std::vector<double> average(TGraph& myGraph, std::vector<double> cuts);
+    static std::vector<double> average(TGraph& myGraph, std::vector<double> cuts);
 
-	static const double ZeroHitsRequired;
-	static const double OneHitRequired;
+    static const double ZeroHitsRequired;
+    static const double OneHitRequired;
 
-	void computeWeightSummary(MaterialBudget& mb);
-	std::map<std::string, SummaryTable>& getBarrelWeightSummary() { return barrelWeights;};
-	std::map<std::string, SummaryTable>& getEndcapWeightSummary() { return endcapWeights;};
-	std::map<std::string, SummaryTable>& getBarrelWeightComponentSummary() { return barrelComponentWeights;};
-	std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
-	std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
-    	std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
-    	std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
-    	std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
-    	std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
-    	std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
-    	std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+    void computeWeightSummary(MaterialBudget& mb);
+    std::map<std::string, SummaryTable>& getBarrelWeightSummary() { return barrelWeights;};
+    std::map<std::string, SummaryTable>& getEndcapWeightSummary() { return endcapWeights;};
+    std::map<std::string, SummaryTable>& getBarrelWeightComponentSummary() { return barrelComponentWeights;};
+    std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
+    std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
+    std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
+    std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+
+    SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
+    std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
+    SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
+    SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
     protected:
         /**
          * @struct Cell
@@ -282,85 +320,100 @@ namespace insur {
         TH1D iextraservices, iextrasupports;
         TH1D rglobal, iglobal;
         TH2D isor, isoi;
-	TH2D mapRadiation, mapInteraction;
-	TH2I mapRadiationCount, mapInteractionCount;
-	TH2D mapRadiationCalib, mapInteractionCalib;
-	TH2D mapPhiEta;
-	TCanvas etaProfileCanvas;
-	TCanvas* geomLite; bool geomLiteCreated;
-	TCanvas* geomLiteXY; bool geomLiteXYCreated;
-	TCanvas* geomLiteYZ; bool geomLiteYZCreated;
-	TCanvas* geomLiteEC; bool geomLiteECCreated;
-	TH1D chanHitDistribution;
-	TH1D bandwidthDistribution;
-	TH1D bandwidthDistributionSparsified;
-	TH1D optimalSpacingDistribution;
-	TH1D optimalSpacingDistributionAW;
+    TH2D mapRadiation, mapInteraction;
+    TH2I mapRadiationCount, mapInteractionCount;
+    TH2D mapRadiationCalib, mapInteractionCalib;
+    TH2D mapPhiEta;
+    TCanvas etaProfileCanvas;
+    TCanvas* geomLite; bool geomLiteCreated;
+    TCanvas* geomLiteXY; bool geomLiteXYCreated;
+    TCanvas* geomLiteYZ; bool geomLiteYZCreated;
+    TCanvas* geomLiteEC; bool geomLiteECCreated;
+    TH1D chanHitDistribution;
+    TH1D bandwidthDistribution;
+    TH1D bandwidthDistributionSparsified;
+    TH1D optimalSpacingDistribution;
+    TH1D optimalSpacingDistributionAW;
 
-	std::map<std::string, SummaryTable> barrelWeights;
-	std::map<std::string, SummaryTable> endcapWeights;
-	std::map<std::string, SummaryTable> barrelComponentWeights;
-	std::map<std::string, SummaryTable> endcapComponentWeights;
-	std::map<std::string, double> typeWeight;
+    TH1I moduleConnectionsDistribution;
 
-    	std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_;
-    	std::map<std::string, SummaryTable> triggerRateSummaries_, triggerPuritySummaries_;
-    	std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
-    	std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
+    std::map<std::string, SummaryTable> barrelWeights;
+    std::map<std::string, SummaryTable> endcapWeights;
+    std::map<std::string, SummaryTable> barrelComponentWeights;
+    std::map<std::string, SummaryTable> endcapComponentWeights;
+    std::map<std::string, double> typeWeight;
 
-	TH1D hitDistribution;
-	graphBag myGraphBag;
-	mapBag myMapBag;
-	profileBag myProfileBag;
-	std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
-	std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
-	TH1D spacingTuningFrame;
-	std::map<std::string, double> triggerRangeLowLimit;
-	std::map<std::string, double> triggerRangeHighLimit;
-	
-	// Hadrons
-	TGraph hadronTotalHitsGraph;
-	TGraph hadronAverageHitsGraph;
-	std::vector<double> hadronNeededHitsFraction;
-	std::vector<TGraph> hadronGoodTracksFraction;
+    std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
+    std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
+    std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_;
+    std::map<std::string, SummaryTable> triggerRateSummaries_, triggerPuritySummaries_;
+    std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
+    std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
 
-	TGraph powerDensity;
+    SummaryTable processorConnectionSummary_;
+    std::map<std::string, SummaryTable> moduleConnectionSummaries_;
+    SummaryTable processorInboundBandwidthSummary_;
+    SummaryTable processorInboundStubPerEventSummary_;
+
+    TH1D hitDistribution;
+    graphBag myGraphBag;
+    mapBag myMapBag;
+    profileBag myProfileBag;
+    std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
+    std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
+    TH1D spacingTuningFrame;
+    std::map<std::string, double> triggerRangeLowLimit;
+    std::map<std::string, double> triggerRangeHighLimit;
+    
+    // Hadrons
+    TGraph hadronTotalHitsGraph;
+    TGraph hadronAverageHitsGraph;
+    std::vector<double> hadronNeededHitsFraction;
+    std::vector<TGraph> hadronGoodTracksFraction;
+
+
+    StubRateHistos totalStubRateHistos_;
+    StubRateHistos trueStubRateHistos_;
+
+
+    TGraph powerDensity;
         TProfile totalEtaProfile;
         std::vector<TProfile> typeEtaProfile;
   
         std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
         std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-	Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-			     double& eta, double& theta, double& phi, Track& track);
+    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
+                 double& eta, double& theta, double& phi, Track& track);
 
 
-	void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
+    void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
         virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
                                                                                           double eta, double theta, double phi, Track& t, bool isPixel = false);
 
 	int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
 
         virtual Material findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
-					 double eta, double theta, double phi, Track& t, bool isPixel = false);
+                     double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
 
         virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
-								  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
+                                  Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
         virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
-						  Track& t, bool isPixel = false);
+                          Track& t, bool isPixel = false);
 
-	void calculateGraphs(const std::vector<double>& p,
-			     const std::vector<Track>& trackVector,
-			     int graphAttributes);
-	void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-					 const std::vector<Track>& trackVector);
-	void fillTriggerPerformanceMaps(Tracker& tracker);
-	void fillPowerMap(Tracker& tracker);
+    void calculateGraphs(const std::vector<double>& p,
+                 const std::vector<Track>& trackVector,
+                 int graphAttributes);
+    void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+                     const std::vector<Track>& trackVector);
+    void fillTriggerPerformanceMaps(Tracker& tracker);
+    void fillPowerMap(Tracker& tracker);
         void clearMaterialBudgetHistograms();
         void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
-		void preparePowerHistograms();
+        void preparePowerHistograms();
+        void prepareTriggerProcessorHistograms();
         void clearGeometryHistograms();
         void clearCells();
         void setHistogramBinsBoundaries(int bins, double min, double max);
@@ -369,26 +422,27 @@ namespace insur {
         void fillMapRT(const double& r, const double& theta, const Material& mat);
         void fillMapRZ(const double& r, const double& z, const Material& mat);
         void transformEtaToZ();
-	double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
+    double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
     private:
         // A random number generator
-	TRandom3 myDice; 
+    TRandom3 myDice; 
         int findCellIndexR(double r);
         int findCellIndexEta(double eta);
-	int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
-	std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-	ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
-	void resetTypeCounter(std::map<std::string, int> &modTypes);
-	double diffclock(clock_t clock1, clock_t clock2);
-	Color_t colorPicker(std::string);
-	std::map<std::string, Color_t> colorPickMap;
-	Color_t lastPickedColor;
-	int geometryTracksUsed;
-	int materialTracksUsed;
-	void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
-	void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
+    int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
+    std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
+    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
+    void resetTypeCounter(std::map<std::string, int> &modTypes);
+    double diffclock(clock_t clock1, clock_t clock2);
+    Color_t colorPicker(std::string);
+    std::map<std::string, Color_t> colorPickMap;
+    Color_t lastPickedColor;
+    int geometryTracksUsed;
+    int materialTracksUsed;
+    void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
+    void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
+    void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
         static const double maximum_n_planes = 13;
     };
 }
-#endif	/* _ANALYZER_H */
+#endif  /* _ANALYZER_H */
 

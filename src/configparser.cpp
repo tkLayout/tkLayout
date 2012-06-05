@@ -87,6 +87,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
     }
     
     myTracker_ = new Tracker(myName);
+
+    myTracker_->setGeometryDsDistances(geometryDsDistance_, geometryDsDistanceSecond_);
     
     while (!inStream.eof()) {
         while (parseParameter(parameterName, parameterValue, inStream)) {
@@ -148,15 +150,21 @@ bool configParser::parseTracker(string myName, istream& inStream) {
 		} else if (parameterName=="alphaParam") {
 				doubleValue = atof(parameterValue.c_str());
 				myTracker_->setAlphaParam(doubleValue);
-       /* } else if (parameterName=="numTriggerProcessorsEta") {
+		} else if (parameterName=="bunchSpacingNs") {
+				doubleValue = atof(parameterValue.c_str());
+				myTracker_->setBunchSpacingNs(doubleValue);
+        } else if (parameterName=="triggerProcessorsEta") {
                 intValue = atoi(parameterValue.c_str());
-                myTracker_->setNumTriggerProcessorsEta(intValue);
-        } else if (parameterName=="numTriggerProcessorsPhi") {
+                myTracker_->setTriggerProcessorsEta(intValue);
+        } else if (parameterName=="triggerProcessorsPhi") {
                 intValue = atoi(parameterValue.c_str());
-                myTracker_->setNumTriggerProcessorsPhi(intValue);
-        } else if (parameterName=="ptCut") {
+                myTracker_->setTriggerProcessorsPhi(intValue);
+        } else if (parameterName=="triggerEtaCut") {
                 doubleValue = atof(parameterValue.c_str());
-                myTracker_->setPtCut(doubleValue);    */    
+                myTracker_->setTriggerEtaCut(doubleValue);
+        } else if (parameterName=="triggerPtCut") {
+                doubleValue = atof(parameterValue.c_str());
+                myTracker_->setTriggerPtCut(doubleValue);        
         } else if (correctlyBroken) { // Per module type parameters
             if (parameterNameCopy == "triggerErrorIncreaseX") {
 	            doubleValue = atof(parameterValue.c_str());
@@ -1567,10 +1575,12 @@ bool configParser::parseDressType(string myType) {
 // When this function is over a full tracker object should be there
 // unless an exception was raised during the parsing (in which case
 // the user will be informed about details through the stderr)
-Tracker* configParser::parseFile(string configFileName) {
+Tracker* configParser::parseFile(string configFileName, string typesFileName) {
     string str;
     Tracker* result = NULL;
     
+    if (!typesFileName.empty()) peepNaked(typesFileName);
+
     if (rawConfigFile_.is_open()) {
         cerr << "ERROR: Tracker config file is already open" << endl;
         return result;
@@ -1636,6 +1646,8 @@ Tracker* configParser::parseFile(string configFileName) {
 	       << minMaxEta.first << ", " << minMaxEta.second << ")";
 
     logINFO(tempString);
+
+
     result = myTracker_;
     myTracker_ = NULL;
     return result;
@@ -1912,3 +1924,48 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 	}
 	return true;
 }
+
+
+bool configParser::peepNaked(string configFileName) {
+
+    std::ifstream filein(configFileName.c_str());
+    if (!filein.is_open()) {
+        logERROR("Failed opening types file for geometry peek!");
+        return false;
+    }
+
+    std::string line;
+    std::string keyword, blockName;
+    for(int lineCount = 0; std::getline(filein, line); lineCount++) {
+        line.erase(0, line.find_first_not_of(" \t"));
+        line.erase(line.find_last_not_of(" \t")+1); // trim line
+        if (line.find("\\\\") != string::npos) line.erase(line.find("\\\\")); // remove comments
+        if (line.empty()) continue; // skip empty lines
+
+        std::istringstream parser(line);
+        if (blockName.empty() && (line.find("BarrelType")==0 || line.find("EndcapType")==0)) { // enter block
+            parser >> keyword;
+            parser >> blockName;
+            parser >> keyword;
+            if (blockName == "{" || blockName.empty() || keyword != "{") { logERROR("Syntax error on line " + any2str(lineCount) + ": " + line); return false; }
+            continue;
+        }
+
+        if (line.find("}") != string::npos) blockName.clear();
+
+        if (!blockName.empty()) { // in a block
+            std::string parameterName, parameterValue;
+            if (!parseParameter(parameterName, parameterValue, parser)) {logERROR("Syntax error on line " + any2str(lineCount) + ": " + line); return false; }
+            if (parameterName.find("dsDistance")!=string::npos && !parameterValue.empty()) {
+                int firstIndex, secondIndex;
+                if (!breakParameterName(parameterName, firstIndex, secondIndex)) { logERROR("Syntax error on line " + any2str(lineCount) + ": " + line); return false; }
+                if (secondIndex == 0) geometryDsDistance_[blockName][firstIndex] = str2any<double>(parameterValue);
+                else geometryDsDistanceSecond_[blockName][std::make_pair(firstIndex, secondIndex)] = str2any<double>(parameterValue);
+            }
+        }
+
+    }
+    filein.close();
+    return true;
+}
+

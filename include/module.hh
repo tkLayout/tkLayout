@@ -34,9 +34,11 @@ using namespace ROOT::Math;
 
 typedef std::pair<double, int> edge;
 
+
+
 class Module {
   friend ostream& operator<<(ostream& output, const Module& m);
-  
+
 protected:
   int shape_;
   double aspectRatio_;
@@ -72,9 +74,13 @@ protected:
 
   double irradiatedPowerConsumption_;
 
+  int processorConnections_;
+
   int inSection_;
 
   int ring_;
+  
+  int phiIndex_;
 
   std::string containerName_;
   
@@ -137,7 +143,7 @@ protected:
   Module();
   Module(double waferDiameter);
 
-  virtual int getSubdetectorType() { return Undefined; };
+  virtual int getSubdetectorType() const { return Undefined; };
   int getShape() const { return shape_; };
   
   void translate(XYZVector Delta);
@@ -172,21 +178,22 @@ protected:
   std::string getType() {return type_;}
 
   void setModuleType(const ModuleType* newType) { moduleType_ = newType; }
+  const ModuleType* getModuleType() const { return moduleType_; }
 
   void setStereoDistance(double sdist) { stereodist_=sdist; }
-  double getStereoDistance() { return (nFaces_ -1) * stereodist_; }; // TODO: check if this creates any problem around!
+  double getStereoDistance() const { return (nFaces_ -1) * stereodist_; }; // TODO: check if this creates any problem around!
 
   void setTriggerWindow(const int& newWindow) { triggerWindow_ = newWindow ; }
   const int& getTriggerWindow() { return triggerWindow_ ; }
 
   void setStereoRotation(double srot) { stereorot_=srot; }
-  double getStereoRotation() { return stereorot_; };
+  double getStereoRotation() const { return stereorot_; };
 
   void setColor(const Color_t newColor) {color_ = newColor;}
   Color_t getColor() const {return color_;}
 
   void resetNHits() { nHits_ = defaultNHits_ ; };
-  int getNHits() { return nHits_ ;};
+  int getNHits() const { return nHits_ ;};
 
   void shapeVolume(TGeoVolume* container,
 		   TGeoMedium* medium,
@@ -194,36 +201,42 @@ protected:
 
   TPolyLine3D* getContour();
 
-  double getHeight() {return height_;};
-  double getArea() { return area_;};
-  double getDiameter() {return waferDiameter_; };
-  double getThickness() { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
-  double getModuleThickness() { return moduleThickness_; };
+  double getHeight() const {return height_;};
+  double getArea() const { return area_;};
+  double getDiameter() const {return waferDiameter_; };
+  double getThickness() const { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
+  double getModuleThickness() const { return moduleThickness_; };
   const XYZVector& getCorner(int index) const { return corner_[index]; };
 
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
   int setEdgeRhoSide(double destRho, int direction);
 
-  const double getMinTheta() const;
-  const double getMaxTheta() const;
-  const double getMeanTheta() const;
-  const double getMaxRho() const;
-  const double getMinRho() const;
-  const double getMaxZ() const;
-  const double getMinZ() const;
-  const XYZVector getMeanPoint() const;
+  virtual double getMinTheta() const;
+  virtual double getMaxTheta() const;
+  virtual double getMeanTheta() const;
+  virtual double getMaxRho() const;
+  virtual double getMinRho() const;
+  virtual double getMaxZ() const;
+  virtual double getMinZ() const;
+  virtual const XYZVector getMeanPoint() const;
+
+  virtual double getMaxPhi() const { return 0.; }; 
+  virtual double getMinPhi() const { return 0.; };
 
   virtual std::string getSensorTag() {  return std::string("");  };
 
-  int getRing() {return ring_;};
+  int getRing() const {return ring_;};
   void setRing(const int& newRing) {ring_ = newRing;};
 
-  int getSection() { return inSection_ ;};
+  int getSection() const { return inSection_ ;};
   void setSection(const int newSection) {inSection_ = newSection; };
 
-  int getNChannels();
-  int getNChannelsFace(int nFace);
+  int getPhiIndex() const { return phiIndex_; }
+  void setPhiIndex(int phiIndex) { phiIndex_ = phiIndex; }
+
+  int getNChannels() const;
+  int getNChannelsFace(int nFace) const;
   int getNMaxChannelsFace();
   int getNMinChannelsFace();
 
@@ -292,8 +305,17 @@ protected:
   double getTriggerFrequencyTruePerEvent();
   double getTriggerFrequencyFakePerEvent();
 
+  int getProcessorConnections() const { return processorConnections_; }
+  void setProcessorConnections(int processorConnections) { processorConnections_ = processorConnections; }
+
+  void setProperty(std::string name, double value) { properties_[name] = value; }
+  double getProperty(std::string name) const { return hasProperty(name) ? properties_.at(name) : 0; }
+  bool hasProperty(std::string name) const { return properties_.find(name) != properties_.end(); }
+
 private:
   void setPterrorParameters();
+
+  std::map<std::string, double> properties_;
 };
 
 
@@ -310,7 +332,7 @@ public:
 private:
   double width_;
   int layer_;
-  
+  int zIndex_; // index of a module in the rod
  public:
   ~BarrelModule();
   BarrelModule(double waferDiameter, double heightOverWidth);
@@ -322,16 +344,16 @@ private:
   double getResolutionRphi();
   double getResolutionRphiTrigger();
 
-  virtual int getSubdetectorType() { return Barrel; };
+  virtual int getSubdetectorType() const { return Barrel; };
   edge getEdgeZSide(int direction, double margin = 0);
   int setEdgeZ(double newZ, int direction);
 
   edge getEdgePhiSide(int direction, double margin = 0);
   int setEdgePhi(double newPhi, int direction);
 
-  double getMaxPhi();
-  double getMinPhi();
-  double getWidth() {return width_;};
+  double getMaxPhi() const; 
+  double getMinPhi() const;
+  double getWidth() const {return width_;};
 
   std::string getSensorTag();
 
@@ -366,13 +388,6 @@ public:
   double getResolutionRphi();
   double getResolutionRphiTrigger();
 
-  virtual int getSubdetectorType() { return Endcap; };
-
-  // The constructor needs 
-  // alpha: the angle covered by the module
-  // d: the dstance of the module's base from the z axis
-  EndcapModule(int shape=Wedge);
-
   // Rectangular-shaped detectors
   // EndcapModule(double waferDiameter, double heightOverWidth); // TODO: treat the wafer's diameter properly
   EndcapModule(double heightOverWidth);
@@ -389,12 +404,17 @@ public:
   // Generating square-shaped modules
   EndcapModule(const Module& aModule, double d);
 
+  EndcapModule(int shape /*=wedge*/);
+
+  virtual int getSubdetectorType() const { return Endcap; };
   std::string getSensorTag();
 
   bool wasCut() const { return cut_ ; };
   double getLost() const { if (cut_) return lost_; return 0;};
   double getDist() const { return dist_;};
 
+  double getMaxPhi() const; 
+  double getMinPhi() const;
   double getWidthLo() const { return widthLo_ ; };
   double getWidthHi() const { return widthHi_ ; };
 

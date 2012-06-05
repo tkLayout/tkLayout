@@ -86,6 +86,7 @@ namespace insur {
 	bool pureAnalyzeMaterialBudget(int tracks, bool triggerResolution);
 	bool reportGeometrySite();
 	bool reportBandwidthSite();
+	bool reportTriggerProcessorsSite();
 	bool reportPowerSite();
 	bool reportMaterialBudgetSite();
 	bool reportResolutionSite();
@@ -94,6 +95,7 @@ namespace insur {
 	bool additionalInfoSite();
 	bool makeSite(bool addLogPage = true);
 	void setBasename(std::string newBaseName);
+	void setHtmlDir(std::string htmlDir);
 
     private:
         //std::string g;
@@ -119,6 +121,7 @@ namespace insur {
         Squid& operator=(const Squid& s);
         void resetVizard();
 	std::string baseName_;
+	std::string htmlDir_;
         std::string getGeometryFile();
         std::string getSettingsFile();
         std::string getMaterialFile();

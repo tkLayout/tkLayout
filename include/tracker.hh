@@ -68,6 +68,7 @@ protected:
   static const double defaultBigDelta_ = 12.;  // Space between different faces of the same structure
   static const double defaultOverlap_ = 1.;    // Safety overlap between modules
   static const double defaultNMB_ = 200;
+  static const double defaultBunchSpacingNs_ = 25;
   static const bool defaultUseIPConstraint_ = true; // in the trigger fit use the ip constraint by default
   
 private:
@@ -127,6 +128,13 @@ private:
   int chargeDepletionVoltage_;
   double alphaParam_;
 
+  double bunchSpacingNs_;
+
+  int triggerProcessorsPhi_;
+  int triggerProcessorsEta_;
+  double triggerEtaCut_;
+  double triggerPtCut_;
+
   std::string summaryDirectory_;
   std::string storeDirectory_;
   std::string trackerName_;
@@ -135,6 +143,10 @@ private:
   std::map<int, int> ringDirectives_;
   std::map<int,double> layerDirectives_;
   std::map<int,LayerOption> layerOptions_;
+
+
+  std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
+  std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;
 
   // Color picking
   //Color_t colorPicker(std::string); // obsolete
@@ -250,7 +262,12 @@ public:
   void setReferenceTemp(double referenceTemp) { referenceTemp_ = referenceTemp; }
   void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
   void setAlphaParam(double alphaParam) { alphaParam_ = alphaParam; }
+  void setBunchSpacingNs(double bunchSpacingNs) { bunchSpacingNs_ = bunchSpacingNs; }
 
+  void setTriggerProcessorsPhi(int triggerProcessorsPhi) { triggerProcessorsPhi_ = triggerProcessorsPhi; }
+  void setTriggerProcessorsEta(int triggerProcessorsEta) { triggerProcessorsEta_ = triggerProcessorsEta; }
+  void setTriggerEtaCut(double triggerEtaCut) { triggerEtaCut_ = triggerEtaCut; }
+  void setTriggerPtCut(double triggerPtCut) { triggerPtCut_ = triggerPtCut; }
 
   // Summary parameters
   double getCost(const int& type) { return(mapTypeToCost_[type]); }; // should be made obsolete (should go into Analyzer)
@@ -300,9 +317,9 @@ public:
   std::string getName() { return trackerName_; }; // deprecated (TODO: remove it)  
   std::string getArguments() {return arguments_;};
   std::string getComment() {return comment_;};
-  double getNMB() {return nMB_;};
-  double getMaxL() {return maxL_;};
-  double getMaxR() {return maxR_;};
+  double getNMB() const {return nMB_;};
+  double getMaxL() const {return maxL_;};
+  double getMaxR() const {return maxR_;};
   TCanvas* getGeomLite() {return geomLite_;};
   TCanvas* getGeomLiteXY() {return geomLiteXY_;};
   TCanvas* getGeomLiteYZ() {return geomLiteYZ_;};
@@ -320,6 +337,12 @@ public:
   double getReferenceTemp() const { return referenceTemp_; }
   int getChargeDepletionVoltage() const { return chargeDepletionVoltage_; }  
   double getAlphaParam() const { return alphaParam_; }
+  double getBunchSpacingNs() const { return bunchSpacingNs_; }
+
+  int getTriggerProcessorsPhi() const { return triggerProcessorsPhi_; }
+  int getTriggerProcessorsEta() const { return triggerProcessorsEta_; }
+  double getTriggerEtaCut() const { return triggerEtaCut_; }
+  double getTriggerPtCut() const { return triggerPtCut_; }
 
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {
@@ -380,6 +403,15 @@ public:
                       std::map<std::pair<int, int>, double> dsRotationSecond,
 		      std::map<std::pair<int, int>, int> divideBackSecond,
 		      std::map<std::pair<int, int>, bool> specialSecond);
+
+
+        void setGeometryDsDistance(std::string cntName, int firstIndex, int secondIndex, double value);
+        void setGeometryDsDistance(std::string cntName, int firstIndex, double value);
+    void setGeometryDsDistances(std::map<std::string, std::map<int, double> > geometryDsDistance, std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond) {
+        geometryDsDistance_ = geometryDsDistance;
+        geometryDsDistanceSecond_ = geometryDsDistanceSecond;
+    }
+    std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
 };
 

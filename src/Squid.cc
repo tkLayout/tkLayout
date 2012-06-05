@@ -50,7 +50,7 @@ namespace insur {
    */
   bool Squid::buildTracker() {
     if (tr) delete tr;
-    tr = cp.parseFile(getGeometryFile());
+    tr = cp.parseFile(getGeometryFile(), getSettingsFile());
     if (tr) {
       if (px) delete px;
       px = cp.parsePixelsFromFile(getGeometryFile());
@@ -286,8 +286,11 @@ namespace insur {
   bool Squid::prepareWebsite() {
     if (sitePrepared) return true;
     string trackerName;
-    if (tr) trackerName = tr->getName();
-    else trackerName = default_trackername;
+    if (htmlDir_ != "") trackerName = htmlDir_;
+    else {
+        if (tr) trackerName = tr->getName();
+        else trackerName = default_trackername;
+    }
     string layoutDirectory;
     //styleDirectory=mainConfiguration.getStyleDirectory();
     layoutDirectory=mainConfiguration.getLayoutDirectory();
@@ -426,13 +429,25 @@ namespace insur {
     }
   }
 
-  bool Squid::reportPowerSite() {
+bool Squid::reportTriggerProcessorsSite() {
+    if (tr) {
+        a.computeTriggerProcessorsBandwidth(*tr);
+        v.triggerProcessorsSummary(a, *tr, site);
+        return true;
+    } else {
+    std::cerr << "Squid::reportTriggerProcessorsSite(): " << err_no_tracker << std::endl;
+    return false;
+    }
+
+}
+
+bool Squid::reportPowerSite() {
     if (tr) {
       userInfo("Computing dissipated power");
       a.analyzePower(*tr);
       userInfoEnd();
       userInfo("Creating power report");
-      v.irradiatedPowerSummary(a, site);
+      v.irradiatedPowerSummary(a, *tr, site);
       userInfoEnd();
       return true;
     } else {
@@ -524,6 +539,10 @@ namespace insur {
   void Squid::setBasename(std::string newBasename) {
     baseName_ = newBasename;
   }    
+
+  void Squid::setHtmlDir(std::string htmlDir) {
+    htmlDir_ = htmlDir;
+  }
 
 
   std::string Squid::getGeometryFile() { 

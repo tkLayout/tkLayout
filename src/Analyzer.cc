@@ -11,7 +11,33 @@
 
 #undef MATERIAL_SHADOW
 
+
 namespace insur {
+
+    template<> void SummaryTable::setCell<std::string>(const int row, const int column, const std::string& content) {
+        if (column > 0 && !hasCell(0, column)) summaryTable[std::make_pair(0, column)] = any2str(column + columnOffset_);
+        if (row > 0 && !hasCell(row, 0)) summaryTable[std::make_pair(row, 0)] = any2str(row + rowOffset_);
+        summaryTable[std::make_pair(row, column)]=content;
+        numRows_ = row+1 > numRows_ ? row+1 : numRows_;
+        numColumns_ = column+1 > numColumns_ ? column+1 : numColumns_;
+    }
+
+    template<> void SummaryTable::setSummaryCell<std::string>(std::string label, const std::string& content) {
+        if (!hasSummaryCell()) {
+            if (numRows_ > 2 && numColumns_ > 2) {
+                summaryLabelPosition_ = std::make_pair(numRows_, 0); 
+                summaryCellPosition_ = std::make_pair(numRows_++, numColumns_++);
+            } else if (numRows_ >= 2 && numColumns_ == 2) {
+                summaryLabelPosition_ = std::make_pair(numRows_, 0); 
+                summaryCellPosition_ = std::make_pair(numRows_++, 1);
+            } else if (numRows_ == 2 && numColumns_ > 2) {
+                summaryLabelPosition_ = std::make_pair(0, numColumns_); 
+                summaryCellPosition_ = std::make_pair(1, numColumns_++);
+            }
+        }
+        summaryTable[summaryLabelPosition_] = label;
+        summaryTable[summaryCellPosition_] = content;
+    }
 
   const double graphBag::Triggerable     = 0.;
   const int graphBag::RhoGraph         = 0x001;
@@ -36,6 +62,9 @@ namespace insur {
   const int mapBag::nominalCutMap      = 0x040;
   const int mapBag::irradiatedPowerConsumptionMap = 0x080;
   const int mapBag::totalPowerConsumptionMap = 0x100;
+  const int mapBag::moduleConnectionEtaMap = 0x200;
+  const int mapBag::moduleConnectionPhiMap = 0x400;
+  const int mapBag::moduleConnectionEndcapPhiMap = 0x800;
 
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
@@ -68,11 +97,11 @@ namespace insur {
       anAttribute=it->first;
       if ((anAttribute&attributeMask)==attributeMask) {
         nextIt = ((++it)--);
-	graphMap_.erase(it);
-	it=nextIt;
-	++deleteCounter;
+    graphMap_.erase(it);
+    it=nextIt;
+    ++deleteCounter;
       } else {
-	++it;
+    ++it;
       }
     }
     return deleteCounter;
@@ -96,12 +125,12 @@ namespace insur {
       anAttribute=it->first;
       if ((anAttribute&attributeMask)==attributeMask) {
         nextIt = it;
-	++nextIt;
-	mapMap_.erase(it);
-	it=nextIt;
-	++deleteCounter;
+    ++nextIt;
+    mapMap_.erase(it);
+    it=nextIt;
+    ++deleteCounter;
       } else {
-	++it;
+    ++it;
       }
     }
     return deleteCounter;
@@ -132,12 +161,12 @@ namespace insur {
       anAttribute=it->first;
       if ((anAttribute&attributeMask)==attributeMask) {
         nextIt = it;
-	++nextIt;
-	profileMap_.erase(it);
-	it=nextIt;
-	++deleteCounter;
+    ++nextIt;
+    profileMap_.erase(it);
+    it=nextIt;
+    ++deleteCounter;
       } else {
-	++it;
+    ++it;
       }
     }
     return deleteCounter;
@@ -153,12 +182,12 @@ namespace insur {
       anAttribute=it->first;
       if (anAttribute.substr(0, name.size())==name) {
         nextIt = it;
-	++nextIt;
-	namedProfileMap_.erase(it);
-	it=nextIt;
-	++deleteCounter;
+    ++nextIt;
+    namedProfileMap_.erase(it);
+    it=nextIt;
+    ++deleteCounter;
       } else {
-	++it;
+    ++it;
       }
     }
     return deleteCounter;    
@@ -173,7 +202,7 @@ namespace insur {
     for (it=namedProfileMap_.begin(); it!=namedProfileMap_.end(); ++it) {
       anAttribute=it->first;
       if (anAttribute.substr(0, name.size())==name)
-	result.push_back(anAttribute);
+    result.push_back(anAttribute);
     }
     return result;    
   }
@@ -241,7 +270,7 @@ namespace insur {
    * @return the total crossed material amount
    */
   Material Analyzer::findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
-				 double& eta, double& theta, double& phi, Track& track) {
+                 double& eta, double& theta, double& phi, Track& track) {
     Material totalMaterial;
     //      active volumes, barrel
     totalMaterial  = findHitsModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
@@ -273,11 +302,11 @@ namespace insur {
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    */
   void Analyzer::analyzeTrigger(MaterialBudget& mb,
-				const std::vector<double>& momenta,
-				const std::vector<double>& triggerMomenta,
-				const std::vector<double>& thresholdProbabilities,
-				int etaSteps,
-				MaterialBudget* pm) {
+                const std::vector<double>& momenta,
+                const std::vector<double>& triggerMomenta,
+                const std::vector<double>& thresholdProbabilities,
+                int etaSteps,
+                MaterialBudget* pm) {
 
     Tracker& tracker = mb.getTracker();
     double efficiency = tracker.getEfficiency();
@@ -318,9 +347,9 @@ namespace insur {
 
       // Debug: material amount
       //std::cerr << "eta = " << eta
-      //		<< ", material.radiation = " << tmp.radiation
-      //		<< ", material.interaction = " << tmp.interaction
-      //		<< std::endl;
+      //        << ", material.radiation = " << tmp.radiation
+      //        << ", material.interaction = " << tmp.interaction
+      //        << std::endl;
       
       // TODO: add the beam pipe as a user material eveywhere!
       // in a coherent way
@@ -335,28 +364,28 @@ namespace insur {
       track.addHit(hit);
       
       if (!track.noHits()) {
-	// Keep only triggering hits
+    // Keep only triggering hits
         // std::cerr << "Material before = " << track.getCorrectedMaterial().radiation;
-	track.keepTriggerOnly();
+    track.keepTriggerOnly();
         // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
 
-	// Assume the IP constraint here
-	// TODO: make this configurable
-	if (tracker.getUseIPConstraint())
-	  track.addIPConstraint(tracker.getRError(),tracker.getZError());
-	track.sort();
-	track.setTriggerResolution(true);
-	      
-	if (efficiency!=1) track.addEfficiency(efficiency, false);
-	if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-	  track.computeErrors(momenta);
-	  tv.push_back(track);
+    // Assume the IP constraint here
+    // TODO: make this configurable
+    if (tracker.getUseIPConstraint())
+      track.addIPConstraint(tracker.getRError(),tracker.getZError());
+    track.sort();
+    track.setTriggerResolution(true);
+          
+    if (efficiency!=1) track.addEfficiency(efficiency, false);
+    if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
+      track.computeErrors(momenta);
+      tv.push_back(track);
 
-	  Track trackIdeal = track;
-	  trackIdeal.removeMaterial();
-	  trackIdeal.computeErrors(momenta);
-	  tvIdeal.push_back(trackIdeal);	
-	}    
+      Track trackIdeal = track;
+      trackIdeal.removeMaterial();
+      trackIdeal.computeErrors(momenta);
+      tvIdeal.push_back(trackIdeal);    
+    }    
       }
     }
 
@@ -394,9 +423,9 @@ namespace insur {
    * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
    */
   void Analyzer::analyzeTriggerEfficiency(Tracker& tracker,
-					  const std::vector<double>& triggerMomenta,
-					  const std::vector<double>& thresholdProbabilities,
-					  int etaSteps) {
+                      const std::vector<double>& triggerMomenta,
+                      const std::vector<double>& thresholdProbabilities,
+                      int etaSteps) {
 
     double efficiency = tracker.getEfficiency();
 
@@ -430,18 +459,18 @@ namespace insur {
       nHits = findHitsModules(tracker, z0, eta, theta, phi, track);
 
       if (nHits) {
-	// Keep only triggering hits
+    // Keep only triggering hits
         // std::cerr << "Material before = " << track.getCorrectedMaterial().radiation;
-	track.keepTriggerOnly();
-	track.sort();
-	track.setTriggerResolution(true);
+    track.keepTriggerOnly();
+    track.sort();
+    track.setTriggerResolution(true);
 
         // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
 
-	if (efficiency!=1) track.addEfficiency(efficiency, false);
-	if (track.nActiveHits(true)>0) { // At least 3 points are needed to measure the arrow
-	  tv.push_back(track);
-	}    
+    if (efficiency!=1) track.addEfficiency(efficiency, false);
+    if (track.nActiveHits(true)>0) { // At least 3 points are needed to measure the arrow
+      tv.push_back(track);
+    }    
       }
     }
 
@@ -469,13 +498,13 @@ namespace insur {
       // Actually scan the modules
       moduleSet = aLayer->getModuleVector();
       for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	aModule = (*modIt);
-	if (aModule->getReadoutType()==Module::Pt) {
-	  aSpacing = aModule->getStereoDistance();
-	  if (aSpacing>0) {
-	    foundSpacing.insert(aSpacing);
-	  }
-	}
+    aModule = (*modIt);
+    if (aModule->getReadoutType()==Module::Pt) {
+      aSpacing = aModule->getStereoDistance();
+      if (aSpacing>0) {
+        foundSpacing.insert(aSpacing);
+      }
+    }
       }
     }
 
@@ -506,7 +535,7 @@ namespace insur {
     spacingTuningMomenta.second = 2.5;
     const unsigned int nWindows = 5;
     /************************************************/
-	
+    
     // TODO: clear only the relevant ones?
     myProfileBag.clearTriggerNamedProfiles();
     optimalSpacingDistribution.SetName("optimalSpacing");
@@ -558,177 +587,177 @@ namespace insur {
       /* BARREL LAYER */
       /****************/
       if (aBarrelLayer) { 
-	// If it's a barrel layer, scan over all its modules
+    // If it's a barrel layer, scan over all its modules
 
-	// Sort the plot by layer
-	myName = aLayer->getContainerName() + "_" + aLayer->getName();
-	ModuleVector& theseBarrelModules = selectedModules[myName];
+    // Sort the plot by layer
+    myName = aLayer->getContainerName() + "_" + aLayer->getName();
+    ModuleVector& theseBarrelModules = selectedModules[myName];
 
-	// Actually scan the modules
-	moduleSet = aLayer->getModuleVector();
-	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	  aModule = (*modIt);
+    // Actually scan the modules
+    moduleSet = aLayer->getModuleVector();
+    for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+      aModule = (*modIt);
 
-	  if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
-	  if (aModule->getReadoutType() != Module::Pt) {
-	    std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
-	    continue;
-	  }
-	  
-	  // Prepare the variables to hold the profiles
-	  std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
-	  // Prepare the variables to hold the turn-on curve profiles
-	  std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
+      if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
+      if (aModule->getReadoutType() != Module::Pt) {
+        std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
+        continue;
+      }
+      
+      // Prepare the variables to hold the profiles
+      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+      // Prepare the variables to hold the turn-on curve profiles
+      std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
-	  //  Profiles
-	  if (!preparedProfiles[myName]) {
-	    preparedProfiles[myName] = true;
-	    for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-	      tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
-	      tuningProfiles[*it].SetTitle(tempSS.str().c_str());
-	      tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
-	      tuningProfiles[*it].SetName(tempSS.str().c_str());
-	      tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
-	    }	  
-	  }
+      //  Profiles
+      if (!preparedProfiles[myName]) {
+        preparedProfiles[myName] = true;
+        for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+          tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";Sensor spacing [mm];Efficiency [%]";
+          tuningProfiles[*it].SetTitle(tempSS.str().c_str());
+          tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it) << "GeV";
+          tuningProfiles[*it].SetName(tempSS.str().c_str());
+          tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+        }     
+      }
 
-	  // Turn-on curve
-	  if (!preparedTurnOn[myName]) {
-	    preparedTurnOn[myName] = true;
-	    for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
-	      double windowSize=iWindow*2+1;
-	      tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
-	      turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
-	      tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
-	      turnonProfiles[windowSize].SetName(tempSS.str().c_str());
-	      turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
-	    }	  
-	  }
+      // Turn-on curve
+      if (!preparedTurnOn[myName]) {
+        preparedTurnOn[myName] = true;
+        for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+          double windowSize=iWindow*2+1;
+          tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+          turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
+          tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << int(windowSize);
+          turnonProfiles[windowSize].SetName(tempSS.str().c_str());
+          turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
+        }     
+      }
 
 
-	  XYZVector center = aModule->getMeanPoint();
-	  if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
-	  theseBarrelModules.push_back(aModule);
+      XYZVector center = aModule->getMeanPoint();
+      if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
+      theseBarrelModules.push_back(aModule);
 
-	  // Fill the tuning profiles for the windows actually set
-	  for (double dist=0.5; dist<=6; dist+=0.02) {
-	    for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-	      double myPt = (*it);
-	      myValue = 100 * aModule->getTriggerProbability(myPt, dist);
-	      if ((myValue>=0) && (myValue<=100))
-		tuningProfiles[myPt].Fill(dist, myValue);
-	    }
-	  }
+      // Fill the tuning profiles for the windows actually set
+      for (double dist=0.5; dist<=6; dist+=0.02) {
+        for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+          double myPt = (*it);
+          myValue = 100 * aModule->getTriggerProbability(myPt, dist);
+          if ((myValue>=0) && (myValue<=100))
+        tuningProfiles[myPt].Fill(dist, myValue);
+        }
+      }
 
-	  // Fill the turnon curves profiles for the distance actually set
-	  for (double myPt=0.5; myPt<=10; myPt+=0.02) {
-	    for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
-	      double windowSize=iWindow*2+1;
-	      double distance = aModule->getStereoDistance();
-	      myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
-	      if ((myValue>=0) && (myValue<=100))
-		turnonProfiles[windowSize].Fill(myPt, myValue);
-	    }
-	  }
-	}
-	
+      // Fill the turnon curves profiles for the distance actually set
+      for (double myPt=0.5; myPt<=10; myPt+=0.02) {
+        for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+          double windowSize=iWindow*2+1;
+          double distance = aModule->getStereoDistance();
+          myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
+          if ((myValue>=0) && (myValue<=100))
+        turnonProfiles[windowSize].Fill(myPt, myValue);
+        }
+      }
+    }
+    
       /****************/
       /* ENDCAP LAYER */
       /****************/
       } else if (anEndcapLayer) {
-	// If it's an endcap layer, scan over all disk 1 modules
-	//if (anEndcapLayer->getIndex() == 1 && (aLayer->getContainerName()!="")) {
-	if (aLayer->getContainerName()!="") {
+    // If it's an endcap layer, scan over all disk 1 modules
+    //if (anEndcapLayer->getIndex() == 1 && (aLayer->getContainerName()!="")) {
+    if (aLayer->getContainerName()!="") {
 
-	  // Sort the plot by ring (using only disk 1)
-	  tempSS.str(""); 
-	  tempSS << "_D";
-	  tempSS.width(2); tempSS.fill('0'); tempSS << anEndcapLayer->getIndex();
-	  myBaseName = aLayer->getContainerName() + tempSS.str();
-	  
-	  // Actually scan the modules
-	  moduleSet = aLayer->getModuleVector();
-	  for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	    aModule = (*modIt);
-	    if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
-	    if (aModule->getReadoutType() != Module::Pt) {
-	      std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
-	      continue;
-	    }
+      // Sort the plot by ring (using only disk 1)
+      tempSS.str(""); 
+      tempSS << "_D";
+      tempSS.width(2); tempSS.fill('0'); tempSS << anEndcapLayer->getIndex();
+      myBaseName = aLayer->getContainerName() + tempSS.str();
+      
+      // Actually scan the modules
+      moduleSet = aLayer->getModuleVector();
+      for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+        aModule = (*modIt);
+        if ((aModule->getStereoDistance()<=0) || (aModule->getTriggerWindow()==0)) continue;
+        if (aModule->getReadoutType() != Module::Pt) {
+          std::cerr << "WARNING: a non-pT module has a non-zero trigger window!"  << std::endl; // TODO: put this in the logger as a warning
+          continue;
+        }
 
-	    anEndcapModule = dynamic_cast<EndcapModule*>(aModule);
-	    XYZVector center = aModule->getMeanPoint();
-	    // std::cerr << myBaseName << " z=" << center.Z() << ", Phi=" << center.Phi() << ", Rho=" << center.Rho() << std::endl; // debug
-	    if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
-
-
-	    if (anEndcapModule) {
-	      tempSS.str("");
-	      tempSS << "R";
-	      tempSS.width(2); tempSS.fill('0');
-	      tempSS << anEndcapModule->getRing();
-	      myName = myBaseName + tempSS.str();
-	      ModuleVector& theseEndcapModules = selectedModules[myName];
-	      theseEndcapModules.push_back(aModule);
-
-	      // Prepare the variables to hold the profiles
-	      std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
-	      // Prepare the variables to hold the turn-on curve profiles
-	      std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
-
-	      // Tuning profile
-	      if (!preparedProfiles[myName]) {
-		preparedProfiles[myName] = true;
-		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-		  tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
-		  tuningProfiles[*it].SetTitle(tempSS.str().c_str());
-		  tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it);
-		  tuningProfiles[*it].SetName(tempSS.str().c_str());
-		  tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
-		}
-	      }
-
-	      // Turn-on curve
-	      if (!preparedTurnOn[myName]) {
-		preparedTurnOn[myName] = true;
-		for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
-		  double windowSize=iWindow*2+1;
-		  tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
-		  turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
-		  tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << windowSize;
-		  turnonProfiles[windowSize].SetName(tempSS.str().c_str());
-		  turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
-		}	  
-	      }
+        anEndcapModule = dynamic_cast<EndcapModule*>(aModule);
+        XYZVector center = aModule->getMeanPoint();
+        // std::cerr << myBaseName << " z=" << center.Z() << ", Phi=" << center.Phi() << ", Rho=" << center.Rho() << std::endl; // debug
+        if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
 
 
+        if (anEndcapModule) {
+          tempSS.str("");
+          tempSS << "R";
+          tempSS.width(2); tempSS.fill('0');
+          tempSS << anEndcapModule->getRing();
+          myName = myBaseName + tempSS.str();
+          ModuleVector& theseEndcapModules = selectedModules[myName];
+          theseEndcapModules.push_back(aModule);
 
-	      // Fill the tuning profiles for the windows actually set
-	      for (double dist=0.5; dist<=6; dist+=0.02) {
-		for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
-		  double myPt = (*it);
-		  myValue = 100 * aModule->getTriggerProbability(myPt, dist);
-		  if ((myValue>=0) && (myValue<=100))
-		    tuningProfiles[myPt].Fill(dist, myValue);
-		}
-	      }
+          // Prepare the variables to hold the profiles
+          std::map<double, TProfile>& tuningProfiles = myProfileBag.getNamedProfiles(profileBag::TriggerProfileName + myName);
+          // Prepare the variables to hold the turn-on curve profiles
+          std::map<double, TProfile>& turnonProfiles = myProfileBag.getNamedProfiles(profileBag::TurnOnCurveName + myName);
 
-	      // Fill the turnon curves profiles for the distance actually set
-	      for (double myPt=0.5; myPt<=10; myPt+=0.02) {
-		for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
-		  double windowSize=iWindow*2+1;
-		  double distance = aModule->getStereoDistance();
-		  myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
-		  if ((myValue>=0) && (myValue<=100))
-		    turnonProfiles[windowSize].Fill(myPt, myValue);
-		}
-	      }
+          // Tuning profile
+          if (!preparedProfiles[myName]) {
+        preparedProfiles[myName] = true;
+        for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+          tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << " GeV;Sensor spacing [mm];Efficiency [%]";
+          tuningProfiles[*it].SetTitle(tempSS.str().c_str());
+          tempSS.str(""); tempSS << "TrigEff" << myName.c_str() << "_" << (*it);
+          tuningProfiles[*it].SetName(tempSS.str().c_str());
+          tuningProfiles[*it].SetBins(100, 0.5, 6); // TODO: these numbers should go into some kind of const
+        }
+          }
 
-	    } else {
-	      std::cerr << "ERROR: this should not happen: a not-endcap module was found in an endcap layer! Contact the developers" << std::endl;
-	    }
-	  }
-	}
+          // Turn-on curve
+          if (!preparedTurnOn[myName]) {
+        preparedTurnOn[myName] = true;
+        for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+          double windowSize=iWindow*2+1;
+          tempSS.str(""); tempSS << "Trigger efficiency for " << myName.c_str() << ";p_{T} [GeV/c];Efficiency [%]";
+          turnonProfiles[windowSize].SetTitle(tempSS.str().c_str());
+          tempSS.str(""); tempSS << "TurnOn" << myName.c_str() << "_window" << windowSize;
+          turnonProfiles[windowSize].SetName(tempSS.str().c_str());
+          turnonProfiles[windowSize].SetBins(100, 0.5, 10); // TODO: these numbers should go into some kind of const
+        }     
+          }
+
+
+
+          // Fill the tuning profiles for the windows actually set
+          for (double dist=0.5; dist<=6; dist+=0.02) {
+        for (std::vector<double>::const_iterator it=triggerMomenta.begin(); it!=triggerMomenta.end(); ++it) {
+          double myPt = (*it);
+          myValue = 100 * aModule->getTriggerProbability(myPt, dist);
+          if ((myValue>=0) && (myValue<=100))
+            tuningProfiles[myPt].Fill(dist, myValue);
+        }
+          }
+
+          // Fill the turnon curves profiles for the distance actually set
+          for (double myPt=0.5; myPt<=10; myPt+=0.02) {
+        for (unsigned int iWindow=0; iWindow<nWindows; ++iWindow) {
+          double windowSize=iWindow*2+1;
+          double distance = aModule->getStereoDistance();
+          myValue = 100 * aModule->getTriggerProbability(myPt, distance, int(windowSize));
+          if ((myValue>=0) && (myValue<=100))
+            turnonProfiles[windowSize].Fill(myPt, myValue);
+        }
+          }
+
+        } else {
+          std::cerr << "ERROR: this should not happen: a not-endcap module was found in an endcap layer! Contact the developers" << std::endl;
+        }
+      }
+    }
       }   
     }
 
@@ -767,78 +796,78 @@ namespace insur {
     std::map<double, bool> availableThinkness;
     // Loop over the selected module types
     for(std::map<std::string, ModuleVector>::iterator itTypes = selectedModules.begin();
-	itTypes!=selectedModules.end(); ++itTypes) {
+    itTypes!=selectedModules.end(); ++itTypes) {
       const std::string& myName = itTypes->first;
       const ModuleVector& myModules = itTypes->second;
       xAxis->SetBinLabel(iType+1, myName.c_str());
 
       // Loop over the possible search windows
       for (unsigned int iWindow = 0; iWindow<nWindows; ++iWindow) {
-	windowSize = 1 + iWindow * 2;
-	// Loop over the modules of type myName
-	for (ModuleVector::const_iterator itModule = myModules.begin(); itModule!=myModules.end(); ++itModule) {
-	  aModule = (*itModule);
-	  // Loop over the possible distances
-	  double minDistBelow = 0.;
-	  availableThinkness[aModule->getStereoDistance()] = true;
-	  for (double dist=0.5; dist<=6; dist+=0.02) { // TODO: constant here
-	    // First with the high momentum
-	    myPt = (spacingTuningMomenta.second);
-	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
-	    if ((myValue>=0)&&(myValue<=100))
-	      tempProfileHigh.Fill(dist, myValue);
-	    // Then with low momentum
-	    myPt = (spacingTuningMomenta.first);
-	    myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
-	    if ((myValue>=0)&&(myValue<=100))
-	      tempProfileLow.Fill(dist, myValue);
-	    if (myValue>1) minDistBelow = dist;
-	  }
-	  if (minDistBelow>=0) {
-	    if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
-	    if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
-	  }
+    windowSize = 1 + iWindow * 2;
+    // Loop over the modules of type myName
+    for (ModuleVector::const_iterator itModule = myModules.begin(); itModule!=myModules.end(); ++itModule) {
+      aModule = (*itModule);
+      // Loop over the possible distances
+      double minDistBelow = 0.;
+      availableThinkness[aModule->getStereoDistance()] = true;
+      for (double dist=0.5; dist<=6; dist+=0.02) { // TODO: constant here
+        // First with the high momentum
+        myPt = (spacingTuningMomenta.second);
+        myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+        if ((myValue>=0)&&(myValue<=100))
+          tempProfileHigh.Fill(dist, myValue);
+        // Then with low momentum
+        myPt = (spacingTuningMomenta.first);
+        myValue = 100 * aModule->getTriggerProbability(myPt, dist, windowSize);
+        if ((myValue>=0)&&(myValue<=100))
+          tempProfileLow.Fill(dist, myValue);
+        if (myValue>1) minDistBelow = dist;
+      }
+      if (minDistBelow>=0) {
+        if (windowSize==5) optimalSpacingDistribution.Fill(minDistBelow);
+        if (windowSize==aModule->getTriggerWindow()) optimalSpacingDistributionAW.Fill(minDistBelow);
+      }
 
-	  /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
-	    std::cout << myName << " - " << aModule->getTag() << " - minDistBelow = " << minDistBelow;
-	    std::cout <<  ", so[0]=" << spacingOptions[0] << ", so[n-1]=" << spacingOptions[nSpacingOptions-1];
-	    }*/
-	  if (minDistBelow<spacingOptions[0]) minDistBelow=spacingOptions[0];
-	  else if (minDistBelow>spacingOptions[nSpacingOptions-1]) minDistBelow=spacingOptions[nSpacingOptions-1];
-	  else {
-	    for (unsigned int iSpacing = 0; iSpacing < nSpacingOptions-1; ++iSpacing) {
-	      /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) {// debug
-	      	std::cout << " spacingOptions[" << iSpacing << "] = " << spacingOptions[iSpacing];
-	      	std::cout << " spacingOptions[" << iSpacing+1 << "] = " << spacingOptions[iSpacing+1];
-		}*/
-	      if ((minDistBelow>=spacingOptions[iSpacing]) && (minDistBelow<spacingOptions[iSpacing+1])) {
-		minDistBelow=spacingOptions[iSpacing+1];
-		/*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
-		  std::cout << " here it is: ";*/
-		break;
-	      }
-	    }
-	  }
-	  /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
-	    std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
-	  aModule->setOptimalSpacing(windowSize, minDistBelow);
-	}
-	// Find the "high" and "low" points
-	double lowEdge = findXThreshold(tempProfileLow, 1, true);
-	double highEdge = findXThreshold(tempProfileHigh, 90, false);
-	// std::cerr << myName << ": " << lowEdge << " -> " << highEdge << std::endl; // debug
-	double centerX; double sizeX;
-	centerX = iType+(double(iWindow)+0.5)/(double(nWindows));
-	sizeX = 1./ (double(nWindows)) * 0.8; // 80% of available space, so that they will not touch
-	if (lowEdge<highEdge) {
-	  spacingTuningGraphs[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-	  spacingTuningGraphs[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
-	} else {
-	  spacingTuningGraphsBad[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
-	  spacingTuningGraphsBad[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
-	}
-	tempProfileLow.Reset();
-	tempProfileHigh.Reset();
+      /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) { // debug
+        std::cout << myName << " - " << aModule->getTag() << " - minDistBelow = " << minDistBelow;
+        std::cout <<  ", so[0]=" << spacingOptions[0] << ", so[n-1]=" << spacingOptions[nSpacingOptions-1];
+        }*/
+      if (minDistBelow<spacingOptions[0]) minDistBelow=spacingOptions[0];
+      else if (minDistBelow>spacingOptions[nSpacingOptions-1]) minDistBelow=spacingOptions[nSpacingOptions-1];
+      else {
+        for (unsigned int iSpacing = 0; iSpacing < nSpacingOptions-1; ++iSpacing) {
+          /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) {// debug
+            std::cout << " spacingOptions[" << iSpacing << "] = " << spacingOptions[iSpacing];
+            std::cout << " spacingOptions[" << iSpacing+1 << "] = " << spacingOptions[iSpacing+1];
+        }*/
+          if ((minDistBelow>=spacingOptions[iSpacing]) && (minDistBelow<spacingOptions[iSpacing+1])) {
+        minDistBelow=spacingOptions[iSpacing+1];
+        /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
+          std::cout << " here it is: ";*/
+        break;
+          }
+        }
+      }
+      /*if ((myName=="ENDCAP_D02R05")&&(windowSize==5)) // debug
+        std::cout << " - approx to " << minDistBelow << " for a window of " << windowSize << std::endl;*/
+      aModule->setOptimalSpacing(windowSize, minDistBelow);
+    }
+    // Find the "high" and "low" points
+    double lowEdge = findXThreshold(tempProfileLow, 1, true);
+    double highEdge = findXThreshold(tempProfileHigh, 90, false);
+    // std::cerr << myName << ": " << lowEdge << " -> " << highEdge << std::endl; // debug
+    double centerX; double sizeX;
+    centerX = iType+(double(iWindow)+0.5)/(double(nWindows));
+    sizeX = 1./ (double(nWindows)) * 0.8; // 80% of available space, so that they will not touch
+    if (lowEdge<highEdge) {
+      spacingTuningGraphs[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+      spacingTuningGraphs[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+    } else {
+      spacingTuningGraphsBad[iWindow].SetPoint(iType, centerX, (highEdge+lowEdge)/2.);
+      spacingTuningGraphsBad[iWindow].SetPointError(iType, sizeX/2., (highEdge-lowEdge)/2.);
+    }
+    tempProfileLow.Reset();
+    tempProfileHigh.Reset();
       }
       iType++;
     }
@@ -861,24 +890,24 @@ namespace insur {
       double xThreshold=0;
       double binContent;
       for (int i=1; i<=aProfile.GetNbinsX(); ++i) {
-	binContent = aProfile.GetBinContent(i);
-	if ((binContent!=0)&&(binContent<yThreshold)) {
-	  // TODO: add a linear interpolation here
-	  xThreshold = aProfile.GetBinCenter(i);
-	  return xThreshold;
-	}
+    binContent = aProfile.GetBinContent(i);
+    if ((binContent!=0)&&(binContent<yThreshold)) {
+      // TODO: add a linear interpolation here
+      xThreshold = aProfile.GetBinCenter(i);
+      return xThreshold;
+    }
       }
       return 100;
     } else {
       double xThreshold=100;
       double binContent;
       for (int i=aProfile.GetNbinsX(); i>=1; --i) {
-	binContent = aProfile.GetBinContent(i);
-	if ((binContent!=0)&&(binContent>yThreshold)) {
-	  // TODO: add a linear interpolation here
-	  xThreshold = aProfile.GetBinCenter(i);
-	  return xThreshold;
-	}
+    binContent = aProfile.GetBinContent(i);
+    if ((binContent!=0)&&(binContent>yThreshold)) {
+      // TODO: add a linear interpolation here
+      xThreshold = aProfile.GetBinCenter(i);
+      return xThreshold;
+    }
       }
       return 0;
     }
@@ -888,7 +917,7 @@ namespace insur {
 
 
   void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-					     const std::vector<Track>& trackVector) {
+                         const std::vector<Track>& trackVector) {
     
     // Prepare the graphs to record the number of triggered points
     //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
@@ -900,7 +929,7 @@ namespace insur {
     double eta;
 
     for (std::vector<Track>::const_iterator itTrack = trackVector.begin();
-	 itTrack != trackVector.end(); ++itTrack) {
+     itTrack != trackVector.end(); ++itTrack) {
       const Track& myTrack=(*itTrack);
 
       eta = - log(tan(myTrack.getTheta() / 2));
@@ -908,16 +937,16 @@ namespace insur {
       totalProfile.Fill(eta, nHits);
 
       for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
-	  itMomentum!=triggerMomenta.end(); ++itMomentum) {
-	TProfile& myProfile = trigProfiles[(*itMomentum)];
-	TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
-	double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
-	if (nExpectedTriggerPoints>=0) { // sanity check (! nan)
-	  myProfile.Fill(eta, nExpectedTriggerPoints);
-	  if (nHits>0) {
-	    myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
-	  }
-	}
+      itMomentum!=triggerMomenta.end(); ++itMomentum) {
+    TProfile& myProfile = trigProfiles[(*itMomentum)];
+    TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
+    double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
+    if (nExpectedTriggerPoints>=0) { // sanity check (! nan)
+      myProfile.Fill(eta, nExpectedTriggerPoints);
+      if (nHits>0) {
+        myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
+      }
+    }
       }
     }
     if (totalProfile.GetMaximum() < maximum_n_planes) totalProfile.SetMaximum(maximum_n_planes);
@@ -934,7 +963,7 @@ namespace insur {
      * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
      */
     void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps,
-					 MaterialBudget* pm , bool computeResolution) {
+                     MaterialBudget* pm , bool computeResolution) {
 
         Tracker& tracker = mb.getTracker();
         double efficiency = tracker.getEfficiency();
@@ -955,7 +984,7 @@ namespace insur {
         setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
         setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, etaMax);
         // reset the list of tracks
-	std::vector<Track> tv;
+    std::vector<Track> tv;
         std::vector<Track> tvIdeal;
         // tv.clear();
         // used fixed phi
@@ -1063,93 +1092,93 @@ namespace insur {
             }
 
             // Add the hit on the beam pipe
- 	    Hit* hit = new Hit(23./sin(theta));
- 	    hit->setOrientation(Hit::Horizontal);
- 	    hit->setObjectKind(Hit::Inactive);
- 	    Material beamPipeMat;
- 	    beamPipeMat.radiation = 0.0023 / sin(theta);
- 	    beamPipeMat.interaction = 0.0019 / sin(theta);
- 	    hit->setCorrectedMaterial(beamPipeMat);
- 	    track.addHit(hit);
+        Hit* hit = new Hit(23./sin(theta));
+        hit->setOrientation(Hit::Horizontal);
+        hit->setObjectKind(Hit::Inactive);
+        Material beamPipeMat;
+        beamPipeMat.radiation = 0.0023 / sin(theta);
+        beamPipeMat.interaction = 0.0019 / sin(theta);
+        hit->setCorrectedMaterial(beamPipeMat);
+        track.addHit(hit);
             if (!track.noHits()) {
-	      track.sort();
+          track.sort();
               if (efficiency!=1) track.addEfficiency(efficiency, false);
               if (pixelEfficiency!=1) track.addEfficiency(efficiency, true);
-	      if (track.nActiveHits(true)>2) { // At least 3 points needed
-		//#ifdef HIT_DEBUG_RZ
-		//		if ((eta >1.617) &&(theta>0.383)) {
-		//		  Track::debugRZCorrelationMatrix = true;
-		//		  Track::debugRZCovarianceMatrix = true;
-		//		  Track::debugRZErrorPropagation = true;
-		//		}
-		//#endif
+          if (track.nActiveHits(true)>2) { // At least 3 points needed
+        //#ifdef HIT_DEBUG_RZ
+        //      if ((eta >1.617) &&(theta>0.383)) {
+        //        Track::debugRZCorrelationMatrix = true;
+        //        Track::debugRZCovarianceMatrix = true;
+        //        Track::debugRZErrorPropagation = true;
+        //      }
+        //#endif
                 if (computeResolution) track.computeErrors(momenta);
-		tv.push_back(track);
+        tv.push_back(track);
 
-if (computeResolution) {
-		Track trackIdeal = track;
-		trackIdeal.removeMaterial();
-		trackIdeal.computeErrors(momenta);
-		tvIdeal.push_back(trackIdeal);
-}
-	      }
+        if (computeResolution) {
+        Track trackIdeal = track;
+        trackIdeal.removeMaterial();
+        trackIdeal.computeErrors(momenta);
+        tvIdeal.push_back(trackIdeal);
+        }
+        }
 
-	      // @@ Hadrons
-	      int nActive = track.nActiveHits();
-	      if (nActive>0) {
-		hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(),
-						eta,
-						nActive);
-		double probability;
-		std::vector<double> probabilities = track.hadronActiveHitsProbability();
-		
-		double averageHits=0;
-		//double averageSquaredHits=0;
-		double exactProb=0;
-		double moreThanProb = 0;
-		for (int i=probabilities.size()-1;
-		     i>=0;
-		     --i) {
-		  //if (nActive==10) { // debug
-		  //  std::cerr << "probabilities.at(" 
-		  //  << i << ")=" << probabilities.at(i)
-		  //  << endl;
-		  //}
-		  exactProb=probabilities.at(i)-moreThanProb;
-		  averageHits+=(i+1)*exactProb;
-		  //averageSquaredHits+=((i+1)*(i+1))*exactProb;
-		  moreThanProb+=exactProb;
-		}
-		hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(),
-						  eta,
-						  averageHits);
-		//hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1,
-		//					     0,
-		//					     sqrt( averageSquaredHits - averageHits*averageHits) );
-		
-		unsigned int requiredHits;
-		for (unsigned int i = 0;
-		     i<hadronNeededHitsFraction.size();
-		     ++i) {
+          // @@ Hadrons
+          int nActive = track.nActiveHits();
+          if (nActive>0) {
+        hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(),
+                        eta,
+                        nActive);
+        double probability;
+        std::vector<double> probabilities = track.hadronActiveHitsProbability();
+        
+        double averageHits=0;
+        //double averageSquaredHits=0;
+        double exactProb=0;
+        double moreThanProb = 0;
+        for (int i=probabilities.size()-1;
+             i>=0;
+             --i) {
+          //if (nActive==10) { // debug
+          //  std::cerr << "probabilities.at(" 
+          //  << i << ")=" << probabilities.at(i)
+          //  << endl;
+          //}
+          exactProb=probabilities.at(i)-moreThanProb;
+          averageHits+=(i+1)*exactProb;
+          //averageSquaredHits+=((i+1)*(i+1))*exactProb;
+          moreThanProb+=exactProb;
+        }
+        hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(),
+                          eta,
+                          averageHits);
+        //hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1,
+        //                       0,
+        //                       sqrt( averageSquaredHits - averageHits*averageHits) );
+        
+        unsigned int requiredHits;
+        for (unsigned int i = 0;
+             i<hadronNeededHitsFraction.size();
+             ++i) {
                   requiredHits = int(ceil(double(nActive) * hadronNeededHitsFraction.at(i)));
-		  if (requiredHits==0)
-		    probability=1;
-		  else if (requiredHits>probabilities.size())
-		    probability = 0;
-		  else
-		    probability = probabilities.at(requiredHits-1);
-		  //if (probabilities.size()==10) { // debug
-		  //  std::cerr << "required " << requiredHits
-		  //		      << " out of " << probabilities.size()
-		  //		      << " == " << nActive
-		  //		      << endl;
-		  // std::cerr << "      PROBABILITY = " << probability << endl << endl;
-		  //}
-		  hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(),
-							  eta,
-							  probability);
-		}
-	      }
+          if (requiredHits==0)
+            probability=1;
+          else if (requiredHits>probabilities.size())
+            probability = 0;
+          else
+            probability = probabilities.at(requiredHits-1);
+          //if (probabilities.size()==10) { // debug
+          //  std::cerr << "required " << requiredHits
+          //              << " out of " << probabilities.size()
+          //              << " == " << nActive
+          //              << endl;
+          // std::cerr << "      PROBABILITY = " << probability << endl << endl;
+          //}
+          hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(),
+                              eta,
+                              probability);
+        }
+          }
             }
         }
 
@@ -1173,10 +1202,10 @@ if (computeResolution) {
 if (computeResolution) {
         // fill TGraph map
 #ifdef DEBUG_PERFORMANCE
-	starttime = clock();
+    starttime = clock();
 #endif
-	calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
-	calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
+    calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
+    calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
 #ifdef DEBUG_PERFORMANCE
         std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
         endtime = clock();
@@ -1185,187 +1214,305 @@ if (computeResolution) {
 }
     }
 
-	void Analyzer::analyzePower(Tracker& tracker) {
-		computeIrradiatedPowerConsumption(tracker);
-		preparePowerHistograms();
-		fillPowerMap(tracker);
-	}
+    void Analyzer::analyzePower(Tracker& tracker) {
+        computeIrradiatedPowerConsumption(tracker);
+        preparePowerHistograms();
+        fillPowerMap(tracker);
+    }
 
-	void Analyzer::computeTriggerFrequency(Tracker& tracker) {
-		std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
-		std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
-		LayerVector& layers = tracker.getLayers();
+    void Analyzer::computeTriggerFrequency(Tracker& tracker) {
+        std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
+        std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+        LayerVector& layers = tracker.getLayers();
 
         triggerFrequencyTrueSummaries_.clear();
         triggerFrequencyFakeSummaries_.clear();
-		triggerRateSummaries_.clear();
-		triggerPuritySummaries_.clear();
-		triggerDataBandwidthSummaries_.clear();
+        triggerRateSummaries_.clear();
+        triggerPuritySummaries_.clear();
+        triggerDataBandwidthSummaries_.clear();
+        triggerDataBandwidths_.clear();
 
-		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
-			ModuleVector* modules = (*layIt)->getModuleVector();
-			if (!modules) {
-			  logERROR("Cannot retrieve moduleVector from the layer");
-			  return;
-			}
-			std::string cntName = (*layIt)->getContainerName();
-			if (cntName == "") {
-			  ostringstream tempSS;
-			  tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
-			  logWARNING(tempSS);
-			  continue;
-			}
-			for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
-				Module* module = (*modIt);
-				XYZVector center = module->getMeanPoint();
-				if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module->getStereoDistance()==0.0)) continue;
-				int curCnt = triggerFrequencyCounts[cntName][make_pair(module->getLayer(), module->getRing())]++;
-				double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(),module->getRing())];
-				double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
+        for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+            Layer* layer = *layIt;
+            ModuleVector* modules = layer->getModuleVector();
+            if (!modules) {
+              logERROR("Cannot retrieve moduleVector from the layer");
+              return;
+            }
+            std::string cntName = layer->getContainerName();
+          //  int layIndex = (*layIt)->getIndex();
+            if (cntName == "") {
+              ostringstream tempSS;
+              tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
+              logWARNING(tempSS);
+              continue;
+            }
 
-				curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-				curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
-
-				double curAvgTotal = curAvgTrue + curAvgFake;
-
-				triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;			
-				triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;	
-
-				int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
-				int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
+            triggerFrequencyTrueSummaries_[cntName].setHeader("Layer", "Ring");
+            triggerFrequencyFakeSummaries_[cntName].setHeader("Layer", "Ring");
+            triggerRateSummaries_[cntName].setHeader("Layer", "Ring");
+            triggerPuritySummaries_[cntName].setHeader("Layer", "Ring");
+            triggerDataBandwidthSummaries_[cntName].setHeader("Layer", "Ring");
+            triggerFrequencyTrueSummaries_[cntName].setPrecision(3);
+            triggerFrequencyFakeSummaries_[cntName].setPrecision(3);
+            triggerRateSummaries_[cntName].setPrecision(3);
+            triggerPuritySummaries_[cntName].setPrecision(3);
+            triggerDataBandwidthSummaries_[cntName].setPrecision(3);
 
 
-				std::stringstream ss1(""), ss2(""), ss3(""), ss4(""), ss5("");
-				ss1.precision(6);
-				ss2.precision(6);
-				ss3.precision(6);
-				ss4.precision(6);
-				ss5.precision(6);
-				ss1.setf(ios::fixed, ios::floatfield);
-				ss2.setf(ios::fixed, ios::floatfield);
-				ss3.setf(ios::fixed, ios::floatfield);
-				ss4.setf(ios::fixed, ios::floatfield);
-				ss5.setf(ios::fixed, ios::floatfield);
-				ss1 << curAvgTrue;
-				ss2 << curAvgFake;
-				ss3 << curAvgTotal;
-				ss4 << curAvgTrue/(curAvgTrue+curAvgFake);
-				ss5 << triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits;
-				triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss1.str());
-				triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss2.str());
-				triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss3.str());				
-				triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss4.str());				
-				triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss5.str());
+            int nbins = (dynamic_cast<BarrelLayer*>(layer)) ? ((BarrelLayer*)layer)->getModulesOnRod() : ((EndcapLayer*)layer)->getRings();
 
-				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(module->getLayer(), 0)) {
-					std::stringstream ss("");
-					ss << module->getLayer();
-					triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-					triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-				}
-				if (!triggerFrequencyTrueSummaries_[cntName].hasCell(0, module->getRing())) {
-					std::stringstream ss("");
-					ss << module->getRing();
-					triggerFrequencyTrueSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-					triggerFrequencyFakeSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-				}
-				if (!triggerRateSummaries_[cntName].hasCell(module->getLayer(), 0)) {
-					std::stringstream ss("");
-					ss << module->getLayer();
-					triggerRateSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-					triggerPuritySummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-					triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-				}
-				if (!triggerRateSummaries_[cntName].hasCell(0, module->getRing())) {
-					std::stringstream ss("");
-					ss << module->getRing();
-					triggerRateSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-					triggerPuritySummaries_[cntName].setCell(0, module->getRing(), ss.str());
-					triggerDataBandwidthSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-				}
-			}
-			triggerFrequencyTrueSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerFrequencyFakeSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerRateSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerPuritySummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-			triggerDataBandwidthSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-		}
-	}
-	
+
+            for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+                Module* module = (*modIt);
+                XYZVector center = module->getMeanPoint();
+                if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module->getStereoDistance()==0.0)) continue;
+
+                TH1D* currentTotalHisto;
+                TH1D* currentTrueHisto;
+
+                if (totalStubRateHistos_.count(std::make_pair(cntName, layer->getIndex())) == 0) {
+                    currentTotalHisto = new TH1D(("totalStubsPerEventHisto" + cntName + any2str(layer->getIndex())).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5);
+                    currentTrueHisto = new TH1D(("trueStubsPerEventHisto" + cntName + any2str(layer->getIndex())).c_str(), ";Modules;MHz/cm^2", nbins, 0.5, nbins+0.5); 
+                    totalStubRateHistos_[std::make_pair(cntName, layer->getIndex())] = currentTotalHisto; 
+                    trueStubRateHistos_[std::make_pair(cntName, layer->getIndex())] = currentTrueHisto; 
+                } else {
+                    currentTotalHisto = totalStubRateHistos_[std::make_pair(cntName, layer->getIndex())]; 
+                    currentTrueHisto = trueStubRateHistos_[std::make_pair(cntName, layer->getIndex())]; 
+                }
+                
+
+                int curCnt = triggerFrequencyCounts[cntName][make_pair(module->getLayer(), module->getRing())]++;
+                double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(),module->getRing())];
+                double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
+
+                curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+                curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+                double curAvgTotal = curAvgTrue + curAvgFake;
+
+                triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;            
+                triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;    
+
+                int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
+                int triggerDataPayloadBits = tracker.getModuleType(module->getType()).getTriggerDataPayloadBits();
+                double triggerDataBandwidth = (triggerDataHeaderBits + curAvgTotal*triggerDataPayloadBits) / (tracker.getBunchSpacingNs()); // GIGABIT/second
+                triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())] = triggerDataBandwidth;
+                triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTotal;
+                
+                module->setProperty("triggerDataBandwidth", triggerDataBandwidth); // averaged over phi
+                module->setProperty("triggerFrequencyPerEvent", curAvgTotal); // averaged over phi
+    
+                
+//                currentTotalGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+//                currentTrueGraph->SetPoint(module->getRing()-1, module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+
+                currentTotalHisto->SetBinContent(module->getRing(), curAvgTotal*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+                currentTrueHisto->SetBinContent(module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
+
+                triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue);
+                triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgFake);
+                triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTotal);             
+                triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/(curAvgTrue+curAvgFake));                
+                triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), triggerDataBandwidth);
+
+            }
+        }
+
+    }
+    
+void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
+
+    std::map<std::pair<int, int>, int> processorConnections;
+    std::map<std::pair<int, int>, double> processorInboundBandwidths;
+    std::map<std::pair<int, int>, double> processorInboundStubsPerEvent;
+    
+    processorConnectionSummary_.setHeader("Phi", "Eta");
+    processorInboundBandwidthSummary_.setHeader("Phi", "Eta");
+    processorInboundStubPerEventSummary_.setHeader("Phi", "Eta");
+
+    processorInboundBandwidthSummary_.setPrecision(3);
+    processorInboundStubPerEventSummary_.setPrecision(3);
+
+    int numProcEta = tracker.getTriggerProcessorsEta();
+    int numProcPhi = tracker.getTriggerProcessorsPhi();
+
+    double etaCut = tracker.getTriggerEtaCut();
+    double etaSlice = etaCut / numProcEta;
+    double maxR = tracker.getMaxR();
+    double zError = tracker.getZError();
+
+    double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+
+    double eta = 0;    
+
+    for (int i=0; i < numProcEta; i++) { // loop over etaSlices
+        double phi = 0;
+        for (int j=0; j < numProcPhi; j++) { 
+            LayerVector& layers = tracker.getLayers();
+            for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
+                ModuleVector* modules = (*layIt)->getModuleVector();
+                std::string cntName = (*layIt)->getContainerName();
+                Layer* layer = (*layIt);
+                //BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
+                if (cntName == "" || !layer) continue;
+                
+
+                for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+                    Module* module = (*modIt);
+                    //BarrelModule* module = dynamic_cast<BarrelModule*>(*modIt);
+
+                    if (!module || module->getMeanPoint().Z()<0) continue;
+                    double modMinZ = module->getMinZ();
+                    double modMaxZ = module->getMaxZ();
+                    double modMinR = module->getMinRho();                
+                    double modMaxR = module->getMaxRho();                
+                    
+                    //double modR    = module->getMeanPoint().Rho();                
+                    
+                    double modMinPhi  = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
+                    double modMaxPhi  = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
+
+                    double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
+                    double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
+
+                    double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError);
+                    double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError);
+
+                    double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
+                    double sliceMinPhi = phi - trajSlice;
+                    double sliceMaxPhi = phi + phiSlice + trajSlice;
+
+                    if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
+                    else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
+
+                    if (etaDist1 < 0 && etaDist2 > 0 &&
+                        ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
+                         (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
+                         (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi))) 
+                    { 
+                        
+                        int moduleConnections = module->getProcessorConnections()+1;
+                        module->setProcessorConnections(moduleConnections);
+
+                        processorConnections[std::make_pair(i,j)] += 2; // this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+                        processorConnectionSummary_.setCell(i+1, j+1, processorConnections[std::make_pair(i,j)]);
+                       
+                        processorInboundBandwidths[std::make_pair(i,j)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]*2; // *2 takes into account negative Z's
+                        processorInboundBandwidthSummary_.setCell(i+1, j+1, processorInboundBandwidths[std::make_pair(i,j)]);
+                        
+                        processorInboundStubsPerEvent[std::make_pair(i,j)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())]*2;
+                        processorInboundStubPerEventSummary_.setCell(i+1, j+1, processorInboundStubsPerEvent[std::make_pair(i,j)]);
+                        
+
+                        if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(
+                            moduleConnectionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), moduleConnections);
+
+                        }
+
+                    }
+                }
+            }
+            phi += phiSlice;
+        } 
+        eta += etaSlice;
+    }
+
+
+    double inboundBandwidthTotal = 0.;
+    int processorConnectionsTotal = 0;
+    double inboundStubsPerEventTotal = 0.;
+    for (std::map<std::pair<int, int>, double>::iterator it = processorInboundBandwidths.begin(); it != processorInboundBandwidths.end(); ++it)
+        inboundBandwidthTotal += (*it).second;
+    for (std::map<std::pair<int, int>, int>::iterator it = processorConnections.begin(); it != processorConnections.end(); ++it)
+        processorConnectionsTotal += (*it).second;
+    for (std::map<std::pair<int, int>, double>::iterator it = processorInboundStubsPerEvent.begin(); it != processorInboundStubsPerEvent.end(); ++it) 
+        inboundStubsPerEventTotal += (*it).second;
+
+    
+    processorInboundBandwidthSummary_.setSummaryCell("Total", inboundBandwidthTotal);
+    processorConnectionSummary_.setSummaryCell("Total", processorConnectionsTotal);
+    processorInboundStubPerEventSummary_.setSummaryCell("Total", inboundStubsPerEventTotal);
+
+    moduleConnectionsDistribution.Reset();
+    moduleConnectionsDistribution.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
+    moduleConnectionsDistribution.SetBins(11, -.5, 10.5);
+    
+    
+    LayerVector& layers = tracker.getLayers();
+    for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
+        ModuleVector* modules = (*layIt)->getModuleVector();
+        std::string cntName = (*layIt)->getContainerName();
+        BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
+        if (cntName == "" || !layer) continue;
+        for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+            if ((*modIt)->getMeanPoint().Z() < 0) continue;
+            moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 2);// this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+
+        }
+    }
+}
+
+
 void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
-	// loop over layers
-	// 	  loop over modules
-	// 	     compute the power formula for the given module P(V*, I(Fluence(Z, r), T*, alpha*))
-	//		 populate R-Z table
-	
-	double numInvFemtobarns = tracker.getNumInvFemtobarns();
-	double operatingTemp    = tracker.getOperatingTemp();
-	double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
-	double alphaParam       = tracker.getAlphaParam();
-	double referenceTemp    = tracker.getReferenceTemp();
+    
+    double numInvFemtobarns = tracker.getNumInvFemtobarns();
+    double operatingTemp    = tracker.getOperatingTemp();
+    double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
+    double alphaParam       = tracker.getAlphaParam();
+    double referenceTemp    = tracker.getReferenceTemp();
 
-	// cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
-	// cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
-	// cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
-	// cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
-	// cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
-	irradiatedPowerConsumptionSummaries_.clear();	
+    // cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
+    // cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
+    // cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
+    // cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
+    // cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
+    irradiatedPowerConsumptionSummaries_.clear();   
 
-	LayerVector& layers = tracker.getLayers();
-	for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
-		ModuleVector* modules = (*layIt)->getModuleVector();
-		if (!modules) {
-		  logERROR("cannot retrieve moduleVector from the layer");
-		  return;
-		}
-		std::string cntName = (*layIt)->getContainerName();
-		if (cntName == "") {
-		  ostringstream tempSS;
-		  tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
-		  logWARNING(tempSS);
-		  continue;
-		}
-		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
-			Module* module = (*modIt); 
-			XYZVector center = module->getMeanPoint();
-			if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2)) continue;
-			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-			double x  = center.Z()/25;
-			double y  = center.Rho()/25;
-			double x1 = floor(x);
-			double x2 = ceil(x);
-			double y1 = floor(y);
-			double y2 = ceil(y);
-			double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; 
-			double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
-			double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
-			double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
-			double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
-			double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
-			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
-			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;			
-			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
-			module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
-			std::stringstream ss("");
-			ss.precision(6);
-			ss.setf(ios::fixed, ios::floatfield);
-			ss << irradiatedPowerConsumption;
-			irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), ss.str());
-			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(module->getLayer(), 0)) {
-				std::stringstream ss("");
-				ss << module->getLayer();
-				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), 0, ss.str());
-			}
-			if (!irradiatedPowerConsumptionSummaries_[cntName].hasCell(0, module->getRing())) {
-				std::stringstream ss("");
-				ss << module->getRing();
-				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-				irradiatedPowerConsumptionSummaries_[cntName].setCell(0, module->getRing(), ss.str());
-			}
-		}
-		irradiatedPowerConsumptionSummaries_[cntName].setCell(0, 0, "Ring/<br>Layer");
-	}
+    LayerVector& layers = tracker.getLayers();
+    for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+        ModuleVector* modules = (*layIt)->getModuleVector();
+        if (!modules) {
+          logERROR("cannot retrieve moduleVector from the layer");
+          return;
+        }
+        std::string cntName = (*layIt)->getContainerName();
+        if (cntName == "") {
+          ostringstream tempSS;
+          tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
+          logWARNING(tempSS);
+          continue;
+        }
+        
+        irradiatedPowerConsumptionSummaries_[cntName].setHeader("layer", "ring");
+        irradiatedPowerConsumptionSummaries_[cntName].setPrecision(3);        
+
+        for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+            Module* module = (*modIt); 
+            XYZVector center = module->getMeanPoint();
+            if (center.Z()<0) continue;
+            double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
+            double x  = center.Z()/25;
+            double y  = center.Rho()/25;
+            double x1 = floor(x);
+            double x2 = ceil(x);
+            double y1 = floor(y);
+            double y2 = ceil(y);
+            double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; 
+            double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
+            double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
+            double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
+            double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
+            double fluence = irrxy * numInvFemtobarns * 1e15 * 77 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+            double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
+            double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
+            //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
+            module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
+            module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
+
+            irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
+        }
+    }
 }
 
 
@@ -1377,7 +1524,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
    * @param result a map of summary tables to be filled
    */
   void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker,std::map<std::string, SummaryTable>& result,
-					bool byMaterial) {
+                    bool byMaterial) {
     map<std::string, map<std::pair<int, int>, bool> > typeTaken;
     map<std::string, map<std::pair<int, int>, bool> > typeWritten;
 
@@ -1407,63 +1554,63 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) {
       // Loop over modules
       for (moduleIt = layerIt->begin(); moduleIt != layerIt->end(); ++moduleIt) {
-	// Check if the module is on the YZ section
-	myModuleCap = &(*moduleIt);
-	myModule = &(myModuleCap->getModule());
-	if (myModule->getSection()==Layer::YZSection) {
-	  pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
-	  tempString = myModule->getContainerName();
-	  if (!typeTaken[tempString][myIndex]) {
-	    typeTaken[tempString][myIndex]=true;
-	    if (tempString!="") {
-	      // TODO: put this in a better place
-	      // (and make a better module typing)
-	      tempSS.str("");
-	      if (myModule->getSubdetectorType()==Module::Barrel) {
-		tempSS << myModule->getLayer();
-		tempString+=" (L"+tempSS.str()+")";
-	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
-		if (EndcapModule* myEcMod = dynamic_cast<EndcapModule*>(myModule))  {
-		  tempSS << myEcMod->getLayer(); //getDisk();
-		  tempString+=" (D"+tempSS.str()+")";
-		} else {
-		  cerr << "ERROR in Analyzer::detailedWeights(): "
-		       << "I found an endcap Module that cannot be cast to an EndcapModule!" << std::endl;		  
-		}
-	      } else {
-		cerr << "ERROR in Analyzer::detailedWeights(): "
-		     << "I found a module which is neither endcap nor barrel!" << std::endl;
-	      }
-	      result[tempString].setCell(0, myModule->getRing(), myModule->getTag());
-	    } else {
-	      cerr << "ERROR in Analyzer::detailedWeights(): "
-		   << "I found a module with no reference to the container name." << endl;
-	    }
-	  }
-	  if (byMaterial) { // sort by Material tag
-	    nLocalMasses = myModuleCap->localMassCount();
-	    nExitingMasses = myModuleCap->exitingMassCount();
-	  } else { // sort by Component tag
-	    nLocalMasses = myModuleCap->localMassCompCount();
-	    nExitingMasses = myModuleCap->exitingMassCompCount();
-	  }
-	  for (unsigned int iLocalMasses=0; iLocalMasses < nLocalMasses; ++iLocalMasses) {
-	    if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
-	    else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
-	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
-	    if (materialTagIt==materialTagV.end()) {
-	      materialTagV.push_back(materialTag);
-	    }
-	  }
-	  for (unsigned int iExitingMasses=0; iExitingMasses < nExitingMasses; ++iExitingMasses) {
-	    if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
-	    else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
-	    materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
-	    if (materialTagIt==materialTagV.end()) {
-	      materialTagV.push_back(materialTag);
-	    }
-	  }
-	}
+    // Check if the module is on the YZ section
+    myModuleCap = &(*moduleIt);
+    myModule = &(myModuleCap->getModule());
+    if (myModule->getSection()==Layer::YZSection) {
+      pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
+      tempString = myModule->getContainerName();
+      if (!typeTaken[tempString][myIndex]) {
+        typeTaken[tempString][myIndex]=true;
+        if (tempString!="") {
+          // TODO: put this in a better place
+          // (and make a better module typing)
+          tempSS.str("");
+          if (myModule->getSubdetectorType()==Module::Barrel) {
+        tempSS << myModule->getLayer();
+        tempString+=" (L"+tempSS.str()+")";
+          } else if (myModule->getSubdetectorType()==Module::Endcap) {
+        if (EndcapModule* myEcMod = dynamic_cast<EndcapModule*>(myModule))  {
+          tempSS << myEcMod->getLayer(); //getDisk();
+          tempString+=" (D"+tempSS.str()+")";
+        } else {
+          cerr << "ERROR in Analyzer::detailedWeights(): "
+               << "I found an endcap Module that cannot be cast to an EndcapModule!" << std::endl;        
+        }
+          } else {
+        cerr << "ERROR in Analyzer::detailedWeights(): "
+             << "I found a module which is neither endcap nor barrel!" << std::endl;
+          }
+          result[tempString].setCell(0, myModule->getRing(), myModule->getTag());
+        } else {
+          cerr << "ERROR in Analyzer::detailedWeights(): "
+           << "I found a module with no reference to the container name." << endl;
+        }
+      }
+      if (byMaterial) { // sort by Material tag
+        nLocalMasses = myModuleCap->localMassCount();
+        nExitingMasses = myModuleCap->exitingMassCount();
+      } else { // sort by Component tag
+        nLocalMasses = myModuleCap->localMassCompCount();
+        nExitingMasses = myModuleCap->exitingMassCompCount();
+      }
+      for (unsigned int iLocalMasses=0; iLocalMasses < nLocalMasses; ++iLocalMasses) {
+        if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
+        else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
+        materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
+        if (materialTagIt==materialTagV.end()) {
+          materialTagV.push_back(materialTag);
+        }
+      }
+      for (unsigned int iExitingMasses=0; iExitingMasses < nExitingMasses; ++iExitingMasses) {
+        if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
+        else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
+        materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
+        if (materialTagIt==materialTagV.end()) {
+          materialTagV.push_back(materialTag);
+        }
+      }
+    }
       }
     }
 
@@ -1472,9 +1619,9 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
     // Prepare the columns of the tables
     for (map<string, SummaryTable>::iterator it=result.begin();
-	 it!=result.end(); ++it) {
+     it!=result.end(); ++it) {
       for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
-	it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
+    it->second.setCell(materialTag_i+1, 0, materialTagV[materialTag_i]);
       }
       it->second.setCell(materialTagV.size()+1, 0, "Total");
     }
@@ -1484,79 +1631,79 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     for (layerIt = tracker.begin(); layerIt != tracker.end(); ++layerIt) { 
       // Loop over modules
       for (moduleIt = layerIt->begin(); moduleIt != layerIt->end(); ++moduleIt) { 
-	// Check if the module is on the YZ section
-	myModuleCap = &(*moduleIt);
-	myModule = &(myModuleCap->getModule());
-	
-	if (byMaterial) {
-	  typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
-	  typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
-	}
-	if (myModule->getSection()==Layer::YZSection) {
-	  // If we did not write this module type yet
-	  pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
-	  tempString = myModule->getContainerName();
-	  if (!typeWritten[tempString][myIndex]) {
-	    typeWritten[tempString][myIndex]=true;
-	    if (tempString!="") {
-	      // TODO: put this in a better place
-	      // (and make a better module typing)
-	      tempSS.str("");
-	      if (myModule->getSubdetectorType()==Module::Barrel) {
-		tempSS << myModule->getLayer();
-		tempString+=" (L"+tempSS.str()+")";
-	      } else if (myModule->getSubdetectorType()==Module::Endcap) {
-		tempSS << myModule->getLayer(); //getDisk();
-		tempString+=" (D"+tempSS.str()+")";
-	      } else {
-		cerr << "ERROR in Analyzer::detailedWeights(): "
-		     << "I found a module which is neither endcap nor barrel!" << std::endl;
-	      }
-	      //	  cout << "Here's a module: id = " << myModule->getId()
-	      //	       << ", tag = " << myModule->getTag()
-	      //	       << ", type = " << myModule->getType()
-	      //	       << ", ring = " << myModule->getRing()
-	      //	       << endl;
-	      // std::cout << "Material\tLocal\texiting\n";
+    // Check if the module is on the YZ section
+    myModuleCap = &(*moduleIt);
+    myModule = &(myModuleCap->getModule());
+    
+    if (byMaterial) {
+      typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
+      typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
+    }
+    if (myModule->getSection()==Layer::YZSection) {
+      // If we did not write this module type yet
+      pair<int, int> myIndex = make_pair(myModule->getLayer()/*+myModule->getDisk()*/, myModule->getRing());
+      tempString = myModule->getContainerName();
+      if (!typeWritten[tempString][myIndex]) {
+        typeWritten[tempString][myIndex]=true;
+        if (tempString!="") {
+          // TODO: put this in a better place
+          // (and make a better module typing)
+          tempSS.str("");
+          if (myModule->getSubdetectorType()==Module::Barrel) {
+        tempSS << myModule->getLayer();
+        tempString+=" (L"+tempSS.str()+")";
+          } else if (myModule->getSubdetectorType()==Module::Endcap) {
+        tempSS << myModule->getLayer(); //getDisk();
+        tempString+=" (D"+tempSS.str()+")";
+          } else {
+        cerr << "ERROR in Analyzer::detailedWeights(): "
+             << "I found a module which is neither endcap nor barrel!" << std::endl;
+          }
+          //      cout << "Here's a module: id = " << myModule->getId()
+          //           << ", tag = " << myModule->getTag()
+          //           << ", type = " << myModule->getType()
+          //           << ", ring = " << myModule->getRing()
+          //           << endl;
+          // std::cout << "Material\tLocal\texiting\n";
 
-	      // Then we fill in the proper column
-	      // Prepare the columns of the table
-	      for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
-		materialTag = materialTagV[materialTag_i];
-		if (byMaterial) { // table by materials
-		  try { localMaterial = myModuleCap->getLocalMass(materialTag); }
-		  catch (exception e) { localMaterial = 0; }
-		  try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
-		  catch (exception e) { exitingMaterial = 0; }
-		} else { // table by components
-		  try { localMaterial = myModuleCap->getLocalMassComp(materialTag); }
-		  catch (exception e) { localMaterial = 0; }
-		  try { exitingMaterial = myModuleCap->getExitingMassComp(materialTag); }
-		  catch (exception e) { exitingMaterial = 0; }
-		}
-		//cout << materialTag << "\t"
-		//<< localMaterial << "\t"
-		//<< exitingMaterial << "\t" << endl;
-		tempSS.str("");
+          // Then we fill in the proper column
+          // Prepare the columns of the table
+          for (unsigned int materialTag_i=0; materialTag_i<materialTagV.size(); ++materialTag_i) {
+        materialTag = materialTagV[materialTag_i];
+        if (byMaterial) { // table by materials
+          try { localMaterial = myModuleCap->getLocalMass(materialTag); }
+          catch (exception e) { localMaterial = 0; }
+          try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
+          catch (exception e) { exitingMaterial = 0; }
+        } else { // table by components
+          try { localMaterial = myModuleCap->getLocalMassComp(materialTag); }
+          catch (exception e) { localMaterial = 0; }
+          try { exitingMaterial = myModuleCap->getExitingMassComp(materialTag); }
+          catch (exception e) { exitingMaterial = 0; }
+        }
+        //cout << materialTag << "\t"
+        //<< localMaterial << "\t"
+        //<< exitingMaterial << "\t" << endl;
+        tempSS.str("");
                 // TODO: move this to Vizard
-		tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
+        tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
                        << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
                        << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
-		result[tempString].setCell(materialTag_i+1, myModule->getRing(), tempSS.str());
-	      }
-	      localMaterial = myModuleCap->getLocalMass();
-	      exitingMaterial = myModuleCap->getExitingMass();
-	      tempSS.str("");
-	      tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
+        result[tempString].setCell(materialTag_i+1, myModule->getRing(), tempSS.str());
+          }
+          localMaterial = myModuleCap->getLocalMass();
+          exitingMaterial = myModuleCap->getExitingMass();
+          tempSS.str("");
+          tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
                      << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
                      << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
-	      result[tempString].setCell(materialTagV.size()+1, myModule->getRing(), tempSS.str());
-	    } else {
-	      cerr << "ERROR in Analyzer::detailedWeights(): "
-		   << "I found a module with no reference to the container name." << endl;
-	    }
-	  }
-	}
+          result[tempString].setCell(materialTagV.size()+1, myModule->getRing(), tempSS.str());
+        } else {
+          cerr << "ERROR in Analyzer::detailedWeights(): "
+           << "I found a module with no reference to the container name." << endl;
+        }
+      }
+    }
       }
     }
   }
@@ -1641,7 +1788,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                 if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
                         (iter->getModule().getSubdetectorType() == Module::Endcap)) {
                     // same method as in Tracker, same function used
-		    // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
+            // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
                     distance = iter->getModule().trackCross(origin, direction);
                     if (distance > 0) {
                         // module was hit
@@ -1649,8 +1796,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                         r = distance * sin(theta);
                         tmp.radiation = iter->getRadiationLength();
                         tmp.interaction = iter->getInteractionLength();
-			// 2D material maps
-			fillMapRT(r, theta, tmp);
+            // 2D material maps
+            fillMapRT(r, theta, tmp);
                         // radiation and interaction length scaling for barrels
                         if (iter->getModule().getSubdetectorType() == Module::Barrel) {
                             tmp.radiation = tmp.radiation / sin(theta);
@@ -1670,7 +1817,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                         //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
                         //hit->setObjectKind(Hit::Active); // should not be necessary
                         hit->setCorrectedMaterial(tmp);
-			hit->setPixel(isPixel);
+            hit->setPixel(isPixel);
                         t.addHit(hit);
                     }
                 }
@@ -1694,8 +1841,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
    * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
    */
   Material Analyzer::findHitsModules(std::vector<std::vector<ModuleCap> >& tr,
-				     // TODO: add z0 here and in the hit finder for inactive surfaces
-				     double eta, double theta, double phi, Track& t, bool isPixel) {
+                     // TODO: add z0 here and in the hit finder for inactive surfaces
+                     double eta, double theta, double phi, Track& t, bool isPixel) {
     std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
     std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
     Material res, tmp;
@@ -1733,24 +1880,24 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       ModuleVector* layerModules = aLayer->getModuleVector();
       ModuleVector::iterator modIt;
       for (modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-	Module* aModule = *modIt;
-	
-	// collision detection: rays are in z+ only, so consider only modules that lie on that side
-	// only consider modules that have type BarrelModule or EndcapModule
-	if (aModule->getMaxZ() > 0) {
-	  
-	  // same method as in Tracker, same function used
-	  distance = aModule->trackCross(origin, direction);
-	  if (distance > 0) {
-	    // module was hit
-	    hits++;
-	    
-	    // create Hit object with appropriate parameters, add to Track t
-	    Hit* hit = new Hit(distance, aModule);
-	    hit->setCorrectedMaterial(emptyMaterial);
-	    t.addHit(hit);
-	  }
-	}
+    Module* aModule = *modIt;
+    
+    // collision detection: rays are in z+ only, so consider only modules that lie on that side
+    // only consider modules that have type BarrelModule or EndcapModule
+    if (aModule->getMaxZ() > 0) {
+      
+      // same method as in Tracker, same function used
+      distance = aModule->trackCross(origin, direction);
+      if (distance > 0) {
+        // module was hit
+        hits++;
+        
+        // create Hit object with appropriate parameters, add to Track t
+        Hit* hit = new Hit(distance, aModule);
+        hit->setCorrectedMaterial(emptyMaterial);
+        t.addHit(hit);
+      }
+    }
       }
     }
     return hits;
@@ -1771,7 +1918,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
    * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
    */
   Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
-					 double eta, double theta, double phi, Track& t, bool isPixel) {
+                     double eta, double theta, double phi, Track& t, bool isPixel) {
     std::vector<ModuleCap>::iterator iter = layer.begin();
     std::vector<ModuleCap>::iterator guard = layer.end();
     Material res, tmp;
@@ -1789,39 +1936,39 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       // collision detection: rays are in z+ only, so consider only modules that lie on that side
       // only consider modules that have type BarrelModule or EndcapModule
       if (iter->getModule().getMaxZ() > 0) {
-	if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
-	    (iter->getModule().getSubdetectorType() == Module::Endcap)) {
-	  // same method as in Tracker, same function used
-	  // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-	  distance = iter->getModule().trackCross(origin, direction);
-	  if (distance > 0) {
-	    // module was hit
-	    hits++;
-	    // r = distance * sin(theta);
-	    tmp.radiation = iter->getRadiationLength();
-	    tmp.interaction = iter->getInteractionLength();
-	    // radiation and interaction length scaling for barrels
-	    if (iter->getModule().getSubdetectorType() == Module::Barrel) {
-	      tmp.radiation = tmp.radiation / sin(theta);
-	      tmp.interaction = tmp.interaction / sin(theta);
-	    }
-	    // radiation and interaction length scaling for endcaps
-	    else {
-	      tmp.radiation = tmp.radiation / cos(theta);
-	      tmp.interaction = tmp.interaction / cos(theta);
-	    }
-	    res += tmp;
-	    // create Hit object with appropriate parameters, add to Track t
-	    Hit* hit = new Hit(distance, &(iter->getModule()));
-	    //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
-	    //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
-	    //hit->setObjectKind(Hit::Active); // should not be necessary
-	    hit->setCorrectedMaterial(tmp);
-	    hit->setPixel(isPixel);
-	    t.addHit(hit);
-	  }
-	}
-	else std::cout << msg_module_warning << std::endl;
+    if ((iter->getModule().getSubdetectorType() == Module::Barrel) ||
+        (iter->getModule().getSubdetectorType() == Module::Endcap)) {
+      // same method as in Tracker, same function used
+      // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
+      distance = iter->getModule().trackCross(origin, direction);
+      if (distance > 0) {
+        // module was hit
+        hits++;
+        // r = distance * sin(theta);
+        tmp.radiation = iter->getRadiationLength();
+        tmp.interaction = iter->getInteractionLength();
+        // radiation and interaction length scaling for barrels
+        if (iter->getModule().getSubdetectorType() == Module::Barrel) {
+          tmp.radiation = tmp.radiation / sin(theta);
+          tmp.interaction = tmp.interaction / sin(theta);
+        }
+        // radiation and interaction length scaling for endcaps
+        else {
+          tmp.radiation = tmp.radiation / cos(theta);
+          tmp.interaction = tmp.interaction / cos(theta);
+        }
+        res += tmp;
+        // create Hit object with appropriate parameters, add to Track t
+        Hit* hit = new Hit(distance, &(iter->getModule()));
+        //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
+        //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
+        //hit->setObjectKind(Hit::Active); // should not be necessary
+        hit->setCorrectedMaterial(tmp);
+        hit->setPixel(isPixel);
+        t.addHit(hit);
+      }
+    }
+    else std::cout << msg_module_warning << std::endl;
       }
       iter++;
     }
@@ -1862,8 +2009,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                     if (iter->isVertical()) {
                         z = iter->getZOffset() + iter->getZLength() / 2.0;
                         r = z * tan(theta);
-			// 2D maps for vertical surfaces
-			fillMapRZ(r,z,iter->getMaterialLengths());
+            // 2D maps for vertical surfaces
+            fillMapRZ(r,z,iter->getMaterialLengths());
                         // special treatment for user-defined supports as they can be very close to z=0
                         if (cat == MaterialProperties::u_sup) {
                             s = iter->getZLength() / cos(theta);
@@ -1921,8 +2068,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                     // radiation and interaction length scaling for horizontal volumes
                     else {
                         r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
-			// 2D maps for horizontal surfaces
-			fillMapRT(r,theta,iter->getMaterialLengths());
+            // 2D maps for horizontal surfaces
+            fillMapRT(r,theta,iter->getMaterialLengths());
                         // special treatment for user-defined supports; should not be necessary for now
                         // as all user-defined supports are vertical, but just in case...
                         if (cat == MaterialProperties::u_sup) {
@@ -1984,7 +2131,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                     else hit->setOrientation(Hit::Horizontal);
                     hit->setObjectKind(Hit::Inactive);
                     hit->setCorrectedMaterial(corr);
-		    hit->setPixel(isPixel);
+            hit->setPixel(isPixel);
                     t.addHit(hit);
                 }
             }
@@ -2006,7 +2153,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
      * @return The scaled and summed up crossed material amount
      */
     Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
-						double theta, Track& t, bool isPixel) {
+                        double theta, Track& t, bool isPixel) {
       std::vector<InactiveElement>::iterator iter = elements.begin();
       std::vector<InactiveElement>::iterator guard = elements.end();
       Material res, corr;
@@ -2014,68 +2161,68 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       double s_normal = 0;
       double s_alternate = 0;
       while (iter != guard) {
-	// Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
-	// only volumes of the requested category, or those without one (which should not exist) are examined
-	if ((iter->getZOffset() + iter->getZLength()) > 0) {
-	  // collision detection: check eta range
-	  tmp = iter->getEtaMinMax();
-	  // Volume was hit if:
-	  if ((tmp.first < eta) && (tmp.second > eta)) {
-	    double r, z;
-	    // radiation and interaction lenth scaling for vertical volumes
-	    if (iter->isVertical()) { // Element is vertical
-	      z = iter->getZOffset() + iter->getZLength() / 2.0;
-	      r = z * tan(theta);
+    // Collision detection: rays are in z+ only, so only volumes in z+ need to be considered
+    // only volumes of the requested category, or those without one (which should not exist) are examined
+    if ((iter->getZOffset() + iter->getZLength()) > 0) {
+      // collision detection: check eta range
+      tmp = iter->getEtaMinMax();
+      // Volume was hit if:
+      if ((tmp.first < eta) && (tmp.second > eta)) {
+        double r, z;
+        // radiation and interaction lenth scaling for vertical volumes
+        if (iter->isVertical()) { // Element is vertical
+          z = iter->getZOffset() + iter->getZLength() / 2.0;
+          r = z * tan(theta);
 
-	      // In case we are crossing the material with a very shallow angle
-	      // we have to take into account its finite radial size
-	      s_normal = iter->getZLength() / cos(theta);
-	      s_alternate = iter->getRWidth() / sin(theta);
-	      if (s_normal > s_alternate) { 
-		// Special case: it's easier to cross the material by going left-to-right than
-		// by going bottom-to-top, so I have to rescale the material amount computation
-		corr.radiation = iter->getRadiationLength() / iter->getZLength() * s_alternate;
-		corr.interaction = iter->getInteractionLength() / iter->getZLength() * s_alternate;
-		res += corr;
-	      } else {
-		// Standard computing of the crossed material amount
-		corr.radiation = iter->getRadiationLength() / cos(theta);
-		corr.interaction = iter->getInteractionLength() / cos(theta);
-		res += corr;
-	      }
-	    }
-	    // radiation and interaction length scaling for horizontal volumes
-	    else { // Element is horizontal
-	      r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
+          // In case we are crossing the material with a very shallow angle
+          // we have to take into account its finite radial size
+          s_normal = iter->getZLength() / cos(theta);
+          s_alternate = iter->getRWidth() / sin(theta);
+          if (s_normal > s_alternate) { 
+        // Special case: it's easier to cross the material by going left-to-right than
+        // by going bottom-to-top, so I have to rescale the material amount computation
+        corr.radiation = iter->getRadiationLength() / iter->getZLength() * s_alternate;
+        corr.interaction = iter->getInteractionLength() / iter->getZLength() * s_alternate;
+        res += corr;
+          } else {
+        // Standard computing of the crossed material amount
+        corr.radiation = iter->getRadiationLength() / cos(theta);
+        corr.interaction = iter->getInteractionLength() / cos(theta);
+        res += corr;
+          }
+        }
+        // radiation and interaction length scaling for horizontal volumes
+        else { // Element is horizontal
+          r = iter->getInnerRadius() + iter->getRWidth() / 2.0;
 
-	      // In case we are crossing the material with a very shallow angle
-	      // we have to take into account its finite z length
-	      s_normal = iter->getRWidth() / sin(theta);
-	      s_alternate = iter->getZLength() / cos(theta);
-	      if (s_normal > s_alternate) { 
-		// Special case: it's easier to cross the material by going left-to-right than
-		// by going bottom-to-top, so I have to rescale the material amount computation
-		corr.radiation = iter->getRadiationLength() / iter->getRWidth() * s_alternate;
-		corr.interaction = iter->getInteractionLength() / iter->getRWidth() * s_alternate;
-		res += corr;
-	      } else {
-		// Standard computing of the crossed material amount
-		corr.radiation = iter->getRadiationLength() / sin(theta);
-		corr.interaction = iter->getInteractionLength() / sin(theta);
-		res += corr;
-	      }
-	    }
-	    // create Hit object with appropriate parameters, add to Track t
-	    Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
-	    if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
-	    else hit->setOrientation(Hit::Horizontal);
-	    hit->setObjectKind(Hit::Inactive);
-	    hit->setCorrectedMaterial(corr);
-	    hit->setPixel(isPixel);
-	    t.addHit(hit);
-	  }
-	}
-	iter++;
+          // In case we are crossing the material with a very shallow angle
+          // we have to take into account its finite z length
+          s_normal = iter->getRWidth() / sin(theta);
+          s_alternate = iter->getZLength() / cos(theta);
+          if (s_normal > s_alternate) { 
+        // Special case: it's easier to cross the material by going left-to-right than
+        // by going bottom-to-top, so I have to rescale the material amount computation
+        corr.radiation = iter->getRadiationLength() / iter->getRWidth() * s_alternate;
+        corr.interaction = iter->getInteractionLength() / iter->getRWidth() * s_alternate;
+        res += corr;
+          } else {
+        // Standard computing of the crossed material amount
+        corr.radiation = iter->getRadiationLength() / sin(theta);
+        corr.interaction = iter->getInteractionLength() / sin(theta);
+        res += corr;
+          }
+        }
+        // create Hit object with appropriate parameters, add to Track t
+        Hit* hit = new Hit((theta == 0) ? r : (r / sin(theta)));
+        if (iter->isVertical()) hit->setOrientation(Hit::Vertical);
+        else hit->setOrientation(Hit::Horizontal);
+        hit->setObjectKind(Hit::Inactive);
+        hit->setCorrectedMaterial(corr);
+        hit->setPixel(isPixel);
+        t.addHit(hit);
+      }
+    }
+    iter++;
       }
       return res;
     }
@@ -2086,8 +2233,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
      * @param p The list of different momenta that the error graphs are calculated for
      */
   void Analyzer::calculateGraphs(const std::vector<double>& p, 
-				   const std::vector<Track>& trackVector,
-				   int graphAttributes) {
+                   const std::vector<Track>& trackVector,
+                   int graphAttributes) {
     
     std::map<double, TGraph>& thisRhoGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::RhoGraph );
     std::map<double, TGraph>& thisPhiGraphs = myGraphBag.getGraphs(graphAttributes | graphBag::PhiGraph );
@@ -2103,9 +2250,9 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         thisRhoGraphs.clear();
         thisPhiGraphs.clear();
         thisDGraphs.clear();
-	thisCtgThetaGraphs.clear();
-	thisZ0Graphs.clear();
-	thisPGraphs.clear();
+    thisCtgThetaGraphs.clear();
+    thisZ0Graphs.clear();
+    thisPGraphs.clear();
         // momentum loop
         std::ostringstream aName;
         for (iter = p.begin(); iter != guard; iter++) {
@@ -2113,29 +2260,29 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
             TGraph graph;
             elem.first = *iter;
             elem.second = graph;
-	    // Prepare plots: pT
+        // Prepare plots: pT
             thisRhoGraphs.insert(elem);
-	    thisRhoGraphs[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+        thisRhoGraphs[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
             aName.str(""); aName << "pt_vs_eta" << *iter;
             thisRhoGraphs[elem.first].SetName(aName.str().c_str());
-	    // Prepare plots: phi
+        // Prepare plots: phi
             thisPhiGraphs.insert(elem);
-	    thisPhiGraphs[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+        thisPhiGraphs[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
             aName.str(""); aName << "phi_vs_eta" << *iter;
             thisPhiGraphs[elem.first].SetName(aName.str().c_str());
-	    // Prepare plots: d
+        // Prepare plots: d
             thisDGraphs.insert(elem);
-	    thisDGraphs[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+        thisDGraphs[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
             aName.str(""); aName << "d_vs_eta" << *iter;
             thisDGraphs[elem.first].SetName(aName.str().c_str());
-	    // Prepare plots: ctg(theta)
-	    thisCtgThetaGraphs.insert(elem);
-	    thisCtgThetaGraphs[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
+        // Prepare plots: ctg(theta)
+        thisCtgThetaGraphs.insert(elem);
+        thisCtgThetaGraphs[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
             aName.str(""); aName << "ctgTheta_vs_eta" << *iter;
             thisCtgThetaGraphs[elem.first].SetName(aName.str().c_str());
-	    // Prepare plots: z0
-	    thisZ0Graphs.insert(elem);
-	    thisZ0Graphs[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+        // Prepare plots: z0
+        thisZ0Graphs.insert(elem);
+        thisZ0Graphs[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
             aName.str(""); aName << "z_vs_eta" << *iter;
             thisZ0Graphs[elem.first].SetName(aName.str().c_str());
             // Prepare plots: p
@@ -2145,12 +2292,12 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
             thisPGraphs[elem.first].SetName(aName.str().c_str());
         }
         // track loop
-	std::map<double,int> rhoPointCount;
-	std::map<double,int> phiPointCount;
-	std::map<double,int> dPointCount;
-	std::map<double,int> ctgPointCount;
-	std::map<double,int> z0PointCount;
-	std::map<double,int> pPointCount;
+    std::map<double,int> rhoPointCount;
+    std::map<double,int> phiPointCount;
+    std::map<double,int> dPointCount;
+    std::map<double,int> ctgPointCount;
+    std::map<double,int> z0PointCount;
+    std::map<double,int> pPointCount;
         double graphValue;
         for (int i = 0; i < n; i++) {
             const std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
@@ -2165,44 +2312,44 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
             for (miter = drho.begin(); miter != mguard; miter++) {
                 if (thisRhoGraphs.find(miter->first) != thisRhoGraphs.end()) {
                   R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
-		  if ((miter->second)>0) {
-		    // deltaRho / rho = deltaRho * R
-		    graphValue = (miter->second * R) * 100; // in percent
-		    thisRhoGraphs[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
-		  }
+          if ((miter->second)>0) {
+            // deltaRho / rho = deltaRho * R
+            graphValue = (miter->second * R) * 100; // in percent
+            thisRhoGraphs[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
+          }
                 }
             }
             mguard = dphi.end();
             for (miter = dphi.begin(); miter != mguard; miter++) {
-	      if (thisPhiGraphs.find(miter->first) != thisPhiGraphs.end())
-		if ((miter->second)>0) {
-		  graphValue = miter->second; // radians is ok
-		  thisPhiGraphs[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
-		}
+          if (thisPhiGraphs.find(miter->first) != thisPhiGraphs.end())
+        if ((miter->second)>0) {
+          graphValue = miter->second; // radians is ok
+          thisPhiGraphs[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
+        }
             }
             mguard = dd.end();
             for (miter = dd.begin(); miter != mguard; miter++) {
-	      if (thisDGraphs.find(miter->first) != thisDGraphs.end())
-		if ((miter->second)>0) {
-		  graphValue =  (miter->second) / 10.; // in cm
-		  thisDGraphs[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
-		}
+          if (thisDGraphs.find(miter->first) != thisDGraphs.end())
+        if ((miter->second)>0) {
+          graphValue =  (miter->second) / 10.; // in cm
+          thisDGraphs[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
+        }
             }
             mguard = dctg.end();
             for (miter = dctg.begin(); miter != mguard; miter++) {
-	      // Ctg theta (absolute number)
+          // Ctg theta (absolute number)
               if (thisCtgThetaGraphs.find(miter->first) != thisCtgThetaGraphs.end()) {
-		graphValue = miter->second; // An absolute number
-		thisCtgThetaGraphs[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
-	      }
+        graphValue = miter->second; // An absolute number
+        thisCtgThetaGraphs[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
+          }
             }
             mguard = dz0.end();
             for (miter = dz0.begin(); miter != mguard; miter++) {
               if (thisZ0Graphs.find(miter->first) != thisZ0Graphs.end()) {
-		graphValue =  (miter->second) / 10.; // in cm
-		thisZ0Graphs[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
-	      }
-            }	    
+        graphValue =  (miter->second) / 10.; // in cm
+        thisZ0Graphs[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
+          }
+            }       
             mguard = dp.end();
             for (miter = dp.begin(); miter != mguard; miter++) {
               if (thisPGraphs.find(miter->first) != thisPGraphs.end()) {
@@ -2291,59 +2438,59 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         isor.SetNameTitle("isor", "Radiation Length Contours");
         isoi.Reset();
         isoi.SetNameTitle("isoi", "Interaction Length Contours");
-	mapRadiation.Reset();
-	mapRadiation.SetName("mapRadiation");
-	mapRadiation.SetTitle("Radiation length map (raw);z [mm];r [mm]");
-	mapInteraction.Reset();
-	mapInteraction.SetName("mapInteraction");
-	mapInteraction.SetTitle("Interaction length map (raw);z [mm];r [mm]");
-	mapRadiationCount.Reset();
-	mapRadiationCount.SetName("mapRadiationCount");
-	mapRadiationCount.SetTitle("Radiation length hit count map;z [mm];r [mm]");
-	mapInteractionCount.Reset();
-	mapInteractionCount.SetName("mapInteractionCount");
-	mapInteractionCount.SetTitle("Interaction length hit count map;z [mm];r [mm]");
-	mapRadiationCalib.Reset();
-	mapRadiationCalib.SetName("mapRadiationCalib");
-	mapRadiationCalib.SetTitle("Radiation length map;z [mm];r [mm]");
-	mapInteractionCalib.Reset();
-	mapInteractionCalib.SetName("mapInteractionCalib");
-	mapInteractionCalib.SetTitle("Interaction length map;z [mm];r [mm]");
+    mapRadiation.Reset();
+    mapRadiation.SetName("mapRadiation");
+    mapRadiation.SetTitle("Radiation length map (raw);z [mm];r [mm]");
+    mapInteraction.Reset();
+    mapInteraction.SetName("mapInteraction");
+    mapInteraction.SetTitle("Interaction length map (raw);z [mm];r [mm]");
+    mapRadiationCount.Reset();
+    mapRadiationCount.SetName("mapRadiationCount");
+    mapRadiationCount.SetTitle("Radiation length hit count map;z [mm];r [mm]");
+    mapInteractionCount.Reset();
+    mapInteractionCount.SetName("mapInteractionCount");
+    mapInteractionCount.SetTitle("Interaction length hit count map;z [mm];r [mm]");
+    mapRadiationCalib.Reset();
+    mapRadiationCalib.SetName("mapRadiationCalib");
+    mapRadiationCalib.SetTitle("Radiation length map;z [mm];r [mm]");
+    mapInteractionCalib.Reset();
+    mapInteractionCalib.SetName("mapInteractionCalib");
+    mapInteractionCalib.SetTitle("Interaction length map;z [mm];r [mm]");
 
-	// Nuclear interactions
-	while (hadronTotalHitsGraph.GetN()) hadronTotalHitsGraph.RemovePoint(0);
-	hadronTotalHitsGraph.SetName("hadronTotalHitsGraph");
-	while (hadronAverageHitsGraph.GetN()) hadronAverageHitsGraph.RemovePoint(0);
-	hadronAverageHitsGraph.SetName("hadronAverageHitsGraph");
+    // Nuclear interactions
+    while (hadronTotalHitsGraph.GetN()) hadronTotalHitsGraph.RemovePoint(0);
+    hadronTotalHitsGraph.SetName("hadronTotalHitsGraph");
+    while (hadronAverageHitsGraph.GetN()) hadronAverageHitsGraph.RemovePoint(0);
+    hadronAverageHitsGraph.SetName("hadronAverageHitsGraph");
 
-	// Clear the list of requested good hadron hits
-	hadronNeededHitsFraction.clear();
-	hadronGoodTracksFraction.clear();
+    // Clear the list of requested good hadron hits
+    hadronNeededHitsFraction.clear();
+    hadronGoodTracksFraction.clear();
 
-	hadronNeededHitsFraction.push_back(ZeroHitsRequired);
-	hadronNeededHitsFraction.push_back(OneHitRequired);
-	//hadronNeededHitsFraction.push_back(.33);
-	hadronNeededHitsFraction.push_back(.66);
-	hadronNeededHitsFraction.push_back(1);
+    hadronNeededHitsFraction.push_back(ZeroHitsRequired);
+    hadronNeededHitsFraction.push_back(OneHitRequired);
+    //hadronNeededHitsFraction.push_back(.33);
+    hadronNeededHitsFraction.push_back(.66);
+    hadronNeededHitsFraction.push_back(1);
 
-	std::sort(hadronNeededHitsFraction.begin(),
-		  hadronNeededHitsFraction.end());
+    std::sort(hadronNeededHitsFraction.begin(),
+          hadronNeededHitsFraction.end());
 
-	// Prepare the plots for the track survival fraction
-	ostringstream tempSS;
-	string tempString;
-	TGraph* myGraph;
-	for (unsigned int i=0;
-	     i<hadronNeededHitsFraction.size();
-	     ++i) {
-	  tempSS.str("");
-	  tempSS << "hadronGoodTracksFraction_at"
-		     << hadronNeededHitsFraction.at(i);
-	  tempString = tempSS.str();
-	  myGraph = new TGraph();
-	  myGraph->SetName(tempString.c_str());
-	  hadronGoodTracksFraction.push_back(*myGraph);
-	}
+    // Prepare the plots for the track survival fraction
+    ostringstream tempSS;
+    string tempString;
+    TGraph* myGraph;
+    for (unsigned int i=0;
+         i<hadronNeededHitsFraction.size();
+         ++i) {
+      tempSS.str("");
+      tempSS << "hadronGoodTracksFraction_at"
+             << hadronNeededHitsFraction.at(i);
+      tempString = tempSS.str();
+      myGraph = new TGraph();
+      myGraph->SetName(tempString.c_str());
+      hadronGoodTracksFraction.push_back(*myGraph);
+    }
     }
 
 
@@ -2373,46 +2520,46 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     // Compute the trigger efficiency maps. The pT values are given by
     // the maps
     for (std::map<double, TH2D>::iterator it = efficiencyMaps.begin();
-	 it!=efficiencyMaps.end(); ++it) {
+     it!=efficiencyMaps.end(); ++it) {
       double myPt = it->first;
       TH2D& myMap = it->second;
 
       // Reset the our map, in case it is not empty
       for (int i=1; i<=myMap.GetNbinsX(); ++i)
-	for (int j=1; j<=myMap.GetNbinsY(); ++j)
-	  myMap.SetBinContent(i,j,0);
+    for (int j=1; j<=myMap.GetNbinsY(); ++j)
+      myMap.SetBinContent(i,j,0);
 
       // Create a map for the counter
       TH2D* counter = (TH2D*)myMap.Clone();
 
       // Loop over all the modules
       for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
-	aLayer = (*layIt);
-	moduleSet = aLayer->getModuleVector();
-	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	  aModule = (*modIt);
-	  myValue = aModule->getTriggerProbability(myPt);
-	  
-	  if (myValue>=0) {
-	    // Draw the module
-	    XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
-	    XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
-	    XYZVector diff = end-start;
-	    XYZVector point;
-	    for (double l=0; l<=1; l+=0.1) {
-	      point = start + l * diff;
-	      myMap.Fill(point.Z(), point.Rho(), myValue);
-	      counter->Fill(point.Z(), point.Rho(), 1);
-	    }
-	  }
-	}
+    aLayer = (*layIt);
+    moduleSet = aLayer->getModuleVector();
+    for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+      aModule = (*modIt);
+      myValue = aModule->getTriggerProbability(myPt);
+      
+      if (myValue>=0) {
+        // Draw the module
+        XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+        XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+        XYZVector diff = end-start;
+        XYZVector point;
+        for (double l=0; l<=1; l+=0.1) {
+          point = start + l * diff;
+          myMap.Fill(point.Z(), point.Rho(), myValue);
+          counter->Fill(point.Z(), point.Rho(), 1);
+        }
+      }
+    }
       }
 
       // Normalize the counts to the number of hits per bin ...
       for (int i=1; i<=myMap.GetNbinsX(); ++i)
-	for (int j=1; j<=myMap.GetNbinsY(); ++j)
-	  if (counter->GetBinContent(i,j)!=0)
-	    myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    for (int j=1; j<=myMap.GetNbinsY(); ++j)
+      if (counter->GetBinContent(i,j)!=0)
+        myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
       // ... and get rid of the counter
       delete counter;
     }
@@ -2420,46 +2567,46 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     // Compute the trigger threshold maps. The efficiency values are
     // given by the maps
     for (std::map<double, TH2D>::iterator it = thresholdMaps.begin();
-	 it!=thresholdMaps.end(); ++it) {
+     it!=thresholdMaps.end(); ++it) {
       double myEfficiency = it->first;
       TH2D& myMap = it->second;
 
       // Reset the our map, in case it is not empty
       for (int i=1; i<=myMap.GetNbinsX(); ++i)
-	for (int j=1; j<=myMap.GetNbinsY(); ++j)
-	  myMap.SetBinContent(i,j,0);
+    for (int j=1; j<=myMap.GetNbinsY(); ++j)
+      myMap.SetBinContent(i,j,0);
 
       // Create a map for the counter
       TH2D* counter = (TH2D*)myMap.Clone();
 
       // Loop over all the modules
       for(layIt = layerSet.begin(); layIt!= layerSet.end(); ++layIt) {
-	aLayer = (*layIt);
-	moduleSet = aLayer->getModuleVector();
-	for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	  aModule = (*modIt);
-	  myValue = aModule->getPtThreshold(myEfficiency);
+    aLayer = (*layIt);
+    moduleSet = aLayer->getModuleVector();
+    for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
+      aModule = (*modIt);
+      myValue = aModule->getPtThreshold(myEfficiency);
 
-	  if (myValue>=0) {
-	    // Draw the module
-	    XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
-	    XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
-	    XYZVector diff = end-start;
-	    XYZVector point;
-	    for (double l=0; l<1; l+=0.1) {
-	      point = start + l * diff;
-	      myMap.Fill(point.Z(), point.Rho(), myValue);
-	      counter->Fill(point.Z(), point.Rho(), 1);
-	    }
-	  }
-	}
+      if (myValue>=0) {
+        // Draw the module
+        XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+        XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+        XYZVector diff = end-start;
+        XYZVector point;
+        for (double l=0; l<1; l+=0.1) {
+          point = start + l * diff;
+          myMap.Fill(point.Z(), point.Rho(), myValue);
+          counter->Fill(point.Z(), point.Rho(), 1);
+        }
+      }
+    }
       }
 
       // Normalize the counts to the number of hits per bin ...
       for (int i=1; i<=myMap.GetNbinsX(); ++i)
-	for (int j=1; j<=myMap.GetNbinsY(); ++j)
-	  if (counter->GetBinContent(i,j)!=0)
-	    myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    for (int j=1; j<=myMap.GetNbinsY(); ++j)
+      if (counter->GetBinContent(i,j)!=0)
+        myMap.SetBinContent(i,j, myMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
       // ... and get rid of the counter
       delete counter;
     }
@@ -2473,11 +2620,11 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     //suggestedSpacingMapAW.Reset();
     for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
       for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
-	thicknessMap.SetBinContent(i,j,0);
-	windowMap.SetBinContent(i,j,0);
-	suggestedSpacingMap.SetBinContent(i,j,0);
-	suggestedSpacingMapAW.SetBinContent(i,j,0);
-	nominalCutMap.SetBinContent(i,j,0);
+    thicknessMap.SetBinContent(i,j,0);
+    windowMap.SetBinContent(i,j,0);
+    suggestedSpacingMap.SetBinContent(i,j,0);
+    suggestedSpacingMapAW.SetBinContent(i,j,0);
+    nominalCutMap.SetBinContent(i,j,0);
       }
     }
 
@@ -2497,13 +2644,13 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       aLayer = (*layIt);
       moduleSet = aLayer->getModuleVector();
       for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-	aModule = (*modIt);
-	if (aModule->getReadoutType()!=Module::Pt) continue;
-	myThickness = aModule->getStereoDistance();
-	myWindow = aModule->getTriggerWindow();
-	//myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
-	mySuggestedSpacing = aModule->getOptimalSpacing(5); // TODO: put this 5 in a configuration of some sort
-	mySuggestedSpacingAW = aModule->getOptimalSpacing(aModule->getTriggerWindow());
+    aModule = (*modIt);
+    if (aModule->getReadoutType()!=Module::Pt) continue;
+    myThickness = aModule->getStereoDistance();
+    myWindow = aModule->getTriggerWindow();
+    //myWindowmm = myWindow * (aModule->getLowPitch() + aModule->getHighPitch())/2.;
+    mySuggestedSpacing = aModule->getOptimalSpacing(5); // TODO: put this 5 in a configuration of some sort
+    mySuggestedSpacingAW = aModule->getOptimalSpacing(aModule->getTriggerWindow());
         double nominalCut = aModule->getPtCut();
 /*        XYZVector modCenter = aModule->getMeanPoint();
         if (aModule->getSubdetectorType()==Module::Endcap) {
@@ -2511,47 +2658,47 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         } else {
           corrFactor = modCenter.Rho();
         }*/
-	
-	// Draw the module
-	XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
-	XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
-	XYZVector diff = end-start;
-	XYZVector point;
-	double myZ, myRho;
-	for (double l=0; l<1; l+=0.1) {
-	  point = start + l * diff;
-	  myZ=point.Z();
-	  myRho=point.Rho();
-	  thicknessMap.Fill(myZ, myRho, myThickness);
-	  windowMap.Fill(myZ, myRho, myWindow);
-	  nominalCutMap.Fill(myZ, myRho, nominalCut);
-	  counter->Fill(myZ, myRho, 1);
-	  if (mySuggestedSpacing!=0) {
-	    suggestedSpacingMap.Fill(myZ, myRho, mySuggestedSpacing);
-	    counterSpacing->Fill(myZ, myRho, 1);
-	  }
-	  if (mySuggestedSpacingAW!=0) {
-	    suggestedSpacingMapAW.Fill(myZ, myRho, mySuggestedSpacingAW);
-	    counterSpacingAW->Fill(myZ, myRho, 1);
-	  }
-	}
+    
+    // Draw the module
+    XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+    XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+    XYZVector diff = end-start;
+    XYZVector point;
+    double myZ, myRho;
+    for (double l=0; l<1; l+=0.1) {
+      point = start + l * diff;
+      myZ=point.Z();
+      myRho=point.Rho();
+      thicknessMap.Fill(myZ, myRho, myThickness);
+      windowMap.Fill(myZ, myRho, myWindow);
+      nominalCutMap.Fill(myZ, myRho, nominalCut);
+      counter->Fill(myZ, myRho, 1);
+      if (mySuggestedSpacing!=0) {
+        suggestedSpacingMap.Fill(myZ, myRho, mySuggestedSpacing);
+        counterSpacing->Fill(myZ, myRho, 1);
+      }
+      if (mySuggestedSpacingAW!=0) {
+        suggestedSpacingMapAW.Fill(myZ, myRho, mySuggestedSpacingAW);
+        counterSpacingAW->Fill(myZ, myRho, 1);
+      }
+    }
       }
     }
     
     // Normalize the counts to the number of hits per bin ...
     for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
       for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
-	if (counter->GetBinContent(i,j)!=0) {
-	  thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	  windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	  nominalCutMap.SetBinContent(i,j, nominalCutMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	  if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
-	    std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
-		      << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
-	  }
-	  suggestedSpacingMap.SetBinContent(i,j, suggestedSpacingMap.GetBinContent(i,j) / counterSpacing->GetBinContent(i,j));
-	  suggestedSpacingMapAW.SetBinContent(i,j, suggestedSpacingMapAW.GetBinContent(i,j) / counterSpacingAW->GetBinContent(i,j));
-	}
+    if (counter->GetBinContent(i,j)!=0) {
+      thicknessMap.SetBinContent(i,j, thicknessMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      windowMap.SetBinContent(i,j, windowMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      nominalCutMap.SetBinContent(i,j, nominalCutMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      if ((suggestedSpacingMap.GetBinContent(i,j)/counterSpacing->GetBinContent(i,j))>50) {
+        std::cout << "debug: for bin " << i << ", " << j << " suggestedSpacing is " << suggestedSpacingMap.GetBinContent(i,j)
+              << " and counter is " << counterSpacing->GetBinContent(i,j) << std::endl;
+      }
+      suggestedSpacingMap.SetBinContent(i,j, suggestedSpacingMap.GetBinContent(i,j) / counterSpacing->GetBinContent(i,j));
+      suggestedSpacingMapAW.SetBinContent(i,j, suggestedSpacingMapAW.GetBinContent(i,j) / counterSpacingAW->GetBinContent(i,j));
+    }
       }
     }
     // ... and get rid of the counter
@@ -2582,8 +2729,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     //suggestedSpacingMapAW.Reset();
     for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
       for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-	irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
-	totalPowerConsumptionMap.SetBinContent(i,j,0);
+        irradiatedPowerConsumptionMap.SetBinContent(i,j,0);
+        totalPowerConsumptionMap.SetBinContent(i,j,0);
       }
     }
 
@@ -2599,37 +2746,37 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       if (cntName == "") continue;      
 
       for(modIt = moduleSet->begin(); modIt != moduleSet->end(); ++modIt) {
-		aModule = (*modIt);
+        aModule = (*modIt);
 
-		if ((aModule->getMeanPoint().Z()<0) || (aModule->getMeanPoint().Phi()<0) || (aModule->getMeanPoint().Phi()>M_PI/2)) continue;
-		double myPower = aModule->getIrradiatedPowerConsumption();
-		ModuleType& myType = tracker.getModuleType( aModule->getType() );
-		double myPowerChip = myType.getPower( aModule->getNChannels() );
+        if ((aModule->getMeanPoint().Z()<0) || (aModule->getMeanPoint().Phi()<0) || (aModule->getMeanPoint().Phi()>M_PI/2)) continue;
+        double myPower = aModule->getIrradiatedPowerConsumption();
+        ModuleType& myType = tracker.getModuleType( aModule->getType() );
+        double myPowerChip = myType.getPower( aModule->getNChannels() );
 
-		// Draw the module
-		XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
-		XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
-		XYZVector diff = end-start;
-		XYZVector point;
-		double myZ, myRho;
-		for (double l=0; l<1; l+=0.1) {
-	  		point = start + l * diff;
-	  		myZ=point.Z();
-	  		myRho=point.Rho();
-			irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
-			totalPowerConsumptionMap.Fill(myZ, myRho, myPowerChip+myPower);
-	  		counter->Fill(myZ, myRho, 1);
-		}
+        // Draw the module
+        XYZVector start = (aModule->getCorner(0)+aModule->getCorner(1))/2;
+        XYZVector end = (aModule->getCorner(2)+aModule->getCorner(3))/2;
+        XYZVector diff = end-start;
+        XYZVector point;
+        double myZ, myRho;
+        for (double l=0; l<1; l+=0.1) {
+            point = start + l * diff;
+            myZ=point.Z();
+            myRho=point.Rho();
+            irradiatedPowerConsumptionMap.Fill(myZ, myRho, myPower);
+            totalPowerConsumptionMap.Fill(myZ, myRho, myPowerChip+myPower);
+            counter->Fill(myZ, myRho, 1);
+        }
       }
     }
     
     // Normalize the counts to the number of hits per bin ...
     for (int i=1; i<=irradiatedPowerConsumptionMap.GetNbinsX(); ++i) {
       for (int j=1; j<=irradiatedPowerConsumptionMap.GetNbinsY(); ++j) {
-	if (counter->GetBinContent(i,j)!=0) {
-	  irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	  totalPowerConsumptionMap.SetBinContent(i,j, totalPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
-	}
+    if (counter->GetBinContent(i,j)!=0) {
+      irradiatedPowerConsumptionMap.SetBinContent(i,j, irradiatedPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+      totalPowerConsumptionMap.SetBinContent(i,j, totalPowerConsumptionMap.GetBinContent(i,j) / counter->GetBinContent(i,j));
+    }
       }
     }
     // ... and get rid of the counter
@@ -2648,6 +2795,16 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     myMap.Reset();
   }
 
+  void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
+    int mapBinsY = int( (2*outer_radius) * 1.1 / 10.); // every cm
+    int mapBinsX = int( (2*outer_radius) * 1.1 / 10.); // every cm
+    myMap.SetName(name.c_str());
+    myMap.SetTitle(title.c_str());
+    myMap.SetXTitle("x [mm]");
+    myMap.SetYTitle("y [mm]");
+    myMap.SetBins(mapBinsX, -outer_radius*1.1, outer_radius*1.1, mapBinsY, -outer_radius*1.1, outer_radius*1.1);
+    myMap.Reset();
+  }
  
 
   /**
@@ -2674,7 +2831,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     ostringstream tempSS;
     // string tempString;
     for (std::vector<double>::const_iterator it = thresholdProbabilities.begin();
-	 it!=thresholdProbabilities.end(); ++it) {
+     it!=thresholdProbabilities.end(); ++it) {
       TH2D& myMap = thresholdMaps[(*it)];
       tempSS.str("");
       tempSS << "ptThresholdMap_" << std::dec << (*it) * 100 << "perc";
@@ -2683,7 +2840,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
     // Efficiency maps here
     for (std::vector<double>::const_iterator it = triggerMomenta.begin();
-	 it!=triggerMomenta.end(); ++it) {
+     it!=triggerMomenta.end(); ++it) {
       TH2D& myMap = efficiencyMaps[(*it)];
       tempSS.str("");
       tempSS << "triggerEfficiencyMap_" << std::dec << (*it) << "GeV";
@@ -2721,8 +2878,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     // TODO: tune this parameter
     int nbins = int(nTracks/10.);
     for (vector<double>::const_iterator iter = triggerMomenta.begin();
-	 iter != triggerMomenta.end();
-	 ++iter) {
+     iter != triggerMomenta.end();
+     ++iter) {
       //std::pair<double, TGraph> elemGraph;
       std::pair<double, TProfile> elemProfile;
       std::pair<double, TProfile> elemFractionProfile;
@@ -2777,6 +2934,38 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     prepareTrackerMap(totalPowerConsumptionMap, "irradiatedPowerConsumptionMap", "Map of power dissipation in modules (after irradiation)");
   }
 
+    void Analyzer::prepareTriggerProcessorHistograms() {
+        myMapBag.clearMaps(mapBag::moduleConnectionEtaMap);
+        TH2D& moduleConnectionEtaMap = myMapBag.getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
+        prepareTrackerMap(moduleConnectionEtaMap, "moduleConnectionEtaMap", "Map");
+
+        myMapBag.clearMaps(mapBag::moduleConnectionPhiMap);
+        TH2D& moduleConnectionPhiMap = myMapBag.getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
+        prepareRadialTrackerMap(moduleConnectionPhiMap, "moduleConnectionPhiMap", "Map");
+
+        myMapBag.clearMaps(mapBag::moduleConnectionEndcapPhiMap);
+        TH2D& moduleConnectionEndcapPhiMap = myMapBag.getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
+        prepareRadialTrackerMap(moduleConnectionEndcapPhiMap, "moduleConnectionEndcapPhiMap", "Map");
+
+        for (int i=1; i<=moduleConnectionEtaMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionEtaMap.GetNbinsY(); ++j) {
+                moduleConnectionEtaMap.SetBinContent(i,j,0);
+            }
+        }
+    
+        for (int i=1; i<=moduleConnectionPhiMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionPhiMap.GetNbinsY(); ++j) {
+                moduleConnectionPhiMap.SetBinContent(i,j,0);
+            }
+        }
+
+        for (int i=1; i<=moduleConnectionEndcapPhiMap.GetNbinsX(); ++i) {
+            for (int j=1; j<=moduleConnectionEndcapPhiMap.GetNbinsY(); ++j) {
+                moduleConnectionEndcapPhiMap.SetBinContent(i,j,0);
+            }
+        }
+    }
+
   /**
    * This convenience function resets and empties all histograms for the
    * geometry so they are ready for a new round of analysis.
@@ -2794,8 +2983,8 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         //geomLiteEC->SetName("geometryLiteEC"); geomLiteEC->SetTitle("Modules geometry (Endcap)");
 
         // Power density
-	while (powerDensity.GetN()) powerDensity.RemovePoint(0);
-	powerDensity.SetName("powerdensity");
+    while (powerDensity.GetN()) powerDensity.RemovePoint(0);
+    powerDensity.SetName("powerdensity");
         powerDensity.SetTitle("Power density;Total area [m^{2}];Power density [kW / m^{2}]");
     }
     
@@ -2856,15 +3045,15 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         // isolines
         isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
         isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
-	// Material distribution maps
-	int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
-	int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
-	mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-	mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-	mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-	mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    // Material distribution maps
+    int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
+    int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
+    mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+    mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
     }
     
     /**
@@ -2881,10 +3070,10 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         rstep = 2 * (maxr - minr) / bins;
         etastep = (maxeta - mineta) / bins;
         Cell c;
-	c.rmin = 0.0;  // TODO: is this right?
-	c.rmax = 0.0;
-	c.etamin = 0.0;
-	c.etamax = 0.0;
+    c.rmin = 0.0;  // TODO: is this right?
+    c.rmax = 0.0;
+    c.etamin = 0.0;
+    c.etamax = 0.0;
         c.rlength = 0.0;
         c.ilength = 0.0;
         cells.resize(bins);
@@ -3286,31 +3475,31 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
             hitDistribution.Fill((*modIt)->getNHits()/double(nTracks));
         }
 
-	
-	std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
+    
+    std::map<std::string, ModuleType>& typeMap = tracker.getTypes();
         std::map<std::string, int> typeToCount;
-	std::map<std::string, double> typeToPower;
-	std::map<std::string, double> typeToSurface;
-	std::string aSensorType;
-	ModuleType aModuleType;
+    std::map<std::string, double> typeToPower;
+    std::map<std::string, double> typeToSurface;
+    std::string aSensorType;
+    ModuleType aModuleType;
 
         for (ModuleVector::iterator aModule = allModules.begin();
              aModule != allModules.end(); ++aModule) {
-	  aSensorType = (*aModule)->getType();
-	  aModuleType = typeMap[aSensorType];
-	  typeToCount[aSensorType] ++;
-	  typeToSurface[aSensorType] += (*aModule)->getArea() / 1e6; // in mq
-	  typeToPower[aSensorType] += aModuleType.getPower( (*aModule)->getNChannels() ) / 1e3; // in kW
-	}
+      aSensorType = (*aModule)->getType();
+      aModuleType = typeMap[aSensorType];
+      typeToCount[aSensorType] ++;
+      typeToSurface[aSensorType] += (*aModule)->getArea() / 1e6; // in mq
+      typeToPower[aSensorType] += aModuleType.getPower( (*aModule)->getNChannels() ) / 1e3; // in kW
+    }
 
-	int iPoints = 0;
-	for (std::map<std::string, int>::iterator typesIt = typeToCount.begin();
-	     typesIt != typeToCount.end(); ++typesIt ) {
-	  aSensorType = typesIt->first;
-	  powerDensity.SetPoint(iPoints++,
-				typeToSurface[aSensorType],
-				typeToPower[aSensorType] / typeToSurface[aSensorType] );
-	}
+    int iPoints = 0;
+    for (std::map<std::string, int>::iterator typesIt = typeToCount.begin();
+         typesIt != typeToCount.end(); ++typesIt ) {
+      aSensorType = typesIt->first;
+      powerDensity.SetPoint(iPoints++,
+                typeToSurface[aSensorType],
+                typeToPower[aSensorType] / typeToSurface[aSensorType] );
+    }
         return;
     }
     
@@ -3475,31 +3664,31 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         LayerVector layerSet = tracker.getLayers();
         double nMB = tracker.getNMB();
         for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
-	  aLay = (*layIt)->getModuleVector();
-	  for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-	    if ((*modIt)->getReadoutType()==Module::Strip) {
-	      for (int nFace=1; nFace<=(*modIt)->getNFaces() ; nFace++) {
-		hitChannels = (*modIt)->getHitOccupancyPerEvent()*nMB*((*modIt)->getNChannelsFace(nFace));
-		chanHitDistribution.Fill(hitChannels);
-		nChips=int(ceil((*modIt)->getNChannelsFace(nFace)/128.));
+      aLay = (*layIt)->getModuleVector();
+      for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
+        if ((*modIt)->getReadoutType()==Module::Strip) {
+          for (int nFace=1; nFace<=(*modIt)->getNFaces() ; nFace++) {
+        hitChannels = (*modIt)->getHitOccupancyPerEvent()*nMB*((*modIt)->getNChannelsFace(nFace));
+        chanHitDistribution.Fill(hitChannels);
+        nChips=int(ceil((*modIt)->getNChannelsFace(nFace)/128.));
                         
-		// TODO: place the computing model choice here
+        // TODO: place the computing model choice here
                 
-		// ACHTUNG!!!! whenever you change the numbers here, you have to change
-		// also the numbers in the summary
+        // ACHTUNG!!!! whenever you change the numbers here, you have to change
+        // also the numbers in the summary
                 
-		// Binary unsparsified (bps)
-		bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsFace(nFace))*100E3);
-		
-		int spHdr = tracker.getSparsifiedHeaderBits((*modIt)->getType());
-		int spPay = tracker.getSparsifiedPayloadBits((*modIt)->getType());		
+        // Binary unsparsified (bps)
+        bandwidthDistribution.Fill((16*nChips+(*modIt)->getNChannelsFace(nFace))*100E3);
+        
+        int spHdr = tracker.getSparsifiedHeaderBits((*modIt)->getType());
+        int spPay = tracker.getSparsifiedPayloadBits((*modIt)->getType());      
 
-		//cout << "sparsified header: " << spHdr << " payload: " << spPay << endl;
-		// Binary sparsified
-		bandwidthDistributionSparsified.Fill(((spHdr*nChips)+(hitChannels*spPay))*100E3);
-	      }
-	    }
-	  }
+        //cout << "sparsified header: " << spHdr << " payload: " << spPay << endl;
+        // Binary sparsified
+        bandwidthDistributionSparsified.Fill(((spHdr*nChips)+(hitChannels*spPay))*100E3);
+          }
+        }
+      }
         }
         
         savingGeometryV.push_back(chanHitDistribution);
@@ -3527,12 +3716,12 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
       valuesSum=0;
       valuesCount=0;
       for (int iPoint=0; iPoint<myGraph.GetN(); ++iPoint) {
-	myGraph.GetPoint(iPoint, vx, vy);
-	if ((vx>=cuts[iBorder])
-	    && (vx<cuts[iBorder+1])) {
-	  valuesCount++;
-	  valuesSum+=vy;
-	}
+    myGraph.GetPoint(iPoint, vx, vy);
+    if ((vx>=cuts[iBorder])
+        && (vx<cuts[iBorder+1])) {
+      valuesCount++;
+      valuesSum+=vy;
+    }
       }
       averages.push_back(valuesSum/valuesCount);
     }

@@ -7,6 +7,7 @@
 #include <list>
 #include <exception>
 #include "tracker.hh"
+#include "global_funcs.h"
 
 #define NMAXCHARS 100 // Max number of characters for parameterName[index]
 
@@ -19,13 +20,12 @@ public:
   ~configParser();
 
   // Parse the geometry config file and creates a Tracker object
-  Tracker* parseFile(string configFileName);
+  Tracker* parseFile(string configFileName, string typesFileName = "");
   Tracker* parsePixelsFromFile(string configFileName);
 
   // Parse the module type config file and "dresses" a Tracker object
   bool dressTracker(Tracker* aTracker, string configFileName);
   bool dressPixels(Tracker* aTracker, string configFileName);
-  
   // Parse an irradiation map so that modules can be assigned radiation levels
   bool irradiateTracker(Tracker* aTracker, string irrFileName);
 
@@ -63,6 +63,10 @@ private:
   // Parsing function for inactive surfactes
   bool parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& list);
 
+  bool peepNaked(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
+
+  std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
+  std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;
 };
 
 // Definition of the parsing exception

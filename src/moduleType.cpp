@@ -45,16 +45,16 @@ double ModuleType::getPower(int powerType, int nStrips) {
 	  perModulePower_[powerType]);
 }
 
-double ModuleType::getPower(int nStrips) {
+double ModuleType::getPower(int nStrips) const {
   double perStripPower = 0;
   double perModulePower = 0;
 
-  for (std::map<int,double>::iterator it = perStripPower_.begin();
+  for (std::map<int,double>::const_iterator it = perStripPower_.begin();
        it != perStripPower_.end(); ++it) {
     perStripPower += it->second;
   }
 
-  for (std::map<int,double>::iterator it = perModulePower_.begin();
+  for (std::map<int,double>::const_iterator it = perModulePower_.begin();
        it != perModulePower_.end(); ++it) {
     perModulePower += it->second;
   }
