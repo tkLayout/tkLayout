@@ -15,6 +15,8 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <map>
 #include <MaterialTable.h>
 
 class Material {
@@ -25,6 +27,7 @@ public:
   Material& operator+=(const Material &a);
   const Material operator+(const Material &other) const;
 };
+
 
 namespace insur {
     /**
@@ -50,9 +53,10 @@ namespace insur {
         /**
          * @enum Category A list of logical categories within the detector geometry; a single element belongs to exactly one of them
          */
+
         enum Category {no_cat, b_mod, e_mod, b_ser, e_ser, b_sup, e_sup, o_sup, t_sup, u_sup};
         MaterialProperties();
-        virtual ~MaterialProperties() {}
+        //virtual ~MaterialProperties() {} 
         // bureaucracy
         Category getCategory();
         void setCategory(Category c);
@@ -90,6 +94,7 @@ namespace insur {
         double getRadiationLength();
         double getInteractionLength();
         Material getMaterialLengths();
+        const std::map<std::string, Material>& getComponentsRI() const;
         // output calculations
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);
@@ -101,6 +106,7 @@ namespace insur {
         void track(bool tracking_on);
         // base print function
         void print();
+
     protected:
         // init flags and tracking
         bool msl_set, mse_set, trck;
@@ -108,9 +114,14 @@ namespace insur {
         Category cat;
         std::vector<std::pair<std::string, double> > localmasses, exitingmasses;
         std::vector<std::pair<std::string, double> > localmassesComp, exitingmassesComp;
+
+        std::map<std::string, std::map<std::string, double> > localCompMats, exitingCompMats; // format here is <component name string, <material name, mass> >
+
+        std::map<std::string, Material> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)
         double total_mass, local_mass, exiting_mass, r_length, i_length;
         // internal help
+        std::pair<std::string, std::string> splitName(std::string name) const;
 	// Masses by type
         void setLocalMass(std::pair<std::string, double> ms);
         void addLocalMass(std::pair<std::string, double> ms);

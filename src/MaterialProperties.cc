@@ -17,6 +17,8 @@ const Material Material::operator+(const Material &other) const {
   return result;              // All done!
 }
 
+
+
 namespace insur {
     /*-----public functions-----*/
     /**
@@ -239,6 +241,7 @@ namespace insur {
         addLocalMass(p);
         std::pair<std::string, double> pc(comp, ms);
         addLocalMassComp(pc);
+        localCompMats[comp][tag] += ms; 
     }
     
     /**
@@ -281,6 +284,8 @@ namespace insur {
         addExitingMass(p);
         std::pair<std::string, double> pc(comp, ms);
         addExitingMassComp(pc);
+
+        exitingCompMats[comp][tag] += ms; 
     }
     
     /**
@@ -315,6 +320,8 @@ namespace insur {
         exitingmasses.clear();
         localmassesComp.clear();
         exitingmassesComp.clear();
+        localCompMats.clear();
+        exitingCompMats.clear();
     }
     
     /**
@@ -323,10 +330,17 @@ namespace insur {
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
         mp.clearMassVectors();
-        for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
-        for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i));
-        for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
-        for (unsigned int i = 0; i < exitingMassCompCount(); i++) mp.addExitingMassComp(exitingmassesComp.at(i));
+        //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
+        //for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i));
+        //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
+        //for (unsigned int i = 0; i < exitingMassCompCount(); i++) mp.addExitingMassComp(exitingmassesComp.at(i));
+        for (std::map<std::string, std::map<std::string, double> >::iterator compit = localCompMats.begin(); compit != localCompMats.end(); ++compit)
+            for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit)
+                mp.addLocalMass(matit->first, compit->first, matit->second);
+
+        for (std::map<std::string, std::map<std::string, double> >::iterator compit = exitingCompMats.begin(); compit != exitingCompMats.end(); ++compit)
+            for (std::map<std::string, double>::iterator matit = compit->second.begin(); matit != compit->second.end(); ++matit) 
+                mp.addExitingMass(matit->first, compit->first, matit->second);
     }
     
     /**
@@ -353,6 +367,9 @@ namespace insur {
      */
     double MaterialProperties::getRadiationLength() { return r_length; }
     
+
+    const std::map<std::string, Material>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
+
     /**
      * Get the intraction length of the inactive element.
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
@@ -426,6 +443,12 @@ namespace insur {
                         std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_local << e.what() << std::endl;
                     }
                 }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        std::string supername = splitName(cit->first).first;// original component name string is split in super- and sub-name (e.g. <frontend, GBT>) and only the supername is recorded in componentsRI
+                        componentsRI[supername].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
+                    }
+                }
             }
             if (mse_set) {
                 // exiting mass loop
@@ -438,6 +461,12 @@ namespace insur {
                     }
                     catch(std::exception& e) {
                         std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
+                    }
+                }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        std::string supername = splitName(cit->first).first;
+                        componentsRI[supername].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
                     }
                 }
             }
@@ -466,6 +495,12 @@ namespace insur {
                         std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_local << e.what() << std::endl;
                     }
                 }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        std::string supername = splitName(cit->first).first;// original component name string is split in super- and sub-name (e.g. <frontend, GBT>) and only the supername is recorded in componentsRI
+                        componentsRI[supername].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
+                    }
+                }
             }
             if (mse_set) {
                 // exiting mass loop
@@ -478,6 +513,12 @@ namespace insur {
                     }
                     catch(std::exception& e) {
                         std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
+                    }
+                }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        std::string supername = splitName(cit->first).first;
+                        componentsRI[supername].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
                     }
                 }
             }
@@ -516,7 +557,18 @@ namespace insur {
         std::cout << "i_length = " <<i_length  << std::endl;
     }
     
+
+
     /*-----protected-----*/
+
+    std::pair<std::string, std::string> MaterialProperties::splitName(std::string name) const {
+        std::stringstream ss(name);
+        std::pair<std::string, std::string> split;
+        std::getline(ss, split.second, '_');
+        std::getline(ss, split.first, '_');
+        return split;
+    }
+
     /**
      * Set the local mass of one of the materials, as identified by its name, that make up the element.
      * If no material with the given name is found on the list, nothing happens.

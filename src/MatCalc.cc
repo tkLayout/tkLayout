@@ -465,6 +465,7 @@ namespace insur {
                                 }
                             }
                         }
+                        // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().getRing() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
                     }
                 }
                 catch(std::range_error& re) {

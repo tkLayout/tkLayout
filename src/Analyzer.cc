@@ -990,6 +990,11 @@ namespace insur {
         // used fixed phi
         // phi = PI / 2.0;
         //      loop over nTracks (eta range [0, etaMax])
+        // CUIDADO for (std::vector<std::vector<ModuleCap> >::iterator etl = mb.getBarrelModuleCaps().begin(); etl != mb.getBarrelModuleCaps().end(); ++etl) {
+        //    for (std::vector<ModuleCap>::iterator itl = etl->begin(); itl != etl->end(); ++itl) {
+        //       cout << "mod: " << itl->getModule().getLayer() << "," << itl->getModule().getRing() << "," << itl->getModule().getPhiIndex() << "," << itl->getModule().getSubdetectorType() << " comps: " << itl->getComponentsRI().size() << "," << itl->getRadiationLength() << "," << itl->getInteractionLength() << endl;
+        //    }
+        //}
         for (int i_eta = 0; i_eta < nTracks; i_eta++) {
             phi = myDice.Rndm() * PI * 2.0;
             Material tmp;
@@ -999,7 +1004,8 @@ namespace insur {
             track.setTheta(theta);
             track.setPhi(phi);
             //      active volumes, barrel
-            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track);
+            std::map<std::string, Material> sumComponentsRI;
+            tmp = analyzeModules(mb.getBarrelModuleCaps(), eta, theta, phi, track, sumComponentsRI);
             ractivebarrel.Fill(eta, tmp.radiation);
             iactivebarrel.Fill(eta, tmp.interaction);
             rbarrelall.Fill(eta, tmp.radiation);
@@ -1008,8 +1014,9 @@ namespace insur {
             iactiveall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+
             //      active volumes, endcap
-            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi, track);
+            tmp = analyzeModules(mb.getEndcapModuleCaps(), eta, theta, phi, track, sumComponentsRI);
             ractiveendcap.Fill(eta, tmp.radiation);
             iactiveendcap.Fill(eta, tmp.interaction);
             rendcapall.Fill(eta, tmp.radiation);
@@ -1018,8 +1025,40 @@ namespace insur {
             iactiveall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+
+
+            for (std::map<std::string, Material>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
+                if (rComponents[it->first]==NULL) { 
+                    rComponents[it->first] = new TH1D();
+                    rComponents[it->first]->SetBins(nTracks, 0.0, etaMax); 
+                }
+                rComponents[it->first]->Fill(eta, it->second.radiation);
+                if (iComponents[it->first]==NULL) {
+                    iComponents[it->first] = new TH1D();
+                    iComponents[it->first]->SetBins(nTracks, 0.0, etaMax); 
+                }
+                iComponents[it->first]->Fill(eta, it->second.interaction);
+            }
+
+
+            if (rComponents["Services"]==NULL) { 
+                rComponents["Services"] = new TH1D();
+                rComponents["Services"]->SetBins(nTracks, 0.0, etaMax); 
+            }
+            if (iComponents["Services"]==NULL) { 
+                iComponents["Services"] = new TH1D();
+                iComponents["Services"]->SetBins(nTracks, 0.0, etaMax); 
+            }
+            if (rComponents["Supports"]==NULL) { 
+                rComponents["Supports"] = new TH1D();
+                rComponents["Supports"]->SetBins(nTracks, 0.0, etaMax); 
+            }
+            if (iComponents["Supports"]==NULL) { 
+                iComponents["Supports"] = new TH1D();
+                iComponents["Supports"]->SetBins(nTracks, 0.0, etaMax); 
+            }
             //      services, barrel
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat);
             rserfbarrel.Fill(eta, tmp.radiation);
             iserfbarrel.Fill(eta, tmp.interaction);
             rbarrelall.Fill(eta, tmp.radiation);
@@ -1028,8 +1067,10 @@ namespace insur {
             iserfall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Services"]->Fill(eta, tmp.radiation);
+            iComponents["Services"]->Fill(eta, tmp.interaction);
             //      services, endcap
-            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+            tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat);
             rserfendcap.Fill(eta, tmp.radiation);
             iserfendcap.Fill(eta, tmp.interaction);
             rendcapall.Fill(eta, tmp.radiation);
@@ -1038,6 +1079,8 @@ namespace insur {
             iserfall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Services"]->Fill(eta, tmp.radiation);
+            iComponents["Services"]->Fill(eta, tmp.interaction);
             //      supports, barrel
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
             rlazybarrel.Fill(eta, tmp.radiation);
@@ -1048,6 +1091,8 @@ namespace insur {
             ilazyall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Supports"]->Fill(eta, tmp.radiation);
+            iComponents["Supports"]->Fill(eta, tmp.interaction);
             //      supports, endcap
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
             rlazyendcap.Fill(eta, tmp.radiation);
@@ -1058,6 +1103,8 @@ namespace insur {
             ilazyall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Supports"]->Fill(eta, tmp.radiation);
+            iComponents["Supports"]->Fill(eta, tmp.interaction);
             //      supports, tubes
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
             rlazytube.Fill(eta, tmp.radiation);
@@ -1066,6 +1113,8 @@ namespace insur {
             ilazyall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Supports"]->Fill(eta, tmp.radiation);
+            iComponents["Supports"]->Fill(eta, tmp.interaction);
             //      supports, barrel tubes
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
             rlazybtube.Fill(eta, tmp.radiation);
@@ -1074,6 +1123,8 @@ namespace insur {
             ilazyall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Supports"]->Fill(eta, tmp.radiation);
+            iComponents["Supports"]->Fill(eta, tmp.interaction);
             //      supports, user defined
             tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
             rlazyuserdef.Fill(eta, tmp.radiation);
@@ -1082,10 +1133,13 @@ namespace insur {
             ilazyall.Fill(eta, tmp.interaction);
             rglobal.Fill(eta, tmp.radiation);
             iglobal.Fill(eta, tmp.interaction);
+            rComponents["Supports"]->Fill(eta, tmp.radiation);
+            iComponents["Supports"]->Fill(eta, tmp.interaction);
             //      pixels, if they exist
             if (pm != NULL) {
-                analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
-                analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
+                std::map<std::string, Material> ignoredPixelSumComponentsRI;
+                analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
+                analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, true);
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
                 analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
@@ -1739,20 +1793,23 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
      * @return The summed up radiation and interaction lengths for the given track, bundled into a <i>std::pair</i>
      */
     Material Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
-            double eta, double theta, double phi, Track& t, bool isPixel) {
+            double eta, double theta, double phi, Track& t, 
+            std::map<std::string, Material>& sumComponentsRI,
+            bool isPixel) {
         std::vector<std::vector<ModuleCap> >::iterator iter = tr.begin();
         std::vector<std::vector<ModuleCap> >::iterator guard = tr.end();
         Material res, tmp;
         res.radiation= 0.0;
         res.interaction = 0.0;
         while (iter != guard) {
-            tmp = findModuleLayerRI(*iter, eta, theta, phi, t, isPixel);
+            tmp = findModuleLayerRI(*iter, eta, theta, phi, t, sumComponentsRI, isPixel);
             res.radiation= res.radiation+ tmp.radiation;
             res.interaction= res.interaction + tmp.interaction;
             iter++;
         }
         return res;
     }
+
 
     /**
      * The module-level analysis function loops through all modules of a given layer, checking for collisions with the given track.
@@ -1768,7 +1825,9 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
      * @return The scaled and summed up radiation and interaction lengths for the given layer and track, bundled into a <i>std::pair</i>
      */
     Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
-            double eta, double theta, double phi, Track& t, bool isPixel) {
+            double eta, double theta, double phi, Track& t, 
+            std::map<std::string, Material>& sumComponentsRI,
+            bool isPixel) {
         std::vector<ModuleCap>::iterator iter = layer.begin();
         std::vector<ModuleCap>::iterator guard = layer.end();
         Material res, tmp;
@@ -1808,6 +1867,12 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
                             tmp.radiation = tmp.radiation / cos(theta);
                             tmp.interaction = tmp.interaction / cos(theta);
                         }
+
+                        std::map<std::string, Material> moduleComponentsRI = iter->getComponentsRI();
+                        for (std::map<std::string, Material>::iterator cit = moduleComponentsRI.begin(); cit != moduleComponentsRI.end(); ++cit) {
+                            sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().getSubdetectorType() == Module::Barrel ? sin(theta) : cos(theta));
+                            sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().getSubdetectorType() == Module::Barrel ? sin(theta) : cos(theta));
+                        }
                         // 2D plot and eta plot results
                         if (!isPixel) fillCell(r, eta, theta, tmp);
                         res += tmp;
@@ -1827,6 +1892,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         }
         return res;
     }
+
 
   // protected
   /**
@@ -1988,6 +2054,7 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
      * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
      * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
      */
+
     Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
             double theta, Track& t, MaterialProperties::Category cat, bool isPixel) {
         std::vector<InactiveElement>::iterator iter = elements.begin();

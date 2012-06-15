@@ -176,6 +176,8 @@ namespace insur {
     public:
         Analyzer();
         virtual ~Analyzer() {}
+        std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
+        std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
         TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
         TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
         TH1D& getHistoModulesEndcapsR() {return ractiveendcap; }
@@ -319,6 +321,9 @@ namespace insur {
         TH1D rextraservices, rextrasupports;
         TH1D iextraservices, iextrasupports;
         TH1D rglobal, iglobal;
+
+        std::map<std::string, TH1D*> rComponents, iComponents;
+
         TH2D isor, isoi;
     TH2D mapRadiation, mapInteraction;
     TH2I mapRadiationCount, mapInteractionCount;
@@ -388,8 +393,8 @@ namespace insur {
 
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
-        virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
-                                                                                          double eta, double theta, double phi, Track& t, bool isPixel = false);
+        virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi, Track& t, 
+                                        std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
 
 	int findHitsModules(Tracker& tracker, double z0, double eta, double theta, double phi, Track& t);
 
@@ -397,8 +402,9 @@ namespace insur {
                      double eta, double theta, double phi, Track& t, bool isPixel = false);
         virtual Material findHitsModuleLayer(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
 
-        virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, bool isPixel = false);
-        virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
+        virtual Material findModuleLayerRI(std::vector<ModuleCap>& layer, double eta, double theta, double phi, Track& t, 
+                                           std::map<std::string, Material>& sumComponentsRI, bool isPixel = false);
+        virtual Material analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta, 
                                   Track& t, MaterialProperties::Category cat = MaterialProperties::no_cat, bool isPixel = false);
         virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                           Track& t, bool isPixel = false);

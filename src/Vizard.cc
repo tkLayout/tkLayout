@@ -889,6 +889,70 @@ namespace insur {
         myContent->addItem(myImage);
         
         
+
+    
+
+        myContent = new RootWContent("Module components detail", false);
+        myPage->addContent(myContent);
+
+        myTable = new RootWTable();
+        myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
+        myTable->setContent(0, 1, "Radiation length");
+        myTable->setContent(0, 2, "Interaction length");
+
+
+        THStack* rCompStack = new THStack("rcompstack", "Radiation Length by Component");
+        THStack* iCompStack = new THStack("icompstack", "Interaction Length by Component");
+
+        TLegend* compLegend = new TLegend(0.1,0.7,0.30,0.9);
+
+        myCanvas = new TCanvas(("moduleComponentsRI"+name).c_str());
+        myCanvas->SetFillColor(color_plot_background);
+        myCanvas->Divide(2, 1);
+        myPad = myCanvas->GetPad(0);
+        myPad->SetFillColor(color_pad_background);
+
+        myPad = myCanvas->GetPad(1);
+        myPad->cd();
+        std::map<std::string, TH1D*>& rActiveComps = a.getHistoActiveComponentsR();
+        int compIndex = 1;
+        for (std::map<std::string, TH1D*>::iterator it = rActiveComps.begin(); it != rActiveComps.end(); ++it) {
+            it->second->SetLineColor(Palette::color(compIndex));
+            it->second->SetFillColor(Palette::color(compIndex));
+            it->second->SetXTitle("#eta");
+            it->second->SetTitle(it->first.c_str());
+            compLegend->AddEntry(it->second, it->first.c_str());
+            rCompStack->Add(it->second);
+            myTable->setContent(compIndex, 0, it->first);
+            myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, etaMaxAvg), 5);
+        }
+        rCompStack->Draw();
+        compLegend->Draw();
+
+        myPad = myCanvas->GetPad(2);
+        myPad->cd();
+        std::map<std::string, TH1D*>& iActiveComps = a.getHistoActiveComponentsI();
+        compIndex = 1;
+        for (std::map<std::string, TH1D*>::iterator it = iActiveComps.begin(); it != iActiveComps.end(); ++it) {
+            it->second->SetLineColor(Palette::color(compIndex));
+            it->second->SetFillColor(Palette::color(compIndex));
+            it->second->SetXTitle("#eta");
+            it->second->SetTitle(it->first.c_str());
+            iCompStack->Add(it->second);
+            myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, etaMaxAvg), 5);
+        }
+        iCompStack->Draw();
+        compLegend->Draw();
+
+        myContent->addItem(myTable);
+
+        myImage = new RootWImage(myCanvas, 900, 400);
+        myImage->setComment("Radiation and interaction length distribution in eta by component type in modules");
+        myImage->setName("riDistrComp");
+        myContent->addItem(myImage);
+
+
+
         // Work area re-init
         myCanvas = new TCanvas(name_countourMaterial.c_str());
         myCanvas->SetFillColor(color_plot_background);
@@ -897,9 +961,8 @@ namespace insur {
         myPad->SetFillColor(color_pad_background);
         myPad = myCanvas->GetPad(1);
         myPad->cd();
-
         // Countour plots
-        myContent = new RootWContent("Material distributon", true);
+        myContent = new RootWContent("Material distribution", true);
         myPage->addContent(myContent);
 
 #ifdef MATERIAL_SHADOW        
