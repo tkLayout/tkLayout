@@ -121,7 +121,8 @@ namespace insur {
         // complex parameters (OUTPUT)
         double total_mass, local_mass, exiting_mass, r_length, i_length;
         // internal help
-        std::pair<std::string, std::string> splitName(std::string name) const;
+        std::string getSuperName(std::string name) const;
+        std::string getSubName(std::string name) const;
 	// Masses by type
         void setLocalMass(std::pair<std::string, double> ms);
         void addLocalMass(std::pair<std::string, double> ms);

@@ -239,7 +239,7 @@ namespace insur {
   void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms) {
         std::pair<std::string, double> p(tag, ms);
         addLocalMass(p);
-        std::pair<std::string, double> pc(comp, ms);
+        std::pair<std::string, double> pc(getSubName(comp), ms);
         addLocalMassComp(pc);
         localCompMats[comp][tag] += ms; 
     }
@@ -282,7 +282,7 @@ namespace insur {
   void MaterialProperties::addExitingMass(std::string tag, std::string comp, double ms) {
         std::pair<std::string, double> p(tag, ms);
         addExitingMass(p);
-        std::pair<std::string, double> pc(comp, ms);
+        std::pair<std::string, double> pc(getSubName(comp), ms);
         addExitingMassComp(pc);
 
         exitingCompMats[comp][tag] += ms; 
@@ -445,8 +445,7 @@ namespace insur {
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        std::string supername = splitName(cit->first).first;// original component name string is split in super- and sub-name (e.g. <frontend, GBT>) and only the supername is recorded in componentsRI
-                        componentsRI[supername].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
                     }
                 }
             }
@@ -465,8 +464,7 @@ namespace insur {
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        std::string supername = splitName(cit->first).first;
-                        componentsRI[supername].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materials.getMaterial(mit->first).rlength * getSurface() / 100.0);
                     }
                 }
             }
@@ -497,8 +495,7 @@ namespace insur {
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        std::string supername = splitName(cit->first).first;// original component name string is split in super- and sub-name (e.g. <frontend, GBT>) and only the supername is recorded in componentsRI
-                        componentsRI[supername].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
                     }
                 }
             }
@@ -517,8 +514,7 @@ namespace insur {
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
-                        std::string supername = splitName(cit->first).first;
-                        componentsRI[supername].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
                     }
                 }
             }
@@ -561,14 +557,21 @@ namespace insur {
 
     /*-----protected-----*/
 
-    std::pair<std::string, std::string> MaterialProperties::splitName(std::string name) const {
+    std::string MaterialProperties::getSuperName(std::string name) const {
         std::stringstream ss(name);
         std::pair<std::string, std::string> split;
-        std::getline(ss, split.second, '_');
         std::getline(ss, split.first, '_');
-        return split;
+        std::getline(ss, split.second, '_');
+        return !split.second.empty() ? split.second : split.first;
     }
 
+    std::string MaterialProperties::getSubName(std::string name) const {
+        std::stringstream ss(name);
+        std::pair<std::string, std::string> split;
+        std::getline(ss, split.first, '_');
+        std::getline(ss, split.second, '_');
+        return  split.first;
+    }
     /**
      * Set the local mass of one of the materials, as identified by its name, that make up the element.
      * If no material with the given name is found on the list, nothing happens.
