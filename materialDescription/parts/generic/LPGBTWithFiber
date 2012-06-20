@@ -1,0 +1,3 @@
+// LP-GBT with its fiber pair
+#include <generic/LPGBTRaw>
+#include <generic/OpticalFiberPair>

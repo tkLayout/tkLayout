@@ -1,0 +1,4 @@
+//Mechanics
+comp = Mechanics
+M CF 0 0 0 0.5 mm L;
+M PE 0 0 0 0.066435935 mm L;

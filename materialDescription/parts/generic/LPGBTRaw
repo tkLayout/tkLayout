@@ -1,0 +1,5 @@
+// 1 LP-GBT
+comp = GBTs
+M G10 0 0 0 0.25 g L; // Service board PCB
+M Cu  0 0 0 0.15 g L; // Service board PCB
+M PE  0 0 0 2.50 g L; // Packaging

@@ -1,0 +1,4 @@
+// Two hybrids
+comp = Hybrid
+M G10 0 1.60 g 0 0 L ;
+M Cu 0 0.90 g 0 0 L ;

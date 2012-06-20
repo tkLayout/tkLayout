@@ -1,0 +1,7 @@
+// Module mechanics
+comp = Mechanics
+M CF    0 0 0 4.28 g L ; // Module frame
+M CF    0 0 0 3.31 g L ; // Sensors supports
+M CF    0 0 0 3.67 g L ; // PGS + Pyroid Thermal conductor in CF equivalent TODO: split into real materials
+M Al    0 0 0 2.44 g L ; // Cooling blocks
+M Steel 0 0 0 0.48 g L ; // Screws

@@ -1,0 +1,35 @@
+// Standard rphi module 10x10
+// GBT at the end of the rod
+// Module type
+type = rphi
+// Default sensor:
+nStripsAcross = 1024;
+nSegments = 2;
+// Sensor and hybrid stuff
+  #include <generic/Sensor>
+  #include <rphi/Hybrids>
+  #include <generic/ConnectorPair>
+  #include <generic/ConnectorPair>
+  #include <rphi/Asics>
+  #include <rphi/SupportStrip>
+  #include <generic/DcDcConverterWithWires>
+  #include <generic/BiasKapton>
+// Cooling
+  #include <generic/CoolingBlocks>
+  #include <generic/CoolingLine>
+// Service lines
+  #include <rphi/Eports>
+  #include <generic/SenseControlLines>
+  #include <generic/HvLine>
+// Support mechanics
+  #include <generic/SupportMechanics>
+
+
+
+
+
+
+
+
+
+

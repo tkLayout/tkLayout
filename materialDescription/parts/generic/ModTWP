@@ -1,0 +1,6 @@
+// 1 TWP/module
+// (This is a dedicated line: services do accumulate and scale with number of strips)
+comp = Twisted pairs
+M Cu_twp 0.3283582090 g/m 0 0 0 E;
+M PE_twp 0.1990049751 g/m 0 0 0 E;
+M Al_twp 0.3283582090 g/m 0 0 0 E;

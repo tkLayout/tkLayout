@@ -1,0 +1,10 @@
+// Supports: V=barrel cylinders
+// X=barrel, Y=endcap, Z=Outer cylinder, W=user-defined
+W CF 2.70 mm ;
+X CF 2.70 mm ;
+V CF 1.02 mm ;
+V PE 0.17 mm ;
+
+Y CF 1.02 mm ;
+Y PE 0.17 mm ;
+Z CF 2.0 mm ; // TODO: to be adjusted

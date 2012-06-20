@@ -1,0 +1,3 @@
+// 2 Optical fibers
+comp = Fibers
+M PE 0 0 1.51390639 g/m 0 E;

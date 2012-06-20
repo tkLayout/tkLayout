@@ -1,0 +1,4 @@
+// Kapton tail for the HV of one sensor
+comp = HV lines
+M Kapton 0 0 0 0.085 g L ;
+// TODO: RC filter missing here

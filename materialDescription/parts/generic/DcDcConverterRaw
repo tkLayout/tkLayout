@@ -1,0 +1,18 @@
+// DC/DC converter
+comp = DC/DC
+M G10 0 0 0 0.25 g L; // Service board PCB
+M Cu  0 0 0 0.15 g L; // Service board PCB
+M Si 0 0 0 0.0699 g L ; // AMIS
+M Si 0 0 0 0.01048 g L ; // Add. Voltage Chip
+M Cu 0 0 0 0.5967 g L ; // Coil Windings
+M PE 0 0 0 0.1038 g L ; // Coil Core
+M Cu 0 0 0 0.04659 g L ; // Pi-Filter Coil
+M Al 0 0 0 0.1377 g L ; // Shielding Alu
+M Ni 0 0 0 0.07456 g L ; // Nickel Coating
+M Sn 0 0 0 0.02412 g L ; // Solder
+M Silicone 0 0 0 0.1408 g L ; // Heat Conducting Paste
+M Al2O3 0 0 0 0.3505 g L ; // Cap/Res Ceramic
+M Cu 0 0 0 0.06182 g L ; // Cap/Res Cu
+M Ni 0 0 0 0.02574 g L ; // Cap/Res Ni
+M ConCon 0 0 0 0.2168 g L ; // Converter Connector
+M BGA 0 0 0 0.1411 g L ; // Solder Paste
