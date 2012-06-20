@@ -6,6 +6,7 @@
 #include <stereo>
 #include <ptOut>
 #include <ptMixed>
+#include <ptIn>
 
 // Generic services conversion rules
 #include <generic/ConversionRules>

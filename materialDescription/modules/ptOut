@@ -21,7 +21,7 @@ nSegments = 2;
   #include <2s/ModuleMechanics>
   #include <generic/HvLine>
 // ROD material
-  #include <generic/CoolingBlocks>
+//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
   #include <generic/CoolingLine>
   #include <generic/SenseControlLines>
   #include <generic/NoEports>
