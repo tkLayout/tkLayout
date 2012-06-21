@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <exception>
+#include <cctype>
 #include "configparser.hh"
 #include "module.hh"
 #include "layer.hh"
@@ -1579,7 +1580,7 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
     string str;
     Tracker* result = NULL;
     
-    if (!typesFileName.empty()) peepNaked(typesFileName);
+    if (!typesFileName.empty()) peekTypes(typesFileName);
 
     if (rawConfigFile_.is_open()) {
         cerr << "ERROR: Tracker config file is already open" << endl;
@@ -1926,7 +1927,7 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 }
 
 
-bool configParser::peepNaked(string configFileName) {
+bool configParser::peekTypes(string configFileName) {
 
     std::ifstream filein(configFileName.c_str());
     if (!filein.is_open()) {
@@ -1940,7 +1941,7 @@ bool configParser::peepNaked(string configFileName) {
         line.erase(0, line.find_first_not_of(" \t"));
         line.erase(line.find_last_not_of(" \t")+1); // trim line
         if (line.find("\\\\") != string::npos) line.erase(line.find("\\\\")); // remove comments
-        if (line.empty()) continue; // skip empty lines
+        if (line.empty() || isspace(line.at(0))) continue; // skip empty lines
 
         std::istringstream parser(line);
         if (blockName.empty() && (line.find("BarrelType")==0 || line.find("EndcapType")==0)) { // enter block

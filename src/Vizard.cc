@@ -904,7 +904,7 @@ namespace insur {
         THStack* rCompStack = new THStack("rcompstack", "Radiation Length by Component");
         THStack* iCompStack = new THStack("icompstack", "Interaction Length by Component");
 
-        TLegend* compLegend = new TLegend(0.1,0.7,0.30,0.9);
+        TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
         myCanvas = new TCanvas(("moduleComponentsRI"+name).c_str());
         myCanvas->SetFillColor(color_plot_background);

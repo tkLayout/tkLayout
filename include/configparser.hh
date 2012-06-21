@@ -63,7 +63,7 @@ private:
   // Parsing function for inactive surfactes
   bool parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& list);
 
-  bool peepNaked(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
+  bool peekTypes(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
 
   std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
   std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;

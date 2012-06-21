@@ -1392,13 +1392,13 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
     int numProcPhi = tracker.getTriggerProcessorsPhi();
 
     double etaCut = tracker.getTriggerEtaCut();
-    double etaSlice = etaCut / numProcEta;
+    double etaSlice = etaCut*2 / numProcEta;
     double maxR = tracker.getMaxR();
     double zError = tracker.getZError();
 
     double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
 
-    double eta = 0;    
+    double eta = -etaCut;    
 
     for (int i=0; i < numProcEta; i++) { // loop over etaSlices
         double phi = 0;
@@ -1416,7 +1416,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
                     Module* module = (*modIt);
                     //BarrelModule* module = dynamic_cast<BarrelModule*>(*modIt);
 
-                    if (!module || module->getMeanPoint().Z()<0) continue;
+                    if (!module /*|| module->getMeanPoint().Z()<0*/) continue;
                     double modMinZ = module->getMinZ();
                     double modMaxZ = module->getMaxZ();
                     double modMinR = module->getMinRho();                
@@ -1430,8 +1430,11 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
                     double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
                     double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
 
-                    double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError);
-                    double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError);
+                    //double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError); // if etaDist is positive it means the module is to the ri:qght of the slice edge 
+                    //double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError); // if negative the module is to the left of the slice edge 
+
+                    double etaDist1 = modMaxZ - (modMinR*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
+                    double etaDist2 = (modMaxR*(etaSliceZ2 - zError)/maxR + zError) - modMinZ; 
 
                     double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
                     double sliceMinPhi = phi - trajSlice;
@@ -1440,7 +1443,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
                     if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
                     else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
 
-                    if (etaDist1 < 0 && etaDist2 > 0 &&
+                    if (etaDist1 > 0 && etaDist2 > 0 &&
                         ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
                          (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
                          (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi))) 
@@ -1449,14 +1452,14 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
                         int moduleConnections = module->getProcessorConnections()+1;
                         module->setProcessorConnections(moduleConnections);
 
-                        processorConnections[std::make_pair(i,j)] += 2; // this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
-                        processorConnectionSummary_.setCell(i+1, j+1, processorConnections[std::make_pair(i,j)]);
+                        processorConnections[std::make_pair(j,i)] += 1; // this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+                        processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
                        
-                        processorInboundBandwidths[std::make_pair(i,j)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]*2; // *2 takes into account negative Z's
-                        processorInboundBandwidthSummary_.setCell(i+1, j+1, processorInboundBandwidths[std::make_pair(i,j)]);
+                        processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]; // *2 takes into account negative Z's
+                        processorInboundBandwidthSummary_.setCell(j+1, i+1, processorInboundBandwidths[std::make_pair(j,i)]);
                         
-                        processorInboundStubsPerEvent[std::make_pair(i,j)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())]*2;
-                        processorInboundStubPerEventSummary_.setCell(i+1, j+1, processorInboundStubsPerEvent[std::make_pair(i,j)]);
+                        processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
+                        processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
                         
 
                         if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(

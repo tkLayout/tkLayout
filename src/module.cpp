@@ -1032,7 +1032,7 @@ double Module::getMeanTheta() const {
 
 double Module::getMaxRho() const {
     double maxRho=-1;
-    for (uint i = 0; i < 4 ; i++) {
+    for (int i = 0; i < 4 ; i++) {
         if (corner_[i].Rho()>maxRho) maxRho=corner_[i].Rho();
     }
     return maxRho;
@@ -1041,7 +1041,7 @@ double Module::getMaxRho() const {
 double Module::getMinRho() const {
     double minRho=corner_[0].Rho();
     unsigned int i1 = 0, i2 = 0;
-    for (uint i = 1; i < 4 ; i++) {
+    for (int i = 1; i < 4 ; i++) {
         //if (corner_[i].Rho()<minRho) minRho=corner_[i].Rho();
         if (corner_[i].Rho() < corner_[i1].Rho()) i1 = i;
     }
@@ -1056,7 +1056,7 @@ double Module::getMinRho() const {
 
 double Module::getMaxZ() const {
     double maxZ=corner_[0].Z();
-    for (uint i = 1; i < 4 ; i++) {
+    for (int i = 1; i < 4 ; i++) {
         if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
     }
     return maxZ;
@@ -1064,7 +1064,7 @@ double Module::getMaxZ() const {
 
 double Module::getMinZ() const {
     double minZ=corner_[0].Z();
-    for (uint i = 1; i < 4 ; i++) {
+    for (int i = 1; i < 4 ; i++) {
         if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
     }
     return minZ;
@@ -1242,7 +1242,7 @@ void Module::computeBoundaries(double zError) {
     double averagePhi, artificialRotation;
     Module* fakeModule;
     double thisEta, thisPhi;
-    uint i, j;
+    int i, j;
     double z;
     
     // Compute eta boundaries:
