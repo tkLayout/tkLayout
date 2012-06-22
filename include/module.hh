@@ -225,6 +225,8 @@ protected:
   virtual double getMinPhi() const { return 0.; };
 
   virtual std::string getSensorTag() {  return std::string("");  };
+  virtual std::string getSensorGeoTag() {  return std::string("");  };
+  virtual std::string getPositionTag() {  return std::string("");  };
 
   int getRing() const {return ring_;};
   void setRing(const int& newRing) {ring_ = newRing;};
@@ -356,6 +358,9 @@ private:
   double getWidth() const {return width_;};
 
   std::string getSensorTag();
+  std::string getSensorGeoTag();
+  std::string getPositionTag();
+
 
   int getLayer() const {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
@@ -408,6 +413,8 @@ public:
 
   virtual int getSubdetectorType() const { return Endcap; };
   std::string getSensorTag();
+  std::string getSensorGeoTag();
+  std::string getPositionTag();
 
   bool wasCut() const { return cut_ ; };
   double getLost() const { if (cut_) return lost_; return 0;};

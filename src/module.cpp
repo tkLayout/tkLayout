@@ -1874,3 +1874,60 @@ std::string EndcapModule::getSensorTag() {
     
     return result;
 }
+
+// Gives the geometric tag
+std::string BarrelModule::getSensorGeoTag() {
+    std::string result ;
+    
+    result = "Barrel";
+    result += "/Width=" + boost::lexical_cast<std::string>(int(width_*1000)/1000.) +
+      "/Height=" + boost::lexical_cast<std::string>(int(height_*1000)/1000.) +
+      "/Thickness=" + boost::lexical_cast<std::string>(int(thickness_*1000)/1000.) +
+      "/Type=" + type_ +
+      "/StripsAcross=" +  boost::lexical_cast<std::string>(nStripAcross_);
+    result += "/Faces=" +  boost::lexical_cast<std::string>(nFaces_);
+    for (int i=0; i<nFaces_; ++i) result += "/Segments=" +  boost::lexical_cast<std::string>(nSegmentsFace_[i]);
+    // "/Layer=" + boost::lexical_cast<std::string>(layer_);
+    
+    return result;
+}
+
+// Gives the geometric tag
+std::string EndcapModule::getSensorGeoTag() {
+    std::string result ;
+    
+    result = "Endcap";
+    result += "/WidthLo=" + boost::lexical_cast<std::string>(int(widthLo_*1000)/1000.) +
+      "/WidthHi=" + boost::lexical_cast<std::string>(int(widthHi_*1000)/1000.) +
+      "/Height=" + boost::lexical_cast<std::string>(int(height_*1000)/1000.) +
+      "/Thickness=" + boost::lexical_cast<std::string>(int(thickness_*1000)/1000.) +
+      "/Type=" + type_+
+      "/StripsAcross=" +  boost::lexical_cast<std::string>(nStripAcross_);
+    result += "/Faces=" +  boost::lexical_cast<std::string>(nFaces_);
+    for (int i=0; i<nFaces_; ++i) result += "/Segments=" +  boost::lexical_cast<std::string>(nSegmentsFace_[i]);
+    // "/Disk=" + boost::lexical_cast<std::string>(disk_);
+    
+    return result;
+}
+
+std::string BarrelModule::getPositionTag() {
+  std::ostringstream myTag;
+  myTag.str("");
+  myTag << containerName_ << std::dec ;
+  myTag << "L" << setfill('0') << setw(2) << getLayer();
+  //myTag << "R" << setfill('0') << setw(2) << getRing();
+  
+  return myTag.str();
+}
+
+std::string EndcapModule::getPositionTag() {
+  std::ostringstream myTag;
+  myTag.str("");
+  myTag << containerName_ << std::dec ;
+  myTag << "R" << setfill('0') << setw(2) << getRing();
+  //myTag << "D" << setfill('0') << setw(2) << getDisk();
+
+  return myTag.str();
+}
+
+

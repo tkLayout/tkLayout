@@ -316,7 +316,7 @@ public:
 
     void add(const Module& m);
 
-    void addModules(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
+    void addModulesType(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
     template<class ModuleValidator> void addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid = ModuleValidator());
 
 };
@@ -369,7 +369,7 @@ template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer
     bins_[c]->fill(value);
 }
 
-template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, int moduleTypes) {
+template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const std::vector<Layer*>& layers, int moduleTypes) {
     for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
         std::vector<Module*>* layerModules = (*it)->getModuleVector();
         for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {

@@ -67,6 +67,7 @@ namespace insur {
     static const std::string smallEnd = "</small>";
     static const std::string emphStart="<b>";
     static const std::string emphEnd="</b>";
+    static const std::string muLetter = "&mu;";
     //clearStart="<tt>";
     //clearEnd="</tt>";
 

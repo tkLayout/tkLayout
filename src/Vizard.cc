@@ -1326,9 +1326,10 @@ namespace insur {
         
         // A bunch of indexes
         std::map<std::string, Module*> typeMap;
+	std::map<std::string, std::set<std::string> > typeMapPositions;
         std::map<std::string, int> typeMapCount;
         std::map<std::string, long> typeMapCountChan;
-    std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
+	std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
         std::map<std::string, double> typeMapMaxStripOccupancy;
         std::map<std::string, double> typeMapAveStripOccupancy;
         std::map<std::string, double> typeMapMaxHitOccupancy;
@@ -1343,12 +1344,10 @@ namespace insur {
         LayerVector::iterator layIt;
         ModuleVector::iterator modIt;
         ModuleVector* aLay;
-        double totAreaPts = 0;
-        double totAreaStrips = 0;
+        double totArea = 0;
         int totCountMod = 0;
         int totCountSens = 0;
-        long totChannelStrips = 0;
-        long totChannelPts = 0;
+        long totChannel = 0;
         
         RootWPage* myPage = new RootWPage("Geometry");
         // TODO: the web site should decide which page to call index.html
@@ -1429,7 +1428,8 @@ namespace insur {
             }
             aLay = (*layIt)->getModuleVector();
             for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-                aSensorTag=(*modIt)->getSensorTag();
+                aSensorTag=(*modIt)->getSensorGeoTag();
+		typeMapPositions[aSensorTag].insert((*modIt)->getPositionTag());
                 typeMapCount[aSensorTag]++;
                 typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
                 if (((*modIt)->getStripOccupancyPerEvent()*nMB)>typeMapMaxStripOccupancy[aSensorTag]) {
@@ -1446,14 +1446,8 @@ namespace insur {
         typeMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
                 totCountMod++;
                 totCountSens+=(*modIt)->getNFaces();
-                if ((*modIt)->getReadoutType()==Module::Strip) {
-                    totChannelStrips+=(*modIt)->getNChannels();
-                    totAreaStrips+=(*modIt)->getArea()*(*modIt)->getNFaces();
-                }
-                if ((*modIt)->getReadoutType()==Module::Pt) {
-                    totChannelPts+=(*modIt)->getNChannels();
-                    totAreaPts+=(*modIt)->getArea()*(*modIt)->getNFaces();
-                }
+		totChannel+=(*modIt)->getNChannels();
+		totArea+=(*modIt)->getArea()*(*modIt)->getNFaces();
                 if (typeMap.find(aSensorTag)==typeMap.end()){
                     // We have a new sensor geometry
                     typeMap[aSensorTag]=(*modIt);
@@ -1522,7 +1516,8 @@ namespace insur {
         std::ostringstream aName;
         std::ostringstream aTag;
         std::ostringstream aType;
-        std::ostringstream anArea;
+        std::ostringstream aModuleArea;
+        std::ostringstream aTotalArea;
         std::ostringstream aStripOccupancy;
         std::ostringstream aHitOccupancy;
     std::ostringstream anRphiResolution;
@@ -1555,46 +1550,44 @@ namespace insur {
         
         static const int tagRow = 1;
         static const int typeRow = 2;
-        static const int areastripRow = 3;
-        static const int areaptRow = 4;
-        static const int stripOccupancyRow = 5;
-        static const int hitOccupancyRow = 6;
-    static const int rphiResolutionRow = 7;
-    static const int yResolutionRow = 8;
-    static const int rphiResolutionTriggerRow = 9;
-    static const int yResolutionTriggerRow = 10;
+        static const int moduleAreaRow = 3;
+        static const int totalAreaRow = 4;
+        static const int numbermodsRow = 5;
+        static const int numbersensRow = 6;
+        static const int channelRow = 7;
+        static const int nstripsRow = 8;
+        static const int segmentsRow = 9;
+        static const int striplengthRow = 10;
         static const int pitchpairsRow = 11;
-        static const int striplengthRow = 12;
-        static const int segmentsRow = 13;
-        static const int nstripsRow = 14;
-        static const int numbermodsRow = 15;
-        static const int numbersensRow = 16;
-        static const int channelstripRow = 17;
-        static const int channelptRow = 18;
-        static const int powerRow = 19;
-        static const int powerPerModuleRow = 20;
-        static const int costRow = 21;
-    static const int weightRow = 22;
+	static const int rphiResolutionRow = 12;
+	static const int yResolutionRow = 13;
+	static const int rphiResolutionTriggerRow = 14;
+	static const int yResolutionTriggerRow = 15;
+        static const int stripOccupancyRow = 16;
+        static const int hitOccupancyRow = 17;
+        static const int powerRow = 18;
+        static const int powerPerModuleRow = 19;
+        static const int costRow = 20;
+	static const int weightRow = 21;
         
         // Row names
         moduleTable->setContent(tagRow, 0, "Tag");
         moduleTable->setContent(typeRow, 0, "Type");
-        moduleTable->setContent(areastripRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
-        moduleTable->setContent(areaptRow, 0, "Area (mm"+superStart+"2"+superEnd+")");
+        moduleTable->setContent(moduleAreaRow, 0, "Sensor area (mm"+superStart+"2"+superEnd+")");
+        moduleTable->setContent(totalAreaRow, 0, "Total area (m"+superStart+"2"+superEnd+")");
         moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
         moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
-        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution (um)");
-        moduleTable->setContent(yResolutionRow, 0, "Y resolution (um)");
-        moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] (um)");
-        moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] (um)");
+        moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
+        moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
+        moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
+        moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
         moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
         moduleTable->setContent(striplengthRow, 0, "Strip length");
         moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
         moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
         moduleTable->setContent(numbermodsRow, 0, "N. mod");
         moduleTable->setContent(numbersensRow, 0, "N. sens");
-        moduleTable->setContent(channelstripRow, 0, "Channels (M)");
-        moduleTable->setContent(channelptRow, 0, "Channels (M)");
+        moduleTable->setContent(channelRow, 0, "Channels (M)");
         moduleTable->setContent(powerRow, 0, "Power (kW)");
         moduleTable->setContent(powerPerModuleRow, 0, "Power (W)");
         moduleTable->setContent(costRow, 0, "Cost (MCHF)");
@@ -1628,14 +1621,22 @@ namespace insur {
             }
             // Tag
             aTag.str("");
-            aTag << smallStart << aModule->getTag() << smallEnd;
+            //aTag << smallStart << aModule->getTag() << smallEnd;
+	    aTag << smallStart;
+	    for (std::set<std::string>::iterator strIt = typeMapPositions[(*typeMapIt).first].begin();
+		 strIt!=typeMapPositions[(*typeMapIt).first].end(); ++strIt) 
+	      aTag << (*strIt) << "<br/> ";
+	    aTag << smallEnd;
             // Type
             aType.str("");
             aType << (*typeMapIt).second->getType();
             // Area
-            anArea.str("");
-            anArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
-            if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; }
+            aModuleArea.str("");
+            aModuleArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+	    aTotalArea.str("");
+	    aTotalArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea() *
+	       (*typeMapIt).second->getNFaces() * typeMapCount[(*typeMapIt).first] * 1e-6;
+            // if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; } // TODO: what's this?
             // Occupancy
             aStripOccupancy.str("");
             aHitOccupancy.str("");
@@ -1735,9 +1736,9 @@ namespace insur {
            << powerPerModule * typeMapCount[typeMapIt->first] * 1e-3; // conversion from W to kW
                                                                           // number of modules of this type
 
-        aPowerPerModule.str("");
+	    aPowerPerModule.str("");
             aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
-                << powerPerModule ;
+			    << powerPerModule ;
             totalPower += powerPerModule * typeMapCount[typeMapIt->first] * 1e-3;
 
         // Cost
@@ -1775,37 +1776,25 @@ namespace insur {
             moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
             moduleTable->setContent(costRow, iType, aCost.str());
             moduleTable->setContent(weightRow, iType, aWeight.str());
+	    
+            moduleTable->setContent(moduleAreaRow, iType, aModuleArea.str());
+            moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
+	    moduleTable->setContent(channelRow, iType, aChannel.str());
+	    // moduleTable->setContent(areaRow, iType, anArea.str());
 
-            
-            if ((*typeMapIt).second->getReadoutType()==Module::Strip) {
-                moduleTable->setContent(channelstripRow, iType, aChannel.str());
-                moduleTable->setContent(areastripRow, iType, anArea.str());
-                moduleTable->setContent(channelptRow, iType, "--");
-                moduleTable->setContent(areaptRow, iType, "--");
-            } else {
-                moduleTable->setContent(channelstripRow, iType, "--");
-                moduleTable->setContent(areastripRow, iType, "--");
-                moduleTable->setContent(channelptRow, iType, aChannel.str());
-                moduleTable->setContent(areaptRow, iType, anArea.str());
-            }
         }
 
     // Summary in short
     setSummaryString(tracker.getName());
     setSummaryLabelString("Name");
-    addSummaryElement(totAreaStrips/1e6);
-    addSummaryElement(totAreaPts/1e6);
-    addSummaryElement(totAreaPts/1e6 + totAreaStrips/1e6);
+    addSummaryElement(totArea/1e6);
     addSummaryElement(totCountMod);
     addSummaryElement(totCountSens);
-    addSummaryElement(totChannelStrips / 1e6);
-    addSummaryElement(totChannelPts / 1e6);
+    addSummaryElement(totChannel / 1e6);
     addSummaryElement(totalPower);
     addSummaryElement(totalCost);
     addSummaryElement(totalWeight/1.e3);
 
-    addSummaryLabelElement("Area (strips) mq");
-    addSummaryLabelElement("Area (pt) mq");
     addSummaryLabelElement("Area (total) mq");
     addSummaryLabelElement("Modules");
     addSummaryLabelElement("Sensors");
@@ -1820,14 +1809,14 @@ namespace insur {
         moduleTable->setContent(0, iType, "Total");
         moduleTable->setContent(tagRow, iType, "");
         moduleTable->setContent(typeRow, iType, "");
-        anArea.str("");
-        anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaStrips/1e6
-        << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-        moduleTable->setContent(areastripRow, iType, anArea.str());
-        anArea.str("");
-        anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totAreaPts/1e6
-        << "(m" << superStart << "2" << superEnd << ")" << emphEnd;
-        moduleTable->setContent(areaptRow, iType, anArea.str());
+        aTotalArea.str("");
+        aTotalArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totArea/1e6 << emphEnd;
+        //moduleTable->setContent(areaRow, iType, anArea.str());
+        //anArea.str("");
+        //anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totArea/1e6
+        //<< "(m" << superStart << "2" << superEnd << ")" << emphEnd;
+        // moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
+        moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
         moduleTable->setContent(stripOccupancyRow, iType, "");
         moduleTable->setContent(hitOccupancyRow, iType, "");
         moduleTable->setContent(rphiResolutionRow, iType, "");
@@ -1844,18 +1833,18 @@ namespace insur {
         moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
         aChannel.str("");
         aChannel << emphStart << std::fixed
-        << std::setprecision(millionChannelPrecision)
-        << totChannelStrips / 1e6 << emphEnd;
-        moduleTable->setContent(channelstripRow, iType, aChannel.str());
-        aChannel.str("");
-        aChannel << emphStart << std::fixed
-        << std::setprecision(millionChannelPrecision)
-        << totChannelPts / 1e6 << emphEnd;
-        moduleTable->setContent(channelptRow, iType, aChannel.str());
+		 << std::setprecision(millionChannelPrecision)
+		 << totChannel / 1e6 << emphEnd;
+        moduleTable->setContent(channelRow, iType, aChannel.str());
+        // aChannel.str("");
+        // aChannel << emphStart << std::fixed
+	// 	 << std::setprecision(millionChannelPrecision)
+	// 	 << totChannelPts / 1e6 << emphEnd;
+        // moduleTable->setContent(channelptRow, iType, aChannel.str());
         aPower.str("");
-    aPowerPerModule.str("");
+	aPowerPerModule.str("");
         aCost.str("");
-    aWeight.str("");
+	aWeight.str("");
         aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
         aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
         aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
@@ -2211,8 +2200,8 @@ namespace insur {
         PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // CUIDADO: kludgy at best. we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
         PlotDrawer<YZ, Property, Max> yztfDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
 
-        yzbwDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
-        yztfDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+        yzbwDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
+        yztfDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
 
         yzbwDrawer.drawFrame<HistogramFrameStyle>(triggerDataBandwidthCanvas);
         yztfDrawer.drawFrame<HistogramFrameStyle>(triggerFrequencyPerEventCanvas);
@@ -2299,7 +2288,7 @@ bool Vizard::triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, Root
     PlotDrawer<XY, Method<int, &Module::getProcessorConnections> > xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
     PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Average> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
 
-    yzDrawer.addModules(tracker.getLayers());
+    yzDrawer.addModulesType(tracker.getLayers());
     xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
     xyecDrawer.addModules<CheckType<Module::Endcap> >(tracker.getLayers());
 
@@ -2373,7 +2362,7 @@ bool Vizard::irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& si
     PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
 
     yzPowerDrawer.addModules<CheckType<Module::Barrel | Module::Endcap> >(tracker.getLayers());
-    yzTotalPowerDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+    yzTotalPowerDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
 
     RootWContent& myContent = myPage->addContent("Power maps", true);
 
@@ -3979,7 +3968,7 @@ void Vizard::createSummaryCanvasNicer(Tracker& tracker,
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
     PlotDrawer<YZ, Type> yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
-    yzDrawer.addModules(tracker.getLayers(), Module::Barrel | Module::Endcap);
+    yzDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
@@ -3987,14 +3976,14 @@ void Vizard::createSummaryCanvasNicer(Tracker& tracker,
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
-    xyBarrelDrawer.addModules(tracker.getLayers(), Module::Barrel);
+    xyBarrelDrawer.addModulesType(tracker.getLayers(), Module::Barrel);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
     XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
     XYCanvasEC->cd();
     PlotDrawer<XY, Type> xyEndcapDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
-    xyEndcapDrawer.addModules(tracker.getLayers(), Module::Endcap);
+    xyEndcapDrawer.addModulesType(tracker.getLayers(), Module::Endcap);
     xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
     xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
 

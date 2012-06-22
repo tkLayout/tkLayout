@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
             
     insur::Squid squid;
     bool verboseMaterial = false;
-
+    
     squid.setBasename(basename);
     if (htmldir != "") squid.setHtmlDir(htmldir);
 
