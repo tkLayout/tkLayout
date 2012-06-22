@@ -29,9 +29,7 @@
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
-
-#define userInfo(message) std::cout << message << "..." << std::flush
-#define userInfoEnd() std::cout << "done" << std::endl;
+#include <StopWatch.h>
 
 /**
  * A shorter alias for the filesystem library namespace

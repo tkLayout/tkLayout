@@ -220,6 +220,10 @@ $(LIBDIR)/rootweb.o: $(SRCDIR)/rootweb.cpp $(INCDIR)/rootweb.hh
 $(LIBDIR)/Palette.o: $(SRCDIR)/Palette.cc  $(INCDIR)/Palette.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Palette.o $(SRCDIR)/Palette.cc
 
+# Helper objects
+$(LIBDIR)/StopWatch.o: $(SRCDIR)/StopWatch.cpp $(INCDIR)/StopWatch.h
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/StopWatch.o $(SRCDIR)/StopWatch.cpp
+
 #$(LIBDIR)/rootutils.o: $(SRCDIR)/rootutils.cpp $(INCDIR)/rootutils.h
 #	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/rootutils.o $(SRCDIR)/rootutils.cpp
 
@@ -245,7 +249,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LI
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o $(LIBDIR)/ptError.o
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o $(LIBDIR)/ptError.o $(LIBDIR)/StopWatch.o
 	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
 	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
 	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
@@ -257,6 +261,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/module.o $(LI
 	$(LIBDIR)/tklayout.o \
 	$(LIBDIR)/moduleType.o \
 	$(LIBDIR)/ptError.o \
+	$(LIBDIR)/StopWatch.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 

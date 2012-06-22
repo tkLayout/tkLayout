@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
     usage += "\n\n<config basename> is the user-specified part of the config file names.\nFull names are automatically inferred from it by appending appropriate suffixes\n";
     po::options_description shown("Allowed options");
     int geomtracks, mattracks;
+    int verbosity;
 
     std::string basename, xmldir, htmldir;
 
@@ -32,6 +33,9 @@ int main(int argc, char* argv[]) {
         ("graph,g", "Build and report neighbour graph.")
         ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, basename will be used\nas subdir.")
         ("html-dir", po::value<std::string>(&htmldir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
+        ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
+        ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
+        ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
     ;
 
     po::options_description hidden;
@@ -64,9 +68,15 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-            
     insur::Squid squid;
     bool verboseMaterial = false;
+    unsigned int verboseWatch = verbosity;
+    if (vm.count("quiet")) verboseWatch=0;
+    bool performanceWatch = vm.count("performance");
+    if (performanceWatch) {
+      if (verboseWatch==0) verboseWatch = 1;
+    }
+    StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
     
     squid.setBasename(basename);
     if (htmldir != "") squid.setHtmlDir(htmldir);

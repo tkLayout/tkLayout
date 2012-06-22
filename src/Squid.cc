@@ -37,6 +37,7 @@ namespace insur {
     if (pi) delete pi;
     if (px) delete px;
     if (pixelAnalyzer) delete pixelAnalyzer;    
+    StopWatch::destroy();
   }
     
   /**
@@ -50,13 +51,16 @@ namespace insur {
    */
   bool Squid::buildTracker() {
     if (tr) delete tr;
+    startTaskClock("Building tracker and pixel");
     tr = cp.parseFile(getGeometryFile(), getSettingsFile());
     if (tr) {
       if (px) delete px;
       px = cp.parsePixelsFromFile(getGeometryFile());
       if (px) px->setZError(tr->getZError());
+      stopTaskClock();
       return true;
     }
+    stopTaskClock();
     return false;
   }
     
@@ -72,12 +76,15 @@ namespace insur {
    */
   bool Squid::dressTracker() {
     if (tr) {
+      startTaskClock("Assigning module types to tracker and pixel"); 
       cp.dressTracker(tr, getSettingsFile());
       if (px) cp.dressPixels(px, getSettingsFile());
+      stopTaskClock();
       return true;
     }
     else {
       logERROR(err_no_tracker);
+      stopTaskClock();
       return false;
     }
   }
@@ -88,9 +95,9 @@ namespace insur {
    */
   bool Squid::irradiateTracker() {
     if (tr) {
-      userInfo("Evaluating modules irradiation");
+      startTaskClock("Evaluating modules irradiation");
       cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -123,6 +130,7 @@ namespace insur {
    * @return True if there were no errors during processing, false otherwise
    */
   bool Squid::buildInactiveSurfaces(bool verbose) {
+    startTaskClock("Building inactive surfaces");
     if (getGeometryFile()!="") {
       if (tr) {
 	if (is) delete is;
@@ -133,15 +141,18 @@ namespace insur {
 	  pi = new InactiveSurfaces();
 	  u.arrangePixels(*px, *pi, verbose);
 	}
+        stopTaskClock();
 	return true;
       }
       else {
 	logERROR(err_no_tracker);
+        stopTaskClock();
 	return false;
       }
     }
     else {
       logERROR(err_no_geomfile);
+      stopTaskClock();
       return false;
     }
   }
@@ -221,9 +232,9 @@ namespace insur {
    */
   bool Squid::analyzeNeighbours(std::string graphout) {
     if (is) {
-      userInfo("Creating inactive materials hierarchy");
+      startTaskClock("Creating inactive materials hierarchy");
       v.writeNeighbourGraph(*is, graphout);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     }
     else {
@@ -315,7 +326,7 @@ namespace insur {
    * @return a boolean with the operation success
    */
   bool Squid::makeSite(bool addLogPage /* = true */) {
-    userInfo("Creating website");
+    startTaskClock("Creating website");
     if (!prepareWebsite()) {
       logERROR("Problem in preparing website");
       return false;
@@ -326,7 +337,7 @@ namespace insur {
     }
         
     bool result = site.makeSite(false);
-    userInfoEnd();
+    stopTaskClock();
     return result;
   }
     
@@ -336,9 +347,9 @@ namespace insur {
    */
   bool Squid::pureAnalyzeGeometry(int tracks) {
     if (tr) {
-      userInfo("Analyzing geometry");
+      startTaskClock("Analyzing geometry");
       a.analyzeGeometry(*tr, tracks);
-      userInfoEnd();
+      stopTaskClock();
       return true; // TODO: this return value is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -349,16 +360,16 @@ namespace insur {
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
     if (detailed) {
-      userInfo("Creating distance tuning plots");
+      startTaskClock("Creating distance tuning plots");
       a.createTriggerDistanceTuningPlots(*tr, mainConfiguration.getTriggerMomenta());
-      userInfoEnd();
+      stopTaskClock();
     }
-    userInfo("Creating trigger efficiency plots");
+    startTaskClock("Creating trigger efficiency plots");
     a.analyzeTriggerEfficiency(*tr,
 			       mainConfiguration.getTriggerMomenta(),
 			       mainConfiguration.getThresholdProbabilities(),
 			       tracks);
-    userInfoEnd();
+    stopTaskClock();
     return true;
   }
 
@@ -369,26 +380,26 @@ namespace insur {
    */
   bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
     if (mb) {
-      userInfo("Analyzing material budget and estimating resolution");
+      startTaskClock("Analyzing material budget and estimating resolution");
       a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
-      userInfoEnd();
+      stopTaskClock();
       if (pm) {
 	// TODO: make this much neater!
 	if (pixelAnalyzer) delete pixelAnalyzer;
 	pixelAnalyzer = new Analyzer;
-	userInfo("Analyzing pixel material budget");
+	startTaskClock("Analyzing pixel material budget");
 	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
-	userInfoEnd();
+	stopTaskClock();
       }
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
-	userInfo("Estimating tracking resolution of track-trigger");
+	startTaskClock("Estimating tracking resolution of track-trigger");
 	a.analyzeTrigger(*mb,
 			 mainConfiguration.getMomenta(),
 			 mainConfiguration.getTriggerMomenta(),
 			 mainConfiguration.getThresholdProbabilities(),
 			 tracks, pm);
-	userInfoEnd();
+	stopTaskClock();
       }
       return true;
     } else {
@@ -403,9 +414,9 @@ namespace insur {
    */
   bool Squid::reportGeometrySite() {
     if (tr) {
-      userInfo("Creating geometry report");
+      startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, site);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -415,13 +426,13 @@ namespace insur {
 
   bool Squid::reportBandwidthSite() {
     if (tr) {
-      userInfo("Computing bandwidth and rates");
+      startTaskClock("Computing bandwidth and rates");
       a.computeBandwidth(*tr);
       a.computeTriggerFrequency(*tr);
-      userInfoEnd();
-      userInfo("Creating bandwidth and rates report");
+      stopTaskClock();
+      startTaskClock("Creating bandwidth and rates report");
       v.bandwidthSummary(a, *tr, site);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -431,6 +442,7 @@ namespace insur {
 
 bool Squid::reportTriggerProcessorsSite() {
     if (tr) {
+      startTaskClock("Computing dissipated power");
         a.computeTriggerProcessorsBandwidth(*tr);
         v.triggerProcessorsSummary(a, *tr, site);
         return true;
@@ -443,12 +455,12 @@ bool Squid::reportTriggerProcessorsSite() {
 
 bool Squid::reportPowerSite() {
     if (tr) {
-      userInfo("Computing dissipated power");
+      startTaskClock("Computing dissipated power");
       a.analyzePower(*tr);
-      userInfoEnd();
-      userInfo("Creating power report");
+      stopTaskClock();
+      startTaskClock("Creating power report");
       v.irradiatedPowerSummary(a, *tr, site);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -462,13 +474,13 @@ bool Squid::reportPowerSite() {
    */
   bool Squid::reportMaterialBudgetSite() {
     if (mb) {
-      userInfo("Creating material budget report");
+      startTaskClock("Creating material budget report");
       v.histogramSummary(a, site, "outer");
       if ((pm)&&(pixelAnalyzer)) {
 	v.histogramSummary(*pixelAnalyzer, site, "pixel");
       }
       v.weigthSummart(a, site, "outer");
-      userInfoEnd();
+      stopTaskClock();
       return true;
     }
     else {
@@ -483,10 +495,10 @@ bool Squid::reportPowerSite() {
    */
   bool Squid::reportResolutionSite() {
     if (mb) {
-      userInfo("Creating resolution report");
+      startTaskClock("Creating resolution report");
       v.errorSummary(a, site, "", false);
       v.errorSummary(a, site, "trigger", true);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     }
     else {
@@ -501,9 +513,9 @@ bool Squid::reportPowerSite() {
    * @return True if there were no errors during processing, false otherwise
    */
   bool Squid::reportTriggerPerformanceSite(bool extended) {
-    userInfo("Creating trigger summary report");
+    startTaskClock("Creating trigger summary report");
     if (v.triggerSummary(a, site, extended)) {
-      userInfoEnd();
+      stopTaskClock();
       return true;
     } else {
       logERROR(err_no_triggerSummary);
@@ -526,12 +538,12 @@ bool Squid::reportPowerSite() {
     } else {
       getMaterialFile();
       getPixelMaterialFile();
-      userInfo("Saving additional information");
+      startTaskClock("Saving additional information");
       v.additionalInfoSite(getGeometryFile(), getSettingsFile(),
 			   getMaterialFile(), getPixelMaterialFile(),
 			   defaultMaterialFile, defaultPixelMaterialFile,
 			   a, *tr, site);
-      userInfoEnd();
+      stopTaskClock();
       return true;
     }
   }

@@ -313,9 +313,6 @@ namespace insur {
 
     materialTracksUsed = etaSteps;
     
-#ifdef DEBUG_PERFORMANCE
-    clock_t starttime = clock();
-#endif
     int nTracks;
     double etaStep, eta, theta, phi;
     
@@ -389,28 +386,14 @@ namespace insur {
       }
     }
 
-#ifdef DEBUG_PERFORMANCE
-    std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeTrigger(): ";
-    clock_t endtime = clock();
-    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-#endif
-
     // Compute the number of triggering points along the selected tracks
     // fillTriggerEfficiencyGraphs(triggerMomenta, tv);
 
     // Fill the trigger performance maps
     // fillTriggerPerformanceMaps(tracker);
 
-#ifdef DEBUG_PERFORMANCE
-    starttime = clock();
-#endif
     calculateGraphs(momenta, tv, graphBag::TriggerGraph | graphBag::RealGraph);
     calculateGraphs(momenta, tvIdeal, graphBag::TriggerGraph | graphBag::IdealGraph);
-#ifdef DEBUG_PERFORMANCE
-    std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeTrigger(): ";
-    endtime = clock();
-    std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-#endif
   }
 
 
@@ -969,9 +952,6 @@ namespace insur {
         double efficiency = tracker.getEfficiency();
         double pixelEfficiency = tracker.getPixelEfficiency();
         materialTracksUsed = etaSteps;
-#ifdef DEBUG_PERFORMANCE
-        clock_t starttime = clock();
-#endif
         int nTracks;
         double etaStep, eta, theta, phi;
         clearMaterialBudgetHistograms();
@@ -1236,11 +1216,6 @@ namespace insur {
             }
         }
 
-#ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: material summary by analyzeMaterialBudget(): ";
-        clock_t endtime = clock();
-        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-#endif
 #ifdef MATERIAL_SHADOW       
         // integration over eta
         for (unsigned int i = 0; i < cells.size(); i++) {
@@ -1255,16 +1230,8 @@ namespace insur {
 
 if (computeResolution) {
         // fill TGraph map
-#ifdef DEBUG_PERFORMANCE
-    starttime = clock();
-#endif
     calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
     calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
-#ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: tracking performance summary by analyzeMaterialBudget(): ";
-        endtime = clock();
-        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-#endif
 }
     }
 
@@ -3460,9 +3427,6 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         std::pair <XYZVector, double> aLine;
         ModuleVector hitModules;
         
-#ifdef DEBUG_PERFORMANCE
-        clock_t starttime = clock();
-#endif
         
         int nTrackHits;
         int nTracksPerSide = int(pow(nTracks, 0.5));
@@ -3513,11 +3477,6 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         }
         
         savingGeometryV.push_back(mapPhiEta);
-#ifdef DEBUG_PERFORMANCE
-        std::cerr << "DEBUG_PERFORMANCE: tracks for analyzeGeometry(): ";
-        clock_t endtime = clock();
-        std::cerr << "elapsed time: " << diffclock(endtime, starttime)/1000. << "s" << std::endl;
-#endif
 
         // Eta profile compute
         //TProfile *myProfile;

@@ -39,11 +39,11 @@ namespace insur {
      */
     InactiveSurfaces& Usher::arrangePixels(Tracker& pixels, InactiveSurfaces& is, bool printstatus) {
         TrackerIntRep pintrep;
-        std::cout << "Arranging Pixel configuration..." << std::flush;
+        startTaskClock("Arranging Pixel configuration");
         is.setUp(pintrep.analyze(pixels));
         is = servicesUp(pintrep, is, inner_radius, true);
         is = supportsAll(pintrep, is, inner_radius, "", true);
-        std::cout << "done." << std::endl;
+        stopTaskClock();
         is = mirror(pintrep, is);
         if (printstatus) print(pintrep, is, false);
         return is;
@@ -60,10 +60,10 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
-        std::cout << "Arranging UP configuration..." << std::flush;
+        startTaskClock("Arranging UP configuration");
         is = servicesUp(tracker, is, r_outer, false);
         is = supportsAll(tracker, is, r_outer, geomfile, false);
-        std::cout << "done." << std::endl;
+        stopTaskClock();
         return is;
     }
     
@@ -77,10 +77,10 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
-        std::cout << "Arranging DOWN configuration..."<< std::flush;
+        startTaskClock("Arranging DOWN configuration");
         is = servicesDown(tracker, is, r_outer, false);
         is = supportsAll(tracker, is, r_outer, geomfile, false);
-        std::cout << "done." << std::endl;
+        stopTaskClock();
         return is;
     }
     
@@ -92,7 +92,7 @@ namespace insur {
      * @return A reference to the modified collection of inactive surfaces
      */
     InactiveSurfaces& Usher::mirror(TrackerIntRep& tracker, InactiveSurfaces& is) {
-        std::cout << "Mirroring barrel services..." << std::flush;
+        startTaskClock("Mirroring barrel services");
         // number of barrel service volumes that need to be reflected
         unsigned int half = is.getBarrelServices().size();
         // barrel service loop
@@ -151,7 +151,8 @@ namespace insur {
                 is.addBarrelServicePart(tube);
             }
         }
-        std::cout << "done." << std::endl << "Mirroring endcap services..." << std::flush;
+        stopTaskClock();
+        startTaskClock("Mirroring endcap services");
         // number of endcap service volumes that need to be reflected
         half = is.getEndcapServices().size();
         // endcap service loop
@@ -180,7 +181,8 @@ namespace insur {
                 is.addEndcapServicePart(tube);
             }
         }
-        std::cout << "done." << std::endl << "Mirroring supports..." << std::flush;
+        stopTaskClock();
+        startTaskClock("Mirroring supports");
         // number of support volumes that may need to be reflected
         half = is.getSupports().size();
         // supports loop
@@ -200,7 +202,7 @@ namespace insur {
                 }
             }
         }
-        std::cout << "done." << std::endl;
+        stopTaskClock();
         return is;
     }
     

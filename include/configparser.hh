@@ -8,6 +8,7 @@
 #include <exception>
 #include "tracker.hh"
 #include "global_funcs.h"
+#include <StopWatch.h>
 
 #define NMAXCHARS 100 // Max number of characters for parameterName[index]
 

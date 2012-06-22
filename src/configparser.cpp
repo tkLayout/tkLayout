@@ -1490,33 +1490,38 @@ bool configParser::parseObjectType(string myType) {
             }
         }
     } else if (myType=="Barrel") {
-        cout << "Creating barrel ";
+        startTaskClock("Creating barrel");
         str=getTill(configFile_, '{', true);
         if (str!="") {
-            cout << str << endl;
+            addTaskInfo(str);
+            //cout << str << endl;
             typeConfig=getTill(configFile_, '}', false);
             if (typeConfig!="") {
                 istringstream typeStream(typeConfig);
                 parseBarrel(str, typeStream);
             }
         }
+        stopTaskClock();
     } else if (myType=="Endcap") {
-        cout << "Creating endcap ";
+        startTaskClock("Creating endcap");
         str=getTill(configFile_, '{', true);
         if (str!="") {
-            cout << str << endl;
+            addTaskInfo(str);
+            //cout << str << endl;
             typeConfig=getTill(configFile_, '}', false);
             if (typeConfig!="") {
                 istringstream typeStream(typeConfig);
                 parseEndcap(str, typeStream);
             }
         }
+        stopTaskClock();
     } else if (myType=="Support") {
         getTill(configFile_, '}', false, true);
     } else if (myType=="Pixels") {
         getTill(configFile_, '}', false, true);
     } else {
-        cerr << "ERROR: unknown piece of tracker " << myType;
+        ostringstream tempSS; tempSS << "Unknown piece of tracker " << myType;
+        logERROR(tempSS);
         return false;
     }
     
@@ -1531,27 +1536,28 @@ bool configParser::parseDressType(string myType) {
     string typeConfig;
     
     if (myType=="BarrelType") {
-        cout << "Assigning module types to barrel ";
+        startTaskClock("Assigning module types to barrel");
         str=getTill(configFile_, '{', true);
         if (str!="") {
-            cout << str << endl;
+            //cout << str << endl;
             typeConfig=getTill(configFile_, '}', false);
             if (typeConfig!="") {
                 istringstream typeStream(typeConfig);
                 parseBarrelType(str, typeStream);
             }
         }
+        stopTaskClock();
     } else if (myType=="EndcapType") {
-        cout << "Assigning module types to endcap ";
+        startTaskClock("Assigning module types to endcap");
         str=getTill(configFile_, '{', true);
         if (str!="") {
-            cout << str << endl;
             typeConfig=getTill(configFile_, '}', false);
             if (typeConfig!="") {
                 istringstream typeStream(typeConfig);
                 parseEndcapType(str, typeStream);
             }
         }
+        stopTaskClock();
     } else if (myType=="Output") {
         getTill(configFile_, '{', false, true);
         typeConfig = getTill(configFile_, '}', false, true);
@@ -1562,7 +1568,8 @@ bool configParser::parseDressType(string myType) {
     } else if (myType=="PixelType") {
         getTill(configFile_, '}', false, true);
     } else {
-        cerr << "ERROR: unknown module type assignment keyword: " << myType;
+        std::ostringstream tempSS; tempSS << "Unknown module type assignment keyword: " << myType;
+        logERROR(tempSS);
         return false;
     }
     
@@ -1583,7 +1590,7 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
     if (!typesFileName.empty()) peekTypes(typesFileName);
 
     if (rawConfigFile_.is_open()) {
-        cerr << "ERROR: Tracker config file is already open" << endl;
+        logERROR("Tracker config file is already open");
         return result;
     }
     
@@ -1616,7 +1623,8 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
                 if (!parseObjectType(str)) break;
             }
         } catch (exception& e) {
-            cerr << e.what() << endl;
+            ostringstream tempSS; tempSS << e.what() << endl;
+            logERROR(tempSS);
             rawConfigFile_.close();
             if (myTracker_) delete myTracker_; myTracker_ = NULL;
             return NULL;
@@ -1829,13 +1837,14 @@ bool configParser::dressPixels(Tracker* aTracker, string configFileName) {
         try {
             while(configFile_ >> str) {
                 if (str == "PixelType") {
-                    cout << "Assigning module types to pixels " << endl;
+                    startTaskClock("Assigning module types to pixels");
                     getTill(configFile_, '{', false, true);
                     typeConfig = getTill(configFile_, '}', false, true);
                     if (typeConfig != "") {
                         istringstream typeStream(typeConfig);
                         parsePixelType(typeStream);
                     }
+                    stopTaskClock();  
                 }
             }
         } catch (exception& e) {
