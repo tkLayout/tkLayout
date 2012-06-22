@@ -1165,11 +1165,11 @@ namespace insur {
         double tmp, scalar;
         // find the multiplier to convert from the source surface to the destination surface
         scalar = dest.getSurface() / source.getSurface();
-        for (unsigned int j = 0; j < source.exitingMassCount(); j++) {
+        for (std::map<std::string, double>::const_iterator it = source.getExitingMasses().begin(); it != source.getExitingMasses().end(); ++it) {
             // scale incoming material with respect to the new geometry
-            tmp = scalar * source.getExitingMass(j);
+            tmp = scalar * it->second;
             // save scaled material
-            dest.addExitingMass(source.getExitingTag(j), tmp);
+            dest.addExitingMass(it->first, tmp);
         }
     }
 }

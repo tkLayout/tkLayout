@@ -63,18 +63,22 @@ namespace insur {
         // to be used by the subclasses
         virtual double getSurface();
         // material mass handling
+        const std::map<std::string, double>& getLocalMasses() const;
+        const std::map<std::string, double>& getExitingMasses() const;
+        const std::map<std::string, double>& getLocalMassesComp() const;
+        const std::map<std::string, double>& getExitingMassesComp() const;
         double getLocalMass(std::string tag); // throws exception
-        double getLocalMass(int index); // throws exception
+//        double getLocalMass(int index); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
-        double getLocalMassComp(int index); // throws exception
-        std::string getLocalTag(int index);
-        std::string getLocalTagComp(int index);
+//        double getLocalMassComp(int index); // throws exception
+//        std::string getLocalTag(int index);
+//        std::string getLocalTagComp(int index);
         double getExitingMass(std::string tag); // throws exception
-        double getExitingMass(int index); // throws exception
+//        double getExitingMass(int index); // throws exception
         double getExitingMassComp(std::string tag); // throws exception
-        double getExitingMassComp(int index); // throws exception
-        std::string getExitingTag(int index);
-        std::string getExitingTagComp(int index);
+//        double getExitingMassComp(int index); // throws exception
+//        std::string getExitingTag(int index);
+//        std::string getExitingTagComp(int index);
         //void setLocalMass(std::string tag, std::string comp, double ms);
         void addLocalMass(std::string tag, std::string comp, double ms);
         void addLocalMass(std::string tag, double ms);
@@ -112,8 +116,8 @@ namespace insur {
         bool msl_set, mse_set, trck;
         // geometry-dependent parameters
         Category cat;
-        std::vector<std::pair<std::string, double> > localmasses, exitingmasses;
-        std::vector<std::pair<std::string, double> > localmassesComp, exitingmassesComp;
+        std::map<std::string, double> localmasses, exitingmasses;
+        std::map<std::string, double> localmassesComp, exitingmassesComp;
 
         std::map<std::string, std::map<std::string, double> > localCompMats, exitingCompMats; // format here is <component name string, <material name, mass> >
 
@@ -124,23 +128,23 @@ namespace insur {
         std::string getSuperName(std::string name) const;
         std::string getSubName(std::string name) const;
 	// Masses by type
-        void setLocalMass(std::pair<std::string, double> ms);
-        void addLocalMass(std::pair<std::string, double> ms);
-        void setExitingMass(std::pair<std::string, double> ms);
-        void addExitingMass(std::pair<std::string, double> ms);
-        int findLocalIndex(std::string tag);
-        int findExitingIndex(std::string tag);
-        bool newLocalMaterial(std::string tag);
-        bool newExitingMaterial(std::string tag);
+//        void setLocalMass(std::pair<std::string, double> ms);
+//        void addLocalMass(std::pair<std::string, double> ms);
+//        void setExitingMass(std::pair<std::string, double> ms);
+//        void addExitingMass(std::pair<std::string, double> ms);
+//        int findLocalIndex(std::string tag);
+//        int findExitingIndex(std::string tag);
+//        bool newLocalMaterial(std::string tag);
+//        bool newExitingMaterial(std::string tag);
 	// Masses by component
-        void setLocalMassComp(std::pair<std::string, double> ms);
-        void addLocalMassComp(std::pair<std::string, double> ms);
-        void setExitingMassComp(std::pair<std::string, double> ms);
-        void addExitingMassComp(std::pair<std::string, double> ms);
-        int findLocalIndexComp(std::string comp);
-        int findExitingIndexComp(std::string comp);
-        bool newLocalComp(std::string comp);
-        bool newExitingComp(std::string comp);
+//        void setLocalMassComp(std::pair<std::string, double> ms);
+//        void addLocalMassComp(std::pair<std::string, double> ms);
+//        void setExitingMassComp(std::pair<std::string, double> ms);
+//        void addExitingMassComp(std::pair<std::string, double> ms);
+//        int findLocalIndexComp(std::string comp);
+//        int findExitingIndexComp(std::string comp);
+//        bool newLocalComp(std::string comp);
+//        bool newExitingComp(std::string comp);
 
     };
 }

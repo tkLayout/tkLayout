@@ -1596,8 +1596,14 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
     ModuleCap* myModuleCap;
     Module* myModule;
     
-    unsigned int nLocalMasses;
-    unsigned int nExitingMasses;
+  //  unsigned int nLocalMasses;
+  //  unsigned int nExitingMasses;
+
+    std::map<std::string, double>::const_iterator localmassesBegin;
+    std::map<std::string, double>::const_iterator localmassesEnd;
+
+    std::map<std::string, double>::const_iterator exitingmassesBegin;
+    std::map<std::string, double>::const_iterator exitingmassesEnd;
 
     // First create a list of material used anywhere
     std::vector<std::string> materialTagV;
@@ -1645,23 +1651,33 @@ void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
         }
       }
       if (byMaterial) { // sort by Material tag
-        nLocalMasses = myModuleCap->localMassCount();
-        nExitingMasses = myModuleCap->exitingMassCount();
+        //nLocalMasses = myModuleCap->localMassCount();
+        //nExitingMasses = myModuleCap->exitingMassCount();
+        localmassesBegin = myModuleCap->getLocalMasses().begin();
+        localmassesEnd = myModuleCap->getLocalMasses().end();
+        exitingmassesBegin = myModuleCap->getExitingMasses().begin();
+        exitingmassesEnd = myModuleCap->getExitingMasses().end();
       } else { // sort by Component tag
-        nLocalMasses = myModuleCap->localMassCompCount();
-        nExitingMasses = myModuleCap->exitingMassCompCount();
+        //nLocalMasses = myModuleCap->localMassCompCount();
+        //nExitingMasses = myModuleCap->exitingMassCompCount();
+        localmassesBegin = myModuleCap->getLocalMassesComp().begin();
+        localmassesEnd = myModuleCap->getLocalMassesComp().end();
+        exitingmassesBegin = myModuleCap->getExitingMassesComp().begin();
+        exitingmassesEnd = myModuleCap->getExitingMassesComp().end();
       }
-      for (unsigned int iLocalMasses=0; iLocalMasses < nLocalMasses; ++iLocalMasses) {
-        if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
-        else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
+      for (std::map<std::string, double>::const_iterator it = localmassesBegin; it != localmassesEnd; ++it) {
+       // if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
+      //  else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
+        materialTag = it->first;
         materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
         if (materialTagIt==materialTagV.end()) {
           materialTagV.push_back(materialTag);
         }
       }
-      for (unsigned int iExitingMasses=0; iExitingMasses < nExitingMasses; ++iExitingMasses) {
-        if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
-        else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
+      for (std::map<std::string, double>::const_iterator it = exitingmassesBegin; it != exitingmassesEnd; ++it) {
+      //  if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
+      //  else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
+        materialTag = it->first;
         materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
         if (materialTagIt==materialTagV.end()) {
           materialTagV.push_back(materialTag);

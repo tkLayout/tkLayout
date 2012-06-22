@@ -66,9 +66,8 @@ namespace insur {
      * @return The mass of the requested material
      */
     double MaterialProperties::getLocalMass(std::string tag) { // throws exception
-        int index = findLocalIndex(tag);
-        if (index < 0) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + tag);
-        return getLocalMass(index);
+        if (!localmasses.count(tag)) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + tag);
+        return localmasses.at(tag);
     }
 
     /**
@@ -78,57 +77,10 @@ namespace insur {
      * @return The mass of the requested component
      */
     double MaterialProperties::getLocalMassComp(std::string comp) { // throws exception
-        int index = findLocalIndexComp(comp);
-        if (index < 0) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + comp);
-        return getLocalMassComp(index);
+        if (!localmassesComp.count(comp)) throw std::runtime_error("MaterialProperties::getLocalMass(std::string): " + err_local_mass + ": " + comp);
+        return localmassesComp.at(comp);
     }
     
-    /**
-     * Get the local mass of one of the materials, as identified by its internal index, that make up the element.
-     * If the material does not appear on the list, the function throws an exception.
-     * @param index The internal index of the material
-     * @return The mass of the requested material
-     */
-    double MaterialProperties::getLocalMass(int index) { // throws exception
-        if (index < 0 || index >= (int)localmasses.size()) throw std::runtime_error("MaterialProperties::getLocalMass(int): " + err_local_mass);
-        return localmasses.at(index).second;
-    }
-
-    /**
-     * Get the local mass of one of the components, as identified by its internal index, that make up the element.
-     * If the component does not appear on the list, the function throws an exception.
-     * @param index The internal index of the component
-     * @return The mass of the requested component
-     */
-    double MaterialProperties::getLocalMassComp(int index) { // throws exception
-        if (index < 0 || index >= (int)localmassesComp.size()) throw std::runtime_error("MaterialProperties::getLocalMass(int): " + err_local_mass);
-        return localmassesComp.at(index).second;
-    }
-    
-    /**
-     * Get the tag of one of the local materials that make up the element by its internal index. If the material
-     * does not appear on the list, the function returns an empty string.
-     * @param index The internal index of the material
-     * @return The unique identifier of the requested material
-     */
-    std::string MaterialProperties::getLocalTag(int index) {
-        std::string res;
-        if ((index >= 0) && (index < (int)localmasses.size())) res = localmasses.at(index).first;
-        return res;
-    }
-    
-
-    /**
-     * Get the tag of one of the local component that make up the element by its internal index. If the component
-     * does not appear on the list, the function returns an empty string.
-     * @param index The internal index of the component
-     * @return The unique identifier of the requested component
-     */
-    std::string MaterialProperties::getLocalTagComp(int index) {
-        std::string res;
-        if ((index >= 0) && (index < (int)localmassesComp.size())) res = localmassesComp.at(index).first;
-        return res;
-    }
     
     /**
      * Get the exiting mass of one of the materials, as identified by its name, that make up the element.
@@ -137,21 +89,14 @@ namespace insur {
      * @return The mass of the requested material
      */
     double MaterialProperties::getExitingMass(std::string tag) { // throws exception
-        int index = findExitingIndex(tag);
-        if (index < 0) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + tag);
-        return getExitingMass(index);
+        if (!exitingmasses.count(tag)) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + tag);
+        return exitingmasses.at(tag);
     }
     
-    /**
-     * Get the exiting mass of one of the materials, as identified by its internal index, that make up the element.
-     * If the material does not appear on the list, the function throws an exception.
-     * @param index The internal index of the material
-     * @return The mass of the requested material
-     */
-    double MaterialProperties::getExitingMass(int index) { // throws exception
-        if (index < 0 || index >= (int)exitingmasses.size()) throw std::runtime_error("MaterialProperties::getExitingMass(int): " + err_exiting_mass);
-        return exitingmasses.at(index).second;
-    }
+    const std::map<std::string, double>& MaterialProperties::getLocalMasses() const { return localmasses; }
+    const std::map<std::string, double>& MaterialProperties::getExitingMasses() const { return exitingmasses; }
+    const std::map<std::string, double>& MaterialProperties::getLocalMassesComp() const { return localmassesComp; }
+    const std::map<std::string, double>& MaterialProperties::getExitingMassesComp() const { return exitingmassesComp; }
 
     /**
      * Get the exiting mass of one of the components, as identified by its name, that make up the element.
@@ -160,60 +105,10 @@ namespace insur {
      * @return The mass of the requested component
      */
     double MaterialProperties::getExitingMassComp(std::string comp) { // throws exception
-        int index = findExitingIndexComp(comp);
-        if (index < 0) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + comp);
-        return getExitingMassComp(index);
+        if (!exitingmassesComp.count(comp)) throw std::runtime_error("MaterialProperties::getExitingMass(std::string): " + err_exiting_mass + ": " + comp);
+        return exitingmassesComp.at(comp);
     }
     
-    /**
-     * Get the exiting mass of one of the components, as identified by its internal index, that make up the element.
-     * If the component does not appear on the list, the function throws an exception.
-     * @param index The internal index of the component
-     * @return The mass of the requested component
-     */
-    double MaterialProperties::getExitingMassComp(int index) { // throws exception
-        if (index < 0 || index >= (int)exitingmassesComp.size()) throw std::runtime_error("MaterialProperties::getExitingMass(int): " + err_exiting_mass);
-        return exitingmassesComp.at(index).second;
-    }
-    
-    /**
-     * Get the tag of one of the exiting materials that make up the element by its internal index. If the material
-     * does not appear on the list, the function returns an empty string.
-     * @param index The internal index of the material
-     * @return The unique identifier of the requested material
-     */
-    std::string MaterialProperties::getExitingTag(int index) {
-        std::string res;
-        if ((index >=0) && (index < (int)exitingmasses.size())) res = exitingmasses.at(index).first;
-        return res;
-    }
-
-    /**
-     * Get the tag of one of the exiting components that make up the element by its internal index. If the component
-     * does not appear on the list, the function returns an empty string.
-     * @param index The internal index of the component
-     * @return The unique identifier of the requested component
-     */
-    std::string MaterialProperties::getExitingTagComp(int index) {
-        std::string res;
-        if ((index >=0) && (index < (int)exitingmassesComp.size())) res = exitingmassesComp.at(index).first;
-        return res;
-    }
-    
-    /**
-     * Set the local mass of one of the materials, as identified by its name, that make up the element.
-     * If no material with the given name is found on the list, nothing happens.
-     * @param tag The name of the material
-     * @param ms The new mass of the material
-     */
-  /*
-  void MaterialProperties::setLocalMass(std::string tag, std::string comp, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        setLocalMass(p);
-        std::pair<std::string, double> pc(comp, ms);
-        setLocalMassComp(pc);
-    }
-  */
     
     /**
      * Add the local mass for a material, as specified by its tag, to the internal list.
@@ -223,8 +118,8 @@ namespace insur {
      * @param ms The mass value
      */
   void MaterialProperties::addLocalMass(std::string tag, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        addLocalMass(p);
+        msl_set = true;
+        localmasses[tag] += ms;
     }
 
     /**
@@ -237,26 +132,12 @@ namespace insur {
      * @param ms The mass value
      */
   void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        addLocalMass(p);
-        std::pair<std::string, double> pc(getSubName(comp), ms);
-        addLocalMassComp(pc);
+        msl_set = true;
+        localmasses[tag] += ms;
+        localmassesComp[getSubName(comp)] += ms;
         localCompMats[comp][tag] += ms; 
     }
     
-    /**
-     * Set the exiting mass of one of the materials, as identified by its name, that make up the element.
-     * If no material with the given name is found on the list, nothing happens.
-     * @param tag The name of the material
-     * @param ms The new mass of the material
-     */
-  /*
-  void MaterialProperties::setExitingMass(std::string tag, std::string comp, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        setExitingMass(p);
-        std::pair<std::string, double> pc(comp, ms);
-        setExitingMassComp(pc);
-	}*/
     
     /**
      * Add the exiting mass for a material, as specified by its tag, to the internal list.
@@ -266,8 +147,8 @@ namespace insur {
      * @param ms The mass value
      */
   void MaterialProperties::addExitingMass(std::string tag, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        addExitingMass(p);
+        mse_set = true;
+        exitingmasses[tag] += ms;
     }
 
     /**
@@ -280,10 +161,13 @@ namespace insur {
      * @param ms The mass value
      */
   void MaterialProperties::addExitingMass(std::string tag, std::string comp, double ms) {
-        std::pair<std::string, double> p(tag, ms);
-        addExitingMass(p);
-        std::pair<std::string, double> pc(getSubName(comp), ms);
-        addExitingMassComp(pc);
+    //    std::pair<std::string, double> p(tag, ms);
+     //   addExitingMass(p);
+        mse_set = true;
+        exitingmasses[tag] += ms;
+     //   std::pair<std::string, double> pc(getSubName(comp), ms);
+     //   addExitingMassComp(pc);
+        exitingmassesComp[getSubName(comp)] += ms;
 
         exitingCompMats[comp][tag] += ms; 
     }
@@ -405,7 +289,9 @@ namespace insur {
     void MaterialProperties::calculateLocalMass(double offset) {
         if (msl_set) {
             local_mass = offset;
-            for (unsigned int i = 0; i < localmasses.size(); i++) local_mass = local_mass + localmasses.at(i).second;
+            for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+                local_mass += it->second;
+            }
         }
     }
     
@@ -418,7 +304,9 @@ namespace insur {
     void MaterialProperties::calculateExitingMass(double offset) {
         if (mse_set) {
             exiting_mass = offset;
-            for (unsigned int i = 0; i < exitingmasses.size(); i++) exiting_mass = exiting_mass + exitingmasses.at(i).second;
+            for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
+                exiting_mass += it->second;
+            }
         }
     }
     /**
@@ -432,16 +320,8 @@ namespace insur {
             r_length = offset;
             if (msl_set) {
                 // local mass loop
-                for (unsigned int i = 0; i < localmasses.size(); i++) {
-                    try {
-                        r_length = r_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).rlength * getSurface() / 100.0);
-                    }
-                    catch(std::runtime_error& re) {
-                        std::cerr << "MaterialProperties::calculateRadiationLength(): " << re.what() << std::endl;
-                    }
-                    catch(std::exception& e) {
-                        std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_local << e.what() << std::endl;
-                    }
+                for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+                    r_length += it->second / (materials.getMaterial(it->first).rlength * getSurface() / 100.0);
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
@@ -451,16 +331,8 @@ namespace insur {
             }
             if (mse_set) {
                 // exiting mass loop
-                for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-                    try {
-                        r_length = r_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).rlength * getSurface() / 100.0);
-                    }
-                    catch(std::runtime_error& re) {
-                        std::cerr << "MaterialProperties::calculateRadiationLength(): " << re.what() << std::endl;
-                    }
-                    catch(std::exception& e) {
-                        std::cout << "MaterialProperties::calculateRadiationLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
-                    }
+                for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
+                    r_length += it->second / (materials.getMaterial(it->first).rlength * getSurface() / 100.0);
                 }
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
@@ -482,17 +354,10 @@ namespace insur {
             i_length = offset;
             if (msl_set) {
                 // local mass loop
-                for (unsigned int i = 0; i < localmasses.size(); i++) {
-                    try {
-                        i_length = i_length + localmasses.at(i).second / (materials.getMaterial(localmasses.at(i).first).ilength * getSurface() / 100.0);
-                    }
-                    catch(std::runtime_error& re) {
-                        std::cerr << "MaterialProperties::calculateInteractionLength(): " << re.what() << std::endl;
-                    }
-                    catch(std::exception& e) {
-                        std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_local << e.what() << std::endl;
-                    }
+                for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+                    i_length += it->second / (materials.getMaterial(it->first).ilength * getSurface() / 100.0);
                 }
+                    
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
                         componentsRI[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
@@ -501,17 +366,10 @@ namespace insur {
             }
             if (mse_set) {
                 // exiting mass loop
-                for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-                    try {
-                        i_length = i_length + exitingmasses.at(i).second / (materials.getMaterial(exitingmasses.at(i).first).ilength * getSurface() / 100.0);
-                    }
-                    catch(std::runtime_error& re) {
-                        std::cerr << "MaterialProperties::calculateInteractionLength(): " << re.what() << std::endl;
-                    }
-                    catch(std::exception& e) {
-                        std::cout << "MaterialProperties::calculateInteractionLength(): " << msg_mattab_except_exiting << e.what() << std::endl;
-                    }
+                for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
+                    i_length += it->second / (materials.getMaterial(it->first).ilength * getSurface() / 100.0);
                 }
+
                 for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
                     for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
                         componentsRI[getSuperName(cit->first)].interaction += mit->second / (materials.getMaterial(mit->first).ilength * getSurface() / 100.0);
@@ -539,13 +397,14 @@ namespace insur {
     void MaterialProperties::print() {
         std::cout << "Material properties (current state)" << std::endl;
         std::cout << "localmasses: vector with " << localmasses.size() << " elements." << std::endl;
-        for (unsigned int i = 0; i < localmasses.size(); i++) {
-            std::cout << "Material " << i << " (material, mass): (" << localmasses.at(i).first << ", " << localmasses.at(i).second << ")" << std::endl;
-        }
+        int i = 0;
+        for (std::map<std::string, double>::const_iterator it = localmasses.begin(); it != localmasses.end(); ++it)
+            std::cout << "Material " << i++ << " (material, mass): (" << it->first << ", " << it->second << ")" << std::endl;
+        i = 0;
         std::cout << "exitingmasses: vector with " << exitingmasses.size() << " elements." << std::endl;
-        for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-            std::cout << "Material " << i << " (material, mass): (" << exitingmasses.at(i).first << ", " << exitingmasses.at(i).second << ")" << std::endl;
-        }
+        for (std::map<std::string, double>::const_iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it)
+            std::cout << "Material " << i++ << " (material, mass): (" << it->first << ", " << it->second << ")" << std::endl;
+
         std::cout << "total_mass = " << total_mass << std::endl;
         std::cout << "local_mass = " << local_mass << std::endl;
         std::cout << "exiting_mass = " << exiting_mass << std::endl;
@@ -570,233 +429,7 @@ namespace insur {
         std::pair<std::string, std::string> split;
         std::getline(ss, split.first, '_');
         std::getline(ss, split.second, '_');
-        return  split.first;
-    }
-    /**
-     * Set the local mass of one of the materials, as identified by its name, that make up the element.
-     * If no material with the given name is found on the list, nothing happens.
-     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::setLocalMass(std::pair<std::string, double> ms) {
-        int index = findLocalIndex(ms.first);
-        if (index >= 0)  {
-            localmasses.at(index) = ms;
-            msl_set = true;
-        }
-    }
-    
-    /**
-     * Add the local mass for a material, as specified by its tag, to the internal list.
-     * If the given material is already listed with a mass value, that value is replaced.
-     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::addLocalMass(std::pair<std::string, double> ms) {
-        if (newLocalMaterial(ms.first)) {
-            localmasses.push_back(ms);
-            msl_set = true;
-        }
-        else {
-	  ms.second += getLocalMass(ms.first);
-	  setLocalMass(ms);
-        }
-    }
-    
-    /**
-     * Set the exiting mass of one of the materials, as identified by its name, that make up the element.
-     * If no material with the given name is found on the list, nothing happens.
-     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::setExitingMass(std::pair<std::string, double> ms) {
-        int index = findExitingIndex(ms.first);
-        if (index >= 0)  {
-            exitingmasses.at(index) = ms;
-            mse_set = true;
-        }
-    }
-    
-    /**
-     * Add the exiting mass for a material, as specified by its tag, to the internal list.
-     * If the given material is already listed with a mass value, that value is replaced.
-     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::addExitingMass(std::pair<std::string, double> ms) {
-        if (newExitingMaterial(ms.first)) {
-            exitingmasses.push_back(ms);
-            mse_set = true;
-        }
-        else {
-	  ms.second += getExitingMass(ms.first);
-	  setExitingMass(ms);
-        }
-    }
-    
-    /**
-     * Find the index of an entry in the local mass vector from the material tag.
-     * @param The name of the material
-     * @return The material index in the internal mass vector; -1 if the material is not listed
-     */
-    int MaterialProperties::findLocalIndex(std::string tag) {
-        bool found = false;
-        int index = 0;
-        while ((index < (int)localmasses.size()) && !found) {
-            if (tag.compare(localmasses.at(index).first) == 0) found = true;
-            else index++;
-        }
-        if (!found) return -1;
-        return index;
-    }
-    
-    /**
-     * Find the index of an entry in the exiting mass vector from the material tag.
-     * @param The name of the material
-     * @return The material index in the internal mass vector; -1 if the material is not listed
-     */
-    int MaterialProperties::findExitingIndex(std::string tag) {
-        bool found = false;
-        int index = 0;
-        while (!found && (index < (int)exitingmasses.size())) {
-            if (tag.compare(exitingmasses.at(index).first) == 0) found = true;
-            else index++;
-        }
-        if (!found) return -1;
-        return index;
-    }
-    
-    /**
-     * Check if a material is already listed with in the local mass vector
-     * @param tag The material name
-     * @return True if the material is not listed in the vector, false otherwise
-     */
-    bool MaterialProperties::newLocalMaterial(std::string tag) {
-        for (unsigned int i = 0; i < localmasses.size(); i++) {
-            if (tag.compare(localmasses.at(i).first) == 0) return false;
-        }
-        return true;
-    }
-    
-    /**
-     * Check if a material is already listed with in the exiting mass vector
-     * @param tag The material name
-     * @return True if the material is not listed in the vector, false otherwise
-     */
-    bool MaterialProperties::newExitingMaterial(std::string tag) {
-        for (unsigned int i = 0; i < exitingmasses.size(); i++) {
-            if (tag.compare(exitingmasses.at(i).first) == 0) return false;
-        }
-        return true;
-    }
-
-
-  // Components instead of tags
-
-    /**
-     * Set the local mass of one of the components, as identified by its name, that make up the element.
-     * If no component with the given name is found on the list, nothing happens.
-     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::setLocalMassComp(std::pair<std::string, double> ms) {
-        int index = findLocalIndexComp(ms.first);
-        if (index >= 0)  {
-            localmassesComp.at(index) = ms;
-        }
-    }
-    
-    /**
-     * Add the local mass for a component, as specified by its tag, to the internal list.
-     * If the given component is already listed with a mass value, that value is replaced.
-     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::addLocalMassComp(std::pair<std::string, double> ms) {
-        if (newLocalComp(ms.first)) {
-            localmassesComp.push_back(ms);
-        }
-        else {
-	  ms.second += getLocalMassComp(ms.first);
-	  setLocalMassComp(ms);
-        }
-    }
-    
-    /**
-     * Set the exiting mass of one of the components, as identified by its name, that make up the element.
-     * If no component with the given name is found on the list, nothing happens.
-     * @param ms The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::setExitingMassComp(std::pair<std::string, double> ms) {
-        int index = findExitingIndexComp(ms.first);
-        if (index >= 0)  {
-            exitingmassesComp.at(index) = ms;
-        }
-    }
-    
-    /**
-     * Add the exiting mass for a component, as specified by its tag, to the internal list.
-     * If the given component is already listed with a mass value, that value is replaced.
-     * @param tk The <i>string, double</i> pair that defines an entry in the mass vector
-     */
-    void MaterialProperties::addExitingMassComp(std::pair<std::string, double> ms) {
-        if (newExitingComp(ms.first)) {
-            exitingmassesComp.push_back(ms);
-        }
-        else {
-	  ms.second += getExitingMassComp(ms.first);
-	  setExitingMassComp(ms);
-        }
-    }
-    
-    /**
-     * Find the index of an entry in the local mass vector from the component tag.
-     * @param The name of the component
-     * @return The component index in the internal mass vector; -1 if the component is not listed
-     */
-    int MaterialProperties::findLocalIndexComp(std::string tag) {
-        bool found = false;
-        int index = 0;
-        while ((index < (int)localmassesComp.size()) && !found) {
-            if (tag.compare(localmassesComp.at(index).first) == 0) found = true;
-            else index++;
-        }
-        if (!found) return -1;
-        return index;
-    }
-    
-    /**
-     * Find the index of an entry in the exiting mass vector from the component tag.
-     * @param The name of the component
-     * @return The component index in the internal mass vector; -1 if the component is not listed
-     */
-    int MaterialProperties::findExitingIndexComp(std::string tag) {
-        bool found = false;
-        int index = 0;
-        while (!found && (index < (int)exitingmassesComp.size())) {
-            if (tag.compare(exitingmassesComp.at(index).first) == 0) found = true;
-            else index++;
-        }
-        if (!found) return -1;
-        return index;
-    }
-    
-    /**
-     * Check if a component is already listed with in the local mass vector
-     * @param tag The component name
-     * @return True if the component is not listed in the vector, false otherwise
-     */
-    bool MaterialProperties::newLocalComp(std::string tag) {
-        for (unsigned int i = 0; i < localmassesComp.size(); i++) {
-            if (tag.compare(localmassesComp.at(i).first) == 0) return false;
-        }
-        return true;
-    }
-    
-    /**
-     * Check if a component is already listed with in the exiting mass vector
-     * @param tag The component name
-     * @return True if the component is not listed in the vector, false otherwise
-     */
-    bool MaterialProperties::newExitingComp(std::string tag) {
-        for (unsigned int i = 0; i < exitingmassesComp.size(); i++) {
-            if (tag.compare(exitingmassesComp.at(i).first) == 0) return false;
-        }
-        return true;
+        return split.first;
     }
 
 }
