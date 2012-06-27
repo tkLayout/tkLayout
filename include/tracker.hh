@@ -29,6 +29,9 @@
 
 #define COLOR_INVALID_MODULE kGray+1
 
+#define REASONABLE_MAX_ROD_MODULES 50  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of modules that a rod will have (in case the MaxZ placement strategy is used)
+
+
 // TODO: add slanted gap between barrel and end-cap
 
 using namespace ROOT::Math;
@@ -193,8 +196,8 @@ public:
 
   // Standard barrel builder
   LayerVector buildBarrel(int nLayer, double minRadius, double maxRadius,
-		   int nModules, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
-		   bool compressed = false, bool shortBarrel = false );
+		   const BarrelLayer::ModulePlacementStrategy& moduleStrategy, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
+		   bool compressed = false, bool shortBarrel = false, bool sameRods = false );
   // Barrel builder for backwards compatibility with the command-line version
 /*  void buildBarrel(int nLayer, double minRadius, double maxRadius,
 		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,

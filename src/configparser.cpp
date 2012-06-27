@@ -240,7 +240,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     int readoutMode = Module::Binary;
     int nBarrelLayers = 0;
     //double minZ=0;
-    bool shortBarrel;
+    bool sameRods = false;
+    bool shortBarrel = false;
     double maxZ=0;
     double barrelRhoIn = 0;
     double barrelRhoOut = 0;
@@ -309,6 +310,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                 phiSegments=atoi(parameterValue.c_str());
             } else if (parameterName=="shortBarrel") {
                 shortBarrel=(parameterValue=="true");
+            } else if (parameterName=="sameRods") {
+                sameRods=(parameterValue=="true");
             } else if (parameterName=="minimumZ") {  // deprecated. mantained for backwards compatibility
                 shortBarrel=(atof(parameterValue.c_str())>0.);
             } else if (parameterName=="maximumZ") {
@@ -462,16 +465,19 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         sampleBarrelModule->setResolutionRphi();
         sampleBarrelModule->setResolutionY();
       
-        LayerVector myBarrelLayers =  
-        myTracker_->buildBarrel(nBarrelLayers,
-                barrelRhoIn,
-                barrelRhoOut,
-                nBarrelModules,
-                sampleBarrelModule,
-                myName,
-                Layer::NoSection,
-                true,
-                shortBarrel); // Actually build a compressed barrel (mezzanine or normal)
+        const BarrelLayer::ModulePlacementStrategy& placeWithMaxZ = BarrelLayer::PlaceWithMaxZ(maxZ);
+        const BarrelLayer::ModulePlacementStrategy& placeWithNumModules = BarrelLayer::PlaceWithNumModules(nBarrelModules);
+
+        LayerVector myBarrelLayers = myTracker_->buildBarrel(nBarrelLayers,
+                                                             barrelRhoIn,
+                                                             barrelRhoOut,
+                                                             maxZ != 0 ? placeWithMaxZ : placeWithNumModules, 
+                                                             sampleBarrelModule,
+                                                             myName,
+                                                             Layer::NoSection,
+                                                             true,
+                                                             shortBarrel, 
+                                                             sameRods); // Actually build a compressed barrel (mezzanine or normal)
         
         delete sampleBarrelModule; // Dispose of the sample module
         if (maxZ!=0)
@@ -930,6 +936,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     int diskParity = 0;
     double smallDelta = 0.5;
     double bigDelta = 3;
+    bool sameRods = false;
     pair<double, double> bmsize, emsize; // width, length
     map<int, double> layerDirectives;
     map<int, LayerOption> layerOptions;
@@ -963,6 +970,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
                 phiSegments = atoi(parameterValue.c_str());
             } else if (parameterName == "barrelGap") {
                 barrelToEndcap = atof(parameterValue.c_str());
+            } else if (parameterName == "sameRods") {
+                sameRods = (parameterValue == "true");
             } else if (parameterName == "maximumZ") {
                 maxZ = atof(parameterValue.c_str());
             } else if (parameterName == "diskParity") {
@@ -1110,7 +1119,11 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     BarrelModule* sampleBarrelModule = new BarrelModule(waferDiameter, aspectRatio);
     sampleBarrelModule->setResolutionRphi();
     sampleBarrelModule->setResolutionY();
-    myTracker_->buildBarrel(nLayers, rIn, rOut, nModules, sampleBarrelModule, myName, Layer::NoSection, true, 0.0);
+
+    const BarrelLayer::ModulePlacementStrategy& placeWithMaxZ = BarrelLayer::PlaceWithMaxZ(maxZ);
+    const BarrelLayer::ModulePlacementStrategy& placeWithNumModules = BarrelLayer::PlaceWithNumModules(nModules);
+
+    myTracker_->buildBarrel(nLayers, rIn, rOut, maxZ != 0 ? placeWithMaxZ : placeWithNumModules, sampleBarrelModule, myName, Layer::NoSection, true, false, sameRods);
     delete sampleBarrelModule;
     
     if (nDisks > 0) {

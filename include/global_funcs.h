@@ -5,14 +5,14 @@ template<typename ArgType> std::string any2str(const ArgType& from, int precisio
     std::stringstream to("");
     if (precision > -1) {
         to.precision(precision);
-        to.setf(ios::fixed, ios::floatfield);
+        to.setf(std::ios::fixed, std::ios::floatfield);
     }
     to << from;
     return to.str();
 }
 
 template<typename RetType>
-RetType str2any(const string& from) {
+RetType str2any(const std::string& from) {
     std::stringstream ssfrom(from);
     RetType to;
     ssfrom >> to;
