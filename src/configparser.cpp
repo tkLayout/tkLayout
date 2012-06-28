@@ -1958,11 +1958,11 @@ bool configParser::peekTypes(string configFileName) {
     }
 
     std::string line;
-    std::string keyword, blockName;
-    for(int lineCount = 0; std::getline(filein, line); lineCount++) {
+    std::string keyword, blockName; 
+    for(int lineCount = 1; std::getline(filein, line); lineCount++) {
         line.erase(0, line.find_first_not_of(" \t"));
         line.erase(line.find_last_not_of(" \t")+1); // trim line
-        if (line.find("\\\\") != string::npos) line.erase(line.find("\\\\")); // remove comments
+        if (line.find("//") != string::npos) line.erase(line.find("//")); // remove comments
         if (line.empty() || isspace(line.at(0))) continue; // skip empty lines
 
         std::istringstream parser(line);
