@@ -1186,7 +1186,7 @@ namespace insur {
             //    std::pair<std::string, double> p;
             //    p.first = mp.getLocalTag(i);
             //    p.second = mp.getLocalMass(i);
-            //    comp.elements.push_back(*it);
+                comp.elements.push_back(*it);
             //    m = m + mp.getLocalMass(i);
                   m += it->second;
             }
