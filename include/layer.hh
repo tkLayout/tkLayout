@@ -291,7 +291,6 @@ private:
   double compute_l(double x, double y, double d);
   double compute_d(double x, double y, double l);
 
-
 public:
   ~EndcapLayer();
   EndcapLayer();
@@ -310,6 +309,22 @@ public:
                        double diskZ, 
                        double overlap, 
                        double zError,
+                       const std::vector<double>& dsDistances,
+                       int phiSegments, 
+                       bool oddSegments, bool alignEdges,
+                       std::map<int, EndcapModule*> sampleModule, 
+                       std::map<int, int> ringDirectives, 
+                       int diskParity,
+                       int sectioned = NoSection);
+
+  void buildSingleDisk(int nRings,
+                       double maxRadius,
+                       double smallDelta, 
+                       double bigDelta,
+                       double diskZ, 
+                       double overlap, 
+                       double zError,
+                       const std::vector<double>& dsDistances,
                        int phiSegments, 
                        bool oddSegments, bool alignEdges,
                        std::map<int, EndcapModule*> sampleModule, 

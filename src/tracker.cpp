@@ -281,7 +281,8 @@ void Tracker::placeModuleLite(Module* aModule) {
 LayerVector Tracker::buildBarrel(int nLayer,
                                  double minRadius,
                                  double maxRadius,
-                                 const BarrelLayer::ModulePlacementStrategy& moduleStrategy,
+                                 double maxZ, // maxZ and nModules should be alternative (i.e if one is set the other should be zero)
+                                 int nModules,
                                  BarrelModule* sampleModule,
                                  std::string barrelName,
                                  int section /* = NoSection */,
@@ -302,12 +303,18 @@ LayerVector Tracker::buildBarrel(int nLayer,
 
   std::pair<double, double> worstCaseRadii = sameRods ? std::make_pair(minRadius, maxRadius) : std::make_pair(-1.0, -1.0);
 
+  if (maxZ != 0 && nModules != 0) { logWARNING("Barrel " + barrelName + " has both MaxZ and nModules defined. nModules will be ignored."); }
+
+  const BarrelLayer::ModulePlacementStrategy& placeWithMaxZ = BarrelLayer::PlaceWithMaxZ(maxZ);
+  const BarrelLayer::ModulePlacementStrategy& placeWithNumModules = BarrelLayer::PlaceWithNumModules(nModules);
+  const BarrelLayer::ModulePlacementStrategy& moduleStrategy = maxZ > 0 ? placeWithMaxZ : placeWithNumModules;
+
   if (sameRods) { logINFO("Building barrel " + barrelName + " with identical rods"); }
 
   for (int i=0; i<nLayer; i++) {
     double radius = minRadius + (nLayer > 1 ? (maxRadius-minRadius)/double(nLayer-1)*i : 0);
 
-    std::vector<double> geometryDsDistances = getGeometryDsDistances(barrelName, i+1, REASONABLE_MAX_ROD_MODULES);
+    std::vector<double> geometryDsDistances = getGeometryDsDistances(barrelName, i+1, maxZ > 0 ? REASONABLE_MAX_ROD_MODULES : nModules);
     if (i > 0 && sameRods && !std::equal(prevDsDistances.begin(), prevDsDistances.end(), geometryDsDistances.begin())) {
       logWARNING("Requested identical rods for barrel " + barrelName + " but layer " + any2str(i+1) + " has different dsDistances than previous layers in the Types file. Using dsDistances found for layer 1.");
       geometryDsDistances = prevDsDistances;
@@ -392,7 +399,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                worstCaseRadii,
                                getBigDelta(i+1),
                                getSmallDelta(i+1) ,
-                               getGeometryDsDistances(barrelName, i+1, REASONABLE_MAX_ROD_MODULES),
+                               geometryDsDistances,
                                overlap_,     // overlap
                                zError_,      // safetyOrigin
                                moduleStrategy,    
@@ -442,7 +449,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
      }
      }*/
 
-  double maxZ=getMaxBarrelZ(+1);
+  maxZ=getMaxBarrelZ(+1);
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
   // TODO: update this value if you want an independent compacting of the barrel section
 
@@ -671,7 +678,7 @@ double Tracker::getMaxBarrelZ(int direction) {
   return maxZ;
 }
 
-void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
+void Tracker::buildEndcapsAtEta(int nDisks, int nRings, double minZ, double maxZ, double maxEta, double maxRadius,
                                 std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
                                 bool oddSegments, bool alignEdges,
                                 int sectioned /* = Layer::NoSection */ ) {
@@ -679,13 +686,13 @@ void Tracker::buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double max
   double minTheta = 2*atan(exp(-1*maxEta));
   double minRadius = minZ * tan(minTheta);
 
-  buildEndcaps(nDisks, minZ, maxZ, minRadius, maxRadius,
+  buildEndcaps(nDisks, nRings, minZ, maxZ, minRadius, maxRadius,
                sampleModule, endcapName, diskParity, oddSegments, alignEdges, sectioned );
 
 }
 
 
-void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
+void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, double minRadius, double maxRadius,
                            std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
                            bool oddSegments, bool alignEdges,
                            int sectioned /* = Layer::NoSection */ ) {
@@ -702,16 +709,45 @@ void Tracker::buildEndcaps(int nDisks, double minZ, double maxZ, double minRadiu
   EndcapLayer* defaultDisk = new EndcapLayer();
   EndcapLayer* anotherDisk;
 
-  defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
-                                bigDelta_, (minZ+maxZ)/2, overlap_,
-                                zError_+(maxZ-minZ)/2,
-                                phiSegments_, // Base
-                                oddSegments, alignEdges,
-                                sampleModule,
-                                ringDirectives_,
-                                diskParity,
-                                sectioned );
-
+  int estimatedNrings = nRings > 0 ? nRings : REASONABLE_MAX_DISK_RINGS;
+  std::vector<double> geometryDsDistances(estimatedNrings, 0);
+  for (int i = 1; i <= nDisks; i++) {
+    std::vector<double> tempDsDistances = getGeometryDsDistances(endcapName, i, estimatedNrings);
+    for (int j = 0; j < estimatedNrings; j++) {
+      if (tempDsDistances[j] > geometryDsDistances[j]) geometryDsDistances[j] = tempDsDistances[j]; 
+    }
+  }
+  
+  if (nRings > 0) {
+    if (minRadius > 0) { logWARNING("Endcap " + endcapName + " has both nRings and innerRadius defined. innerRadius will be ignored."); } 
+    for (std::map<int, EndcapModule*>::iterator it = sampleModule.begin(); it != sampleModule.end(); ++it) {
+      if (it->second->getShape()==Module::Wedge) { logERROR("Option nRings is incompatible with wedge-shaped modules. Endcap " + endcapName + " might be built incorrectly."); break; }
+    }
+    if (diskParity == -1) { logWARNING("Endcap " + endcapName + " will be built top-to-bottom, but has diskParity = -1. This will lead to a non-optimal coverage."); }
+    logINFO("Endcap " + endcapName + " will be built top-to-bottom with a fixed number of rings (" + any2str(nRings) + ").");
+    defaultDisk->buildSingleDisk( nRings, maxRadius, smallDelta_,
+                                  bigDelta_, (minZ+maxZ)/2, overlap_,
+                                  zError_+(maxZ-minZ)/2,
+                                  geometryDsDistances,
+                                  phiSegments_, // Base
+                                  oddSegments, alignEdges,
+                                  sampleModule,
+                                  ringDirectives_,
+                                  diskParity,
+                                  sectioned );
+  } else {
+    logINFO("Endcap " + endcapName + " will be built bottom-to-top with a number of rings depending on the innerRadius (" + any2str(minRadius) + ").");
+    defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
+                                  bigDelta_, (minZ+maxZ)/2, overlap_,
+                                  zError_+(maxZ-minZ)/2,
+                                  geometryDsDistances,
+                                  phiSegments_, // Base
+                                  oddSegments, alignEdges,
+                                  sampleModule,
+                                  ringDirectives_,
+                                  diskParity,
+                                  sectioned );
+  }
 
   std::ostringstream layerName;
   EndcapModule* anEndcapModule;
@@ -1557,6 +1593,10 @@ void Tracker::setGeometryDsDistance(std::string cntName, int firstIndex, double 
 
 std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a Layer in case of barrel or a Ring in case of endcap
   std::vector<double> dsDistances(numModules, 0);
+  if (geometryDsDistance_.count(cntName) && geometryDsDistance_.at(cntName).count(0)) {  // DS DISTANCE OVERRIDE - whatever is written at index 0 takes precedence over any other setting
+    dsDistances.assign(numModules, geometryDsDistance_.at(cntName).at(0));
+    return dsDistances;
+  }
   if (geometryDsDistance_.count(cntName) && geometryDsDistance_.at(cntName).count(index)) {
     dsDistances.assign(numModules, geometryDsDistance_.at(cntName).at(index));
   }

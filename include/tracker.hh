@@ -31,6 +31,7 @@
 
 #define REASONABLE_MAX_ROD_MODULES 50  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of modules that a rod will have (in case the MaxZ placement strategy is used)
 
+#define REASONABLE_MAX_DISK_RINGS 30  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of rings that a disk will have (in case they are created bottom-to-top with a specified innerRadius)
 
 // TODO: add slanted gap between barrel and end-cap
 
@@ -73,7 +74,7 @@ protected:
   static const double defaultNMB_ = 200;
   static const double defaultBunchSpacingNs_ = 25;
   static const bool defaultUseIPConstraint_ = true; // in the trigger fit use the ip constraint by default
-  
+
 private:
   void setDefaultParameters();
   void shapeVolume();
@@ -165,7 +166,7 @@ private:
   std::pair <XYZVector, double > shootDirection(double minEta, double maxEta); // obsolete
   std::pair <XYZVector, double > shootFixedDirection(double phi, double eta);  // obsolete
   std::pair <XYZVector, double > shootDirectionFixedPhi(double minEta, double maxEta); // obsolete
-  
+
   // Formatted output
   void printHtmlTableRow(std::ofstream *output, std::vector<std::string> myRow);
   void printHtmlTableRow(std::ofstream *output, std::vector<double> myRow, int coordPrecision = 0, bool skimZero = false);
@@ -196,12 +197,12 @@ public:
 
   // Standard barrel builder
   LayerVector buildBarrel(int nLayer, double minRadius, double maxRadius,
-		   const BarrelLayer::ModulePlacementStrategy& moduleStrategy, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
-		   bool compressed = false, bool shortBarrel = false, bool sameRods = false );
+                          double maxZ, int nModules, BarrelModule* sampleModule, std::string barrelName, int section = Layer::NoSection,
+                          bool compressed = false, bool shortBarrel = false, bool sameRods = false );
   // Barrel builder for backwards compatibility with the command-line version
-/*  void buildBarrel(int nLayer, double minRadius, double maxRadius,
-		   int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
-		   bool compressed = false ); */
+  /*  void buildBarrel(int nLayer, double minRadius, double maxRadius,
+      int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
+      bool compressed = false ); */
 
   // Adjustment for short barrels
   void alignShortBarrels();
@@ -211,15 +212,15 @@ public:
 
 
   // Standard endcap builder
-  void buildEndcaps(int nDisks, double minZ, double maxZ, double minRadius, double maxRadius,
-		    std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
-		    bool oddSegments, bool alignEdges,
-		    int sectioned = Layer::NoSection ); 
+  void buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, double minRadius, double maxRadius,
+                    std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+                    bool oddSegments, bool alignEdges,
+                    int sectioned = Layer::NoSection ); 
   // Gets the minimum radius from eta and minimum Z
-  void buildEndcapsAtEta(int nDisks, double minZ, double maxZ, double maxEta, double maxRadius,
-			 std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
-			 bool oddSegments, bool alignEdges,
-			 int sectioned = Layer::NoSection ); 
+  void buildEndcapsAtEta(int nDisks, int nRings, double minZ, double maxZ, double maxEta, double maxRadius,
+                         std::map<int, EndcapModule*> sampleModule, std::string endcapName, int diskParity,
+                         bool oddSegments, bool alignEdges,
+                         int sectioned = Layer::NoSection ); 
 
   // Endcap ring remover
   void removeDiskRings(std::string sectionName, int iDisk, int iRing, bool directionOuter);
@@ -359,7 +360,7 @@ public:
 
     sectionMap_[sectionName].push_back(aLayer);
   };
-  
+
   // 3D geometry output preparation
   void createGeometry(bool lite = false); // should be made obsolete (currently used by analyzer)  or be restricted in use: no canvases
 
@@ -387,34 +388,34 @@ public:
 
   //void setModuleTypes();
   void setModuleTypes(std::string sectionName,
-		      std::map<int, int> nStripsAcross,
-		      std::map<int, int> nFaces,
-		      std::map<int, int> nSegments,
-		      std::map<int, std::string> myType, 
+                      std::map<int, int> nStripsAcross,
+                      std::map<int, int> nFaces,
+                      std::map<int, int> nSegments,
+                      std::map<int, std::string> myType, 
                       std::map<int, double> dsDistance,
                       std::map<int, int> triggerWindow,
                       std::map<int, double> dsRotation,
-		      std::map<int, int> divideBack,
-		      std::map<int, double> xResolution,
-		      std::map<int, double> yResolution,
-		      std::map<std::pair<int, int>, int> nStripsAcrossSecond,
-		      std::map<std::pair<int, int>, int> nFacesSecond,
-		      std::map<std::pair<int, int>, int> nSegmentsSecond,
-		      std::map<std::pair<int, int>, std::string> myTypeSecond,
+                      std::map<int, int> divideBack,
+                      std::map<int, double> xResolution,
+                      std::map<int, double> yResolution,
+                      std::map<std::pair<int, int>, int> nStripsAcrossSecond,
+                      std::map<std::pair<int, int>, int> nFacesSecond,
+                      std::map<std::pair<int, int>, int> nSegmentsSecond,
+                      std::map<std::pair<int, int>, std::string> myTypeSecond,
                       std::map<std::pair<int, int>, double> dsDistanceSecond,
                       std::map<std::pair<int, int>, int> triggerWindowSecond,
                       std::map<std::pair<int, int>, double> dsRotationSecond,
-		      std::map<std::pair<int, int>, int> divideBackSecond,
-		      std::map<std::pair<int, int>, bool> specialSecond);
+                      std::map<std::pair<int, int>, int> divideBackSecond,
+                      std::map<std::pair<int, int>, bool> specialSecond);
 
 
-        void setGeometryDsDistance(std::string cntName, int firstIndex, int secondIndex, double value);
-        void setGeometryDsDistance(std::string cntName, int firstIndex, double value);
-    void setGeometryDsDistances(std::map<std::string, std::map<int, double> > geometryDsDistance, std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond) {
-        geometryDsDistance_ = geometryDsDistance;
-        geometryDsDistanceSecond_ = geometryDsDistanceSecond;
-    }
-    std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
+  void setGeometryDsDistance(std::string cntName, int firstIndex, int secondIndex, double value);
+  void setGeometryDsDistance(std::string cntName, int firstIndex, double value);
+  void setGeometryDsDistances(std::map<std::string, std::map<int, double> > geometryDsDistance, std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond) {
+    geometryDsDistance_ = geometryDsDistance;
+    geometryDsDistanceSecond_ = geometryDsDistanceSecond;
+  }
+  std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
 };
 

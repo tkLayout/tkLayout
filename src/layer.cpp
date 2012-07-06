@@ -1356,6 +1356,116 @@ double EndcapLayer::compute_d(double x, double y, double l) {
   return result;
 }
 
+
+void EndcapLayer::buildSingleDisk(int nRings,
+                                  double maxRadius,
+                                  double smallDelta,
+                                  double bigDelta,
+                                  double diskZ,
+                                  double overlap,
+                                  double zError,
+                                  const std::vector<double>& dsDistances,
+                                  int phiSegments,
+                                  bool oddSegments, bool alignEdges,
+                                  std::map<int, EndcapModule*> sampleModules,
+                                  std::map<int, int> ringDirectives,
+                                  int diskParity,
+                                  int sectioned /*=NoSection*/) {
+
+  averageZ_=diskZ;
+
+  std::map<int, int>::iterator aDirective;
+
+  int ringParity;
+  int nearDirection = int(diskZ/fabs(diskZ))*-1;
+  int nRing;
+  int addModules;
+
+  double lastRho = 0;
+  double nextRho = maxRadius;   
+  //double nextRho = minRadius;
+  //double destZ;
+  XYZVector shiftThis;
+  edge aSide;
+  edge minSafetyEdge;
+  std::ostringstream tag;
+
+//  if ((nRings % 2) == 0) diskParity *= -1; // if rings are even, since we're going top to bottom, we have to invert the parity of the topmost to end up with the correct parity for the bottom one
+
+  for (nRing=nRings; nRing>0; nRing--) {
+    EndcapModule* sampleModule = sampleModules[nRing];
+    if (sampleModule==NULL) sampleModule = sampleModules[0];
+    if (sampleModule==NULL) {
+      std::cerr << "ERROR: a module prototype is not available for ring " << nRing
+        << " i will not populate this ring" << std::endl;
+      // TODO (important!): put a proper error handling here
+      // For the moment it will just segfault (hi hi hi)
+    }
+    tempString.str(""); tempString  << "Ring number " << nRing;
+    logDEBUG(tempString);
+    // Ring parity is 1, -1, 1, -1 for
+    //      nRing=    1,  2, 3,  4
+    // if diskParity==1 and the opposite, otherwise
+    ringParity = diskParity*(((nRing%2)*2)-1);
+
+    sampleModule->setRing(nRing);
+
+    // Debug
+    tempString.str(""); tempString  << "Looking for directives of ring " << nRing;
+    logINFO(tempString);
+
+    aDirective = ringDirectives.find(nRing);
+    if (aDirective!=ringDirectives.end()) {
+      addModules = ringDirectives[nRing];
+      logINFO("Found a directive");
+    } else {
+      addModules = 0;
+      logINFO("Found no directive");
+    }
+
+    nextRho -= sampleModule->getHeight(); // we do this because the buildRing builds modules from bottom to top, so we tell it to start building the ring from the min radius
+    // ringParity = 1 means the ring is nearer to the interaction point
+    lastRho = buildRing(nextRho,
+                        smallDelta,
+                        ringParity*bigDelta,
+                        diskZ,
+                        overlap,
+                        phiSegments,
+                        oddSegments, alignEdges,
+                        nearDirection,
+                        sampleModule,
+                        maxRadius,
+                        addModules,
+                        sectioned);
+
+    tempString.str(""); tempString << "smallDelta: " << smallDelta;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "bigDelta: " << bigDelta;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "lastrho: " << lastRho;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "aRingModule = new EndcapModule(*sampleModule, "
+      << 100/lastRho << ", " << lastRho << ", -1);";
+    logDEBUG(tempString);
+
+    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
+    double originZ = ringParity > 0 ? zError : -zError;
+    double nextRhoOrigin = (nextRho + overlap)/lastZ * newZ;
+    double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);
+
+    nextRho = nextRhoOrigin > nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
+
+  }
+
+  nOfRings_ = nRings;
+
+}
+
+#define NEWENDCAP
+
+#ifdef NEWENDCAP
+
 void EndcapLayer::buildSingleDisk(double minRadius,
                                   double maxRadius,
                                   double smallDelta,
@@ -1363,6 +1473,112 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                                   double diskZ,
                                   double overlap,
                                   double zError,
+                                  const std::vector<double>& dsDistances,
+                                  int phiSegments,
+                                  bool oddSegments, bool alignEdges,
+                                  std::map<int, EndcapModule*> sampleModules,
+                                  std::map<int, int> ringDirectives,
+                                  int diskParity,
+                                  int sectioned /*=NoSection*/) {
+
+  averageZ_=diskZ;
+
+  //EndcapModule* aRingModule;
+
+  //EndcapModule* trialModule[3];
+
+  std::map<int, int>::iterator aDirective;
+
+
+  int ringParity;
+  int nearDirection = int(diskZ/fabs(diskZ))*-1;
+  int nRing;
+  int addModules;
+
+  double lastRho = 0;
+  double nextRho = minRadius;
+
+  for (nRing=1; lastRho<maxRadius; nRing++) {
+    EndcapModule* sampleModule = sampleModules[nRing];
+    if (sampleModule==NULL) sampleModule = sampleModules[0];
+    if (sampleModule==NULL) {
+      std::cerr << "ERROR: a module prototype is not available for ring " << nRing
+        << " i will not populate this ring" << std::endl;
+      // TODO (important!): put a proper error handling here
+      // For the moment it will just segfault (hi hi hi)
+    }
+    tempString.str(""); tempString  << "Ring number " << nRing;
+    logDEBUG(tempString);
+    // Ring parity is 1, -1, 1, -1 for
+    //      nRing=    1,  2, 3,  4
+    // if diskParity==1 and the opposite, otherwise
+    ringParity = diskParity*(((nRing%2)*2)-1);
+
+    sampleModule->setRing(nRing);
+
+    // Debug
+    tempString.str(""); tempString  << "Looking for directives of ring " << nRing;
+    logINFO(tempString);
+
+    aDirective = ringDirectives.find(nRing);
+    if (aDirective!=ringDirectives.end()) {
+      addModules = ringDirectives[nRing];
+      logINFO("Found a directive");
+    } else {
+      addModules = 0;
+      logINFO("Found no directive");
+    }
+
+    // ringParity = 1 means the ring is nearer to the interaction point
+    lastRho = buildRing(nextRho,
+                        smallDelta,
+                        ringParity*bigDelta,
+                        diskZ,
+                        overlap,
+                        phiSegments,
+                        oddSegments, alignEdges,
+                        nearDirection,
+                        sampleModule,
+                        maxRadius,
+                        addModules,
+                        sectioned);
+
+    tempString.str(""); tempString << "smallDelta: " << smallDelta;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "bigDelta: " << bigDelta;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "lastrho: " << lastRho;
+    logDEBUG(tempString);
+    tempString.str(""); tempString << "aRingModule = new EndcapModule(*sampleModule, "
+      << 100/lastRho << ", " << lastRho << ", -1);";
+    logDEBUG(tempString);
+
+    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;   // CUIDADO: ULTRA HERMETIC COVERAGE?
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
+    double originZ = ringParity > 0 ? -zError : +zError;
+    double nextRhoOrigin = (lastRho - overlap)/lastZ * newZ;
+    double nextRhoOrigin2 = (lastRho)/lastZ * newZ - overlap;
+    double nextRhoShifted = lastRho/(lastZ - originZ) * (newZ - originZ);
+
+    nextRho = nextRhoOrigin < nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
+  
+    nextRhoOrigin2 = nextRhoOrigin2;
+  }
+
+  nOfRings_ = nRing - 1;
+
+}
+
+#else
+
+void EndcapLayer::buildSingleDisk(double minRadius,
+                                  double maxRadius,
+                                  double smallDelta,
+                                  double bigDelta,
+                                  double diskZ,
+                                  double overlap,
+                                  double zError,
+                                  const std::vector<double>& dsDistances,
                                   int phiSegments,
                                   bool oddSegments, bool alignEdges,
                                   std::map<int, EndcapModule*> sampleModules,
@@ -1446,6 +1662,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     tempString.str(""); tempString << "aRingModule = new EndcapModule(*sampleModule, "
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
+
     aRingModule = new EndcapModule(*sampleModule, 100/lastRho, lastRho, -1);
 
     aRingModule->setRing(nRing);
@@ -1529,12 +1746,14 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     tempString.str(""); tempString << "Ring computation: using safety rule #" << minSafetyEdge.second;
     nextRho = minSafetyEdge.first;
     tempString << " next radius at rho: " << nextRho;
-    logDEBUG(tempString);
+    logDEBUG(tempString); 
   }
 
   nOfRings_ = nRing - 1;
 
 }
+
+#endif
 
 // Returns a 'standard' module
 double EndcapLayer::buildRing(double minRadius,
