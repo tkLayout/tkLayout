@@ -241,6 +241,7 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
   int nBarrelLayers = 0;
   //double minZ=0;
   bool sameRods = false;
+  bool compress = true;
   bool shortBarrel = false;
   double maxZ=0;
   double barrelRhoIn = 0;
@@ -313,6 +314,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
         shortBarrel=(parameterValue=="true");
       } else if (parameterName=="sameRods") {
         sameRods=(parameterValue=="true");
+      } else if (parameterName=="compress") {
+        compress=(parameterValue=="true");
       } else if (parameterName=="minimumZ") {  // deprecated. mantained for backwards compatibility
         shortBarrel=(atof(parameterValue.c_str())>0.);
       } else if (parameterName=="maximumZ") {
@@ -436,8 +439,8 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
 
 
   // Actually creating the barrel if all the mandatory parameters were set
-  if (((nBarrelLayers > 1) && (barrelRhoIn != 0) && (barrelRhoOut != 0) && (nBarrelModules != 0)) || 
-      ((nBarrelLayers == 1)&& (barrelRhoIn != 0) && (nBarrelModules != 0))) { // single-layer barrel disregard the outerRadius parameter and place the layer at the innerRadius
+  if (((nBarrelLayers > 1) && (barrelRhoIn != 0) && (barrelRhoOut != 0) && ((nBarrelModules != 0) || (maxZ != 0))  ) || 
+      ((nBarrelLayers == 1)&& (barrelRhoIn != 0) && ((nBarrelModules != 0) || (maxZ != 0)) )) { // single-layer barrel disregard the outerRadius parameter and place the layer at the innerRadius
 
 
     if ((size.first==0)||(size.second==0)) {
@@ -477,12 +480,12 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
                                                          sampleBarrelModule,
                                                          myName,
                                                          Layer::NoSection,
-                                                         true,
+                                                         compress,
                                                          shortBarrel, 
                                                          sameRods); // Actually build a compressed barrel (mezzanine or normal)
 
     delete sampleBarrelModule; // Dispose of the sample module
-    if (maxZ!=0)
+    if ((maxZ!=0)&&compress)
       myTracker_->compressBarrelLayers(myBarrelLayers, shortBarrel, maxZ);
 
   } else {
