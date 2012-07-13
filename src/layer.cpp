@@ -1357,7 +1357,7 @@ double EndcapLayer::compute_d(double x, double y, double l) {
 }
 
 
-void EndcapLayer::buildSingleDisk(int nRings,
+void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings version
                                   double maxRadius,
                                   double smallDelta,
                                   double bigDelta,
@@ -1392,7 +1392,9 @@ void EndcapLayer::buildSingleDisk(int nRings,
 
 //  if ((nRings % 2) == 0) diskParity *= -1; // if rings are even, since we're going top to bottom, we have to invert the parity of the topmost to end up with the correct parity for the bottom one
 
-  for (nRing=nRings; nRing>0; nRing--) {
+  ringParity = diskParity;
+
+  for (nRing=nRings; nRing>0; nRing--, ringParity*=-1) {
     EndcapModule* sampleModule = sampleModules[nRing];
     if (sampleModule==NULL) sampleModule = sampleModules[0];
     if (sampleModule==NULL) {
@@ -1406,7 +1408,6 @@ void EndcapLayer::buildSingleDisk(int nRings,
     // Ring parity is 1, -1, 1, -1 for
     //      nRing=    1,  2, 3,  4
     // if diskParity==1 and the opposite, otherwise
-    ringParity = diskParity*(((nRing%2)*2)-1);
 
     sampleModule->setRing(nRing);
 
@@ -1448,8 +1449,8 @@ void EndcapLayer::buildSingleDisk(int nRings,
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
-    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;
-    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
+    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) + smallDelta + dsDistances[nRing-1]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) - smallDelta - dsDistances[nRing-1]/2;
     double originZ = ringParity > 0 ? zError : -zError;
     double nextRhoOrigin = (nextRho + overlap)/lastZ * newZ;
     double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);

@@ -135,7 +135,7 @@ double Hit::getTrackTheta() {
  * Getter for the final, angle corrected pair of radiation and interaction lengths.
  * @return A copy of the pair containing the requested values; radiation length first, interaction length second
  */
-Material Hit::getCorrectedMaterial() {
+RILength Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
@@ -294,7 +294,7 @@ std::vector<double> Track::hadronActiveHitsProbability(bool usePixels /*= false 
   std::vector<double> result;
   double probability=1;
   Hit* myHit;
-  Material myMaterial;
+  RILength myMaterial;
   sort();
   // int debugCount = 0; // debug
   for (hitIt=hitV_.begin();
@@ -332,7 +332,7 @@ double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false *
   std::vector<Hit*>::iterator hitIt;
   double probability=1;
   Hit* myHit;
-  Material myMaterial;
+  RILength myMaterial;
   int goodHits=0;
   sort();
   for (hitIt=hitV_.begin();
@@ -365,7 +365,7 @@ double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false *
  */
 void Track::removeMaterial() {
   std::vector<Hit*>::iterator it;
-  Material nullMaterial;
+  RILength nullMaterial;
   for (it = hitV_.begin(); it!=hitV_.end(); ++it) {
     (*it)->setCorrectedMaterial(nullMaterial);
   }
@@ -1022,7 +1022,7 @@ void Track::addIPConstraint(double dr, double dz) {
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
   Hit* newHit = new Hit(dr);
   newHit->setIP(true);
-  Material emptyMaterial;
+  RILength emptyMaterial;
   emptyMaterial.radiation = 0;
   emptyMaterial.interaction = 0;
   newHit->setPixel(false);
@@ -1034,10 +1034,10 @@ void Track::addIPConstraint(double dr, double dz) {
   this->addHit(newHit);
 }
 
-Material Track::getCorrectedMaterial() {
+RILength Track::getCorrectedMaterial() {
   std::vector<Hit*>::const_iterator hitIt;
   Hit* myHit;
-  Material result;
+  RILength result;
   result.radiation = 0;
   result.interaction = 0;
   for (hitIt=hitV_.begin();

@@ -15,8 +15,16 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
+#include <algorithm>
+#include <math.h>
+
+#include <global_funcs.h>
+
 namespace insur {
     /**
      * Error messages that may be included in exceptions
@@ -38,7 +46,9 @@ namespace insur {
         double rlength;
         double ilength;
     };
-    
+
+
+
     /**
      * @class MaterialTable
      * @brief Essentially, this is a collection class for <i>MaterialRow</i> instances.
@@ -63,6 +73,64 @@ namespace insur {
         std::vector<MaterialRow> materials;
     private:
         int findIndex(std::string tag);
+    };
+
+
+
+    class BaseMaterial {  // this wasn't made abstract because it's used as key class in a set, therefore it is necessary to create an instance of it to perform key-based lookups
+    protected:
+      std::string tag_;
+      std::set<std::string> aliases_;
+    public:
+      std::string getTag() const { return tag_; }
+      const std::set<std::string>& getAliases() const { return aliases_; }
+      virtual double getDensity() = 0;
+      virtual double getRadiationLength() = 0;
+      virtual double getInteractionLength() = 0;
+      virtual std::string toXML() = 0;
+      virtual void fromCfg(std::string) = 0;
+    };
+
+    class MaterialTable2 {
+      std::map<std::string, BaseMaterial*> materials_;
+    public:
+      void parseMaterial(std::string str);
+      BaseMaterial* getMaterial(std::string tags) const { return materials_.at(tags); }
+      const std::map<std::string, BaseMaterial*>& getMaterials() const { return materials_; }
+      ~MaterialTable2() { for (std::map<std::string, BaseMaterial*>::iterator it = materials_.begin(); it != materials_.end(); ++it) delete it->second; }
+    }; 
+
+
+
+
+    class ElementaryMaterial : public BaseMaterial {
+      double density_;
+      double z_, a_;
+      double rlength_, ilength_;
+    public:
+      ElementaryMaterial() : density_(0.), z_(0.), a_(0.), rlength_(0.), ilength_(0.) {}
+      double getDensity() { return density_; }
+      double getAtomicNumber() { return z_; } 
+      double getAtomicWeight() { return a_; } 
+      double getRadiationLength();
+      double getInteractionLength();
+      std::string toXML() { return std::string(); }
+      void fromCfg(std::string);
+    };
+
+    class CompositeMaterial : public BaseMaterial {
+      const MaterialTable2* const mTable_;
+      struct MaterialFraction { BaseMaterial* material; double fraction; };
+      std::vector<MaterialFraction> materialFractions_;
+      double density_;
+      double rlength_, ilength_;
+    public:
+      CompositeMaterial(const MaterialTable2* const mTable) : mTable_(mTable), density_(0.), rlength_(0.), ilength_(0.) {} 
+      double getDensity() { return density_; }
+      double getRadiationLength();
+      double getInteractionLength();
+      std::string toXML() { return std::string(); }
+      void fromCfg(std::string);
     };
 }
 #endif	/* _MATERIALTABLE_H */

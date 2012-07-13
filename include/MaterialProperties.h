@@ -19,14 +19,16 @@
 #include <map>
 #include <MaterialTable.h>
 
-class Material {
+class RILength {
 public:
-  Material() {radiation=0; interaction=0;};
+  RILength() {radiation=0; interaction=0;}
   double radiation;
   double interaction;
-  Material& operator+=(const Material &a);
-  const Material operator+(const Material &other) const;
+  RILength& operator+=(const RILength &a);
+  const RILength operator+(const RILength &other) const;
 };
+
+typedef RILength Material;
 
 
 namespace insur {
@@ -97,8 +99,8 @@ namespace insur {
         double getExitingMass();
         double getRadiationLength();
         double getInteractionLength();
-        Material getMaterialLengths();
-        const std::map<std::string, Material>& getComponentsRI() const;
+        RILength getMaterialLengths();
+        const std::map<std::string, RILength>& getComponentsRI() const;
         // output calculations
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);
@@ -121,7 +123,7 @@ namespace insur {
 
         std::map<std::string, std::map<std::string, double> > localCompMats, exitingCompMats; // format here is <component name string, <material name, mass> >
 
-        std::map<std::string, Material> componentsRI;  // component-by-component radiation and interaction lengths
+        std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)
         double total_mass, local_mass, exiting_mass, r_length, i_length;
         // internal help

@@ -15,6 +15,19 @@ namespace insur {
      */
     MatParser::~MatParser() {}
     
+
+    bool MatParser::fillTable(std::string materialfile, MaterialTable2& mattab) {
+      std::ifstream filein(materialfile.c_str());
+      std::string line;
+      while (std::getline(filein, line)) {
+        mattab.parseMaterial(line);
+      }
+      return true;
+    }
+
+
+
+
     /**
      * This function initialises the internal material table from a config file.
      * @param materialfile The name and, if necessary, path of the global material config file
@@ -74,7 +87,7 @@ namespace insur {
         else logERROR(msg_no_mat_file);
         return false;
     }
-    
+ 
     /**
      * This is the core function that does the actual parsing during initialisation of a material calculator.
      * @param configfile The name and, if necessary, path of a material config file for a tracker layout

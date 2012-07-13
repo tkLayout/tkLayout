@@ -21,7 +21,7 @@ using namespace std;
 // configuration file will be saved in the home directory
 
 class mainConfigHandler {
- public:
+public:
   mainConfigHandler();
   ~mainConfigHandler() {};
   bool getConfiguration(bool checkDirExists = true);
@@ -41,7 +41,7 @@ class mainConfigHandler {
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();
- private:
+private:
   bool goodConfigurationRead_;
   //string styleDirectory_;
   string layoutDirectory_;

@@ -5,14 +5,14 @@
 
 #include <MaterialProperties.h>
 
-Material& Material::operator+=(const Material &a) {
+RILength& RILength::operator+=(const RILength &a) {
   interaction += a.interaction;
   radiation += a.radiation;
   return *this;
 }
 
-const Material Material::operator+(const Material &other) const {
-  Material result = *this;     // Make a copy of myself.  Same as Material result(*this);
+const RILength RILength::operator+(const RILength &other) const {
+  RILength result = *this;     // Make a copy of myself.  Same as Material result(*this);
   result += other;            // Use += to add other to the copy.
   return result;              // All done!
 }
@@ -252,7 +252,7 @@ namespace insur {
     double MaterialProperties::getRadiationLength() { return r_length; }
     
 
-    const std::map<std::string, Material>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
+    const std::map<std::string, RILength>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
 
     /**
      * Get the intraction length of the inactive element.
@@ -260,8 +260,8 @@ namespace insur {
      */
     double MaterialProperties::getInteractionLength() { return i_length; }
 
-    Material MaterialProperties::getMaterialLengths() {
-      Material myMaterials;
+    RILength MaterialProperties::getMaterialLengths() {
+      RILength myMaterials;
       myMaterials.interaction = i_length;
       myMaterials.radiation = r_length;
       return myMaterials;

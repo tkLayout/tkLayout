@@ -46,7 +46,7 @@ protected:
   //double trackTheta_; // Theta angle of the track
   //Material material_;
   // "Thickness" in terms of radiation_length and interaction_length
-  Material correctedMaterial_;
+  RILength correctedMaterial_;
   Track* myTrack_;
   bool isPixel_;
   bool isTrigger_;
@@ -55,7 +55,7 @@ protected:
 private:
   double myResolutionRphi_; // Only used for virtual hits on non-modules
   double myResolutionY_;    // Only used for virtual hits on non-modules
-  
+
 public:
   ~Hit();
   Hit();
@@ -70,7 +70,7 @@ public:
    * @enum An enumeration of the category and orientation constants used within the object
    */
   enum { Undefined, Horizontal, Vertical,  // Hit object orientation 
-	 Active, Inactive };               // Hit object type
+    Active, Inactive };               // Hit object type
 
   double getDistance() {return distance_;};
   void setDistance(double newDistance) { if (newDistance>0) distance_ = newDistance; updateRadius(); };
@@ -82,8 +82,8 @@ public:
   void setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
   void setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
   double getTrackTheta();
-  Material getCorrectedMaterial();
-  void setCorrectedMaterial(Material newMaterial) { correctedMaterial_ = newMaterial;};
+  RILength getCorrectedMaterial();
+  void setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
   bool isPixel() { return isPixel_; };
   bool isTrigger() { return isTrigger_; };
   bool isIP() { return isIP_; };
@@ -168,6 +168,6 @@ public:
   static bool debugRZErrorPropagation;  // debug
 #endif
   void addIPConstraint(double dr, double dz);
-  Material getCorrectedMaterial();
+  RILength getCorrectedMaterial();
 };
 #endif

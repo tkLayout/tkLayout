@@ -26,7 +26,7 @@ class ptError {
    double Module_h;        // Module height [mm]
    InefficiencyType inefficiencyType;
  
-   Material material;      // Material amount prior to this module
+   RILength material;      // Material amount prior to this module
    int moduleType;
    int endcapType;
 
@@ -58,7 +58,7 @@ class ptError {
    void setInefficiencyType(InefficiencyType newInefficiencyType) { inefficiencyType = newInefficiencyType; }
    void setModuleType(int newType) { moduleType = newType ; }
    void setEndcapType(int newType) { endcapType = newType ; }
-   void setMaterial(Material newMaterial) { material = newMaterial; }
+   void setMaterial(RILength newMaterial) { material = newMaterial; }
 
    // Parameter getters
    double getPitch() { return Module_pitch ; }
@@ -70,7 +70,7 @@ class ptError {
    InefficiencyType getInefficiencyType() { return inefficiencyType ; }
    int getModuleType() { return moduleType ; }
    int getEndcapType() { return endcapType ; }
-   Material getMaterial() { return material ; }
+   RILength getMaterial() { return material ; }
 
    // Conversion between strips and p
    double stripsToP(double strips);

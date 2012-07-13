@@ -19,8 +19,6 @@ typedef std::vector<Module* > ModuleVector;
 typedef std::pair<int,double> LayerOption;
 
 
-#define DSDISTANCE 2 
-
 class Layer {
 
 protected:
