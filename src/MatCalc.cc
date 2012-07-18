@@ -349,134 +349,141 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise
      */
     bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
-        // layer loop
-        for (unsigned int i = 0; i < barrelcaps.size(); i++) {
-            if (barrelcaps.at(i).size() > 0) {
-                try {
-                    int rindex = 0;
-                    std::vector<double> stripseg_scalars;
-                    std::vector<std::string> mtypes;
-                    std::vector<std::list<int> > modinrings;
-                    // module loop for ring types and multipliers for strips and segments
-                    for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
-                        // ring index of current module
-                        rindex = barrelcaps.at(i).at(j).getModule().getRing();
-                        // collect ring types
-                        if ((int)mtypes.size() < rindex) {
-                            while ((int)mtypes.size() < rindex) mtypes.push_back("");
-                        }
-                        if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().getType();
-                        // collect multipliers for strips and segments
-                        if ((int)stripseg_scalars.size() < rindex) {
-                            while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
-                        }
-                        if (stripseg_scalars.at(rindex - 1) == 0.0) {
-                            if (!mtypes.at(rindex - 1).empty()) {
-                                stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNMeanSegments();
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
-                            }
-                        }
-                        // record module indices per ring
-                        if ((int)modinrings.size() < rindex) {
-                            while ((int)modinrings.size() < rindex) {
-                                std::list<int> tmp;
-                                modinrings.push_back(tmp);
-                            }
-                        }
-                        modinrings.at(rindex - 1).push_back(j);
-                    }
-                    // ring loop
-                    for (int j = 0; j < rindex; j++) {
-                        if (!modinrings.at(j).empty()) {
-                            double A, B, C, D;
-                            double density, surface, length;
-                            std::list<int>::iterator first = modinrings.at(j).begin();
-                            std::list<int>::iterator start = modinrings.at(j).begin(); start++;
-                            std::list<int>::iterator stop = modinrings.at(j).end();
-                            surface = barrelcaps.at(i).at(*first).getSurface();
-                            if (surface < 0) {
-                                std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << j;
-                                std::cerr << " with index " << *first << " within the layer. " << msg_abort << std::endl;
-                                return false;
-                            }
-                            else {
-                                length = barrelcaps.at(i).at(*first).getModule().getHeight();
-                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
-                                std::vector<SingleMod>::const_iterator guard = vect.end();
-                                std::vector<SingleMod>::const_iterator iter;
-                                // materials loop
-                                for (iter = vect.begin(); iter != guard; iter++) {
-                                    // measurement for unit conversion
-                                    density = mt.getMaterial(iter->tag).density;
-                                    // unit conversion per parameter (internal unit is grammes)
-                                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
-                                    else B = convert(iter->B, iter->uB, density, surface);
-                                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
-                                    else D = convert(iter->D, iter->uD, density, surface);
-                                    // parameter scaling
-                                    B = B * stripseg_scalars.at(j);
-                                    // save converted and scaled material
-                                    if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, iter->comp, B + D);
-                                    else barrelcaps.at(i).at(j).addExitingMass(iter->tag, iter->comp, B + D);
-                                }
-                                //accumulation of travelling parameters for outer rings
-                                if (j > 0) {
-                                    // inner rings accumulation loop
-                                    for (int k = 0; k < j; k++) {
-                                        surface = barrelcaps.at(i).at(modinrings.at(k).front()).getSurface();
-                                        if (surface < 0) {
-                                            std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << k;
-                                            std::cerr << " with index " << modinrings.at(k).front() << " within the layer. " << msg_abort << std::endl;
-                                            return false;
-                                        }
-                                        else {
-                                            length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
-                                            std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
-                                            std::vector<SingleMod>::const_iterator iter, guard = vect.end();
-                                            for (iter = vect.begin(); iter != guard; iter++) {
-                                                // measurement for unit conversion
-                                                density = mt.getMaterial(iter->tag).density;
-                                                // unit conversion per parameter (internal unit is grammes)
-                                                if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
-                                                else A = convert(iter->A, iter->uA, density, surface);
-                                                if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
-                                                else C = convert(iter->C, iter->uC, density, surface);
-                                                // parameter scaling
-                                                A = A * stripseg_scalars.at(k);
-                                                // save converted and scaled material
-                                                if (iter->is_local) barrelcaps.at(i).at(j).addLocalMass(iter->tag, iter->comp, A + C);
-                                                else barrelcaps.at(i).at(j).addExitingMass(iter->tag, iter->comp, A + C);
-                                            }
-                                        }
-                                    }
-                                }
-                                // use recorded materials to calculate material properties for every module in current ring
-                                barrelcaps.at(i).at(*first).calculateTotalMass();
-                                barrelcaps.at(i).at(*first).calculateRadiationLength(mt);
-                                barrelcaps.at(i).at(*first).calculateInteractionLength(mt);
-                                while (start != stop) {
-                                    barrelcaps.at(i).at(*first).copyMassVectors(barrelcaps.at(i).at(*start));
-                                    barrelcaps.at(i).at(*start).calculateTotalMass();
-                                    barrelcaps.at(i).at(*start).calculateRadiationLength(mt);
-                                    barrelcaps.at(i).at(*start).calculateInteractionLength(mt);
-                                    start++;
-                                }
-                            }
-                        }
-                        // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().getRing() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
-                    }
+      // layer loop
+      for (unsigned int i = 0; i < barrelcaps.size(); i++) {
+        if (barrelcaps.at(i).size() > 0) {
+          try {
+            int rindex = 0;
+            std::vector<double> stripseg_scalars;
+            std::vector<std::string> mtypes;
+            std::vector<std::list<int> > modinrings;
+            // module loop for ring types and multipliers for strips and segments
+            for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
+              // ring index of current module
+              rindex = barrelcaps.at(i).at(j).getModule().getRing();
+              // collect ring types
+              if ((int)mtypes.size() < rindex) {
+                while ((int)mtypes.size() < rindex) mtypes.push_back("");
+              }
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().getType();
+              // collect multipliers for strips and segments
+              if ((int)stripseg_scalars.size() < rindex) {
+                while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
+              }
+              if (stripseg_scalars.at(rindex - 1) == 0.0) {
+                if (!mtypes.at(rindex - 1).empty()) {
+                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNMeanSegments();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
-                catch(std::range_error& re) {
-                    std::cerr << "MatCalc::calculateBarrelMaterials(): " << re.what() << " " << msg_abort << std::endl;
-                    return false;
+              }
+              // record module indices per ring
+              if ((int)modinrings.size() < rindex) {
+                while ((int)modinrings.size() < rindex) {
+                  std::list<int> tmp;
+                  modinrings.push_back(tmp);
                 }
+              }
+              modinrings.at(rindex - 1).push_back(j);
             }
+            rindex = modinrings.size(); // CUIDADO Tentative fix, rindex is max of ring index found in modules
+
+            // ring loop
+            for (int j = 0; j < rindex; j++) { // CUIDADO rindex WTF!?!?!?
+              if (!modinrings.at(j).empty()) {
+                double A, B, C, D;
+                double density, surface, length;
+                std::list<int>::iterator first = modinrings.at(j).begin();
+                std::list<int>::iterator start = modinrings.at(j).begin(); start++;
+                std::list<int>::iterator stop = modinrings.at(j).end();
+                surface = barrelcaps.at(i).at(*first).getSurface();
+                if (surface < 0) {
+                  std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << j;
+                  std::cerr << " with index " << *first << " within the layer. " << msg_abort << std::endl;
+                  return false;
+                }
+                else {
+                  length = barrelcaps.at(i).at(*first).getModule().getHeight();
+                  std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                  std::vector<SingleMod>::const_iterator guard = vect.end();
+                  std::vector<SingleMod>::const_iterator iter;
+                  // materials loop
+                  for (iter = vect.begin(); iter != guard; iter++) {
+                    // measurement for unit conversion
+                    density = mt.getMaterial(iter->tag).density;
+                    // unit conversion per parameter (internal unit is grammes)
+                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
+                    else B = convert(iter->B, iter->uB, density, surface);
+                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
+                    else D = convert(iter->D, iter->uD, density, surface);
+                    // parameter scaling
+                    B = B * stripseg_scalars.at(j);
+                    // save converted and scaled material
+                    if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D); // CUIDADO MIXED UP j and *first?? was j
+                    else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D); // was j
+                  }
+                  //accumulation of travelling parameters for outer rings
+                  if (j > 0) {
+                    // inner rings accumulation loop
+                    for (int k = 0; k < j; k++) {
+                      surface = barrelcaps.at(i).at(modinrings.at(k).front()).getSurface();
+                      if (surface < 0) {
+                        std::cerr << msg_negative_area << " Barrel module in layer " << i << ", position " << k;
+                        std::cerr << " with index " << modinrings.at(k).front() << " within the layer. " << msg_abort << std::endl;
+                        return false;
+                      }
+                      else {
+                        length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                        std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
+                        std::vector<SingleMod>::const_iterator iter, guard = vect.end();
+                        for (iter = vect.begin(); iter != guard; iter++) {
+                          // measurement for unit conversion
+                          density = mt.getMaterial(iter->tag).density;
+                          // unit conversion per parameter (internal unit is grammes)
+                          if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
+                          else A = convert(iter->A, iter->uA, density, surface);
+                          if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
+                          else C = convert(iter->C, iter->uC, density, surface);
+                          // parameter scaling
+                          A = A * stripseg_scalars.at(k);
+                          // save converted and scaled material
+                          if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
+                          else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
+                        }
+                      }
+                    }
+                  }
+                  // use recorded materials to calculate material properties for every module in current ring
+                  barrelcaps.at(i).at(*first).calculateTotalMass();
+                  barrelcaps.at(i).at(*first).calculateRadiationLength(mt);
+                  barrelcaps.at(i).at(*first).calculateInteractionLength(mt);
+                  while (start != stop) {
+                    barrelcaps.at(i).at(*first).copyMassVectors(barrelcaps.at(i).at(*start));
+                    barrelcaps.at(i).at(*start).calculateTotalMass();
+                    barrelcaps.at(i).at(*start).calculateRadiationLength(mt);
+                    barrelcaps.at(i).at(*start).calculateInteractionLength(mt);
+                    start++;
+                  }
+                }
+              // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().getRing() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
+              }
+            }
+          }
+          catch(std::range_error& re) {
+            std::cerr << "MatCalc::calculateBarrelMaterials(): " << re.what() << " " << msg_abort << std::endl;
+            return false;
+          }
         }
-        return true;
+      }
+      for (size_t r = 0; r < barrelcaps.size(); r++)
+        for (size_t t = 0; t < barrelcaps.at(r).size(); t++)
+          if (barrelcaps.at(r).at(t).getComponentsRI().size()==0) {
+            cout << r << "," << t << " MC bmod: " << barrelcaps.at(r).at(t).getModule().getLayer() << "," << barrelcaps.at(r).at(t).getModule().getRing() << "," << barrelcaps.at(r).at(t).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(r).at(t).getComponentsRI().size() << endl;
+          }
+      return true;
     }
-    
+
     /**
      * This is the core function that assigns materials to endcap modules once the calculator has been initialised.
      * It loops through the elements of the provided vector of vectors and calculates the relevant material mix for
@@ -487,142 +494,142 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise
      */
     bool MatCalc::calculateEndcapMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps) {
-        // disc loop
-        for (unsigned int i = 0; i < endcapcaps.size(); i++) {
-            if (endcapcaps.at(i).size() > 0) {
-                try {
-                    int rindex;
-                    std::vector<int> mods;
-                    std::vector<double> stripseg_scalars;
-                    std::vector<std::string> mtypes;
-                    std::vector<std::list<int> > modinrings;
-                    // module loop for ring types and multipliers for strips and segments
-                    for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
-                        // sum up the number of modules per ring
-                        rindex = endcapcaps.at(i).at(j).getModule().getRing();
-                        if ((int)mods.size() < rindex) {
-                            while ((int)mods.size() < rindex) mods.push_back(0);
-                        }
-                        mods.at(rindex - 1) = mods.at(rindex - 1) + 1;
-                        // collect ring types
-                        if ((int)mtypes.size() < rindex) {
-                            while ((int)mtypes.size() < rindex) mtypes.push_back("");
-                        }
-                        if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().getType();
-                        // collect multipliers for strips and segments
-                        if ((int)stripseg_scalars.size() < rindex) {
-                            while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
-                        }
-                        if (stripseg_scalars.at(rindex - 1) == 0.0) {
-                            if (!mtypes.at(rindex - 1).empty()) {
-                                stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNMeanSegments();
-                                stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
-                            }
-                        }
-                        // record module indices per ring
-                        if ((int)modinrings.size() < rindex) {
-                            while ((int)modinrings.size() < rindex) {
-                                std::list<int> tmp;
-                                modinrings.push_back(tmp);
-                            }
-                        }
-                        modinrings.at(rindex - 1).push_back(j);
-                    }
-                    rindex = modinrings.size();
-                    // ring loop
-                    for (int j = 0; j < rindex; j++) {
-                        if (!modinrings.at(j).empty()) {
-                            double A, B, C, D;
-                            double density, surface, length;
-                            std::list<int>::iterator first = modinrings.at(j).begin();
-                            std::list<int>::iterator start = modinrings.at(j).begin(); start++;
-                            std::list<int>::iterator stop = modinrings.at(j).end();
-                            surface = endcapcaps.at(i).at(*first).getSurface();
-                            if (surface < 0) {
-                                std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << j;
-                                std::cerr << " with index " << *first << " within the disc. " << msg_abort << std::endl;
-                                return false;
-                            }
-                            // calculation of static parameters for all rings
-                            else {
-                                length = endcapcaps.at(i).at(*first).getModule().getHeight();
-                                std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
-                                std::vector<SingleMod>::const_iterator iter, guard = vect.end();
-                                // materials loop
-                                for (iter = vect.begin(); iter != guard; iter++) {
-                                    // unit conversion per parameter (internal unit is grammes)
-                                    density = mt.getMaterial(iter->tag).density;
-                                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
-                                    else B = convert(iter->B, iter->uB, density, surface);
-                                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
-                                    else D = convert(iter->D, iter->uD, density, surface);
-                                    // parameter scaling
-                                    B = B * stripseg_scalars.at(j);
-                                    // save converted and scaled material
-                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D);
-                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
-                                }
-                                // accumulation of travelling parameters for outer rings
-                                if (j > 0) {
-                                    // inner rings accumulation loop
-                                    for (int k = 0; k < j; k++) {
-                                        if (mods.at(k) > 0) {
-                                            surface = endcapcaps.at(i).at(modinrings.at(k).front()).getSurface();
-                                            if (surface < 0) {
-                                                std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << k;
-                                                std::cerr << " with index " << modinrings.at(k).front() << " within the disc. " << msg_abort << std::endl;
-                                                return false;
-                                            }
-                                            else {
-                                                length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
-                                                std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
-                                                std::vector<SingleMod>::const_iterator guard = vect.end();
-                                                std::vector<SingleMod>::const_iterator iter;
-                                                // materials loop
-                                                for (iter = vect.begin(); iter != guard; iter++) {
-                                                    // unit conversion per parameter (internal unit is grammes)
-                                                    density = mt.getMaterial(iter->tag).density;
-                                                    if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
-                                                    else A = convert(iter->A, iter->uA, density, surface);
-                                                    if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
-                                                    else C = convert(iter->C, iter->uC, density, surface);
-                                                    // parameter scaling
-                                                    A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
-                                                    C = C * (double)mods.at(k) / (double)mods.at(j);
-                                                    // save converted and scaled material
-                                                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
-                                                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                // use recorded materials to calculate material properties for every module in current ring
-                                endcapcaps.at(i).at(*first).calculateTotalMass();
-                                endcapcaps.at(i).at(*first).calculateRadiationLength(mt);
-                                endcapcaps.at(i).at(*first).calculateInteractionLength(mt);
-                                while (start != stop) {
-                                    endcapcaps.at(i).at(*first).copyMassVectors(endcapcaps.at(i).at(*start));
-                                    endcapcaps.at(i).at(*start).calculateTotalMass();
-                                    endcapcaps.at(i).at(*start).calculateRadiationLength(mt);
-                                    endcapcaps.at(i).at(*start).calculateInteractionLength(mt);
-                                    start++;
-                                }
-                            }
-                        }
-                    }
+      // disc loop
+      for (unsigned int i = 0; i < endcapcaps.size(); i++) {
+        if (endcapcaps.at(i).size() > 0) {
+          try {
+            int rindex;
+            std::vector<int> mods;
+            std::vector<double> stripseg_scalars;
+            std::vector<std::string> mtypes;
+            std::vector<std::list<int> > modinrings;
+            // module loop for ring types and multipliers for strips and segments
+            for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
+              // sum up the number of modules per ring
+              rindex = endcapcaps.at(i).at(j).getModule().getRing();
+              if ((int)mods.size() < rindex) {
+                while ((int)mods.size() < rindex) mods.push_back(0);
+              }
+              mods.at(rindex - 1) = mods.at(rindex - 1) + 1;
+              // collect ring types
+              if ((int)mtypes.size() < rindex) {
+                while ((int)mtypes.size() < rindex) mtypes.push_back("");
+              }
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().getType();
+              // collect multipliers for strips and segments
+              if ((int)stripseg_scalars.size() < rindex) {
+                while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
+              }
+              if (stripseg_scalars.at(rindex - 1) == 0.0) {
+                if (!mtypes.at(rindex - 1).empty()) {
+                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNMeanSegments();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
-                catch (std::range_error& re) {
-                    std::cerr << "MatCalc::calculateEndcapMaterials(): " << re.what() << " " << msg_abort << std::endl;
-                    return false;
+              }
+              // record module indices per ring
+              if ((int)modinrings.size() < rindex) {
+                while ((int)modinrings.size() < rindex) {
+                  std::list<int> tmp;
+                  modinrings.push_back(tmp);
                 }
+              }
+              modinrings.at(rindex - 1).push_back(j);
             }
+            rindex = modinrings.size();
+            // ring loop
+            for (int j = 0; j < rindex; j++) {
+              if (!modinrings.at(j).empty()) {
+                double A, B, C, D;
+                double density, surface, length;
+                std::list<int>::iterator first = modinrings.at(j).begin();
+                std::list<int>::iterator start = modinrings.at(j).begin(); start++;
+                std::list<int>::iterator stop = modinrings.at(j).end();
+                surface = endcapcaps.at(i).at(*first).getSurface();
+                if (surface < 0) {
+                  std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << j;
+                  std::cerr << " with index " << *first << " within the disc. " << msg_abort << std::endl;
+                  return false;
+                }
+                // calculation of static parameters for all rings
+                else {
+                  length = endcapcaps.at(i).at(*first).getModule().getHeight();
+                  std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
+                  std::vector<SingleMod>::const_iterator iter, guard = vect.end();
+                  // materials loop
+                  for (iter = vect.begin(); iter != guard; iter++) {
+                    // unit conversion per parameter (internal unit is grammes)
+                    density = mt.getMaterial(iter->tag).density;
+                    if (iter->uB == grpm) B = convert(iter->B, iter->uB, length);
+                    else B = convert(iter->B, iter->uB, density, surface);
+                    if (iter->uD == grpm) D = convert(iter->D, iter->uD, length);
+                    else D = convert(iter->D, iter->uD, density, surface);
+                    // parameter scaling
+                    B = B * stripseg_scalars.at(j);
+                    // save converted and scaled material
+                    if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D);
+                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
+                  }
+                  // accumulation of travelling parameters for outer rings
+                  if (j > 0) {
+                    // inner rings accumulation loop
+                    for (int k = 0; k < j; k++) {
+                      if (mods.at(k) > 0) {
+                        surface = endcapcaps.at(i).at(modinrings.at(k).front()).getSurface();
+                        if (surface < 0) {
+                          std::cerr << msg_negative_area << " Endcap module in disc " << i << ", ring " << k;
+                          std::cerr << " with index " << modinrings.at(k).front() << " within the disc. " << msg_abort << std::endl;
+                          return false;
+                        }
+                        else {
+                          length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                          std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
+                          std::vector<SingleMod>::const_iterator guard = vect.end();
+                          std::vector<SingleMod>::const_iterator iter;
+                          // materials loop
+                          for (iter = vect.begin(); iter != guard; iter++) {
+                            // unit conversion per parameter (internal unit is grammes)
+                            density = mt.getMaterial(iter->tag).density;
+                            if (iter->uA == grpm) A = convert(iter->A, iter->uA, length);
+                            else A = convert(iter->A, iter->uA, density, surface);
+                            if (iter->uC == grpm) C = convert(iter->C, iter->uC, length);
+                            else C = convert(iter->C, iter->uC, density, surface);
+                            // parameter scaling
+                            A = A * (double)mods.at(k) / (double)mods.at(j) * stripseg_scalars.at(k);
+                            C = C * (double)mods.at(k) / (double)mods.at(j);
+                            // save converted and scaled material
+                            if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
+                            else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
+                          }
+                        }
+                      }
+                    }
+                  }
+                  // use recorded materials to calculate material properties for every module in current ring
+                  endcapcaps.at(i).at(*first).calculateTotalMass();
+                  endcapcaps.at(i).at(*first).calculateRadiationLength(mt);
+                  endcapcaps.at(i).at(*first).calculateInteractionLength(mt);
+                  while (start != stop) {
+                    endcapcaps.at(i).at(*first).copyMassVectors(endcapcaps.at(i).at(*start));
+                    endcapcaps.at(i).at(*start).calculateTotalMass();
+                    endcapcaps.at(i).at(*start).calculateRadiationLength(mt);
+                    endcapcaps.at(i).at(*start).calculateInteractionLength(mt);
+                    start++;
+                  }
+                }
+              }
+            }
+          }
+          catch (std::range_error& re) {
+            std::cerr << "MatCalc::calculateEndcapMaterials(): " << re.what() << " " << msg_abort << std::endl;
+            return false;
+          }
         }
-        return true;
+      }
+      return true;
     }
-    
+
     /**
      * This is the core function that assigns materials to barrel services once the calculator has been initialised.
      * It loops through the elements of the provided vector and calculates the relevant material mix for the element
@@ -635,59 +642,59 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise
      */
     bool MatCalc::calculateBarrelServiceMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps,
-            std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        int feeder, neighbour;
-        InactiveElement::InType ftype, ntype;
-        double length, surface;
-        // main loop over barrel service volumes
-        for(unsigned int i = 0; i < barrelservices.size(); i++) {
-            try {
-                // collect information about feeder and neighbour volumes
-                ftype = barrelservices.at(i).getFeederType();
-                feeder = barrelservices.at(i).getFeederIndex();
-                ntype = barrelservices.at(i).getNeighbourType();
-                neighbour = barrelservices.at(i).getNeighbourIndex();
-                // measurements for unit conversion
-                if (barrelservices.at(i).isVertical()) length = barrelservices.at(i).getRWidth();
-                else length = barrelservices.at(i).getZLength();
-                surface = barrelservices.at(i).getSurface();
-                // handle incoming materials from feeder volume
-                switch(ftype) {
-                    case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(feeder), barrelservices.at(i),
-                            findBarrelRods(barrelcaps, feeder), length, surface);
-                    break;
-                    case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), barrelservices.at(i));
-                    break;
-                    case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(feeder), barrelservices.at(i));
-                }
-                // handle incoming materials from neighbour volume
-                switch(ntype) {
-                    case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(neighbour), barrelservices.at(i),
-                            findBarrelRods(barrelcaps, neighbour), length, surface);
-                    break;
-                    case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), barrelservices.at(i));
-                    break;
-                    case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(neighbour), barrelservices.at(i));
-                }
-                // use recorded materials to calculate material properties
-                barrelservices.at(i).calculateTotalMass();
-                barrelservices.at(i).calculateRadiationLength(mt);
-                barrelservices.at(i).calculateInteractionLength(mt);
-            }
-            catch(std::runtime_error& re) {
-                std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-                return false;
-            }
-            catch(std::exception& e) {
-                std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-                return false;
-            }
+                                                  std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
+      int feeder, neighbour;
+      InactiveElement::InType ftype, ntype;
+      double length, surface;
+      // main loop over barrel service volumes
+      for(unsigned int i = 0; i < barrelservices.size(); i++) {
+        try {
+          // collect information about feeder and neighbour volumes
+          ftype = barrelservices.at(i).getFeederType();
+          feeder = barrelservices.at(i).getFeederIndex();
+          ntype = barrelservices.at(i).getNeighbourType();
+          neighbour = barrelservices.at(i).getNeighbourIndex();
+          // measurements for unit conversion
+          if (barrelservices.at(i).isVertical()) length = barrelservices.at(i).getRWidth();
+          else length = barrelservices.at(i).getZLength();
+          surface = barrelservices.at(i).getSurface();
+          // handle incoming materials from feeder volume
+          switch(ftype) {
+          case InactiveElement::no_in : break;
+          case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(feeder), barrelservices.at(i),
+                                                                    findBarrelRods(barrelcaps, feeder), length, surface);
+                                          break;
+          case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), barrelservices.at(i));
+                                         break;
+          case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(feeder), barrelservices.at(i));
+          }
+          // handle incoming materials from neighbour volume
+          switch(ntype) {
+          case InactiveElement::no_in : break;
+          case InactiveElement::tracker : adjacentDifferentCategory(barrelcaps.at(neighbour), barrelservices.at(i),
+                                                                    findBarrelRods(barrelcaps, neighbour), length, surface);
+                                          break;
+          case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), barrelservices.at(i));
+                                         break;
+          case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(neighbour), barrelservices.at(i));
+          }
+          // use recorded materials to calculate material properties
+          barrelservices.at(i).calculateTotalMass();
+          barrelservices.at(i).calculateRadiationLength(mt);
+          barrelservices.at(i).calculateInteractionLength(mt);
         }
-        return true;
+        catch(std::runtime_error& re) {
+          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+        catch(std::exception& e) {
+          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+      }
+      return true;
     }
-    
+
     /**
      * This is the core function that assigns materials to endcap services once the calculator has been initialised.
      * It loops through the elements of the provided vector and calculates the relevant material mix for the element
@@ -700,59 +707,59 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise
      */
     bool MatCalc::calculateEndcapServiceMaterials(std::vector<std::vector<ModuleCap> >& endcapcaps,
-            std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
-        int feeder, neighbour;
-        InactiveElement::InType ftype, ntype;
-        double length, surface;
-        // main loop over endcap service volumes
-        for (unsigned int i = 0; i < endcapservices.size(); i++) {
-            try {
-                // collect information about feeder and neighbour volumes
-                ftype = endcapservices.at(i).getFeederType();
-                feeder = endcapservices.at(i).getFeederIndex();
-                ntype = endcapservices.at(i).getNeighbourType();
-                neighbour = endcapservices.at(i).getNeighbourIndex();
-                // measurements for unit conversion
-                if (endcapservices.at(i).isVertical()) length = endcapservices.at(i).getRWidth();
-                else length = endcapservices.at(i).getZLength();
-                surface = endcapservices.at(i).getSurface();
-                // handle incoming materials from feeder volumes
-                switch(ftype) {
-                    case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(feeder), endcapservices.at(i),
-                            findEndcapRods(endcapcaps, feeder), length, surface);
-                    break;
-                    case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), endcapservices.at(i));
-                    break;
-                    case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(feeder), endcapservices.at(i));
-                }
-                // handle incoming materials from neighbour volumes
-                switch(ntype) {
-                    case InactiveElement::no_in : break;
-                    case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(neighbour), endcapservices.at(i),
-                            findEndcapRods(endcapcaps, neighbour), length, surface);
-                    break;
-                    case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), endcapservices.at(i));
-                    break;
-                    case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(neighbour), endcapservices.at(i));
-                }
-                // use recorded materials to calculate material properties
-                endcapservices.at(i).calculateTotalMass();
-                endcapservices.at(i).calculateRadiationLength(mt);
-                endcapservices.at(i).calculateInteractionLength(mt);
-            }
-            catch(std::runtime_error& re) {
-                std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-                return false;
-            }
-            catch(std::exception& e) {
-                std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-                return false;
-            }
+                                                  std::vector<InactiveElement>& barrelservices, std::vector<InactiveElement>& endcapservices) {
+      int feeder, neighbour;
+      InactiveElement::InType ftype, ntype;
+      double length, surface;
+      // main loop over endcap service volumes
+      for (unsigned int i = 0; i < endcapservices.size(); i++) {
+        try {
+          // collect information about feeder and neighbour volumes
+          ftype = endcapservices.at(i).getFeederType();
+          feeder = endcapservices.at(i).getFeederIndex();
+          ntype = endcapservices.at(i).getNeighbourType();
+          neighbour = endcapservices.at(i).getNeighbourIndex();
+          // measurements for unit conversion
+          if (endcapservices.at(i).isVertical()) length = endcapservices.at(i).getRWidth();
+          else length = endcapservices.at(i).getZLength();
+          surface = endcapservices.at(i).getSurface();
+          // handle incoming materials from feeder volumes
+          switch(ftype) {
+          case InactiveElement::no_in : break;
+          case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(feeder), endcapservices.at(i),
+                                                                    findEndcapRods(endcapcaps, feeder), length, surface);
+                                          break;
+          case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(feeder), endcapservices.at(i));
+                                         break;
+          case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(feeder), endcapservices.at(i));
+          }
+          // handle incoming materials from neighbour volumes
+          switch(ntype) {
+          case InactiveElement::no_in : break;
+          case InactiveElement::tracker : adjacentDifferentCategory(endcapcaps.at(neighbour), endcapservices.at(i),
+                                                                    findEndcapRods(endcapcaps, neighbour), length, surface);
+                                          break;
+          case InactiveElement::barrel : adjacentSameCategory(barrelservices.at(neighbour), endcapservices.at(i));
+                                         break;
+          case InactiveElement::endcap : adjacentSameCategory(endcapservices.at(neighbour), endcapservices.at(i));
+          }
+          // use recorded materials to calculate material properties
+          endcapservices.at(i).calculateTotalMass();
+          endcapservices.at(i).calculateRadiationLength(mt);
+          endcapservices.at(i).calculateInteractionLength(mt);
         }
-        return true;
+        catch(std::runtime_error& re) {
+          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+        catch(std::exception& e) {
+          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+      }
+      return true;
     }
-    
+
     /**
      * This is the core function that assigns materials to support structures once the calculator has been initialised.
      * It loops through the elements of the provided vector, checks the category of the support and calculates the
@@ -763,73 +770,73 @@ namespace insur {
      * @return True if there were no errors during processing, false otherwise
      */
     bool MatCalc::calculateSupportMaterials(std::vector<InactiveElement>& supports) {
-        double length, surface;
-        try {
-            // main loop over support volumes
-            for (unsigned int i = 0; i < supports.size(); i++) {
-                // measurements for unit conversion
-                surface = supports.at(i).getSurface();
-                if (supports.at(i).isVertical()) length = supports.at(i).getRWidth();
-                else length = supports.at(i).getZLength();
-                std::vector<SingleSup>::const_iterator iter, guard = internals.supinfo.end();
-                // materials loop
-                for (iter = internals.supinfo.begin(); iter != guard; iter++) {
-                    if (iter->cM == supports.at(i).getCategory()) {
-                        // unit conversion (internal unit is grammes)
-                        double M;
-                        if (iter->uM == grpm) M = convert(iter->M, iter->uM, length);
-                        else M = convert(iter->M, iter->uM, mt.getMaterial(iter->tag).density, surface);
-                        // save converted and scaled material
-                        supports.at(i).addLocalMass(iter->tag, M);
-                    }
-                }
-                // use recorded materials to calculate material properties
-                supports.at(i).calculateTotalMass();
-                supports.at(i).calculateRadiationLength(mt);
-                supports.at(i).calculateInteractionLength(mt);
+      double length, surface;
+      try {
+        // main loop over support volumes
+        for (unsigned int i = 0; i < supports.size(); i++) {
+          // measurements for unit conversion
+          surface = supports.at(i).getSurface();
+          if (supports.at(i).isVertical()) length = supports.at(i).getRWidth();
+          else length = supports.at(i).getZLength();
+          std::vector<SingleSup>::const_iterator iter, guard = internals.supinfo.end();
+          // materials loop
+          for (iter = internals.supinfo.begin(); iter != guard; iter++) {
+            if (iter->cM == supports.at(i).getCategory()) {
+              // unit conversion (internal unit is grammes)
+              double M;
+              if (iter->uM == grpm) M = convert(iter->M, iter->uM, length);
+              else M = convert(iter->M, iter->uM, mt.getMaterial(iter->tag).density, surface);
+              // save converted and scaled material
+              supports.at(i).addLocalMass(iter->tag, M);
             }
+          }
+          // use recorded materials to calculate material properties
+          supports.at(i).calculateTotalMass();
+          supports.at(i).calculateRadiationLength(mt);
+          supports.at(i).calculateInteractionLength(mt);
         }
-        catch(std::exception& e) {
-            std::cerr << "MatCalc::calculateSupportMaterials(): " << e.what() << " " << msg_abort << std::endl;
-            return false;
-        }
-        return true;
+      }
+      catch(std::exception& e) {
+        std::cerr << "MatCalc::calculateSupportMaterials(): " << e.what() << " " << msg_abort << std::endl;
+        return false;
+      }
+      return true;
     }
-    
+
     /**
      * This function prints a summary of the internal state of the material calculator.
      */
     void MatCalc::printInternals() {
-        if (init_done) {
-            std::cout << "-----MatCalc parsed parameters-----" << std::endl << std::endl;
-            std::cout << "Number of module types found: " << internals.modinfo.size() << std::endl;
-            std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::const_iterator i, g = internals.modinfo.end();
-            for (i = internals.modinfo.begin(); i != g; i++) {
-                std::cout << "Type " << i->first.type << ": " << i->first.strips_across << " strips, " << i->first.segments_along << " segments." << std::endl;
-                std::cout << "Number of type " << i->first.type << " materials found: " << i->second.size() << std::endl;
-                for (std::vector<SingleMod>::const_iterator iter = i->second.begin(); iter != i->second.end(); iter++) {
-                    std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
-                    std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
-                    std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
-                }
-            }
-            std::cout << std::endl << "Number of parsed entries for local services: " << internals.serlocalinfo.size() << std::endl;
-            for (std::vector<SingleSerLocal>::const_iterator iter = internals.serlocalinfo.begin(); iter != internals.serlocalinfo.end(); iter++) {
-                std::cout << iter->tag << ": Q = " << iter->Q << " (unit " << iter->uQ << ")." << std::endl;
-            }
-            std::cout << std::endl << "Number of parsed entries for exiting services: " << internals.serexitinfo.size() << std::endl;
-            for (std::vector<SingleSerExit>::const_iterator iter = internals.serexitinfo.begin(); iter != internals.serexitinfo.end(); iter++) {
-                std::cout << iter->In << " (unit " << iter->uIn << ") " << iter->tagIn << " --> " << iter->Out << " (unit " << iter->uOut;
-                std::cout << ") " << iter->tagOut << " (" << (iter->is_local ? "local" : "not local") << " to service)." << std::endl;
-            }
-            std::cout << std::endl << "Number of support materials found: " << internals.supinfo.size() << std::endl;
-            for (std::vector<SingleSup>::const_iterator iter = internals.supinfo.begin(); iter != internals.supinfo.end(); iter++) {
-                std::cout << iter->tag << ": M = " << iter->M << " (unit " << iter->uM << ", category " << iter->cM << ")." << std::endl;
-            }
+      if (init_done) {
+        std::cout << "-----MatCalc parsed parameters-----" << std::endl << std::endl;
+        std::cout << "Number of module types found: " << internals.modinfo.size() << std::endl;
+        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::const_iterator i, g = internals.modinfo.end();
+        for (i = internals.modinfo.begin(); i != g; i++) {
+          std::cout << "Type " << i->first.type << ": " << i->first.strips_across << " strips, " << i->first.segments_along << " segments." << std::endl;
+          std::cout << "Number of type " << i->first.type << " materials found: " << i->second.size() << std::endl;
+          for (std::vector<SingleMod>::const_iterator iter = i->second.begin(); iter != i->second.end(); iter++) {
+            std::cout << iter->tag << ": " << (iter->is_local ? "local" : "exiting") << " material with A = " << iter->A << " (unit ";
+            std::cout << iter->uA << "), B = " << iter->B << " (unit " << iter->uB << "), C = " << iter->C << " (unit " << iter->uC;
+            std::cout << "), D = " << iter->D << " (unit " << iter->uD << ")." << std::endl;
+          }
         }
-        else std::cout << "No parameters have been parsed into the internal data structures so far." << std::endl;
+        std::cout << std::endl << "Number of parsed entries for local services: " << internals.serlocalinfo.size() << std::endl;
+        for (std::vector<SingleSerLocal>::const_iterator iter = internals.serlocalinfo.begin(); iter != internals.serlocalinfo.end(); iter++) {
+          std::cout << iter->tag << ": Q = " << iter->Q << " (unit " << iter->uQ << ")." << std::endl;
+        }
+        std::cout << std::endl << "Number of parsed entries for exiting services: " << internals.serexitinfo.size() << std::endl;
+        for (std::vector<SingleSerExit>::const_iterator iter = internals.serexitinfo.begin(); iter != internals.serexitinfo.end(); iter++) {
+          std::cout << iter->In << " (unit " << iter->uIn << ") " << iter->tagIn << " --> " << iter->Out << " (unit " << iter->uOut;
+          std::cout << ") " << iter->tagOut << " (" << (iter->is_local ? "local" : "not local") << " to service)." << std::endl;
+        }
+        std::cout << std::endl << "Number of support materials found: " << internals.supinfo.size() << std::endl;
+        for (std::vector<SingleSup>::const_iterator iter = internals.supinfo.begin(); iter != internals.supinfo.end(); iter++) {
+          std::cout << iter->tag << ": M = " << iter->M << " (unit " << iter->uM << ", category " << iter->cM << ")." << std::endl;
+        }
+      }
+      else std::cout << "No parameters have been parsed into the internal data structures so far." << std::endl;
     }
-    
+
     // protected
     /**
      * Getter for the module info vector of the given type. If that type is unknown or not on the list,
@@ -838,15 +845,15 @@ namespace insur {
      * @return A reference to the requested module info vector
      */
     std::vector<MatCalc::SingleMod>& MatCalc::getModVector(std::string type) { // throws exception
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
-        while (iter != guard) {
-            if (type.compare(iter->first.type) == 0) return iter->second;
-            iter++;
-        }
-        throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
+      while (iter != guard) {
+        if (type.compare(iter->first.type) == 0) return iter->second;
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getModVector(): " + err_unknown_type);
     }
-    
+
     /**
      * Getter for the complete type information of a given module type. If that type is unknown or not on
      * the list, an exception is thrown.
@@ -854,15 +861,15 @@ namespace insur {
      * @return A reference to the requested module type information
      */
     MatCalc::TypeInfo& MatCalc::getTypeInfoByType(std::string type) { // throws exception
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
-        while (iter != guard) {
-            if (type.compare(iter->first.type) == 0) return iter->first;
-            iter++;
-        }
-        throw std::range_error("Exception in MatCalc::getTypeInfoTyType(): " + err_no_such_type);
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
+      while (iter != guard) {
+        if (type.compare(iter->first.type) == 0) return iter->first;
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getTypeInfoTyType(): " + err_no_such_type);
     }
-    
+
     /**
      * Getter for a single material entry from one of the module info vectors. If the given parameter combination
      * does not exist on the list, an exception is thrown.
@@ -876,19 +883,19 @@ namespace insur {
      * @return A reference to the requested entry
      */
     MatCalc::SingleMod& MatCalc::getSingleMod(std::string tag, std::string type, std::string comp,
-					      Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
-        std::vector<SingleMod>& vect = getModVector(type);
-        std::vector<SingleMod>::iterator iter = vect.begin();
-        while (iter != vect.end()) {
-            if ((tag.compare(iter->tag) == 0) && (iter->is_local == local)) {
-	      if (comp.compare(iter->comp) == 0)
-                if ((iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD)) return *iter;
-            }
-            iter++;
+                                              Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) { // throws exception
+      std::vector<SingleMod>& vect = getModVector(type);
+      std::vector<SingleMod>::iterator iter = vect.begin();
+      while (iter != vect.end()) {
+        if ((tag.compare(iter->tag) == 0) && (iter->is_local == local)) {
+          if (comp.compare(iter->comp) == 0)
+            if ((iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD)) return *iter;
         }
-        throw std::range_error("Exception in MatCalc::getSingleMod(): " + err_no_material);
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getSingleMod(): " + err_no_material);
     }
-    
+
     /**
      * Getter for a single entry from the info vector for materials local to the layer/service boundary. If
      * the given parameter combination does not exist on the list, an exception is thrown.
@@ -897,15 +904,15 @@ namespace insur {
      * @return A reference to the requested entry
      */
     MatCalc::SingleSerLocal& MatCalc::getSingleSer(std::string tag, Matunit u) { // throws exception
-        std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
-        std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
-        while (iter != guard) {
-            if ((tag.compare(iter->tag) == 0) && (iter->uQ == u)) return *iter;
-            iter++;
-        }
-        throw std::range_error("Exception in MatCalc::getSingleSer(2): " + err_no_service);
+      std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
+      std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
+      while (iter != guard) {
+        if ((tag.compare(iter->tag) == 0) && (iter->uQ == u)) return *iter;
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getSingleSer(2): " + err_no_service);
     }
-    
+
     /**
      * Getter for a single entry from the info vector for material mappings at the layer/service boundary. If
      * the given parameter combination does not exist on the list, an exception is thrown.
@@ -917,19 +924,19 @@ namespace insur {
      * @return A reference to the requested entry
      */
     MatCalc::SingleSerExit& MatCalc::getSingleSer(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local) { // throws exception
-        std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
-        std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
-        while (iter != guard) {
-            if ((tag1.compare(iter->tagIn) == 0) && (tag2.compare(iter->tagOut) == 0)) {
-                if ((iter->uIn == u1) && (iter->uOut == u2)) {
-                    if (iter->is_local == local) return *iter;
-                }
-            }
-            iter++;
+      std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
+      std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
+      while (iter != guard) {
+        if ((tag1.compare(iter->tagIn) == 0) && (tag2.compare(iter->tagOut) == 0)) {
+          if ((iter->uIn == u1) && (iter->uOut == u2)) {
+            if (iter->is_local == local) return *iter;
+          }
         }
-        throw std::range_error("Exception in MatCalc::getSingleSer(5): " + err_no_service);
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getSingleSer(5): " + err_no_service);
     }
-    
+
     /**
      * Getter for a single entry from the support parts info vector. If the given parameter combination does
      * not exist, an exception is thrown.
@@ -939,17 +946,17 @@ namespace insur {
      * @return A reference to the requested entry
      */
     MatCalc::SingleSup& MatCalc::getSingleSup(std::string tag, Matunit uM, MaterialProperties::Category cM) { // throws exception
-        std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
-        std::vector<SingleSup>::iterator guard = internals.supinfo.end();
-        while (iter != guard) {
-            if (tag.compare(iter->tag) == 0) {
-                if ((iter->uM == uM) && (iter->cM == cM)) return *iter;
-            }
-            iter++;
+      std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
+      std::vector<SingleSup>::iterator guard = internals.supinfo.end();
+      while (iter != guard) {
+        if (tag.compare(iter->tag) == 0) {
+          if ((iter->uM == uM) && (iter->cM == cM)) return *iter;
         }
-        throw std::range_error("Exception in MatCalc::getSingleSup(): " + err_no_support);
+        iter++;
+      }
+      throw std::range_error("Exception in MatCalc::getSingleSup(): " + err_no_support);
     }
-    
+
     // private
     /**
      * Check if there is an entry for a given type in the internal type info list.
@@ -957,15 +964,15 @@ namespace insur {
      * @return True if such an entry exists, false otherwise
      */
     bool MatCalc::entryExists(std::string type) {
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
-        std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
-        while (iter != guard) {
-            if (type.compare(iter->first.type) == 0) return true;
-            iter++;
-        }
-        return false;
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator iter = internals.modinfo.begin();
+      std::vector<std::pair<TypeInfo, std::vector<SingleMod> > >::iterator guard = internals.modinfo.end();
+      while (iter != guard) {
+        if (type.compare(iter->first.type) == 0) return true;
+        iter++;
+      }
+      return false;
     }
-    
+
     /**
      * Check if there is an entry of the given specifics in one of  the internal lists of module materials.
      * @param tag A unique material identifier
@@ -977,26 +984,26 @@ namespace insur {
      * @param local A flag indicating whether the material in question is local or exiting
      * @return True if such an entry exists, false otherwise
      */
-  bool MatCalc::entryExists(std::string tag, std::string type, std::string comp, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
-        try {
-            std::vector<SingleMod>& vect = getModVector(type);
-            std::vector<SingleMod>::const_iterator iter = vect.begin();
-            std::vector<SingleMod>::const_iterator guard = vect.end();
-            while (iter != guard) {
-                bool found = (tag.compare(iter->tag) == 0) && (iter->is_local == local);
-		found = found && (comp.compare(iter->comp) == 0);
-                found = found && (iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD);
-                if (found) return true;
-                iter++;
-            }
+    bool MatCalc::entryExists(std::string tag, std::string type, std::string comp, Matunit uA, Matunit uB, Matunit uC, Matunit uD, bool local) {
+      try {
+        std::vector<SingleMod>& vect = getModVector(type);
+        std::vector<SingleMod>::const_iterator iter = vect.begin();
+        std::vector<SingleMod>::const_iterator guard = vect.end();
+        while (iter != guard) {
+          bool found = (tag.compare(iter->tag) == 0) && (iter->is_local == local);
+          found = found && (comp.compare(iter->comp) == 0);
+          found = found && (iter->uA == uA) && (iter->uB == uB) && (iter->uC == uC) && (iter->uD == uD);
+          if (found) return true;
+          iter++;
         }
-        catch (std::range_error& re) {
-            std::cerr << "MatCalc::entryExists(7): " << re.what() << std::endl;
-            return false;
-        }
+      }
+      catch (std::range_error& re) {
+        std::cerr << "MatCalc::entryExists(7): " << re.what() << std::endl;
         return false;
+      }
+      return false;
     }
-    
+
     /**
      * Check if there is an entry of the given specifics in the internal list of local materials at the layer/service boundary.
      * @param tag A unique material identifier
@@ -1004,15 +1011,15 @@ namespace insur {
      * @return True if such an entry exists, false otherwise
      */
     bool MatCalc::entryExists(std::string tag, Matunit uQ) {
-        std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
-        std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
-        while (iter != guard) {
-            if ((tag.compare(iter->tag) == 0) && (iter->uQ == uQ)) return true;
-            iter++;
-        }
-        return false;
+      std::vector<SingleSerLocal>::iterator iter = internals.serlocalinfo.begin();
+      std::vector<SingleSerLocal>::iterator guard = internals.serlocalinfo.end();
+      while (iter != guard) {
+        if ((tag.compare(iter->tag) == 0) && (iter->uQ == uQ)) return true;
+        iter++;
+      }
+      return false;
     }
-    
+
     /**
      * Check if there is an entry of the given specifics in the internal list of material mappings for the layer/service boundary.
      * @param tag1 A unique identifier for the source material that the mapping starts from
@@ -1023,17 +1030,17 @@ namespace insur {
      * @return True if such an entry exists, false otherwise
      */
     bool MatCalc::entryExists(std::string tag1, std::string tag2, Matunit u1, Matunit u2, bool local) {
-        std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
-        std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
-        while (iter != guard) {
-            bool found = (tag1.compare(iter->tagIn) == 0) && (tag2.compare(iter->tagOut) == 0);
-            found = found && (iter->uIn == u1) && (iter->uOut == u2) && (iter->is_local == local);
-            if (found) return true;
-            iter++;
-        }
-        return false;
+      std::vector<SingleSerExit>::iterator iter = internals.serexitinfo.begin();
+      std::vector<SingleSerExit>::iterator guard = internals.serexitinfo.end();
+      while (iter != guard) {
+        bool found = (tag1.compare(iter->tagIn) == 0) && (tag2.compare(iter->tagOut) == 0);
+        found = found && (iter->uIn == u1) && (iter->uOut == u2) && (iter->is_local == local);
+        if (found) return true;
+        iter++;
+      }
+      return false;
     }
-    
+
     /**
      * Check if there is an entry of the given specifics in the internal list of support materials.
      * @param tag A unique material identifier
@@ -1042,15 +1049,15 @@ namespace insur {
      * @return True if such an entry exists, false otherwise
      */
     bool MatCalc::entryExists(std::string tag, Matunit uM, MaterialProperties::Category cM) {
-        std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
-        std::vector<SingleSup>::iterator guard = internals.supinfo.end();
-        while (iter != guard) {
-            if ((tag.compare(iter->tag) == 0) && (iter->uM == uM) && (iter->cM == cM)) return true;
-            iter++;
-        }
-        return false;
+      std::vector<SingleSup>::iterator iter = internals.supinfo.begin();
+      std::vector<SingleSup>::iterator guard = internals.supinfo.end();
+      while (iter != guard) {
+        if ((tag.compare(iter->tag) == 0) && (iter->uM == uM) && (iter->cM == cM)) return true;
+        iter++;
+      }
+      return false;
     }
-    
+
     /**
      * This convenience function finds the number of rods in a layer.
      * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of layers in a tracker
@@ -1058,9 +1065,9 @@ namespace insur {
      * @return The number of rods in the given layer
      */
     int MatCalc::findBarrelRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
-        return findEndcapRods(caps, layer) / 2;
+      return findEndcapRods(caps, layer) / 2;
     }
-    
+
     /**
      * This convenience function finds the number of modules in the last ring of a disc.
      * @param caps The collection of <i>ModuleCap</i> objects that maps to a series of discs in a tracker
@@ -1068,20 +1075,20 @@ namespace insur {
      * @return The number of modules in the outmost ring of the given disc
      */
     int MatCalc::findEndcapRods(std::vector<std::vector<ModuleCap> >& caps, int layer) {
-        int res = 0;
-        int index = 1;
-        if ((layer >= 0) && (layer < (int)caps.size())) {
-            for (unsigned int i = 0; i < caps.at(layer).size(); i++) {
-                if (caps.at(layer).at(i).getModule().getRing() > index) {
-                    index = caps.at(layer).at(i).getModule().getRing();
-                    res = 1;
-                }
-                else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
-            }
+      int res = 0;
+      int index = 1;
+      if ((layer >= 0) && (layer < (int)caps.size())) {
+        for (unsigned int i = 0; i < caps.at(layer).size(); i++) {
+          if (caps.at(layer).at(i).getModule().getRing() > index) {
+            index = caps.at(layer).at(i).getModule().getRing();
+            res = 1;
+          }
+          else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
         }
-        return res;
+      }
+      return res;
     }
-    
+
     /**
      * This is a convenience function that converts an amount of material from one of the units available to the
      * config file to the internal unit ofgrammes. Since this normally requires additional information about the
@@ -1094,15 +1101,15 @@ namespace insur {
      * @return The material mass after conversion
      */
     double MatCalc::convert(double value, Matunit unit, double densityorlength, double surface) { // throws exception
-        switch(unit) {
-            case gr : return value;
-            case mm3 : return densityorlength * value / 1000.0;
-            case mm : return densityorlength * surface * value / 1000.0;
-            case grpm : return densityorlength * value / 1000.0;
-            default : throw std::range_error("Exception in MatCalc::convert(): " + err_conversion);
-        }
+      switch(unit) {
+      case gr : return value;
+      case mm3 : return densityorlength * value / 1000.0;
+      case mm : return densityorlength * surface * value / 1000.0;
+      case grpm : return densityorlength * value / 1000.0;
+      default : throw std::range_error("Exception in MatCalc::convert(): " + err_conversion);
+      }
     }
-    
+
     /**
      * This function propagates materials from a layer or disc to the first adjacent service.
      * @param source The layer or disc vector that the materials come out of
@@ -1112,64 +1119,64 @@ namespace insur {
      * @param s The surface of the service volume
      */
     void MatCalc::adjacentDifferentCategory(std::vector<ModuleCap>& source, InactiveElement& dest, int r, double l, double s) {
-        // S-labelled service materials
-        std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
-        // materials loop
-        for (liter = internals.serlocalinfo.begin(); liter != lguard; liter++) {
-            // unit conversion (internal unit is grammes)
-            double Q;
-            if (liter->uQ == grpm) Q = convert(liter->Q, liter->uQ, l);
-            else Q = convert(liter->Q, liter->uQ, mt.getMaterial(liter->tag).density, s);
-            // save converted and scaled material
-            dest.addLocalMass(liter->tag, r * Q);
+      // S-labelled service materials
+      std::vector<SingleSerLocal>::const_iterator liter, lguard = internals.serlocalinfo.end();
+      // materials loop
+      for (liter = internals.serlocalinfo.begin(); liter != lguard; liter++) {
+        // unit conversion (internal unit is grammes)
+        double Q;
+        if (liter->uQ == grpm) Q = convert(liter->Q, liter->uQ, l);
+        else Q = convert(liter->Q, liter->uQ, mt.getMaterial(liter->tag).density, s);
+        // save converted and scaled material
+        dest.addLocalMass(liter->tag, r * Q);
+      }
+      // D-labelled service materials
+      int modsonrod = 0, lastmod = 0;
+      // loop to find information about contributing source modules
+      for (unsigned int j = 0; j < source.size(); j++) {
+        if (modsonrod < source.at(j).getModule().getRing()) {
+          // modsonrod finds the number of modules along a rod
+          modsonrod = source.at(j).getModule().getRing();
+          // lastmod finds the index of a sample module at the end of a rod
+          lastmod = j;
         }
-        // D-labelled service materials
-        int modsonrod = 0, lastmod = 0;
-        // loop to find information about contributing source modules
-        for (unsigned int j = 0; j < source.size(); j++) {
-            if (modsonrod < source.at(j).getModule().getRing()) {
-                // modsonrod finds the number of modules along a rod
-                modsonrod = source.at(j).getModule().getRing();
-                // lastmod finds the index of a sample module at the end of a rod
-                lastmod = j;
-            }
+      }
+      std::vector<SingleSerExit>::const_iterator eiter, eguard = internals.serexitinfo.end();
+      // materials loop
+      for (eiter = internals.serexitinfo.begin(); eiter != eguard; eiter++) {
+        try {
+          // unit conversion per parameter (internal unit is grammes)
+          double In, Out;
+          if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
+          else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
+          if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);
+          else Out = convert(eiter->Out, eiter->uOut, mt.getMaterial(eiter->tagOut).density, s);
+          Out = Out * source.at(lastmod).getExitingMass(eiter->tagIn) / In;
+          if (eiter->is_local) dest.addLocalMass(eiter->tagOut, r * Out);
+          // save converted and scaled material
+          else dest.addExitingMass(eiter->tagOut, r * Out);
         }
-        std::vector<SingleSerExit>::const_iterator eiter, eguard = internals.serexitinfo.end();
-        // materials loop
-        for (eiter = internals.serexitinfo.begin(); eiter != eguard; eiter++) {
-            try {
-                // unit conversion per parameter (internal unit is grammes)
-                double In, Out;
-                if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
-                else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
-                if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);
-                else Out = convert(eiter->Out, eiter->uOut, mt.getMaterial(eiter->tagOut).density, s);
-                Out = Out * source.at(lastmod).getExitingMass(eiter->tagIn) / In;
-                if (eiter->is_local) dest.addLocalMass(eiter->tagOut, r * Out);
-                // save converted and scaled material
-                else dest.addExitingMass(eiter->tagOut, r * Out);
-            }
-            catch (std::runtime_error& re) {
-                std::cerr << "MatCalc::adjacentDifferentCategory(): " << err_no_material << msg_ignore_tag << eiter->tagIn << "." << std::endl;
-                std::cerr << "MatCalc::adjacentDifferentCategory(): exception was: " << re.what() << std::endl;
-            }
+        catch (std::runtime_error& re) {
+          std::cerr << "MatCalc::adjacentDifferentCategory(): " << err_no_material << msg_ignore_tag << eiter->tagIn << "." << std::endl;
+          std::cerr << "MatCalc::adjacentDifferentCategory(): exception was: " << re.what() << std::endl;
         }
+      }
     }
-    
+
     /**
      * This function propagates the materials of a service to the next.
      * @param source The neighbour volume of the current service
      * @param dest The service that is currently being processed
      */
     void MatCalc::adjacentSameCategory(InactiveElement& source, InactiveElement& dest) {
-        double tmp, scalar;
-        // find the multiplier to convert from the source surface to the destination surface
-        scalar = dest.getSurface() / source.getSurface();
-        for (std::map<std::string, double>::const_iterator it = source.getExitingMasses().begin(); it != source.getExitingMasses().end(); ++it) {
-            // scale incoming material with respect to the new geometry
-            tmp = scalar * it->second;
-            // save scaled material
-            dest.addExitingMass(it->first, tmp);
-        }
+      double tmp, scalar;
+      // find the multiplier to convert from the source surface to the destination surface
+      scalar = dest.getSurface() / source.getSurface();
+      for (std::map<std::string, double>::const_iterator it = source.getExitingMasses().begin(); it != source.getExitingMasses().end(); ++it) {
+        // scale incoming material with respect to the new geometry
+        tmp = scalar * it->second;
+        // save scaled material
+        dest.addExitingMass(it->first, tmp);
+      }
     }
 }

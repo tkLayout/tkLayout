@@ -178,29 +178,29 @@ namespace insur {
       if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
       if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
       if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-	mb->materialsAll(tkMaterialCalc);
-	if (verbose) mb->print();
-	
-	if (px) {
+        mb->materialsAll(tkMaterialCalc);
+        if (verbose) mb->print();
+
+        if (px) {
           std::string pixm = getPixelMaterialFile();
           if (pixm!="") {
-	    if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+            if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
               if (!pi) pi = new InactiveSurfaces();
               if (pm) delete pm;
               pm = new MaterialBudget(*px, *pi);
               pm->materialsAll(pxMaterialCalc);
               if (verbose) pm->print();
-	    }
-	  }
-	}
-	return true;
+            }
+          }
+        }
+        return true;
       } else {
-	if (mb) delete mb;
-	mb = NULL;
-	if (pm) delete pm;
-	pm = NULL;
-	logERROR(err_init_failed);
-	return false;
+        if (mb) delete mb;
+        mb = NULL;
+        if (pm) delete pm;
+        pm = NULL;
+        logERROR(err_init_failed);
+        return false;
       }
     } else {
       logERROR(err_no_tracker);
