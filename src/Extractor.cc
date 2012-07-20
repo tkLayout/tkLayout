@@ -919,13 +919,13 @@ namespace insur {
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
-                        pos.parent_tag = nspace + ":" + dname.str() + xml_plus;
+                        pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
                         pos.child_tag = logic.shape_tag;
                         if (rinfo[*siter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
                         else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
                         p.push_back(pos);
-                        pos.parent_tag = nspace + ":" + dname.str() + xml_minus;
-                        p.push_back(pos);
+                       // pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
+                      //  p.push_back(pos);
                         rspec.partselectors.push_back(logic.name_tag);
                         alg.parent = logic.shape_tag;
                         alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
@@ -968,21 +968,25 @@ namespace insur {
                 shape.rmax = rmax;
                 shape.dz = (zmax - zmin) / 2.0;
                 s.push_back(shape);
-                logic.name_tag = shape.name_tag + xml_plus;
+                logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
+              //  logic.extra = xml_plus;
                 logic.shape_tag = nspace + ":" + shape.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
-                pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd_plus;
+                pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
                 pos.child_tag = nspace + ":" + logic.name_tag;
                 pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
                 p.push_back(pos);
                 dspec.partselectors.push_back(logic.name_tag);
-                logic.name_tag = shape.name_tag + xml_minus;
-                l.push_back(logic);
-                pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd_minus;
-                pos.child_tag = nspace + ":" + logic.name_tag;
-                p.push_back(pos);
-                dspec.partselectors.push_back(logic.name_tag);
+                dspec.partextras.push_back(logic.extra);
+             //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
+             //   logic.extra = xml_minus;
+             //   l.push_back(logic);
+             //   pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+             //   pos.child_tag = nspace + ":" + logic.name_tag;
+             //   p.push_back(pos);
+                dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
+                dspec.partextras.push_back(logic.extra);
             }
             layer++;
         }

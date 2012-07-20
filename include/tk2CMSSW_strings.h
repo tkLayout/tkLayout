@@ -153,8 +153,9 @@ namespace insur {
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
     static const std::string xml_pixbar = "PixelBarrel";
-    static const std::string xml_pixfwd_plus = "PixelForwardZPlus";
-    static const std::string xml_pixfwd_minus = "PixelForwardZMinus";
+    static const std::string xml_pixfwd = "PixelForward"; 
+    static const std::string xml_pixfwd_plus = "PixelForward[1]"; // CUIDADO was: "PixelForwardZPlus";
+    static const std::string xml_pixfwd_minus = "PixelForward[2]"; // CUIDADO was: "PixelForwardZMinus";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";

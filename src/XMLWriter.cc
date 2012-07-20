@@ -655,8 +655,7 @@ namespace insur {
      * @param partsel A list of logical volume names that the additional parameter applies to
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::specPar(std::string name,
-            std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
+    void XMLWriter::specPar(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
         stream << xml_spec_par_open << name << xml_general_inter;
         for (unsigned i = 0; i < partsel.size(); i++) {
             stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
@@ -736,27 +735,27 @@ namespace insur {
             // disc loop
             for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
                 std::string& dcurrent = specs.at(dindex).partselectors.at(i);
-                bool plus = (dcurrent.size() >= xml_plus.size())
-                && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
+                bool plus = specs.at(dindex).partextras.at(i) == xml_plus; // CUIDADO was : (dcurrent.size() >= xml_plus.size() && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
                 std::string dnumber, rnumber;
-                dnumber = dcurrent.substr(xml_disc.size());
-                if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
-                else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
+                dnumber = dcurrent.substr(xml_disc.size()); 
+                //CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
+                //else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
                 std::ostringstream index;
                 index << (xml_reco_material_disc_offset + i / 2);
                 layer = atoi(dnumber.c_str());
                 spname = xml_tid_prefix + index.str();
                 if (plus) spname = spname + xml_forward;
                 else spname = spname + xml_backward;
-                if (plus) prefix = xml_pixfwd_plus;
-                else prefix = xml_pixfwd_minus;
-                prefix = prefix + "/" + dcurrent + "[" + index.str() +"]";
+                prefix = xml_pixfwd;
+                //if (plus) prefix = xml_pixfwd_plus;
+                //else prefix = xml_pixfwd_minus;
+                prefix = prefix + "/" + dcurrent; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
                 // ring loop
                 for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
                     std::string compstr = specs.at(rindex).partselectors.at(j);
                     compstr = compstr.substr(compstr.size() - dnumber.size());
                     // matching discs
-                    if (dnumber.compare(compstr) == 0) {
+                   if (dnumber.compare(compstr) == 0) {
                         rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
                         rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
                         postfix = xml_endcap_module + rnumber + xml_disc + dnumber;

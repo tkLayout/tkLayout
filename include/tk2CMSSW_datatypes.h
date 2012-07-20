@@ -89,6 +89,7 @@ namespace insur {
         std::string name_tag;
         std::string shape_tag;
         std::string material_tag;
+        std::string extra; // CUIDADO this was introduced to add the Plus / Minus attribute to discs, not really useful for anything else at least for now
     };
     /**
      * @struct ShapeInfo
@@ -179,6 +180,7 @@ namespace insur {
         std::string name;
         std::pair<std::string, std::string> parameter;
         std::vector<std::string> partselectors;
+        std::vector<std::string> partextras; // CUIDADO this was introduced to add the Plus / Minus attribute to discs, not really useful for anything else at least for now
     };
     /**
      * @struct RILengthInfo
