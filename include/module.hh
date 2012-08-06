@@ -304,7 +304,14 @@ protected:
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
 
-  double getTriggerFrequencyTruePerEvent();
+  //double getTriggerFrequencyTruePerEvent();
+  double getTriggerFrequencyTruePerEventAbove(const double& myCut);
+  double getTriggerFrequencyTruePerEventBelow(const double& myCut);
+  double getParticleFrequencyPerEventAbove(const double& myCut);
+private:
+  double getTriggerFrequencyTruePerEventBetween(double myLowCut, double myHighCut);
+  double getParticleFrequencyPerEventBetween(double myLowCut, double myHighCut);
+public:
   double getTriggerFrequencyFakePerEvent();
 
   int getProcessorConnections() const { return processorConnections_; }

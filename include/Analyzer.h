@@ -291,8 +291,10 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerEfficiencySummaries() { return triggerEfficiencySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
@@ -350,8 +352,8 @@ namespace insur {
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
-    std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_;
-    std::map<std::string, SummaryTable> triggerRateSummaries_, triggerPuritySummaries_;
+    std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyInterestingSummaries_;
+    std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
 

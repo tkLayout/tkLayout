@@ -1333,21 +1333,80 @@ bool Module::couldHit(double eta, double phi) {
     
 }
 
-const double ptCut = 1.0;
+// TODO: this is VERY ugly!!! :( sorry: hurry !
+const double ptMinFit = 0.22;
+const double ptMaxFit = 10.;
+// log(pt/z) distribution parameters for 12000 events at 14 TeV
+const double ptFitParamsLow[]  = { 2.52523e+01, -6.84183e+00, -1.20149e+01,  1.89314e+00}; // 0.22 GeV to 1 GeV  Chi^2 / dof = 22.0408/16 = 1.37755
+const double ptFitParamsMid[]  = { 7.27638e-01, -1.04041e+00,  8.56495e+00,  6.52714e-03}; // 1 GeV to 4 GeV     Chi^2 / dof = 84.2299/71 = 1.18634
+const double ptFitParamsHigh[] = { 4.66514e+01, -2.88910e+00, -3.78716e+01,  1.26635e-01}; // 4 GeV to 10 GeV    Chi^2 / dof = 102.736/135 = 0.76101
 
-double Module::getTriggerFrequencyTruePerEvent() {
-	computeMaxDphiDeta();
-	double r = getMeanPoint().Rho()/1000;
-	double ptMin = max(0.3 * insur::magnetic_field * r, ptCut);
-	double integral = 0.0;
-	double dPt = 0.5;
-	double etaphi = phiWidth_/(2.0*3.141592)*fabs(etaWidth_)/6.0;	
-	for (double pt = ptMin; pt < 10.0; pt += dPt) {
-        double nPt = exp(1.55173 - 1.24070*pt + 7.93426*pow(pt,-0.1) + 4.31883e-02 * pow(pt,2))/12000;
-		integral += getTriggerProbability(pt) * (nPt/4e-2) * etaphi * dPt;
-	}
+double Module::getTriggerFrequencyTruePerEventAbove(const double& myCut) {
+  return getTriggerFrequencyTruePerEventBetween(myCut, ptMaxFit);
+}
 
-	return integral;
+double Module::getParticleFrequencyPerEventAbove(const double& myCut) {
+  return getParticleFrequencyPerEventBetween(myCut, ptMaxFit);
+}
+
+double Module::getTriggerFrequencyTruePerEventBelow(const double& myCut) {
+  return getTriggerFrequencyTruePerEventBetween(ptMinFit, myCut);
+}
+
+// TODO: this and the next one should be merged in the same code...
+double Module::getTriggerFrequencyTruePerEventBetween(double myLowCut, double myHighCut) {
+  if (myLowCut<ptMinFit) myLowCut=ptMinFit;
+  if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
+  computeMaxDphiDeta();
+  double r = getMeanPoint().Rho()/1000;
+  double ptMin = max(0.3 * insur::magnetic_field * r, myLowCut);
+  double integral = 0.0;
+  double dPt = 0.05;
+  double etaphi = phiWidth_/(2.0*3.141592)*fabs(etaWidth_)/6.0;	
+  double nPt;
+  const double* ptFitParams;
+  for (double pt = ptMin; pt < myHighCut; pt += dPt) {
+    if (pt < 1) ptFitParams = ptFitParamsLow;
+    else if (pt < 6) ptFitParams = ptFitParamsMid;
+    else ptFitParams = ptFitParamsHigh;
+    
+    nPt = exp(ptFitParams[0]
+              + ptFitParams[1] * pt
+              + ptFitParams[2] * pow(pt,-0.1)
+              + ptFitParams[3] * pow(pt,2))/12000;
+
+    integral += getTriggerProbability(pt) * (nPt/4e-2) * etaphi * dPt;
+  }
+  
+  return integral;
+}
+
+// TODO: this and the previous one should be merged in the same code...
+double Module::getParticleFrequencyPerEventBetween(double myLowCut, double myHighCut) {
+  if (myLowCut<ptMinFit) myLowCut=ptMinFit;
+  if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
+  computeMaxDphiDeta();
+  double r = getMeanPoint().Rho()/1000;
+  double ptMin = max(0.3 * insur::magnetic_field * r, myLowCut);
+  double integral = 0.0;
+  double dPt = 0.05;
+  double etaphi = phiWidth_/(2.0*3.141592)*fabs(etaWidth_)/6.0;	
+  double nPt;
+  const double* ptFitParams;
+  for (double pt = ptMin; pt < myHighCut; pt += dPt) {
+    if (pt < 1) ptFitParams = ptFitParamsLow;
+    else if (pt < 6) ptFitParams = ptFitParamsMid;
+    else ptFitParams = ptFitParamsHigh;
+    
+    nPt = exp(ptFitParams[0]
+              + ptFitParams[1] * pt
+              + ptFitParams[2] * pow(pt,-0.1)
+              + ptFitParams[3] * pow(pt,2))/12000;
+
+    integral += (nPt/4e-2) * etaphi * dPt;
+  }
+  
+  return integral;
 }
 
 double Module::getTriggerFrequencyFakePerEvent() {

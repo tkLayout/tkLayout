@@ -1243,7 +1243,9 @@ namespace insur {
 
     void Analyzer::computeTriggerFrequency(Tracker& tracker) {
       std::map<std::string, std::map<std::pair<int,int>, int> >   triggerFrequencyCounts;
-      std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue, triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
+      std::map<std::string, std::map<std::pair<int,int>, double> > triggerFrequencyAverageTrue,
+        triggerFrequencyInterestingParticleTrue,
+        triggerFrequencyAverageFake; // trigger frequency by module in Z and R, averaged over Phi
       LayerVector& layers = tracker.getLayers();
 
       triggerFrequencyTrueSummaries_.clear();
@@ -1305,14 +1307,24 @@ namespace insur {
 
           int curCnt = triggerFrequencyCounts[cntName][make_pair(module->getLayer(), module->getRing())]++;
           double curAvgTrue = triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(),module->getRing())];
+          double curAvgInteresting = triggerFrequencyInterestingParticleTrue[cntName][make_pair(module->getLayer(),module->getRing())];
           double curAvgFake = triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(),module->getRing())];
 
-          curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
-          curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+          //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+          //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+
+          // TODO! Important <- make this interestingPt cut configurable
+          const double interestingPt = 2;
+          curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEventAbove(interestingPt)*tracker.getNMB() - curAvgTrue)/(curCnt+1);
+          curAvgInteresting += (module->getParticleFrequencyPerEventAbove(interestingPt)*tracker.getNMB() - curAvgInteresting)/(curCnt+1);
+          curAvgFake  = curAvgFake + (
+                                      (module->getTriggerFrequencyFakePerEvent()*tracker.getNMB()+module->getTriggerFrequencyTruePerEventBelow(interestingPt))
+                                      *tracker.getNMB() - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
           double curAvgTotal = curAvgTrue + curAvgFake;
 
           triggerFrequencyAverageTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgTrue;            
+          triggerFrequencyInterestingParticleTrue[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgInteresting;    
           triggerFrequencyAverageFake[cntName][make_pair(module->getLayer(), module->getRing())] = curAvgFake;    
 
           int triggerDataHeaderBits  = tracker.getModuleType(module->getType()).getTriggerDataHeaderBits();
@@ -1332,8 +1344,10 @@ namespace insur {
           currentTrueHisto->SetBinContent(module->getRing(), curAvgTrue*(1000/tracker.getBunchSpacingNs())*(100/module->getArea()));
 
           triggerFrequencyTrueSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue);
+          triggerFrequencyInterestingSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgInteresting);
           triggerFrequencyFakeSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgFake);
           triggerRateSummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTotal);             
+          triggerEfficiencySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/curAvgInteresting);                
           triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/(curAvgTrue+curAvgFake));                
           triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), triggerDataBandwidth);
 

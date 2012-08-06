@@ -2169,13 +2169,17 @@ namespace insur {
     myDescription->addText( aStringStream.str() );
 
 
-
+    std::map<std::string, SummaryTable>& particleSummaries = analyzer.getTriggerFrequencyInterestingSummaries();
     std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
     std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
     std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
+    std::map<std::string, SummaryTable>& efficiencySummaries = analyzer.getTriggerEfficiencySummaries();
     std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
     std::map<std::string, SummaryTable>& dataBandwidthSummaries = analyzer.getTriggerDataBandwidthSummaries();
 
+    for (std::map<std::string, SummaryTable>::iterator it = particleSummaries.begin(); it != particleSummaries.end(); ++it) {
+      myPage->addContent(std::string("High pt particle frequency (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
     for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
       myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
@@ -2184,6 +2188,9 @@ namespace insur {
     }
     for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
       myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
+    for (std::map<std::string, SummaryTable>::iterator it = efficiencySummaries.begin(); it != efficiencySummaries.end(); ++it) {
+      myPage->addContent(std::string("Trigger efficiency (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
       myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
