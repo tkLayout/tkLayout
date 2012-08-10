@@ -1773,13 +1773,15 @@ EndcapModule::EndcapModule(const Module& aModule, double d) : Module(aModule) {
 }
 
 
-double EndcapModule::getMaxPhi() const {
-    return getCorner(0).Phi();
+double EndcapModule::getMaxPhi() const {  // for Z+ disks phi0 is always MAX, for Z- disks phi1 is always MAX
+    if (getCorner(0).Z() < 0) return getCorner(1).Phi();
+    else return getCorner(0).Phi();
 }
 
 
 double EndcapModule::getMinPhi() const {
-    return getCorner(1).Phi();
+    if (getCorner(0).Z() < 0) return getCorner(0).Phi();
+    else return getCorner(1).Phi();
 }
 
 

@@ -723,7 +723,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     for (std::map<int, EndcapModule*>::iterator it = sampleModule.begin(); it != sampleModule.end(); ++it) {
       if (it->second->getShape()==Module::Wedge) { logERROR("Option nRings is incompatible with wedge-shaped modules. Endcap " + endcapName + " might be built incorrectly."); break; }
     }
-    if (diskParity == -1) { logWARNING("Endcap " + endcapName + " will be built top-to-bottom, but has diskParity = -1. This will lead to a non-optimal coverage."); }
+    if (diskParity == -1) { logWARNING("Endcap " + endcapName + " will be built top-to-bottom, but has diskParity = -1. This will lead to non-optimal coverage."); }
     logINFO("Endcap " + endcapName + " will be built top-to-bottom with a fixed number of rings (" + any2str(nRings) + ").");
     defaultDisk->buildSingleDisk( nRings, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,

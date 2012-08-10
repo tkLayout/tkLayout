@@ -2265,15 +2265,16 @@ namespace insur {
     SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
     SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
     SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
-    std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
+    //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 
-    for (std::map<std::string, SummaryTable>::iterator it = moduleSummaries.begin(); it != moduleSummaries.end(); ++it) {
-      myPage->addContent(std::string("Module outbound connections (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-    }
+    // CUIDADO These tables are probably outdated and even a bit confusing for the user. TBR
+    //for (std::map<std::string, SummaryTable>::iterator it = moduleSummaries.begin(); it != moduleSummaries.end(); ++it) {
+    //  myPage->addContent(std::string("Module outbound connections (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+   // }
 
     // Some helper string objects
     ostringstream tempSS;
@@ -2291,12 +2292,13 @@ namespace insur {
     TCanvas moduleConnectionPhiCanvas;
     TCanvas moduleConnectionEndcapPhiCanvas;
 
-    PlotDrawer<YZ, Method<int, &Module::getProcessorConnections> > yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnections> > xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Average> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<YZFull, Method<int, &Module::getProcessorConnections>, Max> yzDrawer(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Max> xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Max> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
 
     yzDrawer.addModulesType(tracker.getLayers());
-    xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
+    //xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
+    xyDrawer.addModules<CheckType<Module::Barrel> >(tracker.getLayers());
     xyecDrawer.addModules<CheckType<Module::Endcap> >(tracker.getLayers());
 
     yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
@@ -2308,6 +2310,7 @@ namespace insur {
     xyecDrawer.drawModules<ContourStyle>(moduleConnectionEndcapPhiCanvas);
 
 
+
     /*
        moduleConnectionEtaCanvas.SetFillColor(color_plot_background);
        moduleConnectionPhiCanvas.SetFillColor(color_plot_background);
@@ -2316,7 +2319,7 @@ namespace insur {
     moduleConnectionEtaCanvas.cd();
     moduleConnectionEtaMap.Draw("colz");
     */  
-    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, 900, 400);
+    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, 1800, 400);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
     /*
@@ -2330,9 +2333,9 @@ namespace insur {
     // moduleConnectionEndcapPhiCanvas.cd();
     // moduleConnectionEndcapPhiMap.Draw("colz");
 
-    // RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
-    // moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
-    // moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
+    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
+    moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
+    moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
 
     //    myContent = myPage->addContent("Module Connections distribution", true);
 

@@ -1381,6 +1381,8 @@ namespace insur {
 
       double eta = -etaCut;    
 
+      cout << endl;
+
       for (int i=0; i < numProcEta; i++) { // loop over etaSlices
         double phi = 0;
         for (int j=0; j < numProcPhi; j++) { 
@@ -1405,8 +1407,8 @@ namespace insur {
 
               //double modR    = module->getMeanPoint().Rho();                
 
-              double modMinPhi  = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
-              double modMaxPhi  = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
+              double modMinPhi = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
+              double modMaxPhi = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
 
               double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
               double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
@@ -1414,8 +1416,8 @@ namespace insur {
               //double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError); // if etaDist is positive it means the module is to the ri:qght of the slice edge 
               //double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError); // if negative the module is to the left of the slice edge 
 
-              double etaDist1 = modMaxZ - (modMinR*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
-              double etaDist2 = (modMaxR*(etaSliceZ2 - zError)/maxR + zError) - modMinZ; 
+              double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
+              double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
 
               double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
               double sliceMinPhi = phi - trajSlice;
@@ -1424,16 +1426,20 @@ namespace insur {
               if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
               else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
 
+              //CUIDADO DEBUG ONLY if (modMaxPhi > M_PI/2 && modMinPhi < M_PI*3/2) continue;
+
               if (etaDist1 > 0 && etaDist2 > 0 &&
                   ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
                    (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
                    (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi))) 
                 { 
 
+                 //cout << "Hi! I'm a " << (dynamic_cast<BarrelModule*>(module) ? "barrel" : "endcap") << " module from " << cntName << " at " << module->getLayer() << "," << module->getRing() << "," << module->getPhiIndex() << " with Z=" << module->getMeanPoint().Z() << " and in sector " << i << "," << j << endl;
+                  
                   int moduleConnections = module->getProcessorConnections()+1;
                   module->setProcessorConnections(moduleConnections);
 
-                  processorConnections[std::make_pair(j,i)] += 1; // this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+                  processorConnections[std::make_pair(j,i)] += 1;
                   processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
 
                   processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]; // *2 takes into account negative Z's

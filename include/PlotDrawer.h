@@ -63,7 +63,13 @@ public:
   double get() const { return curr_; }
 };
 
-
+class Sum {
+  double value_;
+public:
+  Sum() : value_(0) {}
+  void fill(double value) { value_ += value; }
+  double get() const { return value_; }
+};
 
 
 
@@ -194,8 +200,9 @@ struct Rounder {
 
 
 struct XY : public std::pair<int, int>, private Rounder {
-  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())) {}
-  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())) {}
+  const bool valid;
+  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())), valid(true) {} // valid(m.getMeanPoint().Z() >= 0) {}
+  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(true) {} // valid(v.Z() >= 0) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
   int y() const { return this->second; }
@@ -203,11 +210,19 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 
 struct YZ : public std::pair<int, int>, private Rounder {
-  YZ(const Module& m) : std::pair<int,int>(round(m.getMeanPoint().Z()), round(m.getMeanPoint().Rho())) {}
-  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())) {}
+  const bool valid;
+  YZ(const Module& m) : std::pair<int,int>(round(m.getMeanPoint().Z()), round(m.getMeanPoint().Rho())), valid(m.getMeanPoint().Z() >= 0) {}
+  YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
   int z() const { return this->first; }
+};
+
+
+struct YZFull : public YZ {
+  const bool valid;
+  YZFull(const Module& m) : YZ(m), valid(true) {}
+  YZFull(const XYZVector& v) : YZ(v), valid(true) {}
 };
 
 
@@ -361,6 +376,7 @@ template<class DrawStyleType> void PlotDrawer<CoordType, ValueGetterType, StatTy
 
 template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   CoordType c(m);
+  if (!c.valid) return;  // for XY and YZ plots negative Z modules are not needed and are therefore weeded out, YZFull plots on the other hand retains all the modules (CUIDADO I don't actually like the way this works)
   if (bins_[c] == NULL) {
     bins_[c] = new StatType();
     lines_[c] = getLine(m);
@@ -373,7 +389,7 @@ template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer
   for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
     std::vector<Module*>* layerModules = (*it)->getModuleVector();
     for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-      if ((*modIt)->getMeanPoint().Z()<0) continue;
+      //if ((*modIt)->getMeanPoint().Z()<0) continue;
       int subDet = (*modIt)->getSubdetectorType();
       if (subDet & moduleTypes) add(**modIt);
     }
@@ -385,7 +401,7 @@ template<class ModuleValidator> void PlotDrawer<CoordType, ValueGetterType, Stat
   for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
     std::vector<Module*>* layerModules = (*it)->getModuleVector();
     for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-      if ((*modIt)->getMeanPoint().Z()>0 && isValid(**modIt)) add(**modIt);
+      if (/*(*modIt)->getMeanPoint().Z()>0 &&*/ isValid(**modIt)) add(**modIt);
     }
   }
 }

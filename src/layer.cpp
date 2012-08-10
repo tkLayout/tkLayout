@@ -404,7 +404,8 @@ void BarrelLayer::buildStringPairRecursion(
     tempSS << "Balanced module placement in string at avg radius "
       << averageRadius << " converged after "
       << recursionCounter << " step(s)."
-      << " Residual Z unbalance is " << zUnbalance;
+      << " Residual Z unbalance is " << zUnbalance << "."
+      << " Positive string has " << listZPos.size() << " modules, negative string has " << listZNeg.size() << " modules.";
     logINFO(tempSS);
     recursionCounter = 0; // we made it so we reset the recursion counter for the next string
 

@@ -28,4 +28,7 @@ std::string ltrim(std::string str);
 std::string rtrim(std::string str);
 std::string trim(std::string str);
 
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+
 #endif
