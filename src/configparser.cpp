@@ -949,7 +949,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   int nRings = 0;
   int phiSegments = 4;
   int diskParity = 0;
-  double smallDelta = 0.5;
+  double smallDelta = 0.0;
   double bigDelta = 3;
   double dsDistanceOverride = -1;
   bool sameRods = false;
@@ -1029,7 +1029,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
             << "\": unknown/nonsense value \"" << parameterValue << "\". Should be 30x50 if the module is 30mm wide and 50mm long." << endl;
           throw parsingException();
         }
-      } else if ( "option") {
+      } else if ( parameterName == "option") {
         char charBuf[100];
         std::string aString;
         double aVal;
@@ -1066,7 +1066,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
             << "\" should be layer/option" << endl;
           throw parsingException();
         }
-      } else if ( "directive") {
+      } else if ( parameterName == "directive") {
         if (parameterValue.find('/') != string::npos) { // barrel directive
           char charBuf[100];
           std::string aString;
@@ -1140,7 +1140,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   sampleBarrelModule->setResolutionRphi();
   sampleBarrelModule->setResolutionY();
 
-  myTracker_->buildBarrel(nLayers, rIn, rOut, maxZ, nModules, sampleBarrelModule, myName, Layer::NoSection, true, false, sameRods);
+  myTracker_->buildBarrel(nLayers, rIn, rOut, 0, nModules, sampleBarrelModule, myName, Layer::NoSection, true, false, sameRods);
   delete sampleBarrelModule;
 
   if (nDisks > 0) {

@@ -416,6 +416,7 @@ namespace insur {
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, site);
+      if (px) v.geometrySummary(a, *px, site, "pixel");
       stopTaskClock();
       return true;
     } else {

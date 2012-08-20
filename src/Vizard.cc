@@ -1322,7 +1322,7 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, std::string name) {
 
     // A bunch of indexes
     std::map<std::string, Module*> typeMap;
@@ -1349,9 +1349,15 @@ namespace insur {
     int totCountSens = 0;
     long totChannel = 0;
 
-    RootWPage* myPage = new RootWPage("Geometry");
+    std::string pageTitle = "Geometry";
+    if (name!="") pageTitle+=" (" +name+")";
+    
+    RootWPage* myPage = new RootWPage(pageTitle);
     // TODO: the web site should decide which page to call index.html
-    myPage->setAddress("index.html");
+
+    std::string pageAddress="index"+name+".html";
+    myPage->setAddress(pageAddress);
+
     site.addPage(myPage, 100);
     RootWContent* myContent;
 
