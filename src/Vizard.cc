@@ -5,7 +5,6 @@
 
 #include <Vizard.h>
 
-
 namespace insur {
   // public
   /**
@@ -438,9 +437,9 @@ namespace insur {
     c.SaveAs(svgpath.c_str());
     c.SaveAs(Cpath.c_str());
     htmlstream << "<img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in full volume ";
-    htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
-    htmlstream << "<p><small><b>Average interaction length in full volume (eta = [0, 2.4]): ";
-    htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
+    htmlstream << "(eta = [0, "<< a.getEtaMaxMaterial() << "]): " << averageHistogramValues(*cr, a.getEtaMaxMaterial()) << "</b></small></p>";
+    htmlstream << "<p><small><b>Average interaction length in full volume (eta = [0, "<<a.getEtaMaxMaterial() << "]): ";
+    htmlstream << averageHistogramValues(*ci, a.getEtaMaxMaterial()) << "</b></small></p>";
     // work area cleanup an re-init
     c.Clear("D");
     if (cr) delete cr;
@@ -472,9 +471,9 @@ namespace insur {
     c.SaveAs(svgpath.c_str());
     c.SaveAs(Cpath.c_str());
     htmlstream << "<br><img src=\"" << pngout << "\" /><br><p><small><b>Average radiation length in tracking volume ";
-    htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*cr, etaMaxAvg) << "</b></small></p>";
-    htmlstream << "<p><small><b>Average interaction length in tracking volume (eta = [0, 2.4]): ";
-    htmlstream << averageHistogramValues(*ci, etaMaxAvg) << "</b></small></p>";
+    htmlstream << "(eta = [0, "<< a.getEtaMaxMaterial()<<"]): " << averageHistogramValues(*cr, a.getEtaMaxMaterial()) << "</b></small></p>";
+    htmlstream << "<p><small><b>Average interaction length in tracking volume (eta = [0, "<<a.getEtaMaxMaterial()<<"]): ";
+    htmlstream << averageHistogramValues(*ci, a.getEtaMaxMaterial()) << "</b></small></p>";
     // work area cleanup and re-init
     c.Clear("D");
     pad = c.GetPad(1);
@@ -522,17 +521,17 @@ namespace insur {
     htmlstream << "<img src=\"" << pngout << "\" /><br>";
     // average values by active, service and passive
     htmlstream << "<br><p><small><b>Average radiation length in modules ";
-    htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*acr, etaMaxAvg) << "</b></small></p>";
+    htmlstream << "(eta = [0, "<<a.getEtaMaxMaterial()<<"]): " << averageHistogramValues(*acr, a.getEtaMaxMaterial()) << "</b></small></p>";
     htmlstream << "<p><small><b>Average radiation length in services ";
-    htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*ser, etaMaxAvg) << "</b></small></p>";
+    htmlstream << "(eta = [0, "<<a.getEtaMaxMaterial()<<"]): " << averageHistogramValues(*ser, a.getEtaMaxMaterial()) << "</b></small></p>";
     htmlstream << "<p><small><b>Average radiation length in supports ";
-    htmlstream << "(eta = [0, 2.4]): " << averageHistogramValues(*sur, etaMaxAvg) << "</b></small></p>";
-    htmlstream << "<br><p><small><b>Average interaction length in modules (eta = [0, 2.4]): ";
-    htmlstream << averageHistogramValues(*aci, etaMaxAvg) << "</b></small></p>";
-    htmlstream << "<p><small><b>Average interaction length in services (eta = [0, 2.4]): ";
-    htmlstream << averageHistogramValues(*sei, etaMaxAvg) << "</b></small></p>";
-    htmlstream << "<p><small><b>Average interaction length in supports (eta = [0, 2.4]): ";
-    htmlstream << averageHistogramValues(*sui, etaMaxAvg) << "</b></small></p>";
+    htmlstream << "(eta = [0, "<<a.getEtaMaxMaterial()<<"]): " << averageHistogramValues(*sur, a.getEtaMaxMaterial()) << "</b></small></p>";
+    htmlstream << "<br><p><small><b>Average interaction length in modules (eta = [0, "<<a.getEtaMaxMaterial()<<"]): ";
+    htmlstream << averageHistogramValues(*aci, a.getEtaMaxMaterial()) << "</b></small></p>";
+    htmlstream << "<p><small><b>Average interaction length in services (eta = [0, "<<a.getEtaMaxMaterial()<<"]): ";
+    htmlstream << averageHistogramValues(*sei, a.getEtaMaxMaterial()) << "</b></small></p>";
+    htmlstream << "<p><small><b>Average interaction length in supports (eta = [0, "<<a.getEtaMaxMaterial()<<"]): ";
+    htmlstream << averageHistogramValues(*sui, a.getEtaMaxMaterial()) << "</b></small></p>";
     // work area cleanup and re-init
     c.Clear("D");
     pad = c.GetPad(1);
@@ -676,16 +675,9 @@ namespace insur {
 
     // Prepare the cuts for the averages
     // Three slices of 0.8 each
-    std::vector<std::string> cutNames;
-    std::vector<double> cuts;
+    const std::vector<std::string>& cutNames = a.getCutNames();
+    const std::vector<double>& cuts = a.getTrackingCuts();
     ostringstream label;
-    cuts.push_back(0.01);
-    cuts.push_back(0.8);
-    cuts.push_back(1.6);
-    cuts.push_back(2.4);
-    cutNames.push_back("C");
-    cutNames.push_back("I");
-    cutNames.push_back("F");
     std::map<int, std::vector<double> > averages;
 
     // Book histograms
@@ -737,21 +729,21 @@ namespace insur {
     myImage->setComment("Material in full volume");
     myImage->setName("matFull");
     myTable = new RootWTable();
-    std::ostringstream anEtaMaxAvg;
-    anEtaMaxAvg.str("");
-    anEtaMaxAvg << "Average radiation length in full volume (eta = [0, ";
-    anEtaMaxAvg << std::dec << std::fixed
-      << std::setprecision(1) << etaMaxAvg;
-    anEtaMaxAvg << "])";
-    myTable->setContent(1, 1, anEtaMaxAvg.str().c_str());
-    anEtaMaxAvg.str("");
-    anEtaMaxAvg << "Average interaction length in full volume (eta = [0, ";
-    anEtaMaxAvg << std::dec << std::fixed
-      << std::setprecision(1) << etaMaxAvg;
-    anEtaMaxAvg << "])";
-    myTable->setContent(2, 1, anEtaMaxAvg.str().c_str());
-    myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
+    std::ostringstream aStringStream;
+    aStringStream.str("");
+    aStringStream << "Average radiation length in full volume (eta = [0, ";
+    aStringStream << std::dec << std::fixed
+                << std::setprecision(1) << a.getEtaMaxMaterial();
+    aStringStream << "])";
+    myTable->setContent(1, 1, aStringStream.str().c_str());
+    aStringStream.str("");
+    aStringStream << "Average interaction length in full volume (eta = [0, ";
+    aStringStream << std::dec << std::fixed
+      << std::setprecision(1) << a.getEtaMaxMaterial();
+    aStringStream << "])";
+    myTable->setContent(2, 1, aStringStream.str().c_str());
+    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
@@ -818,10 +810,13 @@ namespace insur {
     myImage->setComment("Material in tracking volume");
     myImage->setName("matTrack");
     myTable = new RootWTable();
-    myTable->setContent(1, 1, "Average radiation length in tracking volume (eta = [0, 2.4])");
-    myTable->setContent(2, 1, "Average interaction length in tracking volume (eta = [0, 2.4])");
-    myTable->setContent(1, 2, averageHistogramValues(*cr, etaMaxAvg), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, etaMaxAvg), 5);
+    char titleString[256];
+    sprintf(titleString, "Average radiation length in tracking volume (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    myTable->setContent(1, 1, titleString);
+    sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    myTable->setContent(2, 1, titleString);
+    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
@@ -873,18 +868,19 @@ namespace insur {
     myImage->setName("matTrackDet");
     myTable = new RootWTable();
     // Average values by active, service and passive
-    myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
+    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
     myTable->setContent(1, 0, "modules");
     myTable->setContent(2, 0, "services");
     myTable->setContent(3, 0, "supports");
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
-    myTable->setContent(1, 1, averageHistogramValues(*acr, etaMaxAvg), 5);
-    myTable->setContent(2, 1, averageHistogramValues(*ser, etaMaxAvg), 5);
-    myTable->setContent(3, 1, averageHistogramValues(*sur, etaMaxAvg), 5);
-    myTable->setContent(1, 2, averageHistogramValues(*aci, etaMaxAvg), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*sei, etaMaxAvg), 5);
-    myTable->setContent(3, 2, averageHistogramValues(*sui, etaMaxAvg), 5);
+    myTable->setContent(1, 1, averageHistogramValues(*acr, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 1, averageHistogramValues(*ser, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 1, averageHistogramValues(*sur, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 2, averageHistogramValues(*aci, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*sei, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 2, averageHistogramValues(*sui, a.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
@@ -896,7 +892,8 @@ namespace insur {
     myPage->addContent(myContent);
 
     myTable = new RootWTable();
-    myTable->setContent(0, 0, "Average (eta = [0, 2.4])");
+    sprintf(titleString, "Average (eta = [0, %.1f", a.getEtaMaxMaterial());
+    myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
 
@@ -924,7 +921,7 @@ namespace insur {
       compLegend->AddEntry(it->second, it->first.c_str());
       rCompStack->Add(it->second);
       myTable->setContent(compIndex, 0, it->first);
-      myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, etaMaxAvg), 5);
+      myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     rCompStack->Draw();
     compLegend->Draw();
@@ -939,7 +936,7 @@ namespace insur {
       it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       iCompStack->Add(it->second);
-      myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, etaMaxAvg), 5);
+      myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
     }
     iCompStack->Draw();
     compLegend->Draw();
@@ -1046,7 +1043,7 @@ namespace insur {
     // Old-style palette by Stefano, with custom-generated colors
     // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
     // Replaced by the libreOffice-like palette
-    TH1D* ranger = new TH1D(name_hadTrackRanger.c_str(),"", 100, 0, 3);
+    TH1D* ranger = new TH1D(name_hadTrackRanger.c_str(),"", 100, 0, a.getEtaMaxMaterial());
     ranger->SetMaximum(1.);
     TAxis* myAxis;
     myAxis = ranger->GetXaxis();
@@ -1060,6 +1057,10 @@ namespace insur {
          i<hadronGoodTracksFraction.size();
          ++i) {
       TGraph& myGraph = hadronGoodTracksFraction.at(i);
+      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph.GetN() << " points" << std::endl;
+      //double xx, yy;
+      //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
+      //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
       averages[i] = Analyzer::average(myGraph, cuts);
       closeGraph(myGraph);
       myGraph.SetFillColor(Palette::color(i+1));
@@ -1070,7 +1071,7 @@ namespace insur {
           tempSS << "1 hit required";
         else
           tempSS << int(hadronNeededHitsFraction.at(i)*100)
-            << "% hits required";
+            << "%% hits required";
         fractionTitles[i]=tempSS.str();
         myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
       }
@@ -2474,7 +2475,7 @@ namespace insur {
             momentumGraph.SetMinimum(4E-3*100);
             momentumGraph.SetMaximum(.11*100*verticalScale);
           }
-          momentumGraph.GetXaxis()->SetLimits(0, 2.4);
+          momentumGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           linearMomentumCanvas.SetLogy(0);        
           momentumCanvas.SetLogy(1);
           momentumGraph.SetLineColor(momentumColor(myColor));
@@ -2504,7 +2505,7 @@ namespace insur {
             distanceGraph.SetMinimum(4*1e-4);
             distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
           }
-          distanceGraph.GetXaxis()->SetLimits(0, 2.4);
+          distanceGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           distanceCanvas.SetLogy();
           distanceGraph.SetLineColor(momentumColor(myColor));
           distanceGraph.SetMarkerColor(momentumColor(myColor));
@@ -2530,7 +2531,7 @@ namespace insur {
             angleGraph.SetMinimum(1E-5);
             angleGraph.SetMaximum(0.01*verticalScale);
           }
-          angleGraph.GetXaxis()->SetLimits(0, 2.4);
+          angleGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           angleCanvas.SetLogy();
           angleGraph.SetLineColor(momentumColor(myColor));
           angleGraph.SetMarkerColor(momentumColor(myColor));
@@ -2551,7 +2552,7 @@ namespace insur {
           TGraph& ctgThetaGraph = g_iter->second;
           ctgThetaGraph.SetMinimum(1E-5);
           ctgThetaGraph.SetMaximum(0.1*verticalScale);
-          ctgThetaGraph.GetXaxis()->SetLimits(0, 2.4);
+          ctgThetaGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           ctgThetaCanvas.SetLogy();
           ctgThetaGraph.SetLineColor(momentumColor(myColor));
           ctgThetaGraph.SetMarkerColor(momentumColor(myColor));
@@ -2572,7 +2573,7 @@ namespace insur {
           TGraph& z0Graph = g_iter->second;
           z0Graph.SetMinimum(1E-5);
           z0Graph.SetMaximum(1*verticalScale);
-          z0Graph.GetXaxis()->SetLimits(0, 2.4);
+          z0Graph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           z0Canvas.SetLogy();
           z0Graph.SetLineColor(momentumColor(myColor));
           z0Graph.SetMarkerColor(momentumColor(myColor));
@@ -2598,7 +2599,7 @@ namespace insur {
             pGraph.SetMinimum(4E-3*100);
             pGraph.SetMaximum(.11*100*verticalScale);
           }
-          pGraph.GetXaxis()->SetLimits(0, 2.4);
+          pGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           pCanvas.SetLogy();
           pGraph.SetLineColor(momentumColor(myColor));
           pGraph.SetMarkerColor(momentumColor(myColor));
@@ -2655,27 +2656,12 @@ namespace insur {
       }
 
       // Prepare the cuts for the averages
-      std::vector<std::string> cutNames;
-      std::vector<double> cuts;
+      const std::vector<std::string>& cutNames = a.getCutNames();
+      const std::vector<double>& cuts = (additionalTag=="trigger") ? a.getTriggerCuts() : a.getTrackingCuts();
       ostringstream label;
       std::string name;      
       RootWTable* myTable;
 
-      // Three slices of 0.8 each
-      // Or 0.7 for the trigger
-      cuts.push_back(0.01);
-      if (additionalTag=="trigger") {
-        cuts.push_back(0.7);
-        cuts.push_back(1.4);
-        cuts.push_back(2.1);
-      } else {
-        cuts.push_back(0.8);
-        cuts.push_back(1.6);
-        cuts.push_back(2.4);
-      }
-      cutNames.push_back("C");
-      cutNames.push_back("I");
-      cutNames.push_back("F");
       unsigned int nCuts = cutNames.size();
 
       // Table explaining the cuts
@@ -3422,7 +3408,7 @@ namespace insur {
   //        index normal to draw plane (if x=1, y=2, z=3)
   // @param spacing grid tick spacing
   // @param option the options to pass to the Draw() method
-  void Vizard::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
+  void Vizard::drawTicks(Analyzer& analyzer, TView* myView, double maxL, double maxR, int noAxis/*=1*/, double spacing /*= 100.*/, Option_t* option /*= "same"*/) {
     TPolyLine3D* aLine;
     Color_t gridColor_hard = color_hard_grid;
     int gridStyle_solid = 1;
@@ -3437,7 +3423,7 @@ namespace insur {
 
     if (noAxis==1) {
       double etaStep=.2;
-      double etaMax = 2.1;
+      double etaMax = analyzer.getEtaMaxGeometry() - etaStep/2.;
       // Add the eta ticks
       double theta;
       double tickLength = 2 * spacing;
@@ -3482,7 +3468,7 @@ namespace insur {
       }
 
       aLine = new TPolyLine3D(2);
-      theta = 2 * atan(exp(-2.5));
+      theta = 2 * atan(exp(-analyzer.getEtaMaxGeometry()));
       startTick = XYZVector(0, sin(theta), cos(theta));
       startTick *= startR/startTick.Rho();
       endTick = startTick / startTick.Rho() * endR;
@@ -3494,7 +3480,7 @@ namespace insur {
       pw[1]=endTick.Y();
       pw[2]=endTick.Z();
       myView->WCtoNDC(pw, pn);
-      sprintf(labelChar, "%.01f", 2.5);
+      sprintf(labelChar, "%.01f", analyzer.getEtaMaxGeometry());
       aLabel = new TText(pn[0], pn[1], labelChar);
       aLabel->SetTextSize(aLabel->GetTextSize()*.8);
       aLabel->SetTextAlign(21);
@@ -3675,7 +3661,7 @@ namespace insur {
       myPad->GetView()->SetParallel();
       myPad->GetView()->SetRange(0, 0, 0, maxZ, maxZ, maxZ);
       myPad->GetView()->SetView(0 /*long*/, 270/*lat*/, 270/*psi*/, irep);
-      drawTicks(myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
+      drawTicks(analyzer, myPad->GetView(), maxZ, maxRho, ViewSectionYZ);
     }
 
     // XYView (barrel)

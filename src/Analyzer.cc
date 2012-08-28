@@ -14,6 +14,8 @@
 
 namespace insur {
 
+  int Analyzer::bsCounter =0;
+
   template<> void SummaryTable::setCell<std::string>(const int row, const int column, const std::string& content) {
     if (column > 0 && !hasCell(0, column)) summaryTable[std::make_pair(0, column)] = any2str(column + columnOffset_);
     if (row > 0 && !hasCell(row, 0)) summaryTable[std::make_pair(row, 0)] = any2str(row + rowOffset_);
@@ -257,6 +259,32 @@ namespace insur {
     geomLiteEC = NULL; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
+
+    //etaMaxMaterial = 3.1;
+    etaMaxGeometry = 2.6;
+
+    trackingCuts.push_back(0.01);
+    triggerCuts.push_back(0.01);
+    addCut("C", 0.8, 0.6);
+    addCut("I", 1.6, 1.2);
+    addCut("F", 2.4, 2.1);
+    addCut("VF", 4.5, 4.5);
+  }
+
+  // public
+  // TODO: add documentation for this function
+  void Analyzer::addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut) {
+    cutNames.push_back(cutName);
+    trackingCuts.push_back(trackingCut);
+    triggerCuts.push_back(triggerCut);
+  }
+
+  double Analyzer::getEtaMaxTracking() {
+    return trackingCuts[trackingCuts.size()-1];
+  }
+
+  double Analyzer::getEtaMaxTrigger() {
+    return triggerCuts[triggerCuts.size()-1];
   }
 
 
@@ -317,11 +345,11 @@ namespace insur {
     double etaStep, eta, theta, phi;
 
     // prepare etaStep, phiStep, nTracks, nScans
-    if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
-    else etaStep = etaMax;
+    if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
+    else etaStep = getEtaMaxTrigger();
     nTracks = etaSteps;
 
-    // prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
+    // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
 
     // reset the list of tracks
     std::vector<Track> tv;
@@ -330,7 +358,7 @@ namespace insur {
     // used fixed phi
     //phi = PI / 2.0;
 
-    // Loop over nTracks (eta range [0, etaMax])
+    // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
       phi = myDice.Rndm() * PI * 2.0;
       Material tmp;
@@ -419,16 +447,16 @@ namespace insur {
     double zError = tracker.getZError();
 
     // prepare etaStep, phiStep, nTracks, nScans
-    if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
-    else etaStep = etaMax;
+    if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
+    else etaStep = getEtaMaxTrigger();
     nTracks = etaSteps;
 
-    prepareTriggerPerformanceHistograms(nTracks, etaMax, triggerMomenta, thresholdProbabilities);
+    prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
 
     // reset the list of tracks
     std::vector<Track> tv;
 
-    // Loop over nTracks (eta range [0, etaMax])
+    // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
       phi = myDice.Rndm() * PI * 2.0;
       z0 = myDice.Gaus(0, zError);
@@ -957,19 +985,19 @@ namespace insur {
       clearMaterialBudgetHistograms();
       clearCells();
       // prepare etaStep, phiStep, nTracks, nScans
-      if (etaSteps > 1) etaStep = etaMax / (double)(etaSteps - 1);
-      else etaStep = etaMax;
+      if (etaSteps > 1) etaStep = getEtaMaxMaterial() / (double)(etaSteps - 1);
+      else etaStep = getEtaMaxMaterial();
       nTracks = etaSteps;
-      // reset the number of bins and the histogram boundaries (0.0 to etaMax) for all histograms, recalculate the cell boundaries
-      setHistogramBinsBoundaries(nTracks, 0.0, etaMax);
-      setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, etaMax);
+      // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
+      setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
+      setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
       // reset the list of tracks
       std::vector<Track> tv;
       std::vector<Track> tvIdeal;
       // tv.clear();
       // used fixed phi
       // phi = PI / 2.0;
-      //      loop over nTracks (eta range [0, etaMax])
+      //      loop over nTracks (eta range [0, getEtaMaxMaterial()])
       // CUIDADO for (std::vector<std::vector<ModuleCap> >::iterator etl = mb.getBarrelModuleCaps().begin(); etl != mb.getBarrelModuleCaps().end(); ++etl) {
       //    for (std::vector<ModuleCap>::iterator itl = etl->begin(); itl != etl->end(); ++itl) {
       //       cout << "mod: " << itl->getModule().getLayer() << "," << itl->getModule().getRing() << "," << itl->getModule().getPhiIndex() << "," << itl->getModule().getSubdetectorType() << " comps: " << itl->getComponentsRI().size() << "," << itl->getRadiationLength() << "," << itl->getInteractionLength() << endl;
@@ -1006,16 +1034,15 @@ namespace insur {
         rglobal.Fill(eta, tmp.radiation);
         iglobal.Fill(eta, tmp.interaction);
 
-
         for (std::map<std::string, Material>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
           if (rComponents[it->first]==NULL) { 
             rComponents[it->first] = new TH1D();
-            rComponents[it->first]->SetBins(nTracks, 0.0, etaMax); 
+            rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
           }
           rComponents[it->first]->Fill(eta, it->second.radiation);
           if (iComponents[it->first]==NULL) {
             iComponents[it->first] = new TH1D();
-            iComponents[it->first]->SetBins(nTracks, 0.0, etaMax); 
+            iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
           }
           iComponents[it->first]->Fill(eta, it->second.interaction);
         }
@@ -1023,19 +1050,19 @@ namespace insur {
 
         if (rComponents["Services"]==NULL) { 
           rComponents["Services"] = new TH1D();
-          rComponents["Services"]->SetBins(nTracks, 0.0, etaMax); 
+          rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
         }
         if (iComponents["Services"]==NULL) { 
           iComponents["Services"] = new TH1D();
-          iComponents["Services"]->SetBins(nTracks, 0.0, etaMax); 
+          iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
         }
         if (rComponents["Supports"]==NULL) { 
           rComponents["Supports"] = new TH1D();
-          rComponents["Supports"]->SetBins(nTracks, 0.0, etaMax); 
+          rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
         }
         if (iComponents["Supports"]==NULL) { 
           iComponents["Supports"] = new TH1D();
-          iComponents["Supports"]->SetBins(nTracks, 0.0, etaMax); 
+          iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
         }
         //      services, barrel
         tmp = analyzeInactiveSurfaces(mb.getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat);
@@ -2887,7 +2914,7 @@ namespace insur {
      * @parameter triggerMomenta the vector of pt to test the trigger
      */
 
-    void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
+    void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const double& myEtaMax, const std::vector<double>& triggerMomenta, const std::vector<double>& thresholdProbabilities) {
       // Clean-up and prepare the trigger performance maps
       myMapBag.clearMaps(mapBag::efficiencyMap);
       myMapBag.clearMaps(mapBag::thresholdMap);
@@ -2957,7 +2984,7 @@ namespace insur {
         std::pair<double, TProfile> elemProfile;
         std::pair<double, TProfile> elemFractionProfile;
         //TGraph graph;
-        TProfile profile("dummyName", "dummyTitle", nbins, 0, 2.4);
+        TProfile profile("dummyName", "dummyTitle", nbins, 0, myEtaMax);
         //elemGraph.first = *iter;
         //elemGraph.second = graph;
         elemProfile.first = *iter;
@@ -2980,7 +3007,8 @@ namespace insur {
       //std::pair<double, TGraph> elemTotalGraph;
       std::pair<double, TProfile> elemTotalProfile;
       //TGraph totalGraph;
-      TProfile totalProfile("dummyName", "dummyTitle", nbins, 0, 2.4); // where is this 2.4 defined normally? TODO: fix it
+      char dummyName[256]; sprintf(dummyName, "dummyName%d", bsCounter++);
+      TProfile totalProfile(dummyName, dummyName, nbins, 0, myEtaMax);
       //elemTotalGraph.first = graphBag::Triggerable;
       //elemTotalGraph.second = totalGraph;
       elemTotalProfile.first = profileBag::Triggerable;
@@ -3452,8 +3480,8 @@ namespace insur {
       int nTracksPerSide = int(pow(nTracks, 0.5));
       int nBlocks = int(nTracksPerSide/2.);
       nTracks = nTracksPerSide*nTracksPerSide;
-      mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
-      TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -3., 3.);
+      mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
+      TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
       TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
 
       // Shoot nTracksPerSide^2 tracks
@@ -3506,7 +3534,9 @@ namespace insur {
       int plotCount=0;
 
       //TProfile* total = total2D.ProfileX("etaProfileTotal");
-      totalEtaProfile = TProfile(*total2D.ProfileX("etaProfileTotal"));
+      char profileName_[256];
+      sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
+      totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
       savingGeometryV.push_back(totalEtaProfile);
       totalEtaProfile.SetMarkerStyle(8);
       totalEtaProfile.SetMarkerColor(1);

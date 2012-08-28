@@ -16,7 +16,7 @@ namespace insur {
     px = NULL;
     pi = NULL;
     pm = NULL;
-    pixelAnalyzer = NULL;
+    //pixelAnalyzer = NULL;
     sitePrepared = false;
     myGeometryFile_ = "";
     mySettingsFile_ = "";
@@ -36,7 +36,7 @@ namespace insur {
     if (pm) delete pm;
     if (pi) delete pi;
     if (px) delete px;
-    if (pixelAnalyzer) delete pixelAnalyzer;    
+    //if (pixelAnalyzer) delete pixelAnalyzer;    
     StopWatch::destroy();
   }
     
@@ -349,6 +349,7 @@ namespace insur {
     if (tr) {
       startTaskClock("Analyzing geometry");
       a.analyzeGeometry(*tr, tracks);
+      if (px) pixelAnalyzer.analyzeGeometry(*px, tracks);
       stopTaskClock();
       return true; // TODO: this return value is not really meaningful
     } else {
@@ -384,12 +385,9 @@ namespace insur {
       a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
       stopTaskClock();
       if (pm) {
-	// TODO: make this much neater!
-	if (pixelAnalyzer) delete pixelAnalyzer;
-	pixelAnalyzer = new Analyzer;
-	startTaskClock("Analyzing pixel material budget");
-	pixelAnalyzer->analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
-	stopTaskClock();
+        startTaskClock("Analyzing pixel material budget");
+        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
+        stopTaskClock();
       }
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
@@ -416,7 +414,7 @@ namespace insur {
     if (tr) {
       startTaskClock("Creating geometry report");
       v.geometrySummary(a, *tr, site);
-      if (px) v.geometrySummary(a, *px, site, "pixel");
+      if (px) v.geometrySummary(pixelAnalyzer, *px, site, "pixel");
       stopTaskClock();
       return true;
     } else {
@@ -477,9 +475,7 @@ bool Squid::reportPowerSite() {
     if (mb) {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, site, "outer");
-      if ((pm)&&(pixelAnalyzer)) {
-	v.histogramSummary(*pixelAnalyzer, site, "pixel");
-      }
+      if (pm) v.histogramSummary(pixelAnalyzer, site, "pixel");
       v.weigthSummart(a, site, "outer");
       stopTaskClock();
       return true;

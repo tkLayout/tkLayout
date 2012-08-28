@@ -20,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     shown.add_options()
         ("help", "Display this help message.")
-        ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(50), "N. of tracks for geometry calculations.")
-        ("material-tracks,N", po::value<int>(&mattracks)->default_value(2000), "N. of tracks for material calculations.")
+        ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
+        ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
         ("power,p", "Report irradiated power analysis.")
         ("bandwidth,b", "Report base bandwidth analysis.")
         ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")

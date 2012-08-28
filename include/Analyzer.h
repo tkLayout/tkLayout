@@ -35,6 +35,7 @@
 #include "TRandom3.h"
 
 namespace insur {
+
   /**
    * A warning that may occur during processing
    */
@@ -303,6 +304,21 @@ namespace insur {
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
     SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
+   
+    
+
+    // double getEtaMaxMaterial() { return etaMaxMaterial; } 
+    double getEtaMaxMaterial() { return getEtaMaxTracking(); }
+    double getEtaMaxGeometry() { return etaMaxGeometry; } 
+    double getEtaMaxTracking();
+    double getEtaMaxTrigger();
+    // void setEtaMaxMaterial(const double& newValue) { etaMaxMaterial = newValue; } 
+    void setEtaMaxGeometry(const double& newValue) { etaMaxGeometry = newValue; } 
+    void addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut);
+    const std::vector<double>& getTrackingCuts() { return trackingCuts; }
+    const std::vector<double>& getTriggerCuts() { return triggerCuts; }
+    const std::vector<std::string>& getCutNames() { return cutNames; }
+
   protected:
     /**
      * @struct Cell
@@ -450,6 +466,18 @@ namespace insur {
     void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     static const double maximum_n_planes = 13;
+
+    /*
+     * Eta values to show results
+     */
+    //double etaMaxMaterial;
+    double etaMaxGeometry;
+
+    std::vector<std::string> cutNames;
+    std::vector<double> trackingCuts;
+    std::vector<double> triggerCuts;
+
+    static int bsCounter;
   };
 }
 #endif  /* _ANALYZER_H */
