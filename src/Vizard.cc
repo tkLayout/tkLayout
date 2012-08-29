@@ -2299,9 +2299,9 @@ namespace insur {
     TCanvas moduleConnectionPhiCanvas;
     TCanvas moduleConnectionEndcapPhiCanvas;
 
-    PlotDrawer<YZFull, Method<int, &Module::getProcessorConnections>, Max> yzDrawer(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Max> xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnections>, Max> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<YZFull, Method<int, &Module::getProcessorConnectionsEta>, Max> yzDrawer(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
 
     yzDrawer.addModulesType(tracker.getLayers());
     //xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());

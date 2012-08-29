@@ -74,7 +74,7 @@ protected:
 
   double irradiatedPowerConsumption_;
 
-  int processorConnections_;
+  int processorConnectionsEta_, processorConnectionsPhi_;
 
   int inSection_;
 
@@ -314,8 +314,11 @@ private:
 public:
   double getTriggerFrequencyFakePerEvent();
 
-  int getProcessorConnections() const { return processorConnections_; }
-  void setProcessorConnections(int processorConnections) { processorConnections_ = processorConnections; }
+  int getProcessorConnectionsEta() const { return processorConnectionsEta_; }
+  void setProcessorConnectionsEta(int processorConnectionsEta) { processorConnectionsEta_ = processorConnectionsEta; }
+  int getProcessorConnectionsPhi() const { return processorConnectionsPhi_; }
+  void setProcessorConnectionsPhi(int processorConnectionsPhi) { processorConnectionsPhi_ = processorConnectionsPhi; }
+  int getProcessorConnections() const { return processorConnectionsEta_*processorConnectionsPhi_; }
 
   void setProperty(std::string name, double value) { properties_[name] = value; }
   double getProperty(std::string name) const { return hasProperty(name) ? properties_.at(name) : 0; }

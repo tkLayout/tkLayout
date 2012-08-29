@@ -1383,6 +1383,51 @@ namespace insur {
 
     }
 
+    bool Analyzer::isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const {
+      int numProcEta = tracker.getTriggerProcessorsEta();
+      double etaCut = tracker.getTriggerEtaCut();
+      double etaSlice = etaCut*2 / numProcEta;
+      double maxR = tracker.getMaxR();
+      double zError = tracker.getZError();
+      double eta = etaSlice*etaSector-etaCut;    
+
+      double modMinZ = module->getMinZ();
+      double modMaxZ = module->getMaxZ();
+      double modMinR = module->getMinRho();                
+      double modMaxR = module->getMaxRho();                
+
+      double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
+      double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
+
+      double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
+      double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
+
+      return etaDist1 > 0 && etaDist2 > 0;
+    }
+
+
+    bool Analyzer::isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const {
+      double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+      double phi = phiSlice*phiSector;
+
+      double modMinR = module->getMinRho();                
+      double modMaxR = module->getMaxRho();                
+
+      double modMinPhi = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
+      double modMaxPhi = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
+
+      double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
+      double sliceMinPhi = phi - trajSlice;
+      double sliceMaxPhi = phi + phiSlice + trajSlice;
+
+      if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
+      else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
+
+      return ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
+              (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
+              (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi)); 
+    }
+
     void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
       std::map<std::pair<int, int>, int> processorConnections;
@@ -1399,17 +1444,57 @@ namespace insur {
       int numProcEta = tracker.getTriggerProcessorsEta();
       int numProcPhi = tracker.getTriggerProcessorsPhi();
 
-      double etaCut = tracker.getTriggerEtaCut();
-      double etaSlice = etaCut*2 / numProcEta;
-      double maxR = tracker.getMaxR();
-      double zError = tracker.getZError();
+      //double etaCut = tracker.getTriggerEtaCut();
+      //double etaSlice = etaCut*2 / numProcEta;
+      //double maxR = tracker.getMaxR();
+      //double zError = tracker.getZError();
 
-      double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+      //double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
 
-      double eta = -etaCut;    
+      //double eta = -etaCut;    
 
-      cout << endl;
 
+      LayerVector& layers = tracker.getLayers();
+      for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
+        ModuleVector* modules = (*layIt)->getModuleVector();
+        std::string cntName = (*layIt)->getContainerName();
+        Layer* layer = (*layIt);
+        if (cntName == "" || !layer) continue;
+
+        for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+          Module* module = (*modIt);
+          
+          int etaConnections = 0, totalConnections = 0;
+
+          for (int i=0; i < numProcEta; i++) {
+            if (isModuleInEtaSector(tracker, module, i)) {
+              etaConnections++;
+              for (int j=0; j < numProcPhi; j++) {
+                if (isModuleInPhiSector(tracker, module, j)) {
+                  totalConnections++;
+
+                  processorConnections[std::make_pair(j,i)] += 1;
+                  processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
+
+                  processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]; // *2 takes into account negative Z's
+                  processorInboundBandwidthSummary_.setCell(j+1, i+1, processorInboundBandwidths[std::make_pair(j,i)]);
+
+                  processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
+                  processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
+
+                  //if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(
+                  //  moduleConnectionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), moduleConnections);
+                  //}
+                } 
+              }
+            }
+          }
+          module->setProcessorConnectionsEta(etaConnections);
+          module->setProcessorConnectionsPhi(totalConnections > 0 ? totalConnections/etaConnections : 0);
+        }
+      }
+
+  /*    
       for (int i=0; i < numProcEta; i++) { // loop over etaSlices
         double phi = 0;
         for (int j=0; j < numProcPhi; j++) { 
@@ -1426,7 +1511,7 @@ namespace insur {
               Module* module = (*modIt);
               //BarrelModule* module = dynamic_cast<BarrelModule*>(*modIt);
 
-              if (!module /*|| module->getMeanPoint().Z()<0*/) continue;
+              if (!module) continue;
               double modMinZ = module->getMinZ();
               double modMaxZ = module->getMaxZ();
               double modMinR = module->getMinRho();                
@@ -1488,7 +1573,7 @@ namespace insur {
         } 
         eta += etaSlice;
       }
-
+*/
 
       double inboundBandwidthTotal = 0.;
       int processorConnectionsTotal = 0;
@@ -1510,7 +1595,6 @@ namespace insur {
       moduleConnectionsDistribution.SetBins(11, -.5, 10.5);
 
 
-      LayerVector& layers = tracker.getLayers();
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
         std::string cntName = (*layIt)->getContainerName();

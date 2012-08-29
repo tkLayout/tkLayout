@@ -64,7 +64,8 @@ void Module::setDefaultParameters() {
     resolutionRphi_     = defaultResolutionRphi_;
     resolutionY_        = defaultResolutionY_;
     moduleType_         = NULL;
-    processorConnections_ = 0;
+    processorConnectionsEta_ = 0;
+    processorConnectionsPhi_ = 0;
     irradiatedPowerConsumption_ = 0;
     for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
 }

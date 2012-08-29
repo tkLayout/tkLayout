@@ -289,22 +289,22 @@ public:
   void setTriggerErrorY(string typeIndex, double errorIncrease) { mapType_[typeIndex].setTriggerErrorY(errorIncrease); }
 
   // Overlaps / error
-  double getRError() { return rError_; }
-  double getZError() { return zError_; }
-  bool getUseIPConstraint() { return useIPConstraint_; }
-  double getSmallDelta() { return smallDelta_; }
-  double getBigDelta() { return bigDelta_; }
+  double getRError() const { return rError_; }
+  double getZError() const { return zError_; }
+  bool getUseIPConstraint() const { return useIPConstraint_; }
+  double getSmallDelta() const { return smallDelta_; }
+  double getBigDelta() const { return bigDelta_; }
   double getSmallDelta(const int& index);
   double getBigDelta(const int& index);
-  double getOverlap() { return overlap_; }
-  double getEtaCut() { return etaCut_; }
+  double getOverlap() const { return overlap_; }
+  double getEtaCut() const { return etaCut_; }
 
   // Module efficiency
-  double getEfficiency() {return efficiency_ ; }
+  double getEfficiency() const {return efficiency_ ; }
   void setEfficiency(double newEfficiency) { efficiency_ = newEfficiency ; }
 
   // Pixel module efficiency
-  double getPixelEfficiency() {return pixelEfficiency_ ; }
+  double getPixelEfficiency() const {return pixelEfficiency_ ; }
   void setPixelEfficiency(double newEfficiency) { pixelEfficiency_ = newEfficiency ; }
 
   // Access to layer vectors

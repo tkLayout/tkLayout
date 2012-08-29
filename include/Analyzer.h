@@ -467,6 +467,9 @@ namespace insur {
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
     static const double maximum_n_planes = 13;
 
+    bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
+    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+
     /*
      * Eta values to show results
      */
