@@ -362,7 +362,8 @@ namespace insur {
         Rotation rot;
         SpecParInfo rocdims, lspec, rspec, mspec;
         RILengthInfo ril;
-        shape.dyy = 0.0;
+        shape.dxx = 0.0;
+        //shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -730,7 +731,8 @@ namespace insur {
         Rotation rot;
         SpecParInfo rocdims, dspec, rspec, mspec;
         RILengthInfo ril;
-        shape.dyy = 0.0;
+        shape.dxx = 0.0;
+        //shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -804,10 +806,14 @@ namespace insur {
                         rinfo.insert(std::pair<int, RingInfo>(iiter->getModule().getRing(), rinf));
                         // module trapezoid
                         shape.name_tag = mname.str();
-                        shape.dx = iiter->getModule().getHeight() / 2.0;
-                        shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
-                        shape.dz = iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
+                        shape.dxx = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
+                        shape.dy = iiter->getModule().getHeight() / 2.0;
+                        // shape.dx = iiter->getModule().getHeight() / 2.0;
+                        //CUIDADO WAS shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
+                        //shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
+                        //shape.dz = iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dz = (calculateSensorThickness(*iiter, mt) + (iiter->getModule().getNFaces() == 2 ? iiter->getModule().getStereoDistance() : 0)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -824,11 +830,11 @@ namespace insur {
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
-                        if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
-                        else pos.trans.dz = iiter->getModule().getModuleThickness() / 2.0 - shape.dz;
+                        if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = shape.dz - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
+                        else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 - shape.dz; // DITTO HERE
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
-                            if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = pos.trans.dz + 2 * shape.dz + iiter->getModule().getStereoDistance();
+                            if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = pos.trans.dz + /* 2 * shape.dz +*/  iiter->getModule().getStereoDistance(); // CUIDADO removed 2*shape.dz
                             else pos.trans.dz = pos.trans.dz - 2 * shape.dz - iiter->getModule().getStereoDistance();
                             pos.copy = 2;
                             if (iiter->getModule().getStereoRotation() != 0) {
@@ -905,8 +911,9 @@ namespace insur {
                 // rings
                 shape.type = tb;
                 shape.dx = 0.0;
+                shape.dxx = 0.0;
                 shape.dy = 0.0;
-                shape.dyy = 0.0;
+                //shape.dyy = 0.0;
                 shape.dz = findDeltaZ(tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(),
                         tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
                 std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1019,8 +1026,9 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
+        shape.dxx = 0.0;
         shape.dy = 0.0;
-        shape.dyy = 0.0;
+       // shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -1073,8 +1081,9 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
+        shape.dxx = 0.0;
         shape.dy = 0.0;
-        shape.dyy = 0.0;
+        //shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -1127,8 +1136,9 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
+        shape.dxx = 0.0;
         shape.dy = 0.0;
-        shape.dyy = 0.0;
+        //shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;

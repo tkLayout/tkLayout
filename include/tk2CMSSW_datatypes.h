@@ -96,10 +96,11 @@ namespace insur {
      * @brief This struct corresponds to a geometrical shape in a <i>SolidSection</i> block in CMSSW XML (all measurements in mm).
      * @param type The shape type: one of box, tube section, trapezoid or polycone
      * @param name_tag The name of the shape volume
-     * @param dx Half the height along the x-axis (boxes and trapezoids)
-     * @param dy Half the width along the y-axis at the base (boxes and trapezoids)
-     * @param dyy Half the width along the y-axis at the top (trapezoids only)
-     * @param dz Half the length along the z-axis (boxes, trapezoids and tube sections)
+     * @param dx Half the width along the x-axis at the base (boxes and trapezoids)
+     * @param dxx Half the width along the x-axis at the top (trapezoids only)
+     * @param dy Half the height along the y-axis at the base (boxes and trapezoids)
+     * @param dyy Half the height along the y-axis at the top (trapezoids only)
+     * @param dz Half the depth along the z-axis (boxes, trapezoids and tube sections)
      * @param rmin The minimal radius as measured from the z-axis (tube sections only) 
      * @param rmax The maximum radius as measured from the z-axis (tube sections only)
      * @param rzup A vector of pairs collecting the first half of an ordered sequence of points in <i>(r, z)</i> (polycone only)
@@ -109,8 +110,9 @@ namespace insur {
         ShapeType type;
         std::string name_tag;
         double dx;
+        double dxx;
         double dy;
-        double dyy;
+        //double dyy;
         double dz;
         double rmin;
         double rmax;

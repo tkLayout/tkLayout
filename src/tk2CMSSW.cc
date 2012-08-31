@@ -162,8 +162,8 @@ namespace insur {
                 case tb: std::cout << "tube, rmin = " << data.shapes.at(i).rmin << ", rmax = " << data.shapes.at(i).rmax;
                 std::cout << ", dz = " << data.shapes.at(i).dz;
                 break;
-                case tp: std::cout << "trapezoid, dx = " << data.shapes.at(i).dx << ", dy = " << data.shapes.at(i).dy;
-                std::cout << ", dyy = " << data.shapes.at(i).dyy << ", dz = " << data.shapes.at(i).dz;
+                case tp: std::cout << "trapezoid, dx = " << data.shapes.at(i).dx << ", dxx = " << data.shapes.at(i).dxx;
+                std::cout << ", dy = " << data.shapes.at(i).dy << ", dz = " << data.shapes.at(i).dz;
                 break;
                 default: std::cout << "unknown shape";
             }

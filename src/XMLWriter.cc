@@ -406,7 +406,7 @@ namespace insur {
                 switch (s.at(i).type) {
                     case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
                     break;
-                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream);
+                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dxx, s.at(i).dy, s.at(i).dz, stream);  // CUIDADO IT HAD s.att(i).dyy
                     break;
                     case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
                     break;
@@ -546,16 +546,16 @@ namespace insur {
      * This formatter writes an XML entry describing an isosceles trapezium shape to the stream that serves as a buffer
      * for the output file contents.
      * @param name The name of the trapezium shape; must be unique
-     * @param dx Half the volume length along x
-     * @param dy Half the volume length along the lower y
-     * @param dyy Half the volume length along the upper y
+     * @param dx Half the volume length along the lower x
+     * @param dxx Half the volume length along the upper x
+     * @param dy Half the volume length along y
      * @param dz Half the volume length along z
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream) {
+    void XMLWriter::trapezoid(std::string name, double dx, double dxx, double dy, double dz, std::ostringstream& stream) {
         stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
-        stream << xml_trapezoid_second_inter << dx << xml_trapezoid_third_inter << dy;
-        stream << xml_trapezoid_fourth_inter << dyy << xml_trapezoid_fifth_inter << dz;
+        stream << xml_trapezoid_second_inter << dxx << xml_trapezoid_third_inter << dy;
+        stream << xml_trapezoid_fourth_inter << dy << xml_trapezoid_fifth_inter << dz;
         stream << xml_trapezoid_close;
     }
     
