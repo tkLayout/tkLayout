@@ -430,7 +430,7 @@ namespace insur {
                         shape.name_tag = xml_barrel_module + shapename.str();
                         shape.dx = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
                         shape.dy = iiter->getModule().getHeight() / 2.0;
-                        shape.dz = iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dz = (calculateSensorThickness(*iiter, mt) + (iiter->getModule().getNFaces() == 2 ? iiter->getModule().getStereoDistance() : 0)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -497,10 +497,11 @@ namespace insur {
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
                         pos.trans.dx = 0.0;
-                        pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
+                        //pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
+                        pos.trans.dz = shape.dz - iiter->getModule().getStereoDistance() / 2.0;  // CUIDADO EXPERIMENTAL
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
-                            pos.trans.dz = pos.trans.dz + 2 * shape.dz + iiter->getModule().getStereoDistance();
+                            pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().getStereoDistance();  // CUIDADO: was with 2*shape.dz, but why???
                             pos.copy = 2;
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_barrel_module + shapename.str();

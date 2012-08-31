@@ -339,6 +339,7 @@ public:
                    bool oddSegments, bool alignEdges,
                    int nearDirection, 
                    EndcapModule* sampleModule,
+                   int& numPlacedModules, // set to the number of modules placed in the ring
                    double maxRadius = -1,
                    int addModules = 0,
                    int sectioned = NoSection);

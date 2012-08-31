@@ -2211,7 +2211,7 @@ namespace insur {
     TCanvas triggerDataBandwidthCanvas;
     TCanvas triggerFrequencyPerEventCanvas;
 
-    PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // CUIDADO: kludgy at best. we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
+    PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
     PlotDrawer<YZ, Property, Max> yztfDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
 
     yzbwDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
@@ -2278,20 +2278,9 @@ namespace insur {
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 
-    // CUIDADO These tables are probably outdated and even a bit confusing for the user. TBR
-    //for (std::map<std::string, SummaryTable>::iterator it = moduleSummaries.begin(); it != moduleSummaries.end(); ++it) {
-    //  myPage->addContent(std::string("Module outbound connections (") + it->first + ")", false).addTable().setContent(it->second.getContent());
-   // }
-
     // Some helper string objects
     ostringstream tempSS;
     std::string tempString;    
-
-    //mapBag myMapBag = analyzer.getMapBag();
-    //TH2D& moduleConnectionEtaMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEtaMap)[mapBag::dummyMomentum];
-    //TH2D& moduleConnectionPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionPhiMap)[mapBag::dummyMomentum];
-    //TH2D& moduleConnectionEndcapPhiMap = analyzer.getMapBag().getMaps(mapBag::moduleConnectionEndcapPhiMap)[mapBag::dummyMomentum];
-
 
     RootWContent& myContent = myPage->addContent("Module outbound connection maps", true);
 

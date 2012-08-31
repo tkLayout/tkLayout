@@ -139,6 +139,9 @@ private:
   double triggerEtaCut_;
   double triggerPtCut_;
 
+  bool topToBottomEndcap_;
+
+
   std::string summaryDirectory_;
   std::string storeDirectory_;
   std::string trackerName_;
@@ -348,6 +351,8 @@ public:
   double getTriggerEtaCut() const { return triggerEtaCut_; }
   double getTriggerPtCut() const { return triggerPtCut_; }
 
+
+  bool isTopToBottomEndcap() const { return topToBottomEndcap_; }
 
   void addLayer(Layer* aLayer, std::string sectionName, int type = TypeBarrel) {
     layerSet_.push_back(aLayer);

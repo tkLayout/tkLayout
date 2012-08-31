@@ -994,15 +994,7 @@ namespace insur {
       // reset the list of tracks
       std::vector<Track> tv;
       std::vector<Track> tvIdeal;
-      // tv.clear();
-      // used fixed phi
-      // phi = PI / 2.0;
-      //      loop over nTracks (eta range [0, getEtaMaxMaterial()])
-      // CUIDADO for (std::vector<std::vector<ModuleCap> >::iterator etl = mb.getBarrelModuleCaps().begin(); etl != mb.getBarrelModuleCaps().end(); ++etl) {
-      //    for (std::vector<ModuleCap>::iterator itl = etl->begin(); itl != etl->end(); ++itl) {
-      //       cout << "mod: " << itl->getModule().getLayer() << "," << itl->getModule().getRing() << "," << itl->getModule().getPhiIndex() << "," << itl->getModule().getSubdetectorType() << " comps: " << itl->getComponentsRI().size() << "," << itl->getRadiationLength() << "," << itl->getInteractionLength() << endl;
-      //    }
-      //}
+
       for (int i_eta = 0; i_eta < nTracks; i_eta++) {
         phi = myDice.Rndm() * PI * 2.0;
         Material tmp;
@@ -1383,6 +1375,7 @@ namespace insur {
 
     }
 
+
     bool Analyzer::isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const {
       int numProcEta = tracker.getTriggerProcessorsEta();
       double etaCut = tracker.getTriggerEtaCut();
@@ -1428,6 +1421,7 @@ namespace insur {
               (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi)); 
     }
 
+
     void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
       std::map<std::pair<int, int>, int> processorConnections;
@@ -1443,16 +1437,6 @@ namespace insur {
 
       int numProcEta = tracker.getTriggerProcessorsEta();
       int numProcPhi = tracker.getTriggerProcessorsPhi();
-
-      //double etaCut = tracker.getTriggerEtaCut();
-      //double etaSlice = etaCut*2 / numProcEta;
-      //double maxR = tracker.getMaxR();
-      //double zError = tracker.getZError();
-
-      //double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
-
-      //double eta = -etaCut;    
-
 
       LayerVector& layers = tracker.getLayers();
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
@@ -1482,9 +1466,6 @@ namespace insur {
                   processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
                   processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
 
-                  //if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(
-                  //  moduleConnectionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), moduleConnections);
-                  //}
                 } 
               }
             }
@@ -1494,86 +1475,6 @@ namespace insur {
         }
       }
 
-  /*    
-      for (int i=0; i < numProcEta; i++) { // loop over etaSlices
-        double phi = 0;
-        for (int j=0; j < numProcPhi; j++) { 
-          LayerVector& layers = tracker.getLayers();
-          for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
-            ModuleVector* modules = (*layIt)->getModuleVector();
-            std::string cntName = (*layIt)->getContainerName();
-            Layer* layer = (*layIt);
-            //BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
-            if (cntName == "" || !layer) continue;
-
-
-            for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
-              Module* module = (*modIt);
-              //BarrelModule* module = dynamic_cast<BarrelModule*>(*modIt);
-
-              if (!module) continue;
-              double modMinZ = module->getMinZ();
-              double modMaxZ = module->getMaxZ();
-              double modMinR = module->getMinRho();                
-              double modMaxR = module->getMaxRho();                
-
-              //double modR    = module->getMeanPoint().Rho();                
-
-              double modMinPhi = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
-              double modMaxPhi = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
-
-              double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
-              double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
-
-              //double etaDist1 = modMinR/maxR - (modMaxZ + zError)/(etaSliceZ1 + zError); // if etaDist is positive it means the module is to the ri:qght of the slice edge 
-              //double etaDist2 = modMaxR/maxR - (modMinZ - zError)/(etaSliceZ2 - zError); // if negative the module is to the left of the slice edge 
-
-              double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
-              double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
-
-              double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
-              double sliceMinPhi = phi - trajSlice;
-              double sliceMaxPhi = phi + phiSlice + trajSlice;
-
-              if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
-              else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
-
-              //CUIDADO DEBUG ONLY if (modMaxPhi > M_PI/2 && modMinPhi < M_PI*3/2) continue;
-
-              if (etaDist1 > 0 && etaDist2 > 0 &&
-                  ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
-                   (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
-                   (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi))) 
-                { 
-
-                 //cout << "Hi! I'm a " << (dynamic_cast<BarrelModule*>(module) ? "barrel" : "endcap") << " module from " << cntName << " at " << module->getLayer() << "," << module->getRing() << "," << module->getPhiIndex() << " with Z=" << module->getMeanPoint().Z() << " and in sector " << i << "," << j << endl;
-                  
-                  int moduleConnections = module->getProcessorConnections()+1;
-                  module->setProcessorConnections(moduleConnections);
-
-                  processorConnections[std::make_pair(j,i)] += 1;
-                  processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
-
-                  processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]; // *2 takes into account negative Z's
-                  processorInboundBandwidthSummary_.setCell(j+1, i+1, processorInboundBandwidths[std::make_pair(j,i)]);
-
-                  processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
-                  processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
-
-
-                  if (module->getSection() & 0x2) { // CUIDADO: UGH!!! +o(
-                    moduleConnectionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), moduleConnections);
-
-                  }
-
-                }
-            }
-          }
-          phi += phiSlice;
-        } 
-        eta += etaSlice;
-      }
-*/
 
       double inboundBandwidthTotal = 0.;
       int processorConnectionsTotal = 0;
@@ -1601,8 +1502,7 @@ namespace insur {
         BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
         if (cntName == "" || !layer) continue;
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
-          if ((*modIt)->getMeanPoint().Z() < 0) continue;
-          moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 2);// this takes into account modules in the negative Z section (symmetry around Z so we don't need to simulate them individually)
+          moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 1);
 
         }
       }

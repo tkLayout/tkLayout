@@ -1427,6 +1427,8 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
     nextRho -= sampleModule->getHeight(); // we do this because the buildRing builds modules from bottom to top, so we tell it to start building the ring from the min radius
     // ringParity = 1 means the ring is nearer to the interaction point
+    //
+    int numPlacedModules; // set by buildring
     lastRho = buildRing(nextRho,
                         smallDelta,
                         ringParity*bigDelta,
@@ -1436,9 +1438,12 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
                         oddSegments, alignEdges,
                         nearDirection,
                         sampleModule,
+                        numPlacedModules,
                         maxRadius,
                         addModules,
                         sectioned);
+    if (nModsOnRing_.size() < (unsigned)nRing) nModsOnRing_.resize(nRing);
+    nModsOnRing_[nRing-1] = numPlacedModules;
 
     tempString.str(""); tempString << "smallDelta: " << smallDelta;
     logDEBUG(tempString);
@@ -1531,6 +1536,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       logINFO("Found no directive");
     }
 
+    int numPlacedModules;
     // ringParity = 1 means the ring is nearer to the interaction point
     lastRho = buildRing(nextRho,
                         smallDelta,
@@ -1541,9 +1547,13 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                         oddSegments, alignEdges,
                         nearDirection,
                         sampleModule,
+                        numPlacedModules,
                         maxRadius,
                         addModules,
                         sectioned);
+
+    if (nModsOnRing_.size() < (unsigned)nRing) nModsOnRing_.resize(nRing);
+    nModsOnRing_[nRing-1] = numPlacedModules;
 
     tempString.str(""); tempString << "smallDelta: " << smallDelta;
     logDEBUG(tempString);
@@ -1555,7 +1565,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
-    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;   // CUIDADO: ULTRA HERMETIC COVERAGE?
+    double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;  
     double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
     double originZ = ringParity > 0 ? -zError : +zError;
     double nextRhoOrigin = (lastRho - overlap)/lastZ * newZ;
@@ -1641,6 +1651,7 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       logINFO("Found no directive");
     }
 
+    int numPlacedModules;
     // ringParity = 1 means the ring is nearer to the interaction point
     lastRho = buildRing(nextRho,
                         smallDelta,
@@ -1651,9 +1662,13 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                         oddSegments, alignEdges,
                         nearDirection,
                         sampleModule,
+                        numPlacedModules,
                         maxRadius,
                         addModules,
                         sectioned);
+
+    if (nModsOnRing_.size() < (unsigned)nRing) nModsOnRing_.resize(nRing);
+    nModsOnRing_[nRing-1] = numPlacedModules;
 
     tempString.str(""); tempString << "smallDelta: " << smallDelta;
     logDEBUG(tempString);
@@ -1767,6 +1782,7 @@ double EndcapLayer::buildRing(double minRadius,
                               bool oddSegments, bool alignEdges,
                               int nearDirection,
                               EndcapModule* sampleModule,
+                              int& numPlacedModules, 
                               double maxRadius /* = -1 */,
                               int addModules, /* = 0 */
                               int sectioned /* = NoSection */) {
@@ -1947,7 +1963,7 @@ double EndcapLayer::buildRing(double minRadius,
       }
     }
   }
-  nModsOnRing_.push_back(nOpt);
+  numPlacedModules = nOpt;
 
   double lastRho;
   if (wedges) {

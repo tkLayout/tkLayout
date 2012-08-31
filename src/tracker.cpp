@@ -125,6 +125,8 @@ void Tracker::setDefaultParameters() {
   triggerPtCut_         = 1;
 
   std::string testMe = "test me!";
+
+  topToBottomEndcap_ = false;
 }
 
 void Tracker::shapeVolume() {
@@ -433,22 +435,6 @@ LayerVector Tracker::buildBarrel(int nLayer,
   }
 
 
-  // Mezzanine barrel needs to be duplicated and reflected
-  /* if (shortBarrel) { // CUIDADO: made obsolete by new mezzanine string generation code - TBR
-     LayerVector::iterator layIt;
-     BarrelLayer* anotherLayer;
-     LayerVector justDoneBarrelLayerSet=thisBarrelLayerSet;
-
-     for (layIt = justDoneBarrelLayerSet.begin(); layIt!= justDoneBarrelLayerSet.end(); layIt++) {
-     if ( (aBarrelLayer=dynamic_cast<BarrelLayer*>(*layIt)) ) {
-     anotherLayer = new BarrelLayer(*aBarrelLayer);
-     anotherLayer->reflectZ();
-     addLayer(anotherLayer, barrelName, TypeBarrel);
-     thisBarrelLayerSet.push_back(anotherLayer);
-     }
-     }
-     }*/
-
   maxZ=getMaxBarrelZ(+1);
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
   // TODO: update this value if you want an independent compacting of the barrel section
@@ -725,6 +711,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     }
     if (diskParity == -1) { logWARNING("Endcap " + endcapName + " will be built top-to-bottom, but has diskParity = -1. This will lead to non-optimal coverage."); }
     logINFO("Endcap " + endcapName + " will be built top-to-bottom with a fixed number of rings (" + any2str(nRings) + ").");
+    topToBottomEndcap_ = true;
     defaultDisk->buildSingleDisk( nRings, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
                                   zError_+(maxZ-minZ)/2,
@@ -736,6 +723,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
                                   diskParity,
                                   sectioned );
   } else {
+    topToBottomEndcap_ = false;
     logINFO("Endcap " + endcapName + " will be built bottom-to-top with a number of rings depending on the innerRadius (" + any2str(minRadius) + ").");
     defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
