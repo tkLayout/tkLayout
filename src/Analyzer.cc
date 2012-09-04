@@ -268,7 +268,7 @@ namespace insur {
     addCut("C", 0.8, 0.6);
     addCut("I", 1.6, 1.2);
     addCut("F", 2.4, 2.1);
-    addCut("VF", 4.5, 4.5);
+    addCut("VF", 4.0, 4.0);
   }
 
   // public
@@ -2399,6 +2399,7 @@ namespace insur {
             if ((miter->second)>0) {
               // deltaRho / rho = deltaRho * R
               graphValue = (miter->second * R) * 100; // in percent
+              //if (miter->first>50) std::cout << "eta = " << eta << ", error = " << graphValue << std::endl;
               thisRhoGraphs[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
             }
           }

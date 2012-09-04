@@ -939,8 +939,10 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   double waferDiameter, aspectRatio;
 
   double etaCut = 0.0;
-  double rIn = 0.0;
-  double rOut = 0.0;
+  double rInBar = 0.0;
+  double rInEnd = 0.0;
+  double rOutBar = 0.0;
+  double rOutEnd = 0.0;
   double barrelToEndcap = 0.0;
   double maxZ = 0.0;
   int nLayers = 0;
@@ -980,10 +982,14 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         nDisks = atoi(parameterValue.c_str());
       } else if (parameterName == "nRings") {
         nRings = atoi(parameterValue.c_str());
-      } else if (parameterName == "innerRadius") {
-        rIn = atof(parameterValue.c_str());
-      } else if (parameterName == "outerRadius") {
-        rOut = atof(parameterValue.c_str());
+      } else if (parameterName == "innerRadiusBarrel") {
+        rInBar = atof(parameterValue.c_str());
+      } else if (parameterName == "innerRadiusEndcap") {
+        rInEnd = atof(parameterValue.c_str());
+      } else if (parameterName == "outerRadiusBarrel") {
+        rOutBar = atof(parameterValue.c_str());
+      } else if (parameterName == "outerRadiusEndcap") {
+        rOutEnd = atof(parameterValue.c_str());
       } else if (parameterName == "phiSegments") {
         phiSegments = atoi(parameterValue.c_str());
       } else if (parameterName == "barrelGap") {
@@ -1140,7 +1146,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   sampleBarrelModule->setResolutionRphi();
   sampleBarrelModule->setResolutionY();
 
-  myTracker_->buildBarrel(nLayers, rIn, rOut, 0, nModules, sampleBarrelModule, myName, Layer::NoSection, true, false, sameRods);
+  myTracker_->buildBarrel(nLayers, rInBar, rOutBar, 0, nModules, sampleBarrelModule, myName, Layer::NoSection, true, false, sameRods);
   delete sampleBarrelModule;
 
   if (nDisks > 0) {
@@ -1151,7 +1157,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
     sampleEndcapModule[0]->setResolutionRphi();
     sampleEndcapModule[0]->setResolutionY();
     myTracker_->buildEndcaps(nDisks, nRings, myTracker_->getMaxBarrelZ(+1) + barrelToEndcap,
-                             maxZ, rIn, rOut, sampleEndcapModule, myName, diskParity, false, false, Layer::NoSection);
+                             maxZ, rInEnd, rOutEnd, sampleEndcapModule, myName, diskParity, false, false, Layer::NoSection);
     delete sampleEndcapModule[0];
   }
 

@@ -2462,7 +2462,8 @@ namespace insur {
             momentumGraph.SetMaximum(.11*100*verticalScale);
           } else {
             momentumGraph.SetMinimum(4E-3*100);
-            momentumGraph.SetMaximum(.11*100*verticalScale);
+            //momentumGraph.SetMaximum(.11*100*verticalScale);
+            momentumGraph.SetMaximum(.5*100*verticalScale);
           }
           momentumGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           linearMomentumCanvas.SetLogy(0);        
