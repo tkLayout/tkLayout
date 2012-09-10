@@ -62,6 +62,15 @@ namespace insur {
         rot.thetaz = 90.0;
         rot.phiz = 0.0;
         r.push_back(rot);
+
+        rot.name = xml_endcap_rot;
+        rot.thetax = 0.0;
+        rot.phix = 90.0;
+        rot.thetay = 0.0;
+        rot.phiy = 90.0;
+        rot.thetaz = 0.0;
+        rot.phiz = 0.0;
+        r.push_back(rot);
         // define top-level barrel volume container (polycone)
         if (!wt) {
             shape.type = pc;
@@ -362,8 +371,7 @@ namespace insur {
         Rotation rot;
         SpecParInfo rocdims, lspec, rspec, mspec;
         RILengthInfo ril;
-        shape.dxx = 0.0;
-        //shape.dyy = 0.0;
+        shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -431,7 +439,7 @@ namespace insur {
                         shape.name_tag = xml_barrel_module + shapename.str();
                         shape.dx = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
                         shape.dy = iiter->getModule().getHeight() / 2.0;
-                        shape.dz = (calculateSensorThickness(*iiter, mt) + (iiter->getModule().getNFaces() == 2 ? iiter->getModule().getStereoDistance() : 0)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dz = (iiter->getModule().getNFaces() == 2 ? calculateSensorThickness(*iiter, mt)/2.0 + iiter->getModule().getStereoDistance() : calculateSensorThickness(*iiter, mt)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -499,7 +507,7 @@ namespace insur {
                         pos.child_tag = logic.shape_tag;
                         pos.trans.dx = 0.0;
                         //pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
-                        pos.trans.dz = shape.dz - iiter->getModule().getStereoDistance() / 2.0;  // CUIDADO EXPERIMENTAL
+                        pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0;  // CUIDADO EXPERIMENTAL
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
                             pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().getStereoDistance();  // CUIDADO: was with 2*shape.dz, but why???
@@ -731,8 +739,7 @@ namespace insur {
         Rotation rot;
         SpecParInfo rocdims, dspec, rspec, mspec;
         RILengthInfo ril;
-        shape.dxx = 0.0;
-        //shape.dyy = 0.0;
+        shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -806,14 +813,11 @@ namespace insur {
                         rinfo.insert(std::pair<int, RingInfo>(iiter->getModule().getRing(), rinf));
                         // module trapezoid
                         shape.name_tag = mname.str();
-                        shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        shape.dxx = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
-                        shape.dy = iiter->getModule().getHeight() / 2.0;
-                        // shape.dx = iiter->getModule().getHeight() / 2.0;
-                        //CUIDADO WAS shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-                        //shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
+                        shape.dx = iiter->getModule().getHeight() / 2.0;
+                        shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
+                        shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
                         //shape.dz = iiter->getModule().getModuleThickness() / 2.0;
-                        shape.dz = (calculateSensorThickness(*iiter, mt) + (iiter->getModule().getNFaces() == 2 ? iiter->getModule().getStereoDistance() : 0)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dz = (iiter->getModule().getNFaces() == 2 ? calculateSensorThickness(*iiter, mt)/2.0 + iiter->getModule().getStereoDistance() : calculateSensorThickness(*iiter, mt)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -830,12 +834,13 @@ namespace insur {
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
-                        if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = shape.dz - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
-                        else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 - shape.dz; // DITTO HERE
+                        pos.rotref = nspace + ":" + xml_endcap_rot;
+                        if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
+                        else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
                             if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = pos.trans.dz + /* 2 * shape.dz +*/  iiter->getModule().getStereoDistance(); // CUIDADO removed 2*shape.dz
-                            else pos.trans.dz = pos.trans.dz - 2 * shape.dz - iiter->getModule().getStereoDistance();
+                            else pos.trans.dz = pos.trans.dz - /*2 * shape.dz -*/ iiter->getModule().getStereoDistance();
                             pos.copy = 2;
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_endcap_module + mname.str();
@@ -911,9 +916,8 @@ namespace insur {
                 // rings
                 shape.type = tb;
                 shape.dx = 0.0;
-                shape.dxx = 0.0;
                 shape.dy = 0.0;
-                //shape.dyy = 0.0;
+                shape.dyy = 0.0;
                 shape.dz = findDeltaZ(tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(),
                         tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
                 std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1026,9 +1030,8 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
-        shape.dxx = 0.0;
         shape.dy = 0.0;
-       // shape.dyy = 0.0;
+        shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -1081,9 +1084,8 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
-        shape.dxx = 0.0;
         shape.dy = 0.0;
-        //shape.dyy = 0.0;
+        shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
@@ -1136,9 +1138,8 @@ namespace insur {
         PosInfo pos;
         shape.type = tb;
         shape.dx = 0.0;
-        shape.dxx = 0.0;
         shape.dy = 0.0;
-        //shape.dyy = 0.0;
+        shape.dyy = 0.0;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;

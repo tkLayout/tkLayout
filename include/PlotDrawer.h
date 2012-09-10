@@ -201,8 +201,8 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())), valid(true) {} // valid(m.getMeanPoint().Z() >= 0) {}
-  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(true) {} // valid(v.Z() >= 0) {}
+  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())), valid(m.getMeanPoint().Z() >= 0) {}
+  XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
   int y() const { return this->second; }
@@ -226,7 +226,17 @@ struct YZFull : public YZ {
 };
 
 
-template<class CoordType> struct LineGetter {
+template<class CoordType> class LineGetter {
+  typedef typename CoordType::first_type CoordTypeX;  // C++ syntax is bewildering sometimes (to say the least)
+  typedef typename CoordType::first_type CoordTypeY;
+  CoordTypeX maxx_, minx_;
+  CoordTypeY maxy_, miny_;
+public:
+  LineGetter() : maxx_(std::numeric_limits<double>::min()), minx_(std::numeric_limits<double>::max()), maxy_(std::numeric_limits<double>::min()), miny_(std::numeric_limits<double>::max()) {}
+  CoordTypeX maxx() const { return maxx_; }
+  CoordTypeX minx() const { return minx_; }
+  CoordTypeY maxy() const { return maxy_; }
+  CoordTypeY miny() const { return miny_; }
   TPolyLine* operator()(const Module& m) {
     std::set<CoordType> xy; // duplicate detection
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
@@ -237,6 +247,10 @@ template<class CoordType> struct LineGetter {
         x[j] = c.first;
         y[j++] = c.second;
       } 
+      maxx_ = MAX(c.first, maxx_);
+      minx_ = MIN(c.first, minx_);
+      maxy_ = MAX(c.second, maxy_);
+      miny_ = MIN(c.second, miny_);
     }
     if (j==4) { // close the poly line in case it's made of 4 distinct points, to get the closing line drawn
       x[j] = x[0]; 
@@ -271,7 +285,7 @@ public:
 
 template<class CoordType> class FrameGetter : private IdMaker {
 public:
-  TH2D* operator()(double width, double height) const;
+  TH2D* operator()(double viewportX, double viewportY) const;
 };
 
 
@@ -311,7 +325,10 @@ struct HistogramFrameStyle {
 
 
 template<class CoordType, class ValueGetterType, class StatType = NoStat > class PlotDrawer {
-  const int width_, height_;
+  typedef typename CoordType::first_type CoordTypeX;
+  typedef typename CoordType::second_type CoordTypeY;
+  CoordTypeX viewportMaxX_;
+  CoordTypeY viewportMaxY_;
   ValueGetterType getValue;
   FrameGetter<CoordType> getFrame;
   LineGetter<CoordType> getLine;
@@ -322,7 +339,7 @@ template<class CoordType, class ValueGetterType, class StatType = NoStat > class
   std::map<CoordType, TPolyLine*> lines_;
 
 public: 
-  PlotDrawer(int width, int height, const ValueGetterType& valueGetter = ValueGetterType()) : width_(width), height_(height), getValue(valueGetter) {}
+  PlotDrawer(CoordTypeX viewportMaxX = 0, CoordTypeY viewportMaxY = 0, const ValueGetterType& valueGetter = ValueGetterType()) : viewportMaxX_(viewportMaxX), viewportMaxY_(viewportMaxY), getValue(valueGetter) {}
 
   ~PlotDrawer();
 
@@ -358,7 +375,9 @@ template<template<class> class FrameStyleType> void PlotDrawer<CoordType, ValueG
   palette_.setMinMaxValues(minValue, maxValue);
   canvas.SetFillColor(kWhite);
   canvas.cd();
-  TH2D* frame = getFrame(width_, height_);
+  viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
+  viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
+  TH2D* frame = getFrame(viewportMaxX_, viewportMaxY_);
   frameStyle(*frame, canvas, palette_);
 }
 
@@ -376,7 +395,7 @@ template<class DrawStyleType> void PlotDrawer<CoordType, ValueGetterType, StatTy
 
 template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   CoordType c(m);
-  if (!c.valid) return;  // for XY and YZ plots negative Z modules are not needed and are therefore weeded out, YZFull plots on the other hand retains all the modules (CUIDADO I don't actually like the way this works)
+  if (!c.valid) return;  // for XY and YZ plots negative Z modules are not needed and are therefore filtered out, YZFull plots on the other hand retain all the modules (CUIDADO I don't actually like the way this works)
   if (bins_[c] == NULL) {
     bins_[c] = new StatType();
     lines_[c] = getLine(m);

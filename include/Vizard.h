@@ -206,8 +206,8 @@ namespace insur {
 
     double getDrawAreaZ(const Tracker& tracker) const { return tracker.getMaxL()*1.1; }
     double getDrawAreaR(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
-    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*2.2; }
-    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*2.2; }
+    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
 
     void fillPlotMap(std::string& plotName, 
                      std::map<graphIndex, TGraph*>& myPlotMap,

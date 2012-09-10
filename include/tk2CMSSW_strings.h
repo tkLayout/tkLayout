@@ -199,6 +199,7 @@ namespace insur {
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
     static const std::string xml_barrel_tilt = "HCZ2YX";
+    static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
      */

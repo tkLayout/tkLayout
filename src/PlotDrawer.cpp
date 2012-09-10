@@ -3,18 +3,18 @@
 int IdMaker::id = 0;
 
 
-template<> TH2D* FrameGetter<YZFull>::operator()(double width, double height) const {
+template<> TH2D* FrameGetter<YZFull>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, -width/2, width/2, 1, 0, height);
+  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, -viewportX, viewportX, 1, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
 
 
-template<> TH2D* FrameGetter<YZ>::operator()(double width, double height) const {
+template<> TH2D* FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, 0, width, 1, 0, height);
+  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, 0, viewportX, 1, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   //    frame->GetXaxis()->SetTickLength(-0.03);
   //    frame->GetXaxis()->SetLabelOffset(0.03);
@@ -28,9 +28,9 @@ template<> TH2D* FrameGetter<YZ>::operator()(double width, double height) const 
   return frame;
 }
 
-template<> TH2D* FrameGetter<XY>::operator()(double width, double height) const {
+template<> TH2D* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2D* frame = new TH2D(name.c_str(), ";x [mm];y [mm]", 1, -width/2, width/2, 1, -height/2, height/2);
+  TH2D* frame = new TH2D(name.c_str(), ";x [mm];y [mm]", 1, -viewportX, viewportX, 1, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }

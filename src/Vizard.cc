@@ -2211,8 +2211,8 @@ namespace insur {
     TCanvas triggerDataBandwidthCanvas;
     TCanvas triggerFrequencyPerEventCanvas;
 
-    PlotDrawer<YZ, Property, Max> yzbwDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerDataBandwidth"); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
-    PlotDrawer<YZ, Property, Max> yztfDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
+    PlotDrawer<YZ, Property, Max> yzbwDrawer(0, 0, "triggerDataBandwidth"); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
+    PlotDrawer<YZ, Property, Max> yztfDrawer(0, 0, "triggerFrequencyPerEvent"); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
 
     yzbwDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
     yztfDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
@@ -2288,9 +2288,9 @@ namespace insur {
     TCanvas moduleConnectionPhiCanvas;
     TCanvas moduleConnectionEndcapPhiCanvas;
 
-    PlotDrawer<YZFull, Method<int, &Module::getProcessorConnectionsEta>, Max> yzDrawer(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
-    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyecDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<YZFull, Method<int, &Module::getProcessorConnectionsEta>, Max> yzDrawer; //(2*getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyDrawer; //(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Method<int, &Module::getProcessorConnectionsPhi>, Max> xyecDrawer; //(getDrawAreaX(tracker), getDrawAreaY(tracker));
 
     yzDrawer.addModulesType(tracker.getLayers());
     //xyDrawer.addModules<CheckSection<Layer::XYSection> >(tracker.getLayers());
@@ -2364,8 +2364,8 @@ namespace insur {
     //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
     // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-    PlotDrawer<YZ, Property, Average> yzPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker), "irradiatedPowerConsumption");
-    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<YZ, Property, Average> yzPowerDrawer(0, 0, "irradiatedPowerConsumption");
+    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(0, 0);
 
     yzPowerDrawer.addModules<CheckType<Module::Barrel | Module::Endcap> >(tracker.getLayers());
     yzTotalPowerDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
@@ -3692,7 +3692,7 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-    PlotDrawer<YZ, Type> yzDrawer(getDrawAreaZ(tracker), getDrawAreaR(tracker));
+    PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
@@ -3700,14 +3700,14 @@ namespace insur {
 
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
     XYCanvas->cd();
-    PlotDrawer<XY, Type> xyBarrelDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker.getLayers(), Module::Barrel);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
     XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
     XYCanvasEC->cd();
-    PlotDrawer<XY, Type> xyEndcapDrawer(getDrawAreaX(tracker), getDrawAreaY(tracker));
+    PlotDrawer<XY, Type> xyEndcapDrawer; 
     xyEndcapDrawer.addModulesType(tracker.getLayers(), Module::Endcap);
     xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
     xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
