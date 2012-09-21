@@ -64,10 +64,10 @@ namespace insur {
         r.push_back(rot);
 
         rot.name = xml_endcap_rot;
-        rot.thetax = 0.0;
+        rot.thetax = 90.0;
         rot.phix = 90.0;
-        rot.thetay = 0.0;
-        rot.phiy = 90.0;
+        rot.thetay = 90.0;
+        rot.phiy = 180.0;
         rot.thetaz = 0.0;
         rot.phiz = 0.0;
         r.push_back(rot);

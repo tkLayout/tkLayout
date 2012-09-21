@@ -25,7 +25,7 @@ namespace insur {
     defaultMaterialFile = false;
     defaultPixelMaterialFile = false;
   }
-    
+
   /**
    * The destructor deletes the heap-allocated internal objects if they exist.
    */
@@ -39,7 +39,7 @@ namespace insur {
     //if (pixelAnalyzer) delete pixelAnalyzer;    
     StopWatch::destroy();
   }
-    
+
   /**
    * Build a bare-bones geometry of active modules. The resulting tracker object replaces the previously
    * registered one, if such an object existed. It remains in the squid until it is overwritten by a second call
@@ -63,7 +63,7 @@ namespace insur {
     stopTaskClock();
     return false;
   }
-    
+
   /**
    * Dress the previously created geometry with module options. The modified tracker object remains
    * in the squid as the current tracker until it is overwritten by a call to another function that creates
@@ -105,7 +105,7 @@ namespace insur {
     }
   }
 
-    
+
   /**
    * Build a geometry of active modules using both geometry constraints and module settings. If there
    * was an existing tracker object, it is destroyed and replaced by a new one as described in the geometry
@@ -119,7 +119,7 @@ namespace insur {
     if ( buildTracker() ) return dressTracker();
     else return false;
   }
-  
+
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
    * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the
@@ -133,21 +133,21 @@ namespace insur {
     startTaskClock("Building inactive surfaces");
     if (getGeometryFile()!="") {
       if (tr) {
-	if (is) delete is;
-	is = new InactiveSurfaces();
-	u.arrange(*tr, *is, getGeometryFile(), verbose);
-	if (px) {
-	  if (pi) delete pi;
-	  pi = new InactiveSurfaces();
-	  u.arrangePixels(*px, *pi, verbose);
-	}
+        if (is) delete is;
+        is = new InactiveSurfaces();
+        u.arrange(*tr, *is, getGeometryFile(), verbose);
+        if (px) {
+          if (pi) delete pi;
+          pi = new InactiveSurfaces();
+          u.arrangePixels(*px, *pi, verbose);
+        }
         stopTaskClock();
-	return true;
+        return true;
       }
       else {
-	logERROR(err_no_tracker);
+        logERROR(err_no_tracker);
         stopTaskClock();
-	return false;
+        return false;
       }
     }
     else {
@@ -156,7 +156,7 @@ namespace insur {
       return false;
     }
   }
-    
+
 
   /**
    * Calculate a material budget for the previously created tracker object and collection of inactive
@@ -223,7 +223,7 @@ namespace insur {
   //   if (buildInactiveSurfaces(usher_verbose)) return createMaterialBudget(mat_verbose) && irradiateTracker();
   //   return false;
   // }
-    
+
   /**
    * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
    * save the results in a plain text file.
@@ -242,7 +242,7 @@ namespace insur {
       return false;
     }
   }
-    
+
   /**
    * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
    * @param xmlout The name - without path - of the designated output subdirectory
@@ -258,7 +258,7 @@ namespace insur {
       return false;
     }
   }
-    
+
   // private
   /**
    * Check if a given configuration file actually exists.
@@ -270,7 +270,7 @@ namespace insur {
     if (bfs::exists(p)) return true;
     return false;
   }
-    
+
   /**
    * Extract the filename from a path. If there is nothing to extract, a copy of the input is returned.
    * @full The source string
@@ -282,13 +282,13 @@ namespace insur {
       return full.substr(idx+1);
     else return full;
   }
-    
+
   // private
   void Squid::resetVizard() {
     v.~Vizard();
     new ((void*) &v) Vizard();
   }
-    
+
   /**
    * Prepare the website object (if not done yet) from the configuration file
    * it needs the tracker object to be already there
@@ -299,8 +299,8 @@ namespace insur {
     string trackerName;
     if (htmlDir_ != "") trackerName = htmlDir_;
     else {
-        if (tr) trackerName = tr->getName();
-        else trackerName = default_trackername;
+      if (tr) trackerName = tr->getName();
+      else trackerName = default_trackername;
     }
     string layoutDirectory;
     //styleDirectory=mainConfiguration.getStyleDirectory();
@@ -319,8 +319,8 @@ namespace insur {
 #endif
     return true;
   }
-    
-    
+
+
   /**
    * Actually creates the website where it was supposed to be
    * @return a boolean with the operation success
@@ -335,12 +335,12 @@ namespace insur {
     if (addLogPage) {
       v.makeLogPage(site);
     }
-        
+
     bool result = site.makeSite(false);
     stopTaskClock();
     return result;
   }
-    
+
   /**
    * Analyze the previously created geometry and without no output  through rootweb.
    * @return True if there were no errors during processing, false otherwise
@@ -367,9 +367,9 @@ namespace insur {
     }
     startTaskClock("Creating trigger efficiency plots");
     a.analyzeTriggerEfficiency(*tr,
-			       mainConfiguration.getTriggerMomenta(),
-			       mainConfiguration.getThresholdProbabilities(),
-			       tracks);
+                               mainConfiguration.getTriggerMomenta(),
+                               mainConfiguration.getThresholdProbabilities(),
+                               tracks);
     stopTaskClock();
     return true;
   }
@@ -391,13 +391,13 @@ namespace insur {
       }
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
-	startTaskClock("Estimating tracking resolution of track-trigger");
-	a.analyzeTrigger(*mb,
-			 mainConfiguration.getMomenta(),
-			 mainConfiguration.getTriggerMomenta(),
-			 mainConfiguration.getThresholdProbabilities(),
-			 tracks, pm);
-	stopTaskClock();
+        startTaskClock("Estimating tracking resolution of track-trigger");
+        a.analyzeTrigger(*mb,
+                         mainConfiguration.getMomenta(),
+                         mainConfiguration.getTriggerMomenta(),
+                         mainConfiguration.getThresholdProbabilities(),
+                         tracks, pm);
+        stopTaskClock();
       }
       return true;
     } else {
@@ -439,20 +439,20 @@ namespace insur {
     }
   }
 
-bool Squid::reportTriggerProcessorsSite() {
+  bool Squid::reportTriggerProcessorsSite() {
     if (tr) {
       startTaskClock("Computing dissipated power");
-        a.computeTriggerProcessorsBandwidth(*tr);
-        v.triggerProcessorsSummary(a, *tr, site);
-        return true;
+      a.computeTriggerProcessorsBandwidth(*tr);
+      v.triggerProcessorsSummary(a, *tr, site);
+      return true;
     } else {
-    std::cerr << "Squid::reportTriggerProcessorsSite(): " << err_no_tracker << std::endl;
-    return false;
+      std::cerr << "Squid::reportTriggerProcessorsSite(): " << err_no_tracker << std::endl;
+      return false;
     }
 
-}
+  }
 
-bool Squid::reportPowerSite() {
+  bool Squid::reportPowerSite() {
     if (tr) {
       startTaskClock("Computing dissipated power");
       a.analyzePower(*tr);
@@ -503,7 +503,7 @@ bool Squid::reportPowerSite() {
       return false;
     }
   }
-  
+
 
   /**
    * Produces the output of the analysis of the material budget analysis
@@ -527,7 +527,7 @@ bool Squid::reportPowerSite() {
       return false;
     }
   }
-    
+
   bool Squid::additionalInfoSite() {
     if (!tr) {
       logERROR(err_no_tracker);
@@ -537,9 +537,9 @@ bool Squid::reportPowerSite() {
       getPixelMaterialFile();
       startTaskClock("Saving additional information");
       v.additionalInfoSite(getGeometryFile(), getSettingsFile(),
-			   getMaterialFile(), getPixelMaterialFile(),
-			   defaultMaterialFile, defaultPixelMaterialFile,
-			   a, *tr, site);
+                           getMaterialFile(), getPixelMaterialFile(),
+                           defaultMaterialFile, defaultPixelMaterialFile,
+                           a, *tr, site);
       stopTaskClock();
       return true;
     }
@@ -572,15 +572,15 @@ bool Squid::reportPowerSite() {
     if (myMaterialFile_=="") {
       myMaterialFile_ = baseName_ + suffix_tracker_material_file; 
       if (fileExists(myMaterialFile_)) {
-	logWARNING(warn_custom_matfile);
-	defaultMaterialFile = false;
+        logWARNING(warn_custom_matfile);
+        defaultMaterialFile = false;
       } else {
-	myMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_tracker_materials_file;
-	defaultMaterialFile = true;
-	if (!fileExists(myMaterialFile_)) {
-	  logERROR(err_no_matfile);
-	  myMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
-	}
+        myMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_tracker_materials_file;
+        defaultMaterialFile = true;
+        if (!fileExists(myMaterialFile_)) {
+          logERROR(err_no_matfile);
+          myMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
+        }
       }
     }
     return myMaterialFile_;
@@ -590,18 +590,36 @@ bool Squid::reportPowerSite() {
     if (myPixelMaterialFile_=="") {
       myPixelMaterialFile_ = baseName_ + suffix_pixel_material_file;         
       if (fileExists(myPixelMaterialFile_)) {
-	logWARNING(warn_custom_matfile_pixel);
-	defaultPixelMaterialFile = false;
+        logWARNING(warn_custom_matfile_pixel);
+        defaultPixelMaterialFile = false;
       } else {
-	myPixelMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_pixel_materials_file;
-	defaultPixelMaterialFile = true;
-	if (!fileExists(myPixelMaterialFile_)) {
-	  logERROR(err_no_matfile_pixel);
-	  myPixelMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
-	}
+        myPixelMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_pixel_materials_file;
+        defaultPixelMaterialFile = true;
+        if (!fileExists(myPixelMaterialFile_)) {
+          logERROR(err_no_matfile_pixel);
+          myPixelMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
+        }
       }
     }
     return myPixelMaterialFile_;
   }
 
+  void Squid::simulateTracks(int numEvents, int numTracksEv) {
+    startTaskClock("Performing track simulation");
+    TrackShooter ts;
+    ts.setOutput(std::cout);
+    for (std::vector<Layer*>::const_iterator lit = tr->getLayers().begin(); lit != tr->getLayers().end(); ++lit) {
+      ModuleVector* mods = (*lit)->getModuleVector();
+      for (ModuleVector::const_iterator mit = mods->begin(); mit != mods->end(); ++mit) {
+        ts.addModule(*mit);
+      }
+    }
+    ts.shootTracks(numEvents, numTracksEv);
+    stopTaskClock();
+  }
 }
+
+
+
+
+

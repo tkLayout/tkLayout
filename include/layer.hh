@@ -63,6 +63,8 @@ public:
 
   virtual void decreaseModCount(int ring) {}
 
+  virtual int getRings() = 0;
+
   enum {NoSection = 0x0,
     XYSection = 0x1,
     YZSection = 0x2,
@@ -258,6 +260,7 @@ public:
 
   int getRods() { return nOfRods_; }
   int getModulesOnRod() { return nModsOnString_; }
+  int getRings() { return nModsOnString_; }
 
   double getMaxZ(int direction);
   void compressToZ(double newMaxZ);

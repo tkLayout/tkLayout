@@ -188,6 +188,7 @@ double ptError::probabilityInside(double cut, double value, double value_err) {
   return probabilityInside_norm(mycut, myvalue);
 }
 
+/* */
 double ptError::find_probability(double target, double ptCut) {
 
   double lowerPt = minimumPt;

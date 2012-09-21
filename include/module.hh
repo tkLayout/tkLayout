@@ -324,6 +324,8 @@ public:
   double getProperty(std::string name) const { return hasProperty(name) ? properties_.at(name) : 0; }
   bool hasProperty(std::string name) const { return properties_.find(name) != properties_.end(); }
 
+  ptError* getPtError() { return &myPtError; }
+
 private:
   void setPterrorParameters();
 

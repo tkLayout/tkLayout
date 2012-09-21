@@ -28,6 +28,12 @@ std::string ltrim(std::string str);
 std::string rtrim(std::string str);
 std::string trim(std::string str);
 
+
+template<typename ArgType> int signum(const ArgType& x) {
+  return (x > ArgType(0)) - (x < ArgType(0));
+}
+
+
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 

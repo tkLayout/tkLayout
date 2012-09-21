@@ -422,6 +422,8 @@ public:
   }
   std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
+  
+  void fireTracks(int numEvents, int numTracksEv, ostream& output);
 };
 
 

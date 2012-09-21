@@ -1302,7 +1302,8 @@ namespace insur {
         triggerDataBandwidthSummaries_[cntName].setPrecision(3);
 
 
-        int nbins = (dynamic_cast<BarrelLayer*>(layer)) ? ((BarrelLayer*)layer)->getModulesOnRod() : ((EndcapLayer*)layer)->getRings();
+        //int nbins = (dynamic_cast<BarrelLayer*>(layer)) ? ((BarrelLayer*)layer)->getModulesOnRod() : ((EndcapLayer*)layer)->getRings();
+        int nbins = layer->getRings();
 
 
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
