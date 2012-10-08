@@ -1,6 +1,8 @@
 #ifndef GLOBAL_FUNCS
 #define GLOBAL_FUNCS
 
+#include <math.h>
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -31,6 +33,17 @@ std::string trim(std::string str);
 
 template<typename ArgType> int signum(const ArgType& x) {
   return (x > ArgType(0)) - (x < ArgType(0));
+}
+
+template<int Precision, typename ArgRetType> ArgRetType roundprec(const ArgRetType& x) {
+  static const int p = pow(10, Precision); // if it works, it's clever
+  return floor(x * p + 0.5) / p;
+}
+
+
+template<int Magnification, typename ArgType> int mapint(const ArgType& x) {
+  static const int p = pow(10, Magnification); // ditto here
+  return floor(x * p + 0.5);
 }
 
 

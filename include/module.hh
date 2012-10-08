@@ -133,6 +133,13 @@ protected:
 
   ptError myPtError;
 
+/* mutable property bank. values are cached for optimized performance and simply returned instead of being recalculated once geometry is locked */
+  mutable double minTheta_, maxTheta_, meanTheta_;
+  mutable double minRho_, maxRho_;
+  mutable double minZ_, maxZ_;
+  mutable double minPhi_, maxPhi_;
+  mutable XYZVector meanPoint_;
+
  private:
   void setDefaultParameters();
   int findMaxSegmentsFace_(); // starting from 0 !!
@@ -219,7 +226,7 @@ protected:
   virtual double getMinRho() const;
   virtual double getMaxZ() const;
   virtual double getMinZ() const;
-  virtual const XYZVector getMeanPoint() const;
+  virtual const XYZVector& getMeanPoint() const;
 
   virtual double getMaxPhi() const { return 0.; }; 
   virtual double getMinPhi() const { return 0.; };
@@ -326,10 +333,16 @@ public:
 
   ptError* getPtError() { return &myPtError; }
 
+  void lockGeometry() { geometryLocked_ = true; }
+  void unlockGeometry() { geometryLocked_ = false; }
+  bool geometryLocked() const { return geometryLocked_; }
+
 private:
   void setPterrorParameters();
 
   std::map<std::string, double> properties_;
+
+  bool geometryLocked_;
 };
 
 

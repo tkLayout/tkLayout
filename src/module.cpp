@@ -68,6 +68,8 @@ void Module::setDefaultParameters() {
     processorConnectionsPhi_ = 0;
     irradiatedPowerConsumption_ = 0;
     for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
+
+    geometryLocked_ = false;
 }
 
 void Module::setNFaces(const int& newNFaces) {
@@ -1002,86 +1004,100 @@ int Module::setEdgeRhoSide(double newRho, int direction) {
 }
 
 double Module::getMinTheta() const {
-    double result, aTheta;
-    result = corner_[0].Theta();
+  if (!geometryLocked()) {
+    double aTheta;
+    minTheta_ = corner_[0].Theta();
     for (int i=1; i<4; i++) {
-        aTheta = corner_[i].Theta();
-        if (aTheta<result) result=aTheta;
+      aTheta = corner_[i].Theta();
+      if (aTheta < minTheta_) minTheta_=aTheta;
     }
-    return result;
+  }
+  return minTheta_;
 }
 
 double Module::getMaxTheta() const {
-    double result, aTheta;
-    result = corner_[0].Theta();
+  if (!geometryLocked()) {
+    double aTheta;
+    maxTheta_ = corner_[0].Theta();
     for (int i=1; i<4; i++) {
-        aTheta = corner_[i].Theta();
-        if (aTheta>result) result=aTheta;
+      aTheta = corner_[i].Theta();
+      if (aTheta > maxTheta_) maxTheta_=aTheta;
     }
-    return result;
+  }
+  return maxTheta_;
 }
 
 double Module::getMeanTheta() const {
+  if (!geometryLocked()) {
     XYZVector meanPoint(0, 0, 0);
     for (int i=0; i<4; i++) {
-        meanPoint += corner_[i];
+      meanPoint += corner_[i];
     }
     meanPoint /= 4;
-    
-    return meanPoint.Theta();
+    meanTheta_ = meanPoint.Theta();
+  }  
+  return meanTheta_;
 }
 
 double Module::getMaxRho() const {
-    double maxRho=-1;
+  if (!geometryLocked()) {
+    maxRho_=-1;
     for (int i = 0; i < 4 ; i++) {
-        if (corner_[i].Rho()>maxRho) maxRho=corner_[i].Rho();
+      if (corner_[i].Rho()>maxRho_) maxRho_=corner_[i].Rho();
     }
-    return maxRho;
+  }
+  return maxRho_;
 }
 
 double Module::getMinRho() const {
-    double minRho=corner_[0].Rho();
+  if (!geometryLocked()) {
+    minRho_=corner_[0].Rho();
     unsigned int i1 = 0, i2 = 0;
     for (int i = 1; i < 4 ; i++) {
-        //if (corner_[i].Rho()<minRho) minRho=corner_[i].Rho();
-        if (corner_[i].Rho() < corner_[i1].Rho()) i1 = i;
+      //if (corner_[i].Rho()<minRho) minRho=corner_[i].Rho();
+      if (corner_[i].Rho() < corner_[i1].Rho()) i1 = i;
     }
     if (i1 == 0) i2 = 1;
     for (unsigned int i = 1; i < 4; i++) {
-        if ((corner_[i].Rho() < corner_[i2].Rho()) && (i != i1)) i2 = i;
+      if ((corner_[i].Rho() < corner_[i2].Rho()) && (i != i1)) i2 = i;
     }
-    if (((corner_[i1].Rho() + corner_[i2].Rho()) / 2.0) < minRho) minRho = (corner_[i1].Rho() + corner_[i2].Rho()) / 2.0;
-    if (getMeanPoint().Rho() < minRho) minRho = getMeanPoint().Rho();
-    return minRho;
+    if (((corner_[i1].Rho() + corner_[i2].Rho()) / 2.0) < minRho_) minRho_ = (corner_[i1].Rho() + corner_[i2].Rho()) / 2.0;
+    if (getMeanPoint().Rho() < minRho_) minRho_ = getMeanPoint().Rho();
+  }
+  return minRho_;
 }
 
 double Module::getMaxZ() const {
-    double maxZ=corner_[0].Z();
+  if (!geometryLocked()) {
+    maxZ_=corner_[0].Z();
     for (int i = 1; i < 4 ; i++) {
-        if (corner_[i].Z()>maxZ) maxZ=corner_[i].Z();
+        if (corner_[i].Z()>maxZ_) maxZ_=corner_[i].Z();
     }
-    return maxZ;
+  }
+  return maxZ_;
 }
 
 double Module::getMinZ() const {
-    double minZ=corner_[0].Z();
+  if (!geometryLocked()) {
+    minZ_=corner_[0].Z();
     for (int i = 1; i < 4 ; i++) {
-        if (corner_[i].Z()<minZ) minZ=corner_[i].Z();
+      if (corner_[i].Z()<minZ_) minZ_=corner_[i].Z();
     }
-    return minZ;
+  }
+  return minZ_;
 }
 
 
-const XYZVector Module::getMeanPoint() const {
-    
-    XYZVector meanPoint(0, 0, 0);
-    
+const XYZVector& Module::getMeanPoint() const {
+  if (!geometryLocked()) {
+    meanPoint_ = XYZVector(0, 0, 0);
+
     for (int i=0; i<4; i++) {
-        meanPoint += corner_[i];
+      meanPoint_ += corner_[i];
     }
-    meanPoint /= 4;
-    
-    return meanPoint;
+    meanPoint_ /= 4;
+  } 
+  return meanPoint_;
 }
 
 /*
@@ -1687,14 +1703,20 @@ int BarrelModule::setEdgePhi(double newPhi, int direction) {
 }
 
 double BarrelModule::getMaxPhi() const {
-    XYZVector center = getMeanPoint();
-    return fmod(atan(getWidth()/(2*center.R()))+center.Phi(), 2*M_PI);
+  if (!geometryLocked()) {
+    const XYZVector& center = getMeanPoint();
+    maxPhi_ = fmod(atan(getWidth()/(2*center.Rho()))+center.Phi(), 2*M_PI);
+  }
+  return maxPhi_;
 }
 
 
 double BarrelModule::getMinPhi() const {
-    XYZVector center = getMeanPoint();
-    return -atan(getWidth()/(2*center.R()))+center.Phi();
+  if (!geometryLocked()) {
+    const XYZVector& center = getMeanPoint();
+    minPhi_ = -atan(getWidth()/(2*center.Rho()))+center.Phi();
+  }
+  return minPhi_;
 }
 
 /******************/
@@ -1775,14 +1797,18 @@ EndcapModule::EndcapModule(const Module& aModule, double d) : Module(aModule) {
 
 
 double EndcapModule::getMaxPhi() const {  // for Z+ disks phi0 is always MAX, for Z- disks phi1 is always MAX
-    if (getCorner(0).Z() < 0) return getCorner(1).Phi();
-    else return getCorner(0).Phi();
+  if (!geometryLocked()) {
+    maxPhi_ = getCorner(0).Z() < 0 ? getCorner(1).Phi() : getCorner(0).Phi();
+  }
+  return maxPhi_;
 }
 
 
 double EndcapModule::getMinPhi() const {
-    if (getCorner(0).Z() < 0) return getCorner(0).Phi();
-    else return getCorner(1).Phi();
+  if (!geometryLocked()) {
+    minPhi_ = getCorner(0).Z() < 0 ? getCorner(0).Phi() : getCorner(1).Phi();
+  }
+  return minPhi_;
 }
 
 

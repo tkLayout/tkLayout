@@ -1,4 +1,5 @@
 /**
+ * void littleTestBench();
  * @file Squid.cc
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
@@ -604,10 +605,11 @@ namespace insur {
     return myPixelMaterialFile_;
   }
 
-  void Squid::simulateTracks(int numEvents, int numTracksEv) {
-    startTaskClock("Performing track simulation");
+  void Squid::simulateTracks(int numEvents, int numTracksEv, std::string outputfile) {
+    startTaskClock("Shooting particles");
     TrackShooter ts;
-    ts.setOutput(std::cout);
+    std::ofstream ofs(outputfile.c_str());
+    ts.setOutput(ofs);
     for (std::vector<Layer*>::const_iterator lit = tr->getLayers().begin(); lit != tr->getLayers().end(); ++lit) {
       ModuleVector* mods = (*lit)->getModuleVector();
       for (ModuleVector::const_iterator mit = mods->begin(); mit != mods->end(); ++mit) {
@@ -615,6 +617,7 @@ namespace insur {
       }
     }
     ts.shootTracks(numEvents, numTracksEv);
+    ofs.close();
     stopTaskClock();
   }
 }

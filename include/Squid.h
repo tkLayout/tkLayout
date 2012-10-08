@@ -96,7 +96,7 @@ namespace insur {
     void setBasename(std::string newBaseName);
     void setHtmlDir(std::string htmlDir);
 
-    void simulateTracks(int numEvents, int numTracksEv);
+    void simulateTracks(int numEvents, int numTracksEv, std::string outputfile = "tracks.txt");
 
   private:
     //std::string g;

@@ -324,7 +324,8 @@ struct HistogramFrameStyle {
 
 
 
-template<class CoordType, class ValueGetterType, class StatType = NoStat > class PlotDrawer {
+template<class CoordType, class ValueGetterType, class StatType = NoStat >
+class PlotDrawer {
   typedef typename CoordType::first_type CoordTypeX;
   typedef typename CoordType::second_type CoordTypeY;
   CoordTypeX viewportMaxX_;
@@ -349,7 +350,9 @@ public:
   void add(const Module& m);
 
   void addModulesType(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
+  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = Module::Barrel | Module::Endcap);
   template<class ModuleValidator> void addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid = ModuleValidator());
+  template<class InputIterator, class ModuleValidator> void addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid);
 
 };
 
@@ -364,7 +367,8 @@ template<class CoordType, class ValueGetterType, class StatType> PlotDrawer<Coor
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<template<class> class FrameStyleType> void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle) {
+template<template<class> class FrameStyleType>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle) {
   double minValue = std::numeric_limits<double>::max();
   double maxValue = 0;
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
@@ -384,7 +388,8 @@ template<template<class> class FrameStyleType> void PlotDrawer<CoordType, ValueG
 
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class DrawStyleType> void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
+template<class DrawStyleType>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canvas, const DrawStyleType& drawStyle) {
   canvas.cd();
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
     StatType* bin = it->second;
@@ -393,7 +398,8 @@ template<class DrawStyleType> void PlotDrawer<CoordType, ValueGetterType, StatTy
   }
 }
 
-template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
+template<class CoordType, class ValueGetterType, class StatType>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   CoordType c(m);
   if (!c.valid) return;  // for XY and YZ plots negative Z modules are not needed and are therefore filtered out, YZFull plots on the other hand retain all the modules (CUIDADO I don't actually like the way this works)
   if (bins_[c] == NULL) {
@@ -404,7 +410,8 @@ template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer
   bins_[c]->fill(value);
 }
 
-template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const std::vector<Layer*>& layers, int moduleTypes) {
+template<class CoordType, class ValueGetterType, class StatType>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const std::vector<Layer*>& layers, int moduleTypes) {
   for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
     std::vector<Module*>* layerModules = (*it)->getModuleVector();
     for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
@@ -416,12 +423,30 @@ template<class CoordType, class ValueGetterType, class StatType> void PlotDrawer
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class ModuleValidator> void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid) {
+template<class InputIterator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
+  for (InputIterator it = begin; it != end; ++it) {
+      int subDet = (*it)->getSubdetectorType();
+      if (subDet & moduleTypes) add(**it);
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class ModuleValidator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid) {
   for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
     std::vector<Module*>* layerModules = (*it)->getModuleVector();
     for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
       if (/*(*modIt)->getMeanPoint().Z()>0 &&*/ isValid(**modIt)) add(**modIt);
     }
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class InputIterator, class ModuleValidator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid) {
+  for (InputIterator it = begin; it != end; ++it) {
+      if (isValid(**it)) add(**it);
   }
 }
 #endif

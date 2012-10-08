@@ -1500,8 +1500,8 @@ namespace insur {
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
         std::string cntName = (*layIt)->getContainerName();
-        BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
-        if (cntName == "" || !layer) continue;
+        //BarrelLayer* layer = dynamic_cast<BarrelLayer*>(*layIt);
+        if (cntName == "" /*|| !layer*/) continue;
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
           moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 1);
 
