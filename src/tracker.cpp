@@ -127,6 +127,8 @@ void Tracker::setDefaultParameters() {
   std::string testMe = "test me!";
 
   topToBottomEndcap_ = false;
+
+  currentContainerId_ = 0;
 }
 
 void Tracker::shapeVolume() {
@@ -313,6 +315,8 @@ LayerVector Tracker::buildBarrel(int nLayer,
 
   if (sameRods) { logINFO("Building barrel " + barrelName + " with identical rods"); }
 
+  newContainerId();
+
   for (int i=0; i<nLayer; i++) {
     double radius = minRadius + (nLayer > 1 ? (maxRadius-minRadius)/double(nLayer-1)*i : 0);
 
@@ -373,6 +377,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
     layerName << "L" << std::dec << i+1;
     aBarrelLayer->setName(layerName.str(), i+1);
     aBarrelLayer->setContainerName(barrelName);
+    aBarrelLayer->setContainerId(getCurrentContainerId());
 
     std::ostringstream tempString;
     tempString.str(""); tempString << "Desired radius: " << radius;
@@ -683,6 +688,8 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
                            bool oddSegments, bool alignEdges,
                            int sectioned /* = Layer::NoSection */ ) {
 
+  newContainerId();
+
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
 
@@ -694,6 +701,8 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
 
   EndcapLayer* defaultDisk = new EndcapLayer();
   EndcapLayer* anotherDisk;
+
+  defaultDisk->setContainerId(getCurrentContainerId());
 
   int estimatedNrings = nRings > 0 ? nRings : REASONABLE_MAX_DISK_RINGS;
   std::vector<double> geometryDsDistances(estimatedNrings, 0);

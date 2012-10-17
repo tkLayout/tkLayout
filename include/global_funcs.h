@@ -36,13 +36,13 @@ template<typename ArgType> int signum(const ArgType& x) {
 }
 
 template<int Precision, typename ArgRetType> ArgRetType roundprec(const ArgRetType& x) {
-  static const int p = pow(10, Precision); // if it works, it's clever
+  static const float p = pow(10., Precision);
   return floor(x * p + 0.5) / p;
 }
 
 
 template<int Magnification, typename ArgType> int mapint(const ArgType& x) {
-  static const int p = pow(10, Magnification); // ditto here
+  static const float p = pow(10., Magnification);
   return floor(x * p + 0.5);
 }
 

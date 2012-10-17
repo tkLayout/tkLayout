@@ -415,6 +415,7 @@ void BarrelLayer::buildStringPairRecursion(
       m->translate(XYZVector(0, (parity > 0 ? smallDelta : -smallDelta) + averageRadius, 0));
       m->setEdgeZ(listZPos[i], 1);
       m->setRing(i+1);
+      m->setZSide(1);
       thisModuleSet.push_back(m);        
     }
 
@@ -424,6 +425,7 @@ void BarrelLayer::buildStringPairRecursion(
       m->translate(XYZVector(0, (parity > 0 ? smallDelta : -smallDelta) + averageRadius, 0));
       m->setEdgeZ(listZNeg[i], -1);
       m->setRing(i+1);
+      m->setZSide(-1);
       thisModuleSet.push_back(m);        
     }
   }
@@ -911,6 +913,7 @@ void BarrelLayer::buildLayer(double averageRadius,
       //(*itMod)->rotatePhi(i*stringPhiShift-rightAngle);
 
       BarrelModule* tempMod = new BarrelModule((BarrelModule&)**itMod);
+      tempMod->setContainerId(getContainerId());
       tempMod->rotatePhi(i*stringPhiShift);
       tempMod->setPhiIndex(i);
       if (i==0) {
@@ -1943,7 +1946,9 @@ double EndcapLayer::buildRing(double minRadius,
     } else {
       myModule = new EndcapModule(*sampleModule, minRadius);
     }
+    myModule->setContainerId(getContainerId());
     myModule->setPhiIndex(i);
+    myModule->setZSide(signum(diskZ));
     myModule->rotatePhi(M_PI/2+2.*M_PI*((i+alignmentRotation)/double(nOpt)));
     XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
     myModule->translate(shift);

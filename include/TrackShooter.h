@@ -17,6 +17,9 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <Math/GenVector/RotationZ.h>
+#include <Math/GenVector/Rotation3D.h>
+#include <Math/GenVector/Transform3D.h>
 
 #include <global_funcs.h>
 #include <global_constants.h>
@@ -24,6 +27,13 @@
 #include <PlotDrawer.h>
 #include <Palette.h>
 
+
+template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
+  return (int(x < T(0)) << 2) || (int(x < T(0)) << 1) || int(x < T(0));
+}
+
+
+std::set<int> getModuleOctants(const Module* mod);
 
 
 template<int NumSides, class Coords, class Random>
@@ -33,6 +43,7 @@ protected:
   std::vector<Coords> v_; // vertices of the polygon
   virtual void computeProperties() = 0;
 public:
+  AbstractPolygon() { v_.reserve(NumSides); }
   virtual AbstractPolygon<NumSides, Coords, Random>& operator<<(const Coords& vertex);
   virtual AbstractPolygon<NumSides, Coords, Random>& operator<<(const std::vector<Coords>& vertices);
   const std::vector<Coords>& getVertices() const;
@@ -134,18 +145,28 @@ public:
 
 
 
+
+
 class TrackShooter {
+  static const float HIGH_PT_THRESHOLD = 2.;
+
   std::ostream* output_;
   const char *FS, *LS;
 
   std::vector<Module*> allMods_;
-  std::map<double, std::list<BarrelModule*> > barrelModsByRadius_;
-  std::map<double, std::list<EndcapModule*> > endcapModsByZ_;
+  typedef std::list<BarrelModule*> BarrelModules;   // accessed sequentially. last step in hit localization
+  typedef std::list<EndcapModule*> EndcapModules;
+  typedef std::vector<BarrelModules> BarrelOctants; // these vectors are accessed randomly when the octant of the hit is known (function of the radius/z discovered in the previous step)
+  typedef std::vector<EndcapModules> EndcapOctants;
+  typedef std::map<double, BarrelOctants> BarrelRadii; // first step in hit localization. we fix radius/z and we calculate the rest of the coordinates of a hit
+  typedef std::map<double, EndcapOctants> EndcapZs;
+  BarrelRadii barrelModsByRadius_;
+  EndcapZs endcapModsByZ_;
 
 public:
   void setOutput(std::ostream& output, const char* fieldSeparator = "\t", const char* lineSeparator = "\n", bool synced = false);
   void addModule(Module* module);
-  void shootTracks(int numEvents, int numTracksPerEvent);
+  void shootTracks(long int numEvents, long int numTracksPerEvent);
 
   void manualPolygonTestBench();
   void moduleTestBench();

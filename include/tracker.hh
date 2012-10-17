@@ -50,6 +50,9 @@ protected:
   LayerVector endcapLayerSet_;
   ModuleVector endcapSample_;
   SectionMap sectionMap_;
+
+  int currentContainerId_;
+
   double nMB_;
 
   std::map<int, double> mapTypeToCost_;
@@ -89,6 +92,10 @@ private:
   // Color picking according to type
   //std::map<std::string, Color_t> colorPickMap_; // obsolete
   //Color_t lastPickedColor_;                     // obsolete
+  //
+  
+  void newContainerId() { currentContainerId_++; } // to pass down to the modules so that each modules knows its absolute positional reference composed by container id, layer/disk, ring, segment (phi index)
+  int getCurrentContainerId() const { return currentContainerId_; }
 
   int iModule_;
   double efficiency_;
@@ -422,8 +429,6 @@ public:
   }
   std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
-  
-  void fireTracks(int numEvents, int numTracksEv, ostream& output);
 };
 
 

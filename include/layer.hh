@@ -27,6 +27,7 @@ protected:
   ModuleVector moduleSet_;
   std::string layerName_;
   std::string containerName_;
+  int containerId_;
   int layerIndex_;
   std::ostringstream tempString;
 
@@ -46,8 +47,10 @@ public:
   std::string getName() {return layerName_; };
   int getIndex() {return layerIndex_; };
   std::string getContainerName() {return containerName_; };
+  int getContainerId() const { return containerId_; }
   void setName(const std::string& newName, const int& newIndex) { layerName_ = newName; layerIndex_ = newIndex; };
   void setContainerName(const std::string& newName ) { containerName_ = newName; };
+  void setContainerId(int containerId) { containerId_ = containerId; }
 
   double getMaxZ();
   double getMinZ();

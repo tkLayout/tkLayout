@@ -8,7 +8,7 @@ namespace insur {
     
   void MaterialTable2::parseMaterial(std::string str) {
     str = trim(str);
-    BaseMaterial* mat;
+    BaseMaterial* mat = 0;
     if (str.find("Elementary") == 0) { 
       mat = new ElementaryMaterial();
       mat->fromCfg(str.substr(10));

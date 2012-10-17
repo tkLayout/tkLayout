@@ -608,8 +608,10 @@ namespace insur {
   void Squid::simulateTracks(int numEvents, int numTracksEv, std::string outputfile) {
     startTaskClock("Shooting particles");
     TrackShooter ts;
-    std::ofstream ofs(outputfile.c_str());
-    ts.setOutput(ofs);
+    //std::ofstream ofs((outputfile + "." + any2str(getpid())).c_str());
+    //ofs.rdbuf()->pubsetbuf(&(std::vector<char>(32768)[0]), 32768);
+    //std::nounitbuf(ofs);
+    ts.setOutput(std::cout);
     for (std::vector<Layer*>::const_iterator lit = tr->getLayers().begin(); lit != tr->getLayers().end(); ++lit) {
       ModuleVector* mods = (*lit)->getModuleVector();
       for (ModuleVector::const_iterator mit = mods->begin(); mit != mods->end(); ++mit) {
@@ -617,7 +619,7 @@ namespace insur {
       }
     }
     ts.shootTracks(numEvents, numTracksEv);
-    ofs.close();
+    //ofs.close();
     stopTaskClock();
   }
 }

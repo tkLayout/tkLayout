@@ -34,6 +34,21 @@ using namespace ROOT::Math;
 
 typedef std::pair<double, int> edge;
 
+template<class T> struct InitableProperty {
+  T value;
+  bool inited;
+  InitableProperty() : inited(false) {}
+  InitableProperty(const T& v) : value(v), inited(true) {}
+};
+
+
+struct PosRef {
+  int8_t cnt;
+  int8_t z;
+  int8_t rho;
+  int8_t phi;
+};
+
 
 
 class Module {
@@ -81,6 +96,9 @@ protected:
   int ring_;
   
   int phiIndex_;
+
+  int containerId_;
+  int zSide_; // whether in the positive or negative Z side of the detector
 
   std::string containerName_;
   
@@ -134,11 +152,12 @@ protected:
   ptError myPtError;
 
 /* mutable property bank. values are cached for optimized performance and simply returned instead of being recalculated once geometry is locked */
-  mutable double minTheta_, maxTheta_, meanTheta_;
-  mutable double minRho_, maxRho_;
-  mutable double minZ_, maxZ_;
-  mutable double minPhi_, maxPhi_;
-  mutable XYZVector meanPoint_;
+  mutable InitableProperty<double> minTheta_, maxTheta_, meanTheta_;
+  mutable InitableProperty<double> minRho_, maxRho_;
+  mutable InitableProperty<double> minZ_, maxZ_;
+  mutable InitableProperty<double> minPhi_, maxPhi_;
+  mutable InitableProperty<XYZVector> meanPoint_;
+  mutable InitableProperty<int> octant_;
 
  private:
   void setDefaultParameters();
@@ -244,6 +263,12 @@ protected:
   int getPhiIndex() const { return phiIndex_; }
   void setPhiIndex(int phiIndex) { phiIndex_ = phiIndex; }
 
+  int getContainerId() const { return containerId_; }
+  void setContainerId(int containerId) { containerId_ = containerId; }
+
+  int getZSide() const { return zSide_; }
+  void setZSide(int zSide) { zSide_ = zSide; }
+
   int getNChannels() const;
   int getNChannelsFace(int nFace) const;
   int getNMaxChannelsFace();
@@ -307,6 +332,8 @@ protected:
   virtual int getLayer() const { return 0; };
   virtual int getDisk() const { return 0;};
 
+  virtual PosRef getPositionalReference() const { return (PosRef){ 0, 0, 0, 0 }; } 
+
   double getPtThreshold(const double& myEfficiency);
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
@@ -333,7 +360,7 @@ public:
 
   ptError* getPtError() { return &myPtError; }
 
-  void lockGeometry() { geometryLocked_ = true; }
+  void lockGeometry() { geometryLocked_ = true; setPterrorParameters(); }
   void unlockGeometry() { geometryLocked_ = false; }
   bool geometryLocked() const { return geometryLocked_; }
 
@@ -386,6 +413,7 @@ private:
   std::string getSensorGeoTag();
   std::string getPositionTag();
 
+  PosRef getPositionalReference() const { return (PosRef){ containerId_, (getZSide() > 0 ? ring_ : -ring_), layer_, phiIndex_+1 }; }
 
   int getLayer() const {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
@@ -455,6 +483,8 @@ public:
 
   void setLayer(int newLayer) { disk_ = newLayer; }  // Layer == Disk for EndCap modules!
   int getLayer() const { return disk_; }
+
+  PosRef getPositionalReference() const { return (PosRef){ containerId_, (getZSide() > 0 ? disk_ : -disk_), ring_, phiIndex_+1 }; }
 
   //double getOccupancyPerEvent();
   virtual double getStripOccupancyPerEvent();

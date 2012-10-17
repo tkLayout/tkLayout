@@ -1,10 +1,22 @@
 #include <TrackShooter.h>
 
 
+std::set<int> getModuleOctants(const Module* mod) {
+  std::set<int> octants;
+  octants.insert(getPointOctant(mod->getCorner(0).X(), mod->getCorner(0).Y(), mod->getCorner(0).Z())); 
+  octants.insert(getPointOctant(mod->getCorner(1).X(), mod->getCorner(1).Y(), mod->getCorner(1).Z())); 
+  octants.insert(getPointOctant(mod->getCorner(2).X(), mod->getCorner(2).Y(), mod->getCorner(2).Z())); 
+  octants.insert(getPointOctant(mod->getCorner(3).X(), mod->getCorner(3).Y(), mod->getCorner(3).Z())); 
+  return octants;
+}
+
+
+
+
 template<int NumSides, class Coords, class Random>
 AbstractPolygon<NumSides, Coords, Random>& AbstractPolygon<NumSides, Coords, Random>::operator<<(const Coords& vertex) {
-  if (v_.size() < NumSides) v_.push_back(vertex);
-  if (v_.size() == NumSides) computeProperties();
+  if (!isComplete()) v_.push_back(vertex);
+  if (isComplete()) computeProperties();
   return *this;
 }
 
@@ -44,6 +56,7 @@ bool Polygon3d<NumSides>::isPointInside(const XYZVector& p) const {
     Triangle3d t;
     t << p << *it << (it+1 < this->v_.end() ? *(it+1) : *this->v_.begin());
     sum += t.getDoubleArea();
+    if (sum - this->getDoubleArea() > 1e-4) return false;  // early quit if sum area is already bigger
   }
   return fabs(this->getDoubleArea() - sum) < 1e-4;
 }
@@ -79,40 +92,14 @@ XYZVector Polygon3d<NumSides>::generateRandomPoint(TRandom* die) const {
   return it->generateRandomPoint(die);
 }
 
-/*
-template<int NumSides> 
-Coords Polygon3d<NumSides>::generateRandomPoint(TRandom* die) const {
-  std::multimap<double, Triangle<Coords>, std::greater<double> > trianglesByArea; // kids, don't try this at home
-  double sumAreas = 0;
-  for (typename std::vector<Coords>::const_iterator it = v_.begin()+1; it < v_.end()-1; ++it) {
-    Triangle<Coords> t;
-    t << *v_.begin() << *it << *(it+1);
-    double triangleArea = t.calculateAreaSquared();
-    trianglesByArea.insert(make_pair(triangleArea, t));
-    sumAreas += triangleArea;
-  }
-  double binPicker = die->Uniform(sumAreas);
-  double prevBin = 0;
-  typename std::multimap<double, Triangle<Coords>, std::greater<double> >::const_iterator it;
-  for (it = trianglesByArea.begin(); it != trianglesByArea.end(); ++it) {
-    if (it->first + prevBin >= binPicker) break;  // found triangle
-    prevBin += it->first;
-  }
-  return it->second.generateRandomPoint(die);
-}
-*/
-
-//template<>
 void Triangle3d::computeProperties() {
    this->area_ = sqrt((this->v_[1] - this->v_[0]).Cross(this->v_[2] - this->v_[0]).Mag2());
 }
 
-//template<>
 XYZVector Triangle3d::generateRandomPoint(TRandom* die) const {
   double a = die->Rndm(), b = die->Rndm();
   if (a + b > 1) { a = 1 - a; b = 1 - b; }
   return this->v_[0] + a*(this->v_[1]-this->v_[0]) + b*(this->v_[2]-this->v_[0]); // seriously C++??? you've been around for a while now, time to fix this horrid syntax??
-  //return a*this->v_[0] + b*this->v_[1] + (a+b)*this->v_[2];
 }
 
 bool Triangle3d::isPointInside(const XYZVector& p) const { // note: this is exactly the same as the non specialized case
@@ -121,6 +108,7 @@ bool Triangle3d::isPointInside(const XYZVector& p) const { // note: this is exac
     Triangle3d t;
     t << p << *it << (it+1 < this->v_.end() ? *(it+1) : *this->v_.begin());
     sum += t.getDoubleArea();
+    if (sum - this->getDoubleArea() > 1e-4) return false;  // early quit if sum area is already bigger
   }
   return fabs(this->getDoubleArea() - sum) < 1e-4;
 }
@@ -239,17 +227,34 @@ void TrackShooter::setOutput(ostream& output, const char* fieldSeparator, const 
 
 void TrackShooter::addModule(Module* module) { // also locks modules geometry so that only cached values for geometry properties are returned from now on
   BarrelModule* bmod; EndcapModule* emod;
- // module->lockGeometry();
+  module->lockGeometry();
   allMods_.push_back(module);
-  if ((bmod=dynamic_cast<BarrelModule*>(module))) 
-    barrelModsByRadius_[module->getMeanPoint().Rho()].push_back(bmod);
-  else if ((emod=dynamic_cast<EndcapModule*>(module))) 
-    endcapModsByZ_[module->getMeanPoint().Z()].push_back(emod);
+  
+  const std::set<int>& octants = getModuleOctants(module);
+
+  if ((bmod=dynamic_cast<BarrelModule*>(module))) {
+    BarrelOctants& barrelOctants = barrelModsByRadius_[module->getMeanPoint().Rho()];
+    barrelOctants.resize(8); // prepare the octants vector. it's going to be called for each module, but after the first time the call will do nothing
+    for (std::set<int>::const_iterator oit = octants.begin(); oit != octants.end(); ++oit) {
+      barrelOctants[*oit].push_back(bmod);
+    }
+  } else if ((emod=dynamic_cast<EndcapModule*>(module))) { 
+    EndcapOctants& endcapOctants = endcapModsByZ_[module->getMeanPoint().Z()];
+    endcapOctants.resize(8);
+    for (std::set<int>::const_iterator oit = octants.begin(); oit != octants.end(); ++oit) {
+      endcapOctants[*oit].push_back(emod);
+    }
+  }
+
+//  PosRef p = module->getPositionalReference();
+  //cout << "Mod posref= " << (int)p.cnt << "," << (int)p.z << "," << (int)p.rho << "," << (int)p.phi << " coords=" << module->getMeanPoint().Z() << "," << module->getMeanPoint().Rho() << "," << module->getMeanPoint().Phi() << endl; 
 }
 
 //#define VDEBUG
 
-void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
+//#define FAKE_HITS
+
+void TrackShooter::shootTracks(long int numEvents, long int numTracksEv) {
 #ifdef VDEBUG
   TCanvas* Canvas3d = new TCanvas("Canvas3d", "Badass 3d canvas", 1200, 1200);
   TView *view = TView::CreateView(1);
@@ -269,23 +274,47 @@ void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
   XYCanvasEC->cd();
   PlotDrawer<XY, Property, Sum> xyEndcapDrawer(0, 0, Property("tracksimHits")); 
 #endif
-  *output_ << LS;
-  *output_ << "P" << FS << "ev#" << FS << "tr#" << FS << "eta" << FS << "phi0" << FS << "z0" << FS << "pt" << LS;
-  *output_ << "T/F" << FS << "ev#" << FS << "tr#" << FS << "eta" << FS << "phi0" << FS << "z0" << FS << "pt" << FS << "x" << FS << "y" << FS << "z" << FS << "pterr" << FS << "hitprob" << LS;
-  *output_ << LS;
+  //*output_ << LS;
+  //*output_ << "P" << FS << "ev#" << FS << "tr#" << FS << "eta" << FS << "phi0" << FS << "z0" << FS << "pt" << LS;
+  //*output_ << "T/F" << FS << "ev#" << FS << "tr#" << FS << "eta" << FS << "phi0" << FS << "z0" << FS << "pt" << FS << "x" << FS << "y" << FS << "z" << FS << "pterr" << FS << "hitprob" << LS;
+  //*output_ << LS;
 
-  TRandom3 die(0);
-  ParticleGenerator partGen(die);
+  TRandom3 die(1);
+
+  struct Hit { 
+    long int nevent;
+    long int ntrack;
+    double eta;
+    double phi0;
+    double z0;
+    double pt; 
+    double locx;
+    double locy;
+    float pterr;
+    float hitprob;
+    int deltas;
+    int8_t cntref;
+    int8_t zref;
+    int8_t rhoref;
+    int8_t phiref;
+  } hit;
+
+  TFile* outfile = new TFile(("tracks." + any2str(getpid()) + ".root").c_str(), "recreate");
+  TTree* tree = new TTree("trackhits", "TTree containing hits of simulated tracks");
+  tree->Branch("hit", &hit, "nevent/L:ntrack/L:eta/D:phi0/D:z0/D:pt/D:locx/D:locy/D:pterr/F:hitprob/F:deltas/I:cntref/B:zref/B:rhoref/B:phiref/B");
+  //tree->SetAutoSave(100000);
+
+
   // build ordered maps
-  for (int i=0, totTracks = 0; i<numEvents; i++) {
+  for (long int i=0, totTracks = 0; i<numEvents; i++) {
     // new event
-    for (int j=0; j<numTracksEv; j++, totTracks++) {
+    for (long int j=0; j<numTracksEv; j++, totTracks++) {
       // randomly generate particle with eta = [-3,+3], phi = [0,2pi], Pt = [0.6,15]
       //double eta = die.Uniform(-3, 3);
-      //double eta = 0.81;
-      //double phi0 = 0.55; //die.Uniform(.55, 1.38);
-      //double pt = 2;
-      //double z0 = 0;
+      double eta = die.Uniform(-2, 2);
+      double phi0 = die.Uniform(0.38, 1.634);
+      double pt = 1./die.Uniform(0.01, 0.5);
+      double z0 = die.Uniform(-20, 20);
       //double pt  = die.Uniform(0.6, 15); // everything linear just for debug
       //double eta = 1;
       //double phi0 = M_PI/3+0.2;
@@ -294,22 +323,27 @@ void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
       // or pick from file
       //
       //
-      if ((totTracks % 50) == 0) cout << "Track " << totTracks << " of " << numEvents*numTracksEv << std::endl;
-      
+#ifdef FAKE_HITS
+      if ((totTracks % 500) == 0) cout << "Track " << totTracks << " of " << numEvents*numTracksEv << std::endl;
+#else
+      if ((totTracks % 5000) == 0) cout << "Track " << totTracks << " of " << numEvents*numTracksEv << std::endl;
+#endif
+/*      
       ParticleGenerator::Particle particle = partGen.getParticle();
       
       double pt = particle.pt;
       double eta = particle.eta;
       double phi0 = particle.phi;
       double z0 = particle.z0;
-      
+  */    
       int dir = signum(pt);
       double theta = 2*atan(exp(-eta));
       double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
       double B = tan(theta)/R;
 
-      *output_ << "P" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << LS;
+      //*output_ << "P" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << LS;
 
+#ifdef VDEBUG
       double polylineZ[100], polylineR[100];
       double polylineX[100], polylineY[100];
       double polylineXec[100], polylineYec[100]; 
@@ -317,38 +351,33 @@ void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
 
       double polyline3dX[100], polyline3dY[100], polyline3dZ[100];
       int nPts3d = 0;
+#endif
 
-      for (std::map<double, std::list<BarrelModule*> >::const_iterator rit = barrelModsByRadius_.begin(); rit != barrelModsByRadius_.end(); ++rit) {
+
+      for (BarrelRadii::const_iterator rit = barrelModsByRadius_.begin(); rit != barrelModsByRadius_.end(); ++rit) {
         double r = rit->first;
         if (r >= 2*R) continue;
         double z = 1/B*acos(1-r*r/(2*R*R)) + z0;
         double x = dir*R*sin(B*(z-z0));
         double y = dir*R*(1-cos(B*(z-z0)));
         double xrot = x*cos(phi0) - y*sin(phi0);
-        double yrot = x*sin(phi0) - y*cos(phi0);
-        double phirot = atan(y/x) + phi0;
-     //   double thetarot = atan(y/z) + theta;
+        double yrot = x*sin(phi0) + y*cos(phi0);
+        double phirot = atan2(y,x) + phi0;
+
 #ifdef VDEBUG
         *output_ << i << FS << j << FS << " when r=" << r << ", z=" << z << ", x=" << xrot << ", y=" << yrot << LS;
-#endif
         if (z > 0 && z < 1300 && y > 0) {
           polylineZ[nPtsZR] = z; polylineR[nPtsZR++] = yrot;
           polylineX[nPtsXY] = xrot; polylineY[nPtsXY++] = yrot;
           polyline3dX[nPts3d] = z; polyline3dY[nPts3d] = yrot; polyline3dZ[nPts3d++] = xrot;
         }
+#endif
 
-        std::list<BarrelModule*>::const_iterator mit;
-        for (mit = rit->second.begin(); mit != rit->second.end(); ++mit) {
+        const BarrelOctants& octants = rit->second;
+        const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point 
+
+        for (BarrelModules::const_iterator mit = bmods.begin(); mit != bmods.end(); ++mit) {
           BarrelModule* mod = (*mit);
-        //  double modphi = mod->getMeanPoint().Phi();
-        //  double alpha = phirot - modphi; //acos(XYZVector(xrot, yrot, z).Unit().Dot(mod->getMeanPoint().Unit())); // angle between the center of module vector and the hit vector
-        //  if (fabs(alpha) > 3./4.*M_PI) continue; // this weeds out tricky situations (i.e. infinite tangent or tangent wrapping over after PI) with a common sense rule
-
-         // double xproj = r;
-        //  double yproj = r * tan(alpha);
-        //  double xprojrot = xproj*cos(modphi) - yproj*sin(modphi);
-        //  double yprojrot = xproj*sin(modphi) - yproj*cos(modphi);
-       //( R*cos(x*(2Pi/L)) , R*sin(x*(2Pi/L)) , z*(H'/H))
 #ifdef VDEBUG 
           if (mod->getMeanPoint().Z() > 0 && mod->getLayer() == 2) {
             modXYZ.push_back(mod->getCorner(0).Z());
@@ -368,56 +397,63 @@ void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
             modXYZ.push_back(mod->getCorner(0).X());
           }
 #endif
-
           double minPhi = mod->getMinPhi();
           double maxPhi = mod->getMaxPhi();
-          //double minTheta = mod->getMinTheta();
-          //double maxTheta = mod->getMaxTheta();         
-          //if ((minPhi <= phirot && phirot <= maxPhi) && (minTheta <= thetarot && thetarot <= maxTheta)) {
           if (mod->getMinZ() <= z && z <= mod->getMaxZ() &&
               minPhi <= phirot && phirot <= maxPhi) {
-           // Polygon3d<4> poly;
-           // poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3); 
-          //if (poly.isPointInside(XYZVector(xprojrot, yprojrot, z))) {
-            // module was hit --- must be amended for modules straddling the pi/2 line?
             ptError* modPtError = mod->getPtError();
-            double pterr = modPtError->computeError(pt);
-            double hitprob = mod->getTriggerProbability(pt);
+            float pterr = modPtError->computeError(pt);
+            float hitprob = mod->getTriggerProbability(pt);
+            int deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
-            //output_ << i << FS << j << FS << eta << FS << phi0 << FS << pt << FS << xrot << FS << yrot << FS << z << FS << pterr << FS << hitprob << " mod data: " << mod->getPhiIndex() << "," << phirot << "," << minPhi << "," << maxPhi << "," << mod->getMinPhi() << "," << mod->getMaxPhi() << "B" << LS;
-            *output_ << "T" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << FS << xrot << FS << yrot << FS << z << FS << pterr << FS << hitprob << LS;
+            PosRef posref = mod->getPositionalReference();
+            XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(XYZVector(xrot, yrot, z) - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (X)
+            hit = (Hit){ i, j, eta, phi0, z0, pt, locv.Y(), locv.Z(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi };
+            tree->Fill();
+            //*output_ << "T" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << FS << xrot << FS << yrot << FS << z << FS << pterr << FS << hitprob << LS;
+            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }
         }
       }
 
-      for (std::map<double, std::list<EndcapModule*> >::const_iterator zit = endcapModsByZ_.begin(); zit != endcapModsByZ_.end(); ++zit) {
+
+      for (EndcapZs::const_iterator zit = endcapModsByZ_.begin(); zit != endcapModsByZ_.end(); ++zit) {
         double z = zit->first;
         double x = dir*R*sin(B*(z-z0));
         double y = dir*R*(1-cos(B*(z-z0)));
         double xrot = x*cos(phi0) - y*sin(phi0);
-        double yrot = x*sin(phi0) - y*cos(phi0);
-        std::list<EndcapModule*>::const_iterator mit;
+        double yrot = x*sin(phi0) + y*cos(phi0);
 #ifdef VDEBUG
         *output_ << i << FS << j << FS << " when z=" << z << ", x=" << xrot << ", y=" << yrot << LS;
-#endif
 
         if (z > 0 && y > 0) {
           polylineZ[nPtsZR] = z; polylineR[nPtsZR++] = yrot;
           polylineXec[nPtsXYec] = xrot; polylineYec[nPtsXYec++] = yrot;
         }
+#endif
 
-        for (mit = zit->second.begin(); mit != zit->second.end(); ++mit) {
+        const EndcapOctants& octants = zit->second;
+        const EndcapModules& emods = octants[getPointOctant(xrot, yrot, z)];
+
+        for (EndcapModules::const_iterator mit = emods.begin(); mit != emods.end(); ++mit) {
           Module* mod = (*mit);
+          XYZVector hitv(xrot, yrot, z);
           // check if hit lies in module
           Polygon3d<4> poly;
           poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3); 
-          if (poly.isPointInside(XYZVector(xrot, yrot, z))) {
+          if (poly.isPointInside(hitv)) {
             // module was hit
             ptError* modPtError = mod->getPtError();
-            double pterr = modPtError->computeError(pt);
-            double hitprob = mod->getTriggerProbability(pt);
+            float pterr = modPtError->computeError(pt);
+            float hitprob = mod->getTriggerProbability(pt);
+            int deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
-            *output_ << "T" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << FS << xrot << FS << yrot << FS << z << FS << pterr << FS << hitprob << LS;
+            PosRef posref = mod->getPositionalReference();
+            XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(hitv - mod->getMeanPoint());  // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (Z)
+            hit = (Hit){ i, j, eta, phi0, z0, pt, locv.Y(), locv.X(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi }; // Y and X are inverted, because the wide side of the module lies along the Y axis
+            tree->Fill();
+            //*output_ << "T" << FS << i << FS << j << FS << eta << FS << phi0 << FS << z0 << FS << pt << FS << xrot << FS << yrot << FS << z << FS << pterr << FS << hitprob << LS;
+            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }      
         }
       }
@@ -486,24 +522,34 @@ void TrackShooter::shootTracks(int numEvents, int numTracksEv) {
       delete img;
 #endif
     }     
-
+#ifdef FAKE_HITS
     for (std::vector<Module*>::iterator mit = allMods_.begin(); mit != allMods_.end(); ++mit) {
       Module* mod = (*mit);
       // loop over all the modules again
       // fake hits
       Polygon3d<4> poly;
-      poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3);  
+      //poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3);  
+      poly << mod->getCorner(0)-mod->getMeanPoint() << mod->getCorner(1)-mod->getMeanPoint() << mod->getCorner(2)-mod->getMeanPoint() << mod->getCorner(3)-mod->getMeanPoint();
 
       int numFake = die.Poisson(mod->getTriggerFrequencyFakePerEvent());
       for (int k = 0; k < numFake; k++) {
         XYZVector fakehit = poly.generateRandomPoint(&die);
-        int deltax = mod->getTriggerWindow()/2. + die.Integer(mod->getTriggerWindow());
-        double fakept = deltax != 0 ? mod->getPtError()->stripsToP(deltax) : 999999;
-        double pterr = mod->getPtError()->computeError(fakept);
-        *output_ << "F" << FS << i << FS << k << FS << 0. << FS << 0. << FS << 0. << FS << fakept << FS << fakehit.X() << FS << fakehit.Y() << FS << fakehit.Z() << FS << pterr << FS << 1.0 << LS;
+        int deltaStrips = 1 + die.Integer(mod->getTriggerWindow()/2);
+        float fakept = mod->getPtError()->stripsToP(deltaStrips);
+        float pterr = mod->getPtError()->computeError(fakept);
+        PosRef posref = mod->getPositionalReference();
+        hit = (Hit){ i, -1, 0., 0., 0., fakept, fakehit.X(), fakehit.Y(), fakehit.Z(), pterr, 1.0, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi };
+        tree->Fill();
+        //*output_ << "F" << FS << i << FS << k << FS << 0. << FS << 0. << FS << 0. << FS << fakept << FS << fakehit.X() << FS << fakehit.Y() << FS << fakehit.Z() << FS << pterr << FS << 1.0 << LS;
       }
     }
+#endif
   }
+
+  outfile->Write();
+  outfile->Close();
+  //delete tree;
+  delete outfile;
 }
 
 
@@ -575,7 +621,7 @@ void TrackShooter::moduleTestBench() {
       bool isInside = poly.isPointInside(myPoint);
       std::cout << "    User point at: " << myPoint.X() << " " << myPoint.Y() << " " << myPoint.Z() << "... Is point inside? " << (isInside ? "yes" : "no") << std::endl; 
     }
-    
+
     cout << "More?" << std::endl;
     cin >> a;
   }
