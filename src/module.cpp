@@ -44,7 +44,7 @@ void Module::setDefaultParameters() {
     height_             = defaultHeight_;
     nHits_              = defaultNHits_;
     thickness_          = defaultThickness_;
-    moduleThickness_    = defaultModuleThickness_;
+    moduleThickness_.value    = defaultModuleThickness_;
     area_               = defaultArea_;
     stereodist_         = defaultStereoDist_;
     stereorot_          = defaultStereoRot_;
@@ -869,7 +869,7 @@ void Module::shapeVolume(TGeoVolume* container,
     
     // Create and get a grip on th object
     // TODO: place a global counter here...
-    TGeoVolume *thisVolume_ = geom->MakeArb8(id_.c_str(), medium, moduleThickness_);
+    TGeoVolume *thisVolume_ = geom->MakeArb8(id_.c_str(), medium, moduleThickness_.value); // CUIDADO THIS IGNORES DS DISTANCE AND SENSOR THICKNESS FROM MODULE TYPE!!!!!!
     thisVolume_->SetLineColor(color_);
     TGeoArb8 *arb = (TGeoArb8*)thisVolume_->GetShape();
     

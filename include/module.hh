@@ -71,7 +71,7 @@ protected:
   // Shape-specific paramters
   double height_;
   double thickness_;
-  double moduleThickness_;
+  InitableProperty<double> moduleThickness_;
   double area_;
   double stripArea_;
   double stereodist_;
@@ -231,7 +231,10 @@ protected:
   double getArea() const { return area_;};
   double getDiameter() const {return waferDiameter_; };
   double getThickness() const { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
-  double getModuleThickness() const { return moduleThickness_; };
+  double getModuleThickness() const {
+    if (moduleThickness_.inited) return moduleThickness_.value;
+    return moduleType_->getSensorThickness() + getStereoDistance(); 
+  };
   const XYZVector& getCorner(int index) const { return corner_[index]; };
 
   edge getEdgeRhoSide(int direction);
@@ -283,7 +286,7 @@ protected:
   int getNMinSegments();
 
   void setNSegments(const int& face, const int& newNSegments);
-  int getNFaces()           { return nFaces_ ;};
+  int getNFaces() const { return nFaces_ ;};
   int getReadoutType()      { return readoutType_ ;};
   int getReadoutMode()      { return readoutMode_ ;};
 

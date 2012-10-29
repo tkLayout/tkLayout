@@ -612,6 +612,7 @@ namespace insur {
     //ofs.rdbuf()->pubsetbuf(&(std::vector<char>(32768)[0]), 32768);
     //std::nounitbuf(ofs);
     ts.setOutput(std::cout);
+    ts.setTrackerBoundaries(tr->getMaxR(), tr->getMaxBarrelZ(-1), tr->getMaxBarrelZ(+1));
     for (std::vector<Layer*>::const_iterator lit = tr->getLayers().begin(); lit != tr->getLayers().end(); ++lit) {
       ModuleVector* mods = (*lit)->getModuleVector();
       for (ModuleVector::const_iterator mit = mods->begin(); mit != mods->end(); ++mit) {

@@ -275,7 +275,7 @@ public:
   void reflectZ();
   void shiftRho(double Delta);
 
-  double getMaxModuleThickness() { if (sampleModule_ != NULL) return sampleModule_->getModuleThickness(); return 0.0; }
+  double getMaxModuleThickness(); // CUIDADO WAS { if (sampleModule_ != NULL) return sampleModule_->getModuleThickness(); return 0.0; }
 };
 
 

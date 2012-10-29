@@ -205,6 +205,14 @@ BarrelLayer::BarrelLayer(BarrelModule* mySample) {
 }
 
 
+double BarrelLayer::getMaxModuleThickness() {
+  ModuleVector::iterator iter, guard = moduleSet_.end();
+  double res = 0.0;
+  for (iter = moduleSet_.begin(); iter != guard; iter++) {
+    if ((*iter)->getModuleThickness() > res) res = (*iter)->getModuleThickness();
+  }
+  return res;
+}
 
 
 

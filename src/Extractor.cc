@@ -439,7 +439,7 @@ namespace insur {
                 shape.name_tag = xml_barrel_module + shapename.str();
                 shape.dx = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
                 shape.dy = iiter->getModule().getHeight() / 2.0;
-                shape.dz = (iiter->getModule().getNFaces() == 2 ? calculateSensorThickness(*iiter, mt)/2.0 + iiter->getModule().getStereoDistance() : calculateSensorThickness(*iiter, mt)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
+                shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                 s.push_back(shape);
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -496,8 +496,8 @@ namespace insur {
                 pos.rotref = "";
                 // wafer
                 shape.name_tag = xml_barrel_module + shapename.str() + xml_base_waf;
-                shape.dz = calculateSensorThickness(*iiter, mt) / 2.0;
-                if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0;
+                shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; //CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+                //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                 s.push_back(shape);
                 pos.parent_tag = logic.shape_tag;
                 logic.name_tag = shape.name_tag;
@@ -588,6 +588,7 @@ namespace insur {
             // rod(s)
             shape.name_tag = rname.str();
             if (is_short) shape.name_tag = shape.name_tag + xml_plus;
+            shape.dy = shape.dx; // CUIDADO EXPERIMENTAL - Rods must have the dx of modules as dy because modules are afterwards rotated with the Harry's tilt mod 
             shape.dx = deltar / 2.0;
             if (is_short) shape.dz = (zmax - zmin) / 2.0;
             else shape.dz = zmax;
@@ -813,16 +814,16 @@ namespace insur {
                         rinfo.insert(std::pair<int, RingInfo>(iiter->getModule().getRing(), rinf));
                         // module trapezoid
                         shape.name_tag = mname.str();
-                        shape.dy = iiter->getModule().getHeight() / 2.0;
-                        shape.dyy = iiter->getModule().getHeight() / 2.0;
-                        shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-/* CUIDADO WAS 
+//                        shape.dy = iiter->getModule().getHeight() / 2.0;
+//                        shape.dyy = iiter->getModule().getHeight() / 2.0;
+//                        shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
+ 
                         shape.dx = iiter->getModule().getHeight() / 2.0;
                         shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
                         shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
-*/
+
                         //shape.dz = iiter->getModule().getModuleThickness() / 2.0;
-                        shape.dz = (iiter->getModule().getNFaces() == 2 ? calculateSensorThickness(*iiter, mt)/2.0 + iiter->getModule().getStereoDistance() : calculateSensorThickness(*iiter, mt)) / 2.0; // CUIDADO WAS iiter->getModule().getModuleThickness() / 2.0;
+                        shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -834,21 +835,20 @@ namespace insur {
                         shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
                         pos.parent_tag = logic.shape_tag;
                         shape.name_tag = mname.str() + xml_base_waf;
-                        shape.dz = calculateSensorThickness(*iiter, mt) / 2.0;
-                        if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0;
+                        shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+                        //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                         s.push_back(shape);
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
                         pos.child_tag = logic.shape_tag;
-                        pos.rotref = nspace + ":" + xml_endcap_rot;
                         if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
                         else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
-                            if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = pos.trans.dz + /* 2 * shape.dz +*/  iiter->getModule().getStereoDistance(); // CUIDADO removed 2*shape.dz
-                            else pos.trans.dz = pos.trans.dz - /*2 * shape.dz -*/ iiter->getModule().getStereoDistance();
+                            if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().getStereoDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
+                            else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().getStereoDistance() / 2.0;
                             pos.copy = 2;
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_endcap_module + mname.str();

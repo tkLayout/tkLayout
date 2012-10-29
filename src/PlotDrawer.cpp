@@ -45,7 +45,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double endR = maxR + tickLength + tickDistance;
   double endL = maxL + tickLength + tickDistance;
   TLine* aTick = new TLine();
-  double textX, textY;
+  double textX = 0, textY = 0;
 
   TText* aLabel;
   char labelChar[10];
