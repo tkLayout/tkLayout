@@ -79,11 +79,6 @@ public:
 // ==============================================================================================
 
 
-/*template<double (Module::*ModuleMethod)() const>
-  struct Method {
-  double operator()(const Module& m) const { return (m.*ModuleMethod)(); }
-  };*/
-
 template<class RetType, RetType (Module::*ModuleMethod)() const>
 struct Method {
   double operator()(const Module& m) const { return (double)(m.*ModuleMethod)(); }
