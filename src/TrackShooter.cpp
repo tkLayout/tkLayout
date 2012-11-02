@@ -254,20 +254,113 @@ void TrackShooter::addModule(Module* module) { // also locks modules geometry so
 }
 
 
+
+
+
 //#define FAKE_HITS
 
+void TrackShooter::shootTracks(long int numEvents, long int numTracksEv, int seed) {
 
-void TrackShooter::shootTracks(long int numEvents, long int numTracksEv) {
+  numEvents_ = numEvents;
+  numTracksEv_ = numTracksEv;
 
-  TRandom3 die(1);
+  die_.SetSeed(seed);
 
+  shootTracks();
+}
+
+
+void TrackShooter::setDefaultParameters() {
+
+  numEvents_ = 1000;
+  numTracksEv_ = 1; 
+  eventOffset_ = 0;
+
+  eta_ = std::auto_ptr<Value<double> >(new UniformValue<double>(die_, -2, 2));
+  phi0_ = std::auto_ptr<Value<double> >(new UniformValue<double>(die_, M_PI, -M_PI));
+  pt_ = std::auto_ptr<Value<double> >(new UniformValue<double>(die_, 2, 50));
+  z0_ = std::auto_ptr<Value<double> >(new UniformValue<double>(die_, 0.01, 0.5));
+  charge_ = std::auto_ptr<Value<int> >(new BinaryValue<int>(die_, -1, 1));
+
+  instanceId_ = any2str(getpid()) + "_" + any2str(time(NULL)); 
+  tracksDir_ = ".";
+
+  useInvPt_ = false;
+}
+
+
+void TrackShooter::shootTracks(const po::variables_map& varmap, int seed) {
+
+//  std::string line;
+
+//  while (line = std::getline(cfg, line, ";")) {
+//    if (line.find("//") != string::npos) line.erase(line.find("//")); // remove comments
+//    line = trim(line);
+//    if (line.empty()) continue;
+//    std::vector<string> tokens = split(line, "=,");
+  for (po::variables_map::const_iterator it = varmap.begin(); it != varmap.end(); ++it) {
+    std::string key(it->first);
+    if (key == "eta") eta_ = valueFromString<double>(die_, it->second.as<std::string>());
+    else if (key == "phi0") phi0_ = valueFromString<double>(die_, it->second.as<std::string>());
+    else if (key == "z0") z0_ = valueFromString<double>(die_, it->second.as<std::string>());
+    else if (key == "pt") {
+      useInvPt_ = false; // only either pt or invPt can be specified
+      pt_ = valueFromString<double>(die_, it->second.as<std::string>());
+    } else if (key == "invPt") {
+      useInvPt_ = true;
+      invPt_ =  valueFromString<double>(die_, it->second.as<std::string>());
+    } else if (key == "charge") charge_ = valueFromString<int>(die_, it->second.as<std::string>());
+    else if (key == "num-events") numEvents_ = str2any<long int>(it->second.as<std::string>()); 
+    else if (key == "num-tracks-ev") numTracksEv_ = str2any<long int>(it->second.as<std::string>());
+    else if (key == "event-offset") eventOffset_ = str2any<long int>(it->second.as<std::string>());
+    else if (key == "instance-id") {
+      static const std::string pidtag = "%PID%";
+      static const std::string timetag = "%TIME%";
+      size_t pos;
+      instanceId_ = it->second.as<std::string>();
+      if ((pos = instanceId_.find(timetag)) != std::string::npos) instanceId_.replace(pos, timetag.size(), any2str(time(NULL)));
+      if ((pos = instanceId_.find(pidtag)) != std::string::npos) instanceId_.replace(pos, pidtag.size(), any2str(getpid()));
+    } else if (key == "tracks-dir") tracksDir_ = it->second.as<std::string>();
+  
+  }
+
+  die_.SetSeed(seed);
+
+  shootTracks();
+}
+
+
+void TrackShooter::printParameters() {
+  std::cout << "\nSimulation parameters summary" << std::endl;
+  std::cout << "num-events = " << numEvents_ << std::endl;
+  std::cout << "num-tracks-ev = " << numTracksEv_ << std::endl;
+  std::cout << "event-offset = " << eventOffset_ << std::endl;
+  std::cout << "eta = " << eta_->toString() << std::endl;
+  std::cout << "phi0 = " << phi0_->toString() << std::endl;
+  std::cout << "z0 = " << z0_->toString() << std::endl;
+  std::cout << "pt = " << (!useInvPt_ ? pt_->toString() : "n/a") << std::endl;
+  std::cout << "inv-pt = " << (useInvPt_ ? invPt_->toString() : "n/a") << std::endl;
+  std::cout << "charge = " << charge_->toString() << std::endl;
+  std::cout << "instance-id = " << instanceId_ << std::endl;
+  std::cout << "tracks-dir = " << tracksDir_ << std::endl;
+  std::cout << "rand-seed = " << die_.GetSeed() << std::endl;
+}
+
+
+void TrackShooter::shootTracks() {
 
   Tracks tracks;
   Hits hits;
 
-  std::string outfileName = "tracks." + any2str(getpid()) + ".root";
+  printParameters();
+
+  std::string outfileName = tracksDir_ + "/tracks_" + instanceId_ + ".root";
 
   TFile* outfile = new TFile(outfileName.c_str(), "recreate");
+  if (outfile->IsZombie()) {
+    std::cerr << "Failed opening file \"" << outfileName << "\" for writing. Simulation aborted." << std::endl;
+    return;
+  }
   TTree* tree = new TTree("trackhits", "TTree containing hits of simulated tracks");
 
   gROOT->ProcessLine("#include <vector>");
@@ -294,24 +387,24 @@ void TrackShooter::shootTracks(long int numEvents, long int numTracksEv) {
 
 
   // build ordered maps
-  for (long int i=0, totTracks = 0; i<numEvents; i++) {
+  for (long int i=eventOffset_, totTracks = eventOffset_*numTracksEv_; i<numEvents_+eventOffset_; i++) {
     // new event
     //
-    for (long int j=0; j<numTracksEv; j++, totTracks++) {
+    for (long int j=0; j<numTracksEv_; j++, totTracks++) {
       // randomly generate particle with eta = [-3,+3], phi = [0,2pi], Pt = [0.6,15]
       //double eta = die.Uniform(-3, 3);
-      double eta = die.Uniform(-2, 2);
-      double phi0 = die.Uniform(0.38, 1.634);
-      double pt = (die.Integer(2) ? 1 : -1) * 1./die.Uniform(0.01, 0.5);
-      double z0 = die.Uniform(-20, 20);
+      double eta = eta_->get(); // die.Uniform(-2, 2);
+      double phi0 = phi0_->get(); //die.Uniform(0.38, 1.634);
+      double z0 = z0_->get(); //die.Uniform(-20, 20);
+      double pt = charge_->get() * (!useInvPt_ ? pt_->get() : 1./invPt_->get()); //(die.Integer(2) ? 1 : -1) * 1./die.Uniform(0.01, 0.5);
 
       // or pick from file
       //
       //
 #ifdef FAKE_HITS
-      if ((totTracks % 500) == 0) cout << "Track " << totTracks << " of " << numEvents*numTracksEv << std::endl;
+      if ((totTracks % 500) == 0) cout << "Track " << totTracks << " of " << (numEvents_+eventOffset_)*numTracksEv_ << std::endl;
 #else
-      if ((totTracks % 5000) == 0) cout << "Track " << totTracks << " of " << numEvents*numTracksEv << std::endl;
+      if ((totTracks % 5000) == 0) cout << "Track " << totTracks << " of " << (numEvents_+eventOffset_)*numTracksEv_ << std::endl;
 #endif
 /*      
       ParticleGenerator::Particle particle = partGen.getParticle();

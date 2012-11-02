@@ -605,7 +605,7 @@ namespace insur {
     return myPixelMaterialFile_;
   }
 
-  void Squid::simulateTracks(int numEvents, int numTracksEv, std::string outputfile) {
+  void Squid::simulateTracks(const po::variables_map& varmap, int seed) {
     startTaskClock("Shooting particles");
     TrackShooter ts;
     //std::ofstream ofs((outputfile + "." + any2str(getpid())).c_str());
@@ -619,7 +619,20 @@ namespace insur {
         ts.addModule(*mit);
       }
     }
-    ts.shootTracks(numEvents, numTracksEv);
+
+    ts.shootTracks(varmap, seed);
+/*
+    if (!cfgfile.empty()) {
+      std::ifstream ifs(cfgfile.c_str());
+      ts.shootTracks(ifs, seed);
+      ifs.close();
+    } else if (!cmdline.empty()) {
+      std::sstream ss(cmdline);
+      ts.shootTracks(ss, seed);
+    } else {
+      ts.shootTracks(numEvents, numTracksEv, seed);
+    }
+*/
     //ofs.close();
     stopTaskClock();
   }

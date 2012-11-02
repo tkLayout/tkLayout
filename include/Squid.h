@@ -26,12 +26,14 @@
 #include <tk2CMSSW.h>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
 #include <StopWatch.h>
 #include <TrackShooter.h>
 
+namespace po = boost::program_options;
 /**
  * A shorter alias for the filesystem library namespace
  */
@@ -96,7 +98,7 @@ namespace insur {
     void setBasename(std::string newBaseName);
     void setHtmlDir(std::string htmlDir);
 
-    void simulateTracks(int numEvents, int numTracksEv, std::string outputfile = "tracks.txt");
+    void simulateTracks(const po::variables_map& varmap, int seed);
 
   private:
     //std::string g;

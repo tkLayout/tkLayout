@@ -6,6 +6,7 @@
 #include <functional>
 #include <list>
 #include <vector>
+#include <memory>
 
 #include <TRandom3.h>
 #include <TCanvas.h>
@@ -20,6 +21,7 @@
 #include <Math/GenVector/RotationZ.h>
 #include <Math/GenVector/Rotation3D.h>
 #include <Math/GenVector/Transform3D.h>
+#include <boost/program_options/variables_map.hpp>
 
 #include <global_funcs.h>
 #include <global_constants.h>
@@ -27,6 +29,7 @@
 #include <PlotDrawer.h>
 #include <Palette.h>
 
+namespace po = boost::program_options;
 
 template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
   return (int(x < T(0)) << 2) || (int(x < T(0)) << 1) || int(x < T(0));
@@ -203,6 +206,61 @@ struct Hits { // holder struct for TTree export
 };
 
 
+template<class T>
+class Value {
+public:
+  virtual T get() = 0;
+  virtual std::string toString() const = 0;
+};
+
+template<class T>
+class ConstValue : public Value<T> {
+  T value_;
+public:
+  ConstValue(T value) : value_(value) {}
+  T get() { return value_; }
+  std::string toString() const { return any2str(value_); } 
+};
+
+template<class T>
+class UniformValue : public Value<T> {
+  TRandom& die_;
+  T min_, max_;
+public:
+  UniformValue(TRandom& die, T min, T max) : die_(die), min_(min), max_(max) {}
+  T get() { return die_.Uniform(min_, max_); }
+  std::string toString() const { return any2str(min_) + ":" + any2str(max_); }
+};
+
+template<class T>
+class BinaryValue : public Value<T> {
+  TRandom& die_;
+  T value0_, value1_;
+public:
+  BinaryValue(TRandom& die, T value0, T value1) : die_(die), value0_(value0), value1_(value1) {}
+  T get() { return die_.Integer(2) ? value1_ : value0_; }
+  std::string toString() const { return any2str(value0_) + "," + any2str(value1_); }
+};
+
+/*
+template<>
+class BinaryValue<bool> : public Value<bool> {
+  TRandom& die_;
+  BinaryValue(TRandom& die) : die_(die) {}
+  bool get() { return die_.Integer(2); }
+  std::string toString() const { return "true|false"; }
+};
+*/
+
+template<class T>
+std::auto_ptr<Value<T> > valueFromString(TRandom& die, const std::string& str) {
+  std::vector<std::string> values = split(str, ":,");
+  if (str.find(":") != std::string::npos && values.size() == 2) return std::auto_ptr<Value<T> >(new UniformValue<T>(die, str2any<T>(values[0]), str2any<T>(values[1])));
+  else if (str.find(",") != std::string::npos && values.size() == 2) return std::auto_ptr<Value<T> >(new BinaryValue<T>(die, str2any<T>(values[0]), str2any<T>(values[1])));
+  else return std::auto_ptr<Value<T> >(new ConstValue<T>(str2any<T>(values[0])));
+}
+
+
 
 class TrackShooter {
   static const float HIGH_PT_THRESHOLD = 2.;
@@ -223,16 +281,30 @@ class TrackShooter {
   BarrelRadii barrelModsByRadius_;
   EndcapZs endcapModsByZ_;
 
+  TRandom3 die_;
+  std::auto_ptr<Value<double> > eta_, phi0_, z0_, pt_, invPt_;  // auto_ptr because I don't want to be bothered with deletion
+  std::auto_ptr<Value<int> > charge_;
+  bool useInvPt_;
+
+  long int numEvents_, numTracksEv_, eventOffset_;
+  std::string instanceId_;
+  std::string tracksDir_;
+
+  void shootTracks();
+
+  void setDefaultParameters();
+
+  void printParameters();
 public:
-  TrackShooter() : trackerMaxRho_(std::numeric_limits<double>::max()), barrelMinZ_(0.), barrelMaxZ_(0.) {}
+  TrackShooter() : trackerMaxRho_(std::numeric_limits<double>::max()), barrelMinZ_(0.), barrelMaxZ_(0.) { setDefaultParameters(); }
   void setOutput(std::ostream& output, const char* fieldSeparator = "\t", const char* lineSeparator = "\n", bool synced = false);
   void setTrackerBoundaries(double trackerMaxRho, double barrelMinZ, double barrelMaxZ);  // if not set the tracker is considered infinite in the rho direction and no particle can escape without ever curving back
   void addModule(Module* module);
-  void shootTracks(long int numEvents, long int numTracksPerEvent);
+  void shootTracks(long int numEvents, long int numTracksPerEvent, int seed);
+  void shootTracks(const po::variables_map& varmap, int seed);
 
   //void manualPolygonTestBench();
   //void moduleTestBench();
 };
-
 
 #endif

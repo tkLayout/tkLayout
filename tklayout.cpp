@@ -11,16 +11,18 @@ int main(int argc, char* argv[]) {
   std::string usage("Usage: ");
   usage += argv[0];
   usage += " <config basename> [options]";
-  usage += "\n\n<config basename> is the user-specified part of the config file names.\nFull names are automatically inferred from it by appending appropriate suffixes\n";
-  po::options_description shown("Allowed options");
+  usage += "\n\n<config basename> is the config file name, minus standard suffixes\nsuch as \".cfg\", \"_Types.cfg\" etc, which are added automatically\n";
   int geomtracks, mattracks;
-  std::vector<int> tracksim;
+  //std::vector<int> tracksim;
   int verbosity;
+  int randseed; 
 
-  std::string basename, xmldir, htmldir;
-
+  std::string basename, optfile, xmldir, htmldir;
+  
+  po::options_description shown("Analysis options");
   shown.add_options()
     ("help", "Display this help message.")
+    ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from additionally to the command line")
     ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
     ("power,p", "Report irradiated power analysis.")
@@ -37,23 +39,48 @@ int main(int argc, char* argv[]) {
     ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
     ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
-    ("tracksim", po::value<std::vector<int> >(&tracksim)->multitoken(), "Simulates tracks")
+    ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
     ;
 
+    
+  po::options_description trackopt("Track simulation options");
+  trackopt.add_options()
+    ("tracksim", "Switch to track sim mode, normal analysis disabled")
+    ("num-events", po::value<std::string>(), "N. of events to simulate")
+    ("num-tracks-ev", po::value<std::string>(), "N. of tracks per event")
+    ("event-offset", po::value<std::string>(), "Start the event numbering from an offset value.")
+    ("eta", po::value<std::string>(), "Particle eta")
+    ("phi0", po::value<std::string>(), "Particle phi0")
+    ("z0", po::value<std::string>(), "Particle z0")
+    ("pt", po::value<std::string>(), "Particle transverse momentum, alternative to --invPt")
+    ("invPt", po::value<std::string>(), "Specify pt in terms of its inverse, alternative to --pt")
+    ("charge", po::value<std::string>(), "Particle charge")
+    ("instance-id", po::value<std::string>(), "Id of the program instance, to tag the output file with")
+    ("tracks-dir", po::value<std::string>(), "Override the default tracksim output dir.\nIf not supplied, the files will be saved in\nthe working dir")
+    ;
+
+  
   po::options_description hidden;
   hidden.add_options()("base-name", po::value<std::string>(&basename));
 
   po::positional_options_description posopt;
   posopt.add("base-name", 1); 
 
-  po::options_description allopt;
-  allopt.add(shown).add(hidden);
 
+  po::options_description mainopt;
+  mainopt.add(shown).add(hidden).add(trackopt);
+  
   po::variables_map vm;
   try {
-    po::store(po::command_line_parser(argc, argv).options(allopt).positional(posopt).run(), vm);
-
+    po::store(po::command_line_parser(argc, argv).options(mainopt).positional(posopt).run(), vm);
     po::notify(vm);
+    if (!optfile.empty()) { 
+      std::ifstream ifs(optfile.c_str());
+      po::store(po::parse_config_file(ifs, mainopt, true), vm);
+      ifs.close();
+    } 
+    po::notify(vm);
+
 
     if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
@@ -61,12 +88,12 @@ int main(int argc, char* argv[]) {
 
   } catch(po::error e) {
     std::cerr << e.what() << std::endl << std::endl;
-    std::cout << usage << std::endl << shown << std::endl;
+    std::cout << usage << std::endl << shown << trackopt << std::endl;
     return EXIT_FAILURE;
   }
 
   if (vm.count("help")) {
-    std::cout << usage << std::endl << shown << std::endl;
+    std::cout << usage << std::endl << shown << trackopt << std::endl;
     return 0;
   }
 
@@ -123,13 +150,24 @@ int main(int argc, char* argv[]) {
     if (!squid.makeSite()) return EXIT_FAILURE;
 
   } else {
-    if (tracksim.size() != 2) {
-      std::cerr << "Wrong number of parameters. Syntax: --tracksim <num events> <num tracks/ev>" << std::endl;
-      return EXIT_FAILURE;
-    }
+    //if (tracksim.size() < 1 || tracksim.size > 2) {
+    //  std::cerr << "Wrong number of parameters. Syntax: --tracksim <num events> <num tracks/ev>" << std::endl;
+    //  std::cerr << "                                    --tracksim parameterfile" << std::endl;
+    //  std::cerr << "                                    --tracksim \"key1 = value1; key2 = value2 ...\"" << std::endl;
+    //  return EXIT_FAILURE;
+   // }
     if (!squid.dressTracker()) return EXIT_FAILURE;
     if (!squid.pureAnalyzeGeometry(geomtracks)) return EXIT_FAILURE;
-    squid.simulateTracks(tracksim[0], tracksim[1]);
+  
+//    if (tracksim.size() == 2) {
+//      vmtracks.insert(std::make_pair("num-events", po::variable_value(boost::any(tracksim[0]), false)));
+//      vmtracks.insert(std::make_pair("num-tracks", po::variable_value(boost::any(tracksim[1]), false)));
+//    }
+    squid.simulateTracks(vm, randseed);
+
+    //if (tracksim.size() == 2) { squid.simulateTracks(str2any<long int>(tracksim[0]), str2any<long int>(tracksim[1]), randseed, "", ""); }
+    //else if (tracksim.size() == 1 && tracksim[0].at(0)=="\"") { squid.simulateTracks(0, 0, randseed, "", trim(tracksim[0], " \"")); }
+    //else { squid.simulateTracks(0, 0, randseed, tracksim[0], ""); }
   }
 
   return EXIT_SUCCESS;

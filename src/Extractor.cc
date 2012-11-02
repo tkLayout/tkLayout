@@ -1302,6 +1302,7 @@ namespace insur {
         dr = (*mod1)->getMinRho() - (*mod2)->getMinRho() + (*mod1)->getModuleThickness();
         return dr;
     }
+
     
     /**
      * Find half the width in z of the volume enclosing an endcap ring.
