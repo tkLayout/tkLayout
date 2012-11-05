@@ -441,7 +441,7 @@ void TrackShooter::shootTracks() {
             ptError* modPtError = mod->getPtError();
             float pterr = modPtError->computeError(pt);
             float hitprob = mod->getTriggerProbability(pt);
-            int deltaStrips = modPtError->pToStrips(pt);
+            float deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
             PosRef posref = mod->getPositionalReference();
             XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(XYZVector(xrot, yrot, z) - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (X)
@@ -456,6 +456,10 @@ void TrackShooter::shootTracks() {
       if (2*R > trackerMaxRho_) { // track will at some point escape the tracker
         double z = 1/B*acos(1-(trackerMaxRho_*trackerMaxRho_)/(2*R*R)) + z0;
         if (barrelMinZ_ <= z && z <= barrelMaxZ_) { // check whether the track will escape from the barrel volume
+          tracks.push_back(i, j, eta, phi0, z0, pt, hits.size());
+          tree->Fill();
+          hits.clear();
+          tracks.clear();
           continue; // particle has escaped the detector from the barrel volume, we don't want the endcaps to see escaped particles curving back into the tracker, so we skip on
         }
       }
@@ -482,7 +486,7 @@ void TrackShooter::shootTracks() {
             ptError* modPtError = mod->getPtError();
             float pterr = modPtError->computeError(pt);
             float hitprob = mod->getTriggerProbability(pt);
-            int deltaStrips = modPtError->pToStrips(pt);
+            float deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
             PosRef posref = mod->getPositionalReference();
             XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(hitv - mod->getMeanPoint());  // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (Z)
@@ -513,7 +517,7 @@ void TrackShooter::shootTracks() {
       int numFake = die.Poisson(mod->getTriggerFrequencyFakePerEvent());
       for (int k = 0; k < numFake; k++) {
         XYZVector fakehit = poly.generateRandomPoint(&die);
-        int deltaStrips = 1 + die.Integer(mod->getTriggerWindow()/2);
+        float deltaStrips = 1 + die.Integer(mod->getTriggerWindow()/2);
         float fakept = mod->getPtError()->stripsToP(deltaStrips);
         float pterr = mod->getPtError()->computeError(fakept);
         PosRef posref = mod->getPositionalReference();

@@ -179,7 +179,7 @@ struct Hits { // holder struct for TTree export
   std::vector<double> glox, gloy, gloz;
   std::vector<double> locx, locy;
   std::vector<float> pterr, hitprob;
-  std::vector<char> deltas;
+  std::vector<float> deltas;
   std::vector<char> cnt, z, rho, phi;
   void clear() {
     glox.clear(); gloy.clear(); gloz.clear();
@@ -188,7 +188,7 @@ struct Hits { // holder struct for TTree export
     deltas.clear();
     cnt.clear(); z.clear(); rho.clear(); phi.clear();
   }
-  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, int8_t deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_) {
+  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_) {
     glox.push_back(glox_);
     gloy.push_back(gloy_);
     gloz.push_back(gloz_);
