@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
     po::notify(vm);
     if (!optfile.empty()) { 
       std::ifstream ifs(optfile.c_str());
+      if (!ifs) throw po::error(("Options file \"" + optfile + "\" not found").c_str());
       po::store(po::parse_config_file(ifs, mainopt, true), vm);
       ifs.close();
     } 
@@ -84,11 +85,11 @@ int main(int argc, char* argv[]) {
 
     if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
-    if (!vm.count("base-name")) throw po::error("Missing required config basename argument"); 
+    if (!vm.count("base-name")) throw po::error("Missing geometry base name"); 
 
   } catch(po::error e) {
-    std::cerr << e.what() << std::endl << std::endl;
-    std::cout << usage << std::endl << shown << trackopt << std::endl;
+    std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
+    //std::cout << usage << std::endl << shown << trackopt << std::endl;
     return EXIT_FAILURE;
   }
 
