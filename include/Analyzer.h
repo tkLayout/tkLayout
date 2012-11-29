@@ -291,6 +291,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getBarrelWeightComponentSummary() { return barrelComponentWeights;};
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
+    std::map<std::string, double>& getTagWeigth() { return tagWeight; };
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
@@ -365,6 +366,7 @@ namespace insur {
     std::map<std::string, SummaryTable> barrelComponentWeights;
     std::map<std::string, SummaryTable> endcapComponentWeights;
     std::map<std::string, double> typeWeight;
+    std::map<std::string, double> tagWeight;
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;

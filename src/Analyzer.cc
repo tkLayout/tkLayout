@@ -268,7 +268,7 @@ namespace insur {
     addCut("C", 0.8, 0.6);
     addCut("I", 1.6, 1.2);
     addCut("F", 2.4, 2.1);
-    addCut("VF", 4.0, 4.0);
+//    addCut("VF", 4.0, 4.0);
   }
 
   // public
@@ -1710,6 +1710,8 @@ namespace insur {
           if (byMaterial) {
             typeWeight[myModule->getTag()]+=myModuleCap->getLocalMass();
             typeWeight[myModule->getTag()]+=myModuleCap->getExitingMass();
+            tagWeight[myModule->getSensorGeoTag()]+=myModuleCap->getLocalMass();
+            tagWeight[myModule->getSensorGeoTag()]+=myModuleCap->getExitingMass();
           }
           if (myModule->getSection()==Layer::YZSection) {
             // If we did not write this module type yet
@@ -1787,6 +1789,7 @@ namespace insur {
     void Analyzer::computeWeightSummary(MaterialBudget& mb) {
 
       typeWeight.clear();
+      tagWeight.clear();
       barrelWeights.clear();
       computeDetailedWeights(mb.getBarrelModuleCaps(), barrelWeights, true);
       endcapWeights.clear();
@@ -3468,7 +3471,8 @@ namespace insur {
       nTracks = nTracksPerSide*nTracksPerSide;
       mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
       TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
-      TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
+      TH2D total2D("total2d", "Total 2D", 100, 0., 2.5, 4000 , 0., 40.);
+      //TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
 
       // Shoot nTracksPerSide^2 tracks
       for (int i=0; i<nTracksPerSide; i++) {

@@ -1326,20 +1326,25 @@ namespace insur {
   bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, std::string name) {
 
     // A bunch of indexes
-    std::map<std::string, Module*> typeMap;
-    std::map<std::string, std::set<std::string> > typeMapPositions;
-    std::map<std::string, int> typeMapCount;
-    std::map<std::string, long> typeMapCountChan;
-    std::map<std::string, double>& typeMapWeight = analyzer.getTypeWeigth();
-    std::map<std::string, double> typeMapMaxStripOccupancy;
-    std::map<std::string, double> typeMapAveStripOccupancy;
-    std::map<std::string, double> typeMapMaxHitOccupancy;
-    std::map<std::string, double> typeMapAveHitOccupancy;
-    std::map<std::string, double> typeMapAveRphiResolution;
-    std::map<std::string, double> typeMapAveYResolution;
-    std::map<std::string, double> typeMapAveRphiResolutionTrigger;
-    std::map<std::string, double> typeMapAveYResolutionTrigger;
-    std::map<std::string, Module*>::iterator typeMapIt;
+    std::map<std::string, Module*> tagMap;
+    std::map<std::string, std::set<std::string> > tagMapPositions;
+    std::map<std::string, int> tagMapCount;
+    std::map<std::string, long> tagMapCountChan;
+    std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
+    for (std::map<std::string, double>::iterator it = tagMapWeight.begin();
+         it != tagMapWeight.end(); ++it) {
+      std::cout << "TypeWeight["<<it->first<<"] = " << it->second <<std::endl;
+    }
+    
+    std::map<std::string, double> tagMapMaxStripOccupancy;
+    std::map<std::string, double> tagMapAveStripOccupancy;
+    std::map<std::string, double> tagMapMaxHitOccupancy;
+    std::map<std::string, double> tagMapAveHitOccupancy;
+    std::map<std::string, double> tagMapAveRphiResolution;
+    std::map<std::string, double> tagMapAveYResolution;
+    std::map<std::string, double> tagMapAveRphiResolutionTrigger;
+    std::map<std::string, double> tagMapAveYResolutionTrigger;
+    std::map<std::string, Module*>::iterator tagMapIt;
     std::map<int, Module*> ringTypeMap;
     std::string aSensorTag;
     LayerVector::iterator layIt;
@@ -1436,28 +1441,28 @@ namespace insur {
       aLay = (*layIt)->getModuleVector();
       for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
         aSensorTag=(*modIt)->getSensorGeoTag();
-        typeMapPositions[aSensorTag].insert((*modIt)->getPositionTag());
-        typeMapCount[aSensorTag]++;
-        typeMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
-        if (((*modIt)->getStripOccupancyPerEvent()*nMB)>typeMapMaxStripOccupancy[aSensorTag]) {
-          typeMapMaxStripOccupancy[aSensorTag]=(*modIt)->getStripOccupancyPerEvent()*nMB;
+        tagMapPositions[aSensorTag].insert((*modIt)->getPositionTag());
+        tagMapCount[aSensorTag]++;
+        tagMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
+        if (((*modIt)->getStripOccupancyPerEvent()*nMB)>tagMapMaxStripOccupancy[aSensorTag]) {
+          tagMapMaxStripOccupancy[aSensorTag]=(*modIt)->getStripOccupancyPerEvent()*nMB;
         }
-        if (((*modIt)->getHitOccupancyPerEvent()*nMB)>typeMapMaxHitOccupancy[aSensorTag]) {
-          typeMapMaxHitOccupancy[aSensorTag]=(*modIt)->getHitOccupancyPerEvent()*nMB;
+        if (((*modIt)->getHitOccupancyPerEvent()*nMB)>tagMapMaxHitOccupancy[aSensorTag]) {
+          tagMapMaxHitOccupancy[aSensorTag]=(*modIt)->getHitOccupancyPerEvent()*nMB;
         }
-        typeMapAveStripOccupancy[aSensorTag]+=(*modIt)->getStripOccupancyPerEvent()*nMB;
-        typeMapAveHitOccupancy[aSensorTag]+=(*modIt)->getHitOccupancyPerEvent()*nMB;
-        typeMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
-        typeMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
-        typeMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
-        typeMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
+        tagMapAveStripOccupancy[aSensorTag]+=(*modIt)->getStripOccupancyPerEvent()*nMB;
+        tagMapAveHitOccupancy[aSensorTag]+=(*modIt)->getHitOccupancyPerEvent()*nMB;
+        tagMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
+        tagMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
+        tagMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
+        tagMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
         totCountMod++;
         totCountSens+=(*modIt)->getNFaces();
         totChannel+=(*modIt)->getNChannels();
         totArea+=(*modIt)->getArea()*(*modIt)->getNFaces();
-        if (typeMap.find(aSensorTag)==typeMap.end()){
+        if (tagMap.find(aSensorTag)==tagMap.end()){
           // We have a new sensor geometry
-          typeMap[aSensorTag]=(*modIt);
+          tagMap[aSensorTag]=(*modIt);
         }
       }
     }
@@ -1615,11 +1620,11 @@ namespace insur {
 
     // Summary cycle: prepares the rows cell by cell
     int iType=0;
-    for (typeMapIt=typeMap.begin(); typeMapIt!=typeMap.end(); typeMapIt++) {
+    for (tagMapIt=tagMap.begin(); tagMapIt!=tagMap.end(); tagMapIt++) {
       ++iType;
       // Name
       aName.str("");
-      aModule=(*typeMapIt).second;
+      aModule=(*tagMapIt).second;
       if (dynamic_cast<BarrelModule*>(aModule)) {
         aName << std::dec << "B" << subStart << ++barrelCount << subEnd;
       }
@@ -1630,52 +1635,52 @@ namespace insur {
       aTag.str("");
       //aTag << smallStart << aModule->getTag() << smallEnd;
       aTag << smallStart;
-      for (std::set<std::string>::iterator strIt = typeMapPositions[(*typeMapIt).first].begin();
-           strIt!=typeMapPositions[(*typeMapIt).first].end(); ++strIt) 
+      for (std::set<std::string>::iterator strIt = tagMapPositions[(*tagMapIt).first].begin();
+           strIt!=tagMapPositions[(*tagMapIt).first].end(); ++strIt) 
         aTag << (*strIt) << "<br/> ";
       aTag << smallEnd;
       // Type
       aType.str("");
-      aType << (*typeMapIt).second->getType();
+      aType << (*tagMapIt).second->getType();
       // Area
       aModuleArea.str("");
-      aModuleArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea();
+      aModuleArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*tagMapIt).second->getArea();
       aTotalArea.str("");
-      aTotalArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*typeMapIt).second->getArea() *
-        (*typeMapIt).second->getNFaces() * typeMapCount[(*typeMapIt).first] * 1e-6;
-      // if ((*typeMapIt).second->getArea()<0) { anArea << "XXX"; } // TODO: what's this?
+      aTotalArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*tagMapIt).second->getArea() *
+        (*tagMapIt).second->getNFaces() * tagMapCount[(*tagMapIt).first] * 1e-6;
+      // if ((*tagMapIt).second->getArea()<0) { anArea << "XXX"; } // TODO: what's this?
       // Occupancy
       aStripOccupancy.str("");
       aHitOccupancy.str("");
-      aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxStripOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveStripOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
-      aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  typeMapMaxHitOccupancy[(*typeMapIt).first]*100<< "/" <<typeMapAveHitOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first] ; // Percentage
+      aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  tagMapMaxStripOccupancy[(*tagMapIt).first]*100<< "/" <<tagMapAveStripOccupancy[(*tagMapIt).first]*100/tagMapCount[(*tagMapIt).first] ; // Percentage
+      aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  tagMapMaxHitOccupancy[(*tagMapIt).first]*100<< "/" <<tagMapAveHitOccupancy[(*tagMapIt).first]*100/tagMapCount[(*tagMapIt).first] ; // Percentage
 
       addOccupancyEOL();
       addOccupancyElement((aModule->getMinRho() + aModule->getMaxRho())/2);
-      addOccupancyElement(typeMapAveStripOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
-      addOccupancyElement(typeMapAveHitOccupancy[(*typeMapIt).first]*100/typeMapCount[(*typeMapIt).first]);
+      addOccupancyElement(tagMapAveStripOccupancy[(*tagMapIt).first]*100/tagMapCount[(*tagMapIt).first]);
+      addOccupancyElement(tagMapAveHitOccupancy[(*tagMapIt).first]*100/tagMapCount[(*tagMapIt).first]);
 
       // RphiResolution
       anRphiResolution.str("");
-      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << tagMapAveRphiResolution[(*tagMapIt).first] / tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
       // YResolution
       aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolution[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << tagMapAveYResolution[(*tagMapIt).first] / tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
 
       // RphiResolution (trigger)
       anRphiResolutionTrigger.str("");
-      if ( typeMapAveRphiResolutionTrigger[(*typeMapIt).first] != typeMapAveRphiResolution[(*typeMapIt).first] )
-        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveRphiResolutionTrigger[(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+      if ( tagMapAveRphiResolutionTrigger[(*tagMapIt).first] != tagMapAveRphiResolution[(*tagMapIt).first] )
+        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
       // YResolution (trigger)
       aYResolutionTrigger.str("");
-      if ( typeMapAveYResolutionTrigger[(*typeMapIt).first] != typeMapAveYResolution[(*typeMapIt).first] )
-        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << typeMapAveYResolutionTrigger [(*typeMapIt).first] / typeMapCount[(*typeMapIt).first] * 1000; // mm -> um
+      if ( tagMapAveYResolutionTrigger[(*tagMapIt).first] != tagMapAveYResolution[(*tagMapIt).first] )
+        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << tagMapAveYResolutionTrigger [(*tagMapIt).first] / tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
 
 
       // Pitches
       aPitchPair.str("");
-      loPitch=int((*typeMapIt).second->getLowPitch()*1e3);
-      hiPitch=int((*typeMapIt).second->getHighPitch()*1e3);
+      loPitch=int((*tagMapIt).second->getLowPitch()*1e3);
+      hiPitch=int((*tagMapIt).second->getHighPitch()*1e3);
       addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {
@@ -1689,22 +1694,22 @@ namespace insur {
       aStripLength.str("");
       aSegment.str("");
       // One number only if all the same
-      if ((*typeMapIt).second->getNMinSegments() == (*typeMapIt).second->getNMaxSegments()) {
+      if ((*tagMapIt).second->getNMinSegments() == (*tagMapIt).second->getNMaxSegments()) {
         // Strip length
         aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-          << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(1);
+          << (*tagMapIt).second->getHeight()/(*tagMapIt).second->getNSegments(1);
         // Segments
-        aSegment << std::dec << (*typeMapIt).second->getNSegments(1)
-          << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
+        aSegment << std::dec << (*tagMapIt).second->getNSegments(1)
+          << "x" << int( (*tagMapIt).second->getNStripAcross() / 128. );
       } else { // They are different
-        for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
+        for (int iFace=1; iFace<=(*tagMapIt).second->getNFaces(); ++iFace) {
           // Strip length
           aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-            << (*typeMapIt).second->getHeight()/(*typeMapIt).second->getNSegments(iFace);
+            << (*tagMapIt).second->getHeight()/(*tagMapIt).second->getNSegments(iFace);
           // Segments
-          aSegment << std::dec << (*typeMapIt).second->getNSegments(iFace)
-            << "x" << int( (*typeMapIt).second->getNStripAcross() / 128. );
-          if (iFace!=(*typeMapIt).second->getNFaces()) {
+          aSegment << std::dec << (*tagMapIt).second->getNSegments(iFace)
+            << "x" << int( (*tagMapIt).second->getNStripAcross() / 128. );
+          if (iFace!=(*tagMapIt).second->getNFaces()) {
             aStripLength << " - ";
             aSegment << " - ";
           }
@@ -1713,56 +1718,56 @@ namespace insur {
 
       // Nstrips
       anNstrips.str("");
-      if ( (*typeMapIt).second->getNMinChannelsFace() == (*typeMapIt).second->getNMaxChannelsFace()) {
-        anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(1);
+      if ( (*tagMapIt).second->getNMinChannelsFace() == (*tagMapIt).second->getNMaxChannelsFace()) {
+        anNstrips << std::dec << (*tagMapIt).second->getNChannelsFace(1);
       } else {
-        for (int iFace=1; iFace<=(*typeMapIt).second->getNFaces(); ++iFace) {
-          anNstrips << std::dec << (*typeMapIt).second->getNChannelsFace(iFace);
-          if (iFace!=(*typeMapIt).second->getNFaces()) anNstrips << " - ";
+        for (int iFace=1; iFace<=(*tagMapIt).second->getNFaces(); ++iFace) {
+          anNstrips << std::dec << (*tagMapIt).second->getNChannelsFace(iFace);
+          if (iFace!=(*tagMapIt).second->getNFaces()) anNstrips << " - ";
         }
       }
 
 
       // Number Mod
       aNumberMod.str("");
-      aNumberMod << std::dec << typeMapCount[(*typeMapIt).first];
+      aNumberMod << std::dec << tagMapCount[(*tagMapIt).first];
       // Number Sensor
       aNumberSens.str("");
-      aNumberSens << std::dec << typeMapCount[(*typeMapIt).first]*((*typeMapIt).second->getNFaces());
+      aNumberSens << std::dec << tagMapCount[(*tagMapIt).first]*((*tagMapIt).second->getNFaces());
       // Channels
       aChannel.str("");
       aChannel << std::fixed << std::setprecision(millionChannelPrecision)
-        << typeMapCountChan[(*typeMapIt).first] / 1e6 ;
+        << tagMapCountChan[(*tagMapIt).first] / 1e6 ;
 
       // Power (per module and total)
       aPower.str("");
-      ModuleType& myType = tracker.getModuleType((*typeMapIt).second->getType());
+      ModuleType& myType = tracker.getModuleType((*tagMapIt).second->getType());
       double powerPerModule;
-      powerPerModule =  myType.getPower( (typeMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
+      powerPerModule =  myType.getPower( (tagMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
       aPower << std::fixed << std::setprecision(powerPrecision)
-        << powerPerModule * typeMapCount[typeMapIt->first] * 1e-3; // conversion from W to kW
+        << powerPerModule * tagMapCount[tagMapIt->first] * 1e-3; // conversion from W to kW
       // number of modules of this type
 
       aPowerPerModule.str("");
       aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
         << powerPerModule ;
-      totalPower += powerPerModule * typeMapCount[typeMapIt->first] * 1e-3;
+      totalPower += powerPerModule * tagMapCount[tagMapIt->first] * 1e-3;
 
       // Cost
       aCost.str("");
       aCost  << std::fixed << std::setprecision(costPrecision) <<
-        (*typeMapIt).second->getArea() * 1e-2 *          // area in cm^2
-        (*typeMapIt).second->getNFaces() *               // number of faces
-        tracker.getCost((*typeMapIt).second->getReadoutType()) * // price in CHF*cm^-2
+        (*tagMapIt).second->getArea() * 1e-2 *          // area in cm^2
+        (*tagMapIt).second->getNFaces() *               // number of faces
+        tracker.getCost((*tagMapIt).second->getReadoutType()) * // price in CHF*cm^-2
         1e-6 *                                           // conversion CHF-> MCHF
-        typeMapCount[(*typeMapIt).first];                // Number of modules
-      totalCost +=(*typeMapIt).second->getArea() * 1e-2 * (*typeMapIt).second->getNFaces() * tracker.getCost((*typeMapIt).second->getReadoutType()) * 1e-6 * typeMapCount[(*typeMapIt).first];
+        tagMapCount[(*tagMapIt).first];                // Number of modules
+      totalCost +=(*tagMapIt).second->getArea() * 1e-2 * (*tagMapIt).second->getNFaces() * tracker.getCost((*tagMapIt).second->getReadoutType()) * 1e-6 * tagMapCount[(*tagMapIt).first];
 
       // Weight
       aWeight.str("");
       aWeight << std::fixed << std::setprecision(weightPrecision) <<
-        typeMapWeight[aModule->getTag()] / typeMapCount[(*typeMapIt).first];
-      totalWeight += typeMapWeight[aModule->getTag()];
+        tagMapWeight[aModule->getTag()] / tagMapCount[(*tagMapIt).first];
+      totalWeight += tagMapWeight[aModule->getTag()];
 
       moduleTable->setContent(0, iType, aName.str());
       moduleTable->setContent(tagRow, iType, aTag.str());
@@ -1947,19 +1952,19 @@ namespace insur {
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
-    // Power density
-    myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
-    myCanvas->cd();
-    //myCanvas->SetLogx();
-    //myCanvas->SetLogy();
-    TGraph& pd = analyzer.getPowerDensity();
-    pd.SetMarkerStyle(8);
-    pd.SetMarkerColor(kBlue);
-    pd.Draw("ap");
-    myCanvas->SetFillColor(color_plot_background);
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Power density distribution");
-    myContent->addItem(myImage);        
+    // // Power density
+    // myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
+    // myCanvas->cd();
+    // //myCanvas->SetLogx();
+    // //myCanvas->SetLogy();
+    // TGraph& pd = analyzer.getPowerDensity();
+    // pd.SetMarkerStyle(8);
+    // pd.SetMarkerColor(kBlue);
+    // pd.Draw("ap");
+    // myCanvas->SetFillColor(color_plot_background);
+    // myImage = new RootWImage(myCanvas, 600, 600);
+    // myImage->setComment("Power density distribution");
+    // myContent->addItem(myImage);        
 
 
     // TODO: make this meaningful!
