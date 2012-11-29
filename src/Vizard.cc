@@ -1331,10 +1331,10 @@ namespace insur {
     std::map<std::string, int> tagMapCount;
     std::map<std::string, long> tagMapCountChan;
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
-    for (std::map<std::string, double>::iterator it = tagMapWeight.begin();
-         it != tagMapWeight.end(); ++it) {
-      std::cout << "TypeWeight["<<it->first<<"] = " << it->second <<std::endl;
-    }
+    // for (std::map<std::string, double>::iterator it = tagMapWeight.begin();
+    //      it != tagMapWeight.end(); ++it) {
+    //   std::cout << "TypeWeight["<<it->first<<"] = " << it->second <<std::endl;
+    // }
     
     std::map<std::string, double> tagMapMaxStripOccupancy;
     std::map<std::string, double> tagMapAveStripOccupancy;
@@ -1766,8 +1766,8 @@ namespace insur {
       // Weight
       aWeight.str("");
       aWeight << std::fixed << std::setprecision(weightPrecision) <<
-        tagMapWeight[aModule->getTag()] / tagMapCount[(*tagMapIt).first];
-      totalWeight += tagMapWeight[aModule->getTag()];
+        tagMapWeight[aModule->getSensorGeoTag()] / tagMapCount[(*tagMapIt).first];
+      totalWeight += tagMapWeight[aModule->getSensorGeoTag()];
 
       moduleTable->setContent(0, iType, aName.str());
       moduleTable->setContent(tagRow, iType, aTag.str());
