@@ -1401,6 +1401,7 @@ namespace insur {
     layerTable->setContent(0, 0, "Layer");
     layerTable->setContent(1, 0, "r");
     layerTable->setContent(2, 0, "# mod");
+    layerTable->setContent(3, 0, "# rods");
     diskTable->setContent(0, 0, "Disk");
     diskTable->setContent(1, 0, "z");
     diskTable->setContent(2, 0, "# mod");
@@ -1426,6 +1427,7 @@ namespace insur {
           layerTable->setContent(0, nBarrelLayers, aBarrelLayer->getName());
           layerTable->setContent(1, nBarrelLayers, aBarrelLayer->getAverageRadius(), coordPrecision);
           layerTable->setContent(2, nBarrelLayers, nModules);
+          layerTable->setContent(3, nBarrelLayers, aBarrelLayer->getRods());
         }
       }
       if ( (anEndcapDisk=dynamic_cast<EndcapLayer*>(aLayer)) ) {

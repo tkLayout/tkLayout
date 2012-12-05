@@ -773,7 +773,6 @@ void BarrelLayer::buildLayer(double averageRadius,
     << ", nStrings:   " << nStrings;
   logINFO(tempString);
 
-
   if (nStrings%2!=0) {
     logWARNING("You just asked for a layer with a number of strings not multiple of 2");
   }

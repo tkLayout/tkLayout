@@ -29,9 +29,9 @@
 
 #define COLOR_INVALID_MODULE kGray+1
 
-#define REASONABLE_MAX_ROD_MODULES 50  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of modules that a rod will have (in case the MaxZ placement strategy is used)
+#define REASONABLE_MAX_ROD_MODULES 500  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of modules that a rod will have (in case the MaxZ placement strategy is used)
 
-#define REASONABLE_MAX_DISK_RINGS 30  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of rings that a disk will have (in case they are created bottom-to-top with a specified innerRadius)
+#define REASONABLE_MAX_DISK_RINGS 100  // this is a bit kludgy. it is used so that tracker can generate a vector with the dsDistances even without knowing apriori the number of rings that a disk will have (in case they are created bottom-to-top with a specified innerRadius)
 
 // TODO: add slanted gap between barrel and end-cap
 
