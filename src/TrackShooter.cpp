@@ -347,6 +347,32 @@ void TrackShooter::printParameters() {
 }
 
 
+void TrackShooter::saveGeometryData() {
+
+  ModuleData mdata;
+
+  TTree* tree = new TTree("geomdata", "Geometry data");
+  tree->Branch("mdata", &mdata, "x/D:y:z:rho:phi:widthlo:widthhi:height:stereo:pitchlo:pitchhi:striplen:yres:inefftype/B:refcnt:refz:refrho:refphi:type"); 
+
+  for (std::vector<Module*>::const_iterator it = allMods_.begin(); it != allMods_.end(); ++it) {
+    Module* mod = (*it);
+    PosRef posref = mod->getPositionalReference();
+    XYZVector center = mod->getMeanPoint();
+    mdata = (ModuleData){ center.X(), center.Y(), center.Z(),
+                          center.Rho(), center.Phi(),
+                          mod->getWidthLo(), mod->getWidthHi(), mod->getHeight(),
+                          mod->getStereoDistance(),
+                          mod->getLowPitch(), mod->getHighPitch(),
+                          mod->getStripLength(), 
+                          mod->getResolutionYTrigger(),
+                          mod->getModuleType()->getInefficiencyType(),
+                          posref.cnt, posref.z, posref.rho, posref.phi,
+                          mod->getSubdetectorType() };
+
+    tree->Fill();
+  }
+}
+
 void TrackShooter::shootTracks() {
 
   Tracks tracks;
@@ -361,6 +387,9 @@ void TrackShooter::shootTracks() {
     std::cerr << "Failed opening file \"" << outfileName << "\" for writing. Simulation aborted." << std::endl;
     return;
   }
+
+  saveGeometryData();
+
   TTree* tree = new TTree("trackhits", "TTree containing hits of simulated tracks");
 
   gROOT->ProcessLine("#include <vector>");
@@ -371,6 +400,7 @@ void TrackShooter::shootTracks() {
   tree->Branch("tracks.phi0", &tracks.phi0);
   tree->Branch("tracks.z0", &tracks.z0);
   tree->Branch("tracks.pt", &tracks.pt);
+  tree->Branch("tracks.nhits", &tracks.nhits);
 
   tree->Branch("hits.glox", &hits.glox);
   tree->Branch("hits.gloy", &hits.gloy);

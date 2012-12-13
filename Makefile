@@ -20,18 +20,16 @@ DOCDIR=doc
 DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-Wall
 #COMPILERFLAGS+=-ggdb
-#COMPILERFLAGS+=-g
+COMPILERFLAGS+=-g
 COMPILERFLAGS+=-Werror
-COMPILERFLAGS+=-Wno-narrowing
-COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
-COMPILERFLAGS+=-O5
+#COMPILERFLAGS+=-O5
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
-bin: tklayout setup tunePtParam
+bin: tklayout setup tunePtParam houghtrack
 	@echo "Executable built."
 
-all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest houghtrack
 	@echo "Full build successful."
 
 install:
@@ -246,6 +244,20 @@ $(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o setup.cpp
 	$(COMP) $(LIBDIR)/mainConfigHandler.o setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
+
+houghtrack: $(BINDIR)/houghtrack
+	@echo "houghtrack built"
+
+$(LIBDIR)/Histo.o: $(SRCDIR)/Histo.cpp
+	@echo "Building target Histo.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Histo.o $(SRCDIR)/Histo.cpp
+	@echo "Built target Histo.o"
+
+$(BINDIR)/houghtrack: $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp $(INCDIR)/HoughTrack.h
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/houghtrack
+
 
 #FINAL
 tklayout: $(BINDIR)/tklayout

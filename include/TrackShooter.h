@@ -146,6 +146,18 @@ public:
   Long64_t getNumEntries() const;
 };
 
+struct ModuleData {
+  double x, y, z;
+  double rho, phi;
+  double widthlo, widthhi, height;
+  double stereo; 
+  double pitchlo, pitchhi;
+  double striplen;
+  double yres;
+  char inefftype;
+  char refcnt, refz, refrho, refphi; // positional reference
+  char type;
+};
 
 struct Tracks { // holder struct for TTree export
   std::vector<unsigned> eventn;
@@ -302,7 +314,7 @@ public:
   void addModule(Module* module);
   void shootTracks(long int numEvents, long int numTracksPerEvent, int seed);
   void shootTracks(const po::variables_map& varmap, int seed);
-
+  void saveGeometryData();
   //void manualPolygonTestBench();
   //void moduleTestBench();
 };

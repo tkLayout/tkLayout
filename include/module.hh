@@ -228,6 +228,9 @@ protected:
   TPolyLine3D* getContour();
 
   double getHeight() const {return height_;};
+  virtual double getWidthLo() const { return 0; }
+  virtual double getWidthHi() const { return 0; }
+  virtual double getWidth() const { return 0; }
   double getArea() const { return area_;};
   double getDiameter() const {return waferDiameter_; };
   double getThickness() const { return thickness_; }; // TODO: important: Check the use of "thickness" everywhere. it might have been confused with 'stereodistance'  !!!DEPRECATED!!! USE getSensorThickness in moduleType
@@ -279,6 +282,8 @@ protected:
 
   int getNStripAcross()     { return nStripAcross_ ;};
   int getNStripsAcross()    { return nStripAcross_ ;};
+
+  double getStripLength() { return height_ / (double)(nSegmentsFace_[findMinSegmentsFace_()]); } 
 
   int getNSegments(int nFace);
   int getNMaxSegments();
@@ -411,6 +416,8 @@ private:
   double getMaxPhi() const; 
   double getMinPhi() const;
   double getWidth() const {return width_;};
+  double getWidthLo() const { return width_; }
+  double getWidthHi() const { return width_; }
 
   std::string getSensorTag();
   std::string getSensorGeoTag();
@@ -480,6 +487,7 @@ public:
   double getMinPhi() const;
   double getWidthLo() const { return widthLo_ ; };
   double getWidthHi() const { return widthHi_ ; };
+  double getWidth() const { return (widthHi_+widthLo_)/2; }
 
   int getDisk() const { return disk_;};
   void setDisk(const int& newDisk) { disk_ = newDisk;};

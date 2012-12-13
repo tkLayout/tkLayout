@@ -1889,10 +1889,14 @@ namespace insur {
                 tmp.interaction = tmp.interaction / cos(theta);
               }
 
+              double tmpr = 0., tmpi = 0.;
+
               std::map<std::string, Material> moduleComponentsRI = iter->getComponentsRI();
               for (std::map<std::string, Material>::iterator cit = moduleComponentsRI.begin(); cit != moduleComponentsRI.end(); ++cit) {
                 sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().getSubdetectorType() == Module::Barrel ? sin(theta) : cos(theta));
+                tmpr += sumComponentsRI[cit->first].radiation;
                 sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().getSubdetectorType() == Module::Barrel ? sin(theta) : cos(theta));
+                tmpi += sumComponentsRI[cit->first].interaction;
               }
               // 2D plot and eta plot results
               if (!isPixel) fillCell(r, eta, theta, tmp);
