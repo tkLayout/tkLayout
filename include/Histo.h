@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
 
 #include <TH1.h>
 #include <TH2.h>
@@ -66,37 +67,34 @@ struct ArrayCompare<1, T> {
 };
 
 
+template<int N, class T, T (*MinGetter)() = std::numeric_limits<T>::min, T (*MaxGetter)() = std::numeric_limits<T>::max>
+class BinKey {
+  T elems_[N];
+public:
+  typedef T ElemType;
+  //T& operator[](int i) { return elems_[i]; }
+  //const T& operator[](int i) const { return elems_[i]; }
+  void set(int i, T k) { elems_[i] = k; }
+  T at(int i) const { return elems_[i]; }
+  size_t size() const { return N; }
+  bool operator<(const BinKey<N, T>& other) const { return ArrayCompare<N, T>::less(BinKey<N, T>::elems_, other.elems_); }
+  bool operator!=(const BinKey<N, T>& other) const { return !ArrayCompare<N, T>::equal(BinKey<N, T>::elems_, other.elems_); }
+  bool underflow() const { return std::count(elems_, elems_+N, MinGetter()); } 
+  bool overflow() const { return std::count(elems_, elems_+N, MaxGetter()); }
+  static T min() { return MinGetter(); }
+  static T max() { return MaxGetter(); }
+};
 
 
-template<int N, class T>
+template<int N, class T, class B = BinKey<N, unsigned> >
 class Histo {
 public:
-  template<int M, class U>
-  struct BinKey {
-    U elems_[M];
-    U& operator[](int i) { return elems_[i]; }
-    const U& operator[](int i) const { return elems_[i]; }
-    size_t size() const { return M; }
-    bool operator<(const BinKey<M, U>& other) const { return ArrayCompare<M, U>::less(BinKey<M, U>::elems_, other.elems_); }
-    bool operator!=(const BinKey<M, U>& other) const { return !ArrayCompare<M, U>::equal(BinKey<M, U>::elems_, other.elems_); }
-  };
-
-
   enum { Dimensions = N };
   typedef T BinType;
-  typedef BinKey<N, int> InternalBinKey;
+  typedef B InternalBinKey;
   typedef BinKey<N, double> ExportableBinKey;
 
-  template<class ExportableBinKey, class BinType>
-  struct ExportableBin {
-    ExportableBinKey first;
-    BinType second;
-    int overflow;
-    ExportableBin() {}
-    ExportableBin(const ExportableBinKey& key, const BinType& value, int overflow_) : first(key), second(value), overflow(overflow_) {}
-  };
-
-  typedef ExportableBin<ExportableBinKey, T> exportable_iterator_element;
+  typedef std::pair<ExportableBinKey, T> exportable_iterator_element;
   typedef std::pair<InternalBinKey, T> internal_iterator_element;
   typedef typename std::map<InternalBinKey, T>::const_iterator internal_iterator;
 
@@ -116,14 +114,14 @@ public:
     bool operator==(const exportable_iterator& other) { return binit_==other.binit_; }
     bool operator!=(const exportable_iterator& other) { return binit_!=other.binit_; } 
     reference operator*() {
-      return (current_ = exportable_iterator_element(histo_.makeExportableBinKey(binit_->first), binit_->second, histo_.isOverflowBin(binit_->first))); 
+      return (current_ = exportable_iterator_element(histo_.makeExportableBinKey(binit_->first), binit_->second)); 
     }
     pointer operator->() {
-      return &(current_ = exportable_iterator_element(histo_.makeExportableBinKey(binit_->first), binit_->second, histo_.isOverflowBin(binit_->first)));
+      return &(current_ = exportable_iterator_element(histo_.makeExportableBinKey(binit_->first), binit_->second));
     }
   };
 
-  typedef ConstIterator<Histo<N, T> > const_iterator;
+  typedef ConstIterator<Histo<N, T, B> > const_iterator;
 
   template<int M, class H>
     class Indexer {
@@ -139,7 +137,7 @@ public:
       //  return Indexer<M-1, H>(h_, k_);
      // }
       Indexer<M-1, H>& operator[](double x) {
-        k_[H::Dimensions-M] = h_.coordToKey(x, H::Dimensions-M);
+        k_.set(H::Dimensions-M, h_.coordToKey(x, H::Dimensions-M));
         return sub;
       }
     };
@@ -165,13 +163,14 @@ public:
         return *this;
       }
       
-      int overflow() const { return h_.isOverflowBin(k_); }
+      bool overflow() const { return k_.overflow(); }
+      bool underflow() const { return k_.underflow(); }
 
       //operator const typename H::BinType&() const { return h_.bins_.at(k_); }
     };
 
 protected:
-  friend class ConstIterator<Histo<N, T> >;
+  friend class ConstIterator<Histo<N, T, B> >;
 
   std::map<InternalBinKey, T> bins_;
   InternalBinKey currentBin_;
@@ -184,7 +183,9 @@ protected:
     ExportableBinKey ebk;
     for (int i=0; i < N; i++) {
       double binw = (hi_[i] - lo_[i])/nbins_[i];
-      ebk[i] = bk[i]*binw + lo_[i] + binw/2.; // new bin key returns the center of the bin (to avoid falling in the prev/next bin due to rounding errors)
+      ebk.set(i, (bk.at(i) != bk.min() ? (bk.at(i) != bk.max() ? (bk.at(i)-1)*binw + lo_[i] + binw/2. : ebk.max()) : ebk.min())); 
+      // new bin key returns the center of the bin (to avoid falling in the prev/next bin due to rounding errors)
+      // underflow or overflow status is transferred in the bin key
     }
     return ebk;
   }
@@ -192,22 +193,22 @@ protected:
   InternalBinKey makeInternalBinKey(const ExportableBinKey& ebk) const {
     InternalBinKey ibk;
     for (int i=0; i < N; i++) {
-      ibk[i] = coordToKey(ebk[i], i);
+      ibk.set(i, coordToKey(ebk[i], i));
     }
     return ibk;
   }
 
   int coordToKey(double value, int index) {
-    int key = (value - lo_[index])/((hi_[index] - lo_[index])/nbins_[index]); 
+    int key = (value - lo_[index])/((hi_[index] - lo_[index])/nbins_[index]) + 1; // bin keys start at 1 (0 might be reserved for underflow)
     //return key;
-    return key >= 0 ? (key < nbins_[index] ? key : nbins_[index]) : -1;  // overflow bin
+    return key >= 1 ? (key <= nbins_[index] ? key : InternalBinKey::max()) : InternalBinKey::min();  // overflow bin
   }
 
 
   T& findBin(double coords[N]) {
     InternalBinKey key;
     for (int i=0; i < N; i++) {
-      key[i] = coordToKey(coords[i], i);
+      key.set(i, coordToKey(coords[i], i));
     }
     return bins_[key];
   }
@@ -221,15 +222,6 @@ protected:
   void minMax(const T& bin) {
     max_ = bin > max_ ? bin : max_;
     min_ = bin < min_ ? bin : min_;
-  }
-
-
-  int isOverflowBin(const InternalBinKey& ibk) const {
-    for (int i=0; i < N; i++) {
-      if (ibk[i] < 0) return -1;
-      else if (ibk[i] >= nbins_[i]) return 1;
-    }
-    return 0;
   }
 
   Histo() {}
@@ -259,16 +251,17 @@ public:
   }
 
   T get(double coords[N]) { return findBin(coords); }
+
   InternalBinKey getKey(double coords[N]) {
     InternalBinKey key;
     for (int i=0; i < N; i++) {
-      key[i] = coordToKey(coords[i], i);
+      key.set(i, coordToKey(coords[i], i));
     }
     return key;
   }
 
-  template<int M> Histo<M, T>* fold(int indices[M]) const {
-    Histo<M, T>* folded = new Histo<M, T>();
+  template<int M> Histo<M, T, B>* fold(int indices[M]) const {
+    Histo<M, T, B>* folded = new Histo<M, T>();
     for (int i=0; i < M; i++) {
       int index = indices[i];
       folded.setBinning(i, nbins_[index], lo_[index], hi_[index]);
@@ -276,7 +269,7 @@ public:
 
     for (typename std::map<InternalBinKey, T>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
       typename Histo<M, T>::InternalBinKey key;
-      for (int i=0; i < M; i++) key[i] = it->first[indices[i]];
+      for (int i=0; i < M; i++) key.set(i, it->first.at(indices[i]));
       folded.bins_[key] += it->second;
     }
 
@@ -296,9 +289,15 @@ public:
   const_iterator begin() const { return const_iterator(bins_.begin(), *this); }
   const_iterator end() const { return const_iterator(bins_.end(), *this); }
 
+  void clear() {
+    bins_.clear();
+    min_ = std::numeric_limits<T>::max;
+    max_ = T(0);
+  }
+
   void suppressZeros(const T& threshold = T(0)) {
     for (typename std::map<InternalBinKey, T>::iterator it = bins_.begin(); it != bins_.end(); it++) {
-      if ((-threshold <= it->second && it->second <= threshold) || isOverflowBin(it->first)) bins_.erase(it);
+      if ((-threshold <= it->second && it->second <= threshold) || it->first.overflow() || it->first.underflow()) bins_.erase(it);
     }
   }
 
@@ -309,7 +308,7 @@ public:
     out << min_ << " " << max_ << std::endl;
     out << bins_.size() << std::endl;
     for (typename std::map<InternalBinKey, T>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
-      for (int i=0; i<N; i++) out << it->first[i] << " ";
+      for (int i=0; i<N; i++) out << it->first.at(i) << " ";
       out << it->second << std::endl;
     }
   }
@@ -324,7 +323,7 @@ public:
     size_t i = 0;
     for (; i < size && !in.eof(); i++) {
       InternalBinKey key;
-      for (int j=0; j<N; j++) in >> key[j];
+      for (int j=0; j<N; j++) { typename InternalBinKey::ElemType tmp; in >> tmp; key.set(j, tmp); }
       in >> bins_[key];
     }
     if (i < size) return false;
@@ -333,9 +332,9 @@ public:
   }
 
 
-  Indexer<N-1, Histo<N,T> > operator[](double x) {
-    InternalBinKey k = {{ coordToKey(x,0) }};
-    return Indexer<N-1, Histo<N,T> >(*this, k);
+  Indexer<N-1, Histo<N,T,B> > operator[](double x) {
+    InternalBinKey k; k.set(0, coordToKey(x,0));
+    return Indexer<N-1, Histo<N,T,B> >(*this, k);
   }
 
   /*Indexer<0, Histo<N,T> > operator[](const InternalBinKey& k) {
@@ -343,35 +342,35 @@ public:
     return Indexer<0, Histo<N,T> >(*this, currentBin_);
   }*/
 
-  Indexer<0, Histo<N,T> > operator[](const ExportableBinKey& k) {
+  Indexer<0, Histo<N,T,B> > operator[](const ExportableBinKey& k) {
     currentBin_ = makeInternalBinKey(k);
-    return Indexer<0, Histo<N,T> >(*this, currentBin_);
+    return Indexer<0, Histo<N,T,B> >(*this, currentBin_);
   }
 };
 
 
 
-template<int N, class T> void toTH1(Histo<N, T>& histo, TH1& thisto, int k = 0) {
+template<class H> void toTH1(H& histo, TH1& thisto, int k = 0) {
   thisto.SetBins(histo.getNbins(k), histo.getLo(k), histo.getHi(k));
-  for (typename Histo<N, T>::const_iterator it = histo.begin(); it != histo.end(); ++it) {
-    if (!it->overflow) thisto.Fill(it->first[k], it->second);
+  for (typename H::const_iterator it = histo.begin(); it != histo.end(); ++it) {
+    if (!it->first.overflow() && !it->first.underflow()) thisto.Fill(it->first.at(k), it->second);
   }
 }
 
-template<int N, class T> void toTH2(Histo<N, T>& histo, TH2& thisto, int k = 0, int l = 1) {
+template<class H> void toTH2(H& histo, TH2& thisto, int k = 0, int l = 1) {
   thisto.SetBins(histo.getNbins(k), histo.getLo(k), histo.getHi(k),
                  histo.getNbins(l), histo.getLo(l), histo.getHi(l));
-  for (typename Histo<N, T>::const_iterator it = histo.begin(); it != histo.end(); ++it) {
-    if (!it->overflow) thisto.Fill((*it).first[k], it->first[l], it->second);
+  for (typename H::const_iterator it = histo.begin(); it != histo.end(); ++it) {
+    if (!it->first.overflow() && !it->first.underflow()) thisto.Fill((*it).first.at(k), it->first.at(l), it->second);
   }
 }
 
-template<int N, class T> void toTH3(Histo<N, T>& histo, TH3& thisto, int k = 0, int l = 1, int m = 2) {
+template<class H> void toTH3(H& histo, TH3& thisto, int k = 0, int l = 1, int m = 2) {
   thisto.SetBins(histo.getNbins(k), histo.getLo(k), histo.getHi(k),
                  histo.getNbins(l), histo.getLo(l), histo.getHi(l),
                  histo.getNbins(m), histo.getLo(m), histo.getHi(m));
-  for (typename Histo<N, T>::const_iterator it = histo.begin(); it != histo.end(); ++it) {
-    if (!it->overflow) thisto.Fill(it->first[k], it->first[l], it->first[m], it->second);
+  for (typename H::const_iterator it = histo.begin(); it != histo.end(); ++it) {
+    if (!it->first.overflow() && !it->first.underflow()) thisto.Fill(it->first.at(k), it->first.at(l), it->first.at(m), it->second);
   }
 }
 

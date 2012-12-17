@@ -43,13 +43,18 @@ double HoughTrack::calcPhi0(double x, double y, double pt) {
 }
 
 
+double myatan2(double y, double x) {
+  return 2*atan((sqrt(x*x + y*y)-x)/y);
+}
+
+
 double HoughTrack::calcTheta(double z, double r, double z0, double pt) {
   
   double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
 
-  double theta = atan2(R*acos(1-r*r/(2*R*R)),(z-z0));
+  double theta = myatan2(R*acos(1-r*r/(2*R*R)),(z-z0));
+//  double theta = atan(R*acos(1-r*r/(2*R*R))/(z-z0));
 
-  if (theta < 0) cout << "theta " << theta << " z " << z << " r " << r << " z0 " << z0 << " pt " << pt << std::endl;
   //double theta = atan2(r, z-z0);
 
   return theta;
@@ -66,7 +71,8 @@ void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, d
   const double sigmaZ0 = 70;
   const double sigmaZ = yResolution*sqrt(12)/2;
   double sigmaInvPt = 3*ptError*1/fabs(pt);
-  double invPt = die_.Gaus(1/pt, ptError); 
+  //double invPt = die_.Gaus(1/pt, ptError); 
+  double invPt = die_.Uniform(1/pt - sigmaInvPt, 1/pt + sigmaInvPt);
   int nSamplesPt = 2*sigmaInvPt/histo_.getWbins(H_K); 
   z = die_.Uniform(z-sigmaZ, z+sigmaZ);
   for (int k = 0; k < nSamplesPt; k++) {
@@ -178,6 +184,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
     tree->GetEntry(i);
     if ((i-startev)%100 == 0) std::cout << "Event " << i+1 << " of " << MIN(nevents,howmany+startev) << std::endl;
     for (unsigned int j = 0; j < tracks.trackn->size(); j++) {
+      cout << "------ track theta: " << 2*atan(exp(-tracks.eta->at(j))) << " pt: " << tracks.pt->at(j) << " z0: " << tracks.z0->at(j) << std::endl;
       minHits = tracks.nhits->at(j) < minHits ? hits.cnt->size() /*tracks.nhits->at(j)*/ : minHits;
       maxHits = tracks.nhits->at(j) > maxHits ? hits.cnt->size() /*tracks.nhits->at(j)*/ : maxHits;
 #ifndef GENERATE_HIT_MAP
@@ -191,6 +198,8 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
         pterror.setHeight(mdata.height);
         pterror.setInefficiencyType((ptError::InefficiencyType)mdata.inefftype);
         pterror.setModuleType(mdata.type);
+        double ctheta = calcTheta(hits.gloz->at(k), mdata.rho, tracks.z0->at(j), tracks.pt->at(j));
+        cout << k << " " << ctheta << " z: " << hits.gloz->at(k) << " r: " << mdata.rho << std::endl;
         processHit(i, k, hits.glox->at(k), hits.gloy->at(k), hits.gloz->at(k), mdata.rho, tracks.pt->at(j), hits.pterr->at(k), mdata.yres);
         //if (tracks.nhits->at(j) > 10) 
         //  std::cout << "  Mod z, rho, phi: " << mdata.z << "," << mdata.rho << "," << mdata.phi << " Hit invPt, pterr: " << 1/pt << "," << hits.pterr->at(k) << std::endl;
@@ -203,7 +212,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
 #endif
     }
   }
-  cout << "Done importing" << std::endl;
+  cout << "Transform done. Histo size: " << histo_.size() << std::endl;
 
 #ifdef GENERATE_HIT_MAP
   std::ofstream hout("pt_eta_average_hits_3million.hst");
@@ -219,11 +228,11 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
   cout << "track with the most hits has: " << maxHits << " hits" << std::endl;
 
   TH1I* cellLoadHisto = new TH1I("cell_load", "cell load over theoretical number of hits;C/N", 50, 0, 2);
-  for (Histo<4, SmartBin>::const_iterator it = histo_.begin(); it != histo_.end(); ++it) {
-    if (it->overflow) continue;
-    double avgload = invPtEtaAverageHits.get( seq<2>(it->first[0])(-log(tan(it->first[3]/2))) );
+  for (HistoType::const_iterator it = histo_.begin(); it != histo_.end(); ++it) {
+    if (it->first.overflow() || it->first.underflow()) continue;
+    double avgload = invPtEtaAverageHits.get( seq<2>(it->first.at(0))(-log(tan(it->first.at(3)/2))) );
     if (avgload == 0)
-      cout << "unmapped value at invpt,eta,theta: " << it->first[0] << "," << -log(tan(it->first[3]/2)) << "," << it->first[3] << std::endl;
+      cout << "unmapped value at invpt,eta,theta: " << it->first.at(0) << "," << -log(tan(it->first.at(3)/2)) << "," << it->first.at(3) << std::endl;
     minAvgHits = MIN(minAvgHits, avgload);
     maxAvgHits = MAX(maxAvgHits, avgload);
     minCell = MIN(minCell, (int)it->second);

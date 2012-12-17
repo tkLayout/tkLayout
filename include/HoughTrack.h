@@ -1,80 +1,5 @@
 #ifndef HOUGH_TRACK_H
 #define HOUGH_TRACK_H
-/*
-// nice but not good for sparse data!!
-//
-template<class T, const int D>
-class Histo {
-  Histo<T, D-1>* bins_[];
-  const int nbins_;
-  const std::string label_;
-
-public:
-  Histo(int nbins, std::string label = "") : nbins_(nbins), label_(label), bins_(NULL) {}
-
-  Histo<T, D>& operator()(int nbins, std::string label = "") { 
-    if (!bins_) { 
-      bins_ = new *Histo<T, D-1>[nbins_]; 
-      std::fill(bins_, bins_+nbins_, Histo<T, D-1>(nbins, label)); 
-    } else {
-      for (int i = 0; i < nbins_; i++) 
-        (*bins_[i])(nbins, label);
-    }
-    return *this;
-  }
-
-  bool inited() const { return bins_ != NULL ? bins_[0]->inited() : false; }
-
-  Histo<T, D-1>& operator[](int index) { return *bins_[index]; }
-
-
-  ~Histo() { delete[] bins_; }
-};
-
-
-template<class T>
-class Histo<1> {
-  T bins_[];
-  const int nbins_;
-  const std::label label_;
-public:
-  Histo(int nbins, std::string label = "") : nbins_(nbins), label_(label), bins_(new T[nbins]) {}
-
-  T& operator[](int index) { return bins_[index]; }
-
-  bool inited() const { return bins_ != NULL; }
-
-  int nbins() const { return nbins_; }
-
-  ~Histo() { delete[] bins_; }
-  //Histo& operator()(int, std::string) { return *this; } // no op to break recursion
-};
-/////
-
-
-template<class T, const int D>
-class Histo {
-public:
-  class Index {
-    int i_[D];
-  public:
-    Index(int i[D]) { std::copy(i, i+D, i_); }
-    bool operator<(const Index& other) const {
-      for(int i=0; i<D; i++) {
-        if ((*this)[i] < other[i]) return true;
-      }
-      return false;
-    }
-    int operator[](int i) { return i_[i]; }
-  };
-private:
-  std::map<Index, T> bins_;
-public:
-  void fill(const Index& index, const T& weight) { bins_[index] += w; }
-  const T& get(const Index& index) const { return bins_.at(index); }
-};
-*/
-
 
 #include <math.h>
 #include <iterator>
@@ -170,8 +95,8 @@ public:
 class HoughTrack {
 
   SparseMatrix<ModuleData, 4> mods_;
-  //TH2I* histo_;
-  Histo<4, SmartBin> histo_;
+  typedef Histo<4, SmartBin, BinKey<4, uint16_t> > HistoType;
+  HistoType histo_;
 
   TRandom3 die_;
 

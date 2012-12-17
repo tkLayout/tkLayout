@@ -460,11 +460,10 @@ namespace insur {
                   pos.copy = 2;
                   p.push_back(pos);
                   pos.copy = 1;
-                }
-                else {
+                } else {
                   pos.parent_tag = nspace + ":" + rname.str();
                   partner = findPartnerModule(iiter, iguard, iiter->getModule().getRing());
-                  if (iiter->getModule().getMeanPoint().Z() > 0) {
+                  if (iiter->getModule().getZSide() > 0) {  // CUIDADO was getMeanPoint().Z() but didn't work for modules in negative rods with mean point > 0 (balanced rods)
                     pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
                     p.push_back(pos);
                     if (partner != iguard) {
@@ -477,8 +476,7 @@ namespace insur {
                       p.push_back(pos);
                       pos.copy = 1;
                     }
-                  }
-                  else {
+                  } else {
                     pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
                     pos.copy = 2;
                     p.push_back(pos);
@@ -1251,13 +1249,13 @@ namespace insur {
         std::vector<ModuleCap>::iterator res = i;
         if (i != g) {
             bool plus = false;
-            if (!find_first) plus = i->getModule().getMeanPoint().Z() > 0;
+            if (!find_first) plus = i->getModule().getZSide() > 0; //i->getModule().getMeanPoint().Z() > 0;
             while (res != g) {
                 if (res->getModule().getRing() == ponrod) {
                     if (find_first) break;
                     else {
-                        if((plus && (res->getModule().getMeanPoint().Z() < 0))
-                                || (!plus && (res->getModule().getMeanPoint().Z() > 0))) break;
+                        if((plus && res->getModule().getZSide() < 0 /*(res->getModule().getMeanPoint().Z() < 0)*/)
+                                || (!plus && res->getModule().getZSide() > 0 /*(res->getModule().getMeanPoint().Z() > 0)*/)) break;
                     }
                 }
                 res++;
