@@ -238,13 +238,13 @@ void TrackShooter::addModule(Module* module) { // also locks modules geometry so
   const std::set<int>& octants = getModuleOctants(module);
 
   if ((bmod=dynamic_cast<BarrelModule*>(module))) {
-    BarrelOctants& barrelOctants = barrelModsByRadius_[module->getMeanPoint().Rho()];
+    BarrelOctants& barrelOctants = barrelModsByRadius_[module->getMeanPoint().Rho()-module->getStereoDistance()/2]; // the radius is the radius of the center point of the lower module
     barrelOctants.resize(8); // prepare the octants vector. it's going to be called for each module, but after the first time the call will do nothing
     for (std::set<int>::const_iterator oit = octants.begin(); oit != octants.end(); ++oit) {
       barrelOctants[*oit].push_back(bmod);
     }
   } else if ((emod=dynamic_cast<EndcapModule*>(module))) { 
-    EndcapOctants& endcapOctants = endcapModsByZ_[module->getMeanPoint().Z()];
+    EndcapOctants& endcapOctants = endcapModsByZ_[module->getMeanPoint().Z()-(module->getZSide()*module->getStereoDistance()/2)]; // getZSide() changes the sign of the addition because if mod is in Z+ then the first sensor to be hit is the one at lower Z, viceversa for Z-
     endcapOctants.resize(8);
     for (std::set<int>::const_iterator oit = octants.begin(); oit != octants.end(); ++oit) {
       endcapOctants[*oit].push_back(emod);
@@ -510,7 +510,10 @@ void TrackShooter::shootTracks() {
           XYZVector hitv(xrot, yrot, z);
           // check if hit lies in module
           Polygon3d<4> poly;
-          poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3); 
+          poly << (mod->getCorner(0) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+               << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+               << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+               << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
           if (poly.isPointInside(hitv)) {
             // module was hit
             ptError* modPtError = mod->getPtError();

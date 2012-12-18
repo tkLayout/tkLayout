@@ -48,8 +48,10 @@ double myatan2(double y, double x) {
 }
 
 
-double HoughTrack::calcTheta(double z, double r, double z0, double pt) {
+double HoughTrack::calcTheta(double x, double y, double z, double z0, double pt) {
   
+  double r = sqrt(x*x + y*y);
+
   double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
 
   double theta = myatan2(R*acos(1-r*r/(2*R*R)),(z-z0));
@@ -67,7 +69,7 @@ double HoughTrack::rectangularSmear(double mean, double sigma, int nsteps, int s
 }
 
 
-void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, double rho, double pt, double ptError, double yResolution) { 
+void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, double pt, double ptError, double yResolution) { 
   const double sigmaZ0 = 70;
   const double sigmaZ = yResolution*sqrt(12)/2;
   double sigmaInvPt = 3*ptError*1/fabs(pt);
@@ -84,7 +86,7 @@ void HoughTrack::processHit(int evid, int hitid, double x, double y, double z, d
       int nSamplesZ = 2*sigmaZ/histo_.getWbins(H_Z0);
       for (int m = 0; m < nSamplesZ; m++) {
         double zSample = rectangularSmear(z, sigmaZ, nSamplesZ, m);
-        double theta = calcTheta(zSample, rho, z0Sample, 1/invPtSample);
+        double theta = calcTheta(x, y, zSample, z0Sample, 1/invPtSample);
         //histo_.fill(seq<4>(invPtSample)(phi0)(z0Sample)(theta));
         histo_[invPtSample][phi0][z0Sample][theta] += SmartBin(1, evid, 1 << hitid);
       }
@@ -178,13 +180,11 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
                                        (double[]){.6,  2.2});
 #endif
   int minHits = 100, maxHits = 0;
-  int minCell = 100, maxCell = 0;
   float minAvgHits = 100, maxAvgHits = 0;
   for (long int i = startev; i < howmany+startev && i < nevents; i++) {
     tree->GetEntry(i);
-    if ((i-startev)%100 == 0) std::cout << "Event " << i+1 << " of " << MIN(nevents,howmany+startev) << std::endl;
+    /*if ((i-startev)%2 == 0)*/ std::cout << "Event " << i+1 << " of " << MIN(nevents,howmany+startev) << std::endl;
     for (unsigned int j = 0; j < tracks.trackn->size(); j++) {
-      cout << "------ track theta: " << 2*atan(exp(-tracks.eta->at(j))) << " pt: " << tracks.pt->at(j) << " z0: " << tracks.z0->at(j) << std::endl;
       minHits = tracks.nhits->at(j) < minHits ? hits.cnt->size() /*tracks.nhits->at(j)*/ : minHits;
       maxHits = tracks.nhits->at(j) > maxHits ? hits.cnt->size() /*tracks.nhits->at(j)*/ : maxHits;
 #ifndef GENERATE_HIT_MAP
@@ -198,9 +198,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
         pterror.setHeight(mdata.height);
         pterror.setInefficiencyType((ptError::InefficiencyType)mdata.inefftype);
         pterror.setModuleType(mdata.type);
-        double ctheta = calcTheta(hits.gloz->at(k), mdata.rho, tracks.z0->at(j), tracks.pt->at(j));
-        cout << k << " " << ctheta << " z: " << hits.gloz->at(k) << " r: " << mdata.rho << std::endl;
-        processHit(i, k, hits.glox->at(k), hits.gloy->at(k), hits.gloz->at(k), mdata.rho, tracks.pt->at(j), hits.pterr->at(k), mdata.yres);
+        processHit(i, k, hits.glox->at(k), hits.gloy->at(k), hits.gloz->at(k), tracks.pt->at(j), hits.pterr->at(k), mdata.yres);
         //if (tracks.nhits->at(j) > 10) 
         //  std::cout << "  Mod z, rho, phi: " << mdata.z << "," << mdata.rho << "," << mdata.phi << " Hit invPt, pterr: " << 1/pt << "," << hits.pterr->at(k) << std::endl;
       }
@@ -212,7 +210,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
 #endif
     }
   }
-  cout << "Transform done. Histo size: " << histo_.size() << std::endl;
+  cout << "Transform done. Histo size: " << histo_.size() << " entries. " << histo_.size()*(sizeof(BinKey<4, uint16_t>) + sizeof(SmartBin))/1048576 << " MB (no overhead)" << std::endl;
 
 #ifdef GENERATE_HIT_MAP
   std::ofstream hout("pt_eta_average_hits_3million.hst");
@@ -227,6 +225,8 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
   cout << "track with the fewest hits has: " << minHits << " hits" << std::endl;
   cout << "track with the most hits has: " << maxHits << " hits" << std::endl;
 
+  int minCell = 100, maxCell = 0;
+  int maxStacked = 0;
   TH1I* cellLoadHisto = new TH1I("cell_load", "cell load over theoretical number of hits;C/N", 50, 0, 2);
   for (HistoType::const_iterator it = histo_.begin(); it != histo_.end(); ++it) {
     if (it->first.overflow() || it->first.underflow()) continue;
@@ -237,6 +237,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
     maxAvgHits = MAX(maxAvgHits, avgload);
     minCell = MIN(minCell, (int)it->second);
     maxCell = MAX(maxCell, (int)it->second);
+    maxStacked = MAX(maxStacked, it->second.stacked);
     cellLoadHisto->Fill( ((double)it->second) / floor(avgload) );
   }
   
@@ -244,6 +245,7 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
   cout << "maximum cell value for track streak: " << maxCell << " hits" << std::endl;
   cout << "minimum average hits from the hit map: " << minAvgHits << " hits" << std::endl;
   cout << "maximum average hits from the hit map: " << maxAvgHits << " hits" << std::endl;
+  cout << "maximum stacked events: " << maxStacked << " events" << std::endl;
 
   TH2I* thisto1 = new TH2I();
   TH2I* thisto2 = new TH2I();

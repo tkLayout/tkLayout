@@ -60,34 +60,38 @@ struct HitsP { // holder struct for TTree export
 
 
 
-class SmartBin {
-  uint8_t count_;
-  uint8_t eventid_;
-  uint16_t hitmask_;
-public:
-  SmartBin(int count = 0, uint8_t eventid = 0, uint16_t hitmask = 0) : count_(count), eventid_(eventid), hitmask_(hitmask) {}
+struct SmartBin {
+  uint8_t count;
+  uint8_t eventid;
+  uint16_t hitmask;
+  int8_t stacked; // how many events have been stacked on top of each other
+//public:
+  SmartBin(int count_ = 0, uint8_t eventid_ = 0, uint16_t hitmask_ = 0, uint8_t stacked_ = -1) : count(count_), eventid(eventid_), hitmask(hitmask_), stacked(stacked_) {}
   SmartBin& operator+=(const SmartBin& other) {
-    if (eventid_ != other.eventid_) {
-      eventid_ = other.eventid_;
-      hitmask_ = 0; 
+    if (eventid != other.eventid) {
+      eventid = other.eventid;
+      hitmask = 0;
+      stacked++;
     }
-    if (!(hitmask_ & other.hitmask_)) {
-      count_ += other.count_;
-      hitmask_ |= other.hitmask_;
+    if (!(hitmask & other.hitmask)) {
+      count += other.count;
+      hitmask |= other.hitmask;
     }
     return *this;
   }
-  SmartBin& operator=(const SmartBin& other) {
+/*  SmartBin& operator=(const SmartBin& other) {
     count_ = other.count_;
     eventid_ = other.eventid_;
     hitmask_ = other.hitmask_;
+    stacked_ = other.stacked_;
     return *this;
-  }
-  uint8_t count() const { return count_; }
+  }*/
+ /* uint8_t count() const { return count_; }
   uint8_t eventid() const { return eventid_; }
   uint16_t hitmask() const { return hitmask_; }
-
-  operator int() const { return count_; }
+  uint16_t stacked() const { return stacked_; }
+*/
+  operator int() const { return count; }
 };
 
 
@@ -103,8 +107,8 @@ class HoughTrack {
   double rectangularSmear(double mean, double sigma, int nsteps, int step);  
 
   double calcPhi0(double x, double y, double pt);
-  double calcTheta(double z, double r, double z0, double pt);
-  void processHit(int evid, int hitid, double x, double y, double z, double rho, double pt, double ptError, double yres);
+  double calcTheta(double x, double y, double z, double z0, double pt);
+  void processHit(int evid, int hitid, double x, double y, double z, double pt, double ptError, double yres);
   void loadGeometryData(TFile* infile);
 
   enum { H_K = 0, H_PHI0 = 1, H_Z0 = 2, H_THETA = 3 };
