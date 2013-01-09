@@ -14,7 +14,6 @@
       <PartSelector path="//PixelBarrelLayer1"/>
       <PartSelector path="//PixelBarrelLayer2"/>
       <PartSelector path="//PixelBarrelLayer3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelBarrelLayer"/>
      </SpecPar>
      <SpecPar name="PixelBarrelLadderPar">
@@ -22,7 +21,6 @@
       <PartSelector path="//PixelBarrelLadderFull1"/>
       <PartSelector path="//PixelBarrelLadderFull2"/>
       <PartSelector path="//PixelBarrelLadderFull3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelBarrelLadder"/>
      </SpecPar>
      <SpecPar name="PixelBarrelDetPar">
@@ -30,7 +28,6 @@
       <PartSelector path="//PixelBarrelActiveFull1"/>
       <PartSelector path="//PixelBarrelActiveFull2"/>
       <PartSelector path="//PixelBarrelActiveFull3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelBarrelDet"/>
      </SpecPar>
     <SpecPar name="PixelEndcapSubDetPar">
@@ -41,21 +38,18 @@
       <PartSelector path="//PixelForwardDisk1"/>
       <PartSelector path="//PixelForwardDisk2"/>
       <PartSelector path="//PixelForwardDisk3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelEndcapDisk"/>
      </SpecPar>
       <SpecPar name="PixelEndcapPanelPar">
       <PartSelector path="//PixelForwardWafer1"/>
       <PartSelector path="//PixelForwardWafer2"/>
       <PartSelector path="//PixelForwardWafer3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelEndcapPanel"/>
      </SpecPar>
      <SpecPar name="PixelEndcapDetPar">
       <PartSelector path="//PixelForwardSensor1"/>
       <PartSelector path="//PixelForwardSensor2"/>
       <PartSelector path="//PixelForwardSensor3"/>
-       <!--mid point marker-->
        <Parameter name="TkDDDStructure" value="PixelEndcapDet"/>
      </SpecPar>
 
@@ -172,17 +166,8 @@
       <Parameter name="PixelROC_Y" value="8"/>
     </SpecPar>
 
+    <!--mid point marker-->
 
-   <SpecPar name="PixelROCRowsTrackerPar">
-       <!--mid point marker-->
-       <Parameter name="PixelROCRows" value="128"/>
-   </SpecPar>
-
-   <SpecPar name="PixelROCColsTrackerPar">
-       <!--mid point marker-->
-       <Parameter name="PixelROCCols" value="1"/>
-   </SpecPar>
-   <!--mid point marker-->
 </SpecParSection>
 </DDDefinition>
 
