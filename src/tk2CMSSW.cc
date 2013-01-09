@@ -19,18 +19,24 @@ namespace insur {
      * @outsubdir A string with the name of a subfolder for the output; empty by default.
      */
     void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir, bool wt) {
+
+        // this prepares the path of the directory where to save the xml files
         std::string xmlpath = mainConfiguration.getXmlDirectory();
         std::string outpath = xmlpath + "/" + outsubdir;
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
         std::string tmppath = xmlpath + "/" + xml_tmppath + "/";
+
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
+        // ex is an instance of Extractor class
         ex.analyse(mt, mb, data, wt);
+
         // translate collected information to XML and write to buffers
         std::ifstream instream;
         std::ofstream outstream;
         try {
             if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
             bfs::create_directory(outpath);
+
             if (!wt) {
                 instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
                 outstream.open((outpath + xml_pixbarfile).c_str());
@@ -42,6 +48,7 @@ namespace insur {
                 outstream.close();
                 outstream.clear();
                 std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+
                 instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
                 outstream.open((outpath + xml_pixfwdfile).c_str());
                 if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
@@ -53,6 +60,7 @@ namespace insur {
                 outstream.clear();
                 std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
             }
+
             if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
             else outstream.open((outpath + xml_trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
@@ -61,6 +69,7 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_trackerfile) << std::endl;
+
             if (wt) instream.open((xmlpath + "/" + xml_newtopologyfile).c_str());
             else instream.open((xmlpath + "/" + xml_topologyfile).c_str());
             outstream.open((outpath + xml_topologyfile).c_str());
@@ -72,6 +81,7 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
+
             instream.open((xmlpath + "/" + xml_prodcutsfile).c_str());
             outstream.open((outpath + xml_prodcutsfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
@@ -82,6 +92,7 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
+
             instream.open((xmlpath + "/" + xml_trackersensfile).c_str());
             outstream.open((outpath + xml_trackersensfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
@@ -91,6 +102,7 @@ namespace insur {
             instream.clear();
             outstream.close();
             outstream.clear();
+
             std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
             if (wt) instream.open((xmlpath + "/" + xml_newrecomatfile).c_str());
             else instream.open((xmlpath + "/" + xml_recomatfile).c_str());
@@ -103,6 +115,7 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
+
             bfs::remove_all(tmppath);
         }
         catch (std::runtime_error& e) {

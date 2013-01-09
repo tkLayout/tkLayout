@@ -17,11 +17,15 @@ namespace insur {
      * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
      */
     void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt) {
+
         std::cout << "Starting analysis..." << std::endl;
+
         Tracker& tr = mb.getTracker();
         InactiveSurfaces& is = mb.getInactiveSurfaces();
+
         std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
         std::vector<std::vector<ModuleCap> >& ec = mb.getEndcapModuleCaps();
+
         std::vector<Element>& e = d.elements;
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
@@ -31,29 +35,32 @@ namespace insur {
         std::vector<Rotation>& r = d.rots;
         std::vector<SpecParInfo>& t = d.specs;
         std::vector<RILengthInfo>& ri = d.lrilength;
+
         //int layer;
-        e.clear();
-        c.clear();
-        l.clear();
-        s.clear();
-        p.clear();
-        a.clear();
-        r.clear();
-        t.clear();
-        ri.clear();
-        // inits
-        ShapeInfo shape;
-        LogicalInfo logic;
-        PosInfo pos;
-        AlgoInfo alg;
-        Rotation rot;
-        SpecParInfo spec;
+        
+        // These are ALL vectors!
+        e.clear(); // Element
+        c.clear(); // Composite
+        l.clear(); // LogicalInfo
+        s.clear(); // ShapeInfo
+        p.clear(); // PosInfo
+        a.clear(); // AlgoInfo
+        r.clear(); // Rotation
+        t.clear(); // SpecParInfo
+        ri.clear(); // RILengthInfo
+
+        // Initialization
+
+        // Default positioning
+        PosInfo pos;        
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
         pos.trans.dz = 0.0;
         pos.rotref = "";
-        // initialise rotation list with Harry's tilt mod
+
+        // Initialise rotation list with Harry's tilt mod
+        Rotation rot;
         rot.name = xml_barrel_tilt;
         rot.thetax = 90.0;
         rot.phix = 270.0;
@@ -63,6 +70,8 @@ namespace insur {
         rot.phiz = 0.0;
         r.push_back(rot);
 
+        // EndcapRot is not needed any more
+        /*
         rot.name = xml_endcap_rot;
         rot.thetax = 90.0;
         rot.phix = 90.0;
@@ -71,14 +80,26 @@ namespace insur {
         rot.thetaz = 0.0;
         rot.phiz = 0.0;
         r.push_back(rot);
-        // define top-level barrel volume container (polycone)
+        */
+
+        // These seem not to be needed here
+        //LogicalInfo logic;
+        //AlgoInfo alg;
+        //SpecParInfo spec;
+
+        // Define top-level barrel and endcap volume containers (polycone)
+        // This just fill the polycone profiles of the two volumes
+        ShapeInfo shape;
         if (!wt) {
             shape.type = pc;
             shape.name_tag = xml_tob;
+
+            // Barrel
             analyseBarrelContainer(tr, shape.rzup, shape.rzdown);
             s.push_back(shape);
             std::cout << "Barrel container done." << std::endl;
-            // define top-level endcap volume containers (polycone)
+
+            // Endcap
             analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
             if (!(shape.rzup.empty() || shape.rzdown.empty())) {
                 shape.name_tag = xml_tid;
@@ -86,22 +107,23 @@ namespace insur {
             }
             std::cout << "Endcap container done." << std::endl;
         }
-        // translate entries in mt to elementary materials
+
+        // Translate entries in mt to elementary materials
         analyseElements(mt, e);
         std::cout << "Elementary materials done." << std::endl;
-        // analyse barrel
+        // Analyse barrel
         analyseLayers(mt, bc, tr, c, l, s, p, a, r, t, ri, wt);
         std::cout << "Barrel layers done." << std::endl;
-        // analyse endcaps
+        // Analyse endcaps
         analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, wt);
         std::cout << "Endcap discs done." << std::endl;
-        // barrel services
+        // Barrel services
         analyseBarrelServices(is, c, l, s, p, t);
         std::cout << "Barrel services done." << std::endl;
-        // endcap services
+        // Endcap services
         analyseEndcapServices(is, c, l, s, p, t);
         std::cout << "Endcap services done." << std::endl;
-        // supports
+        // Supports
         analyseSupports(is, c, l, s, p, t);
         std::cout << "Support structures done." << std::endl;
         std::cout << "Analysis done." << std::endl;
@@ -358,41 +380,60 @@ namespace insur {
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
             std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
         int layer;
+
         std::string nspace;
         if (wt) nspace = xml_newfileident;
         else nspace = xml_fileident;
+
         std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
         std::vector<ModuleCap>::iterator iiter, iguard;
-        // container inits
+
+        // Container inits
         ShapeInfo shape;
-        LogicalInfo logic;
-        PosInfo pos;
-        AlgoInfo alg;
-        Rotation rot;
-        SpecParInfo rocdims, lspec, rspec, mspec;
-        RILengthInfo ril;
         shape.dyy = 0.0;
+
+        LogicalInfo logic;
+
+        PosInfo pos;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
         pos.trans.dz = 0.0;
+
+        AlgoInfo alg;
+
+        Rotation rot;
         rot.phix = 0.0;
         rot.phiy = 0.0;
         rot.phiz = 0.0;
         rot.thetax = 0.0;
         rot.thetay = 0.0;
         rot.thetaz = 0.0;
+
+        SpecParInfo rocdims, lspec, rspec, mspec;
+        // Layer
         lspec.name = xml_subdet_layer + xml_par_tail;
         lspec.parameter.first = xml_tkddd_structure;
         lspec.parameter.second = xml_det_layer;
+        // Rod
         rspec.name = xml_subdet_rod + xml_par_tail;
         rspec.parameter.first = xml_tkddd_structure;
         rspec.parameter.second = xml_det_rod;
+        // Module
         mspec.name = xml_subdet_tobdet + xml_par_tail;
         mspec.parameter.first = xml_tkddd_structure;
         mspec.parameter.second = xml_det_tobdet;
+        
+        // name goes into trackerStructureTopology
+        // parameter.first goes into trackerStructureTopology
+        // parameter.second goes into trackerStructureTopology?
+        //   >> well, as long as the values are TOBLayer, TOBRod, TOBDet
+        //   >> they do not go into any file!
+
+        RILengthInfo ril;
         ril.barrel = true;
         ril.index = 0;
+
         // b_mod: one composite for every module position on rod
         // s and l: one entry for every module position on rod (box), one for every layer (tube), rods TBD
         // p: one entry for every layer (two for short layers), two modules, one wafer and active for each ring on rod
@@ -400,6 +441,7 @@ namespace insur {
         layer = 1;
         alg.name = xml_tobalgo;
         oguard = bc.end();
+
         // barrel caps layer loop
         for (oiter = bc.begin(); oiter != oguard; oiter++) {
           double rmin = tr.getBarrelLayers()->at(layer - 1)->getMinRho();
@@ -408,56 +450,81 @@ namespace insur {
           rmax = rmax + tr.getBarrelLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
           double zmin = tr.getBarrelLayers()->at(layer - 1)->getMinZ();
           double zmax = tr.getBarrelLayers()->at(layer - 1)->getMaxZ();
+
           double deltar = findDeltaR(tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
                                      tr.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+
           double ds, dt = 0.0;
           double rtotal = 0.0, itotal = 0.0;
+
           int count = 0;
+
           if (deltar == 0.0) continue;
+
           bool is_short = (zmax < 0.0) || (zmin > 0.0);
           bool is_relevant = !is_short || (zmin > 0.0);
+
           if (is_relevant) {
-            shape.type = bx;
+
+            shape.type = bx; // box
             shape.rmin = 0.0;
             shape.rmax = 0.0;
+
             ril.index = layer;
+
             std::set<int> rings;
             std::ostringstream lname, rname, pconverter;
+
             lname << xml_layer << layer;
             rname << xml_rod << layer;
+
+            // lname and rname are Layer1 and Rod1 and go into all files
+
             iguard = oiter->end();
+
             // module caps loop
             for (iiter = oiter->begin(); iiter != iguard; iiter++) {
               if (rings.find(iiter->getModule().getRing()) == rings.end()) {
+
+                // This is the Barrel Case
                 std::vector<ModuleCap>::iterator partner;
                 std::ostringstream matname, shapename, specname;
+
                 // module composite material
                 matname << xml_base_actcomp << "L" << layer << "P" << iiter->getModule().getRing();
                 c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+
                 // module box
                 shapename << iiter->getModule().getRing() << lname.str();
                 shape.name_tag = xml_barrel_module + shapename.str();
+
                 shape.dx = iiter->getModule().getArea() / iiter->getModule().getHeight() / 2.0;
                 shape.dy = iiter->getModule().getHeight() / 2.0;
                 shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                 s.push_back(shape);
+
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = nspace + ":" + logic.name_tag;
                 logic.material_tag = nspace + ":" + matname.str();
                 l.push_back(logic);
+
+                // name_tag is BModule1Layer1 and it goes into all files
+
                 pos.child_tag = logic.shape_tag;
                 pos.rotref = nspace + ":" + xml_barrel_tilt;
+
                 if ((iiter->getModule().getMeanPoint().Rho() > (rmax - deltar / 2.0))
                     || ((iiter->getModule().getMeanPoint().Rho() < ((rmin + rmax) / 2.0))
                         && (iiter->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                 else pos.trans.dx = shape.dz - deltar / 2.0;
+
                 if (is_short) {
                   pos.parent_tag = nspace + ":" + rname.str() + xml_plus;
                   pos.trans.dz = iiter->getModule().getMinZ() - ((zmax + zmin) / 2.0) + shape.dy;
                   p.push_back(pos);
                   pos.parent_tag = nspace + ":" + rname.str() + xml_minus;
                   pos.trans.dz = -pos.trans.dz;
-                  pos.copy = 2;
+                  pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                   p.push_back(pos);
                   pos.copy = 1;
                 } else {
@@ -472,13 +539,13 @@ namespace insur {
                               && (partner->getModule().getMeanPoint().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                       else pos.trans.dx = shape.dz - deltar / 2.0;
                       pos.trans.dz = partner->getModule().getMaxZ() - shape.dy;
-                      pos.copy = 2;
+                      pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                       p.push_back(pos);
                       pos.copy = 1;
                     }
                   } else {
                     pos.trans.dz = iiter->getModule().getMaxZ() - shape.dy;
-                    pos.copy = 2;
+                    pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                     p.push_back(pos);
                     pos.copy = 1;
                     if (partner != iguard) {
@@ -492,24 +559,44 @@ namespace insur {
                   }
                 }
                 pos.rotref = "";
+
                 // wafer
-                shape.name_tag = xml_barrel_module + shapename.str() + xml_base_waf;
+                string xml_base_inout = "";
+                if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+
+                shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
                 shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; //CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
                 //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                 s.push_back(shape);
+
                 pos.parent_tag = logic.shape_tag;
+
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = nspace + ":" + logic.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
+
                 pos.child_tag = logic.shape_tag;
                 pos.trans.dx = 0.0;
                 //pos.trans.dz = shape.dz - iiter->getModule().getModuleThickness() / 2.0;
                 pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0;  // CUIDADO EXPERIMENTAL
                 p.push_back(pos);
+
                 if (iiter->getModule().getNFaces() == 2) {
+
+                  xml_base_inout = xml_base_outer;
+
+                  shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+                  s.push_back(shape);
+
+                  logic.name_tag = shape.name_tag;
+                  logic.shape_tag = nspace + ":" + logic.name_tag;
+                  l.push_back(logic);
+
+                  pos.child_tag = logic.shape_tag;
                   pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().getStereoDistance();  // CUIDADO: was with 2*shape.dz, but why???
-                  pos.copy = 2;
+                  //pos.copy = 2;
+
                   if (iiter->getModule().getStereoRotation() != 0) {
                     rot.name = type_stereo + xml_barrel_module + shapename.str();
                     rot.thetax = 90.0;
@@ -520,6 +607,8 @@ namespace insur {
                     pos.rotref = nspace + ":" + rot.name;
                   }
                   p.push_back(pos);
+                  
+                  // Now reset
                   pos.rotref.clear();
                   rot.name.clear();
                   rot.thetax = 0.0;
@@ -528,39 +617,61 @@ namespace insur {
                   rot.phiy = 0.0;
                   pos.copy = 1;
                 }
+
+
+
                 // active surface
-                shape.name_tag = xml_barrel_module + shapename.str() + xml_base_act;
+                xml_base_inout = "";
+                if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+
+                shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
                 s.push_back(shape);
-                pos.parent_tag = logic.shape_tag;
+
+                //pos.parent_tag = logic.shape_tag;
+                pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+
                 logic.name_tag = shape.name_tag;
                 logic.shape_tag = nspace + ":" + logic.name_tag;
                 logic.material_tag = nspace + ":" + xml_sensor_silicon;
                 l.push_back(logic);
+
                 pos.child_tag = logic.shape_tag;
                 pos.trans.dz = 0.0;
                 p.push_back(pos);
+
                 // topology
                 mspec.partselectors.push_back(logic.name_tag);
+                mspec.moduletypes.push_back(iiter->getModule().getType());
                 specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
                 int id = findSpecParIndex(t, specname.str());
-                if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
+                if (id >= 0) {
+                  t.at(id).partselectors.push_back(logic.name_tag);
+                  t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                }
                 else {
                   rocdims.partselectors.clear();
+                  rocdims.moduletypes.clear();
                   rocdims.name = specname.str();
                   rocdims.parameter.first = xml_roc_x;
                   specname.str("");
                   specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
                   rocdims.parameter.second = specname.str();
                   rocdims.partselectors.push_back(logic.name_tag);
+                  rocdims.moduletypes.push_back(iiter->getModule().getType());
                   t.push_back(rocdims);
                 }
                 specname.str("");
+
                 // TODO: model correctly the modules with different segmentation
                 specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
                 id = findSpecParIndex(t, specname.str());
-                if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
+                if (id >= 0) {
+                  t.at(id).partselectors.push_back(logic.name_tag);
+                  t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                }
                 else {
                   rocdims.partselectors.clear();
+                  rocdims.moduletypes.clear();
                   rocdims.name = specname.str();
                   rocdims.parameter.first = xml_roc_y;
                   specname.str("");
@@ -568,8 +679,84 @@ namespace insur {
                   specname << iiter->getModule().getNMaxSegments();
                   rocdims.parameter.second = specname.str();
                   rocdims.partselectors.push_back(logic.name_tag);
+                  rocdims.moduletypes.push_back(iiter->getModule().getType());
                   t.push_back(rocdims);
                 }
+                specname.str("");
+
+
+
+
+
+
+                // This is a replica for Pt-modules
+                if (iiter->getModule().getNFaces() == 2) { 
+
+                  // active surface
+                  xml_base_inout = xml_base_outer;
+
+                  shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
+                  s.push_back(shape);
+
+                  pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+
+                  logic.name_tag = shape.name_tag;
+                  logic.shape_tag = nspace + ":" + logic.name_tag;
+                  l.push_back(logic);
+
+                  pos.child_tag = logic.shape_tag;
+                  p.push_back(pos);
+
+                  // topology
+                  mspec.partselectors.push_back(logic.name_tag);
+                  mspec.moduletypes.push_back(iiter->getModule().getType());
+                  specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                  int id = findSpecParIndex(t, specname.str());
+                  if (id >= 0) {
+                    t.at(id).partselectors.push_back(logic.name_tag);
+                    t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                  }
+                  else {
+                    rocdims.partselectors.clear();
+                    rocdims.moduletypes.clear();
+                    rocdims.name = specname.str();
+                    rocdims.parameter.first = xml_roc_x;
+
+                    specname.str("");
+                    specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+
+                    rocdims.parameter.second = specname.str();
+                    rocdims.partselectors.push_back(logic.name_tag);
+                    rocdims.moduletypes.push_back(iiter->getModule().getType());
+
+                    t.push_back(rocdims);
+                  }
+                  specname.str("");
+
+                  // TODO: model correctly the modules with different segmentation
+                  specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                  id = findSpecParIndex(t, specname.str());
+                  if (id >= 0) {
+                    t.at(id).partselectors.push_back(logic.name_tag);
+                    t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                  }
+                  else {
+                    rocdims.partselectors.clear();
+                    rocdims.moduletypes.clear();
+                    rocdims.name = specname.str();
+                    rocdims.parameter.first = xml_roc_y;
+                    specname.str("");
+                    // TODO: model correctly the modules with different segmentation
+                    specname << iiter->getModule().getNMaxSegments();
+                    rocdims.parameter.second = specname.str();
+                    rocdims.partselectors.push_back(logic.name_tag);
+                    rocdims.moduletypes.push_back(iiter->getModule().getType());
+                    t.push_back(rocdims);
+                  }
+                  specname.str("");
+
+                } // End of replica for Pt-modules
+
                 // material properties
                 rtotal = rtotal + iiter->getRadiationLength();
                 itotal = itotal + iiter->getInteractionLength();
@@ -596,6 +783,7 @@ namespace insur {
             logic.material_tag = xml_material_air;
             l.push_back(logic);
             rspec.partselectors.push_back(logic.name_tag);
+            rspec.moduletypes.push_back("");
             pconverter << logic.shape_tag;
             if (is_short) {
               shape.name_tag = rname.str() + xml_minus;
@@ -604,6 +792,7 @@ namespace insur {
                     logic.shape_tag = nspace + ":" + logic.name_tag;
                     l.push_back(logic);
                     rspec.partselectors.push_back(logic.name_tag);
+                    rspec.moduletypes.push_back("");
                 }
                 ds = fromRim(rmax, shape.dy);
                 // extra containers for short layers
@@ -650,6 +839,7 @@ namespace insur {
                 pos.child_tag = logic.shape_tag;
                 p.push_back(pos);
                 lspec.partselectors.push_back(logic.name_tag);
+                lspec.moduletypes.push_back("");
                 // rods in layer algorithm(s)
                 alg.parent = logic.shape_tag;
                 if (wt && is_short) alg.parent = alg.parent + xml_plus;
@@ -725,41 +915,54 @@ namespace insur {
             std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
             std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
         int layer;
+
         std::string nspace;
         if (wt) nspace = xml_newfileident;
         else nspace = xml_fileident;
+
         std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
         std::vector<ModuleCap>::iterator iiter, iguard;
-        // container inits
+
+        // Container inits
         ShapeInfo shape;
-        LogicalInfo logic;
-        PosInfo pos;
-        AlgoInfo alg;
-        Rotation rot;
-        SpecParInfo rocdims, dspec, rspec, mspec;
-        RILengthInfo ril;
         shape.dyy = 0.0;
+
+        LogicalInfo logic;
+
+        PosInfo pos;
         pos.copy = 1;
         pos.trans.dx = 0.0;
         pos.trans.dy = 0.0;
         pos.trans.dz = 0.0;
+
+        AlgoInfo alg;
+
+        Rotation rot;
         rot.phix = 0.0;
         rot.phiy = 0.0;
         rot.phiz = 0.0;
         rot.thetax = 0.0;
         rot.thetay = 0.0;
         rot.thetaz = 0.0;
+
+        SpecParInfo rocdims, dspec, rspec, mspec;
+        // Disk
         dspec.name = xml_subdet_wheel + xml_par_tail;
         dspec.parameter.first = xml_tkddd_structure;
         dspec.parameter.second = xml_det_wheel;
+        // Ring
         rspec.name = xml_subdet_ring + xml_par_tail;
         rspec.parameter.first = xml_tkddd_structure;
         rspec.parameter.second = xml_det_ring;
+        // Module
         mspec.name = xml_subdet_tiddet + xml_par_tail;
         mspec.parameter.first = xml_tkddd_structure;
         mspec.parameter.second = xml_det_tiddet;
+
+        RILengthInfo ril;
         ril.barrel = false;
         ril.index = 0;
+
         // e_mod: one composite for every ring
         // s and l: one entry for every ring module, one for every ring, one for every disc
         // p: one entry for every disc, one for every ring, one module, wafer and active per ring
@@ -767,37 +970,50 @@ namespace insur {
         layer = 1;
         alg.name = xml_ecalgo;
         oguard = ec.end();
+
         // endcap caps layer loop
         for (oiter = ec.begin(); oiter != oguard; oiter++) {
             if (tr.getEndcapLayers()->at(layer - 1)->getMinZ() > 0) {
+
                 ril.index = layer;
                 std::set<int> ridx;
                 std::map<int, RingInfo> rinfo;
+
                 double rmin = tr.getEndcapLayers()->at(layer - 1)->getMinRho();
                 double rmax = tr.getEndcapLayers()->at(layer - 1)->getMaxRho();
                 double zmax = tr.getEndcapLayers()->at(layer - 1)->getMaxZ();
                 zmax = zmax + tr.getEndcapLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
                 double zmin = tr.getEndcapLayers()->at(layer - 1)->getMinZ();
                 zmin = zmin - tr.getEndcapLayers()->at(layer - 1)->getMaxModuleThickness() / 2.0;
+
                 std::ostringstream dname, pconverter;
+
                 double rtotal = 0.0, itotal = 0.0;
                 int count = 0;
                 dname << xml_disc << layer;
+
                 shape.type = tp;
                 shape.rmin = 0.0;
                 shape.rmax = 0.0;
                 pos.trans.dz = 0.0;
                 iguard = oiter->end();
+
                 // endcap module caps loop
                 for (iiter = oiter->begin(); iiter != iguard; iiter++) {
                     // new ring
                     if (ridx.find(iiter->getModule().getRing()) == ridx.end()) {
+
+                        // This is the Barrel Case
                         ridx.insert(iiter->getModule().getRing());
                         std::ostringstream matname, rname, mname, specname;
+
+                        // module composite material
                         matname << xml_base_actcomp << "D" << layer << "R" << iiter->getModule().getRing();
                         c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+
                         rname << xml_ring << iiter->getModule().getRing() << dname.str();
                         mname << xml_endcap_module << iiter->getModule().getRing() << dname.str();
+
                         // collect ring info
                         RingInfo rinf;
                         rinf.name = rname.str();
@@ -810,44 +1026,70 @@ namespace insur {
                         rinf.mthk = iiter->getModule().getModuleThickness();
                         rinf.phi = iiter->getModule().getMeanPoint().Phi();
                         rinfo.insert(std::pair<int, RingInfo>(iiter->getModule().getRing(), rinf));
+
                         // module trapezoid
+
                         shape.name_tag = mname.str();
-//                        shape.dy = iiter->getModule().getHeight() / 2.0;
-//                        shape.dyy = iiter->getModule().getHeight() / 2.0;
-//                        shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
- 
+                        //shape.dy = iiter->getModule().getHeight() / 2.0;
+                        //shape.dyy = iiter->getModule().getHeight() / 2.0;
+                        //shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
                         shape.dx = iiter->getModule().getHeight() / 2.0;
                         shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
                         shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
-
                         //shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                         shape.dz = iiter->getModule().getModuleThickness() / 2.0;
                         s.push_back(shape);
+
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = nspace + ":" + matname.str();
                         l.push_back(logic);
+
+
+
                         // wafer
+                        string xml_base_inout = "";
+                        if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+
                         shape.dx = iiter->getModule().getHeight() / 2.0;
                         shape.dy = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
                         shape.dyy = static_cast<EndcapModule&>(iiter->getModule()).getWidthHi() / 2.0;
+
                         pos.parent_tag = logic.shape_tag;
-                        shape.name_tag = mname.str() + xml_base_waf;
+
+                        shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
                         shape.dz = iiter->getModule().getModuleType()->getSensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
                         //if (iiter->getModule().getNFaces() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
                         s.push_back(shape);
+
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
+
                         pos.child_tag = logic.shape_tag;
+
                         if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().getStereoDistance() / 2.0; // CUIDADO WAS getModule().getModuleThickness()
                         else pos.trans.dz = iiter->getModule().getStereoDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
                         p.push_back(pos);
                         if (iiter->getModule().getNFaces() == 2) {
+
+                            xml_base_inout = xml_base_outer;
+
+                            //pos.parent_tag = logic.shape_tag;
+
+                            shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
+                            s.push_back(shape);
+
+                            logic.name_tag = shape.name_tag;
+                            logic.shape_tag = nspace + ":" + logic.name_tag;
+                            l.push_back(logic);
+
+                            pos.child_tag = logic.shape_tag;
+
                             if (iiter->getModule().getMaxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().getStereoDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
                             else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().getStereoDistance() / 2.0;
-                            pos.copy = 2;
+                            //pos.copy = 2;
                             if (iiter->getModule().getStereoRotation() != 0) {
                                 rot.name = type_stereo + xml_endcap_module + mname.str();
                                 rot.thetax = 90.0;
@@ -857,7 +1099,10 @@ namespace insur {
                                 r.push_back(rot);
                                 pos.rotref = nspace + ":" + rot.name;
                             }
+
                             p.push_back(pos);
+
+                            // Now reset
                             pos.rotref.clear();
                             rot.name.clear();
                             rot.thetax = 0.0;
@@ -866,59 +1111,155 @@ namespace insur {
                             rot.phiy = 0.0;
                             pos.copy = 1;
                         }
+
+
+
                         // active surface
-                        pos.parent_tag = logic.shape_tag;
-                        shape.name_tag = mname.str() + xml_base_act;
+                        xml_base_inout = "";
+                        if (iiter->getModule().getNFaces() == 2) xml_base_inout = xml_base_inner;
+
+                        //pos.parent_tag = logic.shape_tag;
+                        pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+
+                        shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
                         s.push_back(shape);
+
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = nspace + ":" + xml_sensor_silicon;
                         l.push_back(logic);
+
                         pos.child_tag = logic.shape_tag;
                         pos.trans.dz = 0.0;
                         p.push_back(pos);
+
                         // topology
                         mspec.partselectors.push_back(logic.name_tag);
+                        mspec.moduletypes.push_back(iiter->getModule().getType());
                         specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
                         int id = findSpecParIndex(t, specname.str());
-                        if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
+                        if (id >= 0) {
+                          t.at(id).partselectors.push_back(logic.name_tag);
+                          t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                        }
                         else {
                             rocdims.partselectors.clear();
+                            rocdims.moduletypes.clear();
                             rocdims.name = specname.str();
                             rocdims.parameter.first = xml_roc_x;
                             specname.str("");
                             specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
+                            rocdims.moduletypes.push_back(iiter->getModule().getType());
                             t.push_back(rocdims);
                         }
                         specname.str("");
-			// TODO: model correctly the modules with different segmentation
+
+			                  // TODO: model correctly the modules with different segmentation
                         specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
                         id = findSpecParIndex(t, specname.str());
-                        if (id >= 0) t.at(id).partselectors.push_back(logic.name_tag);
+                        if (id >= 0) {
+                          t.at(id).partselectors.push_back(logic.name_tag);
+                          t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                        }
                         else {
                             rocdims.partselectors.clear();
+                            rocdims.moduletypes.clear();
                             rocdims.name = specname.str();
                             rocdims.parameter.first = xml_roc_y;
                             specname.str("");
-			    // TODO: model correctly the modules with different segmentation
+			                      // TODO: model correctly the modules with different segmentation
                             specname << iiter->getModule().getNMaxSegments();
                             rocdims.parameter.second = specname.str();
                             rocdims.partselectors.push_back(logic.name_tag);
+                            rocdims.moduletypes.push_back(iiter->getModule().getType());
                             t.push_back(rocdims);
                         }
+                        specname.str("");
+
+
+
+                        // This is just a replica for Pt-modules
+                        if (iiter->getModule().getNFaces() == 2) {
+
+                          // active surface
+                          xml_base_inout = xml_base_outer;
+  
+                          //pos.parent_tag = logic.shape_tag;
+                          pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+  
+                          shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+                          s.push_back(shape);
+  
+                          logic.name_tag = shape.name_tag;
+                          logic.shape_tag = nspace + ":" + logic.name_tag;
+                          logic.material_tag = nspace + ":" + xml_sensor_silicon;
+                          l.push_back(logic);
+  
+                          pos.child_tag = logic.shape_tag;
+                          pos.trans.dz = 0.0;
+                          p.push_back(pos);
+  
+                          // topology
+                          mspec.partselectors.push_back(logic.name_tag);
+                          mspec.moduletypes.push_back(iiter->getModule().getType());
+                          specname << xml_roc_x << xml_par_tail << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                          int id = findSpecParIndex(t, specname.str());
+                          if (id >= 0) {
+                            t.at(id).partselectors.push_back(logic.name_tag);
+                            t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                          }
+                          else {
+                              rocdims.partselectors.clear();
+                              rocdims.moduletypes.clear();
+                              rocdims.name = specname.str();
+                              rocdims.parameter.first = xml_roc_x;
+                              specname.str("");
+                              specname << (iiter->getModule().getNStripsAcross() / xml_roc_rows);
+                              rocdims.parameter.second = specname.str();
+                              rocdims.partselectors.push_back(logic.name_tag);
+                              rocdims.moduletypes.push_back(iiter->getModule().getType());
+                              t.push_back(rocdims);
+                          }
+                          specname.str("");
+  
+  			                  // TODO: model correctly the modules with different segmentation
+                          specname << xml_roc_y << xml_par_tail << iiter->getModule().getNMaxSegments();
+                          id = findSpecParIndex(t, specname.str());
+                          if (id >= 0) {
+                            t.at(id).partselectors.push_back(logic.name_tag);
+                            t.at(id).moduletypes.push_back(iiter->getModule().getType());
+                          }
+                          else {
+                              rocdims.partselectors.clear();
+                              rocdims.moduletypes.clear();
+                              rocdims.name = specname.str();
+                              rocdims.parameter.first = xml_roc_y;
+                              specname.str("");
+  			                      // TODO: model correctly the modules with different segmentation
+                              specname << iiter->getModule().getNMaxSegments();
+                              rocdims.parameter.second = specname.str();
+                              rocdims.partselectors.push_back(logic.name_tag);
+                              rocdims.moduletypes.push_back(iiter->getModule().getType());
+                              t.push_back(rocdims);
+                          }
+                          specname.str("");
+                        }
+
                         // material properties
                         rtotal = rtotal + iiter->getRadiationLength();
                         itotal = itotal + iiter->getInteractionLength();
                         count++;
                     }
                 }
+
                 if (count > 0) {
                     ril.rlength = rtotal / (double)count;
                     ril.ilength = itotal / (double)count;
                     ri.push_back(ril);
                 }
+
                 // rings
                 shape.type = tb;
                 shape.dx = 0.0;
@@ -926,25 +1267,33 @@ namespace insur {
                 shape.dyy = 0.0;
                 shape.dz = findDeltaZ(tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(),
                         tr.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
+
                 std::set<int>::const_iterator siter, sguard = ridx.end();
                 for (siter = ridx.begin(); siter != sguard; siter++) {
                     if (rinfo[*siter].modules > 0) {
+
                         shape.name_tag = rinfo[*siter].name;
                         shape.rmin = rinfo[*siter].rin;
                         shape.rmax = rinfo[*siter].rout;
                         s.push_back(shape);
+
                         logic.name_tag = shape.name_tag;
                         logic.shape_tag = nspace + ":" + logic.name_tag;
                         logic.material_tag = xml_material_air;
                         l.push_back(logic);
+
                         pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
                         pos.child_tag = logic.shape_tag;
+
                         if (rinfo[*siter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
                         else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
                         p.push_back(pos);
-                       // pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
-                      //  p.push_back(pos);
+                        //pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
+                        //p.push_back(pos);
+
                         rspec.partselectors.push_back(logic.name_tag);
+                        rspec.moduletypes.push_back("");
+
                         alg.parent = logic.shape_tag;
                         alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
                         pconverter << (rinfo[*siter].modules / 2);
@@ -980,22 +1329,27 @@ namespace insur {
                         alg.parameters.clear();
                     }
                 }
+
                 //disc
                 shape.name_tag = dname.str();
                 shape.rmin = rmin;
                 shape.rmax = rmax;
                 shape.dz = (zmax - zmin) / 2.0;
                 s.push_back(shape);
+
                 logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
-              //  logic.extra = xml_plus;
+                //logic.extra = xml_plus;
                 logic.shape_tag = nspace + ":" + shape.name_tag;
                 logic.material_tag = xml_material_air;
                 l.push_back(logic);
+
                 pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
                 pos.child_tag = nspace + ":" + logic.name_tag;
                 pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
                 p.push_back(pos);
+
                 dspec.partselectors.push_back(logic.name_tag);
+                dspec.moduletypes.push_back("");
                 dspec.partextras.push_back(logic.extra);
              //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
              //   logic.extra = xml_minus;
@@ -1104,7 +1458,8 @@ namespace insur {
             std::ostringstream matname, shapename;
             matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
             shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-            if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+            if ((iter->getZOffset() + iter->getZLength()) > 0) { // This is necessary because of replication of Forward volumes!
+              c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
             shape.name_tag = shapename.str();
             shape.dz = iter->getZLength() / 2.0;
             shape.rmin = iter->getInnerRadius();
@@ -1118,6 +1473,7 @@ namespace insur {
             pos.child_tag = logic.shape_tag;
             pos.trans.dz = iter->getZOffset() + shape.dz;
             p.push_back(pos);
+            }
         }
     }
     
@@ -1161,20 +1517,24 @@ namespace insur {
             std::ostringstream matname, shapename;
             matname << xml_base_lazycomp << iter->getCategory();
             shapename << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
+
             fres = found.find(iter->getCategory());
             if (fres == found.end()) {
                 c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
                 found.insert(iter->getCategory());
             }
+
             shape.name_tag = shapename.str();
             shape.dz = iter->getZLength() / 2.0;
             shape.rmin = iter->getInnerRadius();
             shape.rmax = shape.rmin + iter->getRWidth();
             s.push_back(shape);
+
             logic.name_tag = shapename.str();
             logic.shape_tag = nspace + ":" + shapename.str();
             logic.material_tag = nspace + ":" + matname.str();
             l.push_back(logic);
+
             pos.parent_tag = nspace + ":" + xml_tracker;
             pos.child_tag = logic.shape_tag;
             if ((iter->getCategory() == MaterialProperties::o_sup) ||
