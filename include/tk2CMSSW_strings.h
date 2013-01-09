@@ -133,6 +133,8 @@ namespace insur {
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
     static const std::string xml_base_waf = "wafer";
+    static const std::string xml_base_inner = "INNER"; // This is for distinguishing inner/outer sensor!
+    static const std::string xml_base_outer = "OUTER";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
@@ -183,6 +185,7 @@ namespace insur {
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
     static const std::string xml_subdet_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_tobdet = "PixelBarrelModule";
+    static const std::string xml_subdet_tobdet_1 = "PixelBarrelDet";
     static const std::string xml_det_wheel = "TIDWheel";
     static const std::string xml_det_ring = "TIDRing";
     static const std::string xml_det_tiddet = "TIDDet";
@@ -193,6 +196,8 @@ namespace insur {
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_roc_x = "PixelROC_X";
     static const std::string xml_roc_y = "PixelROC_Y";
+    static const std::string xml_roc_rows_name = "PixelROCRows";
+    static const std::string xml_roc_cols_name = "PixelROCCols";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";

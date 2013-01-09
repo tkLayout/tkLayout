@@ -61,6 +61,7 @@ namespace insur {
                                                           double thetaz, double phiz, std::ostringstream& stream);
         void translation(double x, double y, double z, std::ostringstream& stream);
         void specPar(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
+        void specPar1(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
     private:
         std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt = false);
         bool endcapsInTopology(std::vector<SpecParInfo>& specs);
