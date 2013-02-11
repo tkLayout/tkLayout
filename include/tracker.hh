@@ -401,6 +401,7 @@ public:
   //void setModuleTypes();
   void setModuleTypes(std::string sectionName,
                       std::map<int, int> nStripsAcross,
+                      std::map<int, int> nROCRows,
                       std::map<int, int> nFaces,
                       std::map<int, int> nSegments,
                       std::map<int, std::string> myType, 
@@ -411,6 +412,7 @@ public:
                       std::map<int, double> xResolution,
                       std::map<int, double> yResolution,
                       std::map<std::pair<int, int>, int> nStripsAcrossSecond,
+                      std::map<std::pair<int, int>, int> nROCRowsSecond,
                       std::map<std::pair<int, int>, int> nFacesSecond,
                       std::map<std::pair<int, int>, int> nSegmentsSecond,
                       std::map<std::pair<int, int>, std::string> myTypeSecond,

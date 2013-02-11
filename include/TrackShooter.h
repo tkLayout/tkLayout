@@ -4,9 +4,11 @@
 #include <ostream>
 #include <map>
 #include <functional>
+#include <algorithm>
 #include <list>
 #include <vector>
 #include <memory>
+
 
 #include <TRandom3.h>
 #include <TCanvas.h>
@@ -18,6 +20,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <Math/GenVector/DisplacementVector2D.h>
 #include <Math/GenVector/RotationZ.h>
 #include <Math/GenVector/Rotation3D.h>
 #include <Math/GenVector/Transform3D.h>
@@ -35,20 +38,23 @@ template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
   return (int(x < T(0)) << 2) || (int(x < T(0)) << 1) || int(x < T(0));
 }
 
+typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
 
 std::set<int> getModuleOctants(const Module* mod);
 
 
-template<int NumSides, class Coords, class Random>
+template<int NumSides, class Coords, class Random, class FloatType = double>
 class AbstractPolygon {  // any number of dimensions, any number of sides, convex or concave. it only has 2 properties
 protected:
-  double area_;
+  FloatType area_;
   std::vector<Coords> v_; // vertices of the polygon
   virtual void computeProperties() = 0;
+  mutable Coords center_;
+  mutable bool dirty_;
 public:
-  AbstractPolygon() { v_.reserve(NumSides); }
-  virtual AbstractPolygon<NumSides, Coords, Random>& operator<<(const Coords& vertex);
-  virtual AbstractPolygon<NumSides, Coords, Random>& operator<<(const std::vector<Coords>& vertices);
+  AbstractPolygon() { v_.reserve(NumSides); dirty_ = true; }
+  virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const Coords& vertex);
+  virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const std::vector<Coords>& vertices);
   const std::vector<Coords>& getVertices() const;
   const Coords& getVertex(int index) const;
   int getNumSides() const;
@@ -56,6 +62,12 @@ public:
   double getDoubleArea() const; // we save a division by 2 by returning the double area. for our purposes it's the same
   virtual bool isPointInside(const Coords& p) const = 0;
   virtual Coords generateRandomPoint(Random* die) const = 0;
+
+  const Coords& getCenter() const;
+  AbstractPolygon<NumSides, Coords, Random, FloatType>& translate(const Coords& vector); 
+  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateX(FloatType angle);
+  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateY(FloatType angle);
+  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateZ(FloatType angle);
 };
 
 template<class Polygon>
@@ -167,6 +179,9 @@ struct Tracks { // holder struct for TTree export
   std::vector<double> z0;
   std::vector<double> pt;
   std::vector<char> nhits;
+  const std::string name;
+  Tracks(const std::string& name_) : name(name_) {}
+
   void clear() {
     eventn.clear();
     trackn.clear();
@@ -185,6 +200,15 @@ struct Tracks { // holder struct for TTree export
     pt.push_back(pt_);
     nhits.push_back(nhits_);
   }
+  void setupBranches(TTree& tree) {
+    tree.Branch((name + ".eventn").c_str(), &eventn);
+    tree.Branch((name + ".trackn").c_str(), &trackn);
+    tree.Branch((name + ".eta").c_str(), &eta);
+    tree.Branch((name + ".phi0").c_str(), &phi0);
+    tree.Branch((name + ".z0").c_str(), &z0);
+    tree.Branch((name + ".pt").c_str(), &pt);
+    tree.Branch((name + ".nhits").c_str(), &nhits);
+  }
 };
 
 struct Hits { // holder struct for TTree export
@@ -193,6 +217,9 @@ struct Hits { // holder struct for TTree export
   std::vector<float> pterr, hitprob;
   std::vector<float> deltas;
   std::vector<char> cnt, z, rho, phi;
+  const std::string name;
+  Hits(const std::string& name_) : name(name_) {}
+
   void clear() {
     glox.clear(); gloy.clear(); gloz.clear();
     locx.clear(); locy.clear();
@@ -215,6 +242,21 @@ struct Hits { // holder struct for TTree export
     phi.push_back(phi_);
   }
   int size() const { return glox.size(); }
+
+  void setupBranches(TTree& tree) {
+    tree.Branch((name + ".glox").c_str(), &glox);
+    tree.Branch((name + ".gloy").c_str(), &gloy);
+    tree.Branch((name + ".gloz").c_str(), &gloz);
+    tree.Branch((name + ".locx").c_str(), &locx);
+    tree.Branch((name + ".locy").c_str(), &locy);
+    tree.Branch((name + ".pterr").c_str(), &pterr);
+    tree.Branch((name + ".hitprob").c_str(), &hitprob);
+    tree.Branch((name + ".deltas").c_str(), &deltas);
+    tree.Branch((name + ".cnt").c_str(), &cnt);
+    tree.Branch((name + ".z").c_str(), &z);
+    tree.Branch((name + ".rho").c_str(), &rho);
+    tree.Branch((name + ".phi").c_str(), &phi);
+  }
 };
 
 
@@ -302,6 +344,13 @@ class TrackShooter {
   std::string instanceId_;
   std::string tracksDir_;
 
+  int detectCollisionSlanted(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+  int detectCollisionBarrel(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+  int detectCollisionEndcap(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+
+  XYVector convertToLocalCoords(const XYZVector& globalHit, const BarrelModule* mod) const;
+  XYVector convertToLocalCoords(const XYZVector& globalHit, const EndcapModule* mod) const;
+
   void shootTracks();
 
   void setDefaultParameters();
@@ -314,7 +363,7 @@ public:
   void addModule(Module* module);
   void shootTracks(long int numEvents, long int numTracksPerEvent, int seed);
   void shootTracks(const po::variables_map& varmap, int seed);
-  void saveGeometryData();
+  void exportGeometryData();
   //void manualPolygonTestBench();
   //void moduleTestBench();
 };

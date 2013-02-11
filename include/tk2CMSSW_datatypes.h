@@ -183,6 +183,7 @@ namespace insur {
         std::vector<std::string> partextras; // CUIDADO this was introduced to add the Plus / Minus attribute to discs, not really useful for anything else at least for now
         std::vector<std::string> moduletypes;
     };
+
     /**
      * @struct RILengthInfo
      * @brief 

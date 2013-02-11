@@ -67,6 +67,8 @@ void Module::setDefaultParameters() {
     processorConnectionsEta_ = 0;
     processorConnectionsPhi_ = 0;
     irradiatedPowerConsumption_ = 0;
+    nROCRows_ = 128;
+
     for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
 
     zSide_ = 0;
@@ -1112,7 +1114,13 @@ const XYZVector& Module::getMeanPoint() const {
   return meanPoint_.value;
 }
 
-
+const XYZVector& Module::getNormal() const {
+  if (!normal_.inited) {
+    normal_ = XYZVector(getCorner(1) - getCorner(0)).Cross(getCorner(3) - getCorner(0)).Unit(); 
+    normal_.inited = geometryLocked();
+  }
+  return normal_.value;
+}
 
 /*
 void Module::computeStripArea(int nFace) {

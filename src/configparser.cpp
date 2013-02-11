@@ -1313,6 +1313,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   int secondaryIndex; // Used for the disk
 
   map<int, int> nStripsAcross;
+  map<int, int> nROCRows;
   map<int, int> nSides;
   map<int, int> nSegments;
   map<int, string> type;
@@ -1326,6 +1327,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   pair<int, int> specialIndex; // used to indicate ring,disk
 
   map<pair<int, int>, int> nStripsAcrossSecond;
+  map<pair<int, int>, int> nROCRowsSecond;
   map<pair<int, int>, int> nSidesSecond;
   map<pair<int, int>, int> nSegmentsSecond;
   map<pair<int, int>, string> typeSecond;
@@ -1352,8 +1354,8 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
         if (secondaryIndex==0) { // Standard assignment per ring or per layer
           if (parameterName=="nStripsAcross") {
             nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
-          } else if (parameterName=="nStripAcross") {
-            nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
+          } else if (parameterName=="nROCRows") {
+            nROCRows[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nSides") {
             nSides[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nSegments") {
@@ -1382,6 +1384,12 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
             if (atoi(parameterValue.c_str())!=nStripsAcross[mainIndex]) {
               nStripsAcrossSecond[specialIndex]=atoi(parameterValue.c_str());
               // It is "special" only if it differs from the default values
+              specialSecond[specialIndex]=true;
+              isSpecial = true;
+            }
+          } else if (parameterName=="nROCRows") {
+            if (atoi(parameterValue.c_str())!=nROCRows[mainIndex]) {
+              nROCRowsSecond[specialIndex]=atoi(parameterValue.c_str());
               specialSecond[specialIndex]=true;
               isSpecial = true;
             }
@@ -1444,9 +1452,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   }
 
   myTracker_->setModuleTypes(myName,
-                             nStripsAcross, nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
+                             nStripsAcross, nROCRows, nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
                              xResolution, yResolution,
-                             nStripsAcrossSecond, nSidesSecond, nSegmentsSecond, typeSecond,
+                             nStripsAcrossSecond, nROCRowsSecond, nSidesSecond, nSegmentsSecond, typeSecond,
                              dsDistanceSecond, triggerWindowSecond, dsRotationSecond, divideBackSecond, specialSecond);
 
   return true;

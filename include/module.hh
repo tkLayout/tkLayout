@@ -81,6 +81,7 @@ protected:
   double phiWidth_, etaWidth_;
   int nSegmentsFace_[maxNFaces];
   int nStripAcross_;
+  int nROCRows_;
   int nFaces_;
   int readoutType_;
   int readoutMode_;
@@ -156,7 +157,7 @@ protected:
   mutable InitableProperty<double> minRho_, maxRho_;
   mutable InitableProperty<double> minZ_, maxZ_;
   mutable InitableProperty<double> minPhi_, maxPhi_;
-  mutable InitableProperty<XYZVector> meanPoint_;
+  mutable InitableProperty<XYZVector> meanPoint_, normal_;
   mutable InitableProperty<int> octant_;
 
  private:
@@ -239,6 +240,7 @@ protected:
     return moduleType_->getSensorThickness() + getStereoDistance(); 
   };
   const XYZVector& getCorner(int index) const { return corner_[index]; };
+  const XYZVector& getNormal() const;
 
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
@@ -280,8 +282,10 @@ protected:
   int getNMaxChannelsFace();
   int getNMinChannelsFace();
 
-  int getNStripAcross()     { return nStripAcross_ ;};
-  int getNStripsAcross()    { return nStripAcross_ ;};
+  int getNStripAcross() const { return nStripAcross_ ;};
+  int getNStripsAcross() const { return nStripAcross_ ;};
+
+  int getNROCRows() const { return nROCRows_; }
 
   double getStripLength() { return height_ / (double)(nSegmentsFace_[findMinSegmentsFace_()]); } 
 
@@ -296,6 +300,7 @@ protected:
   int getReadoutMode()      { return readoutMode_ ;};
 
   void setNStripsAcross(const int& newN) { nStripAcross_=newN; }
+  void setNROCRows(int newN) { nROCRows_ = newN; }
   void setNSegments(const int& newN);
   void setNFaces(const int& newN);
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity

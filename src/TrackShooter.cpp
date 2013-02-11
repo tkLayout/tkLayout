@@ -13,40 +13,93 @@ std::set<int> getModuleOctants(const Module* mod) {
 
 
 
-template<int NumSides, class Coords, class Random>
-AbstractPolygon<NumSides, Coords, Random>& AbstractPolygon<NumSides, Coords, Random>::operator<<(const Coords& vertex) {
+template<int NumSides, class Coords, class Random, class FloatType> 
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::operator<<(const Coords& vertex) {
   if (!isComplete()) v_.push_back(vertex);
   if (isComplete()) computeProperties();
   return *this;
 }
 
-template<int NumSides, class Coords, class Random>
-AbstractPolygon<NumSides, Coords, Random>& AbstractPolygon<NumSides, Coords, Random>::operator<<(const std::vector<Coords>& vertices) {
+template<int NumSides, class Coords, class Random, class FloatType> 
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::operator<<(const std::vector<Coords>& vertices) {
   for(typename std::vector<Coords>::const_iterator it = vertices.begin(); (v_.size() < NumSides) && (it != vertices.end()); ++it) {
     *this << *it;
   }
   return *this;
 }
 
-template<int NumSides, class Coords, class Random>
-inline bool AbstractPolygon<NumSides, Coords, Random>::isComplete() const { 
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline bool AbstractPolygon<NumSides, Coords, Random, FloatType>::isComplete() const { 
   return v_.size() == NumSides; 
 }
 
-template<int NumSides, class Coords, class Random>
-inline const std::vector<Coords>& AbstractPolygon<NumSides, Coords, Random>::getVertices() const { 
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline const std::vector<Coords>& AbstractPolygon<NumSides, Coords, Random, FloatType>::getVertices() const { 
   return v_; 
 }
 
-template<int NumSides, class Coords, class Random>
-inline const Coords& AbstractPolygon<NumSides, Coords, Random>::getVertex(int index) const { 
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getVertex(int index) const { 
   return v_[index]; 
 }
 
-template<int NumSides, class Coords, class Random>
-double AbstractPolygon<NumSides, Coords, Random>::getDoubleArea() const {
+template<int NumSides, class Coords, class Random, class FloatType> 
+double AbstractPolygon<NumSides, Coords, Random, FloatType>::getDoubleArea() const {
   return area_;
 }
+
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getCenter() const {
+  if (dirty_) {
+    for (int i=0; i<NumSides; i++)
+      center_ += v_[i];
+    center_ /= NumSides;
+    dirty_ = false;
+  }
+  return center_;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::translate(const Coords& vector) {
+  std::transform(v_.begin(), v_.end(), std::bind2nd(std::plus<Coords>(), vector));
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateX(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->X(),
+                 it->Y()*cos(angle) - it->Z()*sin(angle),
+                 it->Y()*sin(angle) + it->Z()*cos(angle));
+  }
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateY(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->Z()*sin(angle) + it->X()*cos(angle),
+                 it->Y(),
+                 it->Z()*cos(angle) - it->X()*sin(angle));
+  }
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateZ(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->X()*cos(angle) - it->Y()*sin(angle),
+                 it->X()*sin(angle) + it->Y()*cos(angle),
+                 it->Z());
+  }
+  dirty_ = true;
+  return *this;
+}
+
 
 
 template<int NumSides>
@@ -253,7 +306,145 @@ void TrackShooter::addModule(Module* module) { // also locks modules geometry so
 
 }
 
+XYVector TrackShooter::convertToLocalCoords(const XYZVector& globalHit, const BarrelModule* mod) const {
+  XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(globalHit - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit (which now looks like a vertical segment in the XY plane), then we drop the irrelevant coordinate (X)
+  return XYVector(locv.Y(), locv.Z());
+}
 
+XYVector TrackShooter::convertToLocalCoords(const XYZVector& globalHit, const EndcapModule* mod) const {
+  XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(globalHit - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit (which now looks like a polygon in the XY plane with the local axes XY reverse-matched with the global YX), then we drop the irrelevant coordinate (Z)
+  return XYVector(locv.Y(), locv.X());
+}
+
+/*
+int detectCollisionSlanted(XYVector& helixAxis, double R, double z0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
+  std::vector<XYZVector> bcol, ecol;
+  detectCollisionBarrel(helixAxisOrigin, poly, bcol);
+  detectCollisionEndcap(helixAxisOrigin, poly, ecol);
+
+  double phi0 = origin.Phi() - M_PI/2;
+  double h = helixAxis.X();
+  double k = helixAxis.Y();
+
+  double L = tan(M_PI/2 - theta);
+  if (bcol.size() > 0 || ecol.size() > 0) {
+    for (int i = 0; i < bcol.size(); i++) {
+      double zz = (ecol.size() > 0) ? ecol[0].Z()*sin(mod.getGamma()) + bcol[i].Z()*cos(mod.getGamma()) : bcol[i].Z();
+      XYZVector& P = mod.getCorner(0);
+      XYZVector& N = mod.getNormal();
+      XYZVector Q;
+      do {
+        double tt = (zz - z0)/(L*R);
+        XYZVector H(h + R*sin(phi0 + tt), k - R*cos(phi0 + tt), zz);
+        Q = H - N.Dot(H - P) * N;
+        zz = Q.Z(); 
+      } while (N.Dot(Q - P) > 1e-3)
+      collisions.push_back(Q);
+    }
+  }  
+  return collisions.size();
+}
+*/
+
+int TrackShooter::detectCollisionEndcap(double h, double k, double pt, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
+  // get z from module
+  // put z in the helix equations, solve for t and obtain x and y
+  // check whether x and y are inside the polygon of the module (only 1 collision is possible)
+  
+  double R = pt/(0.3*insur::magnetic_field) * 1e3;
+
+  double z = poly.getVertex(0).Z();
+  
+  double L = tan(M_PI/2 - theta);
+
+  double t = (z - z0)/(L*R);
+  double x = h + R*sin(phi0 + t);
+  double y = k - R*cos(phi0 + t);
+  
+  XYZVector hit(x, y, z);
+  if (poly.isPointInside(hit)) {
+    collisions.push_back(hit);
+    return 1;
+  } else {
+    return 0; 
+  }
+}
+
+int TrackShooter::detectCollisionBarrel(double h, double k, double pt, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
+  // this method solves the equations of the intersection between a circle (particle track in the XY plane) and a line segment (module in XY)
+  // both equation are expressed in their parametric forms, to aid in boundary checking.
+  // In case of the mocule the parameter u must be between 0 and 1 for the hit to be inside the module
+  // In case of the track the parameter t helps in understanding which of the two intersections is the one to consider given the rotation direction of the track (determined by its charge)
+  // (a circle can also intersect a line in 0 or just 1 point, but those cases are dealt with separately)
+  //
+  // the resulting system of equations is:
+  // x = h + R*cos(t)
+  // y = k + R*sin(t)
+  // x = v + m*u
+  // y = w + n*u
+  //
+  // where: h, k are the center of the track circle, R is its radius
+  //        v, w is the starting point of the module segment, m, n are its lengths along the x and y axes (m = endpointX - v, n = endpointY - w)
+  //
+  // the first two equations are put together with the other two over x and y
+  // 
+  // The method returns the x,y,t of the intersections (2, 1 or possibly a null intersection if the track never hits the module) 
+
+  double R = pt/(0.3*insur::magnetic_field) * 1e3;
+  if (fabs(2*R) < poly.getCenter().Rho()) return 0; // not even a tangent collision is possible (this is only valid inasmuch the center of the module is the closest point to the beam axis - always true for barrel modules)
+
+  double v = poly.getVertex(0).X(),     w = poly.getVertex(0).Y();
+  double m = poly.getVertex(1).X() - v, n = poly.getVertex(1).Y() - w;
+
+  double minZ = MIN(poly.getVertex(0).Z(), poly.getVertex(2).Z());
+  double maxZ = MAX(poly.getVertex(0).Z(), poly.getVertex(2).Z());
+
+  double a = m*m + n*n;
+  double b = 2*(m*v + n*v - h*m - k*n);
+  double c = h*h + k*k + v*v + w*w - 2*h*v - 2*k*w - R*R;
+  double delta = b*b - 4*a*c;
+  if (delta < 0.) return 0; // track can never collide with module
+
+  double u1 = (-b + sqrt(delta))/(2*a);
+  double u2 = (-b - sqrt(delta))/(2*a);
+  double t1 = asin((v + m*u1 - h)/R) - phi0; //asin((h - m*u1 - v)/R) - phi0 + M_PI; //acos((v + m*u1 - h)/R);
+  double t2 = asin((v + m*u2 - h)/R) - phi0;//asin((h - m*u2 - v)/R) - phi0 + M_PI;//acos((v + m*u2 - h)/R);
+ 
+  double L = tan(M_PI/2 - theta);
+
+  int initialCollisionSize = collisions.size();
+
+  if (u1 >= 0. && u1 <= 1.) {
+    double z = z0 + L*R*t1;
+    if (fabs(pt) >= HIGH_PT_THRESHOLD) {
+      if (z >= minZ && z <= maxZ) collisions.push_back(XYZVector(v + m*u1, w + n*u1, z));
+    } else {
+      double imin = (minZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
+      double imax = (maxZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
+      if (signum(pt)*signum(imax)) {
+        for (int i = ceil(imin); i <= floor(imax); i++) {
+          collisions.push_back(XYZVector(v + m*u1, w + n*u1, z0 + L*R*t1*(1 + 2*M_PI*i)));
+        }
+      }
+    }
+  }
+  if (u2 >= 0. && u2 <= 1.) {
+    double z = z0 + L*R*t2;
+    if (fabs(pt) >= HIGH_PT_THRESHOLD) {
+      if (z >= minZ && z <= maxZ) collisions.push_back(XYZVector(v + m*u2, w + n*u2, z));
+    } else { 
+      double imin = (minZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
+      double imax = (maxZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
+      if (signum(pt)*signum(imax)) {
+        for (int i = ceil(imin); i <= floor(imax); i++) {
+          collisions.push_back(XYZVector(v + m*u2, w + n*u2, z0 + L*R*t2*(1 + 2*M_PI*i)));
+        }
+      }
+    }
+  }
+
+  return collisions.size() - initialCollisionSize;
+}
 
 
 
@@ -347,7 +538,7 @@ void TrackShooter::printParameters() {
 }
 
 
-void TrackShooter::saveGeometryData() {
+void TrackShooter::exportGeometryData() {
 
   ModuleData mdata;
 
@@ -375,8 +566,9 @@ void TrackShooter::saveGeometryData() {
 
 void TrackShooter::shootTracks() {
 
-  Tracks tracks;
-  Hits hits;
+  Tracks tracks("tracks");
+  Hits hits("hits");
+  Hits plhits("plhits");
 
   printParameters();
 
@@ -388,32 +580,15 @@ void TrackShooter::shootTracks() {
     return;
   }
 
-  saveGeometryData();
+  exportGeometryData();
 
   TTree* tree = new TTree("trackhits", "TTree containing hits of simulated tracks");
 
   gROOT->ProcessLine("#include <vector>");
 
-  tree->Branch("tracks.eventn", &tracks.eventn);
-  tree->Branch("tracks.trackn", &tracks.trackn);
-  tree->Branch("tracks.eta", &tracks.eta);
-  tree->Branch("tracks.phi0", &tracks.phi0);
-  tree->Branch("tracks.z0", &tracks.z0);
-  tree->Branch("tracks.pt", &tracks.pt);
-  tree->Branch("tracks.nhits", &tracks.nhits);
-
-  tree->Branch("hits.glox", &hits.glox);
-  tree->Branch("hits.gloy", &hits.gloy);
-  tree->Branch("hits.gloz", &hits.gloz);
-  tree->Branch("hits.locx", &hits.locx);
-  tree->Branch("hits.locy", &hits.locy);
-  tree->Branch("hits.pterr", &hits.pterr);
-  tree->Branch("hits.hitprob", &hits.hitprob);
-  tree->Branch("hits.deltas", &hits.deltas);
-  tree->Branch("hits.cnt", &hits.cnt);
-  tree->Branch("hits.z", &hits.z);
-  tree->Branch("hits.rho", &hits.rho);
-  tree->Branch("hits.phi", &hits.phi);
+  tracks.setupBranches(*tree);
+  hits.setupBranches(*tree);
+  plhits.setupBranches(*tree);
 
 
   // build ordered maps
@@ -421,22 +596,20 @@ void TrackShooter::shootTracks() {
     // new event
     //
     for (long int j=0; j<numTracksEv_; j++, totTracks++) {
-      // randomly generate particle with eta = [-3,+3], phi = [0,2pi], Pt = [0.6,15]
-      //double eta = die.Uniform(-3, 3);
-      double eta = eta_->get(); // die.Uniform(-2, 2);
-      double phi0 = phi0_->get(); //die.Uniform(0.38, 1.634);
-      double z0 = z0_->get(); //die.Uniform(-20, 20);
-      double pt = charge_->get() * (!useInvPt_ ? pt_->get() : 1./invPt_->get()); //(die.Integer(2) ? 1 : -1) * 1./die.Uniform(0.01, 0.5);
+      double eta = eta_->get();
+      double phi0 = phi0_->get();
+      double z0 = z0_->get();
+      double pt = charge_->get() * (!useInvPt_ ? pt_->get() : 1./invPt_->get());
 
-      // or pick from file
-      //
-      //
 #ifdef FAKE_HITS
       if ((totTracks % 500) == 0) cout << "Track " << totTracks << " of " << (numEvents_+eventOffset_)*numTracksEv_ << std::endl;
 #else
       if ((totTracks % 5000) == 0) cout << "Track " << totTracks << " of " << (numEvents_+eventOffset_)*numTracksEv_ << std::endl;
 #endif
 /*      
+      // or pick from file
+      //
+      //
       ParticleGenerator::Particle particle = partGen.getParticle();
       
       double pt = particle.pt;
@@ -449,6 +622,12 @@ void TrackShooter::shootTracks() {
       double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
       double B = tan(theta)/R;
 
+      double helixCenterX = -dir*R*sin(phi0);
+      double helixCenterY =  dir*R*cos(phi0);
+
+      std::vector<XYZVector> collisions;
+      collisions.clear();
+
       for (BarrelRadii::const_iterator rit = barrelModsByRadius_.begin(); rit != barrelModsByRadius_.end(); ++rit) {
         double r = rit->first;
         if (r >= 2*R) continue;
@@ -460,10 +639,27 @@ void TrackShooter::shootTracks() {
         double phirot = atan2(y,x) + phi0;
 
         const BarrelOctants& octants = rit->second;
-        const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point 
+        const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point (CUIDADO octant is determined used non-planar mods)
 
         for (BarrelModules::const_iterator mit = bmods.begin(); mit != bmods.end(); ++mit) {
           BarrelModule* mod = (*mit);
+
+          Polygon3d<4> poly;
+          poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3);
+          if (detectCollisionBarrel(helixCenterX, helixCenterY, pt, z0, phi0, theta, poly, collisions)) { // planar collisions 
+            double xpl = collisions[0].X();
+            double ypl = collisions[0].Y();
+            double zpl = collisions[0].Z(); 
+            ptError* modPtError = mod->getPtError();
+            float pterr = modPtError->computeError(pt);
+            float hitprob = mod->getTriggerProbability(pt);
+            float deltaStrips = modPtError->pToStrips(pt);
+            XYVector locv = convertToLocalCoords(collisions[0], mod); 
+            PosRef posref = mod->getPositionalReference();
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            collisions.clear();
+          }
+
           double minPhi = mod->getMinPhi();
           double maxPhi = mod->getMaxPhi();
           if (mod->getMinZ() <= z && z <= mod->getMaxZ() &&
@@ -473,12 +669,12 @@ void TrackShooter::shootTracks() {
             float hitprob = mod->getTriggerProbability(pt);
             float deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
+            XYVector locv = convertToLocalCoords(XYZVector(xrot, yrot, z), mod); 
             PosRef posref = mod->getPositionalReference();
-            XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(XYZVector(xrot, yrot, z) - mod->getMeanPoint()); // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (X)
-            
-            hits.push_back(xrot, yrot, z, locv.Y(), locv.Z(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
 
-            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
+            //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
+            // CUIDADO this optimization has been disabled for debug
           }
         }
       }
@@ -505,15 +701,33 @@ void TrackShooter::shootTracks() {
         const EndcapOctants& octants = zit->second;
         const EndcapModules& emods = octants[getPointOctant(xrot, yrot, z)];
 
+
         for (EndcapModules::const_iterator mit = emods.begin(); mit != emods.end(); ++mit) {
-          Module* mod = (*mit);
-          XYZVector hitv(xrot, yrot, z);
-          // check if hit lies in module
+          EndcapModule* mod = (*mit);
+
           Polygon3d<4> poly;
           poly << (mod->getCorner(0) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-               << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-               << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-               << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
+            << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+            << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+            << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
+
+          if (detectCollisionEndcap(helixCenterX, helixCenterY, pt, z0, phi0, theta, poly, collisions)) {
+            ptError* modPtError = mod->getPtError();
+            float pterr = modPtError->computeError(pt);
+            float hitprob = mod->getTriggerProbability(pt);
+            float deltaStrips = modPtError->pToStrips(pt);
+            PosRef posref = mod->getPositionalReference();
+            double xpl = collisions[0].X();
+            double ypl = collisions[0].Y();
+            double zpl = collisions[0].Z();
+            XYVector locv = convertToLocalCoords(collisions[0], mod);
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            collisions.clear();
+          }
+
+          XYZVector hitv(xrot, yrot, z);
+          // check if hit lies in module
+
           if (poly.isPointInside(hitv)) {
             // module was hit
             ptError* modPtError = mod->getPtError();
@@ -522,11 +736,11 @@ void TrackShooter::shootTracks() {
             float deltaStrips = modPtError->pToStrips(pt);
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
             PosRef posref = mod->getPositionalReference();
-            XYZVector locv = RotationZ(-mod->getMeanPoint().Phi())*(hitv - mod->getMeanPoint());  // we translate the hit back to the origin, we rotate it like the module at phi=0 was hit, then we drop the irrelevant coordinate (Z)
+            XYVector locv = convertToLocalCoords(XYZVector(xrot, yrot, z), mod);
 
-            hits.push_back(xrot, yrot, z, locv.Y(), locv.X(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
 
-            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
+            //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }      
         }
 
