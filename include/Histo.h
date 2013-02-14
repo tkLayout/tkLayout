@@ -227,7 +227,7 @@ protected:
   Histo() {}
 
 public:
-  Histo(int nbins[N], double lo[N], double hi[N]) {
+  Histo(const int nbins[N], const double lo[N], const double hi[N]) {
     for (int i=0; i<N; i++) {
       nbins_[i] = nbins[i];
       lo_[i] = lo[i];

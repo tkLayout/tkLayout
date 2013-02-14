@@ -172,12 +172,12 @@ void HoughTrack::processTree(std::string filename, long int startev, long int ho
   long int nevents = tree->GetEntriesFast();
 #ifdef GENERATE_HIT_MAP
   //TH2I* trackHitsHisto = new TH2I("track_hits", "track hits;pt;eta", 100, -50, 50, 100, -2, 2);
-  Histo<2, int> invPtEtaTrackCount((int[])   {100, 100},
-                                   (double[]){-.6, -2.2},
-                                   (double[]){.6,  2.2});
-  Histo<2, double> invPtEtaAverageHits((int[])   {100, 100},
-                                       (double[]){-.6, -2.2},
-                                       (double[]){.6,  2.2});
+  Histo<2, int> invPtEtaTrackCount(Seq<2,int>   (100)(100),
+                                   Seq<2,double>(-.6)(-2.2),
+                                   Seq<2,double> (.6)(2.2));
+  Histo<2, double> invPtEtaAverageHits(Seq<2,int>   (100) (100),
+                                       Seq<2,double>(-.6)(-2.2),
+                                       Seq<2,double> (.6) (2.2));
 #endif
   int minHits = 100, maxHits = 0;
   float minAvgHits = 100, maxAvgHits = 0;

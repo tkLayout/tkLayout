@@ -399,45 +399,66 @@ int TrackShooter::detectCollisionBarrel(double h, double k, double pt, double z0
   double minZ = MIN(poly.getVertex(0).Z(), poly.getVertex(2).Z());
   double maxZ = MAX(poly.getVertex(0).Z(), poly.getVertex(2).Z());
 
+  if (theta < M_PI/2 && maxZ < z0) return 0; // this filters out modules which will nevel be hit because they lie in the opposite direction as the particle's trajectory
+  else if (theta > M_PI/2 && minZ > z0) return 0; // ditto here
+
   double a = m*m + n*n;
-  double b = 2*(m*v + n*v - h*m - k*n);
+  double b = 2*(m*v + n*w - h*m - k*n);
   double c = h*h + k*k + v*v + w*w - 2*h*v - 2*k*w - R*R;
   double delta = b*b - 4*a*c;
   if (delta < 0.) return 0; // track can never collide with module
 
   double u1 = (-b + sqrt(delta))/(2*a);
   double u2 = (-b - sqrt(delta))/(2*a);
-  double t1 = asin((v + m*u1 - h)/R) - phi0; //asin((h - m*u1 - v)/R) - phi0 + M_PI; //acos((v + m*u1 - h)/R);
-  double t2 = asin((v + m*u2 - h)/R) - phi0;//asin((h - m*u2 - v)/R) - phi0 + M_PI;//acos((v + m*u2 - h)/R);
  
   double L = tan(M_PI/2 - theta);
 
   int initialCollisionSize = collisions.size();
-
+  //if (phi0 < 0) phi0 += 2*M_PI;
   if (u1 >= 0. && u1 <= 1.) {
+    double x = v + m*u1;
+    double y = w + n*u1;
+    double t1_1 = asin((v + m*u1 - h)/R) - phi0; // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
+    t1_1 = fmod(t1_1, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.); // wrapping the root in 0,2pi, if pt is < 0 we want negative numbers
+    double t1_2 = M_PI - asin((v + m*u1 - h)/R) - phi0;
+    t1_2 = fmod(t1_2, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.);
+    double y1 = k - R*cos(phi0 + t1_1);
+    double y2 = k - R*cos(phi0 + t1_2);
+    y2 = y2;
+    double t1 = fabs(y1 - y) < 1e-3 ? t1_1 : t1_2; // to figure out which one we want, we plug the first candidate in the second parametric circle eq and we check whether the resulting y has the same sign of the y of the intersection point. If signs differ, the good t root is the other one. This is because the 2 two roots result in cosines with same modulo but opposite sign.
     double z = z0 + L*R*t1;
     if (fabs(pt) >= HIGH_PT_THRESHOLD) {
-      if (z >= minZ && z <= maxZ) collisions.push_back(XYZVector(v + m*u1, w + n*u1, z));
+      if (z >= minZ && z <= maxZ && fabs(t1) < M_PI/2) collisions.push_back(XYZVector(x, y, z)); // the condition on t1 weeds out tracks curving back in the detector (in a coarse way)
     } else {
       double imin = (minZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
       double imax = (maxZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
-      if (signum(pt)*signum(imax)) {
+      if (signum(pt) == signum(imax)) {
         for (int i = ceil(imin); i <= floor(imax); i++) {
-          collisions.push_back(XYZVector(v + m*u1, w + n*u1, z0 + L*R*t1*(1 + 2*M_PI*i)));
+          collisions.push_back(XYZVector(x, y, z0 + L*R*t1*(1 + 2*M_PI*i)));
         }
       }
     }
   }
   if (u2 >= 0. && u2 <= 1.) {
+    double x = v + m*u2;
+    double y = w + n*u2;
+    double t2_1 = asin((v + m*u2 - h)/R) - phi0;
+    t2_1 = fmod(t2_1, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
+    double t2_2 = M_PI - asin((v + m*u2 - h)/R) - phi0;
+    t2_2 = fmod(t2_2, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.);
+    double y1 = k - R*cos(phi0 + t2_1);
+    double y2 = k - R*cos(phi0 + t2_2);
+    y2 = y2;
+    double t2 = fabs(y1 - y) < 1e-3 ? t2_1 : t2_2; // to figure out which one we want, we plug the first candidate in the second parametric circle eq and we check whether the resulting y has the same sign of the y of the intersection point. If signs differ, the good t root is the other one. This is because the 2 two roots result in cosines with same modulo but opposite sign.
     double z = z0 + L*R*t2;
     if (fabs(pt) >= HIGH_PT_THRESHOLD) {
-      if (z >= minZ && z <= maxZ) collisions.push_back(XYZVector(v + m*u2, w + n*u2, z));
+      if (z >= minZ && z <= maxZ && fabs(t2) < M_PI/2) collisions.push_back(XYZVector(x, y, z));
     } else { 
       double imin = (minZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
       double imax = (maxZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
       if (signum(pt)*signum(imax)) {
         for (int i = ceil(imin); i <= floor(imax); i++) {
-          collisions.push_back(XYZVector(v + m*u2, w + n*u2, z0 + L*R*t2*(1 + 2*M_PI*i)));
+          collisions.push_back(XYZVector(x, y, z0 + L*R*t2*(1 + 2*M_PI*i)));
         }
       }
     }
@@ -617,6 +638,7 @@ void TrackShooter::shootTracks() {
       double phi0 = particle.phi;
       double z0 = particle.z0;
   */    
+
       int dir = signum(pt);
       double theta = 2*atan(exp(-eta));
       double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
@@ -637,6 +659,7 @@ void TrackShooter::shootTracks() {
         double xrot = x*cos(phi0) - y*sin(phi0);
         double yrot = x*sin(phi0) + y*cos(phi0);
         double phirot = atan2(y,x) + phi0;
+        if (phirot > M_PI) phirot -= 2*M_PI;
 
         const BarrelOctants& octants = rit->second;
         const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point (CUIDADO octant is determined used non-planar mods)

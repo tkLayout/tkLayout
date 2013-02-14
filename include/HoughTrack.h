@@ -113,9 +113,9 @@ class HoughTrack {
 
   enum { H_K = 0, H_PHI0 = 1, H_Z0 = 2, H_THETA = 3 };
 public:                     //     invPt,phi0,  z0, theta
-  HoughTrack() : histo_((int[])   {1000,  1000, 100, 1000}, 
-                        (double[]){-0.5, -3.14, -70.5,   0.},
-                        (double[]){ 0.5,  3.14,  69.5, 3.14}),
+  HoughTrack() : histo_(seq<4>(1000)(1000)(100)(1000),
+                        seq<4>(-0.5)(-3.14)(-70.5)(0.),
+                        seq<4>(0.5)(3.14)(69.5)(3.14)),
                  die_(0xcafebabe) {}
   void processTree(std::string filename, long int startev, long int howmany);
   ~HoughTrack();
