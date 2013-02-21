@@ -418,10 +418,10 @@ int TrackShooter::detectCollisionBarrel(double h, double k, double pt, double z0
   if (u1 >= 0. && u1 <= 1.) {
     double x = v + m*u1;
     double y = w + n*u1;
-    double t1_1 = asin((v + m*u1 - h)/R) - phi0; // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
-    t1_1 = fmod(t1_1, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.); // wrapping the root in 0,2pi, if pt is < 0 we want negative numbers
-    double t1_2 = M_PI - asin((v + m*u1 - h)/R) - phi0;
-    t1_2 = fmod(t1_2, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.);
+    double t1_1 = fmod(asin((v + m*u1 - h)/R) - phi0, 2*M_PI); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
+    t1_1 = t1_1 - (pt < 0 && t1_1 > 0 ? 2*M_PI : 0.); // wrapping the root in 0,2pi, if pt is < 0 we want negative numbers
+    double t1_2 = fmod(M_PI - asin((v + m*u1 - h)/R) - phi0, 2*M_PI);
+    t1_2 = t1_2 - (pt < 0 && t1_2 > 0 ? 2*M_PI : 0.);
     double y1 = k - R*cos(phi0 + t1_1);
     double y2 = k - R*cos(phi0 + t1_2);
     y2 = y2;
@@ -442,10 +442,10 @@ int TrackShooter::detectCollisionBarrel(double h, double k, double pt, double z0
   if (u2 >= 0. && u2 <= 1.) {
     double x = v + m*u2;
     double y = w + n*u2;
-    double t2_1 = asin((v + m*u2 - h)/R) - phi0;
-    t2_1 = fmod(t2_1, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
-    double t2_2 = M_PI - asin((v + m*u2 - h)/R) - phi0;
-    t2_2 = fmod(t2_2, 2*M_PI) + (pt < 0 ? -2*M_PI : 0.);
+    double t2_1 = fmod(asin((v + m*u2 - h)/R) - phi0, 2*M_PI);
+    t2_1 = t2_1 - (pt < 0 && t2_1 > 0 ? 2*M_PI : 0.); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
+    double t2_2 = fmod(M_PI - asin((v + m*u2 - h)/R) - phi0, 2*M_PI);
+    t2_2 = t2_2 - (pt < 0 && t2_2 > 0 ? 2*M_PI : 0.);
     double y1 = k - R*cos(phi0 + t2_1);
     double y2 = k - R*cos(phi0 + t2_2);
     y2 = y2;
@@ -612,6 +612,7 @@ void TrackShooter::shootTracks() {
   plhits.setupBranches(*tree);
 
 
+  int numpl = 0, numcyl = 0;
   // build ordered maps
   for (long int i=eventOffset_, totTracks = eventOffset_*numTracksEv_; i<numEvents_+eventOffset_; i++) {
     // new event
@@ -669,18 +670,26 @@ void TrackShooter::shootTracks() {
 
           Polygon3d<4> poly;
           poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3);
+          double xpl;
+          double ypl;
+          double zpl;
+          bool planarcoll = false;
           if (detectCollisionBarrel(helixCenterX, helixCenterY, pt, z0, phi0, theta, poly, collisions)) { // planar collisions 
-            double xpl = collisions[0].X();
-            double ypl = collisions[0].Y();
-            double zpl = collisions[0].Z(); 
+            xpl = collisions[0].X();
+            ypl = collisions[0].Y();
+            zpl = collisions[0].Z(); 
             ptError* modPtError = mod->getPtError();
             float pterr = modPtError->computeError(pt);
             float hitprob = mod->getTriggerProbability(pt);
             float deltaStrips = modPtError->pToStrips(pt);
             XYVector locv = convertToLocalCoords(collisions[0], mod); 
             PosRef posref = mod->getPositionalReference();
-            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
             collisions.clear();
+            planarcoll = true;
+            numpl++;
+            xpl = locv.X();
+            ypl = locv.Y();
           }
 
           double minPhi = mod->getMinPhi();
@@ -694,8 +703,12 @@ void TrackShooter::shootTracks() {
             mod->setProperty("tracksimHits", mod->getProperty("tracksimHits")+1);
             XYVector locv = convertToLocalCoords(XYZVector(xrot, yrot, z), mod); 
             PosRef posref = mod->getPositionalReference();
-            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+           // double dist = planarcoll ? sqrt((xrot - xpl)*(xrot - xpl) + (yrot - ypl)*(yrot - ypl) + (z - zpl)*(z - zpl)) : -1.;
+            double distx = planarcoll ? fabs(locv.X() - xpl) : -1.;
+            double disty = planarcoll ? fabs(locv.Y() - ypl) : -1.;
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, distx, disty);
 
+            numcyl++;
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
             // CUIDADO this optimization has been disabled for debug
           }
@@ -744,7 +757,7 @@ void TrackShooter::shootTracks() {
             double ypl = collisions[0].Y();
             double zpl = collisions[0].Z();
             XYVector locv = convertToLocalCoords(collisions[0], mod);
-            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
             collisions.clear();
           }
 
@@ -761,7 +774,7 @@ void TrackShooter::shootTracks() {
             PosRef posref = mod->getPositionalReference();
             XYVector locv = convertToLocalCoords(XYZVector(xrot, yrot, z), mod);
 
-            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
 
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }      
@@ -795,6 +808,7 @@ void TrackShooter::shootTracks() {
     }
 #endif
   }
+  std::cout << "numpl=" << numpl << " numcyl=" << numcyl << std::endl;
 
   outfile->Write();
   outfile->Close();

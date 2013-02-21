@@ -472,6 +472,7 @@ void BarrelLayer::buildMezzanineStringPair(
     m->translate(XYZVector(0, (parity > 0 ? smallDelta : -smallDelta) + averageRadius, 0));
     m->setEdgeZ(listZ[i], -1);
     m->setRing(i+1);
+    m->setZSide(1);
     thisModuleSet.push_back(m);        
   }
 
@@ -480,6 +481,7 @@ void BarrelLayer::buildMezzanineStringPair(
     m->translate(XYZVector(0, (parity > 0 ? smallDelta : -smallDelta) + averageRadius, 0));
     m->setEdgeZ(-listZ[i], 1);
     m->setRing(i+1);
+    m->setZSide(-1);
     thisModuleSet.push_back(m);        
   }
 }

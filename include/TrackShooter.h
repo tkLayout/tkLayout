@@ -217,6 +217,7 @@ struct Hits { // holder struct for TTree export
   std::vector<float> pterr, hitprob;
   std::vector<float> deltas;
   std::vector<char> cnt, z, rho, phi;
+  std::vector<double> distx, disty;
   const std::string name;
   Hits(const std::string& name_) : name(name_) {}
 
@@ -226,8 +227,9 @@ struct Hits { // holder struct for TTree export
     pterr.clear(); hitprob.clear();
     deltas.clear();
     cnt.clear(); z.clear(); rho.clear(); phi.clear();
+    distx.clear(); disty.clear();
   }
-  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_) {
+  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_, double distx_, double disty_) {
     glox.push_back(glox_);
     gloy.push_back(gloy_);
     gloz.push_back(gloz_);
@@ -240,6 +242,8 @@ struct Hits { // holder struct for TTree export
     z.push_back(z_);
     rho.push_back(rho_);
     phi.push_back(phi_);
+    distx.push_back(distx_);
+    disty.push_back(disty_);
   }
   int size() const { return glox.size(); }
 
@@ -256,6 +260,8 @@ struct Hits { // holder struct for TTree export
     tree.Branch((name + ".z").c_str(), &z);
     tree.Branch((name + ".rho").c_str(), &rho);
     tree.Branch((name + ".phi").c_str(), &phi);
+    tree.Branch((name + ".distx").c_str(), &distx);
+    tree.Branch((name + ".disty").c_str(), &disty);
   }
 };
 
