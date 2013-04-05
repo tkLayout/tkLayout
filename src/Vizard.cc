@@ -1249,10 +1249,10 @@ namespace insur {
     // find last relevant bin
     while ((cobin < histo.GetNbinsX()) && (histo.GetBinLowEdge(cobin) < cutoff)) cobin++;
     // calculate average
-    if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
-    else {
+    //if (cobin >= histo.GetNbinsX() - 1) avg = histo.GetMean();
+   // else {
       for (int i = 1; i <= cobin; i++) avg = avg + histo.GetBinContent(i) / (double)cobin;
-    }
+    //}
     return avg;
   }
 
