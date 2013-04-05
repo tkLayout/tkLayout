@@ -370,6 +370,7 @@ namespace insur {
     TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
     TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
     TH2D *ir = NULL, *ii = NULL;
+    TProfile *ciProf, *crProf;
     TVirtualPad* pad;
     // filename gymnastics
     std::string outfile = default_summarypath + "/";
@@ -409,9 +410,11 @@ namespace insur {
     cr->Add(fr1);
     cr->Add(fr2);
     cr->SetFillColor(kGray + 2);
-    cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-    cr->SetXTitle("#eta");
-    cr->Draw();
+    crProf = newProfile(cr);
+    crProf->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume rebinned");
+    crProf->SetXTitle("#eta");
+    crProf->Rebin(materialRebin);
+    crProf->Draw("hist");
     pad = c.GetPad(2);
     pad->cd();
     // total tracking volume ilength
@@ -423,9 +426,11 @@ namespace insur {
     ci->Add(fi1);
     ci->Add(fi2);
     ci->SetFillColor(kGray + 1);
-    ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-    ci->SetXTitle("#eta");
-    ci->Draw();
+    ciProf = newProfile(ci);
+    ciProf->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume rebinned");
+    ciProf->SetXTitle("#eta");
+    ciProf->Rebin(materialRebin);
+    ciProf->Draw("hist");
     // write total plots to file
     pngout = pngoutfile + ".fullvolume.png";
     pngpath = default_summarypath + "/" + pngout;
@@ -449,17 +454,21 @@ namespace insur {
     // global plots in tracking volume: radiation length
     cr = (TH1D*)a.getHistoGlobalR().Clone();
     cr->SetFillColor(kGray + 2);
-    cr->SetNameTitle("rglobal", "Overall Radiation Length");
-    cr->SetXTitle("#eta");
-    cr->Draw();
+    crProf = newProfile(cr);
+    crProf->SetNameTitle("rglobal", "Overall Radiation Length");
+    crProf->SetXTitle("#eta");
+    crProf->Rebin(materialRebin);
+    cr->Draw("hist");
     pad = c.GetPad(2);
     pad->cd();
     // global plots in tracking volume: interaction length
     ci = (TH1D*)a.getHistoGlobalI().Clone();
     ci->SetFillColor(kGray + 1);
-    ci->SetNameTitle("iglobal", "Overall Interaction Length");
-    ci->SetXTitle("#eta");
-    ci->Draw();
+    ciProf = newProfile(ci);
+    ciProf->SetNameTitle("iglobal", "Overall Interaction Length");
+    ciProf->SetXTitle("#eta");
+    ciProf->Rebin(materialRebin);
+    ciProf->Draw("hist");
     // write global tracking volume plots to file
     pngout = pngoutfile + ".global.png";
     pngpath = default_summarypath + "/" + pngout;
@@ -689,6 +698,7 @@ namespace insur {
     TH2D *ir = NULL, *ii = NULL;
 #endif
     TH2D *mapRad = NULL, *mapInt = NULL;
+    TProfile *ciProf, *crProf;
 
     // Output initialisation and headers
     myCanvas = new TCanvas(name_overviewMaterial.c_str());
@@ -707,9 +717,11 @@ namespace insur {
     cr->Add(fr1);
     cr->Add(fr2);
     cr->SetFillColor(kGray + 2);
-    cr->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-    cr->SetXTitle("#eta");
-    cr->Draw();
+    crProf = newProfile(cr);
+    crProf->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
+    crProf->SetXTitle("#eta");
+    crProf->Rebin(materialRebin);
+    crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // Total Tracking volume ilength
@@ -721,9 +733,11 @@ namespace insur {
     ci->Add(fi1);
     ci->Add(fi2);
     ci->SetFillColor(kGray + 1);
-    ci->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-    ci->SetXTitle("#eta");
-    ci->Draw();
+    ciProf = newProfile(ci);
+    ciProf->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
+    ciProf->SetXTitle("#eta");
+    ciProf->Rebin(materialRebin);
+    ciProf->Draw("hist");
     // Put the total plots to the site
     myImage = new RootWImage(myCanvas, 900, 400);
     myImage->setComment("Material in full volume");
@@ -794,17 +808,21 @@ namespace insur {
     // global plots in tracking volume: radiation length
     cr = (TH1D*)a.getHistoGlobalR().Clone();
     cr->SetFillColor(kGray + 2);
-    cr->SetNameTitle("rglobal", "Overall Radiation Length");
-    cr->SetXTitle("#eta");
-    cr->Draw();
+    crProf = newProfile(cr);
+    crProf->SetNameTitle("rglobal", "Overall Radiation Length");
+    crProf->SetXTitle("#eta");
+    crProf->Rebin(materialRebin);
+    crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // global plots in tracking volume: interaction length
     ci = (TH1D*)a.getHistoGlobalI().Clone();
     ci->SetFillColor(kGray + 1);
-    ci->SetNameTitle("iglobal", "Overall Interaction Length");
-    ci->SetXTitle("#eta");
-    ci->Draw();
+    ciProf = newProfile(ci);
+    ciProf->SetNameTitle("iglobal", "Overall Interaction Length");
+    ciProf->SetXTitle("#eta");
+    ciProf->Rebin(materialRebin);
+    ciProf->Draw("hist");
     // Write global tracking volume plots to web pag
     myImage = new RootWImage(myCanvas, 900, 400);
     myImage->setComment("Material in tracking volume");
@@ -1988,6 +2006,7 @@ namespace insur {
     for (etaProfileIterator=etaProfiles.begin();
          etaProfileIterator!=etaProfiles.end();
          ++etaProfileIterator) {
+      etaProfileIterator->SetMinimum(0);
       (*etaProfileIterator).Draw("same");
     }
     return true; // TODO: make this meaningful
@@ -3749,6 +3768,24 @@ namespace insur {
     myGraph.SetPoint(myGraph.GetN(), x0,0);
   }
 
-
-
+  // Helper function to convert a histogram into a TProfile
+  TProfile* Vizard::newProfile(TH1D* sourceHistogram) {
+    TProfile* resultProfile;
+    resultProfile = new TProfile(Form("%s_profile",sourceHistogram->GetName()),
+                                 sourceHistogram->GetTitle(),
+                                 sourceHistogram->GetNbinsX(),
+                                 sourceHistogram->GetXaxis()->GetXmin(),
+                                 sourceHistogram->GetXaxis()->GetXmax());
+    for (int i=1; i<=sourceHistogram->GetNbinsX(); ++i) {
+      resultProfile->Fill(sourceHistogram->GetBinCenter(i), sourceHistogram->GetBinContent(i));
+    } 
+    resultProfile->SetLineColor(sourceHistogram->GetLineColor());
+    resultProfile->SetLineWidth(sourceHistogram->GetLineWidth());
+    resultProfile->SetLineStyle(sourceHistogram->GetLineStyle());
+    resultProfile->SetFillColor(sourceHistogram->GetFillColor());
+    resultProfile->SetFillStyle(sourceHistogram->GetFillStyle());
+    return resultProfile;
+  } 
+  
+  
 }

@@ -34,6 +34,7 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
+#include <TProfile.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
@@ -73,6 +74,7 @@ namespace insur {
 
   // gStyle stuff
   static const int style_grid = 3;
+  static const int materialRebin = 2;
 
   // Colors for plot background and such
   static const int color_plot_background = kWhite;
@@ -227,6 +229,7 @@ namespace insur {
     void addOccupancyElement(std::string element);
     void addOccupancyEOL();
 
+    TProfile* newProfile(TH1D* nn);
     // int getNiceColor(unsigned int plotIndex);
   };
 
