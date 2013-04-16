@@ -85,6 +85,10 @@ int main(int argc, char* argv[]) {
 
     if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
+    if (vm.count("help")) {
+      std::cout << usage << std::endl << shown << trackopt << std::endl;
+      return 0;
+    }
     if (!vm.count("base-name")) throw po::error("Missing geometry base name"); 
 
   } catch(po::error e) {
@@ -93,10 +97,6 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (vm.count("help")) {
-    std::cout << usage << std::endl << shown << trackopt << std::endl;
-    return 0;
-  }
 
   insur::Squid squid;
   bool verboseMaterial = false;

@@ -20,6 +20,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <Math/Vector2D.h>
 #include <Math/GenVector/DisplacementVector2D.h>
 #include <Math/GenVector/RotationZ.h>
 #include <Math/GenVector/Rotation3D.h>
@@ -38,7 +39,7 @@ template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
   return (int(x < T(0)) << 2) || (int(x < T(0)) << 1) || int(x < T(0));
 }
 
-typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
+//typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
 
 std::set<int> getModuleOctants(const Module* mod);
 

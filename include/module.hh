@@ -8,6 +8,7 @@
 
 // ROOT objects
 #include "Math/Vector3D.h"
+#include "Math/Vector2D.h"
 #include "TGeoManager.h"
 #include "TPolyLine3D.h"
 
@@ -245,6 +246,8 @@ protected:
   edge getEdgeRhoSide(int direction);
   int setEdgeRho(double destRho, int direction);
   int setEdgeRhoSide(double destRho, int direction);
+
+  double pointSegmentDistance2d(const XYVector& p, const std::pair<XYVector, XYVector>& s) const;
 
   virtual double getMinTheta() const;
   virtual double getMaxTheta() const;
@@ -487,6 +490,8 @@ public:
   bool wasCut() const { return cut_ ; };
   double getLost() const { if (cut_) return lost_; return 0;};
   double getDist() const { return dist_;};
+
+  double getMinRho() const;
 
   double getMaxPhi() const; 
   double getMinPhi() const;

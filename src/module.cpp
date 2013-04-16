@@ -1078,6 +1078,18 @@ double Module::getMinRho() const {
   return minRho_.value;
 }
 
+double Module::pointSegmentDistance2d(const XYVector& p, const std::pair<XYVector, XYVector>& s) const {
+  double x1 = s.first.X(), y1 = s.first.Y();
+  double x2 = s.second.X(), y2 = s.second.Y();
+  double x3 = p.X(), y3 = p.Y();
+  double u = ((x3-x1)*(x2-x1) + (y3-y1)*(y2-y1))/((s.second - s.first).Mag2());
+  u = MAX(MIN(u, 1), 0.); // constraining the point in the segment
+  XYVector dp(x1 + u*(x2-x1), y1 + u*(y2-y1));
+  return sqrt((dp - p).Mag2());
+}
+
+
+
 double Module::getMaxZ() const {
   if (!maxZ_.inited) {
     maxZ_.value = corner_[0].Z();
@@ -1242,6 +1254,22 @@ double EndcapModule::getStripOccupancyPerEvent() {
 
     return myOccupancyEndcap*dphideta_/factor / (90/1e3) * ((getWidthLo() + getWidthHi()/2.) / nStripAcross_ );
 }
+
+
+double EndcapModule::getMinRho() const {
+  if (!minRho_.inited) {
+    std::vector<double> rhos(4);
+    for (int i = 0; i < 4; i++) { 
+      rhos[i] = pointSegmentDistance2d(XYVector(0.,0.), std::make_pair(XYVector( corner_[i].X(),       corner_[i].Y() ), 
+                                                                       XYVector( corner_[(i+1)%4].X(), corner_[(i+1)%4].Y() )));
+    }
+    std::sort(rhos.begin(), rhos.end());
+    minRho_.value = rhos.front();
+    minRho_.inited = geometryLocked();
+  }
+  return minRho_.value;
+}
+
 
 double EndcapModule::getHitOccupancyPerEvent() {
     return getStripOccupancyPerEvent()/2; // CUIDADO: placeholder formula
