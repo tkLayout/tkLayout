@@ -350,9 +350,13 @@ cleanmoduletype:
 cleanpt:
 	@rm -f $(LIBDIR)/ptError.o
 
+cleanothers:
+	@rm -f $(LIBDIR)/global_funcs.o	$(LIBDIR)/Histo.o  $(LIBDIR)/PlotDrawer.o  $(LIBDIR)/StopWatch.o  $(LIBDIR)/TrackShooter.o
+
+
 clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
 	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
-	cleanpalette cleantuneptparam cleanpt cleanmoduletype
+	cleanpalette cleantuneptparam cleanpt cleanmoduletype cleanothers
 
 doc: doxydoc
 
