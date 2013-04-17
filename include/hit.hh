@@ -169,5 +169,6 @@ public:
 #endif
   void addIPConstraint(double dr, double dz);
   RILength getCorrectedMaterial();
+  std::vector<Module*> getHitModules() const;
 };
 #endif

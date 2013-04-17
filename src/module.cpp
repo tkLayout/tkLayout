@@ -377,6 +377,16 @@ double Module::getPtCut() {
   return myPtError.stripsToP(triggerWindow_/2.);
 }
 
+/** 
+ * Uses the myPtError object to compute the trigger geometric efficiency
+ *
+ * @returns geometric efficiency
+ */
+double Module::getGeometricEfficiency() {
+  setPterrorParameters();
+  return myPtError.geometricEfficiency();
+}
+
 // TODO: better special case for PT modules
 double BarrelModule::getResolutionRphi() {
   if (resolutionRphi_!=defaultResolutionRphi_) return resolutionRphi_;

@@ -144,6 +144,7 @@ namespace insur {
     static const int TriggeredProfile;
     static const int TriggerProfile;
     static const int TriggeredFractionProfile;
+    static const int TriggerPurityProfile;
     static const std::string TriggerProfileName;
     static const std::string TriggerProfileNameWindow;
     static const std::string TurnOnCurveName;
@@ -433,7 +434,8 @@ namespace insur {
                          const std::vector<Track>& trackVector,
                          int graphAttributes);
     void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-                                     const std::vector<Track>& trackVector);
+                                     const std::vector<Track>& trackVector,
+                                     const Tracker& tracker);
     void fillTriggerPerformanceMaps(Tracker& tracker);
     void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();

@@ -353,6 +353,7 @@ protected:
   double getPtThreshold(const double& myEfficiency);
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
   double getPtCut();
+  double getGeometricEfficiency(); // TODO: UGLY fix this :) !!!!
 
   //double getTriggerFrequencyTruePerEvent();
   double getTriggerFrequencyTruePerEventAbove(const double& myCut);

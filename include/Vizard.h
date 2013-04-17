@@ -103,6 +103,12 @@ namespace insur {
   static const int minimumBiasPrecision = 0;
   static const int weightPrecision = 0;
 
+  // Plot range parameters
+  static const double triggerEtaMin = 0;
+  static const double triggerEtaMax = 3;
+  static const double triggerEfficiencyMin = 1e-4;
+  static const double triggerEfficiencyMax = 1;
+
   class graphIndex {
   public:
     graphIndex() {} ;

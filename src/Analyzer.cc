@@ -71,6 +71,7 @@ namespace insur {
   const double profileBag::Triggerable    = 0.;
   const int profileBag::TriggeredProfile  = 0x0000007;
   const int profileBag::TriggeredFractionProfile  = 0x0000008;
+  const int profileBag::TriggerPurityProfile = 0x0000010;
   const int profileBag::TriggerProfile    = 0x0000040;
 
   // These strings should be different from one another
@@ -486,7 +487,7 @@ namespace insur {
     }
 
     // Compute the number of triggering points along the selected tracks
-    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+    fillTriggerEfficiencyGraphs(triggerMomenta, tv, tracker);
 
     // Fill the trigger performance maps
     fillTriggerPerformanceMaps(tracker);
@@ -928,12 +929,14 @@ namespace insur {
 
 
     void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-                                               const std::vector<Track>& trackVector) {
+                                               const std::vector<Track>& trackVector,
+                                               const Tracker& tracker) {
 
       // Prepare the graphs to record the number of triggered points
       //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
       std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
       std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
+      std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
 
       TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
 
@@ -946,18 +949,41 @@ namespace insur {
         eta = - log(tan(myTrack.getTheta() / 2));
         int nHits = myTrack.nActiveHits(false, false);
         totalProfile.Fill(eta, nHits);
+        std::vector<Module*> hitModules = myTrack.getHitModules();
 
         for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
             itMomentum!=triggerMomenta.end(); ++itMomentum) {
           TProfile& myProfile = trigProfiles[(*itMomentum)];
           TProfile& myFractionProfile = trigFractionProfiles[(*itMomentum)];
+          TProfile& myPurityProfile = trigPurityProfiles[(*itMomentum)];
           double nExpectedTriggerPoints = myTrack.expectedTriggerPoints(*itMomentum);
           if (nExpectedTriggerPoints>=0) { // sanity check (! nan)
             myProfile.Fill(eta, nExpectedTriggerPoints);
             if (nHits>0) {
               myFractionProfile.Fill(eta, nExpectedTriggerPoints*100/double(nHits));
+
+              double curAvgTrue=0;
+              double curAvgInteresting=0;
+              double curAvgFake=0;
+              double bgReductionFactor; // Reduction of the combinatorial background for ptMixed modules by turning off the appropriate pixels
+              for (std::vector<Module*>::iterator itModule = hitModules.begin(); itModule!= hitModules.end(); ++itModule) {
+                Module* hitModule = (*itModule);
+                // Hits that we would like to have from tracks above this threshold
+                curAvgInteresting += hitModule->getParticleFrequencyPerEventAbove(*itMomentum);
+                // ... out of which we only see these
+                curAvgTrue  += hitModule->getTriggerFrequencyTruePerEventAbove(*itMomentum);
+
+                // The background is given by the contamination from low pT tracks...
+                curAvgFake += hitModule->getTriggerFrequencyTruePerEventBelow(*itMomentum);
+                // ... plus the combinatorial background from occupancy (can be reduced using ptMixed modules)
+                if (hitModule->getType()=="ptMixed") bgReductionFactor = hitModule->getGeometricEfficiency(); else bgReductionFactor=1;
+                curAvgFake += hitModule->getTriggerFrequencyFakePerEvent()*tracker.getNMB() * bgReductionFactor;
+              }
+              myPurityProfile.Fill(eta, 100*curAvgTrue/(curAvgTrue+curAvgFake));
             }
           }
+
+
         }
       }
       if (totalProfile.GetMaximum() < maximum_n_planes) totalProfile.SetMaximum(maximum_n_planes);
@@ -2964,6 +2990,7 @@ namespace insur {
       // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
       std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
       std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
+      std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
 
       // Prepare the graphs for the trigger performace
       std::ostringstream aName;
@@ -2976,6 +3003,7 @@ namespace insur {
         //std::pair<double, TGraph> elemGraph;
         std::pair<double, TProfile> elemProfile;
         std::pair<double, TProfile> elemFractionProfile;
+        std::pair<double, TProfile> elemPurityProfile;
         //TGraph graph;
         TProfile profile("dummyName", "dummyTitle", nbins, 0, myEtaMax);
         //elemGraph.first = *iter;
@@ -2984,17 +3012,24 @@ namespace insur {
         elemProfile.second = profile;
         elemFractionProfile.first = *iter;
         elemFractionProfile.second = profile;
+        elemPurityProfile.first = *iter;
+        elemPurityProfile.second = profile;
         // Prepare plots: triggered graphs
         // trigGraphs.insert(elemGraph);
         trigProfiles.insert(elemProfile);
         trigFractionProfiles.insert(elemFractionProfile);
+        trigPurityProfiles.insert(elemPurityProfile);
+
         // trigGraphs[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
         trigProfiles[*iter].SetTitle("Average triggered points;#eta;Triggered points <N>");
         trigFractionProfiles[*iter].SetTitle("Average trigger efficiency;#eta;Efficiency [%]");
+        trigPurityProfiles[*iter].SetTitle("Average stub purity;#eta;Purity [%]");
         aName.str(""); aName << "triggered_vs_eta" << *iter << "_profile";      
         trigProfiles[*iter].SetName(aName.str().c_str());
         aName.str(""); aName << "triggered_vs_eta" << *iter << "_fractionProfile";
         trigFractionProfiles[*iter].SetName(aName.str().c_str());
+        aName.str(""); aName << "triggered_vs_eta" << *iter << "_purityProfile";
+        trigPurityProfiles[*iter].SetName(aName.str().c_str());
       }
 
       //std::pair<double, TGraph> elemTotalGraph;

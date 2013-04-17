@@ -2815,6 +2815,7 @@ namespace insur {
     profileBag aProfileBag = a.getProfileBag();
     std::map<double, TProfile>& triggerProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredProfile);
     std::map<double, TProfile>& triggerFractionProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggeredFractionProfile);
+    std::map<double, TProfile>& triggerPurityProfiles = aProfileBag.getProfiles(profileBag::TriggerProfile | profileBag::TriggerPurityProfile);
 
     // Check if profiles exist at all
     if (!triggerProfiles.empty()) {
@@ -2951,6 +2952,70 @@ namespace insur {
       tempSS << " (log scale)";
       fractionLogImage.setComment(tempSS.str().c_str());
       fractionLogImage.setName("fractiontrigpointsLog");
+
+
+      TCanvas purityCanvas;
+      purityCanvas.SetGrid(1,1);
+      plotOption = "E1";
+
+      // Strings according to the content
+      tempString="";
+      tempSS.str(""); tempSS << "Average stub purity vs. eta for pT > ";
+
+      // momentum canvas loop
+      myColor=1;
+      // Style things
+      gStyle->SetGridStyle(style_grid);
+      gStyle->SetGridColor(color_hard_grid);
+
+      // Loop over the plots and draw on the canvas
+      //miny=1000;
+      //maxy=0;
+      for (std::map<double, TProfile>::iterator plot_iter = triggerPurityProfiles.begin();
+           plot_iter != triggerPurityProfiles.end();
+           ++plot_iter) {
+        const double& myPt = plot_iter->first;
+        TProfile& purityProfile = plot_iter->second;
+
+        miny = purityProfile.GetBinContent(purityProfile.GetMinimumBin());
+        maxy = purityProfile.GetBinContent(purityProfile.GetMaximumBin());
+        //std::cerr << "miny = " << miny << std::endl; // debug
+        //std::cerr << "maxy = " << maxy << std::endl; // debug
+
+        if (myPt!=0) {
+          tempSS << tempString.c_str() << myPt; tempString = ", ";
+        }
+
+        purityProfile.SetMinimum(1E-2);
+        purityProfile.SetMaximum(100);
+        purityProfile.SetLineColor(Palette::color(myColor));
+        purityProfile.SetMarkerColor(Palette::color(myColor));
+        purityProfile.SetFillColor(Palette::color(myColor));
+        myColor++;
+        purityProfile.SetMarkerStyle(8);
+        purityCanvas.SetFillColor(color_plot_background);
+
+        purityCanvas.cd();
+        // std::cerr << "About to draw purity plot " << myPt << std::endl; // debug
+        purityProfile.Draw(plotOption.c_str());
+        plotOption = "E1 same";
+        //aValue = purityProfile.GetBinContent(purityProfile.GetMaximumBin());
+        //if (aValue>maxy) maxy=aValue;
+        //aValue = purityProfile.GetBinContent(purityProfile.GetMinimumBin());
+        //if (aValue<miny) miny=aValue;
+        //std::cerr << "Purity plots between " << miny << " and " << maxy << std::endl;
+      }
+
+
+      RootWImage& purityImage = myContent.addImage(purityCanvas, 600, 600);
+      purityImage.setComment(tempSS.str().c_str());
+      purityImage.setName("puritytrigpoints");
+      purityCanvas.SetLogy();
+      RootWImage& purityLogImage = myContent.addImage(purityCanvas, 600, 600);
+      tempSS << " (log scale)";
+      purityLogImage.setComment(tempSS.str().c_str());
+      purityLogImage.setName("puritytrigpointsLog");
+
 
     } else { // There are no profiles to plot here...
       std::cerr << "ERROR: no trigger performance profile plot to show here" << std::endl;
