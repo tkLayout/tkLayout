@@ -155,6 +155,7 @@ private:
   std::string activeDirectory_;
 
   std::map<int, int> ringDirectives_;
+  std::map<int, double> ringGaps_;
   std::map<int,double> layerDirectives_;
   std::map<int,LayerOption> layerOptions_;
 
@@ -262,6 +263,7 @@ public:
   void setLayerDirectives(const std::map<int, double> newDirectives ) { layerDirectives_=newDirectives; };
   void setLayerOptions(const std::map<int, LayerOption> newOptions ) { layerOptions_=newOptions; };
   void setRingDirectives(const std::map<int, int> newDirectives ) { ringDirectives_=newDirectives; };
+  void setRingGaps(const std::map<int, double> newGaps ) { ringGaps_= newGaps; };
   void setArguments(const std::string &newArgs) {arguments_=newArgs;};
   void setComment(const std::string &newComment) {comment_=newComment;};
   void setNMB(const double nMB) {nMB_=nMB;};
