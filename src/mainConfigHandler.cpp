@@ -4,17 +4,17 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
+#include <algorithm>
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <boost/regex.hpp>
 #include <boost/filesystem/operations.hpp>
 
 #include <sys/types.h>
-#include <regex.h>
 
 #include <mainConfigHandler.h>
+#include <global_funcs.h>
 
 using namespace std;
 using namespace boost;
@@ -142,44 +142,25 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
 
 
 bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, string& value) {
-  cmatch what;
-  regex parseLineExpression("^[ \\t]*([a-zA-Z0-9_]*)=\"([^\"]+)\".*");
-  regex parseLineEmpty("^[ \\t]*");
-
-  if (regex_match(codeLine, what, parseLineExpression)) {
-    // what[1] contains the parameter name
-    // what[2] contains the parameter value
-    parameter = what[1];
-    value = what[2];
-    return true;
-  } else if (regex_match(codeLine, what, parseLineEmpty)) {
-    // Empty line, ok
-    parameter="";
-    value="";
+  std::vector<string> tokens = split(codeLine, "=");
+  if (tokens.empty()) {
+    parameter = "";
+    value = "";
     return false;
-  } else {
-    // Wrong formatting
+  } else if (tokens.size() < 2) { 
     cerr << "Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
+  } else {
+    parameter = tokens.at(0);
+    value = tokens.at(1);
+    return true;
   }
 }
 
 vector<double> mainConfigHandler::parseDoubleList(string inString) {
-  cmatch what;
-  double myDouble;
-  vector<double> result;
-  regex parseExpression("[^0-9\\.]*([0-9\\.]*)(.*)");
-
-  int escapeCounter=100;
-  while ((regex_match(inString.c_str(), what, parseExpression)&&(escapeCounter))) {
-    escapeCounter--;
-    if (from_string<double>(myDouble, string(what[1]), std::dec)) {
-      result.push_back(myDouble);
-      inString = what[2];
-    } else {
-      escapeCounter=0;
-    }
-  }
+  std::vector<std::string> tokens = split(inString, ",");
+  std::vector<double> result;
+  std::transform(tokens.begin(), tokens.end(), std::back_inserter(result), str2any<double>);
 
   return result;
 }

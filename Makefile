@@ -242,8 +242,8 @@ $(LIBDIR)/StopWatch.o: $(SRCDIR)/StopWatch.cpp $(INCDIR)/StopWatch.h
 setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
-$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o setup.cpp
-	$(COMP) $(LIBDIR)/mainConfigHandler.o setup.cpp \
+$(BINDIR)/setup.bin: $(LIBDIR)/global_funcs.o $(LIBDIR)/mainConfigHandler.o setup.cpp
+	$(COMP) $(LIBDIR)/global_funcs.o $(LIBDIR)/mainConfigHandler.o setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
 
