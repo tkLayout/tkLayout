@@ -26,9 +26,9 @@ RetType str2any(const std::string& from) {
 }
 
 std::vector<std::string> split(const std::string& str, const std::string& seps = " \t\n", bool keepEmpty = false);
-std::string ltrim(std::string str);
-std::string rtrim(std::string str);
-std::string trim(std::string str);
+std::string ltrim(std::string str, const std::string& ch = " \t\n");
+std::string rtrim(std::string str, const std::string& ch = " \t\n");
+std::string trim(std::string str, const std::string& ch = " \t\n");
 
 
 template<typename ArgType> int signum(const ArgType& x) {

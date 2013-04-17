@@ -151,8 +151,8 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
     cerr << "Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
   } else {
-    parameter = tokens.at(0);
-    value = tokens.at(1);
+    parameter = trim(tokens.at(0), " \"\n\t");
+    value = trim(tokens.at(1), " \"\n\t");
     return true;
   }
 }

@@ -16,15 +16,15 @@ std::vector<std::string> split(const std::string& str, const std::string& seps, 
 }
 
 
-std::string ltrim(std::string str) {
-  return str.erase(0, str.find_first_not_of(" \t\n"));
+std::string ltrim(std::string str, const std::string& ch) {
+  return str.erase(0, str.find_first_not_of(ch));
 }
 
-std::string rtrim(std::string str) {
-  return str.erase(str.find_last_not_of(" \t\n")+1);
+std::string rtrim(std::string str, const std::string& ch) {
+  return str.erase(str.find_last_not_of(ch)+1);
 }
 
-std::string trim(std::string str) {
-  return ltrim(rtrim(str));
+std::string trim(std::string str, const std::string& ch) {
+  return ltrim(rtrim(str, ch), ch);
 }
 
