@@ -1561,10 +1561,10 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     int numPlacedModules;
     // ringParity = 1 means the ring is nearer to the interaction point
 
-    if (ringGaps[nRing]) {
-      nextRho += ringGaps[nRing];
+    if (ringGaps[nRing-1]) {
+      nextRho += ringGaps[nRing-1];
       tempString.str(""); tempString << "ring " << nRing
-                                     << " has a gap of " << ringGaps[nRing]
+                                     << " has a gap of " << ringGaps[nRing-1]
                                      << " mm after it, which moves nextrho to: " << nextRho;
       logDEBUG(tempString);
     }
