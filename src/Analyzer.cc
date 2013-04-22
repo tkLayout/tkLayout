@@ -1299,6 +1299,10 @@ namespace insur {
       triggerPuritySummaries_.clear();
       triggerDataBandwidthSummaries_.clear();
       triggerDataBandwidths_.clear();
+      stripOccupancySummaries_.clear();
+      hitOccupancySummaries_.clear();
+
+      double nMB = tracker.getNMB();
 
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
         Layer* layer = *layIt;
@@ -1316,21 +1320,25 @@ namespace insur {
           continue;
         }
 
+       
         triggerFrequencyTrueSummaries_[cntName].setHeader("Layer", "Ring");
         triggerFrequencyFakeSummaries_[cntName].setHeader("Layer", "Ring");
         triggerRateSummaries_[cntName].setHeader("Layer", "Ring");
         triggerPuritySummaries_[cntName].setHeader("Layer", "Ring");
         triggerDataBandwidthSummaries_[cntName].setHeader("Layer", "Ring");
+        stripOccupancySummaries_[cntName].setHeader("Layer", "Ring");
+        hitOccupancySummaries_[cntName].setHeader("Layer", "Ring");
         triggerFrequencyTrueSummaries_[cntName].setPrecision(3);
         triggerFrequencyFakeSummaries_[cntName].setPrecision(3);
         triggerRateSummaries_[cntName].setPrecision(3);
         triggerPuritySummaries_[cntName].setPrecision(3);
         triggerDataBandwidthSummaries_[cntName].setPrecision(3);
+        stripOccupancySummaries_[cntName].setPrecision(3);
+        hitOccupancySummaries_[cntName].setPrecision(3);
 
 
         //int nbins = (dynamic_cast<BarrelLayer*>(layer)) ? ((BarrelLayer*)layer)->getModulesOnRod() : ((EndcapLayer*)layer)->getRings();
         int nbins = layer->getRings();
-
 
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
           Module* module = (*modIt);
@@ -1396,6 +1404,9 @@ namespace insur {
           triggerEfficiencySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/curAvgInteresting);                
           triggerPuritySummaries_[cntName].setCell(module->getLayer(), module->getRing(), curAvgTrue/(curAvgTrue+curAvgFake));                
           triggerDataBandwidthSummaries_[cntName].setCell(module->getLayer(), module->getRing(), triggerDataBandwidth);
+
+          stripOccupancySummaries_[cntName].setCell(module->getLayer(), module->getRing(), module->getStripOccupancyPerEvent()*nMB*100); 
+          hitOccupancySummaries_[cntName].setCell(module->getLayer(), module->getRing(), module->getHitOccupancyPerEvent()*nMB*100); 
 
         }
       }
