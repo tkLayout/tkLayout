@@ -2002,6 +2002,8 @@ namespace insur {
     std::vector<TProfile>& etaProfiles = analyzer.getTypeEtaProfiles();
     std::vector<TProfile>::iterator etaProfileIterator;
 
+    totalEtaProfile.SetMaximum(15);  // TODO: make this configurable
+    totalEtaProfile.SetMinimum(0);   // TODO: make this configurable 
     totalEtaProfile.Draw();
     for (etaProfileIterator=etaProfiles.begin();
          etaProfileIterator!=etaProfiles.end();
