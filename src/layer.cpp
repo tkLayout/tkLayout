@@ -992,6 +992,7 @@ ModuleVector BarrelLayer::buildTiltedString(const TiltedRodSpecs::const_iterator
 void BarrelLayer::buildTiltedLayer(const TiltedLayerSpecs& tiltlay, const BarrelModule* sampleModule) {
 
   double phi = 2*M_PI/tiltlay.numRods;
+  nOfRods_ = tiltlay.numRods;
 
   ModuleVector innerRod = buildTiltedString(tiltlay.innerRod.begin(), tiltlay.innerRod.end(), sampleModule, 1);
   ModuleVector outerRod = buildTiltedString(tiltlay.outerRod.begin(), tiltlay.outerRod.end(), sampleModule, 1);
