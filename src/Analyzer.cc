@@ -269,7 +269,7 @@ namespace insur {
     addCut("C", 0.8, 0.6);
     addCut("I", 1.6, 1.2);
     addCut("F", 2.4, 2.1);
-//    addCut("VF", 4.0, 4.0);
+    addCut("VF",3.0, 3.0);
   }
 
   // public
