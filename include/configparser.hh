@@ -40,6 +40,8 @@ private:
   stringstream configFile_;
   Tracker* myTracker_;
 
+  std::map<std::string, TiltedBarrelSpecs> tiltedBarrelSpecs_;
+
   // Generic parsing functions
   string getTill(istream &inStream, char delimiter, bool singleWord, bool allowNothing /* = false */);
   bool parseParameter(string& name, string& value, istream &inStream);
@@ -65,6 +67,8 @@ private:
   bool parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& list);
 
   bool peekTypes(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
+
+  bool parseTilted(const std::string& fileName, const std::string& barrelName);
 
   std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
   std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;

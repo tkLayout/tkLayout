@@ -41,6 +41,9 @@ typedef std::vector<Layer*> LayerVector;
 typedef std::map<std::string, LayerVector> SectionMap;
 typedef std::map<int, double> SpecialDelta;
 
+
+typedef std::vector<TiltedLayerSpecs> TiltedBarrelSpecs;
+
 class Tracker {
 public:
   enum {TypeBarrel, TypeEndcap};
@@ -215,6 +218,7 @@ public:
       int nModules, BarrelModule* sampleModule, int section = Layer::NoSection,
       bool compressed = false ); */
 
+  LayerVector buildTiltedBarrel(const std::string barrelName, const TiltedBarrelSpecs& tiltbar, const BarrelModule* sampleModule);
   // Adjustment for short barrels
   void alignShortBarrels();
 

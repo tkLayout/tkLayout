@@ -452,6 +452,34 @@ LayerVector Tracker::buildBarrel(int nLayer,
   return thisBarrelLayerSet;
 }
 
+
+LayerVector Tracker::buildTiltedBarrel(const std::string barrelName, const TiltedBarrelSpecs& tiltbar, const BarrelModule* sampleModule) { // this builds a barrel with tilted modules according to the specs passed as argument
+  LayerVector thisBarrelLayerSet;
+  std::ostringstream layerName;
+
+  newContainerId();
+
+  int i = 1;
+  for (TiltedBarrelSpecs::const_iterator it = tiltbar.begin(); it != tiltbar.end(); ++it) {
+    BarrelLayer* aBarrelLayer = new BarrelLayer(*sampleModule);
+    layerName.str("");
+    layerName << "L" << std::dec << i;
+    aBarrelLayer->setName(layerName.str(), i++);
+    aBarrelLayer->setContainerName(barrelName);
+    aBarrelLayer->setContainerId(getCurrentContainerId());
+
+    aBarrelLayer->buildTiltedLayer(*it, sampleModule);
+
+    addLayer(aBarrelLayer, barrelName, TypeBarrel);
+    thisBarrelLayerSet.push_back(aBarrelLayer);
+  }
+
+  return thisBarrelLayerSet;
+}
+
+
+
+
 // Barrel "compactification"
 // destZ is 0 by default
 void Tracker::compressBarrelLayers(LayerVector aLayerSet, bool oneSided, double destZ ) {

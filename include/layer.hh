@@ -18,6 +18,15 @@ using namespace ROOT::Math;
 typedef std::vector<Module* > ModuleVector;
 typedef std::pair<int,double> LayerOption;
 
+typedef std::vector<TiltedModuleSpecs> TiltedRodSpecs;
+
+struct TiltedLayerSpecs {
+  TiltedRodSpecs innerRod, outerRod;
+  int numRods;
+  bool valid() const { return numRods > 0 && innerRod.size() > 0 && outerRod.size() > 0; }
+};
+
+
 
 class Layer {
 
@@ -210,6 +219,7 @@ private:
                                 int smallParity,
                                 BarrelModule* sampleModule);
 
+  ModuleVector buildTiltedString(const TiltedRodSpecs::const_iterator& begin, const TiltedRodSpecs::const_iterator& end, const BarrelModule* sampleModule, int side);
 
   // CUIDADO: DEPRECATED, TBR
   double layerRadius(const double& nMod,  // number of strings in a layer
@@ -243,7 +253,6 @@ public:
                          double b,          // Module half width
                          int base);
 
-
   void buildLayer(double averageRadius,  // average radius for PHI ring construction
                   std::pair<double,double> worstCaseRadii, // radii for hermetic Z rod construction (if 0.0, 0.0 they're taken equal to the radius found by the ring construction routine, which is close to averageRadius)
                   double bigDelta, 
@@ -258,6 +267,8 @@ public:
                   BarrelModule* sampleModule,
                   int sectioned = NoSection,
                   double minZ = 0.);
+
+  void buildTiltedLayer(const TiltedLayerSpecs& tiltlay, const BarrelModule* sampleModule);
 
   int cutOverEta(double etaCut);
 

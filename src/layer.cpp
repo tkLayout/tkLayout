@@ -972,6 +972,59 @@ void BarrelLayer::buildLayer(double averageRadius,
   }
 }
 
+ModuleVector BarrelLayer::buildTiltedString(const TiltedRodSpecs::const_iterator& begin, const TiltedRodSpecs::const_iterator& end, const BarrelModule* sampleModule, int side) {
+  vector<Module*> rod;
+  int ring = 1;
+  for (TiltedRodSpecs::const_iterator it = begin; it != end; ++it) {
+    BarrelModule* m = new BarrelModule(*sampleModule);
+    m->rotateX(side*it->gamma);
+    m->translate(XYZVector(0, it->r, side*it->z));
+    m->setLayer(layerIndex_);
+    m->setRing(ring++);
+    m->setZSide(side);
+    rod.push_back(m);
+  }
+  return rod;
+}
+    
+
+
+void BarrelLayer::buildTiltedLayer(const TiltedLayerSpecs& tiltlay, const BarrelModule* sampleModule) {
+
+  double phi = 2*M_PI/tiltlay.numRods;
+
+  ModuleVector innerRod = buildTiltedString(tiltlay.innerRod.begin(), tiltlay.innerRod.end(), sampleModule, 1);
+  ModuleVector outerRod = buildTiltedString(tiltlay.outerRod.begin(), tiltlay.outerRod.end(), sampleModule, 1);
+  ModuleVector innerRodNeg = buildTiltedString(tiltlay.innerRod.begin()+1, tiltlay.innerRod.end(), sampleModule, -1);
+  ModuleVector outerRodNeg = buildTiltedString(tiltlay.outerRod.begin()+1, tiltlay.outerRod.end(), sampleModule, -1);
+
+
+  innerRod.insert(innerRod.end(), innerRodNeg.begin(), innerRodNeg.end());
+  outerRod.insert(outerRod.end(), outerRodNeg.begin(), outerRodNeg.end());
+
+//  std::for_each(outerRod.begin(), outerRod.end(), std::bind2nd(std::mem_fun(&Module::rotatePhi), phi));
+
+//  moduleSet_.insert(moduleSet_.end(), innerRod.begin(), innerRod.end());
+//  moduleSet_.insert(moduleSet_.end(), outerRod.begin(), outerRod.end());
+
+  for (int i = 0; i < tiltlay.numRods; i++) {
+    ModuleVector& aString = (i%2) ? outerRod : innerRod;
+
+    for (ModuleVector::const_iterator it = aString.begin(); it != aString.end(); ++it) {
+      BarrelModule* m = new BarrelModule(*static_cast<BarrelModule*>(*it));
+      m->rotatePhi(i*phi);
+      m->setPhiIndex(i);
+      m->setContainerId(getContainerId());
+      moduleSet_.push_back(m);
+    }
+  }
+
+  while (!innerRod.empty()) { delete innerRod.back(); innerRod.pop_back(); }
+  while (!outerRod.empty()) { delete outerRod.back(); outerRod.pop_back(); }
+}
+
+
+
 
 // Always look for this plot when changing the geometry!
 // Execute the program with 2> aaa

@@ -51,6 +51,13 @@ struct PosRef {
 };
 
 
+struct TiltedModuleSpecs {
+  double r, z, gamma;
+  bool valid() const { 
+    return r > 0.0 && fabs(gamma) <= 2*M_PI; 
+  } 
+};
+
 
 class Module {
   friend ostream& operator<<(ostream& output, const Module& m);

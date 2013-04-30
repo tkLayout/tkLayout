@@ -429,6 +429,11 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
             << "\" should be layer/command" << endl;
           throw parsingException();
         }
+      } else if (parameterName=="tiltedLayerSpecFile") {
+        if (!parseTilted(parameterValue, myName)) {
+          cerr << "ERROR: Failure while parsing tilted module parms" << endl;
+          throw parsingException();
+        }
       } else {
         cerr << "ERROR: Unknown parameter \"" << parameterName << "\"" << endl;
         throw parsingException();
@@ -472,21 +477,28 @@ bool configParser::parseBarrel(string myName, istream& inStream) {
     sampleBarrelModule->setResolutionRphi();
     sampleBarrelModule->setResolutionY();
 
-    LayerVector myBarrelLayers = myTracker_->buildBarrel(nBarrelLayers,
-                                                         barrelRhoIn,
-                                                         barrelRhoOut,
-                                                         maxZ,
-                                                         nBarrelModules,
-                                                         sampleBarrelModule,
-                                                         myName,
-                                                         Layer::NoSection,
-                                                         compress,
-                                                         shortBarrel, 
-                                                         sameRods); // Actually build a compressed barrel (mezzanine or normal)
+    if (tiltedBarrelSpecs_[myName].size() == 0) {
 
-    delete sampleBarrelModule; // Dispose of the sample module
-    if ((maxZ!=0)&&compress)
-      myTracker_->compressBarrelLayers(myBarrelLayers, shortBarrel, maxZ);
+      LayerVector myBarrelLayers = myTracker_->buildBarrel(nBarrelLayers,
+                                                           barrelRhoIn,
+                                                           barrelRhoOut,
+                                                           maxZ,
+                                                           nBarrelModules,
+                                                           sampleBarrelModule,
+                                                           myName,
+                                                           Layer::NoSection,
+                                                           compress,
+                                                           shortBarrel, 
+                                                           sameRods); // Actually build a compressed barrel (mezzanine or normal)
+
+      delete sampleBarrelModule; // Dispose of the sample module
+      if ((maxZ!=0)&&compress)
+        myTracker_->compressBarrelLayers(myBarrelLayers, shortBarrel, maxZ);
+    } else {
+      logDEBUG("Building tilted module barrel " + myName + ", composed of " + any2str(tiltedBarrelSpecs_[myName].size()) + " layers");
+      myTracker_->buildTiltedBarrel(myName, tiltedBarrelSpecs_[myName], sampleBarrelModule);
+
+    }
 
   } else {
     cerr << "ERROR: Missing mandatory parameter for barrel " << myName << endl;
@@ -1995,7 +2007,7 @@ bool configParser::peekTypes(string configFileName) {
 
   std::ifstream filein(configFileName.c_str());
   if (!filein.is_open()) {
-    logERROR("Failed opening types file for geometry peek!");
+    logWARNING("Couldn't opening types file for geometry peek. Skipping.");
     return false;
   }
 
@@ -2034,3 +2046,44 @@ bool configParser::peekTypes(string configFileName) {
   return true;
 }
 
+
+bool configParser::parseTilted(const std::string& fileName, const std::string& barrelName) {
+  std::ifstream filein(fileName.c_str());
+  if (!filein.is_open()) {
+    logERROR("Cannot open file '"+ fileName +"'.");
+    return false;
+  }
+
+  TiltedLayerSpecs tiltlay;
+  tiltlay.numRods = 0;
+  
+  using std::string;
+  string line;
+  for (int lineCount = 1; std::getline(filein, line); lineCount++) {
+    line = trim(line);
+    vector<string> tokens = split(line, ",");
+    if (tokens.size() == 7) { // parsing 2 parm sets per row (inner and outer rod) + num rods in phi
+      vector<double> dtokens;
+      std::transform(tokens.begin(), tokens.end(), std::back_inserter(dtokens), str2any<double>);
+      TiltedModuleSpecs m1  = { dtokens[0], dtokens[1], dtokens[2] };
+      TiltedModuleSpecs m2 = { dtokens[3], dtokens[4], dtokens[5] };
+      if (m1.valid() && m2.valid()) {
+        tiltlay.innerRod.push_back(m1);
+        tiltlay.outerRod.push_back(m2);
+        tiltlay.numRods = dtokens[6];
+      }
+    }
+  }
+
+  if (!tiltlay.valid()) { 
+    logERROR("Failure while parsing spec file " + fileName + ". The resulting layer is invalid: numRods = " + any2str(tiltlay.numRods) + ", numMods/rod = " + any2str(tiltlay.innerRod.size()));
+    return false;
+  }
+
+  tiltedBarrelSpecs_[barrelName].push_back(tiltlay);
+
+  logDEBUG("Parsed tilted module layer " + any2str(tiltedBarrelSpecs_.size()) + " of barrel " + barrelName + ", composed of " + any2str(tiltlay.numRods) + " rods, with " + any2str(tiltlay.innerRod.size()) + " modules each.");
+
+
+  return true;
+}
