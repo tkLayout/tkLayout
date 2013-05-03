@@ -3465,9 +3465,12 @@ namespace insur {
       double maxEta = (absMinEta>absMaxEta) ? absMinEta : absMaxEta;
 
       // Computing the margin of the tracks to shoot
-      double randomPercentMargin = 0.1;
+      double randomPercentMargin = 0.04;
       double randomSpan = (etaMinMax.second - etaMinMax.first)*(1. + randomPercentMargin);
       double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
+
+      maxEta *= (1 + randomPercentMargin);
+      if (maxEta<3) maxEta=3; // TODO: make this configurable
 
       // Initialize random number generator, counters and histograms
       myDice.SetSeed(MY_RANDOM_SEED);
@@ -3479,7 +3482,7 @@ namespace insur {
       layerEtaCoverageProfile.clear();
       for (std::map<PosRef, std::string>::iterator it = layerNames.begin();
            it!=layerNames.end(); ++it) {
-        TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfile%s", (it->second).c_str()), (it->second).c_str(), 200, maxEta*-1.1, maxEta*1.1);
+        TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfile%s", (it->second).c_str()), (it->second).c_str(), 200, maxEta, maxEta);
         layerEtaCoverageProfile[it->second] = (*aProfile);
         delete aProfile;
       }
@@ -3490,7 +3493,7 @@ namespace insur {
            it!=moduleTypeCount.end(); it++) {
         // std::cerr << "Creating plot for module type " << (*it).first << std::endl; //debug
         aPlot = new TH2D( (*it).first.c_str(), (*it).first.c_str(),
-                          100, 0., maxEta*1.1,
+                          100, 0., maxEta,
                           1000, 0., 10.);
         etaProfileByType[(*it).first]=(*aPlot);
         delete aPlot;
@@ -3528,7 +3531,7 @@ namespace insur {
       nTracks = nTracksPerSide*nTracksPerSide;
       mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
       TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
-      TH2D total2D("total2d", "Total 2D", 100, 0., 2.5, 4000 , 0., 40.);
+      TH2D total2D("total2d", "Total 2D", 100, 0., maxEta, 4000 , 0., 40.);
       //TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
 
       double layerHit;

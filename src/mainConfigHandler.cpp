@@ -235,7 +235,6 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   if (goodConfigurationRead_) return true;
 
   ifstream configFile;
-  string homeDirectory = string(getenv(HOMEDIRECTORY));
   string configFileName = getConfigFileName();
   bool goodConfig=false;
 
