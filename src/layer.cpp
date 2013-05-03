@@ -1293,8 +1293,9 @@ void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
 }
 
 double BarrelLayer::getAverageRadius() {
-  if (averageRadius_<=0.1) return computeAverageRadius(); // TODO: why is this sometimes /almost/ 0?
-  return averageRadius_;
+  // if (averageRadius_<0) // TODO: why is this sometimes /almost/ 0?
+  return computeAverageRadius(); 
+  // return averageRadius_;
 };
 
 double BarrelLayer::computeAverageRadius() {

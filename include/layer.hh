@@ -108,7 +108,7 @@ private:
   BarrelModule* sampleModule_;
   BarrelModule* getSampleModule() { return sampleModule_; }
   double averageRadius_;
-  void setDefaultParameters(){ averageRadius_=0;};
+  void setDefaultParameters(){ averageRadius_= InvalidRadius ;};
 
   // CUIDADO: DEPRECATED, TBR
   std::pair<double, int> computeRadius(const double& x,    // radius of the inner module
