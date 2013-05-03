@@ -259,6 +259,7 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile;};
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;};
+    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;};
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
     TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
@@ -409,6 +410,7 @@ namespace insur {
     TGraph powerDensity;
     TProfile totalEtaProfile;
     std::vector<TProfile> typeEtaProfile;
+    std::map<std::string, TProfile> layerEtaCoverageProfile;
 
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
@@ -461,6 +463,7 @@ namespace insur {
     int findCellIndexR(double r);
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
+    int createLayerNames(Tracker& tracker,std::map<PosRef, std::string>& layerNames);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
     ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);

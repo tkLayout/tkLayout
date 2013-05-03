@@ -1972,6 +1972,8 @@ namespace insur {
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
 
+    drawEtaCoverage(*myPage, analyzer);
+
     // // Power density
     // myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
     // myCanvas->cd();
@@ -2021,6 +2023,50 @@ namespace insur {
     if (!myVirtualPad) return false;
     return drawEtaProfiles(*myVirtualPad, analyzer);
   }
+
+  bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
+    std::map<std::string, TProfile>& layerEtaCoverage = analyzer.getLayerEtaCoverageProfiles();
+    if (layerEtaCoverage.size()==0) return false;
+
+    TCanvas* myCanvas;
+    RootWContent* myContent = new RootWContent("Layer coverage", false);
+    myPage.addContent(myContent);
+
+    int layerCount = 0;
+    for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
+      TProfile& aProfile = it->second;
+      layerCount++;
+      myCanvas = new TCanvas(Form("LayerCoverage%03d", layerCount), "Layer eta coverage", 1200, 600);
+      myCanvas->cd();
+
+
+      TPad* upperPad = new TPad(Form("%s_upper", myCanvas->GetName()), "upper", 0, 0.4, 1, 1);
+      TPad* lowerPad = new TPad(Form("%s_lower", myCanvas->GetName()), "upper", 0, 0, 1, 0.4);
+      myCanvas->cd();
+      upperPad->Draw();
+      lowerPad->Draw();
+      aProfile.SetMinimum(0);
+      aProfile.SetMaximum(1.05);
+      aProfile.SetMarkerColor(Palette::color(1));
+      aProfile.SetLineColor(Palette::color(1));
+      aProfile.SetMarkerStyle(1);
+
+      TProfile* zoomedProfile = (TProfile*) aProfile.Clone();
+      zoomedProfile->SetMinimum(0.9);
+      zoomedProfile->SetMaximum(1.01);
+      zoomedProfile->SetTitle("");
+      upperPad->cd();
+      aProfile.Draw();
+      lowerPad->cd();
+      zoomedProfile->Draw();
+
+      RootWImage* myImage = new RootWImage(myCanvas, 1200, 600);
+      myImage->setComment("Layer coverage in eta (multiple hits in the same layer are counted once here)");
+      myContent->addItem(myImage);
+    }
+    return true;
+  }
+
 
   bool Vizard::additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
                                   const std::string& matfile, const std::string& pixmatfile,

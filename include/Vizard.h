@@ -209,6 +209,7 @@ namespace insur {
     void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer);
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 

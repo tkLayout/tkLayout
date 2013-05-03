@@ -3452,6 +3452,7 @@ namespace insur {
 
       // A bunch of pointers
       std::map <std::string, int> moduleTypeCount;
+      std::map<PosRef, std::string> layerNames;
       std::map <std::string, TH2D> etaProfileByType;
       TH2D* aPlot;
       std::string aType;
@@ -3471,12 +3472,18 @@ namespace insur {
       // Initialize random number generator, counters and histograms
       myDice.SetSeed(MY_RANDOM_SEED);
       createResetCounters(tracker, moduleTypeCount);
+      createLayerNames(tracker, layerNames);
+      
 
-      /*for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
-        it!=etaProfileByType.end(); it++) {
-        aPlot = (*it).second;
-        if (aPlot) delete aPlot;
-        }*/
+      // Creating the layer hit coverage profiles
+      layerEtaCoverageProfile.clear();
+      for (std::map<PosRef, std::string>::iterator it = layerNames.begin();
+           it!=layerNames.end(); ++it) {
+        TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfile%s", (it->second).c_str()), (it->second).c_str(), 200, maxEta*-1.1, maxEta*1.1);
+        layerEtaCoverageProfile[it->second] = (*aProfile);
+        delete aProfile;
+      }
+
       etaProfileByType.clear();
 
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
@@ -3524,6 +3531,8 @@ namespace insur {
       TH2D total2D("total2d", "Total 2D", 100, 0., 2.5, 4000 , 0., 40.);
       //TH2D total2D("total2d", "Total 2D", 100, 0., maxEta*1.2, 4000 , 0., 40.);
 
+      double layerHit;
+
       // Shoot nTracksPerSide^2 tracks
       for (int i=0; i<nTracksPerSide; i++) {
         for (int j=0; j<nTracksPerSide; j++) {
@@ -3546,9 +3555,23 @@ namespace insur {
           total2D.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
           mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
           mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
+
+          for (std::map<PosRef, std::string>::iterator it = layerNames.begin(); it!=layerNames.end(); ++it) {
+            layerHit = 0;
+            const PosRef& aLayerPosRef = it->first;
+            for (ModuleVector::iterator moduleIt = hitModules.begin(); moduleIt!=hitModules.end(); moduleIt++) {
+              if ((*moduleIt)->getLayerPositionalReference()==aLayerPosRef) {
+                layerHit=1;
+                continue;
+              }
+            }
+            layerEtaCoverageProfile[it->second].Fill(aLine.second, layerHit);
+
+          }
+
         }
       }
-
+      
       // Create and archive for saving our 2D map of hits
       double hitCount;
       double trackCount;
@@ -3692,6 +3715,42 @@ namespace insur {
 
       return(typeCounter);
     }
+
+  // private
+  /**
+   * Creates a map of layer positional references to their readable names (string)
+   */
+  int Analyzer::createLayerNames(Tracker& tracker, std::map<PosRef, std::string>& layerNames ) {
+    layerNames.clear();
+    LayerVector::iterator layIt;
+    ModuleVector* moduleV;
+    ModuleVector::iterator modIt;
+    Module* aModule;
+
+    std::string aLayerName;
+    std::ostringstream oss;
+    PosRef aModuleLayerPosRef;
+
+    LayerVector& layerSet = tracker.getLayers();
+    for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
+      moduleV = (*layIt)->getModuleVector();
+      for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
+        aModule = (*modIt);
+        if (!aModule->getReadoutType()) continue; // TODO BAD: this is just a patch to a misbehaviour!
+        // XYZVector cen = aModule->getMeanPoint();
+        // std::cerr << aModule->getReadoutType() << ", " << cen.Rho() << ", " << cen.Z() << ", " << cen.Phi() << ", \"" << aModule->getContainerName() << "\"" << std::endl;
+        aModuleLayerPosRef = aModule->getLayerPositionalReference();
+        if (layerNames.find(aModuleLayerPosRef)==layerNames.end()) {
+          oss.str("");
+          oss << aModule->getContainerName() << " " << aModule->getLayer();
+          layerNames[aModuleLayerPosRef]=oss.str();
+          // std::cerr << "PosRef = " << aModuleLayerPosRef << ", name = " << oss.str() << std::endl;
+        }
+      }
+    }
+    
+    return layerNames.size();
+  }
 
     // private
     /**

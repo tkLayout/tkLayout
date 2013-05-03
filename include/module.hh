@@ -43,11 +43,31 @@ template<class T> struct InitableProperty {
 };
 
 
-struct PosRef {
+class PosRef {
+  friend ostream& operator<<(ostream& output, const PosRef& pr);
+public:
   int8_t cnt;
   int8_t z;
   int8_t rho;
   int8_t phi;
+  bool operator<( const PosRef& other ) const { // returns true if this > other
+    if (cnt>other.cnt) return true;
+    if (cnt<other.cnt) return false;
+    if (rho>other.rho) return true;
+    if (rho<other.rho) return false;
+    if (z>other.z) return true;
+    if (z<other.z) return false;
+    if (phi>other.phi) return true;
+    if (phi<other.phi) return false;
+    return false;
+  }
+  bool operator==( const PosRef& other ) const { // returns true if this == other
+    if (cnt!=other.cnt) return false;
+    if (rho!=other.rho) return false;
+    if (z!=other.z) return false;
+    if (phi!=other.phi) return false;
+    return true;
+  }
 };
 
 
@@ -356,6 +376,8 @@ protected:
   virtual int getDisk() const { return 0;};
 
   virtual PosRef getPositionalReference() const { return (PosRef){ 0, 0, 0, 0 }; } 
+  virtual PosRef getLayerPositionalReference() const { return (PosRef){ 0, 0, 0, 0 }; } 
+
 
   double getPtThreshold(const double& myEfficiency);
   double getTriggerProbability(const double& trackPt, const double& stereoDistance = 0, const int& triggerWindow=0);
@@ -440,6 +462,7 @@ private:
   std::string getPositionTag();
 
   PosRef getPositionalReference() const { return (PosRef){ containerId_, (getZSide() > 0 ? ring_ : -ring_), layer_, phiIndex_+1 }; }
+  PosRef getLayerPositionalReference() const { return (PosRef){ containerId_, 0, layer_, 0 }; }
 
   int getLayer() const {return layer_;};
   void setLayer(const int& newLayer) {layer_ = newLayer;};
@@ -514,6 +537,7 @@ public:
   int getLayer() const { return disk_; }
 
   PosRef getPositionalReference() const { return (PosRef){ containerId_, (getZSide() > 0 ? disk_ : -disk_), ring_, phiIndex_+1 }; }
+  PosRef getLayerPositionalReference() const { return (PosRef){ containerId_, disk_ , 0, 0 }; }
 
   //double getOccupancyPerEvent();
   virtual double getStripOccupancyPerEvent();

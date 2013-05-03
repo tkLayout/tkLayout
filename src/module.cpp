@@ -441,6 +441,15 @@ ostream& operator<<(ostream& output, const Module& m) {
   return output;
 }
 
+ostream& operator<<(ostream& output, const PosRef& pr) {
+  output << "[ "
+         << "cnt=" << int(pr.cnt)
+         << ", z=" << int(pr.z)
+         << ", rho=" << int(pr.rho)
+         << ", phi=" << int(pr.phi);
+  return output;
+}
+
 void Module::print() {
   std::cout << this << std::endl;
 }
