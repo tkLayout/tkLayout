@@ -281,7 +281,7 @@ public:
   void compressExceeding(double newMaxZ, double newMinZ);
 
   double computeAverageRadius();
-  double getAverageRadius() { if (averageRadius_<=0) return computeAverageRadius(); return averageRadius_;};
+  double getAverageRadius();
   void rotateY_PI();
   void reflectZ();
   void shiftRho(double Delta);
