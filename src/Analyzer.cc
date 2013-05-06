@@ -3739,7 +3739,7 @@ namespace insur {
       moduleV = (*layIt)->getModuleVector();
       for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
         aModule = (*modIt);
-        if (!aModule->getReadoutType()) continue; // TODO BAD: this is just a patch to a misbehaviour!
+        // if (!aModule->getReadoutType()) continue; // TODO BAD: this is just a patch to a misbehaviour!
         // XYZVector cen = aModule->getMeanPoint();
         // std::cerr << aModule->getReadoutType() << ", " << cen.Rho() << ", " << cen.Z() << ", " << cen.Phi() << ", \"" << aModule->getContainerName() << "\"" << std::endl;
         aModuleLayerPosRef = aModule->getLayerPositionalReference();
