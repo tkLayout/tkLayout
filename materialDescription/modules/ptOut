@@ -3,7 +3,7 @@
 // Module type
 type = ptOut
 // Default sensor:
-nStripsAcross = 1024;
+nStripsAcross = 1016;
 nSegments = 2;
 // Sensor and hybrid stuff
   #include <generic/Sensor>

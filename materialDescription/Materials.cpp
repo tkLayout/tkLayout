@@ -9,6 +9,7 @@
 #include <ptIn>
 #include <pt2SLong>
 #include <pt2SShort>
+#include <ptTransparent>
 
 // Generic services conversion rules
 #include <generic/ConversionRules>

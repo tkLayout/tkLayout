@@ -1531,6 +1531,8 @@ void Tracker::setModuleTypes(std::string sectionName,
         myReadoutType = Module::Pt;
       } else if (myType[myIndex] == "pt2SShort") {
         myReadoutType = Module::Pt;
+      } else if (myType[myIndex] == "ptTransparent") {
+        myReadoutType = Module::Pt;
       } else if (myType[myIndex] == "rphi") {
         myReadoutType = Module::Strip;
       } else if (myType[myIndex] == "stereo") {
