@@ -2566,6 +2566,13 @@ namespace insur {
         TCanvas ctgThetaCanvas;
         TCanvas z0Canvas;
         TCanvas pCanvas;
+
+        int myColor=0;
+        int nRebin = 2;
+        int markerStyle = 21;
+        double markerSize = 1.;
+        double lineWidth = 2.;
+
         linearMomentumCanvas.SetGrid(1,1);
         momentumCanvas.SetGrid(1,1);
         distanceCanvas.SetGrid(1,1);
@@ -2573,157 +2580,165 @@ namespace insur {
         ctgThetaCanvas.SetGrid(1,1);
         z0Canvas.SetGrid(1,1);
         pCanvas.SetGrid(1,1);
-        std::string plotOption = "Ap";
+        std::string plotOption = "";
         std::map<double, TGraph>::iterator g_iter, g_guard;
         // momentum canvas loop
-        int myColor=0;
         g_guard = a.getRhoGraphs(idealMaterial, isTrigger).end();
         gStyle->SetGridStyle(style_grid);
         gStyle->SetGridColor(color_hard_grid);
         for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& momentumGraph = g_iter->second;
+          TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
+
           if (idealMaterial) {
-            momentumGraph.SetMinimum(1E-5*100);
-            momentumGraph.SetMaximum(.11*100*verticalScale);
+            momentumProfile.SetMinimum(1E-5*100);
+            momentumProfile.SetMaximum(.11*100*verticalScale);
           } else {
-            momentumGraph.SetMinimum(4E-3*100);
-            //momentumGraph.SetMaximum(.11*100*verticalScale);
-            momentumGraph.SetMaximum(.5*100*verticalScale);
+            momentumProfile.SetMinimum(4E-3*100);
+            momentumProfile.SetMaximum(.5*100*verticalScale);
           }
-          momentumGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           linearMomentumCanvas.SetLogy(0);        
           momentumCanvas.SetLogy(1);
-          momentumGraph.SetLineColor(momentumColor(myColor));
-          momentumGraph.SetMarkerColor(momentumColor(myColor));
+          momentumProfile.SetLineColor(momentumColor(myColor));
+          momentumProfile.SetMarkerColor(momentumColor(myColor));
+          momentumProfile.SetLineWidth(lineWidth);
           myColor++;
-          momentumGraph.SetMarkerStyle(8);
+          momentumProfile.SetMarkerStyle(markerStyle);
+          momentumProfile.SetMarkerSize(markerSize);
           momentumCanvas.SetFillColor(color_plot_background);
           linearMomentumCanvas.SetFillColor(color_plot_background);
           if (momentumGraph.GetN()>0) {
             momentumCanvas.cd();
-            momentumGraph.Draw(plotOption.c_str());
+            momentumProfile.Draw(plotOption.c_str());
             linearMomentumCanvas.cd();
-            momentumGraph.Draw(plotOption.c_str());
-            plotOption = "p same";
+            momentumProfile.Draw(plotOption.c_str());
+            plotOption = "same";
           }
         }
-        plotOption = "Ap";
+        plotOption = "";
         myColor=0;
         // distance canvas loop
         g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& distanceGraph = g_iter->second;
+          TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nRebin);
           if (idealMaterial) {
-            distanceGraph.SetMinimum(4*1e-4);
-            distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
+            distanceProfile.SetMinimum(4*1e-4);
+            distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
           } else {
-            distanceGraph.SetMinimum(4*1e-4);
-            distanceGraph.SetMaximum(4E2*1e-4*verticalScale);
+            distanceProfile.SetMinimum(4*1e-4);
+            distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
           }
-          distanceGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           distanceCanvas.SetLogy();
-          distanceGraph.SetLineColor(momentumColor(myColor));
-          distanceGraph.SetMarkerColor(momentumColor(myColor));
+          distanceProfile.SetLineColor(momentumColor(myColor));
+          distanceProfile.SetMarkerColor(momentumColor(myColor));
+          distanceProfile.SetLineWidth(lineWidth);
           myColor++;
-          distanceGraph.SetMarkerStyle(8);
-          distanceCanvas.cd();
+          distanceProfile.SetMarkerStyle(markerStyle);
+          distanceProfile.SetMarkerSize(markerSize);
           distanceCanvas.SetFillColor(color_plot_background);
           if (distanceGraph.GetN()>0) {
-            distanceGraph.Draw(plotOption.c_str());
-            plotOption = "p same";
+            distanceCanvas.cd();
+            distanceProfile.Draw(plotOption.c_str());
+            plotOption = "same";
           }
         }
-        plotOption = "Ap";
+        plotOption = "";
         myColor=0;
         // angle canvas loop
         g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& angleGraph = g_iter->second;
+          TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nRebin);
           if (idealMaterial) {
-            angleGraph.SetMinimum(1E-5);
-            angleGraph.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(1E-5);
+            angleProfile.SetMaximum(0.01*verticalScale);
           } else {
-            angleGraph.SetMinimum(1E-5);
-            angleGraph.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(1E-5);
+            angleProfile.SetMaximum(0.01*verticalScale);
           }
-          angleGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           angleCanvas.SetLogy();
-          angleGraph.SetLineColor(momentumColor(myColor));
-          angleGraph.SetMarkerColor(momentumColor(myColor));
+          angleProfile.SetLineColor(momentumColor(myColor));
+          angleProfile.SetMarkerColor(momentumColor(myColor));
+          angleProfile.SetLineWidth(lineWidth);
           myColor++;
-          angleGraph.SetMarkerStyle(8);
-          angleCanvas.cd();
+          angleProfile.SetMarkerStyle(markerStyle);
+          angleProfile.SetMarkerSize(markerSize);
           angleCanvas.SetFillColor(color_plot_background);
           if (angleGraph.GetN() > 0) {
-            angleGraph.Draw(plotOption.c_str());
-            plotOption = "p same";
+            angleCanvas.cd();
+            angleProfile.Draw(plotOption.c_str());
+            plotOption = "same";
           }
         }
-        plotOption = "Ap";
+        plotOption = "";
         myColor=0;
         // ctgTheta canvas loop
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
-          ctgThetaGraph.SetMinimum(1E-5);
-          ctgThetaGraph.SetMaximum(0.1*verticalScale);
-          ctgThetaGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
+          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
+          ctgThetaProfile.SetMinimum(1E-5);
+          ctgThetaProfile.SetMaximum(0.1*verticalScale);
           ctgThetaCanvas.SetLogy();
-          ctgThetaGraph.SetLineColor(momentumColor(myColor));
-          ctgThetaGraph.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineColor(momentumColor(myColor));
+          ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
-          ctgThetaGraph.SetMarkerStyle(8);
-          ctgThetaCanvas.cd();
+          ctgThetaProfile.SetMarkerStyle(markerStyle);
+          ctgThetaProfile.SetMarkerSize(markerSize);
           ctgThetaCanvas.SetFillColor(color_plot_background);
           if (ctgThetaGraph.GetN() > 0) {
-            ctgThetaGraph.Draw(plotOption.c_str());
-            plotOption = "p same";
+            ctgThetaCanvas.cd();
+            ctgThetaProfile.Draw(plotOption.c_str());
+            plotOption = "same";
           }
         }
-        plotOption = "Ap";
+        plotOption = "";
         myColor=0;
         // z0 canvas loop
         g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& z0Graph = g_iter->second;
-          z0Graph.SetMinimum(1E-5);
-          z0Graph.SetMaximum(1*verticalScale);
-          z0Graph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
+          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
+          z0Profile.SetMinimum(1E-5);
+          z0Profile.SetMaximum(1*verticalScale);
           z0Canvas.SetLogy();
-          z0Graph.SetLineColor(momentumColor(myColor));
-          z0Graph.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineColor(momentumColor(myColor));
+          z0Profile.SetMarkerColor(momentumColor(myColor));
           myColor++;
-          z0Graph.SetMarkerStyle(8);
-          z0Canvas.cd();
+          z0Profile.SetMarkerStyle(markerStyle);
+          z0Profile.SetMarkerSize(markerSize);
           z0Canvas.SetFillColor(color_plot_background);
           if (z0Graph.GetN() > 0) {
-            z0Graph.Draw(plotOption.c_str());
+            z0Canvas.cd();
+            z0Profile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
         }
-        plotOption = "Ap";
+        plotOption = "";
         myColor=0;
         // p canvas loop
         g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& pGraph = g_iter->second;
+          TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
           if (idealMaterial) {
-            pGraph.SetMinimum(1E-5*100);
-            pGraph.SetMaximum(.11*100*verticalScale);       
+            pProfile.SetMinimum(1E-5*100);
+            pProfile.SetMaximum(.11*100*verticalScale);       
           } else {
-            pGraph.SetMinimum(4E-3*100);
-            pGraph.SetMaximum(.11*100*verticalScale);
+            pProfile.SetMinimum(4E-3*100);
+            pProfile.SetMaximum(.11*100*verticalScale);
           }
-          pGraph.GetXaxis()->SetLimits(0, a.getEtaMaxTracking());
           pCanvas.SetLogy();
-          pGraph.SetLineColor(momentumColor(myColor));
-          pGraph.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineColor(momentumColor(myColor));
+          pProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
-          pGraph.SetMarkerStyle(8);
-          pCanvas.cd();
+          pProfile.SetMarkerStyle(markerStyle);
+          pProfile.SetMarkerSize(markerSize);
           pCanvas.SetFillColor(color_plot_background);
           if (pGraph.GetN() > 0) {
-            pGraph.Draw(plotOption.c_str());
+            pCanvas.cd();
+            pProfile.Draw(plotOption.c_str());
             plotOption = "p same";
           }
         }
@@ -3949,7 +3964,20 @@ namespace insur {
     resultProfile->SetFillColor(sourceHistogram->GetFillColor());
     resultProfile->SetFillStyle(sourceHistogram->GetFillStyle());
     return resultProfile;
-  } 
-  
+  }
+
+  TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */) { 
+    TProfile* resultProfile;
+    int nPoints = sourceGraph.GetN()/rebin;
+    resultProfile = new TProfile(Form("%s_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
+    double x, y;
+
+    for (int i=0; i<sourceGraph.GetN(); ++i) {
+      sourceGraph.GetPoint(i, x, y);
+      resultProfile->Fill(x, y);
+    }
+
+    return (*resultProfile);
+  }
   
 }

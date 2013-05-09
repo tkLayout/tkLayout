@@ -238,6 +238,7 @@ namespace insur {
     void addOccupancyEOL();
 
     TProfile* newProfile(TH1D* nn);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
     // int getNiceColor(unsigned int plotIndex);
   };
 
