@@ -1583,7 +1583,7 @@ namespace insur {
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
           Module* module = (*modIt); 
           XYZVector center = module->getMeanPoint();
-          if (center.Z()<0) continue;
+          // if (center.Z()<0) continue; // I want to assign the right value to all modules, for the totals
           double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
           double x  = center.Z()/25;
           double y  = center.Rho()/25;
@@ -1591,6 +1591,8 @@ namespace insur {
           double x2 = ceil(x);
           double y1 = floor(y);
           double y2 = ceil(y);
+          if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
+          if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
           double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; 
           double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
           double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
@@ -1602,6 +1604,8 @@ namespace insur {
           //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
           module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
           module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
+          if (!(irradiatedPowerConsumption>0))
+            std::cerr << module->getSensorGeoTag() << " => " << irradiatedPowerConsumption << std::endl;
 
           irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
         }

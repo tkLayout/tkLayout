@@ -1362,6 +1362,8 @@ namespace insur {
     std::map<std::string, double> tagMapAveYResolution;
     std::map<std::string, double> tagMapAveRphiResolutionTrigger;
     std::map<std::string, double> tagMapAveYResolutionTrigger;
+    std::map<std::string, double> tagMapSensorPowerAvg;
+    std::map<std::string, double> tagMapSensorPowerMax;
     std::map<std::string, Module*>::iterator tagMapIt;
     std::map<int, Module*> ringTypeMap;
     std::string aSensorTag;
@@ -1372,6 +1374,8 @@ namespace insur {
     int totCountMod = 0;
     int totCountSens = 0;
     long totChannel = 0;
+    double totalSensorPower = 0;
+    
 
     std::string pageTitle = "Geometry";
     if (name!="") pageTitle+=" (" +name+")";
@@ -1460,30 +1464,36 @@ namespace insur {
       }
       aLay = (*layIt)->getModuleVector();
       for (modIt=aLay->begin(); modIt!=aLay->end(); modIt++) {
-        aSensorTag=(*modIt)->getSensorGeoTag();
-        tagMapPositions[aSensorTag].insert((*modIt)->getPositionTag());
+        Module*& aModule = (*modIt);
+        aSensorTag=aModule->getSensorGeoTag();
+        tagMapPositions[aSensorTag].insert(aModule->getPositionTag());
         tagMapCount[aSensorTag]++;
-        tagMapCountChan[aSensorTag]+=(*modIt)->getNChannels();
-        if (((*modIt)->getStripOccupancyPerEvent()*nMB)>tagMapMaxStripOccupancy[aSensorTag]) {
-          tagMapMaxStripOccupancy[aSensorTag]=(*modIt)->getStripOccupancyPerEvent()*nMB;
+        tagMapCountChan[aSensorTag]+=aModule->getNChannels();
+        if ((aModule->getStripOccupancyPerEvent()*nMB)>tagMapMaxStripOccupancy[aSensorTag]) {
+          tagMapMaxStripOccupancy[aSensorTag]=aModule->getStripOccupancyPerEvent()*nMB;
         }
-        if (((*modIt)->getHitOccupancyPerEvent()*nMB)>tagMapMaxHitOccupancy[aSensorTag]) {
-          tagMapMaxHitOccupancy[aSensorTag]=(*modIt)->getHitOccupancyPerEvent()*nMB;
+        if ((aModule->getHitOccupancyPerEvent()*nMB)>tagMapMaxHitOccupancy[aSensorTag]) {
+          tagMapMaxHitOccupancy[aSensorTag]=aModule->getHitOccupancyPerEvent()*nMB;
         }
-        tagMapAveStripOccupancy[aSensorTag]+=(*modIt)->getStripOccupancyPerEvent()*nMB;
-        tagMapAveHitOccupancy[aSensorTag]+=(*modIt)->getHitOccupancyPerEvent()*nMB;
-        tagMapAveRphiResolution[aSensorTag]+=(*modIt)->getResolutionRphi();
-        tagMapAveYResolution[aSensorTag]+=(*modIt)->getResolutionY();
-        tagMapAveRphiResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionRphiTrigger();
-        tagMapAveYResolutionTrigger[aSensorTag]+=(*modIt)->getResolutionYTrigger();
+        tagMapAveStripOccupancy[aSensorTag]+=aModule->getStripOccupancyPerEvent()*nMB;
+        tagMapAveHitOccupancy[aSensorTag]+=aModule->getHitOccupancyPerEvent()*nMB;
+        tagMapAveRphiResolution[aSensorTag]+=aModule->getResolutionRphi();
+        tagMapAveYResolution[aSensorTag]+=aModule->getResolutionY();
+        tagMapAveRphiResolutionTrigger[aSensorTag]+=aModule->getResolutionRphiTrigger();
+        tagMapAveYResolutionTrigger[aSensorTag]+=aModule->getResolutionYTrigger();
         totCountMod++;
-        totCountSens+=(*modIt)->getNFaces();
-        totChannel+=(*modIt)->getNChannels();
-        totArea+=(*modIt)->getArea()*(*modIt)->getNFaces();
+        totCountSens+=aModule->getNFaces();
+        totChannel+=aModule->getNChannels();
+        totArea+=aModule->getArea()*aModule->getNFaces();
         if (tagMap.find(aSensorTag)==tagMap.end()){
           // We have a new sensor geometry
-          tagMap[aSensorTag]=(*modIt);
+          tagMap[aSensorTag]=aModule;
         }
+        double sp = aModule->getProperty("irradiatedPowerConsumption");
+        totalSensorPower+=sp;
+        tagMapSensorPowerAvg[aSensorTag]+=sp;
+        if (tagMapSensorPowerMax[aSensorTag]<sp) tagMapSensorPowerMax[aSensorTag]=sp;
+        //std::cerr << aSensorTag << " => " << aModule->getProperty("irradiatedPowerConsumption") << std::endl;
       }
     }
     layerTable->setContent(0, nBarrelLayers+1, "Total");
@@ -1565,6 +1575,9 @@ namespace insur {
     std::ostringstream aChannel;
     std::ostringstream aPower;
     std::ostringstream aPowerPerModule;
+    std::ostringstream aSensorPower;
+    std::ostringstream aSensorPowerPerModuleAvg;
+    std::ostringstream aSensorPowerPerModuleMax;
     std::ostringstream aCost;
     std::ostringstream aWeight;
     int barrelCount=0;
@@ -1597,10 +1610,13 @@ namespace insur {
     static const int yResolutionTriggerRow = 15;
     static const int stripOccupancyRow = 16;
     static const int hitOccupancyRow = 17;
-    static const int powerRow = 18;
-    static const int powerPerModuleRow = 19;
-    static const int costRow = 20;
-    static const int weightRow = 21;
+    static const int powerPerModuleRow = 18;
+    static const int sensorPowerPerModuleAvgRow = 19;
+    static const int sensorPowerPerModuleMaxRow = 20;
+    static const int powerRow = 21;
+    static const int sensorPowerRow = 22;
+    static const int costRow = 23;
+    static const int weightRow = 24;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
@@ -1620,8 +1636,11 @@ namespace insur {
     moduleTable->setContent(numbermodsRow, 0, "N. mod");
     moduleTable->setContent(numbersensRow, 0, "N. sens");
     moduleTable->setContent(channelRow, 0, "Channels (M)");
-    moduleTable->setContent(powerRow, 0, "Power (kW)");
-    moduleTable->setContent(powerPerModuleRow, 0, "Power (W)");
+    moduleTable->setContent(powerRow, 0, "FE Power (kW)");
+    moduleTable->setContent(sensorPowerRow, 0, "Sensor power (kW)");
+    moduleTable->setContent(powerPerModuleRow, 0, "FE Power/mod (mW)");
+    moduleTable->setContent(sensorPowerPerModuleAvgRow, 0, "Agerage sensor power/mod (mW)");
+    moduleTable->setContent(sensorPowerPerModuleMaxRow, 0, "Max sensor power/mod (mW)");
     moduleTable->setContent(costRow, 0, "Cost (MCHF)");
     moduleTable->setContent(weightRow, 0, "Weight (av, g)");
 
@@ -1764,14 +1783,27 @@ namespace insur {
       ModuleType& myType = tracker.getModuleType((*tagMapIt).second->getType());
       double powerPerModule;
       powerPerModule =  myType.getPower( (tagMapIt->second)->getNChannels() ); // power [mW] of a module with this # strips
-      aPower << std::fixed << std::setprecision(powerPrecision)
+      aPower << std::fixed << std::setprecision(totalPowerPrecision)
         << powerPerModule * tagMapCount[tagMapIt->first] * 1e-3; // conversion from W to kW
       // number of modules of this type
 
       aPowerPerModule.str("");
-      aPowerPerModule << std::fixed << std::setprecision(powerPrecision)
-        << powerPerModule ;
-      totalPower += powerPerModule * tagMapCount[tagMapIt->first] * 1e-3;
+      aPowerPerModule << std::fixed << std::setprecision(modulePowerPrecision)
+                      << powerPerModule * 1e3; // conversion from W to mW
+      totalPower += powerPerModule * tagMapCount[tagMapIt->first];
+
+      // Power in sensors (per module and total)
+      aSensorPower.str("");
+      aSensorPowerPerModuleAvg.str("");
+      aSensorPowerPerModuleMax.str("");
+      double& totalSensorPowerTag = tagMapSensorPowerAvg[tagMapIt->first];
+      aSensorPower << std::fixed << std::setprecision(totalPowerPrecision)
+                   << totalSensorPowerTag * 1e-3; // conversion from W to kW
+      aSensorPowerPerModuleAvg << std::fixed << std::setprecision(modulePowerPrecision)
+                               << totalSensorPowerTag / tagMapCount[tagMapIt->first] * 1e3; // conversion from W to kW
+      aSensorPowerPerModuleMax << std::fixed << std::setprecision(modulePowerPrecision)
+                               << tagMapSensorPowerMax[tagMapIt->first] * 1e3; // conversion from W to mW
+
 
       // Cost
       aCost.str("");
@@ -1806,6 +1838,9 @@ namespace insur {
       moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
       moduleTable->setContent(powerRow, iType, aPower.str());
       moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
+      moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
+      moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
+      moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
       moduleTable->setContent(costRow, iType, aCost.str());
       moduleTable->setContent(weightRow, iType, aWeight.str());
 
@@ -1875,14 +1910,21 @@ namespace insur {
     // moduleTable->setContent(channelptRow, iType, aChannel.str());
     aPower.str("");
     aPowerPerModule.str("");
+    aSensorPower.str("");
+    aSensorPowerPerModuleAvg.str("");
+    aSensorPowerPerModuleMax.str("");
     aCost.str("");
     aWeight.str("");
-    aPower   << std::fixed << std::setprecision(powerPrecision) << totalPower;
+    aPower   << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-3; // W to kW
+    aSensorPower   << std::fixed << std::setprecision(totalPowerPrecision) << totalSensorPower * 1e-3; // W to kW
     aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
     aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
       << " (kg)";
     moduleTable->setContent(powerRow, iType, aPower.str());
     moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
+    moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
+    moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
+    moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
     moduleTable->setContent(costRow, iType, aCost.str());
     moduleTable->setContent(weightRow, iType, aWeight.str());
 
@@ -2436,7 +2478,7 @@ namespace insur {
 
     std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
     for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
-      myPage->addContent(std::string("Irradiated power consumption (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
 
     // Some helper string objects
@@ -2444,7 +2486,7 @@ namespace insur {
     std::string tempString;    
 
     // mapBag myMapBag = a.getMapBag();
-    //TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
+    // TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
     // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
     PlotDrawer<YZ, Property, Average> yzPowerDrawer(0, 0, "irradiatedPowerConsumption");
