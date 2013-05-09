@@ -94,7 +94,8 @@ void Tracker::setDefaultParameters() {
   nMB_ = defaultNMB_;
   bunchSpacingNs_ = defaultBunchSpacingNs_;
   rError_ = defaultRError_;
-  zError_ = defaultZError_;
+  zErrorConstruction_ = defaultZError_;
+  zErrorCollider_ = defaultZError_;
   useIPConstraint_ = defaultUseIPConstraint_;
   smallDelta_ = defaultSmallDelta_;
   bigDelta_ = defaultBigDelta_;
@@ -390,7 +391,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                getSmallDelta(i+1) ,
                                geometryDsDistances,
                                overlap_,     // overlap
-                               zError_,      // safetyOrigin
+                               zErrorConstruction_,      // safetyOrigin
                                moduleStrategy,
                                push,
                                phiSegments_, // modules multiple of ...
@@ -408,7 +409,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                getSmallDelta(i+1) ,
                                geometryDsDistances,
                                overlap_,     // overlap
-                               zError_,      // safetyOrigin
+                               zErrorConstruction_,      // safetyOrigin
                                moduleStrategy,    
                                push,
                                phiSegments_, // modules multiple of ...
@@ -751,7 +752,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     topToBottomEndcap_ = true;
     defaultDisk->buildSingleDisk( nRings, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
-                                  zError_+(maxZ-minZ)/2,
+                                  zErrorConstruction_+(maxZ-minZ)/2,
                                   geometryDsDistances,
                                   phiSegments_, // Base
                                   oddSegments, alignEdges,
@@ -765,7 +766,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     logINFO("Endcap " + endcapName + " will be built bottom-to-top with a number of rings depending on the innerRadius (" + any2str(minRadius) + ").");
     defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
-                                  zError_+(maxZ-minZ)/2,
+                                  zErrorConstruction_+(maxZ-minZ)/2,
                                   geometryDsDistances,
                                   phiSegments_, // Base
                                   oddSegments, alignEdges,

@@ -57,7 +57,10 @@ namespace insur {
     if (tr) {
       if (px) delete px;
       px = cp.parsePixelsFromFile(getGeometryFile());
-      if (px) px->setZError(tr->getZError());
+      if (px) {
+        px->setZErrorCollider(tr->getZErrorCollider());
+        px->setZErrorConstruction(tr->getZErrorConstruction());
+      }
       stopTaskClock();
       return true;
     }

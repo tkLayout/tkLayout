@@ -128,7 +128,8 @@ private:
   std::vector<TObject* > savingV_; // (partly?) obsolete: check
 
   double rError_;
-  double zError_;
+  double zErrorConstruction_;
+  double zErrorCollider_;
   double useIPConstraint_;
   double smallDelta_;
   double bigDelta_;
@@ -243,7 +244,8 @@ public:
 
   // Access to parameters
   void setRError(const double& newError) { rError_ = newError; }
-  void setZError(const double& newError) { zError_ = newError; }
+  void setZErrorConstruction(const double& newError) { zErrorConstruction_ = newError; }
+  void setZErrorCollider(const double& newError) { zErrorCollider_ = newError; }
   void setUseIPConstraint(bool newUse) { useIPConstraint_ = newUse; }
   void setBigDelta(const double& newDelta) { bigDelta_ = newDelta; }
   void setSmallDelta(const double& newDelta) { smallDelta_ = newDelta; }
@@ -306,7 +308,8 @@ public:
 
   // Overlaps / error
   double getRError() const { return rError_; }
-  double getZError() const { return zError_; }
+  double getZErrorConstruction() const { return zErrorConstruction_; }
+  double getZErrorCollider() const { return zErrorCollider_; }
   bool getUseIPConstraint() const { return useIPConstraint_; }
   double getSmallDelta() const { return smallDelta_; }
   double getBigDelta() const { return bigDelta_; }

@@ -102,8 +102,16 @@ bool configParser::parseTracker(string myName, istream& inStream) {
         doubleValue=atof(parameterValue.c_str());
         myTracker_->setRError(doubleValue);
       } else if (parameterName=="zError") {
+        logWARNING("zError is deprecated, please use zErrorConstruction or zErrorCollider");
         doubleValue=atof(parameterValue.c_str());
-        myTracker_->setZError(doubleValue);
+        myTracker_->setZErrorConstruction(doubleValue);
+        myTracker_->setZErrorCollider(doubleValue);
+      } else if (parameterName=="zErrorConstruction") {
+        doubleValue=atof(parameterValue.c_str());
+        myTracker_->setZErrorConstruction(doubleValue);
+      } else if (parameterName=="zErrorCollider") {
+        doubleValue=atof(parameterValue.c_str());
+        myTracker_->setZErrorCollider(doubleValue);
       } else if (parameterName=="efficiency") {
         doubleValue=atof(parameterValue.c_str());
         myTracker_->setEfficiency(doubleValue);

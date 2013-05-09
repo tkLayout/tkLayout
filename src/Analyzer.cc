@@ -398,7 +398,7 @@ namespace insur {
         // Assume the IP constraint here
         // TODO: make this configurable
         if (tracker.getUseIPConstraint())
-          track.addIPConstraint(tracker.getRError(),tracker.getZError());
+          track.addIPConstraint(tracker.getRError(),tracker.getZErrorCollider());
         track.sort();
         track.setTriggerResolution(true);
 
@@ -445,7 +445,7 @@ namespace insur {
 
     int nTracks;
     double etaStep, z0, eta, theta, phi;
-    double zError = tracker.getZError();
+    double zErrorCollider = tracker.getZErrorCollider();
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
@@ -460,7 +460,7 @@ namespace insur {
     // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
       phi = myDice.Rndm() * PI * 2.0;
-      z0 = myDice.Gaus(0, zError);
+      z0 = myDice.Gaus(0, zErrorCollider);
       int nHits;
       Track track;
       eta = i_eta * etaStep;
@@ -1419,7 +1419,7 @@ namespace insur {
       double etaCut = tracker.getTriggerEtaCut();
       double etaSlice = etaCut*2 / numProcEta;
       double maxR = tracker.getMaxR();
-      double zError = tracker.getZError();
+      double zErrorCollider = tracker.getZErrorCollider();
       double eta = etaSlice*etaSector-etaCut;    
 
       double modMinZ = module->getMinZ();
@@ -1430,8 +1430,8 @@ namespace insur {
       double etaSliceZ1 = maxR/tan(2*atan(exp(-eta)));
       double etaSliceZ2 = maxR/tan(2*atan(exp(-eta-etaSlice)));
 
-      double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zError)/maxR - zError); // if etaDists are positive it means the module is in the slice
-      double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zError)/maxR + zError); 
+      double etaDist1 =  modMaxZ - ((etaSliceZ1 >= 0 ? modMinR : modMaxR)*(etaSliceZ1 + zErrorCollider)/maxR - zErrorCollider); // if etaDists are positive it means the module is in the slice
+      double etaDist2 = -modMinZ + ((etaSliceZ2 >= 0 ? modMaxR : modMinR)*(etaSliceZ2 - zErrorCollider)/maxR + zErrorCollider); 
 
       return etaDist1 > 0 && etaDist2 > 0;
     }
@@ -3508,7 +3508,7 @@ namespace insur {
       ModuleVector::iterator modIt;
       ModuleVector allModules;
       LayerVector& layerSet = tracker.getLayers();
-      double zError = tracker.getZError();
+      double zErrorCollider = tracker.getZErrorCollider();
 
       // Build the proper list of modules
       for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
@@ -3519,7 +3519,7 @@ namespace insur {
         }
         for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
           // I pre-compute the boxes to reduce the calculations
-          (*modIt)->computeBoundaries(zError);
+          (*modIt)->computeBoundaries(zErrorCollider);
           allModules.push_back(*modIt);
         }
       }
@@ -3547,7 +3547,7 @@ namespace insur {
           nTrackHits=0;
           // Generate a straight track and collect the list of hit modules
           aLine = shootDirection(randomBase, randomSpan);
-          hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, &allModules);
+          hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zErrorCollider)), aLine.first, &allModules);
           // Reset the per-type hit counter and fill it
           resetTypeCounter(moduleTypeCount);
           for (ModuleVector::iterator it = hitModules.begin(); it!=hitModules.end(); it++) {
