@@ -1452,7 +1452,6 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
   int ringParity;
   int nearDirection = int(diskZ/fabs(diskZ))*-1;
-  int nRing;
   int addModules;
 
   double lastRho = 0;
@@ -1468,7 +1467,8 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
   ringParity = diskParity;
 
-  for (nRing=nRings; nRing>0; nRing--, ringParity*=-1) {
+  int nRing = nRings;
+  while (true) {
     EndcapModule* sampleModule = sampleModules[nRing];
     if (sampleModule==NULL) sampleModule = sampleModules[0];
     if (sampleModule==NULL) {
@@ -1536,14 +1536,17 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
+    if (--nRing <= 0) break;
+
     double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) + smallDelta + dsDistances[nRing-1]/2;
-    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) - smallDelta - dsDistances[nRing-1]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) - smallDelta - dsDistances[nRing]/2;
     double originZ = ringParity > 0 ? zError : -zError;
     double nextRhoOrigin = (nextRho + overlap)/lastZ * newZ;
     double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);
     
     nextRho = nextRhoOrigin > nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
     
+    ringParity *= -1;
   }
 
   nOfRings_ = nRings;
@@ -1581,13 +1584,13 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 
   int ringParity;
   int nearDirection = int(diskZ/fabs(diskZ))*-1;
-  int nRing;
+  int nRing = 1;
   int addModules;
 
   double lastRho = 0;
   double nextRho = minRadius;
 
-  for (nRing=1; lastRho<maxRadius; nRing++) {
+  while (lastRho < maxRadius) {
     EndcapModule* sampleModule = sampleModules[nRing];
     if (sampleModule==NULL) sampleModule = sampleModules[0];
     if (sampleModule==NULL) {
@@ -1656,8 +1659,10 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
+    nRing++;
+
     double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;  
-    double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-2]/2;
     double originZ = ringParity > 0 ? -zError : +zError;
     double nextRhoOrigin = (lastRho - overlap)/lastZ * newZ;
     double nextRhoOrigin2 = (lastRho)/lastZ * newZ - overlap;
