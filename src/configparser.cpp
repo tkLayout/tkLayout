@@ -1345,6 +1345,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
 
   map<int, int> nStripsAcross;
   map<int, int> nROCRows;
+  map<int, int> nROCCols;
   map<int, int> nSides;
   map<int, int> nSegments;
   map<int, string> type;
@@ -1359,6 +1360,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
 
   map<pair<int, int>, int> nStripsAcrossSecond;
   map<pair<int, int>, int> nROCRowsSecond;
+  map<pair<int, int>, int> nROCColsSecond;
   map<pair<int, int>, int> nSidesSecond;
   map<pair<int, int>, int> nSegmentsSecond;
   map<pair<int, int>, string> typeSecond;
@@ -1387,7 +1389,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
             nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nROCRows") {
             nROCRows[mainIndex]=atoi(parameterValue.c_str());
-          } else if (parameterName=="nSides") {
+		  } else if(parameterName=="nROCCOls"){
+				nROCCols[mainIndex]=atoi(parameterValue.c_str());
+		  } else if (parameterName=="nSides") {
             nSides[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nSegments") {
             nSegments[mainIndex]=atoi(parameterValue.c_str());
@@ -1424,7 +1428,15 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
               specialSecond[specialIndex]=true;
               isSpecial = true;
             }
-          } else if (parameterName=="nSides") {
+          
+		  } else if(parameterName=="nROCCols"){
+            if (atoi(parameterValue.c_str())!=nROCCols[mainIndex]) {
+              nROCColsSecond[specialIndex]=atoi(parameterValue.c_str());
+              specialSecond[specialIndex]=true;
+              isSpecial = true;
+            }
+
+		  } else if (parameterName=="nSides") {
             if (atoi(parameterValue.c_str())!=nSides[mainIndex]) {
               nSidesSecond[specialIndex]=atoi(parameterValue.c_str());
               specialSecond[specialIndex]=true;
@@ -1483,9 +1495,9 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
   }
 
   myTracker_->setModuleTypes(myName,
-                             nStripsAcross, nROCRows, nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
+                             nStripsAcross, nROCRows,nROCCols ,nSides, nSegments, type, dsDistance, triggerWindow, dsRotation, divideBack,
                              xResolution, yResolution,
-                             nStripsAcrossSecond, nROCRowsSecond, nSidesSecond, nSegmentsSecond, typeSecond,
+                             nStripsAcrossSecond, nROCRowsSecond,nROCColsSecond, nSidesSecond, nSegmentsSecond, typeSecond,
                              dsDistanceSecond, triggerWindowSecond, dsRotationSecond, divideBackSecond, specialSecond);
 
   return true;

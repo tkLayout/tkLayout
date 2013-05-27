@@ -110,6 +110,7 @@ protected:
   int nSegmentsFace_[maxNFaces];
   int nStripAcross_;
   int nROCRows_;
+  int nROCCols_;
   int nFaces_;
   int readoutType_;
   int readoutMode_;
@@ -316,6 +317,7 @@ protected:
   int getNStripsAcross() const { return nStripAcross_ ;};
 
   int getNROCRows() const { return nROCRows_; }
+  int getNROCCols() const { return nROCCols_; }
 
   double getStripLength() { return height_ / (double)(nSegmentsFace_[findMinSegmentsFace_()]); } 
 
@@ -331,6 +333,7 @@ protected:
 
   void setNStripsAcross(const int& newN) { nStripAcross_=newN; }
   void setNROCRows(int newN) { nROCRows_ = newN; }
+  void setNROCCols(int newN) { nROCCols_ = newN; }
   void setNSegments(const int& newN);
   void setNFaces(const int& newN);
   void setReadoutType(const int& newN) { readoutType_=newN; }; // TODO: check validity

@@ -1385,6 +1385,7 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
 void Tracker::setModuleTypes(std::string sectionName,
                              std::map<int, int> nStripsAcross,
                              std::map<int, int> nROCRows,
+                             std::map<int, int> nROCCols,
                              std::map<int, int> nFaces,
                              std::map<int, int> nSegments,
                              std::map<int, std::string> myType,
@@ -1396,6 +1397,7 @@ void Tracker::setModuleTypes(std::string sectionName,
                              std::map<int, double> yResolution,
                              std::map<std::pair<int, int>, int> nStripsAcrossSecond,
                              std::map<std::pair<int, int>, int> nROCRowsSecond,
+                             std::map<std::pair<int, int>, int> nROCColsSecond,
                              std::map<std::pair<int, int>, int> nFacesSecond,
                              std::map<std::pair<int, int>, int> nSegmentsSecond,
                              std::map<std::pair<int, int>, std::string> myTypeSecond,
@@ -1422,6 +1424,7 @@ void Tracker::setModuleTypes(std::string sectionName,
 
   int aStripsAcross;
   int aROCRows;
+  int aROCCols;
   int aFaces;
   int aSegments;
   std::string aType;
@@ -1477,6 +1480,7 @@ void Tracker::setModuleTypes(std::string sectionName,
 
       aStripsAcross = nStripsAcross[myIndex];
       aROCRows = nROCRows[myIndex];
+      aROCCols = nROCCols[myIndex];
       aFaces = nFaces[myIndex];
       aSegments = nSegments[myIndex];
       aType = myType[myIndex];
@@ -1493,6 +1497,9 @@ void Tracker::setModuleTypes(std::string sectionName,
         }
         if (nROCRowsSecond[mySpecialIndex]!=0) {
           aROCRows = nROCRowsSecond[mySpecialIndex];
+        }
+        if (nROCColsSecond[mySpecialIndex]!=0) {
+          aROCCols = nROCColsSecond[mySpecialIndex];
         }
         if (nFacesSecond[mySpecialIndex]!=0) {
           aFaces = nFacesSecond[mySpecialIndex];
@@ -1548,6 +1555,7 @@ void Tracker::setModuleTypes(std::string sectionName,
       aModule->setNFaces(aFaces);
       aModule->setNStripsAcross(aStripsAcross);
       aModule->setNROCRows(aROCRows);
+      aModule->setNROCCols(aROCCols);
       aModule->setNSegments(aSegments);
       aModule->setType(aType);
       aModule->setModuleType(&(mapType_[aType]));

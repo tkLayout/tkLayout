@@ -68,6 +68,7 @@ void Module::setDefaultParameters() {
     processorConnectionsPhi_ = 0;
     irradiatedPowerConsumption_ = 0;
     nROCRows_ = 128;
+    nROCCols_ = 1;
 
     for (int i=0;i<maxNFaces;++i) nSegmentsFace_[i] = defaultSegments_;
 

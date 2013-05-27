@@ -21,9 +21,9 @@ DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-Wall
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
-COMPILERFLAGS+=-Werror
-COMPILERFLAGS+=-Wno-narrowing
-COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
+#COMPILERFLAGS+=-Werror
+#COMPILERFLAGS+=-Wno-narrowing
+#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
 #COMPILERFLAGS+=-O5
 
 COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
