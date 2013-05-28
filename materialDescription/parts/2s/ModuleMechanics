@@ -1,5 +1,6 @@
 // Module mechanics
 comp = Mechanics
+// ACHTUNG! I should not be there!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 M CF    0 0 0 5.35 g L ; // Module frame
 M CF    0 0 0 3.28 g L ; // Sensors supports
 M CF    0 0 0 0.69 g L ; // PGS Thermal conductor

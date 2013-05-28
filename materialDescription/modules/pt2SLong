@@ -10,6 +10,7 @@ nSegments = 2;
   #include <generic/Sensor>
   #include <2s/Hybrids>
   #include <2s/Asics>
+  #include <2s/ServiceHybrid_16>
 
   #include <generic/ConnectorPair>
   #include <generic/ConnectorPair>
@@ -18,7 +19,7 @@ nSegments = 2;
 
   #include <generic/BiasKapton>
   #include <generic/BiasKapton>
-  #include <2s/ModuleMechanics>
+  #include <2s/ModuleMechanics_16>
   #include <generic/HvLine>
 // ROD material
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
