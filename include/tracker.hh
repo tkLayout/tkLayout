@@ -153,6 +153,9 @@ private:
   bool topToBottomEndcap_;
 
 
+  bool servicesForcedUp_;
+
+
   std::string summaryDirectory_;
   std::string storeDirectory_;
   std::string trackerName_;
@@ -442,6 +445,8 @@ public:
   }
   std::vector<double> getGeometryDsDistances(std::string cntName, int index, int numModules) const;
 
+  bool isForcedUp() const { return servicesForcedUp_; }
+  void setForcedUp(bool forcedUp) { servicesForcedUp_ = forcedUp; }
 };
 
 

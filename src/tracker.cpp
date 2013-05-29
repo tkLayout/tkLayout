@@ -130,6 +130,8 @@ void Tracker::setDefaultParameters() {
   topToBottomEndcap_ = false;
 
   currentContainerId_ = 0;
+
+  servicesForcedUp_ = false;
 }
 
 void Tracker::shapeVolume() {

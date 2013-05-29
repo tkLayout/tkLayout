@@ -174,6 +174,8 @@ bool configParser::parseTracker(string myName, istream& inStream) {
       } else if (parameterName=="triggerPtCut") {
         doubleValue = atof(parameterValue.c_str());
         myTracker_->setTriggerPtCut(doubleValue);        
+      } else if (parameterName=="forceServicesUp") {
+        myTracker_->setForcedUp(parameterValue=="true"); 
       } else if (correctlyBroken) { // Per module type parameters
         if (parameterNameCopy == "triggerErrorIncreaseX") {
           doubleValue = atof(parameterValue.c_str());
