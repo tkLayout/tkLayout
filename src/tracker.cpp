@@ -131,7 +131,7 @@ void Tracker::setDefaultParameters() {
 
   currentContainerId_ = 0;
 
-  servicesForcedUp_ = false;
+  servicesForcedUp_ = true;
 }
 
 void Tracker::shapeVolume() {
