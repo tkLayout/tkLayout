@@ -445,12 +445,13 @@ namespace insur {
 
   bool Squid::reportTriggerProcessorsSite() {
     if (tr) {
-      startTaskClock("Computing dissipated power");
+      startTaskClock("Computing multiple trigger tower connections");
       a.computeTriggerProcessorsBandwidth(*tr);
       v.triggerProcessorsSummary(a, *tr, site);
+      stopTaskClock();
       return true;
     } else {
-      std::cerr << "Squid::reportTriggerProcessorsSite(): " << err_no_tracker << std::endl;
+      logERROR(err_no_tracker);
       return false;
     }
 
