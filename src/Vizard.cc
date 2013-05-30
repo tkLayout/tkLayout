@@ -2395,11 +2395,16 @@ namespace insur {
     site.addPage(myPage);
 
     SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
+    SummaryTable& processorCommonSummary = analyzer.getProcessorCommonConnectionSummary(); 
     SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
     SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
     //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
+
+    RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
+    sharedConnContent.addTable().setContent(processorCommonSummary.getContent());
+    sharedConnContent.addText("Columns and rows both report trigger towers, in the format 't Eta# , Phi#'. Each table cell contains the number of connections the TT on the column shares with the TT on the corresponding row. On the diagonal the total number of inbound connections per each TT is reported (as in the Processor Inbound Connections table).");
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 

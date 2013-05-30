@@ -1470,6 +1470,8 @@ namespace insur {
       processorInboundBandwidthSummary_.setHeader("Phi", "Eta");
       processorInboundStubPerEventSummary_.setHeader("Phi", "Eta");
 
+      processorCommonConnectionSummary_.setHeader("tEta,Phi", "tEta,Phi");
+
       processorInboundBandwidthSummary_.setPrecision(3);
       processorInboundStubPerEventSummary_.setPrecision(3);
 
@@ -1503,7 +1505,8 @@ namespace insur {
 
                   processorInboundStubsPerEvent[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[cntName][make_pair(module->getLayer(), module->getRing())];
                   processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
-
+                  
+                  module->addConnectedProcessor(make_pair(i+1, j+1));
                 } 
               }
             }
@@ -1541,7 +1544,18 @@ namespace insur {
         if (cntName == "" /*|| !layer*/) continue;
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
           moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 1);
-
+          std::set<pair<int, int> > connectedProcessors = (*modIt)->getConnectedProcessors();
+          while (!connectedProcessors.empty()) {
+            pair<int, int> colRef = *connectedProcessors.begin();
+            int col = colRef.second + numProcPhi*(colRef.first-1);
+            if (!processorCommonConnectionSummary_.hasCell(-1, col)) processorCommonConnectionSummary_.setCell(0, col, "t" + any2str(colRef.first) + "," + any2str(colRef.second)); // set column header
+            for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
+              int row = pIt->second + numProcPhi*(pIt->first-1);
+              if (!processorCommonConnectionSummary_.hasCell(row, 0)) processorCommonConnectionSummary_.setCell(row, 0, "t" + any2str(pIt->first) + "," + any2str(pIt->second));
+              processorCommonConnectionSummary_.setCell(row, col, 1, std::plus<int>());
+            }
+            connectedProcessors.erase(connectedProcessors.begin());
+          }
         }
       }
     }

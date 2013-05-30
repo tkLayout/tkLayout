@@ -120,6 +120,7 @@ protected:
   double irradiatedPowerConsumption_;
 
   int processorConnectionsEta_, processorConnectionsPhi_;
+  std::set<std::pair<int, int> > connectedProcessors_; 
 
   int inSection_;
 
@@ -402,6 +403,9 @@ public:
   int getProcessorConnectionsPhi() const { return processorConnectionsPhi_; }
   void setProcessorConnectionsPhi(int processorConnectionsPhi) { processorConnectionsPhi_ = processorConnectionsPhi; }
   int getProcessorConnections() const { return processorConnectionsEta_*processorConnectionsPhi_; }
+  void addConnectedProcessor(const std::pair<int, int> processorId) { connectedProcessors_.insert(processorId); }
+  const std::set<std::pair<int, int> >& getConnectedProcessors() const { return connectedProcessors_; }
+
 
   void setProperty(std::string name, double value) { properties_[name] = value; }
   double getProperty(std::string name) const { return hasProperty(name) ? properties_.at(name) : 0; }

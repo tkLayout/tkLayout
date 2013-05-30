@@ -61,7 +61,8 @@ namespace insur {
     }
     void setPrecision(int precision) { precision_ = precision; } // has to be called before filling the table or conversions from floating point won't have the desired precision
 
-    template<typename T> void setCell(const int row, const int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
+    template<typename T> void setCell(int row, int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
+    template<typename T, typename BinaryOp> void setCell(int row, int column, const T& content, BinaryOp binop) { setCell(row, column, binop(hasCell(row, column) ? str2any<T>(getCell(row, column)) : T(), content)); }
     template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCell(label, any2str(content, precision_)); }
 
     std::string getCell(int row, int column) { return summaryTable[make_pair(row,column)];} // this actually alters the map if the cell's not there = DANGEROUS
@@ -306,6 +307,7 @@ namespace insur {
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
+    SummaryTable& getProcessorCommonConnectionSummary() { return processorCommonConnectionSummary_; }
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
     SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
@@ -382,6 +384,7 @@ namespace insur {
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
 
     SummaryTable processorConnectionSummary_;
+    SummaryTable processorCommonConnectionSummary_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
