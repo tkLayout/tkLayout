@@ -2404,7 +2404,7 @@ namespace insur {
 
     RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
     sharedConnContent.addTable().setContent(processorCommonSummary.getContent());
-    sharedConnContent.addText("Columns and rows both report trigger towers, in the format 't Eta# , Phi#'. Each table cell contains the number of connections the TT on the column shares with the TT on the corresponding row. On the diagonal the total number of inbound connections per each TT is reported (as in the Processor Inbound Connections table).");
+    sharedConnContent.addText("Columns and rows both report trigger towers, in the format 't Eta# , Phi#'. Each table cell contains the number of connections the TT on the column shares with the TT on the corresponding row. On the diagonal the number of unshared (i.e. belonging to a single TT) connections for each TT is reported.");
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 

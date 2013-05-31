@@ -1536,6 +1536,7 @@ namespace insur {
       moduleConnectionsDistribution.SetNameTitle("ModuleConnDist", "Number of connections to trigger processors;Connections;Modules");
       moduleConnectionsDistribution.SetBins(11, -.5, 10.5);
 
+      std::map<std::pair<int, int>, int> processorCommonConnectionMatrix;
 
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
@@ -1545,19 +1546,37 @@ namespace insur {
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
           moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 1);
           std::set<pair<int, int> > connectedProcessors = (*modIt)->getConnectedProcessors();
-          while (!connectedProcessors.empty()) {
-            pair<int, int> colRef = *connectedProcessors.begin();
-            int col = colRef.second + numProcPhi*(colRef.first-1);
-            if (!processorCommonConnectionSummary_.hasCell(-1, col)) processorCommonConnectionSummary_.setCell(0, col, "t" + any2str(colRef.first) + "," + any2str(colRef.second)); // set column header
-            for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
-              int row = pIt->second + numProcPhi*(pIt->first-1);
-              if (!processorCommonConnectionSummary_.hasCell(row, 0)) processorCommonConnectionSummary_.setCell(row, 0, "t" + any2str(pIt->first) + "," + any2str(pIt->second));
-              processorCommonConnectionSummary_.setCell(row, col, 1, std::plus<int>());
+          if (connectedProcessors.size() == 1) {
+            int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
+            processorCommonConnectionMatrix[std::make_pair(ref, ref)] += 1;
+          } else {
+            while (!connectedProcessors.empty()) {
+              pair<int, int> colRef = *connectedProcessors.begin();
+              int col = colRef.second + numProcPhi*(colRef.first-1);
+              connectedProcessors.erase(connectedProcessors.begin());
+              for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
+                int row = pIt->second + numProcPhi*(pIt->first-1);
+                processorCommonConnectionMatrix[std::make_pair(row, col)] += 1;
+              }
             }
-            connectedProcessors.erase(connectedProcessors.begin());
           }
         }
       }
+
+      for (int i = 1; i <= numProcEta; i++) {
+        for (int j = 1; j <= numProcPhi; j++) {
+          processorCommonConnectionSummary_.setCell(0, j + (i-1)*numProcPhi, "t" + any2str(i) + "," + any2str(j));
+          processorCommonConnectionSummary_.setCell(j + (i-1)*numProcPhi, 0, "t" + any2str(i) + "," + any2str(j));
+        }
+      }
+
+      for (int col = 1; col <= numProcEta*numProcPhi; col++) {
+        for (int row = col; row <= numProcEta*numProcPhi; row++) {
+          if (processorCommonConnectionMatrix.count(std::make_pair(row, col))) processorCommonConnectionSummary_.setCell(row, col, processorCommonConnectionMatrix[std::make_pair(row, col)]);
+          //else processorCommonConnectionSummary_.setCell(row, col, "0");
+        }
+      }
+
     }
 
 
