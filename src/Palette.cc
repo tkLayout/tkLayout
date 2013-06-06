@@ -7,11 +7,12 @@ std::map<std::string, int> Palette::colorPickMap;
 void Palette::initializeMe() {
   Palette::colorPickMap["ptOut"] = 2;
   Palette::colorPickMap["rphi"] = 4;
-  Palette::colorPickMap["stereo"] = 1;
+  Palette::colorPickMap["stereo"] = 6;
   Palette::colorPickMap["ptIn"] = 9;
-  Palette::colorPickMap["ptMixed"] = 6;
+  Palette::colorPickMap["ptMixed"] = 1;
   Palette::colorPickMap["pt2SLong"] = 11;
   Palette::colorPickMap["pt2SShort"] = 4;
+  Palette::colorPickMap["pixel"] = 9;
   initialized = true;
 }
 
