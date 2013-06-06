@@ -1566,7 +1566,6 @@ void Tracker::setModuleTypes(std::string sectionName,
       aModule->setStereoRotation(aRotation);
       aModule->setTag(myTag.str());
       aModule->setContainerName(sectionName);
-      // aModule->setColor(colorPicker(aType));
       aModule->setColor(Palette::color(aType));
       aModule->setReadoutType(myReadoutType);
 

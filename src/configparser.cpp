@@ -1308,6 +1308,7 @@ bool configParser::parsePixelType(istream& inStream) {
     mguard = (*liter)->getModuleVector()->end();
     for (miter = (*liter)->getModuleVector()->begin(); miter != mguard; miter++) {
       (*miter)->setType(type);
+      (*miter)->setColor(Palette::color(type));
       (*miter)->setNFaces(nSides);
       (*miter)->setNStripsAcross(nStripsAcross);
       (*miter)->setNSegments(nSegments);
@@ -1324,6 +1325,7 @@ bool configParser::parsePixelType(istream& inStream) {
     mguard = (*liter)->getModuleVector()->end();
     for (miter = (*liter)->getModuleVector()->begin(); miter != mguard; miter++) {
       (*miter)->setType(type);
+      (*miter)->setColor(Palette::color(type));
       (*miter)->setNFaces(nSides);
       (*miter)->setNStripsAcross(nStripsAcross);
       (*miter)->setNSegments(nSegments);

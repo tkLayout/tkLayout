@@ -58,6 +58,7 @@ namespace insur {
     Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
     for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
     gStyle->SetPalette(temperature_levels, myPalette);
+
   }
 
   /**
@@ -775,20 +776,20 @@ namespace insur {
 
           // First row: the radiation length
           averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(1,j+1, averageValue ,2);
+          materialSummaryTable->setContent(1,j+1, averageValue ,4);
           addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
           addSummaryElement(averageValue);
 
           // Third row: the photon conversion probability
           averageValue *= -7./9.;
           averageValue = 1 - exp(averageValue);
-          materialSummaryTable->setContent(3,j+1, averageValue ,2);
+          materialSummaryTable->setContent(3,j+1, averageValue ,4);
           addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
           addSummaryElement(averageValue);
 
           // Second row: the interaction length
           averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(2,j+1, averageValue ,2);
+          materialSummaryTable->setContent(2,j+1, averageValue ,4);
           addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
           addSummaryElement(averageValue);
         }
@@ -1134,7 +1135,7 @@ namespace insur {
               it != averages[i].end(); ++it ) {
           //std::cout << "average: " << (*it) << std::endl;
           myValue = 100 * (1 - (*it));
-          summaryTable.setContent(i+delta,j+1, myValue,2);
+          summaryTable.setContent(i+delta,j+1, myValue,4); // 4 decimal digits
           summaryTable.setContent(0,j+1, cutNames[j]);
           addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
           addSummaryElement(myValue);
@@ -1342,6 +1343,8 @@ namespace insur {
    * @param site the RootWSite object for the output
    */
   bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, std::string name) {
+
+    trackers_.push_back(&tracker);
 
     // A bunch of indexes
     std::map<std::string, Module*> tagMap;
@@ -1958,6 +1961,7 @@ namespace insur {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
       myImage->setComment("RZ position of the modules");
       myContent->addItem(myImage);
+      //rzLayouts_.push_back(RZCanvas);
     }
     if (XYCanvas) {
       myImage = new RootWImage(XYCanvas, 600, 600);
@@ -2110,6 +2114,29 @@ namespace insur {
   }
 
 
+  TCanvas* Vizard::drawFullLayout() {
+    TCanvas* result = NULL;
+    std::string aClass;
+    PlotDrawer<YZ, Type> yzDrawer;
+    double maxR = 1100;
+    double maxL = 2800;
+    double scaleFactor = maxR / 600;
+    
+    for (unsigned int i=0; i< trackers_.size(); ++i) {
+      Tracker& tracker = *(trackers_[i]);
+      yzDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
+    }
+
+    int rzCanvasX = int(maxL/scaleFactor);
+    int rzCanvasY = int(maxR/scaleFactor);
+    result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
+    result->cd();
+    yzDrawer.drawFrame<SummaryFrameStyle>(*result);
+    yzDrawer.drawModules<ContourStyle>(*result);
+
+    return result;
+  }
+
   bool Vizard::additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
                                   const std::string& matfile, const std::string& pixmatfile,
                                   bool defaultMaterial, bool defaultPixelMaterial,
@@ -2117,7 +2144,7 @@ namespace insur {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
-    RootWContent *simulationContent, *filesContent, *summaryContent;
+    RootWContent *simulationContent, *filesContent, *summaryContent, *fullLayoutContent;
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.getName();
 
@@ -2136,6 +2163,15 @@ namespace insur {
     myPage->addContent(filesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
+
+    TCanvas* aLayout = drawFullLayout();
+    if (aLayout) {
+      fullLayoutContent = new RootWContent("Full layout", false);
+      myPage->addContent(fullLayoutContent);
+      RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
+      anImage->setComment("RZ position of the modules (full layout)");
+      fullLayoutContent->addItem(anImage);
+    }
 
     std::string destinationFilename;
     if (geomfile!="") {
