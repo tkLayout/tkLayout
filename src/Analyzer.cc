@@ -266,10 +266,13 @@ namespace insur {
 
     trackingCuts.push_back(0.01);
     triggerCuts.push_back(0.01);
-    addCut("C", 0.8, 0.6);
-    addCut("I", 1.6, 1.2);
-    addCut("F", 2.4, 2.1);
-    addCut("VF",3.0, 3.0);
+    double detaTrack = 0.8;
+    //double detaTrig = 0.8; // This used to be 0.7
+    addCut("C", detaTrack, detaTrack);
+    addCut("I", detaTrack*2, detaTrack*2);
+    addCut("F", detaTrack*3, 2.1);
+    addCut("VF",detaTrack*4, 2.25);
+    addCut("VF",detaTrack*5, 2.4);
   }
 
   // public
