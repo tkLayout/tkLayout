@@ -70,6 +70,8 @@ protected:
 
   std::string arguments_;
 
+  std::map<int, int> numLayersInEachContainer_;
+
   // Default variables (distances in mm)
   static const double defaultZError_ = 70.;    // Vertex displacement sigma in z (7 cm)
   //static const double defaultRError_ = 0.02;   // Vertex displacement sigma in r (20 um)
@@ -99,6 +101,8 @@ private:
   
   void newContainerId() { currentContainerId_++; } // to pass down to the modules so that each modules knows its absolute positional reference composed by container id, layer/disk, ring, segment (phi index)
   int getCurrentContainerId() const { return currentContainerId_; }
+
+  void setNumLayersInContainer(int containerId, int numLayers) { numLayersInEachContainer_[containerId] = numLayers; }
 
   int iModule_;
   double efficiency_;
@@ -370,6 +374,7 @@ public:
   double getTriggerEtaCut() const { return triggerEtaCut_; }
   double getTriggerPtCut() const { return triggerPtCut_; }
 
+  int getNumLayersInContainer(int containerId) const { return numLayersInEachContainer_.at(containerId); }
 
   bool isTopToBottomEndcap() const { return topToBottomEndcap_; }
 

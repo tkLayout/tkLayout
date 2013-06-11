@@ -1463,6 +1463,24 @@ namespace insur {
     }
 
 
+    int sebifyBarrelCoords(BarrelModule& m, BarrelLayer& l, Tracker& t) { // transform tkLayout module coordinates into the format used by Sebastian Viret (a.k.a. Sebification)
+      int layoffset = 0;
+      for (int i = 1; i < l.getContainerId(); i++) layoffset += t.getNumLayersInContainer(i);
+      int layer = 4 + m.getLayer() + layoffset; 
+      int ladder = m.getPhiIndex();
+      int module = (m.getRing()*m.getZSide() + l.getModulesOnRodSide(-1) - (m.getZSide()>0));
+      return layer*10000 + ladder*100 + module;
+    }
+
+    int sebifyEndcapCoords(EndcapModule& m, EndcapLayer&, Tracker&) {
+      int disk = 10 + m.getDisk() + 7 * (m.getZSide()<0);
+      int ring = m.getRing()-1;
+      int module = m.getPhiIndex();
+      return disk*10000 + ring*100 + module;
+    }
+
+
+
     void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
       std::map<std::pair<int, int>, int> processorConnections;
@@ -1510,6 +1528,11 @@ namespace insur {
                   processorInboundStubPerEventSummary_.setCell(j+1, i+1, processorInboundStubsPerEvent[std::make_pair(j,i)]);
                   
                   module->addConnectedProcessor(make_pair(i+1, j+1));
+
+                  if (dynamic_cast<BarrelModule*>(module)) 
+                    sectorMap_[make_pair(i+1, j+1)].insert(sebifyBarrelCoords(*(BarrelModule*)module, *(BarrelLayer*)layer, tracker));
+                  else 
+                    sectorMap_[make_pair(i+1, j+1)].insert(sebifyEndcapCoords(*(EndcapModule*)module, *(EndcapLayer*)layer, tracker));
                 } 
               }
             }

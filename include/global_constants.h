@@ -98,5 +98,6 @@ namespace insur {
   static const std::string default_styledir = "style";
 
   static const std::string csv_separator = ",";
+  static const std::string csv_eol = "\n";
 }
 #endif /* _GLOBAL_CONSTANTS_H */

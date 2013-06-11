@@ -104,7 +104,7 @@ class BarrelLayer : public Layer {
 private:
   // If you add another member variable, please update the copy
   // constructor accordingly
-  int nOfRods_, nModsOnString_;
+  int nOfRods_, nModsOnString_, nModsOnStringZPlus_, nModsOnStringZMinus_;
   BarrelModule* sampleModule_;
   BarrelModule* getSampleModule() { return sampleModule_; }
   double averageRadius_;
@@ -180,44 +180,44 @@ public: // placement strategy must be in a public section because it is decided 
   };
 private:
 
-  void buildStringPair(ModuleVector& thisModuleSet,
-                       double averageRadius,
-                       std::pair<double,double> worstCaseRadii,
-                       double bigDelta,
-                       double smallDelta,
-                       const vector<double>& dsDistances,
-                       double baseOverlap,
-                       double zDelta,
-                       const ModulePlacementStrategy& computeListZ,
-                       int smallParity,
-                       BarrelModule* sampleModule);
+  std::pair<int, int> buildStringPair(ModuleVector& thisModuleSet,
+                                      double averageRadius,
+                                      std::pair<double,double> worstCaseRadii,
+                                      double bigDelta,
+                                      double smallDelta,
+                                      const vector<double>& dsDistances,
+                                      double baseOverlap,
+                                      double zDelta,
+                                      const ModulePlacementStrategy& computeListZ,
+                                      int smallParity,
+                                      BarrelModule* sampleModule);
 
-  void buildStringPairRecursion(ModuleVector& thisModuleSet,
-                                double averageRadius,
-                                std::pair<double,double> worstCaseRadii,
-                                double bigDelta,
-                                double smallDelta,
-                                const vector<double>& dsDistances,
-                                double baseOverlap,
-                                double zDelta,
-                                double startZ,
-                                const ModulePlacementStrategy& computeListZ,
-                                int smallParity,
-                                int recursionCounter,
-                                BarrelModule* sampleModule);
+  std::pair<int, int> buildStringPairRecursion(ModuleVector& thisModuleSet,
+                                               double averageRadius,
+                                               std::pair<double,double> worstCaseRadii,
+                                               double bigDelta,
+                                               double smallDelta,
+                                               const vector<double>& dsDistances,
+                                               double baseOverlap,
+                                               double zDelta,
+                                               double startZ,
+                                               const ModulePlacementStrategy& computeListZ,
+                                               int smallParity,
+                                               int recursionCounter,
+                                               BarrelModule* sampleModule);
 
-  void buildMezzanineStringPair(ModuleVector& thisModuleSet,
-                                double averageRadius,
-                                std::pair<double,double> worstCaseRadii,
-                                double bigDelta,
-                                double smallDelta,
-                                const vector<double>& dsDistances,
-                                double baseOverlap,
-                                double zDelta,
-                                double startZ,
-                                const ModulePlacementStrategy& computeListZ,
-                                int smallParity,
-                                BarrelModule* sampleModule);
+  std::pair<int, int> buildMezzanineStringPair(ModuleVector& thisModuleSet,
+                                               double averageRadius,
+                                               std::pair<double,double> worstCaseRadii,
+                                               double bigDelta,
+                                               double smallDelta,
+                                               const vector<double>& dsDistances,
+                                               double baseOverlap,
+                                               double zDelta,
+                                               double startZ,
+                                               const ModulePlacementStrategy& computeListZ,
+                                               int smallParity,
+                                               BarrelModule* sampleModule);
 
   ModuleVector buildTiltedString(const TiltedRodSpecs::const_iterator& begin, const TiltedRodSpecs::const_iterator& end, const BarrelModule* sampleModule, int side);
 
@@ -274,7 +274,9 @@ public:
 
   int getRods() { return nOfRods_; }
   int getModulesOnRod() { return nModsOnString_; }
+  int getModulesOnRodSide(int zSide) { return zSide > 0 ? nModsOnStringZPlus_ : nModsOnStringZMinus_; }
   int getRings() { return nModsOnString_; }
+  int getRingsSide(int zSide) { return zSide > 0 ? nModsOnStringZPlus_ : nModsOnStringZMinus_; }
 
   double getMaxZ(int direction);
   void compressToZ(double newMaxZ);

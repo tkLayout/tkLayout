@@ -452,6 +452,8 @@ LayerVector Tracker::buildBarrel(int nLayer,
   rMaxpB_.push_back(maxRadius);
   dZpB_.push_back(maxZ);
 
+  setNumLayersInContainer(getCurrentContainerId(), thisBarrelLayerSet.size());
+
   return thisBarrelLayerSet;
 }
 
@@ -476,6 +478,8 @@ LayerVector Tracker::buildTiltedBarrel(const std::string barrelName, const Tilte
     addLayer(aBarrelLayer, barrelName, TypeBarrel);
     thisBarrelLayerSet.push_back(aBarrelLayer);
   }
+
+  setNumLayersInContainer(getCurrentContainerId(), thisBarrelLayerSet.size());
 
   return thisBarrelLayerSet;
 }
@@ -821,6 +825,9 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
   rMinpE_.push_back(minRadius);
   rMaxpE_.push_back(maxRadius);
   dZpE_.push_back((maxZ - minZ) / 2.0);
+
+
+  setNumLayersInContainer(getCurrentContainerId(), nDisks);
 }
 
 // Function used to remove some endcaps rings
@@ -1481,8 +1488,8 @@ void Tracker::setModuleTypes(std::string sectionName,
       }
 
       aStripsAcross = nStripsAcross[myIndex];
-      aROCRows = nROCRows[myIndex];
-      aROCCols = nROCCols[myIndex];
+      aROCRows = nROCRows.count(myIndex) ? nROCRows[myIndex] : 128;
+      aROCCols = nROCCols.count(myIndex) ? nROCCols[myIndex] : 1;
       aFaces = nFaces[myIndex];
       aSegments = nSegments[myIndex];
       aType = myType[myIndex];

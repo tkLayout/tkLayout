@@ -325,7 +325,7 @@ double BarrelLayer::PlaceWithNumModules::operator()( //NUM MODULES VERSION
   return newZ;
 }
 
-void BarrelLayer::buildStringPair(
+std::pair<int, int> BarrelLayer::buildStringPair(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -338,22 +338,22 @@ void BarrelLayer::buildStringPair(
   int smallParity,
   BarrelModule* sampleModule) {
 
-  buildStringPairRecursion(thisModuleSet,
-                           averageRadius,
-                           worstCaseRadii,
-                           bigDelta, 
-                           smallDelta, 
-                           dsDistances, 
-                           baseOverlap,
-                           zDelta, 
-                           0, // startZ
-                           computeListZ,
-                           smallParity,
-                           0, // recursion counter
-                           sampleModule);
+  return buildStringPairRecursion(thisModuleSet,
+                                  averageRadius,
+                                  worstCaseRadii,
+                                  bigDelta, 
+                                  smallDelta, 
+                                  dsDistances, 
+                                  baseOverlap,
+                                  zDelta, 
+                                  0, // startZ
+                                  computeListZ,
+                                  smallParity,
+                                  0, // recursion counter
+                                  sampleModule);
 } 
 
-void BarrelLayer::buildStringPairRecursion(
+std::pair<int, int> BarrelLayer::buildStringPairRecursion(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -373,7 +373,7 @@ void BarrelLayer::buildStringPairRecursion(
     tempString << "Balanced module placement in string at avg radius " << averageRadius << " didn't converge!! String badly skewed";
     tempString << "Unbalance is " << startZ << " mm";
     logWARNING(tempString.str());
-    return;
+    return std::make_pair(0, 0);
   }  
   // create Z lists and balance them
 
@@ -392,19 +392,19 @@ void BarrelLayer::buildStringPairRecursion(
 
   double zUnbalance = farthestPosZ + farthestNegZ; // balancing uneven pos/neg strings
   if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
-    buildStringPairRecursion(thisModuleSet,
-                             averageRadius,
-                             worstCaseRadii,
-                             bigDelta,
-                             smallDelta,
-                             dsDistances,
-                             baseOverlap,
-                             zDelta,
-                             startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
-                             computeListZ,
-                             smallParity,
-                             recursionCounter,
-                             sampleModule);
+    return buildStringPairRecursion(thisModuleSet,
+                                    averageRadius,
+                                    worstCaseRadii,
+                                    bigDelta,
+                                    smallDelta,
+                                    dsDistances,
+                                    baseOverlap,
+                                    zDelta,
+                                    startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
+                                    computeListZ,
+                                    smallParity,
+                                    recursionCounter,
+                                    sampleModule);
   } else {
 
     ostringstream tempSS;
@@ -436,11 +436,13 @@ void BarrelLayer::buildStringPairRecursion(
       m->setZSide(-1);
       thisModuleSet.push_back(m);        
     }
+
+    return std::make_pair(listZPos.size(), listZNeg.size());
   }
 }
 
 
-void BarrelLayer::buildMezzanineStringPair(
+std::pair<int, int> BarrelLayer::buildMezzanineStringPair(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -484,6 +486,8 @@ void BarrelLayer::buildMezzanineStringPair(
     m->setZSide(-1);
     thisModuleSet.push_back(m);        
   }
+  
+  return std::make_pair(listZ.size(), listZ.size());
 }
 
 
@@ -789,54 +793,55 @@ void BarrelLayer::buildLayer(double averageRadius,
   int smallParity = (smallDelta > 0) - (smallDelta < 0);  // extract sign
 
   std::vector<Module*> archetypeIn, archetypeOut;
+  std::pair<int, int> sizeIn, sizeOut;
   if (farthestZ==0) { // Build a standard (double) string
-    buildStringPair(archetypeIn,
-                    goodRadius,
-                    worstCaseRadii, // wanna-be in
-                    bigDelta,
-                    smallDelta,
-                    dsDistances,
-                    overlap,
-                    safetyOrigin,
-                    moduleStrategy,
-                    smallParity,
-                    sampleModule);
-    buildStringPair(archetypeOut, // wanna-be out
-                    goodRadius,
-                    worstCaseRadii,
-                    bigDelta,
-                    smallDelta,
-                    dsDistances,
-                    overlap,
-                    safetyOrigin,
-                    moduleStrategy,
-                    stringSameParity ? smallParity : -smallParity,
-                    sampleModule);
-  } else { // Build a mezzanine (double) string
-    buildMezzanineStringPair(archetypeIn, // wanna-be in
+    sizeIn = buildStringPair(archetypeIn,
                              goodRadius,
-                             worstCaseRadii,
+                             worstCaseRadii, // wanna-be in
                              bigDelta,
                              smallDelta,
                              dsDistances,
                              overlap,
                              safetyOrigin,
-                             farthestZ,
                              moduleStrategy,
                              smallParity,
                              sampleModule);
-    buildMezzanineStringPair(archetypeOut, // wanna-be out
-                             goodRadius,
-                             worstCaseRadii,
-                             bigDelta,
-                             smallDelta,
-                             dsDistances,
-                             overlap,
-                             safetyOrigin,
-                             farthestZ,
-                             moduleStrategy,
-                             stringSameParity ? smallParity : -smallParity,
-                             sampleModule);
+    sizeOut = buildStringPair(archetypeOut, // wanna-be out
+                              goodRadius,
+                              worstCaseRadii,
+                              bigDelta,
+                              smallDelta,
+                              dsDistances,
+                              overlap,
+                              safetyOrigin,
+                              moduleStrategy,
+                              stringSameParity ? smallParity : -smallParity,
+                              sampleModule);
+  } else { // Build a mezzanine (double) string
+    sizeIn = buildMezzanineStringPair(archetypeIn, // wanna-be in
+                                      goodRadius,
+                                      worstCaseRadii,
+                                      bigDelta,
+                                      smallDelta,
+                                      dsDistances,
+                                      overlap,
+                                      safetyOrigin,
+                                      farthestZ,
+                                      moduleStrategy,
+                                      smallParity,
+                                      sampleModule);
+    sizeOut = buildMezzanineStringPair(archetypeOut, // wanna-be out
+                                       goodRadius,
+                                       worstCaseRadii,
+                                       bigDelta,
+                                       smallDelta,
+                                       dsDistances,
+                                       overlap,
+                                       safetyOrigin,
+                                       farthestZ,
+                                       moduleStrategy,
+                                       stringSameParity ? smallParity : -smallParity,
+                                       sampleModule);
   }
 
   for (std::vector<Module*>::iterator it = archetypeIn.begin(); it < archetypeIn.end(); ++it) { // move archetype inward
@@ -960,6 +965,10 @@ void BarrelLayer::buildLayer(double averageRadius,
   }
   nOfRods_ = nStrings;
   nModsOnString_ = archetypeIn.size(); // archetypeIn and Out will have the same number of modules?
+  
+  nModsOnStringZPlus_  = sizeIn.first;
+  nModsOnStringZMinus_ = sizeIn.second;
+
   if (archetypeIn.size() != archetypeOut.size()) { logWARNING("buildLayer(): Archetypes for inner and outer rods of layer at radius " + any2str(averageRadius) + " have different lengths"); }
 
   while (!archetypeIn.empty()) {

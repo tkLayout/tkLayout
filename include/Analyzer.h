@@ -175,6 +175,8 @@ namespace insur {
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
 
+  typedef std::map<std::pair<int, int>, std::set<int> > TriggerSectorMap;
+
   class Analyzer {
   public:
     Analyzer();
@@ -317,6 +319,7 @@ namespace insur {
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
    
     
+    const TriggerSectorMap& getTriggerSectorMap() const { return sectorMap_; }
 
     // double getEtaMaxMaterial() { return etaMaxMaterial; } 
     double getEtaMaxMaterial() { return getEtaMaxTracking(); }
@@ -396,6 +399,8 @@ namespace insur {
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
+
+    TriggerSectorMap sectorMap_;
 
     TH1D hitDistribution;
     graphBag myGraphBag;
