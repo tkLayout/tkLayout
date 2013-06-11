@@ -90,6 +90,12 @@ struct Property {
   double operator()(const Module& m) const { return m.getProperty(name); }
 };
 
+struct PropertyPerSensor {
+  const char* name;
+  PropertyPerSensor(const char* nameString) : name(nameString) {}
+  double operator()(const Module& m) const { return m.getProperty(name)/m.getNFaces(); }
+};
+
 struct TotalIrradiatedPower {
   double operator()(const Module& m) { 
     double chipPower = m.getModuleType()->getPower(m.getNChannels());
@@ -97,6 +103,12 @@ struct TotalIrradiatedPower {
   }
 };
 
+struct TotalIrradiatedPowerPerSensor {
+  double operator()(const Module& m) { 
+    double chipPower = m.getModuleType()->getPower(m.getNChannels());
+    return (m.getIrradiatedPowerConsumption()+chipPower)/m.getNFaces();
+  }
+};
 
 struct Type {
   double operator()(const Module& m) { return m.getColor(); }

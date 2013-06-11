@@ -2517,21 +2517,51 @@ namespace insur {
     myPage->setAddress("power.html");
     site.addPage(myPage);
 
+	//Power in irradiated sensors
     std::map<std::string, SummaryTable>& powerSummaries = a.getIrradiatedPowerConsumptionSummaries();
     for (std::map<std::string, SummaryTable>::iterator it = powerSummaries.begin(); it != powerSummaries.end(); ++it) {
       myPage->addContent(std::string("Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
+	
+	//Maximal Power in irradiated sensors
+//    std::map<std::string, SummaryTable>& maxPowerTableSummaries = a.getMaxIrradiatedPowerConsumptionTableSummaries();
+//   for (std::map<std::string, SummaryTable>::iterator it = maxPowerTableSummaries.begin(); it != maxPowerTableSummaries.end(); ++it) {
+//      myPage->addContent(std::string("Maximal Power in irradiated sensors (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+//    }
 
-    // Some helper string objects
-    ostringstream tempSS;
+	//Max Power in irradiated sensors
+	RootWContent& maxPowerTable = myPage->addContent("Maximal Power in iradiated Sensors", false);  
+    RootWTable* irrTable = new RootWTable(); 
+	maxPowerTable.addItem(irrTable);
+    irrTable->setContent(0, 1, "Sensor");	
+    irrTable->setContent(0, 2, "Separation");	
+    irrTable->setContent(0, 3, "MaxPower");	
+	int counter(1);
+	  std::map<std::string, std::vector<double> >& maxPowerSummaries = a.getMaxIrradiatedPowerConsumptionSummaries();
+	  
+	  for (std::map<std::string, std::vector<double> >::iterator it = maxPowerSummaries.begin(); it != maxPowerSummaries.end(); ++it) {
+		  
+		  std::vector<string> bob = split(it->first, "_");
+		  double max = *(max_element((it->second).begin() , (it->second).end())) ;
+		 if(bob[0]=="ptMixed") bob[0]="PS";
+		 if(bob[0]=="ptOut")   bob[0]="2S";
+		 
+		  irrTable->setContent(counter, 1, bob[0]);
+		  irrTable->setContent(counter, 2, bob[1]);
+		  irrTable->setContent(counter, 3, any2str<double>(max));
+		  counter++;
+	  }
+    
+	  // Some helper string objects
+    ostringstream tempSS;//these do not have any use here?
     std::string tempString;    
 
     // mapBag myMapBag = a.getMapBag();
     // TH2D& irradiatedPowerMap = myMapBag.getMaps(mapBag::irradiatedPowerConsumptionMap)[mapBag::dummyMomentum];
     // TH2D& totalPowerMap = myMapBag.getMaps(mapBag::totalPowerConsumptionMap)[mapBag::dummyMomentum];
 
-    PlotDrawer<YZ, Property, Average> yzPowerDrawer(0, 0, "irradiatedPowerConsumption");
-    PlotDrawer<YZ, TotalIrradiatedPower, Average> yzTotalPowerDrawer(0, 0);
+    PlotDrawer<YZ, PropertyPerSensor, Average> yzPowerDrawer(0, 0, "irradiatedPowerConsumption");
+    PlotDrawer<YZ, TotalIrradiatedPowerPerSensor, Average> yzTotalPowerDrawer(0, 0);
 
     yzPowerDrawer.addModules<CheckType<Module::Barrel | Module::Endcap> >(tracker.getLayers());
     yzTotalPowerDrawer.addModulesType(tracker.getLayers(), Module::Barrel | Module::Endcap);
@@ -2549,10 +2579,10 @@ namespace insur {
     yzTotalPowerDrawer.drawModules<ContourStyle>(totalPowerCanvas);
 
     RootWImage& irradiatedPowerImage = myContent.addImage(irradiatedPowerCanvas, 900, 400);
-    irradiatedPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
+    irradiatedPowerImage.setComment("Map of power dissipation in irradiated sensors (W)");
     irradiatedPowerImage.setName("irradiatedPowerMap");
     RootWImage& totalPowerImage = myContent.addImage(totalPowerCanvas, 900, 400);
-    totalPowerImage.setComment("Map of power dissipation in irradiated modules (W)");
+    totalPowerImage.setComment("Map of power dissipation in irradiated sensors (W)");
     totalPowerImage.setName("totalPowerMap");
 
 

@@ -303,7 +303,11 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
-    std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
+    
+	std::map<std::string, std::vector<double> >& getMaxIrradiatedPowerConsumptionSummaries() { return maxIrradiatedPowerConsumptionSummaries_; } 
+    std::map<std::string, SummaryTable>& getMaxIrradiatedPowerConsumptionTableSummaries() { return maxIrradiatedPowerConsumptionTableSummaries_; }
+    
+	std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
@@ -380,7 +384,11 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
-    std::map<std::string, SummaryTable> stripOccupancySummaries_;
+    
+	std::map<std::string, std::vector<double> > maxIrradiatedPowerConsumptionSummaries_;
+    std::map<std::string, SummaryTable> maxIrradiatedPowerConsumptionTableSummaries_;
+    
+	std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
 
     SummaryTable processorConnectionSummary_;
