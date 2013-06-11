@@ -2548,7 +2548,7 @@ namespace insur {
 		 
 		  irrTable->setContent(counter, 1, bob[0]);
 		  irrTable->setContent(counter, 2, bob[1]);
-		  irrTable->setContent(counter, 3, any2str<double>(max));
+		  irrTable->setContent(counter, 3, any2str<double>(max, 3));
 		  counter++;
 	  }
     
