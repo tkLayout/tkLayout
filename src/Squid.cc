@@ -100,6 +100,7 @@ namespace insur {
   bool Squid::irradiateTracker() {
     if (tr) {
       startTaskClock("Evaluating modules irradiation");
+      cp.flukaGridSteps(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       stopTaskClock();
       return true;
@@ -108,6 +109,7 @@ namespace insur {
       return false;
     }
   }
+
 
 
   /**

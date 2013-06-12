@@ -29,6 +29,7 @@ public:
   bool dressPixels(Tracker* aTracker, string configFileName);
   // Parse an irradiation map so that modules can be assigned radiation levels
   bool irradiateTracker(Tracker* aTracker, string irrFileName);
+  bool flukaGridSteps(Tracker* aTracker, string irrFileName);
 
   // Extract the user-defined support structures from the geometry config file
   std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);

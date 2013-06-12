@@ -2000,31 +2000,79 @@ std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string f
 }
 
 
-bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
-  // cout << "Trying to open irradiation map file " << fileName << endl;
+//-----------------
+
+bool configParser::flukaGridSteps(Tracker* tracker, string fileName) {
   std::ifstream filein(fileName.c_str());
   if (!filein.is_open()) { 
     logERROR("Failed opening irradiation map file!");
     return false;
   }
   std::string line;
+
+  bool haveStepRho(false);
+  bool haveStepZ(false);
+  double ztmp(0.0), rtmp(0.0), stepR(0.0), stepZ;
   while(std::getline(filein, line)) {
-    if (line.find_first_of("#//;")==0 || line=="") continue;
-    std::stringstream ss(line);
-    double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
-    ss >> z;
-    ss >> r;
-    ss >> fluence;
-    ss >> error;
-    if (r < 0.0 || fluence < 0.0) {
-      ostringstream tempSS;
-      tempSS << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error;
-      logERROR(tempSS);
-    }
-    tracker->getIrradiationMap()[make_pair(int(z/2.5),int(r/2.5))] = fluence;
+	  if (line.find_first_of("#//;")==0 || line=="") continue;
+	  std::stringstream ss(line);
+	  double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
+	  ss >> z;
+	  ss >> r;
+	  ss >> fluence;
+	  ss >> error;
+
+	  if(!haveStepRho){ 
+		  if(rtmp==0.0) rtmp=r;
+		  stepR=r-rtmp;
+		  if(stepR) {
+			  haveStepRho = true;
+			  tracker->getStepRho() = stepR;
+		  }
+	  }
+
+	  if(!haveStepZ){ 
+		  if(ztmp==0.0) ztmp=z;
+		  stepZ=z-ztmp;
+		  if(stepZ) {
+			  haveStepZ = true;
+			  tracker->getStepZ() = stepZ;
+		  }
+	  }
+	  if (haveStepZ && haveStepRho) break;
+
   }
   return true;
 }
+bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
+	// cout << "Trying to open irradiation map file " << fileName << endl;
+	std::ifstream filein(fileName.c_str());
+	if (!filein.is_open()) { 
+		logERROR("Failed opening irradiation map file!");
+		return false;
+	}
+	double zstep = tracker->getStepZ();
+	double rstep = tracker->getStepRho();
+	std::string line;
+	while(std::getline(filein, line)) {
+		if (line.find_first_of("#//;")==0 || line=="") continue;
+		std::stringstream ss(line);
+		double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
+		ss >> z;
+		ss >> r;
+		ss >> fluence;
+		ss >> error;
+
+		if (r < 0.0 || fluence < 0.0) {
+			ostringstream tempSS;
+			tempSS << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error;
+			logERROR(tempSS);
+		}
+		tracker->getIrradiationMap()[make_pair(int((z + 0.5*zstep)/zstep),int((r+0.5*rstep)/rstep))] = fluence;
+	}
+	return true;
+}
+//-----------------
 
 
 bool configParser::peekTypes(string configFileName) {

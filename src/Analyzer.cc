@@ -1655,22 +1655,21 @@ namespace insur {
 		  
 		  
 		  double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-          double x  = center.Z()/25;
-          double y  = center.Rho()/25;
+          double x  = (center.Z() + 0.5*tracker.getStepZ()*10.0)/(tracker.getStepZ()*10.0);
+          double y  = (center.Rho() + 0.5*tracker.getStepRho()*10.0)/(tracker.getStepRho()*10.0);
           double x1 = floor(x);
           double y1 = floor(y);
-          //double x2 = ceil(x);
-          //double y2 = ceil(y);
-          //if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
-          //if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
+          double x2 = ceil(x);
+          double y2 = ceil(y);
+          if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
+          if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
           double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; 
-          //double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
-          //double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
-          //double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
-          //double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
+          double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
+          double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
+          double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
+          double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
           // 80 mb is the current estimate for pp cross-section @ 7 TeV (2013-05-10)
-          //double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
-          double fluence = irr11 * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+          double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
           double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
           double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
           //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
