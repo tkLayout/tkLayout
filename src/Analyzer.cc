@@ -1614,7 +1614,7 @@ namespace insur {
       double alphaParam       = tracker.getAlphaParam();
       double referenceTemp    = tracker.getReferenceTemp();
       double irrStepZ  = tracker.getIrradiationStepZ();//in cm!
-      double irrStepR  = tracker.getIrradiationStepRho();//in cm!
+      double irrStepR  = tracker.getIrradiationStepR();//in cm!
 
       // cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
       // cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;

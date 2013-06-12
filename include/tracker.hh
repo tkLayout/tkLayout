@@ -62,7 +62,7 @@ protected:
   std::map<std::string, ModuleType> mapType_;
   std::map<std::pair<int, int>, double> mapIrradiation_;
   double stepZ_;
-  double stepRho_;
+  double stepR_;
   SpecialDelta specialSmallDelta_;
   SpecialDelta specialBigDelta_;
 
@@ -364,7 +364,7 @@ public:
   ptError::InefficiencyType getInefficiencyType(string typeIndex) { return mapType_[typeIndex].getInefficiencyType(); }
   std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
   double &getIrradiationStepZ() { return stepZ_; } 
-  double &getIrradiationStepRho() { return stepRho_; } 
+  double &getIrradiationStepR() { return stepR_; } 
   double getNumInvFemtobarns() const { return numInvFemtobarns_; }
   double getOperatingTemp() const { return operatingTemp_; }
   double getReferenceTemp() const { return referenceTemp_; }

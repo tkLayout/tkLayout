@@ -2027,7 +2027,7 @@ bool configParser::flukaGridSteps(Tracker* tracker, string fileName) {
 		  stepR=r-rtmp;
 		  if(stepR) {
 			  haveStepRho = true;
-			  tracker->getIrradiationStepRho() = stepR;
+			  tracker->getIrradiationStepR() = stepR;
 		  }
 	  }
 
@@ -2052,7 +2052,7 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 		return false;
 	}
 	double zstep = tracker->getIrradiationStepZ();
-	double rstep = tracker->getIrradiationStepRho();
+	double rstep = tracker->getIrradiationStepR();
 	std::string line;
 	while(std::getline(filein, line)) {
 		if (line.find_first_of("#//;")==0 || line=="") continue;
