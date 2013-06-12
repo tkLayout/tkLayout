@@ -1613,6 +1613,8 @@ namespace insur {
       double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
       double alphaParam       = tracker.getAlphaParam();
       double referenceTemp    = tracker.getReferenceTemp();
+      double irrStepZ  = tracker.getIrradiationStepZ();//in cm!
+      double irrStepR  = tracker.getIrradiationStepRho();//in cm!
 
       // cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
       // cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
@@ -1653,10 +1655,9 @@ namespace insur {
 			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setHeader("layer", "ring");
 			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setPrecision(3);        
 		  
-		  
 		  double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-          double x  = (center.Z() + 0.5*tracker.getStepZ()*10.0)/(tracker.getStepZ()*10.0);
-          double y  = (center.Rho() + 0.5*tracker.getStepRho()*10.0)/(tracker.getStepRho()*10.0);
+		  double x  = (center.Z() + 0.5*irrStepZ*10.0)/(irrStepZ*10.0);
+          double y  = (center.Rho() + 0.5*irrStepR*10.0)/(irrStepR*10.0);
           double x1 = floor(x);
           double y1 = floor(y);
           double x2 = ceil(x);

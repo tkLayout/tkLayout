@@ -363,8 +363,8 @@ public:
   double  getSensorThickness(string typeIndex) { return mapType_[typeIndex].getSensorThickness(); }
   ptError::InefficiencyType getInefficiencyType(string typeIndex) { return mapType_[typeIndex].getInefficiencyType(); }
   std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
-  double &getStepZ() { return stepZ_; } 
-  double &getStepRho() { return stepRho_; } 
+  double &getIrradiationStepZ() { return stepZ_; } 
+  double &getIrradiationStepRho() { return stepRho_; } 
   double getNumInvFemtobarns() const { return numInvFemtobarns_; }
   double getOperatingTemp() const { return operatingTemp_; }
   double getReferenceTemp() const { return referenceTemp_; }

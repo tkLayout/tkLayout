@@ -2027,7 +2027,7 @@ bool configParser::flukaGridSteps(Tracker* tracker, string fileName) {
 		  stepR=r-rtmp;
 		  if(stepR) {
 			  haveStepRho = true;
-			  tracker->getStepRho() = stepR;
+			  tracker->getIrradiationStepRho() = stepR;
 		  }
 	  }
 
@@ -2036,7 +2036,7 @@ bool configParser::flukaGridSteps(Tracker* tracker, string fileName) {
 		  stepZ=z-ztmp;
 		  if(stepZ) {
 			  haveStepZ = true;
-			  tracker->getStepZ() = stepZ;
+			  tracker->getIrradiationStepZ() = stepZ;
 		  }
 	  }
 	  if (haveStepZ && haveStepRho) break;
@@ -2051,8 +2051,8 @@ bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
 		logERROR("Failed opening irradiation map file!");
 		return false;
 	}
-	double zstep = tracker->getStepZ();
-	double rstep = tracker->getStepRho();
+	double zstep = tracker->getIrradiationStepZ();
+	double rstep = tracker->getIrradiationStepRho();
 	std::string line;
 	while(std::getline(filein, line)) {
 		if (line.find_first_of("#//;")==0 || line=="") continue;
