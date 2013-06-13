@@ -1665,41 +1665,36 @@ namespace insur {
 			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setPrecision(3);        
 
 			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-			std::cout<<"*****************"<<std::endl;
 			double x  = center.Z() /irrStepZ;  
 			double y  = center.Rho() /irrStepR;
 			int quadrant = whichCellQuadrant(x, y);
-			std::cout<<"QUADRANT = "<<quadrant<<std::endl;
-			std::cout<<"X = "<< x<<std::endl;
-			std::cout<<"Y = "<< y<<std::endl;
 
 
 			double x1(0.0), y1(0.0),x2(0.0), y2(0.0);
 			if(quadrant == 1){
-				x1 = floor(x); std::cout<<"X1 = "<<x1<<std::endl;
-				y1 = floor(y); std::cout<<"Y1 = "<<y1<<std::endl;
-				x2 = ceil(x);  std::cout<<"X2 = "<<x2<<std::endl;
-				y2 = ceil(y);  std::cout<<"Y2 = "<<y2<<std::endl;
+				x1 = floor(x); 
+				y1 = floor(y); 
+				x2 = ceil(x);  
+				y2 = ceil(y);  
 			} else if(quadrant == 2){
-				x1 = floor(x) - 1.0; std::cout<<"X1 = "<<x1<<std::endl;
-				y1 = floor(y);       std::cout<<"Y1 = "<<y1<<std::endl;
-				x2 = floor(x);       std::cout<<"X2 = "<<x2<<std::endl;
-				y2 = ceil(y);        std::cout<<"Y2 = "<<y2<<std::endl;
+				x1 = floor(x) - 1.0; 
+				y1 = floor(y);       
+				x2 = floor(x);       
+				y2 = ceil(y);        
 			} else if(quadrant == 3){
-				x1 = floor(x) -1; std::cout<<"X1 = "<<x1<<std::endl;
-				y1 = floor(y) -1 ;std::cout<<"Y1 = "<<y1<<std::endl; 
-				x2 = floor(x);    std::cout<<"X2 = "<<x2<<std::endl;
-				y2 = floor(y);    std::cout<<"Y2 = "<<y2<<std::endl;
+				x1 = floor(x) -1; 
+				y1 = floor(y) -1 ;
+				x2 = floor(x);    
+				y2 = floor(y);    
 			}else if(quadrant == 4){
-				x1 = floor(x) ;   std::cout<<"X1 = "<<x1<<std::endl; 
-				y1 = floor(y) -1; std::cout<<"Y1 = "<<y1<<std::endl;
-				x2 = ceil(x);     std::cout<<"X2 = "<<x2<<std::endl;
-				y2 = floor(y);    std::cout<<"Y2 = "<<y2<<std::endl;
+				x1 = floor(x) ;   
+				y1 = floor(y) -1; 
+				x2 = ceil(x);     
+				y2 = floor(y);    
 			}else{
 
 				std::cerr<<"There is a problem in Analyzer::whichCellQuadrant"<<std::endl;
 			}
-
 
 			if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
 			if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
