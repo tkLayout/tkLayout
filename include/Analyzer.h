@@ -254,6 +254,7 @@ namespace insur {
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
     void computeIrradiatedPowerConsumption(Tracker& tracker);
+    int whichCellQuadrant(double z, double r);
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
