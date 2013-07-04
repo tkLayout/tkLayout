@@ -1417,6 +1417,120 @@ namespace insur {
     }
 
 
+    std::pair<Circle, Circle> findCirclesTwoPoints(const Point& p1, const Point& p2, double r) {
+      double x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+
+      double q = sqrt(pow(x2-x1,2) + pow(y2-y1,2));
+      double x3 = (x1+x2)/2;
+      double y3 = (y1+y2)/2;
+
+      double xc1 = x3 + sqrt(r*r - pow(q/2,2))*(y1-y2)/q;
+      double yc1 = y3 + sqrt(r*r - pow(q/2,2))*(x2-x1)/q;
+
+      double xc2 = x3 - sqrt(r*r - pow(q/2,2))*(y1-y2)/q;
+      double yc2 = y3 - sqrt(r*r - pow(q/2,2))*(x2-x1)/q;
+      
+      return std::make_pair((Circle){ xc1, yc1, r }, (Circle){ xc2, yc2, r });
+    }
+
+    bool isPointInCircle(const Point& p, const Circle& c) { return pow(p.x - c.x0, 2) + pow(p.y - c.y0, 2) <= c.r*c.r; }
+
+
+
+    double Analyzer::calculatePetalAreaMC(const Tracker& tracker, double crossoverR) const {
+      static TRandom3 die;
+
+      double r = tracker.getTriggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
+
+      std::pair<Circle, Circle> cc = findCirclesTwoPoints((Point){0, 0}, (Point){0, crossoverR}, r);
+
+      // Monte Carlo area calculation
+      int hits = 0;
+      double maxR = tracker.getMaxR(); // points randomly generated in a 40 degrees circle slice
+      double minR = tracker.getMinR();
+      double aperture = 0.34906585 * 2; // 40 degrees
+      //double maxPhi = M_PI/2 + aperture/2;
+      double minPhi = M_PI/2 - aperture/2;
+      for (int i = 0; i < 100000; i++) { 
+        double rr  = minR + die.Rndm()*(maxR-minR);
+        double phi = minPhi + die.Rndm()*aperture;
+        Polar2DPoint rndp(rr, phi); 
+        bool inFirstCircle  = isPointInCircle((Point){rndp.X(), rndp.Y()}, cc.first);
+        bool inSecondCircle = isPointInCircle((Point){rndp.X(), rndp.Y()}, cc.second); 
+        if ((inFirstCircle && inSecondCircle) || (!inFirstCircle && !inSecondCircle)) hits++; // if it's in both circles means it's in the lower part of the petal (before the crossover), if it's outside both it means it's upper part of the petal (after the crossover)
+      }
+
+      return hits;
+    }
+
+    double Analyzer::calculatePetalAreaModules(Tracker& tracker, double crossoverR) const {
+      double curvatureR = tracker.getParticleCurvatureR(tracker.getTriggerPtCut()); // curvature radius of particles with the minimum accepted pt
+      int hits = 0;
+      LayerVector* layers = tracker.getEndcapLayers();
+      for(LayerVector::iterator layIt = layers->begin(); layIt != layers->end(); ++layIt) { // loop over layers
+        ModuleVector* modules = (*layIt)->getModuleVector();
+        std::string cntName = (*layIt)->getContainerName();
+        Layer* layer = (*layIt);
+        if (cntName == "" || !layer) continue;
+
+        if ((*modules->begin())->getDisk() != 1 || (*modules->begin())->getZSide() < 0) continue;
+
+        for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
+          Module* module = (*modIt);
+
+          if (isModuleInPetal(module, 0., curvatureR, crossoverR)) hits++;
+        }
+      }
+      return hits;
+    }
+
+/*    double Analyzer::calculatePetalCrossoverRecursive(Tracker& tracker, double maxR, double minR, int recIndex) {
+      double cr1 = (maxR + (maxR+minR)/2.)/2.;
+      double cr2 = ((maxR+minR)/2. + minR)/2.;
+      double area1 = calculatePetalArea(tracker, cr1);
+      double area2 = calculatePetalArea(tracker, cr2);
+
+      if (++recIndex == 100) { logERROR("Method didn't converge. Last calculated value: " + any2str(cr1)); return cr1; }
+      double relDiff = fabs(area1 - area2)/area2; 
+      if (relDiff < 1e-4) { logDEBUG("Method converged after " + any2str(recIndex) + " iterations. Value: " + any2str(cr1)); return cr1; }
+      if (area1 < area2) { return calculatePetalCrossoverRecursive(tracker, maxR, (maxR+minR)/2., recIndex); }
+      else { return calculatePetalCrossoverRecursive(tracker, (maxR+minR)/2., minR, recIndex); }
+    }
+*/
+    double Analyzer::calculatePetalCrossover(Tracker& tracker) {
+      class Trampoline : public ROOT::Math::IBaseFunctionOneDim {
+        Analyzer& a_;
+        Tracker& t_;
+        double DoEval(double x) const { return a_.calculatePetalAreaModules(t_, x); }
+      public:
+        Trampoline(Analyzer& a, Tracker& t) : a_(a), t_(t) {}
+        ROOT::Math::IBaseFunctionOneDim* Clone() const { return new Trampoline(a_, t_); }
+      };
+
+      Trampoline t(*this, tracker);
+
+      ROOT::Math::BrentMinimizer1D minBrent;
+      minBrent.SetFunction(t, 0., tracker.getMaxR());
+      bool ok = minBrent.Minimize(100, 0.001, 0.001);
+
+
+      if (ok) {
+        logINFO("Multiple Trigger Towers: Searching for optimized petal crossover point");
+        logINFO("  Method converged after " + any2str(minBrent.Iterations()) + " iterations.");
+        logINFO("  Found minimum: crossover point = " + any2str(minBrent.XMinimum()) + "  petal area = " + any2str(minBrent.FValMinimum()));
+      } else {
+        logERROR("Multiple Trigger Towers: Search for optimized petal crossover point failed");
+        logERROR("  Method did not converge after " + any2str(minBrent.Iterations()) + " iterations.");
+        logERROR("  Last found value: crossover point = " + any2str(minBrent.XMinimum()) + "  petal area = " + any2str(minBrent.FValMinimum()));
+      }
+
+      return minBrent.XMinimum();
+    }
+
+
+
+
+
     bool Analyzer::isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const {
       int numProcEta = tracker.getTriggerProcessorsEta();
       double etaCut = tracker.getTriggerEtaCut();
@@ -1439,27 +1553,49 @@ namespace insur {
       return etaDist1 > 0 && etaDist2 > 0;
     }
 
+    bool Analyzer::isModuleInPetal(const Module* module, double petalPhi, double curvatureR, double crossoverR) const {
+      Polar2DPoint crossoverPoint(crossoverR, petalPhi);
+      double proj = cos(module->getMeanPoint().Phi() - petalPhi); // check if module is in the same semi-plane as the petal by projecting its center on the petal symmetry line
+      if (proj < 0.) return false;
+      std::pair<Circle, Circle> cc = findCirclesTwoPoints((Point){0.,0.}, (Point){crossoverPoint.X(), crossoverPoint.Y()}, curvatureR);
+      
+      int inFirstCircle = 0, inSecondCircle = 0;
+      for (int i = 0; i < 4; i++) {
+        const XYZVector& corner = module->getCorner(i);
+        inFirstCircle  |= (isPointInCircle((Point){corner.X(), corner.Y()}, cc.first) << i);
+        inSecondCircle |= (isPointInCircle((Point){corner.X(), corner.Y()}, cc.second) << i);
+      }
+      return (inFirstCircle && inSecondCircle) || (inFirstCircle < 0xF && inSecondCircle < 0xF);
+    }
 
-    bool Analyzer::isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const {
+    bool Analyzer::isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const {
+      static double curvatureR = tracker.getTriggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
+
       double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
       double phi = phiSlice*phiSector;
 
-      double modMinR = module->getMinRho();                
-      double modMaxR = module->getMaxRho();                
+      //double modMinR = module->getMinRho();                
+      //double modMaxR = module->getMaxRho();                
 
       double modMinPhi = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
       double modMaxPhi = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
 
-      double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
-      double sliceMinPhi = phi - trajSlice;
-      double sliceMaxPhi = phi + phiSlice + trajSlice;
+      //double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
+      //double sliceMinPhi = phi - trajSlice/2;
+      //double sliceMaxPhi = phi + phiSlice + trajSlice/2;
+      double sliceMinPhi = phi;
+      double sliceMaxPhi = phi + phiSlice;
 
       if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
       else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
 
-      return ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
-              (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
-              (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi)); 
+      bool inSectorSlice = ((sliceMinPhi < modMaxPhi && modMinPhi < sliceMaxPhi) ||
+                            (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
+                            (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi)); 
+
+      bool inPetals = isModuleInPetal(module, sliceMinPhi, curvatureR, crossoverR) || isModuleInPetal(module, sliceMaxPhi, curvatureR, crossoverR);
+
+      return inSectorSlice || inPetals;
     }
 
 
@@ -1499,6 +1635,11 @@ namespace insur {
       int numProcEta = tracker.getTriggerProcessorsEta();
       int numProcPhi = tracker.getTriggerProcessorsPhi();
 
+      double crossoverR = calculatePetalCrossover(tracker);
+
+      triggerPetalCrossoverR_ = crossoverR;
+      sampleTriggerPetal_ = findCirclesTwoPoints((Point){0., 0.}, (Point){crossoverR, 0.}, tracker.getParticleCurvatureR(tracker.getTriggerPtCut()));
+
       LayerVector& layers = tracker.getLayers();
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
@@ -1515,7 +1656,7 @@ namespace insur {
             if (isModuleInEtaSector(tracker, module, i)) {
               etaConnections++;
               for (int j=0; j < numProcPhi; j++) {
-                if (isModuleInPhiSector(tracker, module, j)) {
+                if (isModuleInPhiSector(tracker, module, crossoverR, j)) {
                   totalConnections++;
 
                   processorConnections[std::make_pair(j,i)] += 1;

@@ -106,6 +106,7 @@ void Tracker::setDefaultParameters() {
   arguments_= "";
   maxL_ = 0;
   maxR_ = 0;
+  minR_ = 0;
   phiSegments_ = 4;
   efficiency_ = 1;
   pixelEfficiency_ = 1;
@@ -298,6 +299,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                  bool sameRods /* = false, used to build all the layers in the barrel with identical (over-hermetic) rods */) {
 
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
+  minR_ = MIN(minRadius, minR_);
 
   int push;
   std::map<int, double>::iterator aDirective;
@@ -726,6 +728,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
   newContainerId();
 
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
+  minR_ = MIN(minRadius, minR_);
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
 
   double thisZ;
@@ -802,6 +805,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     layerName << "D" << std::dec << iDisk+1;
     thisZ = pow(alpha, iDisk) * minZ;
     deltaZ=-1*(minZ+maxZ)/2+thisZ;
+    if (iDisk < (int)diskZOverrides_.size()) deltaZ = diskZOverrides_[iDisk];
     anotherDisk = new EndcapLayer(*defaultDisk);
     anotherDisk->setName(layerName.str(), iDisk+1);
     anotherDisk->setContainerName(endcapName);

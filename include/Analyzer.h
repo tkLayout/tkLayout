@@ -32,9 +32,17 @@
 #include <TGraphErrors.h>
 #include <global_funcs.h>
 
+#include "Math/Point2D.h"
 #include "TRandom3.h"
+#include "Math/Functor.h"
+#include "Math/BrentMinimizer1D.h"
 
 namespace insur {
+
+  struct Point { double x, y; };
+  struct Circle { double x0, y0, r; };
+  std::pair<Circle, Circle> findCirclesTwoPoints(const Point& p1, const Point& p2, double r);
+  bool isPointInCircle(const Point& p, const Circle& c);
 
   /**
    * A warning that may occur during processing
@@ -306,6 +314,9 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
+
+    double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
+    const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
     
 	std::map<std::string, std::vector<double> >& getMaxIrradiatedPowerConsumptionSummaries() { return maxIrradiatedPowerConsumptionSummaries_; } 
     std::map<std::string, SummaryTable>& getMaxIrradiatedPowerConsumptionTableSummaries() { return maxIrradiatedPowerConsumptionTableSummaries_; }
@@ -400,6 +411,9 @@ namespace insur {
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
+
+    double triggerPetalCrossoverR_;
+    std::pair<Circle, Circle> sampleTriggerPetal_;
 
     TriggerSectorMap sectorMap_;
 
@@ -496,7 +510,14 @@ namespace insur {
     static const double maximum_n_planes = 13;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
-    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
+    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const;
+    bool isModuleInPetal(const Module* module, double petalPhi, double curvatureR, double crossoverR) const;
+
+
+    double calculatePetalAreaMC(const Tracker& tracker, double crossoverR) const;
+    double calculatePetalAreaModules(Tracker& tracker, double crossoverR) const;
+//    double calculatePetalCrossoverRecursive(Tracker& tracker, double maxR, double minR, int recIndex);
+    double calculatePetalCrossover(Tracker& tracker);
 
     /*
      * Eta values to show results
@@ -510,6 +531,9 @@ namespace insur {
 
     static int bsCounter;
   };
+
+
+
 }
 #endif  /* _ANALYZER_H */
 

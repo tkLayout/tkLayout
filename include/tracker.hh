@@ -8,6 +8,7 @@
 #include "module.hh"
 #include "moduleType.hh"
 #include "layer.hh"
+#include "global_constants.h"
 #include <Palette.h>
 
 #include "TCanvas.h"
@@ -68,6 +69,7 @@ protected:
 
   double maxL_;
   double maxR_;
+  double minR_;
 
   std::string arguments_;
 
@@ -170,6 +172,7 @@ private:
   std::map<int, double> ringGaps_;
   std::map<int,double> layerDirectives_;
   std::map<int,LayerOption> layerOptions_;
+  std::vector<double> diskZOverrides_;
 
 
   std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
@@ -293,6 +296,7 @@ public:
   void setChargeDepletionVoltage(int chargeDepletionVoltage) { chargeDepletionVoltage_ = chargeDepletionVoltage; }
   void setAlphaParam(double alphaParam) { alphaParam_ = alphaParam; }
   void setBunchSpacingNs(double bunchSpacingNs) { bunchSpacingNs_ = bunchSpacingNs; }
+  void setDiskZOverrides(std::vector<double> diskZOverrides) { diskZOverrides_ = diskZOverrides; }
 
   void setTriggerProcessorsPhi(int triggerProcessorsPhi) { triggerProcessorsPhi_ = triggerProcessorsPhi; }
   void setTriggerProcessorsEta(int triggerProcessorsEta) { triggerProcessorsEta_ = triggerProcessorsEta; }
@@ -351,6 +355,7 @@ public:
   double getNMB() const {return nMB_;};
   double getMaxL() const {return maxL_;};
   double getMaxR() const {return maxR_;};
+  double getMinR() const { return minR_; }
   TCanvas* getGeomLite() {return geomLite_;};
   TCanvas* getGeomLiteXY() {return geomLiteXY_;};
   TCanvas* getGeomLiteYZ() {return geomLiteYZ_;};
@@ -376,6 +381,7 @@ public:
   int getTriggerProcessorsEta() const { return triggerProcessorsEta_; }
   double getTriggerEtaCut() const { return triggerEtaCut_; }
   double getTriggerPtCut() const { return triggerPtCut_; }
+  double getParticleCurvatureR(double pt) const { return pt/(0.3*insur::magnetic_field) * 1e3; }
 
   int getNumLayersInContainer(int containerId) const { return numLayersInEachContainer_.at(containerId); }
 

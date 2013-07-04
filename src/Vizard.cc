@@ -2276,7 +2276,7 @@ namespace insur {
     summaryContent->addItem(myTextFile);
 
     createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
-    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger sectors and the modules they overlook");
+    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger sectors and connected modules");
     myTextFile->addText(triggerSectorMapCsv_);
     summaryContent->addItem(myTextFile);
 
@@ -2472,7 +2472,19 @@ namespace insur {
 
     yzDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEtaCanvas);
     xyDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionPhiCanvas);
+    std::pair<Circle, Circle> petal = analyzer.getSampleTriggerPetal();
+    TArc a1(petal.first.x0, petal.first.y0, petal.first.r, (XYPoint(petal.first.x0, petal.first.y0)).Phi()*180./M_PI + 180.);
+    TArc a2(petal.second.x0, petal.second.y0, petal.second.r, 0., (XYPoint(petal.second.x0, petal.second.y0)).Phi()*180./M_PI + 180.);
+    a1.SetFillStyle(0);
+    a2.SetFillStyle(0);
+    moduleConnectionPhiCanvas.cd();
+    a1.Draw("only");
+    a2.Draw("only");
+
     xyecDrawer.drawFrame<HistogramFrameStyle>(moduleConnectionEndcapPhiCanvas);
+    moduleConnectionEndcapPhiCanvas.cd();
+    a1.Draw("only");
+    a2.Draw("only");
 
     yzDrawer.drawModules<ContourStyle>(moduleConnectionEtaCanvas);
     xyDrawer.drawModules<ContourStyle>(moduleConnectionPhiCanvas);

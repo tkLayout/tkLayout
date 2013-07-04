@@ -992,6 +992,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   map<int, double> layerDirectives;
   map<int, LayerOption> layerOptions;
   map<int, int> ringDirectives;
+  vector<double> diskZOverrides;
 
   // Tracker is a singleton. Declare just one, please
   if (myTracker_) {
@@ -1033,6 +1034,8 @@ bool configParser::parsePixels(string myName, istream &inStream) {
         dsDistanceOverride = atof(parameterValue.c_str());
       } else if (parameterName == "maximumZ") {
         maxZ = atof(parameterValue.c_str());
+      } else if (parameterName == "diskZ") {
+        diskZOverrides.push_back(str2any<double>(parameterValue));
       } else if (parameterName == "diskParity") {
         diskParity = atoi(parameterValue.c_str());
         (diskParity > 0) ? diskParity = 1 : diskParity = -1;
@@ -1172,6 +1175,7 @@ bool configParser::parsePixels(string myName, istream &inStream) {
   myTracker_->setLayerDirectives(layerDirectives);
   myTracker_->setLayerOptions(layerOptions);
   myTracker_->setRingDirectives(ringDirectives);
+  myTracker_->setDiskZOverrides(diskZOverrides);
 
   waferDiameter = pow((pow(bmsize.first, 2) + pow(bmsize.second, 2)), 0.5);
   aspectRatio = bmsize.second / bmsize.first; // height / width
@@ -1393,7 +1397,7 @@ bool configParser::parseAnyType(string myName, istream& inStream) {
             nStripsAcross[mainIndex]=atoi(parameterValue.c_str());
           } else if (parameterName=="nROCRows") {
             nROCRows[mainIndex]=atoi(parameterValue.c_str());
-		  } else if(parameterName=="nROCCOls"){
+		  } else if(parameterName=="nROCCols"){
 				nROCCols[mainIndex]=atoi(parameterValue.c_str());
 		  } else if (parameterName=="nSides") {
             nSides[mainIndex]=atoi(parameterValue.c_str());

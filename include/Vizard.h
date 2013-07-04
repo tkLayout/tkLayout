@@ -35,6 +35,7 @@
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
 #include <TProfile.h>
+#include <TArc.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
