@@ -812,7 +812,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     anotherDisk->translateZ(deltaZ);
     addLayer(anotherDisk, endcapName, TypeEndcap);
     anotherDisk = new EndcapLayer(*anotherDisk);
-    anotherDisk->rotateY_PI();
+    anotherDisk->reflectZ();
     addLayer(anotherDisk, endcapName, TypeEndcap);
   }
 

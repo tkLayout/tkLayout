@@ -372,6 +372,7 @@ public:
   virtual void decreaseModCount(int ring) { nModsOnRing_.at(ring)--; }
 
   void rotateY_PI();
+  void reflectZ();
   double getAverageZ() {return averageZ_;};
 
   double getMaxModuleThickness();

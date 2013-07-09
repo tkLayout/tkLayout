@@ -79,6 +79,15 @@ void EndcapLayer::rotateY_PI() {
   }
 }
 
+void EndcapLayer::reflectZ() {
+  ModuleVector::iterator modIt;
+
+  averageZ_ *= -1;
+  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
+    (*modIt)->reflectZ();
+  }
+}
+
 
 void Layer::shapeVolume(TGeoVolume* container,
                         TGeoMedium* medium,
