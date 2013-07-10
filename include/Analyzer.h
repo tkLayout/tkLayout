@@ -43,6 +43,7 @@ namespace insur {
   struct Circle { double x0, y0, r; };
   std::pair<Circle, Circle> findCirclesTwoPoints(const Point& p1, const Point& p2, double r);
   bool isPointInCircle(const Point& p, const Circle& c);
+  bool areClockwise(const Point& p1, const Point& p2);
 
   /**
    * A warning that may occur during processing
@@ -512,6 +513,7 @@ namespace insur {
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const;
     bool isModuleInPetal(const Module* module, double petalPhi, double curvatureR, double crossoverR) const;
+    bool isModuleInCircleSector(const Module* module, double startPhi, double endPhi) const;
 
 
     double calculatePetalAreaMC(const Tracker& tracker, double crossoverR) const;

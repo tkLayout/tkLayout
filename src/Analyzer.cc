@@ -1568,23 +1568,29 @@ namespace insur {
       return (inFirstCircle && inSecondCircle) || (inFirstCircle < 0xF && inSecondCircle < 0xF);
     }
 
-    bool Analyzer::isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const {
-      static double curvatureR = tracker.getTriggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
 
-      double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
-      double phi = phiSlice*phiSector;
+    bool areClockwise(const Point& p1, const Point& p2) { return -p1.x*p2.y + p1.y*p2.x > 0; }
+//#define OLD_PHI_SECTOR_CHECK
 
-      //double modMinR = module->getMinRho();                
-      //double modMaxR = module->getMaxRho();                
+#ifndef OLD_PHI_SECTOR_CHECK
+    bool Analyzer::isModuleInCircleSector(const Module* module, double startPhi, double endPhi) const {
+
+      Point startArm = {cos(startPhi), sin(startPhi)};
+      Point endArm   = {cos(endPhi), sin(endPhi)};
+
+      for (int i = 0; i < 4; i++) {
+        const XYZVector& corner = module->getCorner(i);
+        if (!areClockwise(startArm, (Point){corner.X(), corner.Y()}) && areClockwise(endArm, (Point){corner.X(), corner.Y()})) return true;
+      }
+      return false;
+    }
+#else
+    bool Analyzer::isModuleInCircleSector(const Module* module, double sliceMinPhi, double sliceMaxPhi) const {
 
       double modMinPhi = module->getMinPhi() >= 0 ? module->getMinPhi() : module->getMinPhi() + 2*M_PI;
       double modMaxPhi = module->getMaxPhi() >= 0 ? module->getMaxPhi() : module->getMaxPhi() + 2*M_PI;
 
       //double trajSlice = asin((modMaxR+modMinR)/2 * 0.0003 * magnetic_field / (2 * tracker.getTriggerPtCut())); // aka Alpha
-      //double sliceMinPhi = phi - trajSlice/2;
-      //double sliceMaxPhi = phi + phiSlice + trajSlice/2;
-      double sliceMinPhi = phi;
-      double sliceMaxPhi = phi + phiSlice;
 
       if (modMinPhi > modMaxPhi && sliceMaxPhi > 2*M_PI) modMaxPhi += 2*M_PI;      // this solves the issue with modules across the 2 PI line
       else if (modMinPhi > modMaxPhi && sliceMaxPhi < 2*M_PI) modMinPhi -= 2*M_PI; // 
@@ -1593,6 +1599,21 @@ namespace insur {
                             (sliceMinPhi < modMaxPhi+2*M_PI && modMinPhi+2*M_PI < sliceMaxPhi) || // this catches the modules that are at a small angle but must be caught by a sweep crossing the 2 PI line
                             (sliceMinPhi < modMaxPhi-2*M_PI && modMinPhi-2*M_PI < sliceMaxPhi)); 
 
+      return inSectorSlice;
+
+    }
+#endif
+
+    bool Analyzer::isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const {
+      static const double curvatureR = tracker.getTriggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
+
+      double phiSlice = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+      double phi = phiSlice*phiSector;
+
+      double sliceMinPhi = phi;
+      double sliceMaxPhi = phi + phiSlice;
+
+      bool inSectorSlice = isModuleInCircleSector(module, sliceMinPhi, sliceMaxPhi);
       bool inPetals = isModuleInPetal(module, sliceMinPhi, curvatureR, crossoverR) || isModuleInPetal(module, sliceMaxPhi, curvatureR, crossoverR);
 
       return inSectorSlice || inPetals;
