@@ -100,7 +100,8 @@ namespace insur {
   bool Squid::irradiateTracker() {
     if (tr) {
       startTaskClock("Evaluating modules irradiation");
-      cp.flukaGridSteps(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
+	  std::cout<<  mainConfiguration.getIrradiationDirectory()<<std::endl;
+	  cp.flukaGridInfo(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       cp.irradiateTracker(tr, mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       stopTaskClock();
       return true;
@@ -388,13 +389,14 @@ namespace insur {
   bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
     if (mb) {
       startTaskClock("Analyzing material budget and estimating resolution");
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(),tracks, pm, true);
       stopTaskClock();
-      if (pm) {
-        startTaskClock("Analyzing pixel material budget");
-        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
-        stopTaskClock();
-      }
+      
+	  if (pm) {
+		  startTaskClock("Analyzing pixel material budget");
+		  pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
+		  stopTaskClock();
+	  }
       a.computeWeightSummary(*mb);
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolution of track-trigger");

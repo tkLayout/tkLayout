@@ -2004,75 +2004,72 @@ std::list<std::pair<int, double> >* configParser::parseSupportsFromFile(string f
 }
 
 
-//-----------------
+//--Pars the FLUKA map
 
-bool configParser::flukaGridSteps(Tracker* tracker, string fileName) {
-  std::ifstream filein(fileName.c_str());
-  if (!filein.is_open()) { 
-    logERROR("Failed opening irradiation map file!");
-    return false;
-  }
-  std::string line;
+bool configParser::flukaGridInfo(Tracker* tracker, string fileName) {
 
-  bool haveStepRho(false);
-  bool haveStepZ(false);
-  double ztmp(0.0), rtmp(0.0), stepR(0.0), stepZ;
-  while(std::getline(filein, line)) {
-	  if (line.find_first_of("#//;")==0 || line=="") continue;
-	  std::stringstream ss(line);
-	  double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
-	  ss >> z;
-	  ss >> r;
-	  ss >> fluence;
-	  ss >> error;
+	std::ifstream infile(fileName.c_str());
+	if (!infile.is_open()) {
+		std::cout<<"Failed opening irradiation map file!"<<std::endl;
+	}
+	char delim(':');
+	while (infile){
+		std::string line;
+		if (!getline( infile, line))break;
+		if (line.find_first_of("#")!=0) continue;
 
-	  if(!haveStepRho){ 
-		  if(rtmp==0.0) rtmp=r;
-		  stepR=r-rtmp;
-		  if(stepR) {
-			  haveStepRho = true;
-			  tracker->getIrradiationStepR() = stepR;
-		  }
-	  }
+		std::istringstream ss( line );
+		std::vector <std::string> record;
 
-	  if(!haveStepZ){ 
-		  if(ztmp==0.0) ztmp=z;
-		  stepZ=z-ztmp;
-		  if(stepZ) {
-			  haveStepZ = true;
-			  tracker->getIrradiationStepZ() = stepZ;
-		  }
-	  }
-	  if (haveStepZ && haveStepRho) break;
+		while (ss) 
+		{
+			std::string s;
 
-  }
-  return true;
+			if (!getline( ss, s, delim )) continue;
+			record.push_back( s );
+		}
+
+		if( record[0] == "# R min")				{tracker->getIrradiationInfoR().minC  = atof(record[1].c_str()) ; }
+		if( record[0] == "# R max" )			{tracker->getIrradiationInfoR().maxC  = atof(record[1].c_str()) ; }	
+		if( record[0] == "# R bin width")		{tracker->getIrradiationInfoR().stepC = atof(record[1].c_str()) ; }
+		if( record[0] == "# R number of bins")	{tracker->getIrradiationInfoR().binsC = atoi(record[1].c_str()) ; }
+		//--
+		if( record[0] == "# Z min")				{tracker->getIrradiationInfoZ().minC  = atof(record[1].c_str()) ; }
+		if( record[0] == "# Z max" )	        {tracker->getIrradiationInfoZ().maxC  = atof(record[1].c_str()) ; }	
+		if( record[0] == "# Z bin width")	    {tracker->getIrradiationInfoZ().stepC = atof(record[1].c_str()) ; }
+		if( record[0] == "# Z number of bins")	{tracker->getIrradiationInfoZ().binsC = atoi(record[1].c_str()) ; }  
+	}
+	return true;
 }
+
 bool configParser::irradiateTracker(Tracker* tracker, string fileName) {
-	// cout << "Trying to open irradiation map file " << fileName << endl;
-	std::ifstream filein(fileName.c_str());
-	if (!filein.is_open()) { 
+
+	std::ifstream infile(fileName.c_str());
+	if (!infile.is_open()) { 
 		logERROR("Failed opening irradiation map file!");
 		return false;
 	}
-	double zstep = tracker->getIrradiationStepZ();
-	double rstep = tracker->getIrradiationStepR();
-	std::string line;
-	while(std::getline(filein, line)) {
-		if (line.find_first_of("#//;")==0 || line=="") continue;
-		std::stringstream ss(line);
-		double z, r = -1.0, fluence = -1.0, error = -1.0; // set to -1.0 to check for parsing errors
-		ss >> z;
-		ss >> r;
-		ss >> fluence;
-		ss >> error;
 
-		if (r < 0.0 || fluence < 0.0) {
-			ostringstream tempSS;
-			tempSS << "Error while parsing irradiation map line: " << z << " ," << r << " ," << fluence << " ," << error;
-			logERROR(tempSS);
+	int binR = 0;
+	while (infile){
+		std::string line;
+		if (!getline( infile, line))break;
+		if (line.find_first_of("#//;")==0 || line=="") continue;
+
+		std::istringstream ss( line );
+
+		int binZ = 0;
+		while (ss) {
+			std::string s;
+			if (!getline( ss, s , '\t')) continue; 
+
+			double fluence =atof(s.c_str());
+			//std::cout<<binZ<< "  "<< binR<<"  "<<fluence<<std::endl;
+			tracker->getIrradiationMap()[make_pair(binZ,binR)] = fluence;
+			binZ = binZ + 1;
 		}
-		tracker->getIrradiationMap()[make_pair(int(z/zstep),int(r/rstep))] = fluence;
+		binR = binR + 1;
+
 	}
 	return true;
 }

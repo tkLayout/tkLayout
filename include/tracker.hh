@@ -45,6 +45,17 @@ typedef std::map<int, double> SpecialDelta;
 
 typedef std::vector<TiltedLayerSpecs> TiltedBarrelSpecs;
 
+// struct that keeps info about fluka map
+struct  flukaInfo{
+  double minC;// min value of a coordinate in question
+  double maxC;// max value
+  double stepC;//step size
+  int binsC; // number of bins
+};
+
+
+
+
 class Tracker {
 public:
   enum {TypeBarrel, TypeEndcap};
@@ -62,8 +73,8 @@ protected:
   std::map<int, double> mapTypeToCost_;
   std::map<std::string, ModuleType> mapType_;
   std::map<std::pair<int, int>, double> mapIrradiation_;
-  double stepZ_;
-  double stepR_;
+  flukaInfo infoZ_;
+  flukaInfo infoR_;
   SpecialDelta specialSmallDelta_;
   SpecialDelta specialBigDelta_;
 
@@ -368,8 +379,8 @@ public:
   double  getSensorThickness(string typeIndex) { return mapType_[typeIndex].getSensorThickness(); }
   ptError::InefficiencyType getInefficiencyType(string typeIndex) { return mapType_[typeIndex].getInefficiencyType(); }
   std::map<std::pair<int,int>, double>& getIrradiationMap() { return mapIrradiation_; } 
-  double &getIrradiationStepZ() { return stepZ_; } 
-  double &getIrradiationStepR() { return stepR_; } 
+  flukaInfo &getIrradiationInfoZ() { return infoZ_; } 
+  flukaInfo &getIrradiationInfoR() { return infoR_; } 
   double getNumInvFemtobarns() const { return numInvFemtobarns_; }
   double getOperatingTemp() const { return operatingTemp_; }
   double getReferenceTemp() const { return referenceTemp_; }

@@ -8,6 +8,7 @@
 #include <TProfile.h>
 #include <TLegend.h>
 #include <Palette.h>
+#include <TTree.h>
 
 #undef MATERIAL_SHADOW
 
@@ -993,6 +994,8 @@ namespace insur {
 
     }
 
+
+
     /**
      * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
      * and interaction lengths for each volume category to subfunctions, and sorts those results into the
@@ -1778,113 +1781,95 @@ namespace insur {
 		return quadrant;
 	}
 
-    void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
+	void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
-      double numInvFemtobarns = tracker.getNumInvFemtobarns();
-      double operatingTemp    = tracker.getOperatingTemp();
-      double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
-      double alphaParam       = tracker.getAlphaParam();
-      double referenceTemp    = tracker.getReferenceTemp();
-      double irrStepZ  = 10.0*tracker.getIrradiationStepZ();//in mm!
-      double irrStepR  = 10.0*tracker.getIrradiationStepR();//in mm!
+		double numInvFemtobarns = tracker.getNumInvFemtobarns();
+		double operatingTemp    = tracker.getOperatingTemp();
+		double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
+		double alphaParam       = tracker.getAlphaParam();
+		double referenceTemp    = tracker.getReferenceTemp();
 
-      // cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
-      // cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
-      // cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
-      // cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
-      // cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
-      irradiatedPowerConsumptionSummaries_.clear();   
-      maxIrradiatedPowerConsumptionSummaries_.clear();   
-      maxIrradiatedPowerConsumptionTableSummaries_.clear();   
-
-      LayerVector& layers = tracker.getLayers();
-      for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
-        ModuleVector* modules = (*layIt)->getModuleVector();
-        if (!modules) {
-          logERROR("cannot retrieve moduleVector from the layer");
-          return;
-        }
-        std::string cntName = (*layIt)->getContainerName();
-        if (cntName == "") {
-          ostringstream tempSS;
-          tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
-          logWARNING(tempSS);
-          continue;
-        }
-
-        irradiatedPowerConsumptionSummaries_[cntName].setHeader("layer", "ring");
-        irradiatedPowerConsumptionSummaries_[cntName].setPrecision(3);        
-
-		for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
-			Module* module = (*modIt); 
-			XYZVector center = module->getMeanPoint();
-			// if (center.Z()<0) continue; // I want to assign the right value to all modules, for the totals
-
-			std::string moduleName = module->getType();
-			std::string stDistance = any2str<double>(module->getStereoDistance());
-			std::string moduleDistance = moduleName + "_" + stDistance;
-			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setHeader("layer", "ring");
-			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setPrecision(3);        
-
-			double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
-			double x  = center.Z() /irrStepZ;  
-			double y  = center.Rho() /irrStepR;
-			int quadrant = whichCellQuadrant(x, y);
+		double irrStepZ  = 10.0*tracker.getIrradiationInfoZ().stepC;//in mm!
+		double irrStepR  = 10.0*tracker.getIrradiationInfoR().stepC;//in mm!
+		double irrMinZ = 10.0*tracker.getIrradiationInfoZ().minC; //in mm! 
+		double irrMinR = 10.0*tracker.getIrradiationInfoR().minC;// in mm!
 
 
-			double x1(0.0), y1(0.0),x2(0.0), y2(0.0);
-			if(quadrant == 1){
+		// cout << "numInvFemtobarns = " << tracker.getNumInvFemtobarns() << endl;
+		// cout << "operatingTemp    = " << tracker.getOperatingTemp() << endl;
+		// cout << "chargeDepletionVoltage    = " << tracker.getChargeDepletionVoltage() << endl;
+		// cout << "alphaParam       = " << tracker.getAlphaParam() << endl;
+		// cout << "referenceTemp    = " << tracker.getReferenceTemp() << endl;
+		irradiatedPowerConsumptionSummaries_.clear();   
+		maxIrradiatedPowerConsumptionSummaries_.clear();   
+		maxIrradiatedPowerConsumptionTableSummaries_.clear();   
+
+		LayerVector& layers = tracker.getLayers();
+		for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) {
+			ModuleVector* modules = (*layIt)->getModuleVector();
+			if (!modules) {
+				logERROR("cannot retrieve moduleVector from the layer");
+				return;
+			}
+			std::string cntName = (*layIt)->getContainerName();
+			if (cntName == "") {
+				ostringstream tempSS;
+				tempSS << "Skipping layer with no container name (" << modules->size() << " modules)";
+				logWARNING(tempSS);
+				continue;
+			}
+
+			irradiatedPowerConsumptionSummaries_[cntName].setHeader("layer", "ring");
+			irradiatedPowerConsumptionSummaries_[cntName].setPrecision(3);        
+
+			for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
+				Module* module = (*modIt); 
+				XYZVector center = module->getMeanPoint();
+				// if (center.Z()<0) continue; // I want to assign the right value to all modules, for the totals
+
+				std::string moduleName = module->getType();
+				std::string stDistance = any2str<double>(module->getStereoDistance());
+				std::string moduleDistance = moduleName + "_" + stDistance;
+				maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setHeader("layer", "ring");
+				maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setPrecision(3);        
+
+				double volume  = tracker.getSensorThickness(module->getType()) * module->getArea() / 1000.0 * module->getNFaces(); // volume is in cm^3
+				// in which bin is the center of the module ? 
+				double x  = (center.Z() - irrMinZ)/irrStepZ;   
+				double y  = (center.Rho() - irrMinR)/irrStepR;
+
+				double x1(0.0), y1(0.0),x2(0.0), y2(0.0);
 				x1 = floor(x); 
 				y1 = floor(y); 
 				x2 = ceil(x);  
 				y2 = ceil(y);  
-			} else if(quadrant == 2){
-				x1 = floor(x) - 1.0; 
-				y1 = floor(y);       
-				x2 = floor(x);       
-				y2 = ceil(y);        
-			} else if(quadrant == 3){
-				x1 = floor(x) -1; 
-				y1 = floor(y) -1 ;
-				x2 = floor(x);    
-				y2 = floor(y);    
-			}else if(quadrant == 4){
-				x1 = floor(x) ;   
-				y1 = floor(y) -1; 
-				x2 = ceil(x);     
-				y2 = floor(y);    
-			}else{
+				if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
+				if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
+				double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; //this is ok 
+				double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
+				double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
+				double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
 
-				std::cerr<<"There is a problem in Analyzer::whichCellQuadrant"<<std::endl;
+				// no need for averaging (check with Stefano) - the FLUKA map already comes with averaged values for each cell
+				//double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
+				double irrxy = irr11;
+				// 80 mb is the current estimate for pp cross-section @ 7 TeV (2013-05-10)
+				// no need for normalisation - new FLUKA map is already normalized
+				//double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+				double fluence = irrxy; // fluence is in 1MeV-equiv-neutrons/cm^2 
+				double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
+				double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
+				module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
+				module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
+				if (!(irradiatedPowerConsumption>0))
+					std::cerr << module->getSensorGeoTag() << " => " << irradiatedPowerConsumption << std::endl;
+
+				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
+				maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
+				maxIrradiatedPowerConsumptionSummaries_[moduleDistance].push_back(irradiatedPowerConsumption);
 			}
-
-			if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
-			if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
-			double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; //this is ok 
-			double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
-			double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
-			double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
-			//now shift x  and y by 1/2 of the step, but, pay attention, we have already divided by stepsize - so just substract 0.5 
-			x = x - 0.5;
-			y = y - 0.5;
-
-			double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
-			// 80 mb is the current estimate for pp cross-section @ 7 TeV (2013-05-10)
-			double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
-			double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
-			double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
-			//cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;
-			module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
-			module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
-			if (!(irradiatedPowerConsumption>0))
-				std::cerr << module->getSensorGeoTag() << " => " << irradiatedPowerConsumption << std::endl;
-
-			irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
-			maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
-			maxIrradiatedPowerConsumptionSummaries_[moduleDistance].push_back(irradiatedPowerConsumption);
 		}
-      }
-    }
+	}
 
 
     // protected
