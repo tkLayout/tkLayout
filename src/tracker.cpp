@@ -1652,8 +1652,8 @@ void Tracker::setGeometryDsDistance(std::string cntName, int firstIndex, double 
   geometryDsDistance_[cntName][firstIndex] = value;
 }
 
-
-std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a Layer in case of barrel or a Ring in case of endcap
+// returns a vector containing the dsDistances of the rings for the specified layer/disk (index)
+std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a LAYER in case of barrel or a DISK in case of endcap
   std::vector<double> dsDistances(numModules, 0);
   if (geometryDsDistance_.count(cntName) && geometryDsDistance_.at(cntName).count(0)) {  // DS DISTANCE OVERRIDE - whatever is written at index 0 takes precedence over any other setting
     dsDistances.assign(numModules, geometryDsDistance_.at(cntName).at(0));
@@ -1664,8 +1664,8 @@ std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int ind
   }
   if (geometryDsDistanceSecond_.count(cntName) > 0) {
     for (std::map<std::pair<int, int>, double>::const_iterator it = geometryDsDistanceSecond_.at(cntName).begin(); it != geometryDsDistanceSecond_.at(cntName).end(); ++it) {
-      if (index == it->first.first && it->first.second <= numModules) dsDistances[it->first.second-1] = it->second; // it->first is the coordinate pair (layer, ring) for barrel or (ring, disk) for endcap. numbering starts from 1
-    }
+      if (index == it->first.second && it->first.first <= numModules) dsDistances[it->first.first-1] = it->second; // it->first is the coordinate pair (layer, ring) for barrel or (ring, disk) for endcap. numbering starts from 1
+    } // CUIDADO!!!!!! before it didn't work properly for ENDCAPS, now it doesn't for BARRELS (in case ring-wise dsDistance were used for layers, which is never used in any geometry as of now)
   }
   return dsDistances;
 }

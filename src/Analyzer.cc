@@ -1349,7 +1349,7 @@ namespace insur {
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) {
           Module* module = (*modIt);
           XYZVector center = module->getMeanPoint();
-          if ((center.Z()<0) || (center.Phi()<0) || (center.Phi()>M_PI/2) || (module->getStereoDistance()==0.0)) continue;
+          if ((center.Z()<0) || module->getPhiIndex() > 1/*(center.Phi()<0) || (center.Phi()>M_PI/2)*/ || (module->getStereoDistance()==0.0)) continue;
 
           TH1D* currentTotalHisto;
           TH1D* currentTrueHisto;
