@@ -805,7 +805,7 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     layerName << "D" << std::dec << iDisk+1;
     thisZ = pow(alpha, iDisk) * minZ;
     deltaZ=-1*(minZ+maxZ)/2+thisZ;
-    if (iDisk < (int)diskZOverrides_.size()) deltaZ = diskZOverrides_[iDisk];
+    if (iDisk < (int)diskZOverrides_.size()) deltaZ = diskZOverrides_[iDisk] - (maxZ+minZ)/2;
     anotherDisk = new EndcapLayer(*defaultDisk);
     anotherDisk->setName(layerName.str(), iDisk+1);
     anotherDisk->setContainerName(endcapName);
