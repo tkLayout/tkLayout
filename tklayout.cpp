@@ -99,6 +99,7 @@ int main(int argc, char* argv[]) {
 
 
   insur::Squid squid;
+  squid.setCommandLine(argc, argv);
   bool verboseMaterial = false;
   unsigned int verboseWatch = verbosity;
   if (vm.count("quiet")) verboseWatch=0;

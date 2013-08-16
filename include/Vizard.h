@@ -175,6 +175,7 @@ namespace insur {
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
+    void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
 
   protected:
     TGeoManager* gm;
@@ -195,6 +196,7 @@ namespace insur {
     TGeoMaterial* matlazy;
   private:
     bool geometry_created;
+    std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
                         TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
     TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);

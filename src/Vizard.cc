@@ -2175,6 +2175,11 @@ namespace insur {
       fullLayoutContent->addItem(anImage);
     }
 
+    RootWInfo* cmdLineInfo;
+    cmdLineInfo = new RootWInfo("Command line arguments");
+    cmdLineInfo->setValue(commandLine_);
+    simulationContent->addItem(cmdLineInfo);
+
     std::string destinationFilename;
     if (geomfile!="") {
       destinationFilename = trackerName + suffix_geometry_file;

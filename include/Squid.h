@@ -99,6 +99,12 @@ namespace insur {
     void setHtmlDir(std::string htmlDir);
 
     void simulateTracks(const po::variables_map& varmap, int seed);
+    void setCommandLine(int argc, char* argv[]) {
+      if (argc <= 1) return;
+      std::string cmdLine(argv[1]);
+      for (int i = 2; i < argc; i++) cmdLine += std::string(" ") + argv[i];
+      v.setCommandLine(cmdLine);
+    }
 
   private:
     //std::string g;
