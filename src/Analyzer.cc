@@ -1659,6 +1659,12 @@ namespace insur {
       int numProcEta = tracker.getTriggerProcessorsEta();
       int numProcPhi = tracker.getTriggerProcessorsPhi();
 
+      int totalProcs = numProcEta * numProcPhi;
+      processorCommonConnectionMap_.SetBins(totalProcs, 0, totalProcs, totalProcs, 0, totalProcs);
+      processorCommonConnectionMap_.SetXTitle("TT");
+      processorCommonConnectionMap_.SetYTitle("TT");
+      
+
       double crossoverR = calculatePetalCrossover(tracker);
 
       triggerPetalCrossoverR_ = crossoverR;
@@ -1754,16 +1760,27 @@ namespace insur {
         }
       }
 
+      //for (std::map<std::pair<int, int>, int>::const_iterator mit = processorCommonConnectionMatrix.begin(); mit != processorCommonConnectionMatrix.end(); ++mit) {
+      //  std::cout << mit->first.first << ',' << mit->first.second << '=' << mit->second << std::endl;
+      //}
+      TAxis* xAxis = processorCommonConnectionMap_.GetXaxis();
+      TAxis* yAxis = processorCommonConnectionMap_.GetYaxis();
       for (int i = 1; i <= numProcEta; i++) {
         for (int j = 1; j <= numProcPhi; j++) {
           processorCommonConnectionSummary_.setCell(0, j + (i-1)*numProcPhi, "t" + any2str(i) + "," + any2str(j));
           processorCommonConnectionSummary_.setCell(j + (i-1)*numProcPhi, 0, "t" + any2str(i) + "," + any2str(j));
+          xAxis->SetBinLabel(j + (i-1)*numProcPhi, ("t" + any2str(i) + "," + any2str(j)).c_str());
+          yAxis->SetBinLabel(j + (i-1)*numProcPhi, ("t" + any2str(i) + "," + any2str(j)).c_str());
         }
       }
 
       for (int col = 1; col <= numProcEta*numProcPhi; col++) {
         for (int row = col; row <= numProcEta*numProcPhi; row++) {
-          if (processorCommonConnectionMatrix.count(std::make_pair(row, col))) processorCommonConnectionSummary_.setCell(row, col, processorCommonConnectionMatrix[std::make_pair(row, col)]);
+          if (processorCommonConnectionMatrix.count(std::make_pair(row, col))) {
+            int val = processorCommonConnectionMatrix[std::make_pair(row, col)];
+            processorCommonConnectionSummary_.setCell(row, col, val);
+            processorCommonConnectionMap_.SetCellContent(row, col, val); 
+          }
           //else processorCommonConnectionSummary_.setCell(row, col, "0");
         }
       }
@@ -1783,7 +1800,7 @@ namespace insur {
 
 	void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
 
-		double numInvFemtobarns = tracker.getNumInvFemtobarns();
+		//double numInvFemtobarns = tracker.getNumInvFemtobarns();
 		double operatingTemp    = tracker.getOperatingTemp();
 		double chargeDepletionVoltage    = tracker.getChargeDepletionVoltage();
 		double alphaParam       = tracker.getAlphaParam();
@@ -1846,9 +1863,9 @@ namespace insur {
 				if (x1==x2) x2++; // to avoid division by 0 if x==int(x)
 				if (y1==y2) y2++; // to avoid division by 0 if y==int(y)
 				double irr11 = tracker.getIrradiationMap()[make_pair(int(x1), int(y1))]; //this is ok 
-				double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))];
-				double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
-				double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
+				//double irr21 = tracker.getIrradiationMap()[make_pair(int(x2), int(y1))]; // TODO : cleanup unused vars?
+				//double irr12 = tracker.getIrradiationMap()[make_pair(int(x1), int(y2))];
+				//double irr22 = tracker.getIrradiationMap()[make_pair(int(x2), int(y2))];
 
 				// no need for averaging (check with Stefano) - the FLUKA map already comes with averaged values for each cell
 				//double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation

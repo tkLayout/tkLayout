@@ -2439,15 +2439,27 @@ namespace insur {
 
     SummaryTable& processorSummary = analyzer.getProcessorConnectionSummary(); 
     SummaryTable& processorCommonSummary = analyzer.getProcessorCommonConnectionSummary(); 
-    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
-    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
     //std::map<std::string, SummaryTable>& moduleSummaries = analyzer.getModuleConnectionSummaries();
 
     myPage->addContent("Processor inbound connections").addTable().setContent(processorSummary.getContent());
 
     RootWContent& sharedConnContent = myPage->addContent("Processor shared inbound connections", false);
+    TCanvas sharedConnCanvas;
+    sharedConnCanvas.cd();
+    TH2I& sharedConnMap = analyzer.getProcessorCommonConnectionMap();
+    sharedConnMap.GetXaxis()->LabelsOption("v");
+    sharedConnMap.GetXaxis()->SetLabelSize(0.03);
+    sharedConnMap.GetYaxis()->SetLabelSize(0.03);
+    sharedConnMap.Draw("colz");
+    RootWImage& sharedConnImage = sharedConnContent.addImage(sharedConnCanvas, 800, 700); 
+    sharedConnImage.setComment("Map of the shared processor connections (on the diagonal unshared connections are reported)");
+    sharedConnImage.setName("sharedConnMap");
+
     sharedConnContent.addTable().setContent(processorCommonSummary.getContent());
     sharedConnContent.addText("Columns and rows both report trigger towers, in the format 't Eta# , Phi#'. Each table cell contains the number of connections the TT on the column shares with the TT on the corresponding row. On the diagonal the number of unshared (i.e. belonging to a single TT) connections for each TT is reported.");
+
+    SummaryTable& processorBandwidthSummary = analyzer.getProcessorInboundBandwidthSummary(); 
+    SummaryTable& processorStubSummary = analyzer.getProcessorInboundStubPerEventSummary(); 
     myPage->addContent("Processor inbound bandwidth Gbps").addTable().setContent(processorBandwidthSummary.getContent());
     myPage->addContent("Processor inbound stubs per event").addTable().setContent(processorStubSummary.getContent());
 
