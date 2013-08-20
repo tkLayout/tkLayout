@@ -16,6 +16,7 @@
 #define MY_RANDOM_SEED 0xcaffe
 
 #include <cmath>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <set>

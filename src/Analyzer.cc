@@ -1373,8 +1373,7 @@ namespace insur {
           //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
           //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
-          // TODO! Important <- make this interestingPt cut configurable
-          const double interestingPt = 2;
+          const double interestingPt = tracker.getTriggerPtCut();
           curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEventAbove(interestingPt)*tracker.getNMB() - curAvgTrue)/(curCnt+1);
           curAvgInteresting += (module->getParticleFrequencyPerEventAbove(interestingPt)*tracker.getNMB() - curAvgInteresting)/(curCnt+1);
           curAvgFake  = curAvgFake + (
@@ -1469,19 +1468,19 @@ namespace insur {
     double Analyzer::calculatePetalAreaModules(Tracker& tracker, double crossoverR) const {
       double curvatureR = tracker.getParticleCurvatureR(tracker.getTriggerPtCut()); // curvature radius of particles with the minimum accepted pt
       int hits = 0;
-      LayerVector* layers = tracker.getEndcapLayers();
-      for(LayerVector::iterator layIt = layers->begin(); layIt != layers->end(); ++layIt) { // loop over layers
+      LayerVector& layers = tracker.getLayers();
+      for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
         std::string cntName = (*layIt)->getContainerName();
-        Layer* layer = (*layIt);
-        if (cntName == "" || !layer) continue;
-
-        if ((*modules->begin())->getDisk() != 1 || (*modules->begin())->getZSide() < 0) continue;
 
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
           Module* module = (*modIt);
+          if (module->getZSide() < 0) break;
 
-          if (isModuleInPetal(module, 0., curvatureR, crossoverR)) hits++;
+          const double petalInterval = 2*M_PI / tracker.getTriggerProcessorsPhi();  // aka Psi
+          for (int i = 0; i < tracker.getTriggerProcessorsPhi(); ++i) {
+            if (isModuleInPetal(module, petalInterval*i, curvatureR, crossoverR)) { hits++; } // we could break after the find found hit, but this way we take into account the (admittedly unlikely) situation of petals are so wide that some modules belong to more than one.
+          }
         }
       }
       return hits;
@@ -1644,6 +1643,7 @@ namespace insur {
     void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
       std::map<std::pair<int, int>, int> processorConnections;
+      //std::map<std::pair<int, int>, std::vector<int> > connectionBreakdown;
       std::map<std::pair<int, int>, double> processorInboundBandwidths;
       std::map<std::pair<int, int>, double> processorInboundStubsPerEvent;
 
@@ -1690,6 +1690,18 @@ namespace insur {
                   totalConnections++;
 
                   processorConnections[std::make_pair(j,i)] += 1;
+                  //connectionBreakdown[std::make_pair(j,i)].resize(4); // CUIDADO debug only
+                  //if (dynamic_cast<BarrelModule*>(module)) {
+                  //  if (module->getZSide() < 0) connectionBreakdown[std::make_pair(j,i)][1] += 1;
+                  //  else connectionBreakdown[std::make_pair(j,i)][2] += 1;
+                  //} else {
+                  //  if (module->getZSide() < 0) connectionBreakdown[std::make_pair(j,i)][0] += 1;
+                  //  else connectionBreakdown[std::make_pair(j,i)][3] += 1;
+                  //}
+                  //processorConnectionSummary_.setCell(j+1, i+1, any2str(connectionBreakdown[std::make_pair(j,i)][0]) + "+"
+                  //                                            + any2str(connectionBreakdown[std::make_pair(j,i)][1]) + "+"
+                  //                                            + any2str(connectionBreakdown[std::make_pair(j,i)][2]) + "+"
+                  //                                            + any2str(connectionBreakdown[std::make_pair(j,i)][3]));
                   processorConnectionSummary_.setCell(j+1, i+1, processorConnections[std::make_pair(j,i)]);
 
                   processorInboundBandwidths[std::make_pair(j,i)] += triggerDataBandwidths_[cntName][make_pair(module->getLayer(), module->getRing())]; // *2 takes into account negative Z's
@@ -1735,6 +1747,8 @@ namespace insur {
 
       std::map<std::pair<int, int>, int> processorCommonConnectionMatrix;
 
+      std::ofstream ofs("tricky_module_connections.txt");
+
       for(LayerVector::iterator layIt = layers.begin(); layIt != layers.end(); ++layIt) { // loop over layers
         ModuleVector* modules = (*layIt)->getModuleVector();
         std::string cntName = (*layIt)->getContainerName();
@@ -1742,6 +1756,17 @@ namespace insur {
         if (cntName == "" /*|| !layer*/) continue;
         for (ModuleVector::iterator modIt = modules->begin(); modIt != modules->end(); ++modIt) { // loop over modules
           moduleConnectionsDistribution.Fill((*modIt)->getProcessorConnections(), 1);
+          if ((*modIt)->getProcessorConnections() == 3 || (*modIt)->getProcessorConnections() >= 5) {
+            ofs << ((*modIt)->getSubdetectorType() == Module::Barrel ? "B, " : "E, ")
+                << (*modIt)->getLayer() << ", "
+                << (*modIt)->getRing() << ", "
+                << (*modIt)->getPhiIndex() << ", "
+                << (*modIt)->getZSide() << ":";
+            for (std::set<pair<int, int> >::const_iterator sit = (*modIt)->getConnectedProcessors().begin(); sit != (*modIt)->getConnectedProcessors().end(); ++sit) {
+              ofs << " t" << sit->first << "," << sit->second;
+            }
+            ofs << std::endl;
+          }
           std::set<pair<int, int> > connectedProcessors = (*modIt)->getConnectedProcessors();
           if (connectedProcessors.size() == 1) {
             int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
@@ -1779,7 +1804,9 @@ namespace insur {
           if (processorCommonConnectionMatrix.count(std::make_pair(row, col))) {
             int val = processorCommonConnectionMatrix[std::make_pair(row, col)];
             processorCommonConnectionSummary_.setCell(row, col, val);
-            processorCommonConnectionMap_.SetCellContent(row, col, val); 
+            processorCommonConnectionMap_.SetCellContent(row, col, val/2); 
+            if (row != col) processorCommonConnectionMap_.SetCellContent(col, row, val/2); 
+            else processorCommonConnectionMap_.SetCellContent(row, col, val); 
           }
           //else processorCommonConnectionSummary_.setCell(row, col, "0");
         }
