@@ -1905,8 +1905,8 @@ namespace insur {
 				double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
 				module->setIrradiatedPowerConsumption(irradiatedPowerConsumption);
 				module->setProperty("irradiatedPowerConsumption", irradiatedPowerConsumption);
-				if (!(irradiatedPowerConsumption>0))
-					std::cerr << module->getSensorGeoTag() << " => " << irradiatedPowerConsumption << std::endl;
+//				if (!(irradiatedPowerConsumption>0))
+//					std::cerr << module->getSensorGeoTag() << " => " << irradiatedPowerConsumption << std::endl;
 
 				irradiatedPowerConsumptionSummaries_[cntName].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
 				maxIrradiatedPowerConsumptionTableSummaries_[moduleDistance].setCell(module->getLayer(), module->getRing(), irradiatedPowerConsumption);
