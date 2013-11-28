@@ -1681,6 +1681,7 @@ bool configParser::parseDressType(string myType) {
 Tracker* configParser::parseFile(string configFileName, string typesFileName) {
   string str;
   Tracker* result = NULL;
+  string fileContents;
 
   if (!typesFileName.empty()) peekTypes(typesFileName);
 
@@ -1704,6 +1705,7 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
     string::size_type locComm2; // Location of commenting substring 2
 
     while (getline(rawConfigFile_, str)) {
+      fileContents += str + '\n';
       locComm1=str.find("//", 0);
       locComm2=str.find("#", 0);
       if ((locComm1==string::npos)&&(locComm2==string::npos)) {
@@ -1751,6 +1753,7 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
 
   logINFO(tempString);
 
+  configFiles_.push_back((ConfigFile){ configFileName, fileContents });
 
   result = myTracker_;
   myTracker_ = NULL;
@@ -1760,6 +1763,7 @@ Tracker* configParser::parseFile(string configFileName, string typesFileName) {
 Tracker* configParser::parsePixelsFromFile(string configFileName) {
   string str;
   Tracker* result = NULL;
+  string fileContents;
 
   if (rawConfigFile_.is_open()) {
     cerr << "ERROR: Pixel config file is already open" << endl;
@@ -1781,6 +1785,7 @@ Tracker* configParser::parsePixelsFromFile(string configFileName) {
     string::size_type locComm2; // Location of commenting substring 2
 
     while (getline(rawConfigFile_, str)) {
+      fileContents += str + '\n';
       locComm1=str.find("//", 0);
       locComm2=str.find("#", 0);
       if ((locComm1==string::npos)&&(locComm2==string::npos)) {
@@ -1833,6 +1838,7 @@ Tracker* configParser::parsePixelsFromFile(string configFileName) {
         << minMaxEta.first << ", " << minMaxEta.second << ")";
   logINFO(tempString);
   result = myTracker_;
+  configFiles_.push_back((ConfigFile){configFileName, fileContents});
   myTracker_ = NULL;
   return result;
 }

@@ -21,6 +21,7 @@ using namespace std;
 // be asked directly through std::cin and the corresponding
 // configuration file will be saved in the home directory
 
+
 class mainConfigHandler {
 public:
   mainConfigHandler();

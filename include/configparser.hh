@@ -14,6 +14,7 @@
 
 using namespace std;
 
+
 class configParser {
 public:
   // Constructor and destructor
@@ -34,12 +35,22 @@ public:
   // Extract the user-defined support structures from the geometry config file
   std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);
 
+  struct ConfigFile {
+    std::string name;
+    std::string content;
+  };
+
+
+  const std::vector<ConfigFile>& getConfigFiles() const { return configFiles_; }
+
 private:
 
   // Temporary streams and objects
   ifstream rawConfigFile_;
   stringstream configFile_;
   Tracker* myTracker_;
+
+  std::vector<ConfigFile> configFiles_;
 
   std::map<std::string, TiltedBarrelSpecs> tiltedBarrelSpecs_;
 

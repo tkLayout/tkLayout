@@ -18,11 +18,18 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <pwd.h>
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
 #include <Extractor.h>
 #include <XMLWriter.h>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
 #include <mainConfigHandler.h>
+#include <configparser.hh>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -42,8 +49,9 @@ namespace insur {
      */
     class tk2CMSSW {
         mainConfigHandler& mainConfiguration;
+        const configParser& confParser;
     public:
-        tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
+        tk2CMSSW(mainConfigHandler& mch, const configParser& cp) : mainConfiguration(mch), confParser(cp) {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
     protected:
@@ -52,6 +60,10 @@ namespace insur {
         XMLWriter wr;
     private:
         void print();
+        void writeSimpleHeader(std::ostream& os);
+        void writeExtendedHeader(std::ostream& os);
+        std::string currentDateTime() const;
+        std::string fullUserName() const;
     };
 }
 #endif	/* _TK2CMSSW_H */

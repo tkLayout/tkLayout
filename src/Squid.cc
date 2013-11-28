@@ -10,7 +10,7 @@ namespace insur {
   /**
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
-  Squid::Squid() : t2c(mainConfiguration) {
+  Squid::Squid() : t2c(mainConfiguration, cp) {
     tr = NULL;
     is = NULL;
     mb = NULL;
@@ -60,6 +60,21 @@ namespace insur {
       if (px) {
         px->setZErrorCollider(tr->getZErrorCollider());
         px->setZErrorConstruction(tr->getZErrorConstruction());
+
+        std::ofstream ofs1("Pixels_barrel_coords.txt");
+        for (LayerVector::const_iterator lit = px->getBarrelLayers()->begin(); lit != px->getBarrelLayers()->end(); ++lit) {
+          for (ModuleVector::const_iterator mit = (*lit)->getModuleVector()->begin(); mit != (*lit)->getModuleVector()->end(); ++mit) {
+            ofs1 << (*mit)->getMeanPoint().Z() << ", " << (*mit)->getMeanPoint().Rho() << ", " << (*mit)->getMeanPoint().Phi() << std::endl;
+          }
+        }
+        ofs1.close();
+        std::ofstream ofs2("Pixels_endcap_coords.txt");
+        for (LayerVector::const_iterator lit = px->getEndcapLayers()->begin(); lit != px->getEndcapLayers()->end(); ++lit) {
+          for (ModuleVector::const_iterator mit = (*lit)->getModuleVector()->begin(); mit != (*lit)->getModuleVector()->end(); ++mit) {
+            ofs2 << (*mit)->getMeanPoint().Z() << ", " << (*mit)->getMeanPoint().Rho() << ", " << (*mit)->getMeanPoint().Phi() << std::endl;
+          }
+        }
+        ofs2.close();
       }
       stopTaskClock();
       return true;
