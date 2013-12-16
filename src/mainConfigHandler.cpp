@@ -89,7 +89,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cin >> tempString;
   getline(cin,tempString2);
   tempString+=tempString2;
-  triggerMomenta_ = parseDoubleList(tempString2);
+  triggerMomenta_ = parseDoubleList(tempString);
 
   tempString = "";
   tempString2 = "";
@@ -99,7 +99,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cin >> tempString;
   getline(cin,tempString2);
   tempString+=tempString2;
-  thresholdProbabilities_ = parseDoubleList(tempString2);
+  thresholdProbabilities_ = parseDoubleList(tempString);
   for (vector<double>::iterator it = thresholdProbabilities_.begin();
        it!=thresholdProbabilities_.end(); ++it) (*it)/=100;
 
