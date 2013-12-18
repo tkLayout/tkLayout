@@ -115,7 +115,6 @@ namespace insur {
     std::list<Support*> supports_;
     InactiveSurfaces* pi;
     MaterialBudget* pm;
-    //configParser cp;
     MatParser mp;
     Usher u;
     MatCalc tkMaterialCalc;
