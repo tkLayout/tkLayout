@@ -18,7 +18,7 @@
 #include <set>
 #include <cmath>
 #include <sstream>
-#include <tracker.hh>
+#include <Tracker.h>
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
 
@@ -32,6 +32,15 @@ namespace insur {
    * results will be stored in those, ready to be formatted and written to file.
    */
   class Extractor {
+    class LayerAggregator : public GeometryVisitor { // CUIDADO quick'n'dirty visitor-based adaptor to interface with legacy spaghetti code
+      std::vector<Layer*> barrelLayers_;
+      std::vector<Disk*> endcapLayers_;
+    public:
+      void visit(Layer& l) { barrelLayers_.push_back(&l); }
+      void visit(Disk& d) { endcapLayers_.push_back(&d); }
+      std::vector<Layer*>* getBarrelLayers() { return &barrelLayers_; }
+      std::vector<Disk*>* getEndcapLayers() { return &endcapLayers_; }
+    };
   public:
     void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt = false);
   protected:

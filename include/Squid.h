@@ -14,8 +14,6 @@
 #define	_SQUID_H
 
 #include <string>
-#include <tracker.hh>
-#include <configparser.hh>
 #include <MatParser.h>
 #include <InactiveSurfaces.h>
 #include <MaterialBudget.h>
@@ -26,12 +24,17 @@
 #include <tk2CMSSW.h>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/info_parser.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
 #include <StopWatch.h>
-#include <TrackShooter.h>
+//#include <TrackShooter.h>
+
+#include <Tracker.h>
+#include <Support.h>
 
 namespace po = boost::program_options;
 /**
@@ -72,9 +75,9 @@ namespace insur {
     Squid();
     virtual ~Squid();
     bool buildTracker();
-    bool dressTracker();
-    bool buildTrackerSystem();
-    bool irradiateTracker();
+    //bool dressTracker();
+    //bool buildTrackerSystem();
+    //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
@@ -96,25 +99,23 @@ namespace insur {
     bool additionalInfoSite();
     bool makeSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);
+    void setGeometryFile(std::string geomFile);
     void setHtmlDir(std::string htmlDir);
 
     void simulateTracks(const po::variables_map& varmap, int seed);
-    void setCommandLine(int argc, char* argv[]) {
-      if (argc <= 1) return;
-      std::string cmdLine(argv[1]);
-      for (int i = 2; i < argc; i++) cmdLine += std::string(" ") + argv[i];
-      v.setCommandLine(cmdLine);
-    }
+    void setCommandLine(int argc, char* argv[]);
 
   private:
     //std::string g;
     Tracker* tr;
+    SimParms* simParms_;
     InactiveSurfaces* is;
     MaterialBudget* mb;
     Tracker* px;
+    std::list<Support*> supports_;
     InactiveSurfaces* pi;
     MaterialBudget* pm;
-    configParser cp;
+    //configParser cp;
     MatParser mp;
     Usher u;
     MatCalc tkMaterialCalc;
@@ -139,6 +140,7 @@ namespace insur {
     std::string mySettingsFile_;
     std::string myMaterialFile_;
     std::string myPixelMaterialFile_;
+    std::set<std::string> includeSet_; // list of configuration files
     bool defaultMaterialFile;
     bool defaultPixelMaterialFile;
 

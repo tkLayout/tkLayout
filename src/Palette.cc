@@ -10,8 +10,6 @@ void Palette::initializeMe() {
   Palette::colorPickMap["stereo"] = 6;
   Palette::colorPickMap["ptIn"] = 9;
   Palette::colorPickMap["ptMixed"] = 1;
-  Palette::colorPickMap["pt2SLong"] = 11;
-  Palette::colorPickMap["pt2SShort"] = 4;
   Palette::colorPickMap["pixel"] = 9;
   initialized = true;
 }

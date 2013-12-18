@@ -3,8 +3,14 @@
 myDir=`dirname $0`
 TKG_MAIN=$myDir/bin/tklayout
 #TKG_MATSHOW=$myDir/bin/materialShow
-TKG_TUNE=$myDir/bin/tunePtParam
+#TKG_TUNE=$myDir/bin/tunePtParam
 TKG_SETUP_BIN=$myDir/bin/setup.bin
+SVNBIN=`which svn`
+
+if [ ! -f $SVNBIN ] ; then
+    echo I cannot find svn binary in your path
+    exit -1
+fi
 
 if [ ! -f $TKG_MAIN ] ; then
     echo I cannot find the main program binary $TKG_MAIN
@@ -35,35 +41,33 @@ if $TKG_SETUP_BIN ; then
     eval "`$TKG_SETUP_BIN --dirNames`"
     # Get the rest of the configuration from the config file itself
     source $TKG_CONFIGFILE
- 
-    # Create the empty destination directories
-    mkdir -p $TKG_DESTINATION_ROOT
-    mkdir -p $TKG_DESTINATION_GRAPH
-    mkdir -p $TKG_DESTINATION_SUMMARY
 
-    # Create the destination directories that should be filled
-    mkdir -p $TKG_DESTINATION_MATTAB
-    mkdir -p $TKG_DESTINATION_XML
-    mkdir -p $TKG_DESTINATION_STYLE
-    # Copy the installation directories
-    cp -rf $myDir/$TKG_SOURCE_MATTAB/* $TKG_DESTINATION_MATTAB \
-	&& echo Material config directory created/updated \
-	|| echo Failed copying the material configuration directory $TKG_SOURCE_MATTAB to $TKG_DESTINATION_MATTAB
-    cp -rf $myDir/$TKG_SOURCE_XML/* $TKG_DESTINATION_XML \
-	&& echo Xml directory created/updated \
-	|| echo Failed copying the xml directory $TKG_SOURCE_XML to $TKG_DESTINATION_XML
-    cp -rf $myDir/$TKG_SOURCE_STYLE/* $TKG_DESTINATION_STYLE \
-	&& echo Style directory created/updated \
-	|| echo Failed copying the style directory $TKG_SOURCE_STYLE to $TKG_DESTINATION_STYLE
     cp -f $TKG_MAIN $TKG_BIN_TARGET \
 	&& echo Main program installed/updated \
 	|| echo Failed copying the main program $TKG_MAIN to $TKG_BIN_TARGET
-#    cp -f $TKG_MATSHOW $TKG_BIN_TARGET \
-#	&& echo Material helper program installed/updated \
-#	|| echo Failed the material helper $TKG_MATSHOW to $TKG_BIN_TARGET
-    cp -f $TKG_TUNE $TKG_BIN_TARGET \
-	&& echo Pt-cut tuner installed/updated \
-	|| echo Failed copying the Pt-cut tuner $TKG_TUNE to $TKG_BIN_TARGET
+
+    SVNURL=`$SVNBIN info | grep URL | cut -d' ' -f2-`
+    echo $SVNURL | grep -q -e '^http' || {
+      echo ERROR: the current directory is not under SVN revision
+      exit -1
+    }
+    dirlist="$TKG_SOURCE_MATTAB $TKG_SOURCE_GEOMETRIES $TKG_SOURCE_XML $TKG_SOURCE_STYLE"
+    for myDir in $dirlist; do
+       if [ -d $TKG_STANDARDDIRECTORY/$myDir ] ; then
+          otherBase=`$SVNBIN info $TKG_STANDARDDIRECTORY/$myDir | grep URL | cut -d' ' -f2-`
+          if [ "$otherBase" != "$SVNURL/$myDir" ]; then
+            echo ERROR: directory $TKG_STANDARDDIRECTORY/$myDir is not under the same version control as `pwd`
+            exit -1
+          fi
+          echo -n Updating $myDir...
+          $SVNBIN up $TKG_STANDARDDIRECTORY/$myDir
+       else
+          echo -n Checking out $myDir...
+          mkdir -p $TKG_STANDARDDIRECTORY/$myDir
+          $SVNBIN checkout $SVNURL/$myDir $TKG_STANDARDDIRECTORY/$myDir
+       fi
+    done
+
     if ! $TKG_SETUP_BIN --checkDir ; then
 	echo Problem during installation
 	exit -1

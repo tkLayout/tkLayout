@@ -7,7 +7,8 @@
 #ifndef _HIT_HH_
 #define _HIT_HH_
 
-#include "module.hh"
+#include "Module.h"
+#include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
 #include <cmath>
 #include <vector>
@@ -63,8 +64,8 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule);
   Module* getHitModule() { return hitModule_; };
-  double getResolutionRphi();
-  double getResolutionY();
+  double getResolutionRphi(double trackR);
+  double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
@@ -113,6 +114,7 @@ class Track {
 protected:
   double theta_;
   double phi_;
+  double cotgTheta_;
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
   map<momentum, TMatrixTSym<double> > correlations_;
@@ -130,6 +132,8 @@ protected:
   void computeCovarianceMatrixRZ();
   void computeCorrelationMatrix(const vector<double>& momenta);
   void computeCovarianceMatrix();
+
+  std::set<std::string> tags_;
 public:
   Track();
   Track(const Track& t);
@@ -138,6 +142,7 @@ public:
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
   double getTheta() const {return theta_;}
+  double getCotgTheta() const { return cotgTheta_; }
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
@@ -149,7 +154,14 @@ public:
   const map<momentum, double>& getDeltaZ0() const { return deltaZ0_; }
   const map<momentum, double>& getDeltaP() const { return deltaP_; }
   // TODO: maybe updateradius is not necessary here. To be checked
-  Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); newHit->updateRadius(); return newHit;}
+  Hit* addHit(Hit* newHit) {
+    hitV_.push_back(newHit); 
+    if (newHit->getHitModule() != NULL) tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
+    newHit->setTrack(this); 
+    newHit->updateRadius(); 
+    return newHit;
+  }
+  const std::set<std::string>& tags() const { return tags_; }
   void sort();
   void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
@@ -159,6 +171,7 @@ public:
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
+  void keepTaggedOnly(const string& tag);
   void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
   double expectedTriggerPoints(const double& triggerMomentum) const;

@@ -360,21 +360,21 @@ namespace insur {
             // module loop for ring types and multipliers for strips and segments
             for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
               // ring index of current module
-              rindex = barrelcaps.at(i).at(j).getModule().getRing();
+              rindex = barrelcaps.at(i).at(j).getModule().uniRef().ring;
               // collect ring types
               if ((int)mtypes.size() < rindex) {
                 while ((int)mtypes.size() < rindex) mtypes.push_back("");
               }
-              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().getType();
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().moduleType();
               // collect multipliers for strips and segments
               if ((int)stripseg_scalars.size() < rindex) {
                 while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().numStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNMeanSegments();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().totalSegments() / (double)barrelcaps.at(i).at(j).getModule().numSensors());
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
@@ -404,7 +404,7 @@ namespace insur {
                   return false;
                 }
                 else {
-                  length = barrelcaps.at(i).at(*first).getModule().getHeight();
+                  length = barrelcaps.at(i).at(*first).getModule().length();
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator guard = vect.end();
                   std::vector<SingleMod>::const_iterator iter;
@@ -434,7 +434,7 @@ namespace insur {
                         return false;
                       }
                       else {
-                        length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                        length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().length();
                         std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                         std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                         for (iter = vect.begin(); iter != guard; iter++) {
@@ -466,7 +466,7 @@ namespace insur {
                     start++;
                   }
                 }
-              // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().getRing() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
+              // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().ring() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
               }
             }
           }
@@ -479,7 +479,7 @@ namespace insur {
       for (size_t r = 0; r < barrelcaps.size(); r++)
         for (size_t t = 0; t < barrelcaps.at(r).size(); t++)
           if (barrelcaps.at(r).at(t).getComponentsRI().size()==0) {
-            cout << r << "," << t << " MC bmod: " << barrelcaps.at(r).at(t).getModule().getLayer() << "," << barrelcaps.at(r).at(t).getModule().getRing() << "," << barrelcaps.at(r).at(t).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(r).at(t).getComponentsRI().size() << endl;
+            std::cout << r << "," << t << " MC bmod: " << barrelcaps.at(r).at(t).getModule().uniRef().layer << "," << barrelcaps.at(r).at(t).getModule().uniRef().ring << "," << barrelcaps.at(r).at(t).getModule().uniRef().phi << " has comps: " << barrelcaps.at(r).at(t).getComponentsRI().size() << std::endl;
           }
       return true;
     }
@@ -506,7 +506,7 @@ namespace insur {
             // module loop for ring types and multipliers for strips and segments
             for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
               // sum up the number of modules per ring
-              rindex = endcapcaps.at(i).at(j).getModule().getRing();
+              rindex = endcapcaps.at(i).at(j).getModule().uniRef().ring;
               if ((int)mods.size() < rindex) {
                 while ((int)mods.size() < rindex) mods.push_back(0);
               }
@@ -515,16 +515,16 @@ namespace insur {
               if ((int)mtypes.size() < rindex) {
                 while ((int)mtypes.size() < rindex) mtypes.push_back("");
               }
-              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().getType();
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().moduleType();
               // collect multipliers for strips and segments
               if ((int)stripseg_scalars.size() < rindex) {
                 while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().numStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNMeanSegments();
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)endcapcaps.at(i).at(j).getModule().totalSegments() /(double)endcapcaps.at(i).at(j).getModule().numSensors());
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
@@ -554,7 +554,7 @@ namespace insur {
                 }
                 // calculation of static parameters for all rings
                 else {
-                  length = endcapcaps.at(i).at(*first).getModule().getHeight();
+                  length = endcapcaps.at(i).at(*first).getModule().length();
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                   // materials loop
@@ -583,7 +583,7 @@ namespace insur {
                           return false;
                         }
                         else {
-                          length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
+                          length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().length();
                           std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                           std::vector<SingleMod>::const_iterator guard = vect.end();
                           std::vector<SingleMod>::const_iterator iter;
@@ -648,7 +648,7 @@ namespace insur {
       double length, surface;
       // main loop over barrel service volumes
       for(unsigned int i = 0; i < barrelservices.size(); i++) {
-        try {
+//        try {
           // collect information about feeder and neighbour volumes
           ftype = barrelservices.at(i).getFeederType();
           feeder = barrelservices.at(i).getFeederIndex();
@@ -682,15 +682,15 @@ namespace insur {
           barrelservices.at(i).calculateTotalMass();
           barrelservices.at(i).calculateRadiationLength(mt);
           barrelservices.at(i).calculateInteractionLength(mt);
-        }
-        catch(std::runtime_error& re) {
-          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-          return false;
-        }
-        catch(std::exception& e) {
-          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-          return false;
-        }
+//        }
+//        catch(std::runtime_error& re) {
+//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+//          return false;
+//        }
+//        catch(std::exception& e) {
+//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+//          return false;
+//        }
       }
       return true;
     }
@@ -713,7 +713,7 @@ namespace insur {
       double length, surface;
       // main loop over endcap service volumes
       for (unsigned int i = 0; i < endcapservices.size(); i++) {
-        try {
+        //try {
           // collect information about feeder and neighbour volumes
           ftype = endcapservices.at(i).getFeederType();
           feeder = endcapservices.at(i).getFeederIndex();
@@ -747,15 +747,15 @@ namespace insur {
           endcapservices.at(i).calculateTotalMass();
           endcapservices.at(i).calculateRadiationLength(mt);
           endcapservices.at(i).calculateInteractionLength(mt);
-        }
-        catch(std::runtime_error& re) {
-          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-          return false;
-        }
-        catch(std::exception& e) {
-          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-          return false;
-        }
+       // }
+       // catch(std::runtime_error& re) {
+       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+       //   return false;
+       // }
+       // catch(std::exception& e) {
+       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+       //   return false;
+       // }
       }
       return true;
     }
@@ -1079,11 +1079,11 @@ namespace insur {
       int index = 1;
       if ((layer >= 0) && (layer < (int)caps.size())) {
         for (unsigned int i = 0; i < caps.at(layer).size(); i++) {
-          if (caps.at(layer).at(i).getModule().getRing() > index) {
-            index = caps.at(layer).at(i).getModule().getRing();
+          if (caps.at(layer).at(i).getModule().uniRef().ring > index) {
+            index = caps.at(layer).at(i).getModule().uniRef().ring;
             res = 1;
           }
-          else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
+          else if (caps.at(layer).at(i).getModule().uniRef().ring == index) res++;
         }
       }
       return res;
@@ -1134,9 +1134,9 @@ namespace insur {
       int modsonrod = 0, lastmod = 0;
       // loop to find information about contributing source modules
       for (unsigned int j = 0; j < source.size(); j++) {
-        if (modsonrod < source.at(j).getModule().getRing()) {
+        if (modsonrod < source.at(j).getModule().uniRef().ring) {
           // modsonrod finds the number of modules along a rod
-          modsonrod = source.at(j).getModule().getRing();
+          modsonrod = source.at(j).getModule().uniRef().ring;
           // lastmod finds the index of a sample module at the end of a rod
           lastmod = j;
         }
@@ -1147,7 +1147,7 @@ namespace insur {
         try {
           // unit conversion per parameter (internal unit is grammes)
           double In, Out;
-          if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
+          if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().length());
           else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
           if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);
           else Out = convert(eiter->Out, eiter->uOut, mt.getMaterial(eiter->tagOut).density, s);

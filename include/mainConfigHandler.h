@@ -3,7 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <global_constants.h>
+#include <global_funcs.h>
 
 using namespace std;
 
@@ -21,7 +23,6 @@ using namespace std;
 // be asked directly through std::cin and the corresponding
 // configuration file will be saved in the home directory
 
-
 class mainConfigHandler {
 public:
   mainConfigHandler();
@@ -35,11 +36,11 @@ public:
   string getXmlDirectory();
   string getMattabDirectory();
   string getIrradiationDirectory();
-  string getRootfileDirectory();
-  string getGraphDirectory();
-  string getSummaryDirectory();
   string getDefaultMaterialsDirectory();
+  string getStandardIncludeDirectory();
+  string getGeometriesDirectory();
   string getConfigFileName();
+  std::set<string> preprocessConfiguration(istream& is, ostream& os, const string& istreamid);
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();
@@ -64,10 +65,9 @@ private:
   string getXmlDirectory_();
   string getMattabDirectory_();
   string getIrradiationDirectory_();
-  string getRootfileDirectory_();
-  string getGraphDirectory_();
-  string getSummaryDirectory_();
   string getDefaultMaterialsDirectory_();
+  string getStandardIncludeDirectory_();
+  string getGeometriesDirectory_();
 };
 
 #endif

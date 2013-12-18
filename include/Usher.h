@@ -16,7 +16,8 @@
 #include <cmath>
 #include <list>
 #include <utility>
-#include <tracker.hh>
+#include <Tracker.h>
+#include <Support.h>
 #include <configparser.hh>
 #include <InactiveSurfaces.h>
 #include <InactiveRing.h>
@@ -38,7 +39,7 @@ namespace insur {
     public:
         Usher() {}
         virtual ~Usher() {}
-        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus = false);
+        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus = false);
         virtual InactiveSurfaces& arrangePixels(Tracker& pixels, InactiveSurfaces& is, bool printstatus = false);
     protected:
         /**
@@ -80,25 +81,25 @@ namespace insur {
             std::vector<std::pair<double, double> > layers_io_radius, endcaps_io_radius, barrels_length_offset, discs_length_offset;
         private:
             bool post_analysis;
-            std::vector<int> analyzeBarrels(std::vector<Layer*>& barrel_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<int> analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short);
-            std::vector<int> analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<int> analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
             bool analyzePolarity();
         };
-        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
-        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
+        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports);
+        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports);
         InactiveSurfaces& mirror(TrackerIntRep& tracker, InactiveSurfaces& is);
         virtual InactiveSurfaces& servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
         virtual InactiveSurfaces& servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
-        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all);
+        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports, bool track_all);
     private:
         int servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, int layer);
         InactiveSurfaces& supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
         InactiveSurfaces& supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
         InactiveSurfaces& supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer);
         InactiveSurfaces& supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
-        InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
+        InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, const std::list<Support*>& supports);
         InactiveSurfaces& joinBarrelEndcapServices(TrackerIntRep& tracker, InactiveSurfaces& is, int begin_b, int end_b, int begin_e, int end_e, int d_offset);
         InactiveSurfaces& addBarrelServiceRing(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);
         InactiveSurfaces& addBarrelServiceTube(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);

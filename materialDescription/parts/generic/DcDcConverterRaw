@@ -1,7 +1,7 @@
 // DC/DC converter
 comp = DC/DC
-//M G10 0 0 0 0.25 g L; // Service board PCB
-//M Cu  0 0 0 0.15 g L; // Service board PCB
+M G10 0 0 0 0.25 g L; // Service board PCB
+M Cu  0 0 0 0.15 g L; // Service board PCB
 M Si 0 0 0 0.0699 g L ; // AMIS
 M Si 0 0 0 0.01048 g L ; // Add. Voltage Chip
 M Cu 0 0 0 0.5967 g L ; // Coil Windings

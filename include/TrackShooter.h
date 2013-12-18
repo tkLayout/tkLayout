@@ -20,7 +20,6 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
-#include <Math/Vector2D.h>
 #include <Math/GenVector/DisplacementVector2D.h>
 #include <Math/GenVector/RotationZ.h>
 #include <Math/GenVector/Rotation3D.h>
@@ -39,69 +38,9 @@ template<typename T> int getPointOctant(const T& x, const T& y, const T& z) {
   return (int(x < T(0)) << 2) || (int(x < T(0)) << 1) || int(x < T(0));
 }
 
-//typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
+typedef ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>,ROOT::Math::DefaultCoordinateSystemTag> XYVector; // CUIDADO The version of ROOT tkLayout is linked with misses this typedef
 
 std::set<int> getModuleOctants(const Module* mod);
-
-
-template<int NumSides, class Coords, class Random, class FloatType = double>
-class AbstractPolygon {  // any number of dimensions, any number of sides, convex or concave. it only has 2 properties
-protected:
-  FloatType area_;
-  std::vector<Coords> v_; // vertices of the polygon
-  virtual void computeProperties() = 0;
-  mutable Coords center_;
-  mutable bool dirty_;
-public:
-  AbstractPolygon() { v_.reserve(NumSides); dirty_ = true; }
-  virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const Coords& vertex);
-  virtual AbstractPolygon<NumSides, Coords, Random, FloatType>& operator<<(const std::vector<Coords>& vertices);
-  const std::vector<Coords>& getVertices() const;
-  const Coords& getVertex(int index) const;
-  int getNumSides() const;
-  bool isComplete() const;
-  double getDoubleArea() const; // we save a division by 2 by returning the double area. for our purposes it's the same
-  virtual bool isPointInside(const Coords& p) const = 0;
-  virtual Coords generateRandomPoint(Random* die) const = 0;
-
-  const Coords& getCenter() const;
-  AbstractPolygon<NumSides, Coords, Random, FloatType>& translate(const Coords& vector); 
-  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateX(FloatType angle);
-  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateY(FloatType angle);
-  AbstractPolygon<NumSides, Coords, Random, FloatType>& rotateZ(FloatType angle);
-};
-
-template<class Polygon>
-struct PolygonLess {
-  bool operator()(const Polygon& t1, const Polygon& t2) const {
-    return t1.getDoubleArea() < t2.getDoubleArea();
-  }
-};
-
-template<int NumSides>
-class Polygon3d : public AbstractPolygon<NumSides, XYZVector, TRandom> { // no checks are made on the convexity, but the algorithms in the class only work for convex polygons, so beware!
-public:
-  typedef std::multiset<Polygon3d<3>, PolygonLess<Polygon3d<3> > > TriangleSet;
-protected:
-  TriangleSet trianglesByArea_;
-  void computeProperties();
-public:
-  const TriangleSet& getTriangulation() const;
-  bool isPointInside(const XYZVector& p) const;
-  XYZVector generateRandomPoint(TRandom* die) const;
-};
-
-template<>
-class Polygon3d<3> : public AbstractPolygon<3, XYZVector, TRandom> {  // a triangle can be defined with more than 3 vertices. no error checking is made, simply the additional vertices besides the 3rd one are ignored
-  void computeProperties();
-public:
-  bool isPointInside(const XYZVector& p) const;
-  XYZVector generateRandomPoint(TRandom* die) const;
-};
-
-typedef Polygon3d<3> Triangle3d;
-
-
 
 
 class ParticleGenerator {
@@ -218,7 +157,8 @@ struct Hits { // holder struct for TTree export
   std::vector<float> pterr, hitprob;
   std::vector<float> deltas;
   std::vector<char> cnt, z, rho, phi;
-  std::vector<double> distx, disty;
+//  std::vector<double> distx, disty;
+//  std::vector<double> eta;
   const std::string name;
   Hits(const std::string& name_) : name(name_) {}
 
@@ -228,9 +168,10 @@ struct Hits { // holder struct for TTree export
     pterr.clear(); hitprob.clear();
     deltas.clear();
     cnt.clear(); z.clear(); rho.clear(); phi.clear();
-    distx.clear(); disty.clear();
+//    distx.clear(); disty.clear();
+//    eta.clear();
   }
-  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_, double distx_, double disty_) {
+  void push_back(double glox_, double gloy_, double gloz_, double locx_, double locy_, float pterr_, float hitprob_, float deltas_, int8_t cnt_, int8_t z_, int8_t rho_, int8_t phi_/*, double distx_, double disty_, double eta_*/) {
     glox.push_back(glox_);
     gloy.push_back(gloy_);
     gloz.push_back(gloz_);
@@ -243,8 +184,9 @@ struct Hits { // holder struct for TTree export
     z.push_back(z_);
     rho.push_back(rho_);
     phi.push_back(phi_);
-    distx.push_back(distx_);
-    disty.push_back(disty_);
+//    distx.push_back(distx_);
+//    disty.push_back(disty_);
+//    eta.push_back(eta_);
   }
   int size() const { return glox.size(); }
 
@@ -261,10 +203,36 @@ struct Hits { // holder struct for TTree export
     tree.Branch((name + ".z").c_str(), &z);
     tree.Branch((name + ".rho").c_str(), &rho);
     tree.Branch((name + ".phi").c_str(), &phi);
-    tree.Branch((name + ".distx").c_str(), &distx);
-    tree.Branch((name + ".disty").c_str(), &disty);
+//    tree.Branch((name + ".distx").c_str(), &distx);
+//    tree.Branch((name + ".disty").c_str(), &disty);
+//    tree.Branch((name + ".eta").c_str(), &eta);
   }
 };
+
+
+
+struct Helix {
+  double h, k;
+  double R, Rs; // Rs = Radius with sign depending on particle direction
+  double pt;
+  double eta, theta, L;
+  double phi0;
+  double z0;
+  double d0;
+  int dir;
+
+  Helix(double pt_, double eta_, double phi0_, double z0_, double d0_)
+    : pt(pt_), eta(eta_), phi0(phi0_), z0(z0_), d0(d0_) {
+      theta = 2*atan(exp(-eta));
+      R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
+      Rs = R*dir + d0;
+      dir = signum(pt);
+      h = -Rs*sin(phi0);
+      k =  Rs*cos(phi0);
+      L = tan(M_PI/2 - theta);
+  }
+};
+
 
 
 template<class T>
@@ -351,9 +319,9 @@ class TrackShooter {
   std::string instanceId_;
   std::string tracksDir_;
 
-  int detectCollisionSlanted(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
-  int detectCollisionBarrel(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
-  int detectCollisionEndcap(double h, double k, double R, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+  int detectCollisionSlanted(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+  int detectCollisionBarrel(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
+  int detectCollisionEndcap(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions);
 
   XYVector convertToLocalCoords(const XYZVector& globalHit, const BarrelModule* mod) const;
   XYVector convertToLocalCoords(const XYZVector& globalHit, const EndcapModule* mod) const;

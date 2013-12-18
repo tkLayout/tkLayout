@@ -79,15 +79,6 @@ void EndcapLayer::rotateY_PI() {
   }
 }
 
-void EndcapLayer::reflectZ() {
-  ModuleVector::iterator modIt;
-
-  averageZ_ *= -1;
-  for (modIt=moduleSet_.begin(); modIt!=moduleSet_.end(); modIt++) {
-    (*modIt)->reflectZ();
-  }
-}
-
 
 void Layer::shapeVolume(TGeoVolume* container,
                         TGeoMedium* medium,
@@ -334,7 +325,7 @@ double BarrelLayer::PlaceWithNumModules::operator()( //NUM MODULES VERSION
   return newZ;
 }
 
-std::pair<int, int> BarrelLayer::buildStringPair(
+void BarrelLayer::buildStringPair(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -347,22 +338,22 @@ std::pair<int, int> BarrelLayer::buildStringPair(
   int smallParity,
   BarrelModule* sampleModule) {
 
-  return buildStringPairRecursion(thisModuleSet,
-                                  averageRadius,
-                                  worstCaseRadii,
-                                  bigDelta, 
-                                  smallDelta, 
-                                  dsDistances, 
-                                  baseOverlap,
-                                  zDelta, 
-                                  0, // startZ
-                                  computeListZ,
-                                  smallParity,
-                                  0, // recursion counter
-                                  sampleModule);
+  buildStringPairRecursion(thisModuleSet,
+                           averageRadius,
+                           worstCaseRadii,
+                           bigDelta, 
+                           smallDelta, 
+                           dsDistances, 
+                           baseOverlap,
+                           zDelta, 
+                           0, // startZ
+                           computeListZ,
+                           smallParity,
+                           0, // recursion counter
+                           sampleModule);
 } 
 
-std::pair<int, int> BarrelLayer::buildStringPairRecursion(
+void BarrelLayer::buildStringPairRecursion(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -382,7 +373,7 @@ std::pair<int, int> BarrelLayer::buildStringPairRecursion(
     tempString << "Balanced module placement in string at avg radius " << averageRadius << " didn't converge!! String badly skewed";
     tempString << "Unbalance is " << startZ << " mm";
     logWARNING(tempString.str());
-    return std::make_pair(0, 0);
+    return;
   }  
   // create Z lists and balance them
 
@@ -401,19 +392,19 @@ std::pair<int, int> BarrelLayer::buildStringPairRecursion(
 
   double zUnbalance = farthestPosZ + farthestNegZ; // balancing uneven pos/neg strings
   if (abs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
-    return buildStringPairRecursion(thisModuleSet,
-                                    averageRadius,
-                                    worstCaseRadii,
-                                    bigDelta,
-                                    smallDelta,
-                                    dsDistances,
-                                    baseOverlap,
-                                    zDelta,
-                                    startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
-                                    computeListZ,
-                                    smallParity,
-                                    recursionCounter,
-                                    sampleModule);
+    buildStringPairRecursion(thisModuleSet,
+                             averageRadius,
+                             worstCaseRadii,
+                             bigDelta,
+                             smallDelta,
+                             dsDistances,
+                             baseOverlap,
+                             zDelta,
+                             startZ-zUnbalance/2, // countering the unbalance by displacing the startZ (by half the inverse unbalance, to improve convergence)
+                             computeListZ,
+                             smallParity,
+                             recursionCounter,
+                             sampleModule);
   } else {
 
     ostringstream tempSS;
@@ -445,13 +436,11 @@ std::pair<int, int> BarrelLayer::buildStringPairRecursion(
       m->setZSide(-1);
       thisModuleSet.push_back(m);        
     }
-
-    return std::make_pair(listZPos.size(), listZNeg.size());
   }
 }
 
 
-std::pair<int, int> BarrelLayer::buildMezzanineStringPair(
+void BarrelLayer::buildMezzanineStringPair(
   ModuleVector& thisModuleSet,
   double averageRadius,
   std::pair<double, double> worstCaseRadii,
@@ -495,8 +484,6 @@ std::pair<int, int> BarrelLayer::buildMezzanineStringPair(
     m->setZSide(-1);
     thisModuleSet.push_back(m);        
   }
-  
-  return std::make_pair(listZ.size(), listZ.size());
 }
 
 
@@ -802,55 +789,54 @@ void BarrelLayer::buildLayer(double averageRadius,
   int smallParity = (smallDelta > 0) - (smallDelta < 0);  // extract sign
 
   std::vector<Module*> archetypeIn, archetypeOut;
-  std::pair<int, int> sizeIn, sizeOut;
   if (farthestZ==0) { // Build a standard (double) string
-    sizeIn = buildStringPair(archetypeIn,
+    buildStringPair(archetypeIn,
+                    goodRadius,
+                    worstCaseRadii, // wanna-be in
+                    bigDelta,
+                    smallDelta,
+                    dsDistances,
+                    overlap,
+                    safetyOrigin,
+                    moduleStrategy,
+                    smallParity,
+                    sampleModule);
+    buildStringPair(archetypeOut, // wanna-be out
+                    goodRadius,
+                    worstCaseRadii,
+                    bigDelta,
+                    smallDelta,
+                    dsDistances,
+                    overlap,
+                    safetyOrigin,
+                    moduleStrategy,
+                    stringSameParity ? smallParity : -smallParity,
+                    sampleModule);
+  } else { // Build a mezzanine (double) string
+    buildMezzanineStringPair(archetypeIn, // wanna-be in
                              goodRadius,
-                             worstCaseRadii, // wanna-be in
+                             worstCaseRadii,
                              bigDelta,
                              smallDelta,
                              dsDistances,
                              overlap,
                              safetyOrigin,
+                             farthestZ,
                              moduleStrategy,
                              smallParity,
                              sampleModule);
-    sizeOut = buildStringPair(archetypeOut, // wanna-be out
-                              goodRadius,
-                              worstCaseRadii,
-                              bigDelta,
-                              smallDelta,
-                              dsDistances,
-                              overlap,
-                              safetyOrigin,
-                              moduleStrategy,
-                              stringSameParity ? smallParity : -smallParity,
-                              sampleModule);
-  } else { // Build a mezzanine (double) string
-    sizeIn = buildMezzanineStringPair(archetypeIn, // wanna-be in
-                                      goodRadius,
-                                      worstCaseRadii,
-                                      bigDelta,
-                                      smallDelta,
-                                      dsDistances,
-                                      overlap,
-                                      safetyOrigin,
-                                      farthestZ,
-                                      moduleStrategy,
-                                      smallParity,
-                                      sampleModule);
-    sizeOut = buildMezzanineStringPair(archetypeOut, // wanna-be out
-                                       goodRadius,
-                                       worstCaseRadii,
-                                       bigDelta,
-                                       smallDelta,
-                                       dsDistances,
-                                       overlap,
-                                       safetyOrigin,
-                                       farthestZ,
-                                       moduleStrategy,
-                                       stringSameParity ? smallParity : -smallParity,
-                                       sampleModule);
+    buildMezzanineStringPair(archetypeOut, // wanna-be out
+                             goodRadius,
+                             worstCaseRadii,
+                             bigDelta,
+                             smallDelta,
+                             dsDistances,
+                             overlap,
+                             safetyOrigin,
+                             farthestZ,
+                             moduleStrategy,
+                             stringSameParity ? smallParity : -smallParity,
+                             sampleModule);
   }
 
   for (std::vector<Module*>::iterator it = archetypeIn.begin(); it < archetypeIn.end(); ++it) { // move archetype inward
@@ -974,10 +960,6 @@ void BarrelLayer::buildLayer(double averageRadius,
   }
   nOfRods_ = nStrings;
   nModsOnString_ = archetypeIn.size(); // archetypeIn and Out will have the same number of modules?
-  
-  nModsOnStringZPlus_  = sizeIn.first;
-  nModsOnStringZMinus_ = sizeIn.second;
-
   if (archetypeIn.size() != archetypeOut.size()) { logWARNING("buildLayer(): Archetypes for inner and outer rods of layer at radius " + any2str(averageRadius) + " have different lengths"); }
 
   while (!archetypeIn.empty()) {
@@ -989,60 +971,6 @@ void BarrelLayer::buildLayer(double averageRadius,
     archetypeOut.pop_back();
   }
 }
-
-ModuleVector BarrelLayer::buildTiltedString(const TiltedRodSpecs::const_iterator& begin, const TiltedRodSpecs::const_iterator& end, const BarrelModule* sampleModule, int side) {
-  vector<Module*> rod;
-  int ring = 1;
-  for (TiltedRodSpecs::const_iterator it = begin; it != end; ++it) {
-    BarrelModule* m = new BarrelModule(*sampleModule);
-    m->rotateX(side*it->gamma);
-    m->translate(XYZVector(0, it->r, side*it->z));
-    m->setLayer(layerIndex_);
-    m->setRing(ring++);
-    m->setZSide(side);
-    rod.push_back(m);
-  }
-  return rod;
-}
-    
-
-
-void BarrelLayer::buildTiltedLayer(const TiltedLayerSpecs& tiltlay, const BarrelModule* sampleModule) {
-
-  double phi = 2*M_PI/tiltlay.numRods;
-  nOfRods_ = tiltlay.numRods;
-
-  ModuleVector innerRod = buildTiltedString(tiltlay.innerRod.begin(), tiltlay.innerRod.end(), sampleModule, 1);
-  ModuleVector outerRod = buildTiltedString(tiltlay.outerRod.begin(), tiltlay.outerRod.end(), sampleModule, 1);
-  ModuleVector innerRodNeg = buildTiltedString(tiltlay.innerRod.begin()+1, tiltlay.innerRod.end(), sampleModule, -1);
-  ModuleVector outerRodNeg = buildTiltedString(tiltlay.outerRod.begin()+1, tiltlay.outerRod.end(), sampleModule, -1);
-
-
-  innerRod.insert(innerRod.end(), innerRodNeg.begin(), innerRodNeg.end());
-  outerRod.insert(outerRod.end(), outerRodNeg.begin(), outerRodNeg.end());
-
-//  std::for_each(outerRod.begin(), outerRod.end(), std::bind2nd(std::mem_fun(&Module::rotatePhi), phi));
-
-//  moduleSet_.insert(moduleSet_.end(), innerRod.begin(), innerRod.end());
-//  moduleSet_.insert(moduleSet_.end(), outerRod.begin(), outerRod.end());
-
-  for (int i = 0; i < tiltlay.numRods; i++) {
-    ModuleVector& aString = (i%2) ? outerRod : innerRod;
-
-    for (ModuleVector::const_iterator it = aString.begin(); it != aString.end(); ++it) {
-      BarrelModule* m = new BarrelModule(*static_cast<BarrelModule*>(*it));
-      m->rotatePhi(i*phi);
-      m->setPhiIndex(i);
-      m->setContainerId(getContainerId());
-      moduleSet_.push_back(m);
-    }
-  }
-
-  while (!innerRod.empty()) { delete innerRod.back(); innerRod.pop_back(); }
-  while (!outerRod.empty()) { delete outerRod.back(); outerRod.pop_back(); }
-}
-
-
 
 
 // Always look for this plot when changing the geometry!
@@ -1310,12 +1238,6 @@ void BarrelLayer::compressExceeding(double newMaxZ, double newMinZ) {
   // TODO: add exit code
 }
 
-double BarrelLayer::getAverageRadius() {
-  // if (averageRadius_<0) // TODO: why is this sometimes /almost/ 0?
-  return computeAverageRadius(); 
-  // return averageRadius_;
-};
-
 double BarrelLayer::computeAverageRadius() {
   ModuleVector::iterator modIt;
   BarrelModule* aBarrelModule;
@@ -1460,7 +1382,6 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
                                   bool oddSegments, bool alignEdges,
                                   std::map<int, EndcapModule*> sampleModules,
                                   std::map<int, int> ringDirectives,
-                                  std::map<int, double> ringGaps, 
                                   int diskParity,
                                   int sectioned /*=NoSection*/) {
 
@@ -1470,6 +1391,7 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
   int ringParity;
   int nearDirection = int(diskZ/fabs(diskZ))*-1;
+  int nRing;
   int addModules;
 
   double lastRho = 0;
@@ -1485,8 +1407,7 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
   ringParity = diskParity;
 
-  int nRing = nRings;
-  while (true) {
+  for (nRing=nRings; nRing>0; nRing--, ringParity*=-1) {
     EndcapModule* sampleModule = sampleModules[nRing];
     if (sampleModule==NULL) sampleModule = sampleModules[0];
     if (sampleModule==NULL) {
@@ -1518,15 +1439,7 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
 
     nextRho -= sampleModule->getHeight(); // we do this because the buildRing builds modules from bottom to top, so we tell it to start building the ring from the min radius
     // ringParity = 1 means the ring is nearer to the interaction point
-    
-    if (ringGaps[nRing]) {
-      nextRho -= ringGaps[nRing];
-      tempString.str(""); tempString << "ring " << nRing
-                                     << " has a gap of " << ringGaps[nRing]
-                                     << " mm after it, which moves nextrho to: " << nextRho;
-      logDEBUG(tempString);
-    }
-
+    //
     int numPlacedModules; // set by buildring
     lastRho = buildRing(nextRho,
                         smallDelta,
@@ -1554,17 +1467,14 @@ void EndcapLayer::buildSingleDisk(int nRings,     // top-to-bottom fixed nRings 
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
-    if (--nRing <= 0) break;
-
     double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) + smallDelta + dsDistances[nRing-1]/2;
-    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) - smallDelta - dsDistances[nRing]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta: + bigDelta) - smallDelta - dsDistances[nRing-1]/2;
     double originZ = ringParity > 0 ? zError : -zError;
     double nextRhoOrigin = (nextRho + overlap)/lastZ * newZ;
     double nextRhoShifted = nextRho/(lastZ - originZ) * (newZ - originZ);
-    
+
     nextRho = nextRhoOrigin > nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
-    
-    ringParity *= -1;
+
   }
 
   nOfRings_ = nRings;
@@ -1587,7 +1497,6 @@ void EndcapLayer::buildSingleDisk(double minRadius,
                                   bool oddSegments, bool alignEdges,
                                   std::map<int, EndcapModule*> sampleModules,
                                   std::map<int, int> ringDirectives,
-                                  std::map<int, double> ringGaps,
                                   int diskParity,
                                   int sectioned /*=NoSection*/) {
 
@@ -1602,13 +1511,13 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 
   int ringParity;
   int nearDirection = int(diskZ/fabs(diskZ))*-1;
-  int nRing = 1;
+  int nRing;
   int addModules;
 
   double lastRho = 0;
   double nextRho = minRadius;
 
-  while (lastRho < maxRadius) {
+  for (nRing=1; lastRho<maxRadius; nRing++) {
     EndcapModule* sampleModule = sampleModules[nRing];
     if (sampleModule==NULL) sampleModule = sampleModules[0];
     if (sampleModule==NULL) {
@@ -1641,15 +1550,6 @@ void EndcapLayer::buildSingleDisk(double minRadius,
 
     int numPlacedModules;
     // ringParity = 1 means the ring is nearer to the interaction point
-
-    if (ringGaps[nRing-1]) {
-      nextRho += ringGaps[nRing-1];
-      tempString.str(""); tempString << "ring " << nRing
-                                     << " has a gap of " << ringGaps[nRing-1]
-                                     << " mm after it, which moves nextrho to: " << nextRho;
-      logDEBUG(tempString);
-    }
-
     lastRho = buildRing(nextRho,
                         smallDelta,
                         ringParity*bigDelta,
@@ -1677,10 +1577,8 @@ void EndcapLayer::buildSingleDisk(double minRadius,
       << 100/lastRho << ", " << lastRho << ", -1);";
     logDEBUG(tempString);
 
-    nRing++;
-
     double newZ  = diskZ + (ringParity > 0 ? + bigDelta : - bigDelta) - smallDelta - dsDistances[nRing-1]/2;  
-    double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-2]/2;
+    double lastZ = diskZ + (ringParity > 0 ? - bigDelta : + bigDelta) + smallDelta + dsDistances[nRing-1]/2;
     double originZ = ringParity > 0 ? -zError : +zError;
     double nextRhoOrigin = (lastRho - overlap)/lastZ * newZ;
     double nextRhoOrigin2 = (lastRho)/lastZ * newZ - overlap;
@@ -1689,7 +1587,6 @@ void EndcapLayer::buildSingleDisk(double minRadius,
     nextRho = nextRhoOrigin < nextRhoShifted ? nextRhoOrigin : nextRhoShifted;
   
     nextRhoOrigin2 = nextRhoOrigin2;
-    
   }
 
   nOfRings_ = nRing - 1;

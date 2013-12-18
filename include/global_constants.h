@@ -91,13 +91,15 @@ namespace insur {
   static const std::string default_rootfile = "trackergeometry.root";
   static const std::string default_graphdir = "graphs";
   static const std::string default_graphfile = "neighbours.graph";
-  static const std::string default_summarypath = "matsum";
   static const std::string default_summary = "profiles.html";
   static const std::string default_xmlpath = "xml";
   static const std::string default_xml = "tk2CMSSWxml";
   static const std::string default_styledir = "style";
+  static const std::string default_configdir = "config";
+  static const std::string default_stdincludedir = "stdinclude";
+  static const std::string default_geometriesdir = "geometries";
+
 
   static const std::string csv_separator = ",";
-  static const std::string csv_eol = "\n";
 }
 #endif /* _GLOBAL_CONSTANTS_H */

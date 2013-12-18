@@ -149,6 +149,22 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_layer;
         out << xml_spec_par_close;
 
+        //      add all TOB layers
+        /*pos = findEntry(t, xml_subdet_layer + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+        //find PixelBarrelLadderPar
+        //while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all rods
+        /*pos = findEntry(t, xml_subdet_rod + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
 
         // Add Rods
         out << xml_spec_par_open << "OuterTracker" << xml_subdet_rod << xml_par_tail << xml_general_inter;
@@ -161,6 +177,25 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_rod;
         out << xml_spec_par_close;
 
+        //find PixelBarrelModulePar
+        //while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) {
+        //  out << line << std::endl;
+        //}
+        //      add all BModule...active
+        //pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        //if (pos != -1) {
+        //    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+        //        out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        //    }
+        //}
+        //find PixelEndcapDiskPar
+        //while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ discs ONCE (for now)
+        /*pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }*/
 
         // Add Disks
         out << xml_spec_par_open << "OuterTracker" << xml_subdet_wheel << xml_par_tail << xml_general_inter;
@@ -184,22 +219,289 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
         out << xml_spec_par_close;
 
-		
-		//Write specPar blocks for ROC parameters 
-		//TOB
-		pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-		if (pos != -1) {
-			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
-		
-		}
+        //find PixelEndcapPanelPar
+        /*while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ rings ONCE
+        pos = findEntry(t, xml_subdet_ring + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }*/
+        //find PixelEndcapDetPar
+        //while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add all z+ EModule...active
+        //pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        //if (pos != -1) {
+        //    for (i = 0; i < t.at(pos).partselectors.size(); i++)
+        //        out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        //}
 
-		//TID
-		pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
-		if (pos != -1) {
-			  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
-		
-		}
+        /*
+        //find PixelROCRowsTrackerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        //find PixelROCColsTrackerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++)
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+        }
+        */
 
+/*
+        //find PixelROCRowsTrackerPar
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        /*pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+        //find PixelROCColsTrackerPar
+/*        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        /*pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+
+        //find PixelROCRowsTrackerPar
+/*        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        /*pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+        //find PixelROCColsTrackerPar
+/*        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        /*pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_barrel_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+
+        //find PixelROCRowsTrackerPar
+//        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        /*pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+/*        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        //find PixelROCColsTrackerPar
+//        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        /*pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+/*        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_inner) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/
+        //find PixelROCRowsTrackerPar
+//        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        /*pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+/*        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/        //find PixelROCColsTrackerPar
+//        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add ALL active modules (barrel and endcap)
+        /*pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }*/
+/*        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                if (compstring.find(xml_base_outer) == std::string::npos || compstring.find(xml_endcap_module) == std::string::npos ) continue;
+                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+            }
+        }
+*/
+        pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                std::string moduletype = t.at(pos).moduletypes.at(i);
+                std::string rowsnumber = "1";
+                std::string colsnumber = "1";
+                std::string rocx = "1";
+                std::string rocy = "1";
+                if (moduletype == "ptOut") {
+                   rowsnumber = "127";
+                   colsnumber = "1";
+                   rocx = "8";
+                   rocy = "2";
+                }
+                else if (moduletype == "ptMixed") {
+                   rowsnumber = "240";
+                   colsnumber = "1";
+                   rocx = "4";
+                   rocy = "2";
+                   if (compstring.find(xml_base_inner) != std::string::npos) 
+                     colsnumber = "16";
+                }
+                out << xml_spec_par_open << compstring << xml_par_tail << xml_general_inter;
+                out << xml_spec_par_selector << compstring << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_tobdet_1 << xml_general_endline; // note xml_subdet_tobdet is different from xml_subdet_tobdet_1
+                out << xml_spec_par_parameter_first << xml_roc_rows_name << xml_spec_par_parameter_second << rowsnumber << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_cols_name << xml_spec_par_parameter_second << colsnumber << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_x << xml_spec_par_parameter_second << rocx << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_y << xml_spec_par_parameter_second << rocy << xml_spec_par_close;
+            }
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+                std::string compstring = t.at(pos).partselectors.at(i);
+                std::string moduletype = t.at(pos).moduletypes.at(i);
+                std::string rowsnumber = "1";
+                std::string colsnumber = "1";
+                std::string rocx = "1";
+                std::string rocy = "1";
+                if (moduletype == "ptOut") {
+                   rowsnumber = "127";
+                   colsnumber = "1";
+                   rocx = "8";
+                   rocy = "2";
+                }
+                else if (moduletype == "ptMixed") {
+                   rowsnumber = "240";
+                   colsnumber = "1";
+                   rocx = "4";
+                   rocy = "2";
+                   if (compstring.find(xml_base_inner) != std::string::npos) 
+                     colsnumber = "16";
+                }
+                out << xml_spec_par_open << compstring << xml_par_tail << xml_general_inter;
+                out << xml_spec_par_selector << compstring << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_tiddet << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_rows_name << xml_spec_par_parameter_second << rowsnumber << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_cols_name << xml_spec_par_parameter_second << colsnumber << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_x << xml_spec_par_parameter_second << rocx << xml_general_endline;
+                out << xml_spec_par_parameter_first << xml_roc_y << xml_spec_par_parameter_second << rocy << xml_spec_par_close;
+            }
+        }
+/*
+        //find final marker
+        while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        //      add one SpecPar block for every entry in t where parameter.first == PixelROC_X
+        for (i = 0; i < t.size(); i++) {
+            if (t.at(i).parameter.first.compare(xml_roc_x) == 0) {
+                specPar1(t.at(i).name, t.at(i).parameter, t.at(i).partselectors, strm);
+            }
+        }
+        //      add one SpecPar block for every entry in t where parameter.first == PixelROC_Y
+        for (i = 0; i < t.size(); i++) {
+            if (t.at(i).parameter.first.compare(xml_roc_y) == 0)
+                specPar(t.at(i).name, t.at(i).parameter, t.at(i).partselectors, strm);
+        }
+        out << strm.str();
+*/
         //copy rest of skeleton file unchanged
         while (std::getline(in, line)) out << line << std::endl;
 
@@ -433,8 +735,7 @@ namespace insur {
         for (titer = t.begin(); titer != tguard; titer++) specPar(titer->name, titer->parameter, titer->partselectors, stream);
         stream << xml_spec_par_section_close;
     }
-   
-
+    
     /**
      * This formatter writes an XML entry describing a call to a volume placement algorithm to the stream that serves as a
      * buffer for the output file contents.
@@ -666,32 +967,6 @@ namespace insur {
     }
 
 
-    /**
-     * This formatter writes XML entries describing ROC parameters
-     * @param param The name and value of the additional parameter, given as instances of <i>std::string</i> and packaged into a <i>std::pair</i>
-	 * @param minfo Values of ROC parameters for the module 
-     * @param partsel A list of logical volume names that the additional parameter applies to
-     * @param stream A reference to the output buffer
-     */
-
-	void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream) {
-		for (unsigned i = 0; i < partsel.size(); i++) {
-			stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
-			stream << xml_spec_par_selector <<partsel.at(i) << xml_general_endline;
-			if( param.second.find("TOBDet") != std::string::npos) param.second = xml_subdet_tobdet_1;
-			if( param.second.find("TIDDet") != std::string::npos) param.second = xml_subdet_tiddet;
-			stream<< xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second  << param.second  << xml_general_endline;
-			stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
-		
-			//TO DO get rid of this if loop iif possible
-			if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptMixed"){
-				minfo.at(i).roccols = "16";
-			}
-			stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
-			stream<< xml_spec_par_parameter_first << xml_roc_x           << xml_spec_par_parameter_second  << minfo.at(i).rocx     << xml_general_endline;
-			stream<< xml_spec_par_parameter_first << xml_roc_y           << xml_spec_par_parameter_second  << minfo.at(i).rocy     << xml_spec_par_close;
-		}
-	}
 
     
     //private

@@ -2,7 +2,6 @@
 #include <iostream>
 
 #include <ptError.h>
-#include <module.hh>
 #include <global_constants.h>
 
 using namespace std;
@@ -10,9 +9,6 @@ using namespace std;
 // Default values for gloabl parameters
 double ptError::IP_length = 70;     // mm
 double ptError::B = insur::magnetic_field; // T
-
-double ptError::minimumPt = 0.3;
-double ptError::maximumPt = 30;
 
 void ptError::defaultParameters() {
   Module_pitch = defaultModulePitch;
@@ -22,10 +18,10 @@ void ptError::defaultParameters() {
   Module_d = defaultModuleD;
   Module_h = defaultModuleHeight;
   inefficiencyType = defaultInefficiencyType;
-  moduleType = Module::Barrel; // Barrel is the default moduleType 
-  endcapType = Module::Rectangular; // Barrel is the default moduleType 
+  moduleType = ModuleSubdetector::BARREL; // Barrel is the default moduleType 
+  endcapType = ModuleShape::RECTANGULAR; // Barrel is the default moduleType 
 }
-
+/*
 double ptError::geometricEfficiency() {
   double inefficiency;
   switch ( moduleType ) {
@@ -43,7 +39,8 @@ double ptError::geometricEfficiency() {
   }
   return (1-inefficiency);
 }
-
+*/
+/*
 double ptError::stripsToP(double strips) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
   double p;
@@ -69,7 +66,8 @@ double ptError::stripsToP(double strips) {
   p = A * sqrt( pow(effective_d/x,2) + 1 );
   return p;
 }
-
+*/
+/*
 double ptError::pToStrips(double p) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
   double a = pow(p/A,2);
@@ -92,7 +90,7 @@ double ptError::pToStrips(double p) {
   strips /= Module_pitch;
   return strips;
 } 
-
+*/
 
 double ptError::computeError(double p) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
@@ -146,14 +144,14 @@ double ptError::computeError(double p) {
   }
 
   switch ( moduleType ) {
-  case Module::Barrel:
+  case BARREL:
     relativeError2 = f1_sq * pow(Module_pitch / Module_d, 2) / 6;
     if (material.radiation!=0) relativeError2 += f2_sq * pow( deltaPhi ,2);
     //#ifdef ADD_ERR
     //relativeError = f1 * sqrt(2*pow(Module_pitch,2)+pow(Module_strip_l*0.01,2)) /sqrt(12) / Module_d;
     //#endif
     break;
-  case Module::Endcap:
+  case ENDCAP:
     relativeError2 = f1_sq * pow(Module_pitch / (Module_d * Module_r / Module_z),2) / 6; // * 1/tg(theta)
     relativeError2 += f2_sq * pow( deltaPhi ,2);
     relativeError2 += pow( f3 * Module_strip_l / Module_r ,2) / 12;
@@ -189,46 +187,5 @@ double ptError::probabilityInside(double cut, double value, double value_err) {
 }
 
 /* */
-double ptError::find_probability(double target, double ptCut) {
-
-  double lowerPt = minimumPt;
-  double higherPt = maximumPt;
-
-  double lowerProbability =  geometricEfficiency() * probabilityInside(1/ptCut, 1/lowerPt, computeError(lowerPt)/lowerPt);
-  double higerProbability =  geometricEfficiency() * probabilityInside(1/ptCut, 1/higherPt, computeError(higherPt)/higherPt);
-
-  double testPt;
-  double testProbability;
-
-  //std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
-  //std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
-
-  if ((target<lowerProbability)||(target>higerProbability)) return -1; // probability not reachable within desired pt range
-
-  for (int i=0; i<100; ++i) {
-    //std::cerr << std::endl;
-    //std::cerr << std::endl;
-    //std::cerr << std::endl;
-    //std::cerr << "****** STEP # " << i << "*********" << std::endl;
-    testPt = sqrt(lowerPt*higherPt);
-    testProbability = geometricEfficiency() * probabilityInside(1/ptCut, 1/testPt, computeError(testPt)/testPt);
-    //std::cerr << "Geometric efficiency is " << geometricEfficiency() << std::endl;
-    //std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
-    //std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
-    //std::cerr << "XX: prob("<<testPt<<") = " << testProbability << std::endl;
-
-    if (testProbability>target) {
-      higherPt = testPt;
-      // higerProbability = testProbability; // debug
-    } else {
-      lowerPt = testPt;
-      // lowerProbability = testProbability; // debug
-    }
-
-    if (fabs(testProbability-target)<1E-5) return (testPt);
-  }
-
-  return -1; // could not converge
-}
 
 

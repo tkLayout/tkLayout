@@ -1,0 +1,13 @@
+
+moduleType pixel
+
+numSensors 1
+
+sensorType largepix
+numStripsAcross 1024
+numSegments 128
+stereoRotation 15
+resolutionLocalX 0.013
+resolutionLocalY 0.028
+
+plotColor 9

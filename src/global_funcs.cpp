@@ -1,5 +1,15 @@
 #include <global_funcs.h>
 
+template<typename T> const std::vector<std::string> EnumTraits<T>::data = {};
+
+template<> std::string StringConverter<NOT_STRING_ENUM>::str2any<std::string>(const std::string& from) { return from; };
+
+template<> bool StringConverter<NOT_STRING_ENUM>::str2any<bool>(const std::string& from) {
+  static std::map<std::string, bool> boolstr = { {"true", true}, {"TRUE", true}, {"True", true}, {"T", true}, {"1", true},
+                                                 {"false", false}, {"FALSE", false}, {"False", false}, {"F", false}, {"0", false} };
+  return boolstr.at(from); 
+}
+
 
 std::vector<std::string> split(const std::string& str, const std::string& seps, bool keepEmpty) {
   std::vector<std::string> tokens;
@@ -16,15 +26,26 @@ std::vector<std::string> split(const std::string& str, const std::string& seps, 
 }
 
 
-std::string ltrim(std::string str, const std::string& ch) {
-  return str.erase(0, str.find_first_not_of(ch));
+std::string ltrim(std::string str) {
+  return str.erase(0, str.find_first_not_of(" \t\n"));
 }
 
-std::string rtrim(std::string str, const std::string& ch) {
-  return str.erase(str.find_last_not_of(ch)+1);
+std::string rtrim(std::string str) {
+  return str.erase(str.find_last_not_of(" \t\n")+1);
 }
 
-std::string trim(std::string str, const std::string& ch) {
-  return ltrim(rtrim(str, ch), ch);
+std::string trim(std::string str) {
+  return ltrim(rtrim(str));
 }
 
+std::string lctrim(std::string str, const std::string& chars) {
+  return str.erase(0, str.find_first_not_of(chars));
+}
+
+std::string rctrim(std::string str, const std::string& chars) {
+  return str.erase(str.find_last_not_of(chars)+1);
+}
+
+std::string ctrim(std::string str, const std::string& chars) {
+  return lctrim(rctrim(str, chars), chars);
+}

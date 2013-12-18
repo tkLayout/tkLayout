@@ -6,7 +6,7 @@
 #include <string>
 #include <list>
 #include <exception>
-#include "tracker.hh"
+//#include "tracker.hh"
 #include "global_funcs.h"
 #include <StopWatch.h>
 
@@ -14,76 +14,60 @@
 
 using namespace std;
 
-
-class configParser {
+class configParser { // CUIDADO MASSIVELY stripped down.. clean it up!!!
 public:
   // Constructor and destructor
-  configParser();
-  ~configParser();
+//  configParser();
+//  ~configParser();
 
   // Parse the geometry config file and creates a Tracker object
-  Tracker* parseFile(string configFileName, string typesFileName = "");
-  Tracker* parsePixelsFromFile(string configFileName);
+//  Tracker* parseFile(string configFileName, string typesFileName = "");
+//  Tracker* parsePixelsFromFile(string configFileName);
 
   // Parse the module type config file and "dresses" a Tracker object
-  bool dressTracker(Tracker* aTracker, string configFileName);
-  bool dressPixels(Tracker* aTracker, string configFileName);
+//  bool dressTracker(Tracker* aTracker, string configFileName);
+//  bool dressPixels(Tracker* aTracker, string configFileName);
   // Parse an irradiation map so that modules can be assigned radiation levels
-  bool irradiateTracker(Tracker* aTracker, string irrFileName);
-  bool flukaGridInfo(Tracker* aTracker, string irrFileName);
+//  bool irradiateTracker(Tracker* aTracker, string irrFileName);
 
   // Extract the user-defined support structures from the geometry config file
   std::list<std::pair<int, double> >* parseSupportsFromFile(std::string fileName);
 
-  struct ConfigFile {
-    std::string name;
-    std::string content;
-  };
-
-
-  const std::vector<ConfigFile>& getConfigFiles() const { return configFiles_; }
-
 private:
 
   // Temporary streams and objects
-  ifstream rawConfigFile_;
-  stringstream configFile_;
-  Tracker* myTracker_;
-
-  std::vector<ConfigFile> configFiles_;
-
-  std::map<std::string, TiltedBarrelSpecs> tiltedBarrelSpecs_;
+//  ifstream rawConfigFile_;
+//  stringstream configFile_;
+//  Tracker* myTracker_;
 
   // Generic parsing functions
   string getTill(istream &inStream, char delimiter, bool singleWord, bool allowNothing /* = false */);
   bool parseParameter(string& name, string& value, istream &inStream);
   
   // Parsing functions for the tracker building
-  bool parseTracker(string myName, istream &inStream);
-  bool parseBarrel(string myName, istream &inStream);
-  bool parseEndcap(string myName, istream &inStream);
-  bool parsePixels(string myName, istream &inStream);
-  bool parseObjectType(string myType);
+//  bool parseTracker(string myName, istream &inStream);
+//  bool parseBarrel(string myName, istream &inStream);
+//  bool parseEndcap(string myName, istream &inStream);
+//  bool parsePixels(string myName, istream &inStream);
+//  bool parseObjectType(string myType);
 
   // Parsing functions for the tracker dressing
-  bool parseDressType(string myType);
+//  bool parseDressType(string myType);
   bool breakParameterName(string& parameterName, int& ringIndex, int& diskIndex);
   bool breakParameterName(string& parameterName, string& stringIndex);
-  bool parseBarrelType(string myName, istream &inStream);
-  bool parseEndcapType(string myName, istream &inStream);
-  bool parsePixelType(istream& inStream);
-  bool parseAnyType(string myName, istream &inStream);
-  bool parseOutput(istream &inStream);
+//  bool parseBarrelType(string myName, istream &inStream);
+//  bool parseEndcapType(string myName, istream &inStream);
+//  bool parsePixelType(istream& inStream);
+//  bool parseAnyType(string myName, istream &inStream);
+//  bool parseOutput(istream &inStream);
 
   // Parsing function for inactive surfactes
   bool parseSupportParameters(std::istream& inStream, std::list<std::pair<int, double> >& list);
 
-  bool peekTypes(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
+//  bool peekTypes(string typesFileName); // goes through the types file to get the dsDistances (sensor spacing) to use for the geometry before tracker is dressed (or even created!)
 
-  bool parseTilted(const std::string& fileName, const std::string& barrelName);
-
-  std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
-  std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;
+//  std::map<std::string, std::map<int, double> > geometryDsDistance_; // CUIDADO: not pretty but it will do the job
+//  std::map<std::string, std::map<std::pair<int, int>, double> > geometryDsDistanceSecond_;
 };
 
 // Definition of the parsing exception

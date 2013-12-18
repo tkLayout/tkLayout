@@ -10,41 +10,42 @@
  * @brief This class takes care of analysing the material budget
  */
 
-#ifndef _ANALYZER_H
-#define _ANALYZER_H
+#ifndef ANALYZER_H
+#define ANALYZER_H
 
 #define MY_RANDOM_SEED 0xcaffe
 
 #include <cmath>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <set>
 #include <algorithm>
 #include <hit.hh>
-#include <module.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
 #include <MaterialBudget.h>
+#include <TCanvas.h>
 #include <TProfile.h>
 #include <TGraph.h>
 #include <TMultiGraph.h>
 #include <TGraphErrors.h>
+#include <Math/Vector3D.h>
+
 #include <global_funcs.h>
 
-#include "Math/Point2D.h"
 #include "TRandom3.h"
-#include "Math/Functor.h"
-#include "Math/BrentMinimizer1D.h"
+#include "Module.h"
+#include "SimParms.h"
+#include "AnalyzerVisitor.h"
+#include "Bag.h"
+#include "SummaryTable.h"
+#include "TagMaker.h"
+
+
+// #define NO_TAGGED_TRACKING
 
 namespace insur {
-
-  struct Point { double x, y; };
-  struct Circle { double x0, y0, r; };
-  std::pair<Circle, Circle> findCirclesTwoPoints(const Point& p1, const Point& p2, double r);
-  bool isPointInCircle(const Point& p, const Circle& c);
-  bool areClockwise(const Point& p1, const Point& p2);
 
   /**
    * A warning that may occur during processing
@@ -56,122 +57,6 @@ namespace insur {
    */
   bool compareIntPairFirst(std::pair<int, int> p, std::pair<int, int> q);
   bool compareIntPairSecond(std::pair<int, int> p, std::pair<int, int> q);
-
-  /**
-   * @class SummaryTable
-   * @brief A generic object to build summary tables
-   */
-
-  class SummaryTable {
-  public:
-    SummaryTable() : numRows_(0), numColumns_(0), rowOffset_(0), columnOffset_(0), precision_(-1), summaryCellPosition_(0,0), summaryLabelPosition_(0,0) {};
-    void setHeader(std::string rowHeader, std::string columnHeader, int rowOffset = 0, int columnOffset = 0) { // has to be called before filling the table with content or the row and column numbering will not be correctly set
-      rowOffset_ = rowOffset; columnOffset_ = columnOffset;
-      summaryTable[make_pair(0,0)] = columnHeader + " &rarr;<br>" + rowHeader + " &darr;";
-    }
-    void setPrecision(int precision) { precision_ = precision; } // has to be called before filling the table or conversions from floating point won't have the desired precision
-
-    template<typename T> void setCell(int row, int column, const T& content) { setCell(row, column, any2str(content, precision_)); }
-    template<typename T, typename BinaryOp> void setCell(int row, int column, const T& content, BinaryOp binop) { setCell(row, column, binop(hasCell(row, column) ? str2any<T>(getCell(row, column)) : T(), content)); }
-    template<typename T> void setSummaryCell(std::string label, const T& content) { setSummaryCell(label, any2str(content, precision_)); }
-
-    std::string getCell(int row, int column) { return summaryTable[make_pair(row,column)];} // this actually alters the map if the cell's not there = DANGEROUS
-
-    bool hasCell(int row, int column) const { return summaryTable.count(make_pair(row,column)); }  // tests whether a cell has already been inserted = SAFE
-    bool hasSummaryCell() const { return summaryCellPosition_ > std::make_pair(0, 0); }
-
-    std::map<std::pair<int, int>, std::string>& getContent() { return summaryTable; }
-
-    void clear() { summaryTable.clear(); }
-  private:
-    std::map<std::pair<int, int>, std::string> summaryTable;
-    int numRows_, numColumns_;
-    int rowOffset_, columnOffset_; // from which number rows and columns headers should start
-    int precision_; // precision to convert floating point numbers with
-    std::pair<int, int> summaryCellPosition_, summaryLabelPosition_;
-  };
-
-  /**
-   * @class graphBag
-   * @brief A bag of graphs sorted by variable, scope and track's pt
-   */
-  class graphBag {
-  public:
-    static const double Triggerable;
-    static const int RhoGraph;
-    static const int PhiGraph;
-    static const int DGraph;
-    static const int CtgthetaGraph;
-    static const int Z0Graph;
-    static const int PGraph;
-    static const int TriggeredGraph;
-    static const int IdealGraph;
-    static const int RealGraph;
-    static const int TriggerGraph;
-    static const int StandardGraph;
-    std::map<double, TGraph>& getGraphs(const int& attribute);
-    int clearTriggerGraphs();
-    int clearStandardGraphs();
-    static int buildAttribute(bool ideal, bool isTrigger);
-    //static std::pair<double, double> splitMomenta(double momentum);
-    //static double joinMomenta(double momentum1, double momentum2);
-  private:
-    std::map<int, std::map<double, TGraph> > graphMap_;
-    int clearGraphs(const int& attributeMask);
-  };
-
-  /**
-   * @class mapBag
-   * @brief A bag of graphs sorted by variable, scope and track's pt
-   */
-  class mapBag {
-  public:
-    static const int efficiencyMap;
-    static const int thresholdMap;
-    static const int thicknessMap;
-    static const int windowMap;
-    static const int suggestedSpacingMap;
-    static const int suggestedSpacingMapAW;
-    static const int nominalCutMap;
-    static const int irradiatedPowerConsumptionMap;
-    static const int totalPowerConsumptionMap;
-    static const int moduleConnectionEtaMap;
-    static const int moduleConnectionPhiMap;
-    static const int moduleConnectionEndcapPhiMap;
-    static const double dummyMomentum;
-    std::map<double, TH2D>& getMaps(const int& attribute);
-    int clearMaps(const int& attributeMask);
-  private:
-    std::map<int, std::map<double, TH2D> > mapMap_;
-  };
-
-  /**
-   * @class profileBag
-   * @brief A bag of TProfiles sorted by a double variable and scope
-   */
-  class profileBag {
-  public:
-    static const double Triggerable;
-    static const int TriggeredProfile;
-    static const int TriggerProfile;
-    static const int TriggeredFractionProfile;
-    static const int TriggerPurityProfile;
-    static const std::string TriggerProfileName;
-    static const std::string TriggerProfileNameWindow;
-    static const std::string TurnOnCurveName;
-    std::map<double, TProfile>& getProfiles(const int& attribute);
-    int clearTriggerProfiles();
-    int clearTriggerNamedProfiles();
-    std::map<double, TProfile>& getNamedProfiles(const std::string& name);
-    std::vector<std::string> getProfileNames(const std::string& name);
-  private:
-    int clearProfiles(const int& attributeMask);
-    int clearNamedProfiles(const std::string& name);
-    std::map<int, std::map<double, TProfile> > profileMap_;
-    std::map<std::string, std::map<double, TProfile> > namedProfileMap_;
-  };     
-
-
   /**
    * @class Analyzer
    * @brief This class analyses the properties of a given <i>MaterialBudget</i> instance with respect to eta.
@@ -184,8 +69,10 @@ namespace insur {
    */
 
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
+  typedef std::vector<Module*> ModuleVector;
+  typedef std::vector<Layer*> LayerVector;
+  typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
 
-  typedef std::map<std::pair<int, int>, std::set<int> > TriggerSectorMap;
 
   class Analyzer {
   public:
@@ -250,11 +137,20 @@ namespace insur {
     virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL, bool computeResolution = false);
     //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
     void computeTriggerProcessorsBandwidth(Tracker& tracker);
+#ifdef NO_TAGGED_TRACKING
     virtual void analyzeTrigger(MaterialBudget& mb,
                                 const std::vector<double>& momenta,
                                 const std::vector<double>& triggerMomenta,
                                 const std::vector<double>& thresholdProbabilities,
                                 int etaSteps = 50, MaterialBudget* pm = NULL);
+#else
+    void analyzeTaggedTracking(MaterialBudget& mb,
+                               const std::vector<double>& momenta,
+                               const std::vector<double>& triggerMomenta,
+                               const std::vector<double>& thresholdProbabilities,
+                               int etaSteps = 50,
+                               MaterialBudget* pm = NULL);
+#endif
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -264,7 +160,6 @@ namespace insur {
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
     void computeIrradiatedPowerConsumption(Tracker& tracker);
-    int whichCellQuadrant(double z, double r);
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
@@ -283,6 +178,7 @@ namespace insur {
     TH1D& getBandwidthDistribution() { return bandwidthDistribution; };
     TH1D& getBandwidthDistributionSparsified() { return bandwidthDistributionSparsified; }
     TH1I& getModuleConnectionsDistribution() { return moduleConnectionsDistribution; }
+    const ModuleConnectionMap& getModuleConnectionMap() const { return moduleConnections_; }
     int getGeometryTracksUsed() {return geometryTracksUsed; }
     int getMaterialTracksUsed() {return materialTracksUsed; }
     // Hadrons
@@ -316,14 +212,11 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerDataBandwidthSummaries() { return triggerDataBandwidthSummaries_; }
     std::map<std::string, SummaryTable>& getIrradiatedPowerConsumptionSummaries() { return irradiatedPowerConsumptionSummaries_; }
-
+    
     double getTriggerPetalCrossoverR() const { return triggerPetalCrossoverR_; }
     const std::pair<Circle, Circle>& getSampleTriggerPetal() const { return sampleTriggerPetal_; }
-    
-	std::map<std::string, std::vector<double> >& getMaxIrradiatedPowerConsumptionSummaries() { return maxIrradiatedPowerConsumptionSummaries_; } 
-    std::map<std::string, SummaryTable>& getMaxIrradiatedPowerConsumptionTableSummaries() { return maxIrradiatedPowerConsumptionTableSummaries_; }
-    
-	std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
+
+    std::map<std::string, SummaryTable>& getStripOccupancySummaries() { return stripOccupancySummaries_; }
     std::map<std::string, SummaryTable>& getHitOccupancySummaries() { return hitOccupancySummaries_; }
 
     SummaryTable& getProcessorConnectionSummary() { return processorConnectionSummary_; }
@@ -334,7 +227,6 @@ namespace insur {
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
    
     
-    const TriggerSectorMap& getTriggerSectorMap() const { return sectorMap_; }
 
     // double getEtaMaxMaterial() { return etaMaxMaterial; } 
     double getEtaMaxMaterial() { return getEtaMaxTracking(); }
@@ -348,6 +240,8 @@ namespace insur {
     const std::vector<double>& getTriggerCuts() { return triggerCuts; }
     const std::vector<std::string>& getCutNames() { return cutNames; }
 
+    void simParms(SimParms* sp) { simParms_ = sp; }
+    const SimParms& simParms() const { return *simParms_; }
   protected:
     /**
      * @struct Cell
@@ -402,16 +296,14 @@ namespace insur {
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
-    
-	std::map<std::string, std::vector<double> > maxIrradiatedPowerConsumptionSummaries_;
-    std::map<std::string, SummaryTable> maxIrradiatedPowerConsumptionTableSummaries_;
-    
-	std::map<std::string, SummaryTable> stripOccupancySummaries_;
+
+    std::map<std::string, SummaryTable> stripOccupancySummaries_;
     std::map<std::string, SummaryTable> hitOccupancySummaries_;
+
 
     SummaryTable processorConnectionSummary_;
     SummaryTable processorCommonConnectionSummary_;
-    TH2I processorCommonConnectionMap_; 
+    TH2I processorCommonConnectionMap_;
     std::map<std::string, SummaryTable> moduleConnectionSummaries_;
     SummaryTable processorInboundBandwidthSummary_;
     SummaryTable processorInboundStubPerEventSummary_;
@@ -419,7 +311,7 @@ namespace insur {
     double triggerPetalCrossoverR_;
     std::pair<Circle, Circle> sampleTriggerPetal_;
 
-    TriggerSectorMap sectorMap_;
+    ModuleConnectionMap moduleConnections_;
 
     TH1D hitDistribution;
     graphBag myGraphBag;
@@ -427,6 +319,7 @@ namespace insur {
     profileBag myProfileBag;
     std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
     std::map<int, TGraphErrors> spacingTuningGraphsBad; // TODO: find a way to communicate the limits, not their plots!
+    ModuleOptimalSpacings moduleOptimalSpacings;
     TH1D spacingTuningFrame;
     std::map<std::string, double> triggerRangeLowLimit;
     std::map<std::string, double> triggerRangeHighLimit;
@@ -440,7 +333,6 @@ namespace insur {
 
     StubRateHistos totalStubRateHistos_;
     StubRateHistos trueStubRateHistos_;
-
 
     TGraph powerDensity;
     TProfile totalEtaProfile;
@@ -473,12 +365,12 @@ namespace insur {
 
     void calculateGraphs(const std::vector<double>& p,
                          const std::vector<Track>& trackVector,
-                         int graphAttributes);
+                         int graphAttributes,
+                         const string& graphTag = "");
     void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
-                                     const std::vector<Track>& trackVector,
-                                     const Tracker& tracker);
+                                     const std::vector<Track>& trackVector);
     void fillTriggerPerformanceMaps(Tracker& tracker);
-    void fillPowerMap(Tracker& tracker);
+    //void fillPowerMap(Tracker& tracker);
     void clearMaterialBudgetHistograms();
     void prepareTriggerPerformanceHistograms(const int& nTracks, const double& etaMax, const vector<double>& triggerMomenta, const vector<double>& thresholdProbabilities);
     void preparePowerHistograms();
@@ -498,9 +390,8 @@ namespace insur {
     int findCellIndexR(double r);
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
-    int createLayerNames(Tracker& tracker,std::map<PosRef, std::string>& layerNames);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, ModuleVector* properModules);
+    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
     Color_t colorPicker(std::string);
@@ -511,18 +402,10 @@ namespace insur {
     void prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title);
     void fillAvailableSpacing(Tracker& tracker, std::vector<double>& spacingOptions);
-    static const double maximum_n_planes = 13;
+    static constexpr double maximum_n_planes = 13.;
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
-    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, double crossoverR, int phiSector) const;
-    bool isModuleInPetal(const Module* module, double petalPhi, double curvatureR, double crossoverR) const;
-    bool isModuleInCircleSector(const Module* module, double startPhi, double endPhi) const;
-
-
-    double calculatePetalAreaMC(const Tracker& tracker, double crossoverR) const;
-    double calculatePetalAreaModules(Tracker& tracker, double crossoverR) const;
-//    double calculatePetalCrossoverRecursive(Tracker& tracker, double maxR, double minR, int recIndex);
-    double calculatePetalCrossover(Tracker& tracker);
+    bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
 
     /*
      * Eta values to show results
@@ -535,10 +418,9 @@ namespace insur {
     std::vector<double> triggerCuts;
 
     static int bsCounter;
+    
+    SimParms* simParms_;
   };
-
-
-
 }
 #endif  /* _ANALYZER_H */
 

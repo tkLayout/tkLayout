@@ -29,7 +29,6 @@
 #include <MaterialTable.h>
 #include <MaterialBudget.h>
 #include <mainConfigHandler.h>
-#include <configparser.hh>
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -49,21 +48,24 @@ namespace insur {
      */
     class tk2CMSSW {
         mainConfigHandler& mainConfiguration;
-        const configParser& confParser;
     public:
-        tk2CMSSW(mainConfigHandler& mch, const configParser& cp) : mainConfiguration(mch), confParser(cp) {}
+        tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
         virtual ~tk2CMSSW() {}
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
+        struct ConfigFile { std::string name, content; };
+        void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
     protected:
         CMSSWBundle data;
         Extractor ex;
         XMLWriter wr;
     private:
+        std::vector<ConfigFile> configFiles_;
         void print();
         void writeSimpleHeader(std::ostream& os);
         void writeExtendedHeader(std::ostream& os);
         std::string currentDateTime() const;
         std::string fullUserName() const;
+        const std::vector<ConfigFile>& getConfigFiles() const { return configFiles_; }
     };
 }
 #endif	/* _TK2CMSSW_H */

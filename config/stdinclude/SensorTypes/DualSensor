@@ -1,0 +1,9 @@
+moduleType dualsensor
+Sensor 1 {
+  xElements 1024
+  yElements 2
+}
+Sensor 2 {
+  xElements 128
+  yElements 128
+}

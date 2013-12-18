@@ -4,7 +4,6 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include <algorithm>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +13,12 @@
 #include <sys/types.h>
 
 #include <mainConfigHandler.h>
-#include <global_funcs.h>
 
 using namespace std;
 using namespace boost;
 
 template <class T> bool from_string(T& t, const std::string& s, 
-				    std::ios_base& (*f)(std::ios_base&)) {
+                                    std::ios_base& (*f)(std::ios_base&)) {
   std::istringstream iss(s);
   return !(iss >> f >> t).fail();
 }
@@ -54,27 +52,27 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
 
   // I have no configuration, so I must create it
   cout << "Could not find the configuration file "  << configFileName 
-       << " maybe this is the first time you run with the new system." << endl;
+    << " maybe this is the first time you run with the new system." << endl;
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
 
   cout << "*** What is the web server directory where you want to" << endl
-       << "    place your output?" << endl
-       << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
+    << "    place your output?" << endl
+    << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
   cin >> layoutDirectory_;
   if (!checkDirectory(layoutDirectory_)) return false;
   cout << endl;
 
   cout << "*** What is the standard output directory?" << endl
-       << "    xml files and other various output will be put here" << endl
-       << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
+    << "    xml files and other various output will be put here" << endl
+    << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
   cin >> standardDirectory_;
   cout << endl;
 
   cout << "*** Specify the list of transverse momenta to be used for the" << endl
-       << "    tracking performance test (in GeV/c)" << endl
-       << "    Example: 1, 10, 100 : ";
+    << "    tracking performance test (in GeV/c)" << endl
+    << "    Example: 1, 10, 100 : ";
   cin >> tempString;
   string tempString2;
   getline(cin,tempString2);
@@ -84,8 +82,8 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   tempString = "";
   tempString2 = "";
   cout << "*** Specify the list of transverse momenta to be used for the" << endl
-       << "    trigger efficiency performance test (in GeV/c)" << endl
-       << "    Example: 1, 2, 5, 10 : ";
+    << "    trigger efficiency performance test (in GeV/c)" << endl
+    << "    Example: 1, 2, 5, 10 : ";
   cin >> tempString;
   getline(cin,tempString2);
   tempString+=tempString2;
@@ -94,8 +92,8 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   tempString = "";
   tempString2 = "";
   cout << "*** Specify the list of trigger efficiency to be used for the" << endl
-       << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
-       << "    Example: 1, 50, 90, 95 : ";
+    << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
+    << "    Example: 1, 50, 90, 95 : ";
   cin >> tempString;
   getline(cin,tempString2);
   tempString+=tempString2;
@@ -151,18 +149,14 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
     cerr << "Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
   } else {
-    parameter = trim(tokens.at(0), " \"\n\t");
-    value = trim(tokens.at(1), " \"\n\t");
+    parameter = ctrim(tokens.at(0), " \"\n\t");
+    value = ctrim(tokens.at(1), " \"\n\t");
     return true;
   }
 }
 
 vector<double> mainConfigHandler::parseDoubleList(string inString) {
-  std::vector<std::string> tokens = split(inString, ",");
-  std::vector<double> result;
-  std::transform(tokens.begin(), tokens.end(), std::back_inserter(result), str2any<double>);
-
-  return result;
+  return split<double>(inString, ",");
 }
 
 bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
@@ -187,22 +181,22 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       //styleFound=true;
       //} 
       if (parameter==LAYOUTDIRECTORYDEFINITION) {
-	layoutDirectory_ = value;
-	layoutFound = true;
+        layoutDirectory_ = value;
+        layoutFound = true;
       } else if (parameter==STANDARDDIRECTORYDEFINITION) {
-	standardDirectory_ = value;
-	xmlFound = true;
+        standardDirectory_ = value;
+        xmlFound = true;
       } else if (parameter==MOMENTADEFINITION) {
-	momenta_ = parseDoubleList(value);
-	momentaFound = true;
+        momenta_ = parseDoubleList(value);
+        momentaFound = true;
       } else if (parameter==TRIGGERMOMENTADEFINITION) {
-	triggerMomenta_ = parseDoubleList(value);
-	triggerMomentaFound = true;
+        triggerMomenta_ = parseDoubleList(value);
+        triggerMomentaFound = true;
       } else if (parameter==THRESHOLDPROBABILITIESDEFINITION) {
-	thresholdProbabilities_ = parseDoubleList(value);
-	thresholdProbabilitiesFound = true;
+        thresholdProbabilities_ = parseDoubleList(value);
+        thresholdProbabilitiesFound = true;
       } else {
-	cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
+        cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
   }
@@ -235,6 +229,7 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   if (goodConfigurationRead_) return true;
 
   ifstream configFile;
+  string homeDirectory = string(getenv(HOMEDIRECTORY));
   string configFileName = getConfigFileName();
   bool goodConfig=false;
 
@@ -248,21 +243,18 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
     configFile.close();
     if (goodConfig) {
       if (checkDirExists) {
-	// Check the basic configuration directories
-	if (!checkDirectory(layoutDirectory_)) {
-	  cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
-	  return false;
-	}
-	if (!checkDirectory(standardDirectory_)) {
-	  cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
-	  return false;
-	}
-	// Check the mandatory subdirectories in the main
-	if (!checkDirectory(getXmlDirectory_())) return false;
-	if (!checkDirectory(getMattabDirectory_())) return false;
-	if (!checkDirectory(getRootfileDirectory_())) return false;
-	if (!checkDirectory(getGraphDirectory_())) return false;
-	if (!checkDirectory(getSummaryDirectory_())) return false;
+        // Check the basic configuration directories
+        if (!checkDirectory(layoutDirectory_)) {
+          cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
+          return false;
+        }
+        if (!checkDirectory(standardDirectory_)) {
+          cout << "You probably need to edit or delete the configuration file " << CONFIGURATIONFILENAME << endl;
+          return false;
+        }
+        // Check the mandatory subdirectories in the main
+        if (!checkDirectory(getXmlDirectory_())) return false;
+        if (!checkDirectory(getMattabDirectory_())) return false;
       }
     } else { // not good config read
       cout << "Configuration file '" << configFileName << "' not properly formatted. You probably need to edit or delete it" << endl;
@@ -319,24 +311,19 @@ string mainConfigHandler::getIrradiationDirectory() {
   return getIrradiationDirectory_();
 }
 
-string mainConfigHandler::getRootfileDirectory() {
-  getConfiguration();
-  return getRootfileDirectory_();
-}
-
-string mainConfigHandler::getGraphDirectory() {
-  getConfiguration();
-  return getGraphDirectory_();
-}
-
-string mainConfigHandler::getSummaryDirectory() {
-  getConfiguration();
-  return getSummaryDirectory_();
-}
-
 string mainConfigHandler::getDefaultMaterialsDirectory() {
   getConfiguration();
   return getDefaultMaterialsDirectory_();
+}
+
+string mainConfigHandler::getStandardIncludeDirectory() {
+  getConfiguration();
+  return getStandardIncludeDirectory_();
+}
+
+string mainConfigHandler::getGeometriesDirectory() {
+  getConfiguration();
+  return getGeometriesDirectory_();
 }
 
 string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
@@ -345,8 +332,49 @@ string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+ins
 string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; } 
 string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
 string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
-string mainConfigHandler::getRootfileDirectory_() { return standardDirectory_+"/"+insur::default_rootfiledir; }
-string mainConfigHandler::getGraphDirectory_() { return standardDirectory_+"/"+insur::default_graphdir; }
-string mainConfigHandler::getSummaryDirectory_() { return standardDirectory_+"/"+insur::default_summarypath; }
 string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
+string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
+string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 
+
+std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
+  using namespace std;
+  string line;
+  int numLine = 1;
+  std::set<string> includeSet;
+  includeSet.insert(istreamid);
+  while(getline(is, line).good()) {
+    if (line.find("//") != string::npos) line = line.erase(line.find("//"));
+    string trimmed = trim(line);
+    int tstart;
+    if ((tstart = trimmed.find("@include")) != string::npos) {
+      trimmed = trimmed.substr(tstart);
+      int qstart, qend;
+      string filename;
+      if ((qstart = trimmed.find_first_of("\"")) != string::npos && (qend = trimmed.find_last_of("\"")) != string::npos) {
+        filename = ctrim(trimmed.substr(qstart, qend - qstart + 1), "\"");
+      } else {
+        auto tokens = split(trimmed, " ");
+        filename = tokens.size() > 1 ? tokens[1] : "";
+      }
+      string prefix = (trimmed.find("@includestd") != string::npos ? getStandardIncludeDirectory()+"/" : std::string(""));
+      filename = prefix + filename;
+      ifstream ifs(filename);
+      if (ifs) {
+        stringstream ss;
+        auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
+        includeSet.insert(moreIncludes.begin(), moreIncludes.end());
+        string indent = line.substr(0, line.find_first_not_of(" \t"));
+        while (getline(ss, line).good()) {
+          os << indent << line << endl;   
+        }
+      } else {
+        cerr << "WARNING: " << istreamid << ":" << numLine << ": Ignoring malformed @include or @includestd directive" << endl;
+      }
+    } else {
+      os << line << endl;
+    }
+    numLine++;
+  }
+  return includeSet;
+}

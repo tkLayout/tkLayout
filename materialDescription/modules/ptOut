@@ -3,14 +3,13 @@
 // Module type
 type = ptOut
 // Default sensor:
-nStripsAcross = 1016;
+nStripsAcross = 1024;
 nSegments = 2;
 // Sensor and hybrid stuff
   #include <generic/Sensor>
   #include <generic/Sensor>
   #include <2s/Hybrids>
   #include <2s/Asics>
-  #include <2s/ServiceHybrid_10>
 
   #include <generic/ConnectorPair>
   #include <generic/ConnectorPair>
@@ -19,7 +18,7 @@ nSegments = 2;
 
   #include <generic/BiasKapton>
   #include <generic/BiasKapton>
-  #include <2s/ModuleMechanics_10>
+  #include <2s/ModuleMechanics>
   #include <generic/HvLine>
 // ROD material
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics

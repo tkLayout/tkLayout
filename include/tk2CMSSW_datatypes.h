@@ -169,24 +169,6 @@ namespace insur {
         double mthk;
         double phi;
     };
-    
-   /* 
-    * @struct ModuleROCInfo
-    * @brief The information in this struct is a parameter in SpecParInfo.
-    * @param name The module type
-    * @param rocrows The number of ROCRows
-    * @param roccols The number of ROCCols
-    * @param rocx    The number of ROC_X
-    * @param rocy    The number of ROC_Y
-    */
-	struct ModuleROCInfo {
-		  std::string name;
-		  std::string rocrows;
-		  std::string roccols;
-		  std::string rocx;
-		  std::string rocy;
-	};
-
     /**
      * @struct SpecParInfo
      * @brief The information in this struct translates to a <i>SpecPar</i> block in CMSSW XML.
@@ -199,8 +181,7 @@ namespace insur {
         std::pair<std::string, std::string> parameter;
         std::vector<std::string> partselectors;
         std::vector<std::string> partextras; // CUIDADO this was introduced to add the Plus / Minus attribute to discs, not really useful for anything else at least for now
-        //std::vector<std::string> moduletypes;
-        std::vector<ModuleROCInfo> moduletypes;
+        std::vector<std::string> moduletypes;
     };
 
     /**

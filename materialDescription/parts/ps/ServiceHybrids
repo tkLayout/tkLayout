@@ -1,4 +1,0 @@
-// Tentative material for the service hybrids (PS)
-comp = Hybrid
-M G10 0 0 0 0.75 g L; // Service board PCB
-M Cu  0 0 0 0.45 g L; // Service board PCB

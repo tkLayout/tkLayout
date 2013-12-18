@@ -8,14 +8,15 @@
 
 #include <TPolyLine.h>
 #include <TPaletteAxis.h>
+#include <TList.h>
 #include <TH2D.h>
 #include <TText.h>
 #include <TLatex.h>
 #include <TLine.h>
 #include <TCanvas.h>
 
-#include <module.hh>
-#include <layer.hh>
+#include <Palette.h>
+#include <Module.h>
 
 
 
@@ -84,39 +85,26 @@ struct Method {
   double operator()(const Module& m) const { return (double)(m.*ModuleMethod)(); }
 };
 
-struct Property {
-  const char* name;
-  Property(const char* nameString) : name(nameString) {}
-  double operator()(const Module& m) const { return m.getProperty(name); }
-};
 
-struct PropertyPerSensor {
-  const char* name;
-  PropertyPerSensor(const char* nameString) : name(nameString) {}
-  double operator()(const Module& m) const { return m.getProperty(name)/m.getNFaces(); }
-};
-
-struct TotalIrradiatedPower {
+/*
+struct Type { // Auto-assign colors
+  std::set<std::string> colorSet_;
   double operator()(const Module& m) { 
-    double chipPower = m.getModuleType()->getPower(m.getNChannels());
-    return m.getIrradiatedPowerConsumption()+chipPower;
+    std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
+    return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
   }
 };
+*/
 
-struct TotalIrradiatedPowerPerSensor {
+struct Type { // Module-maintained color
   double operator()(const Module& m) { 
-    double chipPower = m.getModuleType()->getPower(m.getNChannels());
-    return (m.getIrradiatedPowerConsumption()+chipPower)/m.getNFaces();
+    return Palette::color(m.plotColor());
   }
-};
-
-struct Type {
-  double operator()(const Module& m) { return m.getColor(); }
 };
 
 
 struct CoordZ {
-  double operator()(const Module& m) { return m.getMeanPoint().Z(); }
+  double operator()(const Module& m) { return m.center().Z(); }
 };
 
 
@@ -179,17 +167,17 @@ public:
 
 template<const int SubdetType>
 struct CheckType {
-  bool operator()(const Module& m) const { return m.getSubdetectorType() & SubdetType; }
+  bool operator()(const Module& m) const { return m.subdet() & SubdetType; }
 };
-
+/*
 template<const int Section>
 struct CheckSection {
   bool operator()(const Module& m) const { return m.getSection() & Section; } 
 };
-
+*/
 template<const int PhiIndex>
 struct CheckPhiIndex {
-  bool operator()(const Module& m) const { return m.getPhiIndex() == PhiIndex; }
+  bool operator()(const Module& m) const { return m.posRef().phi == PhiIndex; }
 };
 
 // ===============================================================================================
@@ -208,7 +196,7 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())), valid(m.getMeanPoint().Z() >= 0) {}
+  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
@@ -218,7 +206,7 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
-  YZ(const Module& m) : std::pair<int,int>(round(m.getMeanPoint().Z()), round(m.getMeanPoint().Rho())), valid(m.getMeanPoint().Z() >= 0) {}
+  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
   YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
@@ -249,7 +237,7 @@ public:
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
     int j=0;
     for (int i=0; i<4; i++) {
-      CoordType c(m.getCorner(i));
+      CoordType c(m.basePoly().getVertex(i));
       if (xy.insert(c).second == true) {
         x[j] = c.first;
         y[j++] = c.second;
@@ -355,11 +343,11 @@ public:
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
-
-  void addModulesType(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
-  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = Module::Barrel | Module::Endcap);
-  template<class ModuleValidator> void addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid = ModuleValidator());
-  template<class InputIterator, class ModuleValidator> void addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid);
+// CUIDADO clean up!
+//  void addModulesType(const Tracker::Modules& mods, int moduleTypes = BARREL | ENDCAP); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
+  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
+//  template<class ModuleValidator> void addModules(const Tracker::Modules& mods, const ModuleValidator& isValid = ModuleValidator());
+  template<class ModuleValidator, class InputIterator> void addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid = ModuleValidator());
 
 };
 
@@ -416,42 +404,38 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   double value = getValue(m);
   bins_[c]->fill(value);
 }
-
+/*
 template<class CoordType, class ValueGetterType, class StatType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const std::vector<Layer*>& layers, int moduleTypes) {
-  for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
-    std::vector<Module*>* layerModules = (*it)->getModuleVector();
-    for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-      //if ((*modIt)->getMeanPoint().Z()<0) continue;
-      int subDet = (*modIt)->getSubdetectorType();
-      if (subDet & moduleTypes) add(**modIt);
-    }
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const Tracker::Modules& mods, int moduleTypes) {
+  for (auto m : mods) {
+    int subDet = m->subdet();
+    if (subDet & moduleTypes) add(*m);
   }
 }
-
+*/
 template<class CoordType, class ValueGetterType, class StatType>
 template<class InputIterator>
 void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
   for (InputIterator it = begin; it != end; ++it) {
-      int subDet = (*it)->getSubdetectorType();
+      int subDet = (*it)->subdet();
       if (subDet & moduleTypes) add(**it);
   }
 }
 
-template<class CoordType, class ValueGetterType, class StatType>
-template<class ModuleValidator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid) {
-  for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
-    std::vector<Module*>* layerModules = (*it)->getModuleVector();
-    for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
-      if (/*(*modIt)->getMeanPoint().Z()>0 &&*/ isValid(**modIt)) add(**modIt);
-    }
-  }
-}
+//template<class CoordType, class ValueGetterType, class StatType>
+//template<class ModuleValidator>
+//void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid) {
+//  for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
+//    std::vector<Module*>* layerModules = (*it)->getModuleVector();
+//    for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+//      if (/*(*modIt)->getMeanPoint().Z()>0 &&*/ isValid(**modIt)) add(**modIt);
+//    }
+//  }
+//}
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class InputIterator, class ModuleValidator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid) {
+template<class ModuleValidator, class InputIterator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid) {
   for (InputIterator it = begin; it != end; ++it) {
       if (isValid(**it)) add(**it);
   }

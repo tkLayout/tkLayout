@@ -530,15 +530,17 @@ ostream& RootWContent::dump(ostream& output) {
     myItem =(*it);
     if (myItem->isImage()) {
       if ( (myImage=dynamic_cast<RootWImage*>(myItem)) ) {
-	myImage->setTargetDirectory(targetDirectory_);
-	myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
+        myImage->setTargetDirectory(targetDirectory_);
+        myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
       } else {
-	cout << "WARNING: this should never happen. contact the author immediately!" << endl;
+        cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
     }
     if (myItem->isFile()) {
-      if ( (myFile=dynamic_cast<RootWFile*>(myItem)) ) {
+      if ( (myFile=dynamic_cast<RootWFile*>(myItem))) { // CUIDADO This is not good OOP for God's sake!!!
         myFile->setTargetDirectory(targetDirectory_);
+      } else if (RootWFileList* myFileList=dynamic_cast<RootWFileList*>(myItem)) {
+        myFileList->setTargetDirectory(targetDirectory_);
       } else {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
       }
@@ -974,13 +976,12 @@ ostream& RootWBinaryFile::dump(ostream& output) {
     return output;
   }
 
-  std::ofstream outputFile;
   string destinationFileName = targetDirectory_ +"/" + fileName_;
 
   if (boost::filesystem::exists(originalFileName_) && originalFileName_ != destinationFileName) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
     try {
       if (boost::filesystem::exists(destinationFileName))
-	boost::filesystem::remove(destinationFileName);
+        boost::filesystem::remove(destinationFileName);
       boost::filesystem::copy_file(originalFileName_, destinationFileName);
     } catch (boost::filesystem::filesystem_error e) {
       cerr << e.what() << endl;
@@ -993,6 +994,59 @@ ostream& RootWBinaryFile::dump(ostream& output) {
          << fileName_ << "</a></tt><br/>";
   return output;
 };
+
+//*******************************************//
+// RootWBinaryFileList                       //
+//*******************************************//
+
+ostream& RootWBinaryFileList::dump(ostream& output) {
+  if (originalFileNames_.empty()) {
+    cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the original file names" << endl;
+    return output;
+  } 
+  if (fileNames_.empty()) {
+    cerr << "Warning: RootWBinaryFileList::dump() was called without prior setting the destination file names" << endl;
+    return output;
+  }
+  if (fileNames_.size() != originalFileNames_.size()) {
+    cerr << "Warning: RootWBinaryFileList::dump() was called with original and destination file name lists differing in length" << endl;
+    return output;
+  }
+
+  auto it = originalFileNames_.begin();
+  for (auto fn : fileNames_) {
+    //auto path = split(fn, "/");
+    string destinationFileName = targetDirectory_;
+    //std::for_each(path.begin(), path.end()-1, [&destinationFileName](string p) {
+    //  destinationFileName += "/" + p;
+    //  if (!boost::filesystem::exists(destinationFileName)) boost::filesystem::create_directory(destinationFileName);
+    //});
+    destinationFileName += "/" + fn; //path.back();
+    if (boost::filesystem::exists(*it) && *it != destinationFileName) { // CUIDADO: naive control on copy on itself. 
+      try {
+        if (boost::filesystem::exists(destinationFileName))
+          boost::filesystem::remove(destinationFileName);
+        boost::filesystem::copy_file(*it++, destinationFileName);
+      } catch (boost::filesystem::filesystem_error e) {
+        cerr << e.what() << endl;
+        return output;
+      }
+    }
+  }
+  std::vector<std::string> cleanedUpFileNames;
+  std::transform(originalFileNames_.begin(), originalFileNames_.end(), std::back_inserter(cleanedUpFileNames), [](const std::string& s) {
+    auto pos = s.find("stdinclude");
+    return pos != string::npos ? s.substr(pos) : s;
+  });
+  output << "<b>" << description_ << ":</b>";
+  auto dfn = fileNames_.begin();
+  for (auto cfn : cleanedUpFileNames) {
+    output << (cleanedUpFileNames.size() > 1 ? "<br>&nbsp&nbsp&nbsp&nbsp" : "") << " <a href=\"" << *(dfn++) << "\">" << cfn << "</a></tt>" << " ";
+  }
+  output << "<br/>";
+  return output;
+}
+
 
 //*******************************************//
 // RootWInfo                                 //

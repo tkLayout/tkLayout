@@ -1,12 +1,13 @@
 #ifndef PTERROR_H
 #define PTERROR_H
 
+#include "Module.h"
+
 #include <MaterialProperties.h>
 
 
 class ptError {
   public:
-   enum InefficiencyType { StripWise, EdgeOnly }; 
   private:
    
    // Global parameters
@@ -30,13 +31,13 @@ class ptError {
    int moduleType;
    int endcapType;
 
-   static const double defaultModulePitch = 90/1000.; // 90 um
-   static const double defaultStripLength = 23.2; // mm
-   static const double defaultModuleZ = 1346; // mm // Disk 1
-   static const double defaultModuleR = 1080; // last layer 
-   static const double defaultModuleD = 2; // mm
-   static const double defaultModuleHeight = 100;
-   static const InefficiencyType defaultInefficiencyType = StripWise;
+   static constexpr double defaultModulePitch = 90/1000.; // 90 um
+   static constexpr double defaultStripLength = 23.2; // mm
+   static constexpr double defaultModuleZ = 1346; // mm // Disk 1
+   static constexpr double defaultModuleR = 1080; // last layer 
+   static constexpr double defaultModuleD = 2; // mm
+   static constexpr double defaultModuleHeight = 100;
+   static const InefficiencyType defaultInefficiencyType = STRIPWISE;
 
    // Internal computers
    void defaultParameters();
@@ -73,14 +74,12 @@ class ptError {
    RILength getMaterial() { return material ; }
 
    // Conversion between strips and p
-   double stripsToP(double strips);
-   double pToStrips(double p);
+//   double stripsToP(double strips);
+//   double pToStrips(double p);
    // Error computation
    double computeError(double p);
    // Efficiency computation
    double probabilityInside(double cut, double value, double value_err);
-   double geometricEfficiency();
-   double find_probability(double target, double originalcut);
 };
 
 #endif

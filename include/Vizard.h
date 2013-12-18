@@ -35,12 +35,16 @@
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
 #include <TProfile.h>
+#include <TPolyLine3D.h>
 #include <TArc.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
-#include <tracker.hh>
+#include <SimParms.h>
+#include <Tracker.h>
 #include <Analyzer.h>
+#include <TagMaker.h>
+
 #include <InactiveSurfaces.h>
 #include <rootweb.hh>
 #include <vector>
@@ -99,17 +103,12 @@ namespace insur {
   static const int millionChannelPrecision = 2;
   static const int totalPowerPrecision = 2;
   static const int modulePowerPrecision = 0;
+  static const int powerPrecision = 1;
   static const int costPrecision  = 1;
   static const int powerPerUnitPrecision = 2;
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
   static const int weightPrecision = 0;
-
-  // Plot range parameters
-  static const double triggerEtaMin = 0;
-  static const double triggerEtaMax = 3;
-  static const double triggerEfficiencyMin = 1e-4;
-  static const double triggerEfficiencyMax = 1;
 
   class graphIndex {
   public:
@@ -154,24 +153,24 @@ namespace insur {
     void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
     void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
-    void histogramSummary(Analyzer& a, std::string outfilename);
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
     void histogramSummary(Analyzer& a, RootWSite& site);
     void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site, std::string alternativeName = "");
-    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, RootWSite& site, std::string alternativeName = "");
+    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
+    bool taggedErrorSummary(Analyzer& a, RootWSite& site);
+    bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-    bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
+    bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
-                            Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+                            Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
@@ -217,19 +216,24 @@ namespace insur {
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
-    double getDrawAreaZ(const Tracker& tracker) const { return tracker.getMaxL()*1.1; }
-    double getDrawAreaR(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
-    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
-    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaZ(const Tracker& tracker) const { return tracker.maxZ()*1.1; }
+    double getDrawAreaR(const Tracker& tracker) const { return tracker.maxR()*1.1; }
+    double getDrawAreaX(const Tracker& tracker) const { return tracker.maxR()*1.1; }
+    double getDrawAreaY(const Tracker& tracker) const { return tracker.maxR()*1.1; }
 
     void fillPlotMap(std::string& plotName, 
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
                      std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
+    
+    void fillTaggedPlotMap(graphBag& gb,
+                           const string& plotName,
+                           int graphType,
+                           const string& tag,
+                           std::map<graphIndex, TGraph*>& myPlotMap);
     std::string summaryCsv_;
     std::string summaryCsvLabels_;
     std::string occupancyCsv_;
-    std::string triggerSectorMapCsv_;
     void setSummaryString(std::string);
     void addSummaryElement(std::string element, bool first = false);
     void setSummaryLabelString(std::string);
@@ -241,15 +245,11 @@ namespace insur {
     void addOccupancyElement(std::string element);
     void addOccupancyEOL();
 
-    void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
-
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
     // int getNiceColor(unsigned int plotIndex);
-
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();
-
   };
 
 

@@ -1,0 +1,32 @@
+
+moduleType ptMixed
+
+sensorLayout pt
+inefficiencyType edgewise
+
+numSensors 2
+
+powerStripChip 0.915625
+powerModuleChip 640
+powerModuleOptical 500
+
+sensorThickness 0.2
+
+reduceCombinatorialBackground true
+
+Sensor 1 {
+  sensorType largepix
+  numStripsAcross 960
+  numSegments 2
+}
+
+Sensor 2 {
+  sensorType strip
+  numStripsAcross 960
+  numSegments 2
+}
+
+resolutionLocalY 0.433013
+//resolutionLocalY 0.4156
+
+plotColor 1

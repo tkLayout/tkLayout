@@ -94,8 +94,7 @@ void Tracker::setDefaultParameters() {
   nMB_ = defaultNMB_;
   bunchSpacingNs_ = defaultBunchSpacingNs_;
   rError_ = defaultRError_;
-  zErrorConstruction_ = defaultZError_;
-  zErrorCollider_ = defaultZError_;
+  zError_ = defaultZError_;
   useIPConstraint_ = defaultUseIPConstraint_;
   smallDelta_ = defaultSmallDelta_;
   bigDelta_ = defaultBigDelta_;
@@ -106,7 +105,6 @@ void Tracker::setDefaultParameters() {
   arguments_= "";
   maxL_ = 0;
   maxR_ = 0;
-  minR_ = 0;
   phiSegments_ = 4;
   efficiency_ = 1;
   pixelEfficiency_ = 1;
@@ -131,8 +129,6 @@ void Tracker::setDefaultParameters() {
   topToBottomEndcap_ = false;
 
   currentContainerId_ = 0;
-
-  servicesForcedUp_ = true;
 }
 
 void Tracker::shapeVolume() {
@@ -299,7 +295,6 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                  bool sameRods /* = false, used to build all the layers in the barrel with identical (over-hermetic) rods */) {
 
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
-  minR_ = MIN(minRadius, minR_);
 
   int push;
   std::map<int, double>::iterator aDirective;
@@ -395,7 +390,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                getSmallDelta(i+1) ,
                                geometryDsDistances,
                                overlap_,     // overlap
-                               zErrorConstruction_,      // safetyOrigin
+                               zError_,      // safetyOrigin
                                moduleStrategy,
                                push,
                                phiSegments_, // modules multiple of ...
@@ -413,7 +408,7 @@ LayerVector Tracker::buildBarrel(int nLayer,
                                getSmallDelta(i+1) ,
                                geometryDsDistances,
                                overlap_,     // overlap
-                               zErrorConstruction_,      // safetyOrigin
+                               zError_,      // safetyOrigin
                                moduleStrategy,    
                                push,
                                phiSegments_, // modules multiple of ...
@@ -454,40 +449,8 @@ LayerVector Tracker::buildBarrel(int nLayer,
   rMaxpB_.push_back(maxRadius);
   dZpB_.push_back(maxZ);
 
-  setNumLayersInContainer(getCurrentContainerId(), thisBarrelLayerSet.size());
-
   return thisBarrelLayerSet;
 }
-
-
-LayerVector Tracker::buildTiltedBarrel(const std::string barrelName, const TiltedBarrelSpecs& tiltbar, const BarrelModule* sampleModule) { // this builds a barrel with tilted modules according to the specs passed as argument
-  LayerVector thisBarrelLayerSet;
-  std::ostringstream layerName;
-
-  newContainerId();
-
-  int i = 1;
-  for (TiltedBarrelSpecs::const_iterator it = tiltbar.begin(); it != tiltbar.end(); ++it) {
-    BarrelLayer* aBarrelLayer = new BarrelLayer(*sampleModule);
-    layerName.str("");
-    layerName << "L" << std::dec << i;
-    aBarrelLayer->setName(layerName.str(), i++);
-    aBarrelLayer->setContainerName(barrelName);
-    aBarrelLayer->setContainerId(getCurrentContainerId());
-
-    aBarrelLayer->buildTiltedLayer(*it, sampleModule);
-
-    addLayer(aBarrelLayer, barrelName, TypeBarrel);
-    thisBarrelLayerSet.push_back(aBarrelLayer);
-  }
-
-  setNumLayersInContainer(getCurrentContainerId(), thisBarrelLayerSet.size());
-
-  return thisBarrelLayerSet;
-}
-
-
-
 
 // Barrel "compactification"
 // destZ is 0 by default
@@ -728,7 +691,6 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
   newContainerId();
 
   maxR_=(maxRadius>maxR_)?maxRadius:maxR_;
-  minR_ = MIN(minRadius, minR_);
   maxL_=(maxZ>maxL_)?maxZ:maxL_;
 
   double thisZ;
@@ -761,13 +723,12 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     topToBottomEndcap_ = true;
     defaultDisk->buildSingleDisk( nRings, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
-                                  zErrorConstruction_+(maxZ-minZ)/2,
+                                  zError_+(maxZ-minZ)/2,
                                   geometryDsDistances,
                                   phiSegments_, // Base
                                   oddSegments, alignEdges,
                                   sampleModule,
                                   ringDirectives_,
-                                  ringGaps_,
                                   diskParity,
                                   sectioned );
   } else {
@@ -775,13 +736,12 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     logINFO("Endcap " + endcapName + " will be built bottom-to-top with a number of rings depending on the innerRadius (" + any2str(minRadius) + ").");
     defaultDisk->buildSingleDisk( minRadius, maxRadius, smallDelta_,
                                   bigDelta_, (minZ+maxZ)/2, overlap_,
-                                  zErrorConstruction_+(maxZ-minZ)/2,
+                                  zError_+(maxZ-minZ)/2,
                                   geometryDsDistances,
                                   phiSegments_, // Base
                                   oddSegments, alignEdges,
                                   sampleModule,
                                   ringDirectives_,
-                                  ringGaps_,
                                   diskParity,
                                   sectioned );
   }
@@ -805,14 +765,13 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
     layerName << "D" << std::dec << iDisk+1;
     thisZ = pow(alpha, iDisk) * minZ;
     deltaZ=-1*(minZ+maxZ)/2+thisZ;
-    if (iDisk < (int)diskZOverrides_.size()) deltaZ = diskZOverrides_[iDisk] - (maxZ+minZ)/2;
     anotherDisk = new EndcapLayer(*defaultDisk);
     anotherDisk->setName(layerName.str(), iDisk+1);
     anotherDisk->setContainerName(endcapName);
     anotherDisk->translateZ(deltaZ);
     addLayer(anotherDisk, endcapName, TypeEndcap);
     anotherDisk = new EndcapLayer(*anotherDisk);
-    anotherDisk->reflectZ();
+    anotherDisk->rotateY_PI();
     addLayer(anotherDisk, endcapName, TypeEndcap);
   }
 
@@ -829,9 +788,6 @@ void Tracker::buildEndcaps(int nDisks, int nRings, double minZ, double maxZ, dou
   rMinpE_.push_back(minRadius);
   rMaxpE_.push_back(maxRadius);
   dZpE_.push_back((maxZ - minZ) / 2.0);
-
-
-  setNumLayersInContainer(getCurrentContainerId(), nDisks);
 }
 
 // Function used to remove some endcaps rings
@@ -1398,7 +1354,6 @@ void Tracker::drawTicks(TView* myView, double maxL, double maxR, int noAxis/*=1*
 void Tracker::setModuleTypes(std::string sectionName,
                              std::map<int, int> nStripsAcross,
                              std::map<int, int> nROCRows,
-                             std::map<int, int> nROCCols,
                              std::map<int, int> nFaces,
                              std::map<int, int> nSegments,
                              std::map<int, std::string> myType,
@@ -1410,7 +1365,6 @@ void Tracker::setModuleTypes(std::string sectionName,
                              std::map<int, double> yResolution,
                              std::map<std::pair<int, int>, int> nStripsAcrossSecond,
                              std::map<std::pair<int, int>, int> nROCRowsSecond,
-                             std::map<std::pair<int, int>, int> nROCColsSecond,
                              std::map<std::pair<int, int>, int> nFacesSecond,
                              std::map<std::pair<int, int>, int> nSegmentsSecond,
                              std::map<std::pair<int, int>, std::string> myTypeSecond,
@@ -1437,7 +1391,6 @@ void Tracker::setModuleTypes(std::string sectionName,
 
   int aStripsAcross;
   int aROCRows;
-  int aROCCols;
   int aFaces;
   int aSegments;
   std::string aType;
@@ -1492,8 +1445,7 @@ void Tracker::setModuleTypes(std::string sectionName,
       }
 
       aStripsAcross = nStripsAcross[myIndex];
-      aROCRows = nROCRows.count(myIndex) ? nROCRows[myIndex] : 128;
-      aROCCols = nROCCols.count(myIndex) ? nROCCols[myIndex] : 1;
+      aROCRows = nROCRows[myIndex];
       aFaces = nFaces[myIndex];
       aSegments = nSegments[myIndex];
       aType = myType[myIndex];
@@ -1510,9 +1462,6 @@ void Tracker::setModuleTypes(std::string sectionName,
         }
         if (nROCRowsSecond[mySpecialIndex]!=0) {
           aROCRows = nROCRowsSecond[mySpecialIndex];
-        }
-        if (nROCColsSecond[mySpecialIndex]!=0) {
-          aROCCols = nROCColsSecond[mySpecialIndex];
         }
         if (nFacesSecond[mySpecialIndex]!=0) {
           aFaces = nFacesSecond[mySpecialIndex];
@@ -1548,12 +1497,6 @@ void Tracker::setModuleTypes(std::string sectionName,
         myReadoutType = Module::Pt;
       } else if (myType[myIndex] == "ptMixed") {
         myReadoutType = Module::Pt;
-      } else if (myType[myIndex] == "pt2SLong") {
-        myReadoutType = Module::Pt;
-      } else if (myType[myIndex] == "pt2SShort") {
-        myReadoutType = Module::Pt;
-      } else if (myType[myIndex] == "ptTransparent") {
-        myReadoutType = Module::Pt;
       } else if (myType[myIndex] == "rphi") {
         myReadoutType = Module::Strip;
       } else if (myType[myIndex] == "stereo") {
@@ -1568,7 +1511,6 @@ void Tracker::setModuleTypes(std::string sectionName,
       aModule->setNFaces(aFaces);
       aModule->setNStripsAcross(aStripsAcross);
       aModule->setNROCRows(aROCRows);
-      aModule->setNROCCols(aROCCols);
       aModule->setNSegments(aSegments);
       aModule->setType(aType);
       aModule->setModuleType(&(mapType_[aType]));
@@ -1577,6 +1519,7 @@ void Tracker::setModuleTypes(std::string sectionName,
       aModule->setStereoRotation(aRotation);
       aModule->setTag(myTag.str());
       aModule->setContainerName(sectionName);
+      // aModule->setColor(colorPicker(aType));
       aModule->setColor(Palette::color(aType));
       aModule->setReadoutType(myReadoutType);
 
@@ -1652,8 +1595,8 @@ void Tracker::setGeometryDsDistance(std::string cntName, int firstIndex, double 
   geometryDsDistance_[cntName][firstIndex] = value;
 }
 
-// returns a vector containing the dsDistances of the rings for the specified layer/disk (index)
-std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a LAYER in case of barrel or a DISK in case of endcap
+
+std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int index, int numModules) const { // index will be either a Layer in case of barrel or a Ring in case of endcap
   std::vector<double> dsDistances(numModules, 0);
   if (geometryDsDistance_.count(cntName) && geometryDsDistance_.at(cntName).count(0)) {  // DS DISTANCE OVERRIDE - whatever is written at index 0 takes precedence over any other setting
     dsDistances.assign(numModules, geometryDsDistance_.at(cntName).at(0));
@@ -1664,8 +1607,8 @@ std::vector<double> Tracker::getGeometryDsDistances(std::string cntName, int ind
   }
   if (geometryDsDistanceSecond_.count(cntName) > 0) {
     for (std::map<std::pair<int, int>, double>::const_iterator it = geometryDsDistanceSecond_.at(cntName).begin(); it != geometryDsDistanceSecond_.at(cntName).end(); ++it) {
-      if (index == it->first.second && it->first.first <= numModules) dsDistances[it->first.first-1] = it->second; // it->first is the coordinate pair (layer, ring) for barrel or (ring, disk) for endcap. numbering starts from 1
-    } // CUIDADO!!!!!! before it didn't work properly for ENDCAPS, now it doesn't for BARRELS (in case ring-wise dsDistance were used for layers, which is never used in any geometry as of now)
+      if (index == it->first.first && it->first.second <= numModules) dsDistances[it->first.second-1] = it->second; // it->first is the coordinate pair (layer, ring) for barrel or (ring, disk) for endcap. numbering starts from 1
+    }
   }
   return dsDistances;
 }
