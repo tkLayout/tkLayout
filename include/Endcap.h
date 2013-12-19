@@ -14,9 +14,6 @@
 
 class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string> {
   boost::ptr_vector<Disk> disks_;
-
-  enum class MinZType { ABSOLUTE, BARRELGAP };
-
   Property<double, NoDefault> barrelGap;
   PropertyNode<int> diskNode;
   

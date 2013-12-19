@@ -18,7 +18,7 @@ public:
   const T& decorated() const { return *decorated_; }
 
 #ifdef DECORATOR_RTTI_API
-  template<class U> bool is() const { return typeid(*this) == typeid(U) || this->decorated().is<U>(); }
+  template<class U> bool is() const { return typeid(*this) == typeid(U) || this->decorated().template is<U>(); }
   bool isAll(std::set<std::type_index>& types) const {
     types.erase(typeid(*this));
     return types.size() > 1 ? this->decorated().isAll(types) : false;
@@ -28,8 +28,8 @@ public:
     return isAll(types);
   }
 
-  template<class U> const U* as() const { return typeid(*this) == typeid(U) ? static_cast<U* const>(this) : this->decorated().as<U>(); }
-  template<class U> U* as() { return typeid(*this) == typeid(U) ? static_cast<U* const>(this) : this->decorated().as<U>(); }
+  template<class U> const U* as() const { return typeid(*this) == typeid(U) ? static_cast<U* const>(this) : this->decorated().template as<U>(); }
+  template<class U> U* as() { return typeid(*this) == typeid(U) ? static_cast<U* const>(this) : this->decorated().template as<U>(); }
 #endif
 };
 

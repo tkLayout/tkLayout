@@ -85,4 +85,3 @@ void Endcap::build() {
   builtok(true);
 }
 
-define_enum_strings(Endcap::MinZType) = { "absolute", "barrelgap" };

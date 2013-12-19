@@ -5,6 +5,7 @@
 #include <set>
 #include <functional>
 #include <algorithm>
+#include <numeric>
 
 #include <TRandom.h>
 #include <Math/Vector3Dfwd.h>

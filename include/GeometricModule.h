@@ -43,6 +43,7 @@ public:
   GeometricModule() :
       dsDistance("dsDistance", parsedAndChecked(), 0.)
   {}
+  virtual ~GeometricModule() {}
   void setup() {}
 
   const Polygon3d<4>& basePoly() const { return basePoly_; }

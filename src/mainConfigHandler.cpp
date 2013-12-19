@@ -104,7 +104,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
   if (!configFile.good()) {
-    cout << "Could not open " << configFile << " for writing. I quit."  << endl;
+    cout << "Could not open " << configFileName << " for writing. I quit."  << endl;
     configFile.close();
     return false;
   } else {
