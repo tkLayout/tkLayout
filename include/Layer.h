@@ -83,6 +83,7 @@ public:
   double placeRadius() const { return placeRadius_; }
   int numRods() const { return rods_.size(); }
   int numModulesPerRod() const { return rods_.front().numModules(); };
+  int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
   int totalModules() const { return numModulesPerRod()*numRods(); };
   
   double tilt() const { return 0.0; }

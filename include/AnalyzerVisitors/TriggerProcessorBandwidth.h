@@ -58,6 +58,8 @@ class TriggerProcessorBandwidthVisitor : public ConstGeometryVisitor {
   const Tracker* tracker_;
   const SimParms* simParms_;
 
+  int accumulatedLayerOffset_ = 0;
+  int cntId_ = 0;
 public:
   SummaryTable processorConnectionSummary, processorInboundBandwidthSummary, processorInboundStubPerEventSummary;
   SummaryTable processorCommonConnectionSummary;
@@ -78,8 +80,17 @@ public:
     ModuleConnectionData() : phiCpuConnections_(0), etaCpuConnections_(0) {}
   };
   typedef map<const Module*,ModuleConnectionData> ModuleConnectionMap; 
+  typedef std::map<std::pair<int, int>, std::set<int> > TriggerSectorMap;
 
   ModuleConnectionMap moduleConnections;
+  TriggerSectorMap sectorMap;
+
+  struct Sebifier {
+    std::map<std::pair<int,int>, int> numModsZMinus; // key is (cntId, layer)
+    std::map<int, int> layoffsets; // key is cntId
+    int sebifyBarrelCoords(const BarrelModule& m) const;
+    int sebifyEndcapCoords(const EndcapModule& m) const;
+  } seb_;
 
 private:
   int numProcEta, numProcPhi;
@@ -97,6 +108,8 @@ public:
   void preVisit();
   void visit(const SimParms& sp);
   void visit(const Tracker& t); 
+  void visit(const Barrel& t); 
+  void visit(const Layer& l);
   void visit(const DetectorModule& m);
   void postVisit();
 };

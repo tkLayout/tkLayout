@@ -46,7 +46,7 @@ void Tracker::build() {
   accept(moduleSetVisitor_);
 
   class HierarchicalNameVisitor : public GeometryVisitor {
-    int cntId = 1;
+    int cntId = 0;
     string cnt;
     int c1, c2;
   public:

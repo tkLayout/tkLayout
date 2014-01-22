@@ -6,29 +6,35 @@ void RodPair::clearComputables() {
 }
 
 void RodPair::translate(const XYZVector& translation) {
-  for (auto& m : modules_) { m.translate(translation); }
+  for (auto& m : zPlusModules_) { m.translate(translation); }
+  for (auto& m : zMinusModules_) { m.translate(translation); }
   clearComputables();
 }
 
 void RodPair::translateR(double radius) {
-  for (auto& m : modules_) { m.translateR(radius); }
+  for (auto& m : zPlusModules_) { m.translateR(radius); }
+  for (auto& m : zMinusModules_) { m.translateR(radius); }
   clearComputables();
 }
 
 void RodPair::rotateZ(double angle) {
-  for (auto& m : modules_) { m.rotateZ(angle); }
+  for (auto& m : zPlusModules_) { m.rotateZ(angle); }
+  for (auto& m : zMinusModules_) { m.rotateZ(angle); }
   clearComputables();
 }
 
-void RodPair::cutAtEta(double eta) { modules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); }
+void RodPair::cutAtEta(double eta) { 
+  zPlusModules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); 
+  zMinusModules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); 
+}
 
 
 void StraightRodPair::compressToZ(double z) {
 
-  if (modules_.empty()) return;
+  if (zPlusModules_.empty()) return;
 
-  const BarrelModule& maxBarrelModule = *std::max_element(modules_.begin(), modules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.maxZ() < m2.maxZ(); });
-  const BarrelModule& minBarrelModule = *std::min_element(modules_.begin(), modules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.minZ() < m2.minZ(); });
+  const BarrelModule& maxBarrelModule = *std::max_element(zPlusModules_.begin(), zPlusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.maxZ() < m2.maxZ(); });
+  const BarrelModule& minBarrelModule = *std::min_element(zMinusModules_.begin(), zMinusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.minZ() < m2.minZ(); });
 
   double maxZ = fabs(maxBarrelModule.maxZ());
   double minZ = fabs(minBarrelModule.minZ());
@@ -41,7 +47,11 @@ void StraightRodPair::compressToZ(double z) {
   XYZVector modShift;
   deltam=Deltam/((minBarrelModule.center()).Z());
   deltap=Deltap/((maxBarrelModule.center()).Z());
-  for (auto& m : modules_) {
+  for (auto& m : zPlusModules_) {
+    double myMeanZ = m.center().Z();
+    m.translateZ(myMeanZ > 0 ? deltap*myMeanZ : deltam*myMeanZ);
+  }
+  for (auto& m : zMinusModules_) {
     double myMeanZ = m.center().Z();
     m.translateZ(myMeanZ > 0 ? deltap*myMeanZ : deltam*myMeanZ);
   }
@@ -142,19 +152,19 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
   }
 }
 
-void StraightRodPair::buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity) {
+void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity, int side) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
     BarrelModule* mod = new BarrelModule(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
     mod->setup();
     mod->myid(i+1);
-    mod->side(1);  // CUIDADO side not correctly set for negative rods
+    mod->side(side);
     //mod->store(propertyTree());
     //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
     //mod->build();
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
     mod->translateZ(posList[i] + (direction == BuildDirection::RIGHT ? mod->length()/2 : -mod->length()/2));
    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
-    modules_.push_back(mod);
+    modules.push_back(mod);
   }
 }
 
@@ -164,10 +174,10 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
 
     // actual module creation
     // CUIDADO log rod balancing effort
-  buildModules(rodTemplate, zListPair.first, BuildDirection::RIGHT, zPlusParity());
-  double currMaxZ = modules_.size() > 1 ? MAX(modules_.rbegin()->maxZ(), (modules_.rbegin()+1)->maxZ()) : (!modules_.empty() ? modules_.rbegin()->maxZ() : 0.); 
+  buildModules(zPlusModules_, rodTemplate, zListPair.first, BuildDirection::RIGHT, zPlusParity(), 1);
+  double currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->maxZ(), (zPlusModules_.rbegin()+1)->maxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->maxZ() : 0.); 
   // CUIDADO this only checks the positive side... the negative side might actually have a higher fabs(maxZ) if the barrel is long enough and there's an inversion
-  buildModules(rodTemplate, zListPair.second, BuildDirection::LEFT, -zPlusParity());
+  buildModules(zMinusModules_, rodTemplate, zListPair.second, BuildDirection::LEFT, -zPlusParity(), -1);
 
   if (maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
   else maxZ(currMaxZ);
@@ -179,10 +189,10 @@ void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
   vector<double> zListNeg;
   std::transform(zList.begin(), zList.end(), std::back_inserter(zListNeg), std::negate<double>());
 
-  buildModules(rodTemplate, zList, BuildDirection::LEFT, zPlusParity()); // CUIDADO mezzanine layer rings in reverse order????
+  buildModules(zPlusModules_, rodTemplate, zList, BuildDirection::LEFT, zPlusParity(), 1); // CUIDADO mezzanine layer rings in reverse order????
   maxZ(startZ());
 
-  buildModules(rodTemplate, zListNeg, BuildDirection::RIGHT, zPlusParity());
+  buildModules(zMinusModules_, rodTemplate, zListNeg, BuildDirection::RIGHT, zPlusParity(), -1);
 }
 
 
@@ -198,7 +208,7 @@ void StraightRodPair::build(const RodTemplate& rodTemplate) {
   builtok(true);
 }
 
-void TiltedRodPair::buildModules(const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction) {
+void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction) {
   auto it = rodTemplate.begin();
   int side = (direction == BuildDirection::RIGHT ? 1 : -1);
   for (int i = 0; i < tmspecs.size(); i++, ++it) {
@@ -210,12 +220,12 @@ void TiltedRodPair::buildModules(const RodTemplate& rodTemplate, const vector<Ti
     mod->translateR(tmspecs[i].r);
     mod->translateZ(side * tmspecs[i].z);
     if (i == 0 
-        && !modules_.empty() 
-        && fabs(mod->center().Z() - modules_.front().center().Z()) < 1e-3 
-        && fabs(mod->center().Rho() - modules_.front().center().Rho()) < 1e-3) {
+        && !modules.empty() 
+        && fabs(mod->center().Z() - modules.front().center().Z()) < 1e-3 
+        && fabs(mod->center().Rho() - modules.front().center().Rho()) < 1e-3) {
       delete mod; // we skip the creation of the first module if it's at the same coordinates as the first module of the opposite Z rod in the pair 
     } else {
-      modules_.push_back(mod);
+      modules.push_back(mod);
     }
   }
 }
@@ -225,8 +235,8 @@ void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<Tilt
   try {
     std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
     check();
-    buildModules(rodTemplate, tmspecs, BuildDirection::RIGHT);
-    buildModules(rodTemplate, tmspecs, BuildDirection::LEFT);
+    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDirection::RIGHT);
+    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDirection::LEFT);
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();

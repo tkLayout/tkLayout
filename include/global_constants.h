@@ -99,7 +99,8 @@ namespace insur {
   static const std::string default_stdincludedir = "stdinclude";
   static const std::string default_geometriesdir = "geometries";
 
-
   static const std::string csv_separator = ",";
+  static const std::string csv_eol = "\n";
+
 }
 #endif /* _GLOBAL_CONSTANTS_H */

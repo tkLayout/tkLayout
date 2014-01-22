@@ -20,7 +20,6 @@ public:
 private:
   Container layers_;
 
-  Property<int, NoDefault> numLayers;
   Property<int, NoDefault> innerRadius;
   Property<int, NoDefault> outerRadius;
   Property<bool, Default> sameRods;
@@ -28,6 +27,7 @@ private:
 
   PropertyNode<int> layerNode;
 public:
+  Property<int, NoDefault> numLayers;
   ReadonlyProperty<double, Computable> maxZ;
   ReadonlyProperty<double, Computable> maxR, minR;
 

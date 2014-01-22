@@ -72,6 +72,7 @@ namespace insur {
   typedef std::vector<Module*> ModuleVector;
   typedef std::vector<Layer*> LayerVector;
   typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
+  typedef TriggerProcessorBandwidthVisitor::TriggerSectorMap TriggerSectorMap;
 
 
   class Analyzer {
@@ -225,8 +226,8 @@ namespace insur {
     std::map<std::string, SummaryTable>& getModuleConnectionSummaries() { return moduleConnectionSummaries_; }
     SummaryTable& getProcessorInboundBandwidthSummary() { return processorInboundBandwidthSummary_; }
     SummaryTable& getProcessorInboundStubPerEventSummary() { return processorInboundStubPerEventSummary_; }
-   
-    
+
+    const TriggerSectorMap& getTriggerSectorMap() const { return triggerSectorMap_; }
 
     // double getEtaMaxMaterial() { return etaMaxMaterial; } 
     double getEtaMaxMaterial() { return getEtaMaxTracking(); }
@@ -312,6 +313,7 @@ namespace insur {
     std::pair<Circle, Circle> sampleTriggerPetal_;
 
     ModuleConnectionMap moduleConnections_;
+    TriggerSectorMap triggerSectorMap_;
 
     TH1D hitDistribution;
     graphBag myGraphBag;

@@ -24,7 +24,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
 public:
   typedef boost::ptr_vector<BarrelModule> Container;
 protected:
-  Container modules_;
+  Container zPlusModules_, zMinusModules_;
 
   enum class BuildDirection { RIGHT = 1, LEFT = -1 };
 
@@ -37,15 +37,17 @@ public:
   ReadonlyProperty<double, Computable> maxAperture;
 
   void setup() {
-    minAperture.setup([this]() { double min = 999; for (auto& m : modules_) { min = MIN(min, m.phiAperture()); } return min; });
-    maxAperture.setup([this]() { double max = 0; for (auto& m : modules_) { max = MAX(max, m.phiAperture()); } return max; });
-    minZ.setup([&]() { double min = 99999; for (const auto& m : modules_) { min = MIN(min, m.minZ()); } return min; });
-    minR.setup([&]() { double min = 99999; for (const auto& m : modules_) { min = MIN(min, m.minR()); } return min; });
-    maxR.setup([&]() { double max = 0; for (const auto& m : modules_) { max = MAX(max, m.maxR()); } return max; });
-    for (auto& m : modules_) m.setup();
+    minAperture.setup([this]() { double min = 999; for (auto& m : zPlusModules_) { min = MIN(min, m.phiAperture()); } return min; }); // CUIDADO not checking the zMinus modules, check if this could cause problems down the road
+    maxAperture.setup([this]() { double max = 0; for (auto& m : zPlusModules_) { max = MAX(max, m.phiAperture()); } return max; });
+    minZ.setup([&]() { double min = 99999; for (const auto& m : zMinusModules_) { min = MIN(min, m.minZ()); } return min; }); // we want the minZ so we don't bother with scanning the zPlus vector
+    minR.setup([&]() { double min = 99999; for (const auto& m : zPlusModules_) { min = MIN(min, m.minR()); } return min; }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
+    maxR.setup([&]() { double max = 0; for (const auto& m : zPlusModules_) { max = MAX(max, m.maxR()); } return max; });
+    for (auto& m : zPlusModules_) m.setup();
+    for (auto& m : zMinusModules_) m.setup();
   }
 
-  int numModules() const { return modules_.size(); }
+  int numModules() const { return zPlusModules_.size() + zMinusModules_.size(); }
+  int numModulesSide(int side) const { return side >= 0 ? zPlusModules_.size() : zMinusModules_.size(); }
 
   void translate(const XYZVector& translation);
   void translateR(double radius);
@@ -53,15 +55,17 @@ public:
 
   void cutAtEta(double eta);
 
-  const Container& modules() const { return modules_; }
+  const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
   
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
-    for (auto& m : modules_) { m.accept(v); }
+    for (auto& m : zPlusModules_) { m.accept(v); }
+    for (auto& m : zMinusModules_) { m.accept(v); }
   }
   void accept(ConstGeometryVisitor& v) const { 
     v.visit(*this); 
-    for (const auto& m : modules_) { m.accept(v); }
+    for (const auto& m : zPlusModules_) { m.accept(v); }
+    for (const auto& m : zMinusModules_) { m.accept(v); }
   }
 
 };
@@ -72,7 +76,7 @@ class StraightRodPair : public RodPair {
   double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity);
   template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool looseStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
-  void buildModules(const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity, int side);
   void buildFull(const RodTemplate& rodTemplate); 
   void buildMezzanine(const RodTemplate& rodTemplate); 
 
@@ -117,7 +121,7 @@ struct TiltedModuleSpecs {
 };
 
 class TiltedRodPair : public RodPair {
-  void buildModules(const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction);
 public:
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
 

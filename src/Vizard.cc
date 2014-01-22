@@ -2006,6 +2006,10 @@ namespace insur {
     myTextFile->addText(occupancyCsv_);
     summaryContent->addItem(myTextFile);
 
+    createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
+    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger sectors and connected modules");
+    myTextFile->addText(triggerSectorMapCsv_);
+    summaryContent->addItem(myTextFile);
 
     return true; // TODO: make this meaningful
   }
@@ -4224,4 +4228,16 @@ namespace insur {
     return (*resultProfile);
   }
   
+  void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
+    triggerSectorMapCsv_.clear();
+    triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol; 
+    for (TriggerSectorMap::const_iterator it = tsm.begin(); it != tsm.end(); ++it) {
+      triggerSectorMapCsv_ += any2str(it->first.first) + csv_separator + any2str(it->first.second);
+      for (std::set<int>::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+        triggerSectorMapCsv_ += csv_separator + any2str(*it2);
+      }
+      triggerSectorMapCsv_ += csv_eol;
+    }
+  }
+
 }

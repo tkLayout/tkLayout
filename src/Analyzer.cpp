@@ -816,6 +816,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   processorInboundStubPerEventSummary_ = v.processorInboundStubPerEventSummary; 
   moduleConnectionsDistribution = v.moduleConnectionsDistribution; 
   moduleConnections_ = v.moduleConnections;
+  triggerSectorMap_ = v.sectorMap;
   processorCommonConnectionMap_ = v.processorCommonConnectionMap;
   sampleTriggerPetal_ = v.sampleTriggerPetal;
   triggerPetalCrossoverR_ = v.crossoverR;

@@ -261,7 +261,6 @@ public:
 
 class EndcapModule : public DetectorModule {
 public:
-  Property<int16_t, AutoDefault> cntId;
   Property<int16_t, AutoDefault> disk;
   Property<int16_t, AutoDefault> ring;
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
