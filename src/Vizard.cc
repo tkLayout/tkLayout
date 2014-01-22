@@ -2007,8 +2007,13 @@ namespace insur {
     summaryContent->addItem(myTextFile);
 
     createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
-    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger sectors and connected modules");
+    myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger Towers to Modules connections");
     myTextFile->addText(triggerSectorMapCsv_);
+    summaryContent->addItem(myTextFile);
+
+    createModuleConnectionsCsv(analyzer.getModuleConnectionMap());
+    myTextFile = new RootWTextFile("module_connections.csv", "Modules to Trigger Towers connections");
+    myTextFile->addText(moduleConnectionsCsv_);
     summaryContent->addItem(myTextFile);
 
     return true; // TODO: make this meaningful
@@ -4238,6 +4243,20 @@ namespace insur {
       }
       triggerSectorMapCsv_ += csv_eol;
     }
+  }
+
+  void Vizard::createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections) {
+    std::stringstream ss;
+    ss << "cnt, z, rho, phi, sebid, tt_list" << csv_eol;
+    for (const auto& mapel : moduleConnections) {
+      auto pos = mapel.first->posRef();
+      ss << pos.cnt << csv_separator << pos.z << csv_separator << pos.rho << csv_separator << pos.phi << csv_separator << mapel.second.sebCoords;
+      for (const auto& conn : mapel.second.connectedProcessors) {
+        ss << csv_separator << 't' << conn.first << '_' << conn.second;
+      }
+      ss << csv_eol;
+    }
+    moduleConnectionsCsv_ = ss.str();
   }
 
 }

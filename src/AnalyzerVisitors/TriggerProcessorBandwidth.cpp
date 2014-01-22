@@ -241,6 +241,8 @@ void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
 
   int etaConnections = 0, totalConnections = 0;
 
+  int sebCoords = dynamic_cast<const BarrelModule*>(&m) ? seb_.sebifyBarrelCoords((const BarrelModule&)m) : seb_.sebifyEndcapCoords((const EndcapModule&)m);
+
   for (int i=0; i < numProcEta; i++) {
     if (AnalyzerHelpers::isModuleInEtaSector(*simParms_, *tracker_, m, i)) {
       etaConnections++;
@@ -259,17 +261,14 @@ void TriggerProcessorBandwidthVisitor::visit(const DetectorModule& m) {
           processorInboundStubsPerEvent_[std::make_pair(j,i)] += triggerFrequenciesPerEvent_[p.table][std::make_pair(p.row, p.col)];
           processorInboundStubPerEventSummary.setCell(j+1, i+1, processorInboundStubsPerEvent_[std::make_pair(j,i)]);
 
-          if (dynamic_cast<const BarrelModule*>(&m)) 
-            sectorMap[make_pair(i+1, j+1)].insert(seb_.sebifyBarrelCoords((const BarrelModule&)m));
-          else 
-            sectorMap[make_pair(i+1, j+1)].insert(seb_.sebifyEndcapCoords((const EndcapModule&)m));
+          sectorMap[make_pair(i+1, j+1)].insert(sebCoords);
         } 
       }
     }
   }
   moduleConnections[&m].etaCpuConnections(etaConnections);
   moduleConnections[&m].phiCpuConnections(totalConnections > 0 ? totalConnections/etaConnections : 0);
-
+  moduleConnections[&m].sebCoords = sebCoords;
 }
 
 int TriggerProcessorBandwidthVisitor::Sebifier::sebifyBarrelCoords(const BarrelModule& m) const {
@@ -296,23 +295,17 @@ void TriggerProcessorBandwidthVisitor::postVisit() {
   processorInboundStubPerEventSummary.setSummaryCell("Total", inboundStubsPerEventTotal);
 
   std::map<std::pair<int, int>, int> processorCommonConnectionMatrix;
-  std::ofstream m2tt("module_to_tt_connections.txt");
-  m2tt << "cnt z rho phi id tt\n";
 
   for (auto mvp : moduleConnections) {
     moduleConnectionsDistribution.Fill(mvp.second.totalCpuConnections(), 1);
     std::set<pair<int, int>> connectedProcessors = mvp.second.connectedProcessors; // we make a copy of the set here
     int sebCoords = (dynamic_cast<const BarrelModule*>(mvp.first)) ? seb_.sebifyBarrelCoords(*(BarrelModule*)mvp.first) : seb_.sebifyEndcapCoords(*(EndcapModule*)mvp.first);
-    m2tt << mvp.first->posRef().cnt << '\t' << mvp.first->posRef().z << '\t' << mvp.first->posRef().rho << '\t' << mvp.first->posRef().phi << '\t' << sebCoords;
     if (connectedProcessors.size() == 1) {
       int ref = connectedProcessors.begin()->second + numProcPhi*(connectedProcessors.begin()->first-1);
       processorCommonConnectionMatrix[std::make_pair(ref, ref)] += 1;
-      auto refPair = *connectedProcessors.begin();
-      m2tt << '\t' << "t" + any2str(refPair.first) + "," + any2str(refPair.second) << std::endl;
     } else {
       while (!connectedProcessors.empty()) {
         pair<int, int> colRef = *connectedProcessors.begin();
-        m2tt << '\t' << "t" + any2str(colRef.first) + "," + any2str(colRef.second);
         int col = colRef.second + numProcPhi*(colRef.first-1);
         connectedProcessors.erase(connectedProcessors.begin());
         for (std::set<pair<int, int> >::const_iterator pIt = connectedProcessors.begin(); pIt != connectedProcessors.end(); ++pIt) {
@@ -320,11 +313,8 @@ void TriggerProcessorBandwidthVisitor::postVisit() {
           processorCommonConnectionMatrix[std::make_pair(row, col)] += 1;
         }
       } 
-      m2tt << std::endl;
     }
   }
-
-  m2tt.close();
 
   TAxis* xAxis = processorCommonConnectionMap.GetXaxis();
   TAxis* yAxis = processorCommonConnectionMap.GetYaxis();

@@ -72,6 +72,7 @@ public:
     int phiCpuConnections_, etaCpuConnections_;
   public:
     set<std::pair<int, int>> connectedProcessors;
+    int sebCoords;
     int phiCpuConnections() const { return phiCpuConnections_; }
     int etaCpuConnections() const { return etaCpuConnections_; }
     int totalCpuConnections() const { return phiCpuConnections_*etaCpuConnections_; }
