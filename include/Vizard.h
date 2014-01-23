@@ -236,6 +236,7 @@ namespace insur {
     std::string occupancyCsv_;
     std::string triggerSectorMapCsv_;
     std::string moduleConnectionsCsv_;
+    std::string endcapModulesCsv_;
     void setSummaryString(std::string);
     void addSummaryElement(std::string element, bool first = false);
     void setSummaryLabelString(std::string);
@@ -249,6 +250,7 @@ namespace insur {
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
+    void createEndcapModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
