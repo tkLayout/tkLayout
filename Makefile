@@ -30,8 +30,11 @@ COMPILERFLAGS+=-std=c++11
 COMPILERFLAGS+=-g
 #COMPILERFLAGS+=-Werror
 #COMPILERFLAGS+=-O5
+LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 
-COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
+COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES) 
+
+LINK=g++ $(LINKERFLAGS)
 
 all: tklayout setup
 	@echo "Full build successful."
@@ -47,7 +50,7 @@ $(LIBDIR)/ptError.o: $(SRCDIR)/ptError.cpp $(INCDIR)/ptError.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ptError.o $(SRCDIR)/ptError.cpp
 
 $(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
-	$(COMP) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp \
+	$(LINK) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp \
 	$(ROOTLIBFLAGS) $(ROOTFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tunePtParam
 
@@ -313,7 +316,7 @@ setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
 $(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp
-	$(COMP) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp \
+	$(COMP) $(LINKERFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
 
@@ -326,7 +329,7 @@ $(LIBDIR)/Histo.o: $(SRCDIR)/Histo.cpp
 	@echo "Built target Histo.o"
 
 $(BINDIR)/houghtrack: $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp $(INCDIR)/HoughTrack.h
-	$(COMP) $(ROOTFLAGS) $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp \
+	$(COMP) $(LINKERFLAGS) $(ROOTFLAGS) $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/houghtrack
 
@@ -349,7 +352,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o
-	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
+	$(LINK)	$(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
