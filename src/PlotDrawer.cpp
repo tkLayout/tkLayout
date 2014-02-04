@@ -54,7 +54,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double thetaLimit = atan(startR/startL);
   std::vector<double> etaSteps;
   for (eta=0; eta<=etaMax; eta+=etaStep) etaSteps.push_back(eta);
-  if (etaLongLine>0) etaSteps.push_back(2.5);
+  if (etaLongLine>0) etaSteps.push_back(etaLongLine);
 
   for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
     eta=*it;
@@ -101,7 +101,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
 
 template<> void SummaryFrameStyle<YZ>::operator()(TH2D& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();
-  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
 }
 
 template<> void SummaryFrameStyle<XY>::operator()(TH2D& frame, TCanvas&, DrawerPalette&) const {
