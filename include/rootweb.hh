@@ -2,6 +2,7 @@
 #define _ROOTWEB_HH_
 
 #define BOOST_NO_CXX11_SCOPED_ENUMS
+#define BOOST_NO_CXX11_SCOPED_ENUM
 
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
