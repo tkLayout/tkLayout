@@ -433,10 +433,10 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool trackingResolution, bool triggerResolution) {
     if (mb) {
-      startTaskClock("Analyzing material budget and estimating resolution");
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, true);
+      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, trackingResolution);
       stopTaskClock();
       if (pm) {
         startTaskClock("Analyzing pixel material budget");

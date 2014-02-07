@@ -62,7 +62,9 @@ public:
   ReadonlyProperty<double, Computable> resolutionLocalX, resolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
 
-  ReadonlyProperty<double, AutoDefault> stereoRotation;
+  ReadonlyProperty<int, Default> numROCRows, numROCCols;
+
+  ReadonlyProperty<double, Default> stereoRotation;
   
   ReadonlyProperty<bool, Default> reduceCombinatorialBackground;
 
@@ -94,6 +96,9 @@ public:
       powerStripChip           ("powerStripChip"           , parsedOnly()),
       triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
       triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
+      stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
+      numROCRows               ("numROCRows"               , parsedOnly(),  128),
+      numROCCols               ("numROCCols"               , parsedOnly(),  1),
       reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
       trackingTags             ("trackingTags"             , parsedOnly()),
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
@@ -182,7 +187,7 @@ public:
   double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
 
   
-  int numStripsAcross() const { return sensors().front().numStripsAcross(); }
+  int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 
   virtual double stripOccupancyPerEvent() const = 0;

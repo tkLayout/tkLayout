@@ -17,13 +17,17 @@ reduceCombinatorialBackground true
 Sensor 1 {
   sensorType largepix
   numStripsAcross 960
-  numSegments 2
+  numSegments 32
+  numROCX 4
+  numROCY 2
 }
 
 Sensor 2 {
   sensorType strip
   numStripsAcross 960
   numSegments 2
+  numROCX 4
+  numROCY 2
 }
 
 resolutionLocalY 0.433013

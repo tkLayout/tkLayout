@@ -685,9 +685,6 @@ void Track::computeCorrelationMatrixRZ(const vector<double>& momenta) {
                 * (hitV_.at(r)->getDistance() - hitV_.at(i)->getDistance());
             if (r == c) {
               double prec = hitV_.at(r)->getResolutionZ(curvatureR);
-              static std::ofstream ofs("hits.txt");
-              ofs << roundprec<3>(theta_) << " " << momenta.at(p) << " " << (hitV_.at(r)->getOrientation()==Hit::Vertical ? "V " : "H ") << prec << " " 
-                  << (hitV_.at(r)->getHitModule() ? hitV_.at(r)->getHitModule()->tiltAngle() : -999.) << std::endl;
               sum = sum + prec * prec;
             }
             corr(r, c) = sum;

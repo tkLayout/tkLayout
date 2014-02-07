@@ -348,12 +348,13 @@ namespace insur {
      * @param barrelcaps The collection mapping to the barrel modules that need to have a material mix assigned to them
      * @return True if there were no errors during processing, false otherwise
      */
-    bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
+    bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) { // sorry, but this code is a POS
       // layer loop
       for (unsigned int i = 0; i < barrelcaps.size(); i++) {
         if (barrelcaps.at(i).size() > 0) {
           try {
             int rindex = 0;
+            int maxRing = 0; // only considers Z+
             std::vector<double> stripseg_scalars;
             std::vector<std::string> mtypes;
             std::vector<std::list<int> > modinrings;
@@ -361,6 +362,7 @@ namespace insur {
             for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
               // ring index of current module
               rindex = barrelcaps.at(i).at(j).getModule().uniRef().ring;
+              maxRing = barrelcaps.at(i).at(j).getModule().uniRef().side > 0 ? MAX(barrelcaps.at(i).at(j).getModule().uniRef().ring, maxRing) : maxRing;
               // collect ring types
               if ((int)mtypes.size() < rindex) {
                 while ((int)mtypes.size() < rindex) mtypes.push_back("");
@@ -372,9 +374,9 @@ namespace insur {
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().numStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().outerSensor().numStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().totalSegments() / (double)barrelcaps.at(i).at(j).getModule().numSensors());
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().outerSensor().numSegments()); // CUIDADO: as it is only the outer sensor is considered for the scaling
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
@@ -390,7 +392,7 @@ namespace insur {
             rindex = modinrings.size(); // CUIDADO Tentative fix, rindex is max of ring index found in modules
 
             // ring loop
-            for (int j = 0; j < rindex; j++) { // CUIDADO rindex WTF!?!?!?
+            for (int j = 0; j < /*maxRing*/ rindex; j++) { // CUIDADO rindex WTF!?!?!?
               if (!modinrings.at(j).empty()) {
                 double A, B, C, D;
                 double density, surface, length;
@@ -447,6 +449,27 @@ namespace insur {
                           else C = convert(iter->C, iter->uC, density, surface);
                           // parameter scaling
                           A = A * stripseg_scalars.at(k);
+#define TILTED_HOTFIX
+#ifdef TILTED_HOTFIX
+                          // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
+                          if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
+                            if (j < modinrings.size()-1 &&
+                                (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
+                                 barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
+                              double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                              double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
+                              A = A/length * (zNext - zPrev)/2;
+                              C = C/length * (zNext - zPrev)/2;
+                            } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
+                                       barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
+                              double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                              double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
+                              double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
+                              A = A/length * ((zMax - zThis) + (zThis - zPrev)/2);
+                              C = C/length * ((zMax - zThis) + (zThis - zPrev)/2);
+                            }
+                          }
+#endif
                           // save converted and scaled material
                           if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
                           else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
@@ -466,7 +489,6 @@ namespace insur {
                     start++;
                   }
                 }
-              // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().ring() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
               }
             }
           }
@@ -476,11 +498,6 @@ namespace insur {
           }
         }
       }
-      for (size_t r = 0; r < barrelcaps.size(); r++)
-        for (size_t t = 0; t < barrelcaps.at(r).size(); t++)
-          if (barrelcaps.at(r).at(t).getComponentsRI().size()==0) {
-            std::cout << r << "," << t << " MC bmod: " << barrelcaps.at(r).at(t).getModule().uniRef().layer << "," << barrelcaps.at(r).at(t).getModule().uniRef().ring << "," << barrelcaps.at(r).at(t).getModule().uniRef().phi << " has comps: " << barrelcaps.at(r).at(t).getComponentsRI().size() << std::endl;
-          }
       return true;
     }
 
@@ -522,9 +539,9 @@ namespace insur {
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().numStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().outerSensor().numStripsAcross(); // CUIDADO as it this now, only the outer sensor is considered for the scaling
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)endcapcaps.at(i).at(j).getModule().totalSegments() /(double)endcapcaps.at(i).at(j).getModule().numSensors());
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)endcapcaps.at(i).at(j).getModule().outerSensor().numSegments());
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }

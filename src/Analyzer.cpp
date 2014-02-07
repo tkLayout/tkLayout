@@ -772,8 +772,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 }
 
 
-
-
 void Analyzer::analyzePower(Tracker& tracker) {
   computeIrradiatedPowerConsumption(tracker);
   preparePowerHistograms();
@@ -1117,8 +1115,6 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
-  static std::ofstream ofs(!isPixel ? "mathits.txt" : "mathits_px.txt"); // DEBUG
-  ofs << "TRACK: eta=" << eta << " theta=" << theta << " phi=" << phi << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
@@ -1134,27 +1130,27 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
 
           Module& m = iter->getModule();
-          ofs << "  Mod: " << m.center().Z() << "," << m.center().Rho() << "," << m.center().Phi() << " d: " << distance << " RI: " << tmp.radiation << "," << tmp.interaction << std::endl;
+          double tiltAngle = m.tiltAngle();
           // 2D material maps
           fillMapRT(r, theta, tmp);
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
-            tmp.radiation = tmp.radiation / sin(theta);
-            tmp.interaction = tmp.interaction / sin(theta);
+            tmp.radiation = tmp.radiation / sin(theta + tiltAngle);
+            tmp.interaction = tmp.interaction / sin(theta + tiltAngle);
           }
           // radiation and interaction length scaling for endcaps
           else {
-            tmp.radiation = tmp.radiation / cos(theta);
-            tmp.interaction = tmp.interaction / cos(theta);
+            tmp.radiation = tmp.radiation / cos(theta + tiltAngle - M_PI/2);
+            tmp.interaction = tmp.interaction / cos(theta + tiltAngle - M_PI/2);
           }
 
           double tmpr = 0., tmpi = 0.;
 
           std::map<std::string, Material> moduleComponentsRI = iter->getComponentsRI();
           for (std::map<std::string, Material>::iterator cit = moduleComponentsRI.begin(); cit != moduleComponentsRI.end(); ++cit) {
-            sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().subdet() == BARREL ? sin(theta) : cos(theta));
+            sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().subdet() == BARREL ? sin(theta + tiltAngle) : cos(theta + tiltAngle - M_PI/2));
             tmpr += sumComponentsRI[cit->first].radiation;
-            sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().subdet() == BARREL ? sin(theta) : cos(theta));
+            sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().subdet() == BARREL ? sin(theta + tiltAngle) : cos(theta + tiltAngle - M_PI/2));
             tmpi += sumComponentsRI[cit->first].interaction;
           }
           // 2D plot and eta plot results
@@ -1168,8 +1164,6 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           hit->setCorrectedMaterial(tmp);
           hit->setPixel(isPixel);
           t.addHit(hit);
-//          static std::ofstream of("hits.txt"); // CUIDADO just for debug -- remove!!!
-//          of << theta << '\t' << phi << '\t' << (iter->getModule().subdet()==BARREL ? 'B' : 'E') << '\t' << roundprec<3>(iter->getModule().center().Z()) << '\t' << roundprec<3>(iter->getModule().center().Rho()) << '\t' << roundprec<3>(iter->getModule().center().Phi()) << '\t' << iter->getModule().dsDistance() << '\t' << roundprec<3>(distance) << '\t' << tmp.radiation << '\t' << tmp.interaction << std::endl;
         }
     }
     iter++;
@@ -1306,9 +1300,6 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
           hit->setCorrectedMaterial(tmp);
           hit->setPixel(isPixel);
           t.addHit(hit);
-          //static std::ofstream of("hits.txt"); // CUIDADO just for debug -- remove!!!
-          //of << theta << '\t' << phi << '\t' << (iter->getModule().subdet()==BARREL ? 'B' : 'E') << '\t' << iter->getModule().center().Z() << '\t' << iter->getModule().center().Rho() << '\t' << iter->getModule().center().Phi() << '\t' << distance << '\t' << tmp.radiation << '\t' << tmp.interaction << std::endl;
-
         }
     }
     iter++;

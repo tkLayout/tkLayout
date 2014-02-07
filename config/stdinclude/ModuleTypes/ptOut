@@ -16,12 +16,16 @@ Sensor 1 {
   sensorType strip
   numStripsAcross 1016
   numSegments 2
+  numROCX 8
+  numROCY 2
 }
 
 Sensor 2 {
   sensorType strip
   numStripsAcross 1016
   numSegments 2
+  numROCX 8
+  numROCY 2
 }
 
 plotColor 2 

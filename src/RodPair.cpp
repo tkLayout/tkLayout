@@ -211,7 +211,8 @@ void StraightRodPair::build(const RodTemplate& rodTemplate) {
 void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction) {
   auto it = rodTemplate.begin();
   int side = (direction == BuildDirection::RIGHT ? 1 : -1);
-  for (int i = 0; i < tmspecs.size(); i++, ++it) {
+  int i = (direction == BuildDirection::LEFT && tmspecs[0].z == 0.); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
+  for (; i < tmspecs.size(); i++, ++it) {
     BarrelModule* mod = new BarrelModule(**it);
     mod->setup();
     mod->myid(i+1);
@@ -219,14 +220,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
     mod->translateZ(side * tmspecs[i].z);
-    if (i == 0 
-        && !modules.empty() 
-        && fabs(mod->center().Z() - modules.front().center().Z()) < 1e-3 
-        && fabs(mod->center().Rho() - modules.front().center().Rho()) < 1e-3) {
-      delete mod; // we skip the creation of the first module if it's at the same coordinates as the first module of the opposite Z rod in the pair 
-    } else {
-      modules.push_back(mod);
-    }
+    modules.push_back(mod);
   }
 }
 

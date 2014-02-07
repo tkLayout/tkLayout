@@ -49,7 +49,7 @@ public:
         double occupancy = m.hitOccupancyPerEvent();
         double hitChannels = occupancy * nMB_ * s.numChannels();
         chanHitDistribution_.Fill(hitChannels);
-        int nChips = s.numROCs();
+        int nChips = s.totalROCs();
 
         // Binary unsparsified (bps)
         bandwidthDistribution_.Fill((16*nChips + s.numChannels())*100E3);

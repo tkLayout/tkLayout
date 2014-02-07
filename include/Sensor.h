@@ -4,24 +4,23 @@
 #include "Polygon3d.h"
 #include "Property.h"
 
-enum class SensorType { Pixel, Strip, None };
+enum class SensorType { Pixel, Largepix, Strip, None };
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
   Polygon3d<4> poly_;
 public:
-  ReadonlyProperty<int, AutoDefault> xElements;
-  ReadonlyProperty<int, AutoDefault> yElements;
-  ReadonlyProperty<int, Default> numSegments;
-  ReadonlyProperty<int, Default> numStripsAcross;
-  ReadonlyProperty<int, Default> numROCs;
+  ReadonlyProperty<int, NoDefault> numSegments;
+  ReadonlyProperty<int, NoDefault> numStripsAcross;
+  ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<double, Default> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
   Property<double, NoDefault> length, minWidth, maxWidth;
 
   Sensor() : 
-      numSegments("numSegments", parsedOnly(), 1),
-      numStripsAcross("numStripsAcross", parsedOnly(), 1),
-      numROCs("numROCs", parsedOnly(), 128),
+      numSegments("numSegments", parsedOnly()),
+      numStripsAcross("numStripsAcross", parsedOnly()),
+      numROCX("numROCX", parsedOnly()),
+      numROCY("numROCY", parsedOnly()),
       sensorThickness("sensorThickness", parsedOnly(), 0.1),
       type("sensorType", parsedOnly(), SensorType::None),
       length("l", checkedOnly()),
@@ -37,6 +36,10 @@ public:
   double pitch() const { return (maxWidth() + minWidth()) / 2. / (double)numStripsAcross(); }
   double stripLength() const { return length() / numSegments(); }
 
+  int numROCRows() const { return numStripsAcross() / numROCX(); } 
+  int numROCCols() const { return numSegments() / numROCY(); }
+
+  int totalROCs() const { return numROCX() * numROCY(); }
 
   void build() { 
     try { check(); } 

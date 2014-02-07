@@ -130,8 +130,7 @@ int main(int argc, char* argv[]) {
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
-          // TODO: the following call should know whether to compute resolution or material (or both)
-          if (!squid.pureAnalyzeMaterialBudget(mattracks, true)) return EXIT_FAILURE;
+          if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"), vm.count("all") || vm.count("trigger") || vm.count("trigger-ext"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
