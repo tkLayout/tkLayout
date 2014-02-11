@@ -37,7 +37,6 @@ void DetectorModule::build() {
       sensors_.at(i).maxWidth(maxWidth());
       sensors_.at(i).store(propertyTree());
       if (sensorNode.count(i+1) > 0) sensors_.at(i).store(sensorNode.at(i+1));
-      if (numSensors() > 1) (sensors_.at(i).poly() = basePoly()).translate(normal()*(-dsDistance()/2 + dsDistance()*i/(numSensors()-1)));
       sensors_.at(i).build();
     }
   } else {
@@ -111,22 +110,7 @@ double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, doubl
 }
 
 
-
-void BarrelModule::build() {
-  try {
-    DetectorModule::build();
-    decorated().rotateY(M_PI/2);
-    rAxis_ = normal();
-    tiltAngle_ = 0.;
-    skewAngle_ = 0.;
-  }
-  catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
-  cleanup();
-  builtok(true);
-}
-
-
-double BarrelModule::stripOccupancyPerEvent() const {
+double DetectorModule::stripOccupancyPerEventBarrel() const {
   double rho = center().Rho()/10.;
   double theta = center().Theta();
   double myOccupancyBarrel=(1.63e-4)+(2.56e-4)*rho-(1.92e-6)*rho*rho;
@@ -141,28 +125,7 @@ double BarrelModule::stripOccupancyPerEvent() const {
   return occupancy;
 }
 
-
-double BarrelModule::geometricEfficiency() const {
-  double inefficiency = dsDistance() * center().Z() / (inefficiencyType()==STRIPWISE ? outerSensor().stripLength() : length()) / center().Rho();
-  return (1-inefficiency);
-}
-
-
-
-void EndcapModule::build() {
-  try {
-    DetectorModule::build();
-    rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
-    tiltAngle_ = M_PI/2.;
-    skewAngle_ = 0.;
-  }
-  catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
-  cleanup();
-  builtok(true);
-}
-
-
-double EndcapModule::stripOccupancyPerEvent() const {
+double DetectorModule::stripOccupancyPerEventEndcap() const {
   double rho = center().Rho()/10.;
   double theta = center().Theta();
   double z = center().Z()/10.;
@@ -178,10 +141,49 @@ double EndcapModule::stripOccupancyPerEvent() const {
   return occupancy;
 }
 
-double EndcapModule::geometricEfficiency() const {
-  double inefficiency = dsDistance() * center().Rho() / (inefficiencyType()==STRIPWISE ? outerSensor().stripLength() : length()) / center().Z();
-  return (1-inefficiency);
+double DetectorModule::stripOccupancyPerEvent() const {
+  if (fabs(tiltAngle()) < 1e-3) return stripOccupancyPerEventBarrel();
+  else if (fabs(tiltAngle()) - M_PI/2. < 1e-3) return stripOccupancyPerEventEndcap();
+  else return stripOccupancyPerEventBarrel()*cos(tiltAngle()) + stripOccupancyPerEventEndcap()*(1-cos(tiltAngle()));
+};
+
+double DetectorModule::geometricEfficiency() const {
+  double inefficiency = fabs(dsDistance() / (inefficiencyType()==STRIPWISE ? outerSensor().stripLength() : length()) / tan(center().Theta()+tiltAngle())); // fabs prevents the inefficiency from becoming negative when theta+tilt > 90 deg (meaning the geometrically inefficient area is on the other end of the module)
+  return 1-inefficiency;
 }
+
+double DetectorModule::effectiveDsDistance() const {
+  if (fabs(tiltAngle()) < 1e-3) return dsDistance();
+  else return dsDistance()*sin(center().Theta())/sin(center().Theta()+tiltAngle());
+}
+
+void BarrelModule::build() {
+  try {
+    DetectorModule::build();
+    decorated().rotateY(M_PI/2);
+    rAxis_ = normal();
+    tiltAngle_ = 0.;
+    skewAngle_ = 0.;
+  }
+  catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
+  cleanup();
+  builtok(true);
+}
+
+
+void EndcapModule::build() {
+  try {
+    DetectorModule::build();
+    rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
+    tiltAngle_ = M_PI/2.;
+    skewAngle_ = 0.;
+  }
+  catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
+  cleanup();
+  builtok(true);
+}
+
+
 
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };

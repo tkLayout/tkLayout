@@ -7,7 +7,7 @@
 enum class SensorType { Pixel, Largepix, Strip, None };
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
-  Polygon3d<4> poly_;
+  Polygon3d<4>* poly_ = 0;
 public:
   ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<int, NoDefault> numStripsAcross;
@@ -28,8 +28,6 @@ public:
       maxWidth("W", checkedOnly())
   {}
 
-  Polygon3d<4>& poly() { return poly_; }
-
   int numChannels() const { return numStripsAcross() * numSegments(); }
   double minPitch() const { return minWidth() / (double)numStripsAcross(); }
   double maxPitch() const { return maxWidth() / (double)numStripsAcross(); }
@@ -44,7 +42,10 @@ public:
   void build() { 
     try { check(); } 
     catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
-    cleanup(); }
+    cleanup(); 
+  }
   
+  void clearPoly() { delete poly_; poly_ = 0; } 
+  void assignPoly(Polygon3d<4>* const poly) { poly_ = poly; }
 };
 

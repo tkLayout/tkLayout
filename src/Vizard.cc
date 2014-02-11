@@ -1285,6 +1285,7 @@ namespace insur {
     std::ostringstream aName;
     std::ostringstream aTag;
     std::ostringstream aType;
+    std::ostringstream aThickness;
     std::ostringstream aModuleArea;
     std::ostringstream aTotalArea;
     std::ostringstream aStripOccupancy;
@@ -1321,32 +1322,34 @@ namespace insur {
 
     static const int tagRow = 1;
     static const int typeRow = 2;
-    static const int moduleAreaRow = 3;
-    static const int totalAreaRow = 4;
-    static const int numbermodsRow = 5;
-    static const int numbersensRow = 6;
-    static const int channelRow = 7;
-    static const int nstripsRow = 8;
-    static const int segmentsRow = 9;
-    static const int striplengthRow = 10;
-    static const int pitchpairsRow = 11;
-    static const int rphiResolutionRow = 12;
-    static const int yResolutionRow = 13;
-    static const int rphiResolutionTriggerRow = 14;
-    static const int yResolutionTriggerRow = 15;
-    static const int stripOccupancyRow = 16;
-    static const int hitOccupancyRow = 17;
-    static const int powerPerModuleRow = 18;
-    static const int sensorPowerPerModuleAvgRow = 19;
-    static const int sensorPowerPerModuleMaxRow = 20;
-    static const int powerRow = 21;
-    static const int sensorPowerRow = 22;
-    static const int costRow = 23;
-    static const int weightRow = 24;
+    static const int thicknessRow = 3;
+    static const int moduleAreaRow = 4;
+    static const int totalAreaRow = 5;
+    static const int numbermodsRow = 6;
+    static const int numbersensRow = 7;
+    static const int channelRow = 8;
+    static const int nstripsRow = 9;
+    static const int segmentsRow = 10;
+    static const int striplengthRow = 11;
+    static const int pitchpairsRow = 12;
+    static const int rphiResolutionRow = 13;
+    static const int yResolutionRow = 14;
+    static const int rphiResolutionTriggerRow = 15;
+    static const int yResolutionTriggerRow = 16;
+    static const int stripOccupancyRow = 17;
+    static const int hitOccupancyRow = 18;
+    static const int powerPerModuleRow = 19;
+    static const int sensorPowerPerModuleAvgRow = 20;
+    static const int sensorPowerPerModuleMaxRow = 21;
+    static const int powerRow = 22;
+    static const int sensorPowerRow = 23;
+    static const int costRow = 24;
+    static const int weightRow = 25;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
     moduleTable->setContent(typeRow, 0, "Type");
+    moduleTable->setContent(thicknessRow, 0, "Sensor spacing");
     moduleTable->setContent(moduleAreaRow, 0, "Sensor area (mm"+superStart+"2"+superEnd+")");
     moduleTable->setContent(totalAreaRow, 0, "Total area (m"+superStart+"2"+superEnd+")");
     moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
@@ -1409,6 +1412,9 @@ namespace insur {
       // Type
       aType.str("");
       aType << (*tagMapIt).second->moduleType();
+      // Thickness
+      aThickness.str("");
+      aThickness << (*tagMapIt).second->dsDistance();
       // Area
       aModuleArea.str("");
       aModuleArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*tagMapIt).second->area();
@@ -1467,7 +1473,7 @@ namespace insur {
           << (*tagMapIt).second->length()/(*tagMapIt).second->minSegments();  // CUIDADO!!!! what happens with single sided modules????
         // Segments
         aSegment << std::dec << (*tagMapIt).second->minSegments()
-          << "x" << int( (*tagMapIt).second->numStripsAcross() / 128. );
+          << "x" << (*tagMapIt).second->outerSensor().numROCX();
       } else { // They are different
         for (int iFace=0; iFace<(*tagMapIt).second->numSensors(); ++iFace) {
           // Strip length
@@ -1475,10 +1481,10 @@ namespace insur {
             << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegments();
           // Segments
           aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegments()
-            << "x" << int( (*tagMapIt).second->sensors().front().numStripsAcross() / 128. );
-          if (iFace!=(*tagMapIt).second->numSensors()) {
-            aStripLength << " - ";
-            aSegment << " - ";
+            << "x" << (*tagMapIt).second->sensors().at(iFace).numROCX();
+          if (iFace<(*tagMapIt).second->numSensors() - 1) {
+            aStripLength << ", ";
+            aSegment << ", ";
           }
         }
       }
@@ -1490,7 +1496,7 @@ namespace insur {
       } else {
         for (int iFace=0; iFace<(*tagMapIt).second->numSensors(); ++iFace) {
           anNstrips << std::dec << (*tagMapIt).second->sensors().at(iFace).numChannels();
-          if (iFace!=(*tagMapIt).second->numSensors()) anNstrips << " - ";
+          if (iFace<(*tagMapIt).second->numSensors()-1) anNstrips << ", ";
         }
       }
 
@@ -1570,6 +1576,7 @@ namespace insur {
       moduleTable->setContent(costRow, iType, aCost.str());
       moduleTable->setContent(weightRow, iType, aWeight.str());
 
+      moduleTable->setContent(thicknessRow, iType, aThickness.str());
       moduleTable->setContent(moduleAreaRow, iType, aModuleArea.str());
       moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
       moduleTable->setContent(channelRow, iType, aChannel.str());

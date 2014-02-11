@@ -27,6 +27,8 @@ struct UniRef { string cnt; int layer, ring, phi, side; };
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
   typedef std::vector<Sensor> Sensors;
+  double stripOccupancyPerEventBarrel() const;
+  double stripOccupancyPerEventEndcap() const;
 protected:
   Sensors sensors_;
   std::string cntName_;
@@ -131,23 +133,23 @@ public:
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR) const;
 
-  void translate(const XYZVector& vector) { decorated().translate(vector); for (auto& s : sensors_) s.poly().translate(vector); }
-  void mirror(const XYZVector& vector) { decorated().mirror(vector); for (auto& s : sensors_) s.poly().mirror(vector); }
-  void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); for (auto& s : sensors_) s.poly().translate(XYZVector(0, 0, z)); }
+  void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
+  void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
+  void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); clearSensorPolys(); }
   void translateR(double radius) { 
     XYZVector v = rAxis_.Unit()*radius;
     decorated().translate(v); 
-    for (auto& s : sensors_) s.poly().translate(v);
+    clearSensorPolys();
   }
   void mirrorZ() { 
     side(-side());
-    for (auto& s : sensors_) s.poly().mirror(XYZVector(1. ,1. , -1.));
+    clearSensorPolys();
     decorated().mirror(XYZVector(1., 1., -1.));
   }
 
-  void rotateX(double angle) { decorated().rotateX(angle); for (auto& s : sensors_) s.poly().rotateX(angle); }
-  void rotateY(double angle) { decorated().rotateY(angle); for (auto& s : sensors_) s.poly().rotateY(angle); }
-  void rotateZ(double angle) { decorated().rotateZ(angle); for (auto& s : sensors_) s.poly().rotateZ(angle); rAxis_ = RotationZ(angle)(rAxis_); }
+  void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
+  void rotateY(double angle) { decorated().rotateY(angle); clearSensorPolys(); }
+  void rotateZ(double angle) { decorated().rotateZ(angle); clearSensorPolys(); rAxis_ = RotationZ(angle)(rAxis_); }
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
@@ -190,10 +192,10 @@ public:
   int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 
-  virtual double stripOccupancyPerEvent() const = 0;
-  virtual double hitOccupancyPerEvent() const { return stripOccupancyPerEvent()/2.; }
-  virtual double geometricEfficiency() const = 0;
-  virtual double effectiveDsDistance() const = 0;
+  double stripOccupancyPerEvent() const;
+  double hitOccupancyPerEvent() const { return stripOccupancyPerEvent()/2.; }
+  double geometricEfficiency() const;
+  double effectiveDsDistance() const;
 
   virtual ModuleSubdetector subdet() const = 0;
 
@@ -205,6 +207,8 @@ public:
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
   int numHits() const { return decorated().numHits(); }
   void resetHits() { decorated().resetHits(); }
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPoly(); }
+
 };
 
 
@@ -244,16 +248,6 @@ public:
   double minZ() const { return MIN(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
   double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
   double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-
-  void mirrorZ() { 
-    side(-side());
-    for (auto& s : sensors_) s.poly().mirror(XYZVector(1. ,1. , -1.));
-    decorated().mirror(XYZVector(1., 1., -1.));
-  }
-
-  double stripOccupancyPerEvent() const;
-  double geometricEfficiency() const;
-  double effectiveDsDistance() const { return dsDistance(); }
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
@@ -300,10 +294,6 @@ public:
                         std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
                         return ((side[0]+side[1])/2).Rho(); }
 
-
-  double stripOccupancyPerEvent() const;
-  double geometricEfficiency() const;
-  double effectiveDsDistance() const { return dsDistance() * center().Rho() / center().Z(); } 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
