@@ -1948,14 +1948,14 @@ namespace insur {
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
 
-    ostringstream barrelModuleCoordinates, endcapModuleCoordinates;
     RootWTextFile* myTextFile;
+    createBarrelModulesCsv(tracker);
     createEndcapModulesCsv(tracker);
 //    tracker.printBarrelModuleZ(barrelModuleCoordinates);  // CUIDADO use a visitor for this
 //    tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
     // Barrel coordinates
     myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
-    myTextFile->addText(barrelModuleCoordinates.str());
+    myTextFile->addText(barrelModulesCsv_);
     filesContent->addItem(myTextFile);
     // Endcap coordinates
     myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
@@ -4267,6 +4267,35 @@ namespace insur {
     moduleConnectionsCsv_ = ss.str();
   }
 
+  void Vizard::createBarrelModulesCsv(const Tracker& t) {
+    class BarrelVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string barName_;
+      int layId_;
+      int numRods_;
+    public:
+      void preVisit() {
+        output_ << "BarrelLayer name, r(mm), z(mm), number of modules" << std::endl;
+      }
+      void visit(const Barrel& b) {
+        barName_ = b.myid();
+      }
+      void visit(const Layer& l) {
+        layId_ = l.myid();
+        numRods_ = l.numRods();
+      }
+      void visit(const BarrelModule& m) {
+        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << numRods_ << std::endl;
+      }
+
+      std::string output() const { return output_.str(); }
+    };
+
+    BarrelVisitor v;
+    v.preVisit();
+    t.accept(v);
+    barrelModulesCsv_ = v.output();
+  }
   
   void Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {

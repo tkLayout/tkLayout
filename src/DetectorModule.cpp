@@ -144,7 +144,7 @@ double DetectorModule::stripOccupancyPerEventEndcap() const {
 double DetectorModule::stripOccupancyPerEvent() const {
   if (fabs(tiltAngle()) < 1e-3) return stripOccupancyPerEventBarrel();
   else if (fabs(tiltAngle()) - M_PI/2. < 1e-3) return stripOccupancyPerEventEndcap();
-  else return stripOccupancyPerEventBarrel()*cos(tiltAngle()) + stripOccupancyPerEventEndcap()*(1-cos(tiltAngle()));
+  else return stripOccupancyPerEventBarrel()*pow(cos(tiltAngle()),2) + stripOccupancyPerEventEndcap()*pow(sin(tiltAngle()),2);
 };
 
 double DetectorModule::geometricEfficiency() const {

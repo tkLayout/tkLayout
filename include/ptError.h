@@ -25,6 +25,8 @@ class ptError {
    double Module_r;        // Module's distance form z axis [mm] 
    double Module_d;        // Module thickness [mm]
    double Module_h;        // Module height [mm]
+   double Module_ed;       // Module effective ds distance [mm]
+   double Module_tilt;     // Module tilt angle [radians]
    InefficiencyType inefficiencyType;
  
    RILength material;      // Material amount prior to this module
@@ -60,6 +62,8 @@ class ptError {
    void setModuleType(int newType) { moduleType = newType ; }
    void setEndcapType(int newType) { endcapType = newType ; }
    void setMaterial(RILength newMaterial) { material = newMaterial; }
+   void setEffectiveDistance(double newDistance) { Module_ed = newDistance; }
+   void setTilt(double newTilt) { Module_tilt = newTilt; }
 
    // Parameter getters
    double getPitch() { return Module_pitch ; }
@@ -77,6 +81,7 @@ class ptError {
 //   double stripsToP(double strips);
 //   double pToStrips(double p);
    // Error computation
+   double computeErrorBE(double p); // CUIDADO only for testing, called by computeError after previously setting the correct parameters
    double computeError(double p);
    // Efficiency computation
    double probabilityInside(double cut, double value, double value_err);

@@ -92,7 +92,7 @@ double ptError::pToStrips(double p) {
 } 
 */
 
-double ptError::computeError(double p) {
+double ptError::computeErrorBE(double p) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double g = 1/a;
@@ -152,11 +152,20 @@ double ptError::computeError(double p) {
     //#endif
     break;
   case ENDCAP:
+      {
+        static std::ofstream ofs("pterr.txt");
+        ofs << Module_z << "\t" << Module_r << "\t" << Module_d << "\t" << Module_ed << "\t" << Module_d*Module_r/Module_z << "...\t"; 
     relativeError2 = f1_sq * pow(Module_pitch / (Module_d * Module_r / Module_z),2) / 6; // * 1/tg(theta)
+        ofs << relativeError2 << "\t";
     relativeError2 += f2_sq * pow( deltaPhi ,2);
+        ofs << relativeError2 << "\t";
     relativeError2 += pow( f3 * Module_strip_l / Module_r ,2) / 12;
+        ofs << relativeError2 << "\t";
     relativeError2 += pow( f4 * IP_length / Module_z ,2);
+        ofs << relativeError2 << "\t";
     if (material.radiation!=0) relativeError2 += pow( f5 * deltaTheta, 2);
+        ofs << relativeError2 << std::endl;
+      }
     break;
   default:
     // This should never happen
@@ -166,6 +175,18 @@ double ptError::computeError(double p) {
   }
 
   return sqrt(relativeError2);
+}
+
+double ptError::computeError(double p) {
+  if (moduleType == BARREL && fabs(Module_tilt) > 1e-3) {
+    double errB = computeErrorBE(p);
+    moduleType = ENDCAP;
+    double errE = computeErrorBE(p);
+    moduleType = BARREL;
+    return errB*pow(cos(Module_tilt),2) + errE*pow(sin(Module_tilt),2);
+  } else {
+    return computeErrorBE(p);
+  }
 }
 
 double ptError::oneSidedGaussInt(double x) {

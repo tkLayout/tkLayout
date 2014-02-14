@@ -12,6 +12,7 @@ const double PtErrorAdapter::ptFitParamsHigh[] = { 4.66514e+01, -2.88910e+00, -3
 
 void PtErrorAdapter::setPterrorParameters() {
   myPtError.setDistance( mod_.dsDistance() );
+  myPtError.setEffectiveDistance( mod_.effectiveDsDistance() );
   myPtError.setPitch(mod_.outerSensor().pitch());
   myPtError.setStripLength( mod_.outerSensor().stripLength() );
   XYZVector center = mod_.center();
@@ -20,12 +21,18 @@ void PtErrorAdapter::setPterrorParameters() {
   myPtError.setHeight(mod_.length());
   myPtError.setInefficiencyType(mod_.inefficiencyType());
   myPtError.setModuleType(mod_.subdet());
+  myPtError.setTilt(mod_.tiltAngle());
 }
 
 
 double PtErrorAdapter::getTriggerProbability(const double& trackPt, const double& stereoDistance /*= 0*/, const int& triggerWindow /* = 0 */ ) {
   setPterrorParameters();
-  if (stereoDistance!=0) myPtError.setDistance(stereoDistance);
+  if (stereoDistance!=0) {
+    myPtError.setDistance(stereoDistance);
+    if (fabs(mod_.tiltAngle()) < 1e-3) myPtError.setEffectiveDistance(mod_.dsDistance()); // CUIDADO temporary fix!!! this belongs inside a function
+    else myPtError.setEffectiveDistance(mod_.dsDistance()*sin(mod_.center().Theta())/sin(mod_.center().Theta()+mod_.tiltAngle()));
+
+  }
   int thisTriggerWindow;
   if (triggerWindow!=0) thisTriggerWindow = triggerWindow;
   else thisTriggerWindow = mod_.triggerWindow();

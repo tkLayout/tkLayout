@@ -12,6 +12,7 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Module.h"
+#include "messageLogger.h"
 
 using std::string;
 using std::vector;
@@ -27,6 +28,9 @@ protected:
   Container zPlusModules_, zMinusModules_;
 
   enum class BuildDirection { RIGHT = 1, LEFT = -1 };
+  enum class StartZMode { MODULECENTER, MODULEEDGE };
+
+  Property<StartZMode, Default> startZMode;
 
 private:
   void clearComputables();
@@ -35,6 +39,10 @@ public:
   Property<double, Computable> minZ, maxR, minR;
   ReadonlyProperty<double, Computable> minAperture;
   ReadonlyProperty<double, Computable> maxAperture;
+
+  RodPair() :
+      startZMode("startZ", parsedAndChecked(), StartZMode::MODULECENTER) 
+  {}
 
   void setup() {
     minAperture.setup([this]() { double min = 999; for (auto& m : zPlusModules_) { min = MIN(min, m.phiAperture()); } return min; }); // CUIDADO not checking the zMinus modules, check if this could cause problems down the road
@@ -74,7 +82,7 @@ class StraightRodPair : public RodPair {
 
   // Templated because they need to work both with forward and reverse iterators (mezzanines are built right to left and the rodTemplate vector is iterated backwards)
   double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity);
-  template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool looseStartZ);
+  template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity, int side);
   void buildFull(const RodTemplate& rodTemplate); 
