@@ -44,70 +44,99 @@ bool mainConfigHandler::checkDirectory(string dirName) {
   return true;
 }
 
+void mainConfigHandler::askBinDirectory() {
+  cout << "*** What is the bin directory where you want to" << endl
+      << "    place your executables?" << endl
+      << "    Example: " << getenv(HOMEDIRECTORY) << "/bin : ";
+  cin >> binDirectory_;
+}
+
+void mainConfigHandler::askLayoutDirectory() {
+  cout << "*** What is the web server directory where you want to" << endl
+    << "    place your output?" << endl
+    << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
+  cin >> layoutDirectory_;
+}
+
+void mainConfigHandler::askStandardDirectory() {
+  cout << "*** What is the standard output directory?" << endl
+      << "    xml files and other various output will be put here" << endl
+      << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
+  cin >> standardDirectory_;
+}
+
+void mainConfigHandler::askMomenta() {
+  string tempString = "";
+  string tempString2 = "";
+
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+      << "    tracking performance test (in GeV/c)" << endl
+      << "    Example: 1, 10, 100 : ";
+  cin >> tempString;
+
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  momenta_ = parseDoubleList(tempString);
+}
+
+void mainConfigHandler::askTriggerMomenta() {
+  string tempString = "";
+  string tempString2 = "";
+
+  cout << "*** Specify the list of transverse momenta to be used for the" << endl
+      << "    trigger efficiency performance test (in GeV/c)" << endl
+      << "    Example: 1, 2, 5, 10 : ";
+  cin >> tempString;
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  triggerMomenta_ = parseDoubleList(tempString);
+}
+
+void mainConfigHandler::askThresholdProbabilities() {
+  string tempString = "";
+  string tempString2 = "";
+
+  cout << "*** Specify the list of trigger efficiency to be used for the" << endl
+      << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
+      << "    Example: 1, 50, 90, 95 : ";
+  cin >> tempString;
+  getline(cin,tempString2);
+  tempString+=tempString2;
+  thresholdProbabilities_ = parseDoubleList(tempString);
+  for (vector<double>::iterator it = thresholdProbabilities_.begin();
+      it!=thresholdProbabilities_.end(); ++it) (*it)/=100;
+}
+
+
 bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
-  string tempString;
 
   // Clear screen
   //cout << "\033[2J"; // Clears the screen
   //cout << "\033[1;1H"; // Places cursor on line 1
 
   // I have no configuration, so I must create it
-  cout << "Could not find the configuration file "  << configFileName 
+  cout << "Could not find the configuration file "  << configFileName
     << " maybe this is the first time you run with the new system." << endl;
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
 
-  cout << "*** What is the bin directory where you want to" << endl
-      << "    place your executables?" << endl
-      << "    Example: " << getenv(HOMEDIRECTORY) << "/bin : ";
-    cin >> binDirectory_;
-    if (!checkDirectory(binDirectory_)) return false;
-    cout << endl;
+  askBinDirectory();
+  if (!checkDirectory(binDirectory_)) return false;
+  cout << endl;
 
-  cout << "*** What is the web server directory where you want to" << endl
-    << "    place your output?" << endl
-    << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
-  cin >> layoutDirectory_;
+  askLayoutDirectory();
   if (!checkDirectory(layoutDirectory_)) return false;
   cout << endl;
 
-  cout << "*** What is the standard output directory?" << endl
-    << "    xml files and other various output will be put here" << endl
-    << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
-  cin >> standardDirectory_;
+  askStandardDirectory();
   cout << endl;
 
-  cout << "*** Specify the list of transverse momenta to be used for the" << endl
-    << "    tracking performance test (in GeV/c)" << endl
-    << "    Example: 1, 10, 100 : ";
-  cin >> tempString;
-  string tempString2;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  momenta_ = parseDoubleList(tempString);
+  askMomenta();
 
-  tempString = "";
-  tempString2 = "";
-  cout << "*** Specify the list of transverse momenta to be used for the" << endl
-    << "    trigger efficiency performance test (in GeV/c)" << endl
-    << "    Example: 1, 2, 5, 10 : ";
-  cin >> tempString;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  triggerMomenta_ = parseDoubleList(tempString);
+  askTriggerMomenta();
 
-  tempString = "";
-  tempString2 = "";
-  cout << "*** Specify the list of trigger efficiency to be used for the" << endl
-    << "    pt threshold find test (in percent: write 100 for full efficiency)" << endl
-    << "    Example: 1, 50, 90, 95 : ";
-  cin >> tempString;
-  getline(cin,tempString2);
-  tempString+=tempString2;
-  thresholdProbabilities_ = parseDoubleList(tempString);
-  for (vector<double>::iterator it = thresholdProbabilities_.begin();
-       it!=thresholdProbabilities_.end(); ++it) (*it)/=100;
+  askThresholdProbabilities();
 
   ofstream configFile;
   configFile.open(configFileName.c_str(), ifstream::out);
@@ -116,7 +145,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
     return false;
   } else {
-	configFile << BINDIRECTORYDEFINITION << "=\"" << binDirectory_ << "\"" << endl;
+    configFile << BINDIRECTORYDEFINITION << "=\"" << binDirectory_ << "\"" << endl;
     configFile << LAYOUTDIRECTORYDEFINITION << "=\"" << layoutDirectory_ << "\"" << endl;
     configFile << STANDARDDIRECTORYDEFINITION << "=\"" << standardDirectory_ << "\"" << endl;
 
@@ -168,7 +197,7 @@ vector<double> mainConfigHandler::parseDoubleList(string inString) {
   return split<double>(inString, ",");
 }
 
-bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
+bool mainConfigHandler::readConfigurationFile(string& configFileName) {
   char myLine[1024];
   string parameter, value;
   //bool styleFound=false;
@@ -178,10 +207,14 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   bool momentaFound=false;
   bool triggerMomentaFound=false;
   bool thresholdProbabilitiesFound=false;
+  ifstream configFileIs;
+  ofstream configFileOs;
+
+  configFileIs.open(configFileName.c_str(), ifstream::in);
 
   // Parsing all the lines of the configuration file
-  while (configFile.good()) {
-    configFile.getline(myLine, 1024);
+  while (configFileIs.good()) {
+    configFileIs.getline(myLine, 1024);
     if (parseLine(myLine, parameter, value)) {
       // Case insensitive: the configuration file should be a shell script too
       //std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
@@ -212,6 +245,26 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
         cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
+  }
+  configFileIs.close();
+
+  //ask here for bin directory for backward compatibility of the install script
+  if(!binFound&&layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound){
+    askBinDirectory();
+    if (checkDirectory(binDirectory_)) {
+      configFileOs.open(configFileName.c_str(), ifstream::app);
+      if (!configFileOs.good()) {
+        cout << "Could not open " << configFileName << " for writing. I quit."  << endl;
+        configFileOs.close();
+        return false;
+      } else {
+        configFileOs << BINDIRECTORYDEFINITION << "=\"" << binDirectory_ << "\"" << endl;
+
+        configFileOs.close();
+        binFound = true;
+      }
+    }
+    cout << endl;
   }
 
   //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
@@ -251,9 +304,9 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
     configFile.close();
     goodConfig = createConfigurationFileFromQuestions(configFileName);
   } else {
-    // I will read the configuration out of that
-    goodConfig = readConfigurationFile(configFile);
     configFile.close();
+    // I will read the configuration out of that
+    goodConfig = readConfigurationFile(configFileName);
     if (goodConfig) {
       if (checkDirExists) {
         // Check the basic configuration directories

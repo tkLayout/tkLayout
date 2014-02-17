@@ -57,9 +57,15 @@ private:
   vector<double> triggerMomenta_;
   vector<double> thresholdProbabilities_;
   bool checkDirectory(string dirName) ;
+  void askBinDirectory();
+  void askLayoutDirectory();
+  void askStandardDirectory();
+  void askMomenta();
+  void askTriggerMomenta();
+  void askThresholdProbabilities();
   bool createConfigurationFileFromQuestions(string& configFileName);
   bool parseLine(const char* codeLine, string& parameter, string& value);
-  bool readConfigurationFile(ifstream& configFile);
+  bool readConfigurationFile(string& configFileName);
   bool readConfiguration(bool checkDirExists);
   vector<double> parseDoubleList(string);
   string getBinDirectory_();
