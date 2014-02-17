@@ -12,6 +12,7 @@ using namespace std;
 #define HOMEDIRECTORY "HOME"
 #define CONFIGURATIONFILENAME ".tkgeometryrc"
 #define CONFIGURATIONFILENAMEDEFINITION "TKGEOMETRYRC"
+#define BINDIRECTORYDEFINITION "TKG_BINDIRECTORY"
 #define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
 #define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
 #define MOMENTADEFINITION "TKG_MOMENTA" 
@@ -30,6 +31,7 @@ public:
   bool getConfiguration(bool checkDirExists = true);
   //bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& layoutDirectory);
+  string getBinDirectory();
   string getLayoutDirectory();
   string getStandardDirectory();
   string getStyleDirectory();
@@ -47,6 +49,7 @@ public:
 private:
   bool goodConfigurationRead_;
   //string styleDirectory_;
+  string binDirectory_;
   string layoutDirectory_;
   //string xmlDirectory_;
   string standardDirectory_;
@@ -59,6 +62,7 @@ private:
   bool readConfigurationFile(ifstream& configFile);
   bool readConfiguration(bool checkDirExists);
   vector<double> parseDoubleList(string);
+  string getBinDirectory_();
   string getLayoutDirectory_();
   string getStandardDirectory_();
   string getStyleDirectory_();

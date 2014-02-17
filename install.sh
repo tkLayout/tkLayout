@@ -24,17 +24,6 @@ if [ ! -f $TKG_SETUP_BIN ]; then
     exit -1
 fi
 
-echo "Where should I install the binary?"
-echo -n "(Choose a directory in your PATH) [ $HOME/bin ]: "
-read TKG_BIN_TARGET
-if [ "${TKG_BIN_TARGET}" == "" ] ; then TKG_BIN_TARGET="$HOME/bin" ; fi
-mkdir -p $TKG_BIN_TARGET
-
-if [ ! -d $TKG_BIN_TARGET ] ; then
-    echo I cannot find the target directory $(TKG_BIN_TARGET)
-    exit -1
-fi
-
 # Create/read the configuration file
 if $TKG_SETUP_BIN ; then
     # Get the variables from the program
@@ -42,9 +31,16 @@ if $TKG_SETUP_BIN ; then
     # Get the rest of the configuration from the config file itself
     source $TKG_CONFIGFILE
 
-    cp -f $TKG_MAIN $TKG_BIN_TARGET \
+    mkdir -p $TKG_BINDIRECTORY
+
+    if [ ! -d $TKG_BINDIRECTORY ] ; then
+        echo I cannot find the target directory $(TKG_BINDIRECTORY)
+        exit -1
+    fi
+
+    cp -f $TKG_MAIN $TKG_BINDIRECTORY \
 	&& echo Main program installed/updated \
-	|| echo Failed copying the main program $TKG_MAIN to $TKG_BIN_TARGET
+	|| echo Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY
 
     SVNURL=`$SVNBIN info | grep URL | cut -d' ' -f2-`
     echo $SVNURL | grep -q -e '^http' || {

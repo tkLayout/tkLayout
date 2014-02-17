@@ -26,6 +26,7 @@ template <class T> bool from_string(T& t, const std::string& s,
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
   //styleDirectory_ = "";
+  binDirectory_ = "";
   layoutDirectory_ = "";
   standardDirectory_ = "";
 }
@@ -56,6 +57,13 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
   cout << "Answer to the following questions to have your configuration file automatically created." << endl;
   cout << "You will be later able to edit it manually, or you can just delete it and answer these questions again." << endl;
   cout << endl;
+
+  cout << "*** What is the bin directory where you want to" << endl
+      << "    place your executables?" << endl
+      << "    Example: " << getenv(HOMEDIRECTORY) << "/bin : ";
+    cin >> binDirectory_;
+    if (!checkDirectory(binDirectory_)) return false;
+    cout << endl;
 
   cout << "*** What is the web server directory where you want to" << endl
     << "    place your output?" << endl
@@ -108,6 +116,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile.close();
     return false;
   } else {
+	configFile << BINDIRECTORYDEFINITION << "=\"" << binDirectory_ << "\"" << endl;
     configFile << LAYOUTDIRECTORYDEFINITION << "=\"" << layoutDirectory_ << "\"" << endl;
     configFile << STANDARDDIRECTORYDEFINITION << "=\"" << standardDirectory_ << "\"" << endl;
 
@@ -163,6 +172,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   char myLine[1024];
   string parameter, value;
   //bool styleFound=false;
+  bool binFound=false;
   bool layoutFound=false;
   bool xmlFound=false;
   bool momentaFound=false;
@@ -180,7 +190,10 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
       //styleDirectory_ = value;
       //styleFound=true;
       //} 
-      if (parameter==LAYOUTDIRECTORYDEFINITION) {
+      if (parameter==BINDIRECTORYDEFINITION) {
+        binDirectory_ = value;
+        binFound = true;
+      } else if (parameter==LAYOUTDIRECTORYDEFINITION) {
         layoutDirectory_ = value;
         layoutFound = true;
       } else if (parameter==STANDARDDIRECTORYDEFINITION) {
@@ -202,7 +215,7 @@ bool mainConfigHandler::readConfigurationFile(ifstream& configFile) {
   }
 
   //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
-  return (layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound);
+  return (binFound&&layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound);
 }
 
 bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
@@ -281,6 +294,11 @@ vector<double>& mainConfigHandler::getThresholdProbabilities() {
   return thresholdProbabilities_;
 }
 
+string mainConfigHandler::getBinDirectory() {
+  getConfiguration();
+  return getBinDirectory_();
+}
+
 string mainConfigHandler::getLayoutDirectory() {
   getConfiguration();
   return getLayoutDirectory_();
@@ -326,6 +344,7 @@ string mainConfigHandler::getGeometriesDirectory() {
   return getGeometriesDirectory_();
 }
 
+string mainConfigHandler::getBinDirectory_() { return binDirectory_; }
 string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
 string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
 string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
