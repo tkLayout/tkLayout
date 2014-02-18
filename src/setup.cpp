@@ -1,3 +1,7 @@
+/**
+ * @file setup.cpp
+ * @brief called by the install.sh script, use mainConfigHandler for reading config file
+ */
 #include <global_constants.h>
 #include <mainConfigHandler.h>
 #include <iostream>
