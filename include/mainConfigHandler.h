@@ -1,3 +1,8 @@
+/**
+ * @file mainConfigHandler.h
+ * @brief Takes care of creating, reading and administering the configuration file .tkgeometryrc
+ */
+
 #ifndef _MAINCONFIGHANDLER_H__
 #define _MAINCONFIGHANDLER_H__
 
