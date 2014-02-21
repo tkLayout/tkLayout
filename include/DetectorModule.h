@@ -16,6 +16,7 @@ enum SensorLayout { NOSENSORS, MONO, PT, STEREO };
 enum InefficiencyType { STRIPWISE, EDGEWISE }; 
 enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
 enum ReadoutMode { BINARY, CLUSTER };
+enum HitType { NONE, INNER, OUTER, FULL = 3, STUB = 5 };
 
 
 
@@ -37,6 +38,11 @@ protected:
   mutable std::pair<double,double> cachedMinMaxEtaWithError_;
   XYZVector rAxis_;
   double tiltAngle_ = 0., skewAngle_ = 0.;
+
+  int numHits_ = 0;
+
+  void buildSensorPolys();
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPoly(); }
 public:
   Property<int16_t, AutoDefault> side;
 
@@ -63,8 +69,6 @@ public:
 
   ReadonlyProperty<double, Computable> resolutionLocalX, resolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
-
-  ReadonlyProperty<int, Default> numROCRows, numROCCols;
 
   ReadonlyProperty<double, Default> stereoRotation;
   
@@ -99,8 +103,6 @@ public:
       triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
       triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
       stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
-      numROCRows               ("numROCRows"               , parsedOnly(),  128),
-      numROCCols               ("numROCCols"               , parsedOnly(),  1),
       reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
       trackingTags             ("trackingTags"             , parsedOnly()),
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
@@ -126,6 +128,7 @@ public:
   double maxWidth()  const { return decorated().maxWidth(); }
   double minWidth()  const { return decorated().minWidth(); }
   double meanWidth() const { return decorated().meanWidth(); }
+  double physicalLength() const { return decorated().physicalLength(); }
 
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
@@ -143,8 +146,8 @@ public:
   }
   void mirrorZ() { 
     side(-side());
-    clearSensorPolys();
     decorated().mirror(XYZVector(1., 1., -1.));
+    clearSensorPolys();
   }
 
   void rotateX(double angle) { decorated().rotateX(angle); clearSensorPolys(); }
@@ -205,9 +208,9 @@ public:
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
-  int numHits() const { return decorated().numHits(); }
-  void resetHits() { decorated().resetHits(); }
-  void clearSensorPolys() { for (auto& s : sensors_) s.clearPoly(); }
+  std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
+  int numHits() const { return numHits_; }
+  void resetHits() { numHits_ = 0; }
 
 };
 

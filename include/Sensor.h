@@ -39,12 +39,15 @@ public:
 
   int totalROCs() const { return numROCX() * numROCY(); }
 
+  std::pair<XYZVector, int> checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const;
+
   void build() { 
     try { check(); } 
     catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
     cleanup(); 
   }
   
+  bool hasPoly() const { return poly_ != 0; }
   void clearPoly() { delete poly_; poly_ = 0; } 
   void assignPoly(Polygon3d<4>* const poly) { poly_ = poly; }
 };

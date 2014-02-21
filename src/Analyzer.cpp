@@ -1085,6 +1085,9 @@ Material Analyzer::analyzeModules(std::vector<std::vector<ModuleCap> >& tr,
   return res;
 }
 
+void printPosRefString(std::ostream& os, const Module& m, const string& delim = " ") {
+  os << m.posRef().cnt << delim << m.posRef().z << delim << m.posRef().rho << delim << m.posRef().phi << delim << m.side();
+} 
 
 /**
  * The module-level analysis function loops through all modules of a given layer, checking for collisions with the given track.
@@ -1115,6 +1118,8 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
+  static std::ofstream ofs("hits.txt");
+  ofs << "---- " << theta*180./M_PI << " " << phi*180./M_PI << " ----" << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
@@ -1122,7 +1127,11 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
         distance = iter->getModule().trackCross(origin, direction);
-        if (distance > 0) {
+        if (distance > -1) { ofs << "OLD "; printPosRefString(ofs, iter->getModule()); ofs << " " << distance << std::endl; }
+        auto hit = iter->getModule().checkTrackHits(origin, direction);
+        if (hit.second != HitType::NONE) {
+          distance = hit.first.R();
+          ofs << "NEW "; printPosRefString(ofs, iter->getModule()); ofs << " " << distance << std::endl;
           // module was hit
           hits++;
           r = distance * sin(theta);
@@ -1220,12 +1229,14 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
   for (auto aModule : tracker.modules()) {
 
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    // only consider modules that have type BarrelModule or EndcapModule
     if (aModule->maxZ() > 0) {
 
       // same method as in Tracker, same function used
-      distance = aModule->trackCross(origin, direction);
-      if (distance > 0) {
+      //distance = aModule->trackCross(origin, direction);
+      auto hit = aModule->checkTrackHits(origin, direction);
+      //if (distance > 0) {
+      if (hit.second != HitType::NONE) {
+        double distance = hit.first.R();
         // module was hit
         hits++;
 
@@ -1270,12 +1281,14 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
   direction = dir;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
-    // only consider modules that have type BarrelModule or EndcapModule
     if (iter->getModule().maxZ() > 0) {
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-        distance = iter->getModule().trackCross(origin, direction);
-        if (distance > 0) {
+        //distance = iter->getModule().trackCross(origin, direction);
+        auto hit = iter->getModule().checkTrackHits(origin, direction); 
+        if (hit.second != HitType::NONE) {
+        //if (distance > 0) {
+          double distance = hit.first.R();
           // module was hit
           hits++;
           // r = distance * sin(theta);
@@ -2763,12 +2776,13 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-        if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
-          distance=m->trackCross(origin, direction);
-          if (distance>0) {
+       // if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
+          //distance=m->trackCross(origin, direction);
+          //if (distance>0) {
+          if (m->checkTrackHits(origin, direction).second != HitType::NONE) {
             result.push_back(m);
           }
-        }
+       // }
       }
       return result;
     }

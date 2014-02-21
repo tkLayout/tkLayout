@@ -153,18 +153,18 @@ double ptError::computeErrorBE(double p) {
     break;
   case ENDCAP:
       {
-        static std::ofstream ofs("pterr.txt");
-        ofs << Module_z << "\t" << Module_r << "\t" << Module_d << "\t" << Module_ed << "\t" << Module_d*Module_r/Module_z << "...\t"; 
+//        static std::ofstream ofs("pterr.txt");
+//        ofs << Module_z << "\t" << Module_r << "\t" << Module_d << "\t" << Module_ed << "\t" << Module_d*Module_r/Module_z << "...\t"; 
     relativeError2 = f1_sq * pow(Module_pitch / (Module_d * Module_r / Module_z),2) / 6; // * 1/tg(theta)
-        ofs << relativeError2 << "\t";
+//        ofs << relativeError2 << "\t";
     relativeError2 += f2_sq * pow( deltaPhi ,2);
-        ofs << relativeError2 << "\t";
+//        ofs << relativeError2 << "\t";
     relativeError2 += pow( f3 * Module_strip_l / Module_r ,2) / 12;
-        ofs << relativeError2 << "\t";
+//        ofs << relativeError2 << "\t";
     relativeError2 += pow( f4 * IP_length / Module_z ,2);
-        ofs << relativeError2 << "\t";
+//        ofs << relativeError2 << "\t";
     if (material.radiation!=0) relativeError2 += pow( f5 * deltaTheta, 2);
-        ofs << relativeError2 << std::endl;
+//        ofs << relativeError2 << std::endl;
       }
     break;
   default:

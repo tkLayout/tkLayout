@@ -40,8 +40,10 @@ protected:
   double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
 public:
   Property<double, Default> dsDistance; // a GeometricModule is a purely 2d geometric object represented in 3d space with just a polygon and an additional for thickness value for tracker geometry construction
+  Property<double, Default> physicalLength;
   GeometricModule() :
-      dsDistance("dsDistance", parsedAndChecked(), 0.)
+      dsDistance("dsDistance", parsedAndChecked(), 0.),
+      physicalLength("physicalLength", parsedOnly(), 0.)
   {}
   virtual ~GeometricModule() {}
   void setup() {}

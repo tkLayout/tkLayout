@@ -157,6 +157,37 @@ double DetectorModule::effectiveDsDistance() const {
   else return dsDistance()*sin(center().Theta())/sin(center().Theta()+tiltAngle());
 }
 
+std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
+  buildSensorPolys();
+  HitType ht = HitType::NONE;
+  XYZVector gc; // global coordinates of the hit
+  if (numSensors() == 1) {
+    auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
+    if (segm.second > -1) { gc = segm.first; ht = HitType::FULL; }
+  } else {
+    auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
+    auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
+    if (inSegm.second > -1 && outSegm.second > -1) { 
+      gc = inSegm.first; // in case of both sensors are hit, the inner sensor hit coordinate is returned
+      ht = ((inefficiencyType() == STRIPWISE && inSegm.second == outSegm.second) || inefficiencyType() == EDGEWISE) ? HitType::STUB : HitType::FULL;
+    } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
+    else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
+  }
+  if (ht != HitType::NONE) numHits_++;
+  return std::make_pair(gc, ht);
+};
+
+void DetectorModule::buildSensorPolys() {
+  int i = 0;
+  for (auto& s : sensors_) {
+    if (!s.hasPoly()) {
+        Polygon3d<4>* poly = new Polygon3d<4>(basePoly());
+        if (numSensors() > 1) poly->translate(normal()*(-dsDistance()/2 + dsDistance()*i++/(numSensors()-1)));
+        s.assignPoly(poly);
+    }
+  }
+}
+
 void BarrelModule::build() {
   try {
     DetectorModule::build();

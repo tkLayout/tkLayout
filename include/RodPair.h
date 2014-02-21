@@ -27,7 +27,7 @@ public:
 protected:
   Container zPlusModules_, zMinusModules_;
 
-  enum class BuildDirection { RIGHT = 1, LEFT = -1 };
+  enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
 
   Property<StartZMode, Default> startZMode;
@@ -81,10 +81,10 @@ public:
 class StraightRodPair : public RodPair {
 
   // Templated because they need to work both with forward and reverse iterators (mezzanines are built right to left and the rodTemplate vector is iterated backwards)
-  double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDirection direction, int parity);
-  template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDirection direction, int smallParity, bool fixedStartZ);
+  double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
+  template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDirection direction, int parity, int side);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side);
   void buildFull(const RodTemplate& rodTemplate); 
   void buildMezzanine(const RodTemplate& rodTemplate); 
 
@@ -117,6 +117,8 @@ public:
   void build(const RodTemplate& rodTemplate);
 
   void compressToZ(double z);
+  bool solveCollisionsZPlus();
+  bool solveCollisionsZMinus();
 
 };
 
@@ -129,7 +131,7 @@ struct TiltedModuleSpecs {
 };
 
 class TiltedRodPair : public RodPair {
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDirection direction);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
 public:
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
 
