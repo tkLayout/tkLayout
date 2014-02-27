@@ -33,37 +33,93 @@ void StraightRodPair::compressToZ(double z) {
 
   if (zPlusModules_.empty()) return;
 
-  const BarrelModule& maxBarrelModule = *std::max_element(zPlusModules_.begin(), zPlusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.maxZ() < m2.maxZ(); });
-  const BarrelModule& minBarrelModule = *std::min_element(zMinusModules_.begin(), zMinusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.minZ() < m2.minZ(); });
+  logINFO("Layer slated for compression");
 
-  double maxZ = fabs(maxBarrelModule.maxZ());
-  double minZ = fabs(minBarrelModule.minZ());
+  auto findMaxZModule = [&]() { return *std::max_element(zPlusModules_.begin(), zPlusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.maxZ() < m2.maxZ(); }); };
+  auto findMinZModule = [&]() { return *std::min_element(zMinusModules_.begin(), zMinusModules_.end(), [](const BarrelModule& m1, const BarrelModule& m2) { return m1.minZ() < m2.minZ(); }); };
 
-  double Deltap =  fabs(z) - maxZ;
-  double Deltam = -fabs(z) + minZ;
+  double Deltap =  fabs(z) - findMaxZModule().maxZ();
+  double Deltam = -fabs(z) - findMinZModule().minZ();
 
   logINFO("Rod length cannot exceed " + any2str(z));
-  logINFO("  zPlus rod will be compressed by " + any2str(Deltap));
-  logINFO("  zMinus rod will be compressed by " + any2str(Deltam));
+  logINFO("  Z+ rod will be compressed by " + any2str(fabs(Deltap)));
+  logINFO("  Z- rod will be compressed by " + any2str(fabs(Deltam)));
 
-  double deltam=0;
-  double deltap=0;
-  XYZVector modShift;
-  deltam=Deltam/((minBarrelModule.center()).Z());
-  deltap=Deltap/((maxBarrelModule.center()).Z());
-  for (auto& m : zPlusModules_) {
-    double myMeanZ = m.center().Z();
-    m.translateZ(myMeanZ > 0 ? deltap*myMeanZ : deltam*myMeanZ);
+  if (allowCompressionCuts()) {
+    logINFO("Compression algorithm is allowed to cut modules which fall out entirely from the maximum z line");
+    int zPlusOrigSize = zPlusModules_.size();
+    for (auto it = zPlusModules_.begin(); it != zPlusModules_.end();) {
+      if (it->minZ() > z) it = zPlusModules_.erase(it); 
+      else ++it;
+    }
+    logINFO("  " + any2str(zPlusOrigSize - zPlusModules_.size()) + " modules were cut from the Z+ rod");
+    if (zPlusOrigSize - zPlusModules_.size()) { 
+      Deltap = fabs(z) - findMaxZModule().maxZ();  // we have to use findMaxZModule instead of checking only the last module as there might be inversions at high Z
+      logINFO("  Z+ rod now exceeding by " + any2str(fabs(Deltap)));
+    }
+    int zMinusOrigSize = zMinusModules_.size();
+    for (auto it = zMinusModules_.begin(); it != zMinusModules_.end();) {
+      if (it->maxZ() < -z) it = zMinusModules_.erase(it); 
+      else ++it;
+    }
+    logINFO("  " + any2str(zMinusOrigSize - zMinusModules_.size()) + " modules were cut from the Z- rod");
+    if (zMinusOrigSize - zMinusModules_.size()) { 
+      Deltam = -fabs(z) - findMinZModule().minZ(); 
+      logINFO("  Z- rod now exceeding by " + any2str(fabs(Deltam)));
+    }
   }
-  for (auto& m : zMinusModules_) {
-    double myMeanZ = m.center().Z();
-    m.translateZ(myMeanZ > 0 ? deltap*myMeanZ : deltam*myMeanZ);
+
+  logINFO("Iterative compression of Z+ rod");
+  int i;
+  static const int maxIterations = 50;
+  for (i = 0; fabs(Deltap) > 0.1 && i < maxIterations; i++) {
+    double deltap=Deltap/((findMaxZModule().center()).Z());
+    std::map<int, double> zGuards;
+    zGuards[1] = zGuards[-1] = std::numeric_limits<double>::lowest();
+    int parity = zPlusParity();
+    for (auto it = zPlusModules_.begin(); it < zPlusModules_.end(); ++it, parity = -parity) {
+      double translation = deltap*it->center().Z();
+      double minPhysZ = MIN(it->minZ(), it->center().Z() - it->physicalLength()/2);
+      if (minPhysZ + translation < zGuards[parity]) 
+        translation = zGuards[parity] - minPhysZ;
+      it->translateZ(translation); 
+      double maxPhysZ = MAX(it->maxZ(), it->center().Z() + it->physicalLength()/2);
+      zGuards[parity] = maxPhysZ;
+    }
+    Deltap =  fabs(z) - findMaxZModule().maxZ();
   }
+  if (i == maxIterations) {
+    logINFO("Iterative compression didn't terminate after " + any2str(maxIterations) + " iterations. Z+ rod still exceeds by " + any2str(fabs(Deltap))); 
+    logWARNING("Failed to compress Z+ rod. Still exceeding by " + any2str(fabs(Deltap)) + ". Check info tab.");
+  } else logINFO("Z+ rod successfully compressed after " + any2str(i) + " iterations. Rod now only exceeds by " + any2str(fabs(Deltap)) + " mm.");
+
+  logINFO("Iterative compression of Z- rod");
+  for (i = 0; fabs(Deltam) > 0.1 && i < maxIterations; i++) {
+    double deltam=Deltam/((findMinZModule().center()).Z()); // this can be optimized
+    std::map<int, double> zGuards;
+    zGuards[1] = zGuards[-1] = std::numeric_limits<double>::max();
+    int parity = -zPlusParity();
+    for (auto it = zMinusModules_.begin(); it < zMinusModules_.end(); ++it, parity = -parity) {
+      double translation = deltam*it->center().Z();
+      double maxPhysZ = MAX(it->maxZ(), it->center().Z() + it->physicalLength()/2);
+      if (maxPhysZ + translation > zGuards[parity]) 
+        translation = zGuards[parity] - maxPhysZ;
+      it->translateZ(translation); 
+      double minPhysZ = MIN(it->minZ(), it->center().Z() - it->physicalLength()/2);
+      zGuards[parity] = minPhysZ;
+    }
+    Deltam = -fabs(z) - findMinZModule().minZ(); 
+  }  
+  if (i == 20) {
+    logINFO("Iterative compression didn't terminate after " + any2str(maxIterations) + " iterations. Z- rod still exceeds by " + any2str(fabs(Deltam))); 
+    logWARNING("Failed to compress Z- rod. Still exceeding by " + any2str(fabs(Deltam)) + ". Check info tab.");
+  } else logINFO("Z- rod successfully compressed after " + any2str(i) + " iterations. Rod now only exceeds by " + any2str(fabs(Deltam)) + " mm.");
 
 }
 
-bool StraightRodPair::solveCollisionsZPlus() {
+std::set<int> StraightRodPair::solveCollisionsZPlus() {
   std::map<int, double> zGuards;
+  std::set<int> collisions;
   zGuards[1] = zGuards[-1] = std::numeric_limits<double>::lowest();
   int parity = zPlusParity();
   int n = 1;
@@ -74,6 +130,7 @@ bool StraightRodPair::solveCollisionsZPlus() {
     if (zGuards[parity] > minPhysZ) {
       double offset = zGuards[parity] - minPhysZ;
       m.translateZ(offset);
+      collisions.insert(n);
       logINFO("  Module " + any2str(n) + " collides with previous " + (parity > 0 ? "outer" : "inner") + " module. Translated by " + any2str(offset) + " mm");
       found = true;
     }
@@ -81,28 +138,29 @@ bool StraightRodPair::solveCollisionsZPlus() {
     parity = -parity;
     n++;
   }
-  return found;
+  return collisions;
 }
 
-bool StraightRodPair::solveCollisionsZMinus() {
+std::set<int> StraightRodPair::solveCollisionsZMinus() {
   std::map<int, double> zGuards;
+  std::set<int> collisions;
   zGuards[1] = zGuards[-1] = std::numeric_limits<double>::max();
   int parity = -zPlusParity();
   int n = -1;
-  bool found = false;
   logINFO("Checking for collisions in Z- rod");
   for (auto& m : zMinusModules_) {
     double maxPhysZ = m.center().Z() + MAX(m.physicalLength(), m.length())/2;
     if (zGuards[parity] < maxPhysZ) {
       double offset = zGuards[parity] - maxPhysZ;
       m.translateZ(offset);
+      collisions.insert(n);
       logINFO("  Module " + any2str(n) + " collides with previous " + (parity > 0 ? "outer" : "inner") + " module. Translated by " + any2str(offset) + " mm");
     }
     zGuards[parity] = m.center().Z() - MAX(m.physicalLength(), m.length())/2;
     parity = -parity;
     n--;
   }
-  return found;
+  return collisions;
 }
 
 
@@ -262,9 +320,11 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
   // CUIDADO this only checks the positive side... the negative side might actually have a higher fabs(maxZ) if the barrel is long enough and there's an inversion
   buildModules(zMinusModules_, rodTemplate, zListPair.second, BuildDir::LEFT, -zPlusParity(), -1);
 
-  if (maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
-  
-  if (solveCollisionsZPlus() | solveCollisionsZMinus()) logWARNING("Some modules have been translated to avoid collisions. Check info tab");
+  auto collisionsZPlus = solveCollisionsZPlus();
+  auto collisionsZMinus = solveCollisionsZMinus();
+  if (!collisionsZPlus.empty() || !collisionsZMinus.empty()) logWARNING("Some modules have been translated to avoid collisions. Check info tab");
+
+  if (compressed() && maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
   currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->maxZ(), (zPlusModules_.rbegin()+1)->maxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->maxZ() : 0.); 
   maxZ(currMaxZ);
 }

@@ -4285,6 +4285,7 @@ namespace insur {
         numRods_ = l.numRods();
       }
       void visit(const BarrelModule& m) {
+        if (m.posRef().phi > 2) return;
         output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << numRods_ << std::endl;
       }
 

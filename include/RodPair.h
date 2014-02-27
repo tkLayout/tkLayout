@@ -99,26 +99,30 @@ public:
   Property<int, NoDefault> buildNumModules;
   Property<bool, Default> mezzanine;
   Property<double, NoDefault> startZ;
+  Property<bool, Default> compressed;
+  Property<bool, Default> allowCompressionCuts;
 
   PropertyNode<int> ringNode;
 
   
   StraightRodPair() :
-              minModuleOverlap("minModuleOverlap", parsedAndChecked() , 1.),
-              zError          ("zError"          , parsedAndChecked()),
-              zPlusParity     ("smallParity"     , parsedAndChecked()),
-              mezzanine       ("mezzanine"       , parsedOnly(), false),
-              startZ          ("startZ"          , parsedOnly()),
-              ringNode        ("Ring"            , parsedOnly())
+              minModuleOverlap    ("minModuleOverlap"    , parsedAndChecked() , 1.),
+              zError              ("zError"              , parsedAndChecked()),
+              zPlusParity         ("smallParity"         , parsedAndChecked()),
+              mezzanine           ("mezzanine"           , parsedOnly(), false),
+              startZ              ("startZ"              , parsedOnly()),
+              compressed          ("compressed"          , parsedOnly(), true),
+              allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
+              ringNode            ("Ring"                , parsedOnly())
   {}
 
 
   
   void build(const RodTemplate& rodTemplate);
 
+  std::set<int> solveCollisionsZPlus();
+  std::set<int> solveCollisionsZMinus();
   void compressToZ(double z);
-  bool solveCollisionsZPlus();
-  bool solveCollisionsZMinus();
 
 };
 

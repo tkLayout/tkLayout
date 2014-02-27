@@ -1118,20 +1118,16 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
   // set the track direction vector
   dir.SetCoordinates(1, theta, phi);
   direction = dir;
-  static std::ofstream ofs("hits.txt");
-  ofs << "---- " << theta*180./M_PI << " " << phi*180./M_PI << " ----" << std::endl;
   while (iter != guard) {
     // collision detection: rays are in z+ only, so consider only modules that lie on that side
     // only consider modules that have type BarrelModule or EndcapModule
     if (iter->getModule().maxZ() > 0) {
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
-        distance = iter->getModule().trackCross(origin, direction);
-        if (distance > -1) { ofs << "OLD "; printPosRefString(ofs, iter->getModule()); ofs << " " << distance << std::endl; }
+        //distance = iter->getModule().trackCross(origin, direction);
         auto hit = iter->getModule().checkTrackHits(origin, direction);
         if (hit.second != HitType::NONE) {
           distance = hit.first.R();
-          ofs << "NEW "; printPosRefString(ofs, iter->getModule()); ofs << " " << distance << std::endl;
           // module was hit
           hits++;
           r = distance * sin(theta);
@@ -2552,14 +2548,19 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetTitle("Number of hit modules;#eta;Number of hits");
   totalEtaProfile.SetBins(100, 0, maxEta);
 
+  XYZVector dir(0, 1, 0);
   // Shoot nTracksPerSide^2 tracks
+  double angle = M_PI/2/(double)nTracksPerSide;
   for (int i=0; i<nTracksPerSide; i++) {
     for (int j=0; j<nTracksPerSide; j++) {
       // Reset the hit counter
       nTrackHits=0;
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
+      //hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
+      hitModules = trackHit(XYZVector(0, 0, 0), dir, tracker.modules());
+      dir.SetY(dir.Y()*cos(angle) - dir.Z()*sin(angle));
+      dir.SetZ(dir.Y()*sin(angle) + dir.Z()*cos(angle));
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
       for (ModuleVector::iterator it = hitModules.begin(); it!=hitModules.end(); it++) {
@@ -2771,18 +2772,24 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       ModuleVector::iterator modIt;
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
+      //double theta = direction.Theta()*180/M_PI;
+      //double phi = direction.Phi()*180/M_PI;
+      //double z = origin.Z();
 
-
+      //static std::ofstream ofs("hits.txt");
+      //ofs << "---- " << theta << " " << phi << " " << z << " ----" << std::endl;
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
-       // if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
+        if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
           //distance=m->trackCross(origin, direction);
-          //if (distance>0) {
-          if (m->checkTrackHits(origin, direction).second != HitType::NONE) {
+          auto h = m->checkTrackHits(origin, direction); 
+          //if (distance > -1) { ofs << "OLD "; printPosRefString(ofs, *m); ofs << " " << distance << std::endl; }
+          //if (h.second != HitType::NONE) { ofs << "NEW "; printPosRefString(ofs, *m); ofs << " " << h.first.R() << " " << h.second << std::endl; }
+          if (h.second != HitType::NONE) {
             result.push_back(m);
           }
-       // }
+        }
       }
       return result;
     }

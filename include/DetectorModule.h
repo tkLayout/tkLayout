@@ -146,7 +146,14 @@ public:
   }
   void mirrorZ() { 
     side(-side());
-    decorated().mirror(XYZVector(1., 1., -1.));
+    double zTranslation = -center().Z();
+    double zRotation = -center().Phi();
+    translateZ(zTranslation);
+    rotateZ(zRotation);
+    rotateY(M_PI);
+    translateZ(zTranslation);
+    rotateZ(-zRotation);
+    //decorated().mirror(XYZVector(1., 1., -1.));
     clearSensorPolys();
   }
 

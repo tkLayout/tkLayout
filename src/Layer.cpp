@@ -164,8 +164,8 @@ void Layer::buildTilted() {
   while(getline(ifs, line).good()) {
     auto tokens = split<double>(line, ",");
     if (tokens.size() < 7) continue;
-    TiltedModuleSpecs t1{ tokens[0], tokens[1], tokens[2] };
-    TiltedModuleSpecs t2{ tokens[3], tokens[4], tokens[5] };
+    TiltedModuleSpecs t1{ tokens[0], tokens[1], tokens[2]*M_PI/180. };
+    TiltedModuleSpecs t2{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
     if (t1.valid()) tmspecs1.push_back(t1);
     if (t2.valid()) tmspecs2.push_back(t2);
     numRods_ = tokens[6]; // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
