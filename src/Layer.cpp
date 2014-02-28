@@ -163,7 +163,7 @@ void Layer::buildTilted() {
   vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
   while(getline(ifs, line).good()) {
     auto tokens = split<double>(line, ",");
-    if (tokens.size() < 7) continue;
+    if (tokens.size() < 7) { logERROR("Failed parsing tilted barrel line: " + line); continue; };
     TiltedModuleSpecs t1{ tokens[0], tokens[1], tokens[2]*M_PI/180. };
     TiltedModuleSpecs t2{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
     if (t1.valid()) tmspecs1.push_back(t1);
