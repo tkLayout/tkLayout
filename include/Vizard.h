@@ -210,9 +210,14 @@ namespace insur {
                       double etaStep, double etaMax, double etaLongLine);
     void drawTicks(Analyzer& a, TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
-    bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
-    bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer);
+    bool drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles); // generic business logic called by hit or stub version with appropriate parameters
+    bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer); // for hits
+    bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer); // for hits
+    bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
+    bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
+    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
+    bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 

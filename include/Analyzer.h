@@ -164,12 +164,15 @@ namespace insur {
     void analyzePower(Tracker& tracker);
     void createGeometryLite(Tracker& tracker);
     TH2D& getMapPhiEta() { return mapPhiEta; }
-    TCanvas& getEtaProfileCanvas() {return etaProfileCanvas;};
-    TH1D& getHitDistribution() {return hitDistribution;};
-    TProfile& getTotalEtaProfile() {return totalEtaProfile;};
+    TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
+    TH1D& getHitDistribution() {return hitDistribution; }
+    TProfile& getTotalEtaProfile() {return totalEtaProfile; }
+    TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
     TGraph& getPowerDensity() {return powerDensity;};
-    std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile;};
-    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;};
+    std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
+    std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
+    std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
+    std::map<std::string, TProfile>& getLayerEtaCoverageProfilesStubs() {return layerEtaCoverageProfileStubs; }
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
     TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
@@ -337,9 +340,9 @@ namespace insur {
     StubRateHistos trueStubRateHistos_;
 
     TGraph powerDensity;
-    TProfile totalEtaProfile;
-    std::vector<TProfile> typeEtaProfile;
-    std::map<std::string, TProfile> layerEtaCoverageProfile;
+    TProfile totalEtaProfile, totalEtaProfileStubs;
+    std::vector<TProfile> typeEtaProfile, typeEtaProfileStubs;
+    std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
 
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
@@ -393,7 +396,7 @@ namespace insur {
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-    ModuleVector trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
+    std::vector<std::pair<Module*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
     Color_t colorPicker(std::string);

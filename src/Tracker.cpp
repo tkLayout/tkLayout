@@ -8,7 +8,8 @@ std::pair<double, double> Tracker::computeMinMaxEta() const {
   } 
 
   //return std::make_pair(-1*log(tan(min/2.)), -1*log(tan(max/2.)));
-  return std::make_pair(min, max);
+  //return std::make_pair(min, max);
+  return std::make_pair(-4.0,4.0); // CUIDADO to make it equal to the extended pixel - make it better ASAP!!
 }
 
 void Tracker::build() {

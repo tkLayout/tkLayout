@@ -1726,10 +1726,16 @@ namespace insur {
      */
 
     // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfile", "Eta profile", 600, 600);
+    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hits)", 600, 600);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
     myImage->setComment("Hit coverage in eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfile", "Eta profile (Stubs)", 600, 600);
+    drawEtaProfilesStubs(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setComment("Stub coverage in eta");
     myContent->addItem(myImage);
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
@@ -1748,6 +1754,7 @@ namespace insur {
     myContent->addItem(myImage);
 
     drawEtaCoverage(*myPage, analyzer);
+    drawEtaCoverageStubs(*myPage, analyzer);
 
     // // Power density
     // myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
@@ -1777,6 +1784,18 @@ namespace insur {
     myPad.SetFillColor(color_plot_background);
     TProfile& totalEtaProfile = analyzer.getTotalEtaProfile();
     std::vector<TProfile>& etaProfiles = analyzer.getTypeEtaProfiles();
+    return drawEtaProfilesAny(totalEtaProfile, etaProfiles);
+  }
+
+  bool Vizard::drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfileStubs = analyzer.getTotalEtaProfileStubs();
+    std::vector<TProfile>& etaProfilesStubs = analyzer.getTypeEtaProfilesStubs();
+    return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
+  }
+
+  bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles) {
     std::vector<TProfile>::iterator etaProfileIterator;
     totalEtaProfile.SetMaximum(15); // TODO: make this configurable
     totalEtaProfile.SetMinimum(0); // TODO: make this configurable
@@ -1799,19 +1818,33 @@ namespace insur {
     return drawEtaProfiles(*myVirtualPad, analyzer);
   }
 
+  bool Vizard::drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesStubs(*myVirtualPad, analyzer);
+  }
+
+
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
-    std::map<std::string, TProfile>& layerEtaCoverage = analyzer.getLayerEtaCoverageProfiles();
+    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
+  }
+
+  bool Vizard::drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer) {
+    return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfilesStubs(), "Stubs");
+  }
+
+  bool Vizard::drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type) {
     if (layerEtaCoverage.size()==0) return false;
 
     TCanvas* myCanvas;
-    RootWContent* myContent = new RootWContent("Layer coverage", false);
+    RootWContent* myContent = new RootWContent("Layer coverage (" + type + ")", false);
     myPage.addContent(myContent);
 
     int layerCount = 0;
     for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
       TProfile& aProfile = it->second;
       layerCount++;
-      myCanvas = new TCanvas(Form("LayerCoverage%03d", layerCount), "Layer eta coverage", 1200, 600);
+      myCanvas = new TCanvas(Form("LayerCoverage%s%03d", type.c_str(), layerCount), ("Layer eta coverage (" + type + ")").c_str(), 1200, 600);
       myCanvas->cd();
 
 
@@ -1836,7 +1869,7 @@ namespace insur {
       zoomedProfile->Draw();
 
       RootWImage* myImage = new RootWImage(myCanvas, 1200, 600);
-      myImage->setComment("Layer coverage in eta (multiple hits in the same layer are counted once here)");
+      myImage->setComment("Layer coverage in eta for " + type + "(multiple occurrences in the same layer are counted once here)");
       myContent->addItem(myImage);
     }
     return true;
