@@ -18,7 +18,7 @@ class IrradiationPowerVisitor : public GeometryVisitor {
   double chargeDepletionVoltage;
   double alphaParam;
   double referenceTemp;
-  const IrradiationMap* irradiationMap_;
+  const IrradiationMapsManager* irradiationMap_;
 public:
   MultiSummaryTable irradiatedPowerConsumptionSummaries;
 
@@ -32,7 +32,7 @@ public:
     chargeDepletionVoltage = sp.chargeDepletionVoltage();
     alphaParam       = sp.alphaParm();
     referenceTemp    = sp.referenceTemp();
-    irradiationMap_  = &sp.irradiationMap();
+    irradiationMap_  = &sp.irradiationMapsManager();
   }
 
   void visit(Barrel& b) {
@@ -46,22 +46,50 @@ public:
   }
 
   void visit(DetectorModule& m) {
-    XYZVector center = m.center();
-    if (center.Z() < 0) return;
+    if (m.maxZ() < 0) return;
+    double irrxy = 0;
+    double irrPoint = 0;
+    /*double irrPointCen = 0;
+    double irrPoint11 = 0;
+    double irrPoint12 = 0;
+    double irrPoint21 = 0;
+    double irrPoint22 = 0;*/
+
+    auto vertex11 = std::make_pair(m.minZ(), m.minR());
+    auto vertex12 = std::make_pair(m.maxZ(), m.minR());
+    auto vertex21 = std::make_pair(m.minZ(), m.maxR());
+    auto vertex22 = std::make_pair(m.maxZ(), m.maxR());
+    
+    XYZVector centerVector = m.center();
+    auto center = std::make_pair(centerVector.Z(), centerVector.Rho());
+
+    //if (centerVector.Z() < 0) return;
     double volume = 0.;
     for (const auto& s : m.sensors()) volume += s.sensorThickness() * m.area() / 1000.0; // volume is in cm^3
-    double x  = center.Z()/25;
-    double y  = center.Rho()/25;
-    double x1 = floor(x);
-    double x2 = ceil(x);
-    double y1 = floor(y);
-    double y2 = ceil(y);
-    double irr11 = irradiationMap_->at(std::make_pair(int(x1), int(y1))); 
-    double irr21 = irradiationMap_->at(std::make_pair(int(x2), int(y1)));
-    double irr12 = irradiationMap_->at(std::make_pair(int(x1), int(y2)));
-    double irr22 = irradiationMap_->at(std::make_pair(int(x2), int(y2)));
-    double irrxy = irr11/((x2-x1)*(y2-y1))*(x2-x)*(y2-y) + irr21/((x2-x1)*(y2-y1))*(x-x1)*(y2-y) + irr12/((x2-x1)*(y2-y1))*(x2-x)*(y-y1) + irr22/((x2-x1)*(y2-y1))*(x-x1)*(y-y1); // bilinear interpolation
-    double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2 
+
+    //calculate irradiation in each vertex (and center) and take the worst
+    irrPoint = irradiationMap_->calculateIrradiationPower(center);
+    //irrPointCen = irrPoint;
+    if(irrPoint > irrxy) irrxy = irrPoint;
+
+    irrPoint = irradiationMap_->calculateIrradiationPower(vertex11);
+    //irrPoint11 = irrPoint;
+    if(irrPoint > irrxy) irrxy = irrPoint;
+
+    irrPoint = irradiationMap_->calculateIrradiationPower(vertex12);
+    //irrPoint12 = irrPoint;
+    if(irrPoint > irrxy) irrxy = irrPoint;
+
+    irrPoint = irradiationMap_->calculateIrradiationPower(vertex21);
+    //irrPoint21 = irrPoint;
+    if(irrPoint > irrxy) irrxy = irrPoint;
+
+    irrPoint = irradiationMap_->calculateIrradiationPower(vertex22);
+    //irrPoint22 = irrPoint;
+    if(irrPoint > irrxy) irrxy = irrPoint;
+
+    double fluence = irrxy * numInvFemtobarns; // fluence is in 1MeV-equiv-neutrons/cm^2
+    //double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2
     double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
     double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         
     //cout << "mod irr: " << cntName << "," << module->getLayer() << "," << module->getRing() << ";  " << module->getThickness() << "," << center.Rho() << ";  " << volume << "," << fluence << "," << leakCurrentScaled << "," << irradiatedPowerConsumption << endl;

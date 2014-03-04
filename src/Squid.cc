@@ -117,7 +117,12 @@ namespace insur {
       });
 
       simParms_ = new SimParms();
-      simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
+
+      //iter between the default irradiation files vector and add each to simParm
+      for (auto singleIrradiationFile : insur::default_irradiationfiles) {
+        simParms_->addIrradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + singleIrradiationFile);
+      }
+      //simParms_->irradiationMapFile(mainConfiguration.getIrradiationDirectory() + "/" + insur::default_irradiationfile);
       simParms_->store(getChild(pt, "SimParms"));
       simParms_->build();
       a.simParms(simParms_);

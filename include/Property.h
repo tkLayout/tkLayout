@@ -215,6 +215,9 @@ public:
     else values.erase(values.begin(), values.begin()+1);
     for (const auto& v : values) values_.push_back(v);
   }
+  void appendString(const string& s) {
+    values_.push_back(trim(s));
+  }
 }; 
 
 

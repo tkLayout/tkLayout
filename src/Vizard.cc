@@ -2324,7 +2324,7 @@ namespace insur {
     };
 
 
-    PlotDrawer<YZ, IrradiationPower, Average> yzPowerDrawer(0, 0); // CUIDADO fix this: one should be total power, the other sensor only
+    PlotDrawer<YZ, IrradiationPower, Average> yzPowerDrawer(0, 0);
     PlotDrawer<YZ, TotalIrradiationPower, Average> yzTotalPowerDrawer(0, 0);
 
     yzPowerDrawer.addModules<CheckType<BARREL | ENDCAP>>(tracker.modules().begin(), tracker.modules().end());

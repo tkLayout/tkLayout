@@ -11,11 +11,12 @@
 #include "Property.h"
 #include "capabilities.h"
 #include "Visitor.h"
+#include "IrradiationMapsManager.h"
 
-typedef std::map<std::pair<int,int>, double> IrradiationMap;
+//typedef std::map<std::pair<int,int>, double> IrradiationMap;
 
 class SimParms : public PropertyObject, public Buildable {
-  IrradiationMap irradiationMap_;
+  IrradiationMapsManager irradiationMapsManager_;
 public:
   
   ReadonlyProperty<int, NoDefault> numMinBiasEvents;
@@ -42,7 +43,8 @@ public:
 
   ReadonlyProperty<double, Default> magneticField;
 
-  Property<std::string, NoDefault> irradiationMapFile;
+  PropertyVector<std::string, ','> irradiationMapFiles;
+  //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
   PropertyNode<std::string> taggedTracking;
 
@@ -66,13 +68,16 @@ public:
       alphaParm("alphaParm", parsedOnly(), 4e-17),
       referenceTemp("referenceTemp", parsedOnly(), 20),
       magneticField("magneticField", parsedOnly(), 3.8),
-      irradiationMapFile("irradiationMapFile", parsedAndChecked()), 
+      irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
+      //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
       taggedTracking("TaggedTracking", parsedOnly())
-  {}
+  { }
 
   void build();
 
-  const IrradiationMap& irradiationMap() const { return irradiationMap_; }
+  void addIrradiationMapFile(std::string path);
+
+  const IrradiationMapsManager& irradiationMapsManager() const { return irradiationMapsManager_; }
 
   void accept(GeometryVisitor& v) { v.visit(*this); }
   void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
