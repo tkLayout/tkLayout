@@ -2,7 +2,7 @@
 moduleType ptOut
 
 sensorLayout pt
-inefficiencyType edgewise
+zCorrelation multisegment
 
 numSensors 2
 

@@ -148,7 +148,7 @@ double DetectorModule::stripOccupancyPerEvent() const {
 };
 
 double DetectorModule::geometricEfficiency() const {
-  double inefficiency = fabs(dsDistance() / (inefficiencyType()==STRIPWISE ? outerSensor().stripLength() : length()) / tan(center().Theta()+tiltAngle())); // fabs prevents the inefficiency from becoming negative when theta+tilt > 90 deg (meaning the geometrically inefficient area is on the other end of the module)
+  double inefficiency = fabs(dsDistance() / (zCorrelation()==SAMESEGMENT ? outerSensor().stripLength() : length()) / tan(center().Theta()+tiltAngle())); // fabs prevents the inefficiency from becoming negative when theta+tilt > 90 deg (meaning the geometrically inefficient area is on the other end of the module)
   return 1-inefficiency;
 }
 
@@ -163,13 +163,13 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   XYZVector gc; // global coordinates of the hit
   if (numSensors() == 1) {
     auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
-    if (segm.second > -1) { gc = segm.first; ht = HitType::FULL; }
+    if (segm.second > -1) { gc = segm.first; ht = HitType::BOTH; }
   } else {
     auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
     if (inSegm.second > -1 && outSegm.second > -1) { 
       gc = inSegm.first; // in case of both sensors are hit, the inner sensor hit coordinate is returned
-      ht = ((inefficiencyType() == STRIPWISE && inSegm.second == outSegm.second) || inefficiencyType() == EDGEWISE) ? HitType::STUB : HitType::FULL;
+      ht = ((zCorrelation() == SAMESEGMENT && inSegm.second == outSegm.second) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
     } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
@@ -219,6 +219,6 @@ void EndcapModule::build() {
 
 
 define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
-define_enum_strings(InefficiencyType) = { "stripwise", "edgewise" };
+define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
 define_enum_strings(ReadoutType) = { "strip", "pixel", "pt" };
 define_enum_strings(ReadoutMode) = { "binary", "cluster" };

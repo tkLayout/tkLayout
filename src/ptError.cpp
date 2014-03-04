@@ -17,80 +17,10 @@ void ptError::defaultParameters() {
   Module_r = defaultModuleR;
   Module_d = defaultModuleD;
   Module_h = defaultModuleHeight;
-  inefficiencyType = defaultInefficiencyType;
+  zCorrelation = defaultZCorrelation;
   moduleType = ModuleSubdetector::BARREL; // Barrel is the default moduleType 
   endcapType = ModuleShape::RECTANGULAR; // Barrel is the default moduleType 
 }
-/*
-double ptError::geometricEfficiency() {
-  double inefficiency;
-  switch ( moduleType ) {
-  case Module::Barrel:
-    inefficiency = Module_d * Module_z / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_r ;
-    break;
-  case Module::Endcap:
-    inefficiency = Module_d * Module_r / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_z ;
-    break;
-  default:
-    // This should never happen
-    inefficiency = 0;
-    std::cerr << "Error: in TODO:addFunctionNameHere"
-              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
-  }
-  return (1-inefficiency);
-}
-*/
-/*
-double ptError::stripsToP(double strips) {
-  double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
-  double p;
-  double x;
-  double effective_d;
-
-  switch ( moduleType ) {
-  case Module::Barrel:
-    effective_d = Module_d;
-    break;
-  case Module::Endcap:
-    effective_d = Module_d * Module_r / Module_z;
-    break;
-  default:
-    // This should never happen
-    strips = 0;
-    effective_d = 0;
-    std::cerr << "Error: in TODO:addFunctionNameHere"
-              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
-  }
-
-  x = strips * Module_pitch;
-  p = A * sqrt( pow(effective_d/x,2) + 1 );
-  return p;
-}
-*/
-/*
-double ptError::pToStrips(double p) {
-  double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
-  double a = pow(p/A,2);
-  double strips;
-
-  switch ( moduleType ) {
-  case Module::Barrel:
-    strips = Module_d / sqrt(a-1);
-    break;
-  case Module::Endcap:
-    strips = Module_d / sqrt(a-1) * (Module_r / Module_z);
-    break;
-  default:
-    // This should never happen
-    strips = 0;
-    std::cerr << "Error: in TODO:addFunctionNameHere"
-              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
-  }
-
-  strips /= Module_pitch;
-  return strips;
-} 
-*/
 
 double ptError::computeErrorBE(double p) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
@@ -177,7 +107,7 @@ double ptError::computeErrorBE(double p) {
   return sqrt(relativeError2);
 }
 
-double ptError::computeError(double p) {
+double ptError::computeError(double p) { // CUIDADO TODO this should be refactored (remove type checks!), but we have to refit the new occupancy data first
   if (moduleType == BARREL && fabs(Module_tilt) > 1e-3) {
     double errB = computeErrorBE(p);
     moduleType = ENDCAP;

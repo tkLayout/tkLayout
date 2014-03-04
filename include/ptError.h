@@ -27,7 +27,7 @@ class ptError {
    double Module_h;        // Module height [mm]
    double Module_ed;       // Module effective ds distance [mm]
    double Module_tilt;     // Module tilt angle [radians]
-   InefficiencyType inefficiencyType;
+   ZCorrelation zCorrelation;
  
    RILength material;      // Material amount prior to this module
    int moduleType;
@@ -39,7 +39,7 @@ class ptError {
    static constexpr double defaultModuleR = 1080; // last layer 
    static constexpr double defaultModuleD = 2; // mm
    static constexpr double defaultModuleHeight = 100;
-   static const InefficiencyType defaultInefficiencyType = STRIPWISE;
+   static const ZCorrelation defaultZCorrelation = SAMESEGMENT;
 
    // Internal computers
    void defaultParameters();
@@ -58,7 +58,7 @@ class ptError {
    void setR(double newr) { Module_r = newr ; }
    void setDistance(double newDistance) { Module_d = newDistance ; }
    void setHeight(double newHeight) { Module_h = newHeight; }
-   void setInefficiencyType(InefficiencyType newInefficiencyType) { inefficiencyType = newInefficiencyType; }
+   void setZCorrelation(ZCorrelation newZCorrelation) { zCorrelation = newZCorrelation; }
    void setModuleType(int newType) { moduleType = newType ; }
    void setEndcapType(int newType) { endcapType = newType ; }
    void setMaterial(RILength newMaterial) { material = newMaterial; }
@@ -66,14 +66,14 @@ class ptError {
    void setTilt(double newTilt) { Module_tilt = newTilt; }
 
    // Parameter getters
-   double getPitch() { return Module_pitch ; }
-   double getStripLength() { return Module_strip_l ; }
-   double getZ() { return Module_z ; }
-   double getR() { return Module_r ; }
-   double getDistance() { return Module_d ; }
-   double getHeight() { return Module_h ; }
-   InefficiencyType getInefficiencyType() { return inefficiencyType ; }
-   int getModuleType() { return moduleType ; }
+   double getPitch() const { return Module_pitch ; }
+   double getStripLength() const { return Module_strip_l ; }
+   double getZ() const { return Module_z ; }
+   double getR() const { return Module_r ; }
+   double getDistance() const { return Module_d ; }
+   double getHeight() const { return Module_h ; }
+   ZCorrelation getZCorrelation() const { return zCorrelation; }
+   int getModuleType() const { return moduleType ; }
    int getEndcapType() { return endcapType ; }
    RILength getMaterial() { return material ; }
 

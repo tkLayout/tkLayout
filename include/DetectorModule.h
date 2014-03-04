@@ -13,10 +13,10 @@
 
 enum ModuleSubdetector { BARREL = 1, ENDCAP = 2 };
 enum SensorLayout { NOSENSORS, MONO, PT, STEREO };
-enum InefficiencyType { STRIPWISE, EDGEWISE }; 
+enum ZCorrelation { SAMESEGMENT, MULTISEGMENT }; 
 enum ReadoutType { READOUT_STRIP, READOUT_PIXEL, READOUT_PT };
 enum ReadoutMode { BINARY, CLUSTER };
-enum HitType { NONE, INNER, OUTER, FULL = 3, STUB = 5 };
+enum HitType { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
 
 
@@ -51,7 +51,7 @@ public:
   ReadonlyProperty<std::string, Default> moduleType; 
   ReadonlyProperty<int, AutoDefault>     numSensors;
   ReadonlyProperty<SensorLayout, Default> sensorLayout;
-  ReadonlyProperty<InefficiencyType, Default> inefficiencyType;
+  ReadonlyProperty<ZCorrelation, NoDefault> zCorrelation;
   ReadonlyProperty<ReadoutMode, Default> readoutMode;
   ReadonlyProperty<ReadoutType, Default> readoutType;
 
@@ -90,7 +90,7 @@ public:
       sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
       readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP), 
       readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
-      inefficiencyType         ("inefficiencyType"         , parsedOnly() , EDGEWISE),
+      zCorrelation             ("zCorrelation"             , parsedOnly()),
       numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),
       numSparsifiedPayloadBits ("numSparsifiedPayloadBits" , parsedOnly()),
       numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),

@@ -19,7 +19,7 @@ void PtErrorAdapter::setPterrorParameters() {
   myPtError.setZ(fabs(center.Z()));
   myPtError.setR(center.Rho());
   myPtError.setHeight(mod_.length());
-  myPtError.setInefficiencyType(mod_.inefficiencyType());
+  myPtError.setZCorrelation(mod_.zCorrelation());
   myPtError.setModuleType(mod_.subdet());
   myPtError.setTilt(mod_.tiltAngle());
 }

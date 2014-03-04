@@ -376,7 +376,7 @@ namespace insur {
                 if (!mtypes.at(rindex - 1).empty()) {
                   stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().outerSensor().numStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().outerSensor().numSegments()); // CUIDADO: as it is only the outer sensor is considered for the scaling
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().outerSensor().numSegments()); // CUIDADO: as of now only the outer sensor is considered for the scaling
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
