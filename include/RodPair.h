@@ -41,7 +41,7 @@ public:
   ReadonlyProperty<double, Computable> maxAperture;
 
   RodPair() :
-      startZMode("startZ", parsedAndChecked(), StartZMode::MODULECENTER) 
+      startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER) 
   {}
 
   void setup() {
