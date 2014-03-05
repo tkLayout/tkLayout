@@ -1,8 +1,7 @@
-/*
- * IrradiationMap.h
- *
- *  Created on: 18/feb/2014
- *      Author: Stefano Martina
+/**
+ * @file IrradiationMap.h
+ * @author Stefano Martina
+ * @date 18/feb/2014
  */
 
 #ifndef IRRADIATIONMAP_H_
@@ -16,10 +15,23 @@
 #include <cmath>
 #include "messageLogger.h"
 
-
+/**
+ * @class IrradiationMap
+ * @brief This class represent a single irradiation map.
+ * @details It is possible to feed the map with a new file, it can read the values from header.
+ * The maps are sortable on resolution with operator <.
+ */
 class IrradiationMap {
 public:
+  /**
+   * Constructor with feeding
+   * @param irradiationMapFile is the path of the new file to feed
+   */
   IrradiationMap(std::string irradiationMapFile);
+
+  /**
+   * Constructor without feeding
+   */
   IrradiationMap();
 
   /**
@@ -28,12 +40,9 @@ public:
    */
   void ingest(std::string irradiationMapFile);
 
-  std::pair<std::pair<double,double>,std::pair<double,double>> region() const;
-
-  std::pair<double,double> binDimension() const;
-
   /**
    * Get the area of a bin of the map, identifies the resolution of the map
+   * @return The area of the bin
    */
   double binArea() const;
 
@@ -45,6 +54,7 @@ public:
   /**
    * Test if a point is inside the area covered by the map
    * @param coordinates is a pair (z,rho) that indicate a point in the plane ZxRho
+   * @return True if the point is inside the map region, false otherwise
    */
   bool isInRegion(std::pair<double,double> coordinates) const;
 
@@ -56,30 +66,27 @@ public:
   double calculateIrradiation(std::pair<double,double> coordinates) const;
 
 private:
-  const std::string comp_rhoMin = "# R min: ";
-  const std::string comp_rhoMax = "# R max: ";
-  const std::string comp_rhoBinWidth = "# R bin width: ";
-  const std::string comp_rhoBinNum = "# R number of bins: ";
-  const std::string comp_zMin = "# Z min: ";
-  const std::string comp_zMax = "# Z max: ";
-  const std::string comp_zBinWidth = "# Z bin width: ";
-  const std::string comp_zBinNum = "# Z number of bins: ";
-  const std::string comp_invFemUnit = "# normalization value: ";
+  const std::string comp_rhoMin = "# R min: ";                  /**< Prefix of the line of the header of the feeded file that precedes the value of min rho*/
+  const std::string comp_rhoMax = "# R max: ";                  /**< Prefix of the line of the header of the feeded file that precedes the value of max rho*/
+  const std::string comp_rhoBinWidth = "# R bin width: ";       /**< Prefix of the line of the header of the feeded file that precedes the value of bin width in rho*/
+  const std::string comp_rhoBinNum = "# R number of bins: ";    /**< Prefix of the line of the header of the feeded file that precedes the value of the number of bins in rho*/
+  const std::string comp_zMin = "# Z min: ";                    /**< Prefix of the line of the header of the feeded file that precedes the value of min Z*/
+  const std::string comp_zMax = "# Z max: ";                    /**< Prefix of the line of the header of the feeded file that precedes the value of max Z*/
+  const std::string comp_zBinWidth = "# Z bin width: ";         /**< Prefix of the line of the header of the feeded file that precedes the value of bin width in Z*/
+  const std::string comp_zBinNum = "# Z number of bins: ";      /**< Prefix of the line of the header of the feeded file that precedes the value of the number of bins in Z*/
+  const std::string comp_invFemUnit = "# normalization value: ";/**< Prefix of the line of the header of the feeded file that precedes the value of the normalization value in fb^-1*/
 
-  double rhoMin;
-  double rhoMax;
-  double rhoBinWidth;
-  long int rhoBinNum;
-  double zMin;
-  double zMax;
-  double zBinWidth;
-  long int zBinNum;
-  double invFemUnit;
+  double rhoMin;        /**< The value of min rho*/
+  double rhoMax;        /**< The value of max rho*/
+  double rhoBinWidth;   /**< The value of bin width in rho*/
+  long int rhoBinNum;   /**< The value of the number of bins in rho*/
+  double zMin;          /**< The value of min Z*/
+  double zMax;          /**< The value of max Z*/
+  double zBinWidth;     /**< The value of bin width in Z*/
+  long int zBinNum;     /**< The value of the number of bins in Z*/
+  double invFemUnit;    /**< The value of the normalization value in fb^-1*/
 
-  //matrix rho X z of the irradiation values
-  std::vector< std::vector<double> > irradiation;
-
-  void inizialize();
+  std::vector< std::vector<double> > irradiation;       /**< The matrix (rho * Z) that contains the irradiation values for each bin of the map*/
 };
 
 

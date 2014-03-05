@@ -7,10 +7,6 @@
 
 #include"IrradiationMap.h"
 
-void IrradiationMap::inizialize() {
-
-}
-
 IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
       rhoMin (0),
       rhoMax (0),
@@ -161,14 +157,6 @@ void IrradiationMap::ingest(std::string irradiationMapFile) {
   }
 }
 
-std::pair<std::pair<double,double>,std::pair<double,double>> IrradiationMap::region() const{
-  return std::make_pair(std::make_pair(zMin, rhoMin), std::make_pair(zMax, rhoMax));
-}
-
-std::pair<double,double> IrradiationMap::binDimension() const{
-  return std::make_pair(zBinWidth, rhoBinWidth);
-}
-
 double IrradiationMap::binArea() const{
   return zBinWidth*rhoBinWidth;
 }
@@ -201,35 +189,41 @@ double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates
     z = (coordinates.first - zMin) / zBinWidth;
     rho = (coordinates.second - rhoMin) / rhoBinWidth;
 
-    //take the 4 adiacent cell centers
+    //take the 4 nearest bin centers
     z1 = floor(z);
     z2 = ceil(z);
     rho1 = floor(rho);
     rho2 = ceil(rho);
 
-    //if the point is in a intersection
+    //if the point is in a intersection of the grid formed by the map bin centers
     if((z1 == z2) && (rho1 == rho2)) {
+      //single value
       irrxy = irradiation[int(rho1)][int(z1)];
-    } else if (z1 == z2) {      //if is in a z line
+    }
+
+    //if is in a z line
+    else if (z1 == z2) {
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho2)][int(z1)];
-
-      //linear interpolation
+      //linear interpolation in rho
       irrxy = irr1/(rho2-rho1) * (rho-rho1) + irr2/(rho2-rho1) * (rho2-rho);
-    } else if (rho1 == rho2) {  //if is in a rho line
+    }
+
+    //if is in a rho line
+    else if (rho1 == rho2) {
       irr1 = irradiation[int(rho1)][int(z1)];
       irr2 = irradiation[int(rho1)][int(z2)];
-
-      //linear interpolation
+      //linear interpolation in z
       irrxy = irr1/(z2-z1) * (z-z1) + irr2/(z2-z1) * (z2-z);
-    } else {                    //if is in middle
-      //get irradiation of those points
+    }
+
+    //if is in the middle
+    else {
       irr11 = irradiation[int(rho1)][int(z1)];
       irr21 = irradiation[int(rho1)][int(z2)];
       irr12 = irradiation[int(rho2)][int(z1)];
       irr22 = irradiation[int(rho2)][int(z2)];
-
-      //bilinear interpolation
+      //bilinear interpolation in z and rho
       irrxy = irr11/((z2-z1)*(rho2-rho1))*(z2-z)*(rho2-rho) + irr21/((z2-z1)*(rho2-rho1))*(z-z1)*(rho2-rho) + irr12/((z2-z1)*(rho2-rho1))*(z2-z)*(rho-rho1) + irr22/((z2-z1)*(rho2-rho1))*(z-z1)*(rho-rho1);
     }
   } else {
@@ -238,4 +232,3 @@ double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates
 
   return irrxy;
 }
-

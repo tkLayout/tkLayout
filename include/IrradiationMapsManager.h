@@ -1,8 +1,7 @@
-/*
- * IrradiationMapsManager.h
- *
- *  Created on: 19/feb/2014
- *      Author: stefano
+/**
+ * @file IrradiationMapsManager.h
+ * @author Stefano Martina
+ * @date 19/feb/2014
  */
 
 #ifndef IRRADIATIONMAPSMANAGER_H_
@@ -13,6 +12,13 @@
 #include <set>
 #include"IrradiationMap.h"
 
+/**
+ * @class IrradiationMapsManager
+ * @brief The administrator of the irradiation maps.
+ * @details Mantains a set of maps sorted by resolution, when
+ * is asked for the irradiation of a point returns the value of the
+ * better map that contains this point in his region
+ */
 class IrradiationMapsManager {
 public:
   IrradiationMapsManager();
