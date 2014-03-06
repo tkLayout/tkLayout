@@ -1844,7 +1844,7 @@ namespace insur {
     for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
       TProfile& aProfile = it->second;
       layerCount++;
-      myCanvas = new TCanvas(Form("LayerCoverage%s%03d", type.c_str(), layerCount), ("Layer eta coverage (" + type + ")").c_str(), 1200, 600);
+      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), 1200, 600);
       myCanvas->cd();
 
 
@@ -1869,7 +1869,7 @@ namespace insur {
       zoomedProfile->Draw();
 
       RootWImage* myImage = new RootWImage(myCanvas, 1200, 600);
-      myImage->setComment("Layer coverage in eta for " + type + "(multiple occurrences in the same layer are counted once here)");
+      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
       myContent->addItem(myImage);
     }
     return true;
@@ -2114,6 +2114,8 @@ namespace insur {
     std::map<std::string, SummaryTable>& particleSummaries = analyzer.getTriggerFrequencyInterestingSummaries();
     std::map<std::string, SummaryTable>& trueSummaries = analyzer.getTriggerFrequencyTrueSummaries();
     std::map<std::string, SummaryTable>& fakeSummaries = analyzer.getTriggerFrequencyFakeSummaries();
+    std::map<std::string, SummaryTable>& misfilteredSummaries = analyzer.getTriggerFrequencyMisfilteredSummaries();
+    std::map<std::string, SummaryTable>& combinatorialSummaries = analyzer.getTriggerFrequencyCombinatorialSummaries();
     std::map<std::string, SummaryTable>& rateSummaries = analyzer.getTriggerRateSummaries();
     std::map<std::string, SummaryTable>& efficiencySummaries = analyzer.getTriggerEfficiencySummaries();
     std::map<std::string, SummaryTable>& puritySummaries = analyzer.getTriggerPuritySummaries();
@@ -2122,22 +2124,28 @@ namespace insur {
     std::map<std::string, SummaryTable>& hitOccupancySummaries = analyzer.getHitOccupancySummaries();
 
     for (std::map<std::string, SummaryTable>::iterator it = particleSummaries.begin(); it != particleSummaries.end(); ++it) {
-      myPage->addContent(std::string("High pt particle frequency (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Interesting particle rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = trueSummaries.begin(); it != trueSummaries.end(); ++it) {
-      myPage->addContent(std::string("Trigger frequency true (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("True stub rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
+    for (std::map<std::string, SummaryTable>::iterator it = misfilteredSummaries.begin(); it != misfilteredSummaries.end(); ++it) {
+      myPage->addContent(std::string("Low-pT over-threshold stub rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+    }
+    for (std::map<std::string, SummaryTable>::iterator it = combinatorialSummaries.begin(); it != combinatorialSummaries.end(); ++it) {
+      myPage->addContent(std::string("Combinatorial stub rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = fakeSummaries.begin(); it != fakeSummaries.end(); ++it) {
-      myPage->addContent(std::string("Trigger frequency fake (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Fake (over-threshold + combinatorial) stub rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = rateSummaries.begin(); it != rateSummaries.end(); ++it) {
-      myPage->addContent(std::string("Trigger rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Total (true + fake) stub rate (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = efficiencySummaries.begin(); it != efficiencySummaries.end(); ++it) {
-      myPage->addContent(std::string("Trigger efficiency (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Stub efficiency (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = puritySummaries.begin(); it != puritySummaries.end(); ++it) {
-      myPage->addContent(std::string("Trigger purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
+      myPage->addContent(std::string("Stub purity (") + it->first + ")", false).addTable().setContent(it->second.getContent());
     }
     for (std::map<std::string, SummaryTable>::iterator it = dataBandwidthSummaries.begin(); it != dataBandwidthSummaries.end(); ++it) {
       myPage->addContent(std::string("Trigger data bandwidth Gbps (") + it->first + ")", false).addTable().setContent(it->second.getContent());
@@ -3426,6 +3434,40 @@ namespace insur {
 
     //********************************//
     //*                              *//
+    //*   Stub Efficiency Coverage   *//
+    //*                              *//
+    //********************************//
+
+/*    std::map<std::string, std::map<std::string, TH1I*>>& profiles = a.getStubEfficiencyCoverageProfiles();
+    if (!profiles.empty()) {
+      RootWContent& myContent = myPage.addContent("Stub efficiency coverage", false);
+      for (const auto& lmel : profiles) {
+        TCanvas* myCanvas = new TCanvas(Form("StubEfficiencyCoverageCanvas%s", lmel.first.c_str()), "Stub efficiency eta coverage", 1200, 600);
+        //myCanvas.SetFillColor(color_plot_background);
+        myCanvas->cd();
+        std::vector<std::string> momenta;
+        int myColor = 1;
+        std::string drawOpts = "";
+        for (const auto& mmel : lmel.second) {
+          momenta.push_back(mmel.first);
+          mmel.second->SetLineColor(Palette::color(myColor));
+          mmel.second->SetMarkerColor(Palette::color(myColor));
+          //mmel.second->SetFillColor(Palette::color(myColor));
+          mmel.second->SetMarkerStyle(1);
+          mmel.second->Draw(drawOpts.c_str());
+          myCanvas->cd();
+          myColor++;
+          drawOpts = "same";
+          break;
+        }
+        RootWImage* myImage = new RootWImage(myCanvas, 1200, 600);
+        myImage->setComment("Stub efficiency coverage in eta for pT = " + join(momenta, ","));
+        myContent.addItem(myImage);
+      }
+    }*/
+
+    //********************************//
+    //*                              *//
     //*   Trigger threshold maps     *//
     //*                              *//
     //********************************//
@@ -4319,7 +4361,7 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << numRods_ << std::endl;
+        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_ << std::endl;
       }
 
       std::string output() const { return output_.str(); }

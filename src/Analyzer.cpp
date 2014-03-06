@@ -371,7 +371,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     }
 
     // Compute the number of triggering points along the selected tracks
-    fillTriggerEfficiencyGraphs(triggerMomenta, tv);
+    fillTriggerEfficiencyGraphs(tracker, triggerMomenta, tv);
 
     // Fill the trigger performance maps
     fillTriggerPerformanceMaps(tracker);
@@ -422,7 +422,8 @@ void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vec
 
 
 
-void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
+                                           const std::vector<double>& triggerMomenta,
                                            const std::vector<Track>& trackVector) {
 
   // Prepare the graphs to record the number of triggered points
@@ -433,16 +434,18 @@ void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMom
 
   TProfile& totalProfile = trigProfiles[profileBag::Triggerable];
 
-  double eta;
+  std::map<std::string, std::map<std::string, TH1I*>>& stubEfficiencyCoverageProfiles = getStubEfficiencyCoverageProfiles();
+
+  double maxEta = 4.0; //getEtaMaxTrigger();
 
   for (std::vector<Track>::const_iterator itTrack = trackVector.begin();
        itTrack != trackVector.end(); ++itTrack) {
     const Track& myTrack=(*itTrack);
 
-    eta = - log(tan(myTrack.getTheta() / 2));
+    double eta = myTrack.getEta();
     int nHits = myTrack.nActiveHits(false, false);
     totalProfile.Fill(eta, nHits);
-    std::vector<Module*> hitModules = myTrack.getHitModules();
+    std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
 
     for(std::vector<double>::const_iterator itMomentum = triggerMomenta.begin();
         itMomentum!=triggerMomenta.end(); ++itMomentum) {
@@ -458,8 +461,8 @@ void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMom
            double curAvgInteresting=0;
            double curAvgFake=0;
            double bgReductionFactor; // Reduction of the combinatorial background for ptMixed modules by turning off the appropriate pixels
-           for (std::vector<Module*>::iterator itModule = hitModules.begin(); itModule!= hitModules.end(); ++itModule) {
-             Module* hitModule = (*itModule);
+           for (const auto& modAndType : hitModules) {
+             Module* hitModule = modAndType.first;
              PtErrorAdapter pterr(*hitModule);
              // Hits that we would like to have from tracks above this threshold
              curAvgInteresting += pterr.getParticleFrequencyPerEventAbove(*itMomentum);
@@ -471,12 +474,28 @@ void Analyzer::fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMom
              // ... plus the combinatorial background from occupancy (can be reduced using ptMixed modules)
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
              curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
+
+             std::string layerName = hitModule->uniRef().cnt + "_" + any2str(hitModule->uniRef().layer);
+             if (modAndType.second == HitType::STUB) {
+               std::string momentumString = any2str(*itMomentum, 2);
+               if (stubEfficiencyCoverageProfiles[layerName].count(momentumString) == 0) {
+                 stubEfficiencyCoverageProfiles[layerName][momentumString] = new TH1I(Form("stubEfficiencyCoverageProfile%s%s", layerName.c_str(), momentumString.c_str()), (layerName + ";#eta;Stubs").c_str(), trackVector.size(), 0.0, maxEta); 
+               }
+               stubEfficiencyCoverageProfiles[layerName][momentumString]->Fill(myTrack.getEta(), 1);
+             } 
            }
            myPurityProfile.Fill(eta, 100*curAvgTrue/(curAvgTrue+curAvgFake));
         }
       }
     }
   }
+//  for (auto i : stubEfficiencyCoverageProfiles) {
+//    std::cout << "--------------------- " << i.first << " ------------------ " << std::endl;
+//    for (auto j : i.second) {
+//      std::cout << j.first << std::endl;
+//      j.second->Print("all");
+//    }
+//  }
   if (totalProfile.GetMaximum() < maximum_n_planes) totalProfile.SetMaximum(maximum_n_planes);
 
 }
@@ -786,8 +805,10 @@ void Analyzer::computeTriggerFrequency(Tracker& tracker) {
   simParms_->accept(v);
   tracker.accept(v);
 
-  //triggerFrequencyTrueSummares_ = v.triggerFrequencyTrueSummaries;
+  triggerFrequencyTrueSummaries_ = v.triggerFrequencyTrueSummaries;
   triggerFrequencyFakeSummaries_ = v.triggerFrequencyFakeSummaries;
+  triggerFrequencyMisfilteredSummaries_ = v.triggerFrequencyMisfilteredSummaries;
+  triggerFrequencyCombinatorialSummaries_ = v.triggerFrequencyCombinatorialSummaries;
   triggerFrequencyInterestingSummaries_ = v.triggerFrequencyInterestingSummaries;
   triggerRateSummaries_ = v.triggerRateSummaries; 
   triggerEfficiencySummaries_ = v.triggerEfficiencySummaries; 
@@ -1125,9 +1146,10 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
         //distance = iter->getModule().trackCross(origin, direction);
-        auto hit = iter->getModule().checkTrackHits(origin, direction);
-        if (hit.second != HitType::NONE) {
-          distance = hit.first.R();
+        auto h = iter->getModule().checkTrackHits(origin, direction);
+        if (h.second != HitType::NONE) {
+          distance = h.first.R();
+          HitType type = h.second;
           // module was hit
           hits++;
           r = distance * sin(theta);
@@ -1162,7 +1184,7 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           if (!isPixel) fillCell(r, eta, theta, tmp);
           res += tmp;
           // create Hit object with appropriate parameters, add to Track t
-          Hit* hit = new Hit(distance, &(iter->getModule()));
+          Hit* hit = new Hit(distance, &(iter->getModule()), type);
           //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
           //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
           //hit->setObjectKind(Hit::Active); // should not be necessary
@@ -1229,15 +1251,15 @@ int Analyzer::findHitsModules(Tracker& tracker, double z0, double eta, double th
 
       // same method as in Tracker, same function used
       //distance = aModule->trackCross(origin, direction);
-      auto hit = aModule->checkTrackHits(origin, direction);
+      auto ht = aModule->checkTrackHits(origin, direction);
       //if (distance > 0) {
-      if (hit.second != HitType::NONE) {
-        double distance = hit.first.R();
+      if (ht.second != HitType::NONE) {
+        double distance = ht.first.R();
         // module was hit
         hits++;
 
         // create Hit object with appropriate parameters, add to Track t
-        Hit* hit = new Hit(distance, aModule);
+        Hit* hit = new Hit(distance, aModule, ht.second);
         hit->setCorrectedMaterial(emptyMaterial);
         t.addHit(hit);
       }
@@ -1281,10 +1303,10 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
         // same method as in Tracker, same function used
         // TODO: in case origin==0,0,0 and phi==0 just check if sectionYZ and minEta, maxEta
         //distance = iter->getModule().trackCross(origin, direction);
-        auto hit = iter->getModule().checkTrackHits(origin, direction); 
-        if (hit.second != HitType::NONE) {
+        auto h = iter->getModule().checkTrackHits(origin, direction); 
+        if (h.second != HitType::NONE) {
         //if (distance > 0) {
-          double distance = hit.first.R();
+          double distance = h.first.R();
           // module was hit
           hits++;
           // r = distance * sin(theta);
@@ -1302,7 +1324,7 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
           }
           res += tmp;
           // create Hit object with appropriate parameters, add to Track t
-          Hit* hit = new Hit(distance, &(iter->getModule()));
+          Hit* hit = new Hit(distance, &(iter->getModule()), h.second);
           //if (iter->getModule().getSubdetectorType() == Module::Barrel) hit->setOrientation(Hit::Horizontal); // should not be necessary
           //else if(iter->getModule().getSubdetectorType() == Module::Endcap) hit->setOrientation(Hit::Vertical); // should not be necessary
           //hit->setObjectKind(Hit::Active); // should not be necessary
@@ -2452,6 +2474,14 @@ int Analyzer::findCellIndexEta(double eta) {
   return index;
 }
 
+
+std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) const {
+  std::pair <double, double> etaMinMax = t.computeMinMaxEta();
+  if (simParms().maxTracksEta.state()) etaMinMax.second = simParms().maxTracksEta();
+  if (simParms().minTracksEta.state()) etaMinMax.first = simParms().minTracksEta();
+  return etaMinMax;
+}
+
 // public
 /**
  * Creates the histograms to analyze the tracker coverage
@@ -2473,19 +2503,14 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   std::string aType;
 
 
-  // Optimize the track creation on the real tracker
-  std::pair <double, double> etaMinMax = tracker.computeMinMaxEta();
-  double absMinEta = fabs(etaMinMax.first);
-  double absMaxEta = fabs(etaMinMax.second);
-  double maxEta = (absMinEta>absMaxEta) ? absMinEta : absMaxEta;
-
-  // Computing the margin of the tracks to shoot
   double randomPercentMargin = 0.04;
+  // Optimize the track creation on the real tracker
+  auto etaMinMax = computeMinMaxTracksEta(tracker);
+  // Computing the margin of the tracks to shoot
   double randomSpan = (etaMinMax.second - etaMinMax.first)*(1. + randomPercentMargin);
   double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
+  double maxEta = etaMinMax.second *= (1 + randomPercentMargin);
 
-  maxEta *= (1 + randomPercentMargin);
-  if (maxEta<3) maxEta=3; // TODO: make this configurable
 
   // Initialize random number generator, counters and histograms
   myDice.SetSeed(MY_RANDOM_SEED);

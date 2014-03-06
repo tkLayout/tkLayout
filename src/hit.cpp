@@ -50,6 +50,7 @@ Hit::Hit() {
     isIP_ = false;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
+    activeHitType_ = HitType::NONE;
 }
 
 /**
@@ -69,6 +70,7 @@ Hit::Hit(const Hit& h) {
     isIP_ = h.isIP_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
+    activeHitType_ = h.activeHitType_;
 }
 
 /**
@@ -84,6 +86,7 @@ Hit::Hit(double myDistance) {
     isPixel_ = false;
     isIP_ = false;
     myTrack_ = NULL;
+    activeHitType_ = HitType::NONE;
 }
 
 /**
@@ -91,7 +94,7 @@ Hit::Hit(double myDistance) {
  * @param myDistance distance from the origin
  * @param myModule pointer to the module with the hit 
  */
-Hit::Hit(double myDistance, Module* myModule) {
+Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
     distance_ = myDistance;
     objectKind_ = Active;
     orientation_ = Undefined; 
@@ -100,6 +103,7 @@ Hit::Hit(double myDistance, Module* myModule) {
     isIP_ = false;
     setHitModule(myModule);
     myTrack_ = NULL;
+    activeHitType_ = activeHitType;
 }
 
 
@@ -239,6 +243,7 @@ Track::Track() {
 Track::Track(const Track& t) {
     theta_ = t.theta_;
     cotgTheta_ = t.cotgTheta_;
+    eta_ = t.eta_;
     correlations_ = t.correlations_;
     covariances_ = t.covariances_;
     deltarho_ = t.deltarho_;
@@ -388,6 +393,7 @@ Track::~Track() {
 double Track::setTheta(double& newTheta) {
     theta_ = newTheta;
     cotgTheta_ = 1/tan(newTheta);
+    eta_ = -log(tan(theta_/2));
     std::vector<Hit*>::iterator iter, guard = hitV_.end();
     for (iter = hitV_.begin(); iter != guard; iter++) (*iter)->updateRadius();
     return theta_;
@@ -1081,10 +1087,10 @@ double Track::expectedTriggerPoints(const double& triggerMomentum) const {
 }
 
 
-std::vector<Module*> Track::getHitModules() const {
+std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
   std::vector<Hit*>::const_iterator hitIt;
   Hit* myHit;
-  std::vector<Module*> result;
+  std::vector<std::pair<Module*, HitType>> result;
 
   for (hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
     myHit=(*hitIt);
@@ -1096,7 +1102,7 @@ std::vector<Module*> Track::getHitModules() const {
       // Let's find the corresponding module
       Module* myModule = myHit->getHitModule();
       if (myModule) {
-        result.push_back(myModule);
+        result.push_back(std::make_pair(myModule, myHit->getActiveHitType()));
       } else {
         // Whoops: problem here: an active hit is not linked to any module
         std::cerr << "ERROR: this SHOULD NOT happen. in expectedTriggerPoints() an active hit does not correspond to any module!" << std::endl;

@@ -52,6 +52,7 @@ protected:
   bool isPixel_;
   bool isTrigger_;
   bool isIP_;
+  HitType activeHitType_;
 
 private:
   double myResolutionRphi_; // Only used for virtual hits on non-modules
@@ -62,7 +63,7 @@ public:
   Hit();
   Hit(const Hit& h);
   Hit(double myDistance);
-  Hit(double myDistance, Module* myModule);
+  Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
   double getResolutionRphi(double trackR);
   double getResolutionZ(double trackR);
@@ -96,6 +97,10 @@ public:
 
   bool isSquareEndcap();
   double getD();
+
+  void setActiveHitType(HitType activeHitType) { activeHitType_ = activeHitType; }
+  HitType getActiveHitType() const { return activeHitType_; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
+  bool isStub() const { return activeHitType_ == HitType::STUB; }
 };
 
 /**
@@ -114,7 +119,7 @@ class Track {
 protected:
   double theta_;
   double phi_;
-  double cotgTheta_;
+  double cotgTheta_, eta_; // calculated from theta and then cached
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
   map<momentum, TMatrixTSym<double> > correlations_;
@@ -142,7 +147,8 @@ public:
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
   double getTheta() const {return theta_;}
-  double getCotgTheta() const { return cotgTheta_; }
+  double getEta() const { return eta_; } // calculated when theta is set, then cached
+  double getCotgTheta() const { return cotgTheta_; } // ditto here
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
   map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
@@ -182,6 +188,6 @@ public:
 #endif
   void addIPConstraint(double dr, double dz);
   RILength getCorrectedMaterial();
-  std::vector<Module*> getHitModules() const;
+  std::vector<std::pair<Module*, HitType>> getHitModules() const;
 };
 #endif

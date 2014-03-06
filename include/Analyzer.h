@@ -173,6 +173,7 @@ namespace insur {
     std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
     std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
     std::map<std::string, TProfile>& getLayerEtaCoverageProfilesStubs() {return layerEtaCoverageProfileStubs; }
+    std::map<std::string, std::map<std::string, TH1I*>>& getStubEfficiencyCoverageProfiles() { return stubEfficiencyCoverageProfiles_; } // map of maps: inner map has momenta as keys
     std::vector<TObject> getSavingVector();
     TCanvas* getGeomLite() {if (geomLiteCreated) return geomLite; else return NULL; };
     TCanvas* getGeomLiteXY() {if (geomLiteXYCreated) return geomLiteXY; else return NULL; };
@@ -211,6 +212,8 @@ namespace insur {
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerFrequencyMisfilteredSummaries() { return triggerFrequencyMisfilteredSummaries_; }
+    std::map<std::string, SummaryTable>& getTriggerFrequencyCombinatorialSummaries() { return triggerFrequencyCombinatorialSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerRateSummaries() { return triggerRateSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerEfficiencySummaries() { return triggerEfficiencySummaries_; }
     std::map<std::string, SummaryTable>& getTriggerPuritySummaries() { return triggerPuritySummaries_; }
@@ -296,7 +299,7 @@ namespace insur {
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
-    std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyInterestingSummaries_;
+    std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyMisfilteredSummaries_, triggerFrequencyCombinatorialSummaries_, triggerFrequencyInterestingSummaries_;
     std::map<std::string, SummaryTable> triggerRateSummaries_, triggerEfficiencySummaries_, triggerPuritySummaries_;
     std::map<std::string, SummaryTable> triggerDataBandwidthSummaries_;
     std::map<std::string, SummaryTable> irradiatedPowerConsumptionSummaries_;
@@ -344,6 +347,8 @@ namespace insur {
     std::vector<TProfile> typeEtaProfile, typeEtaProfileStubs;
     std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
 
+    std::map<std::string, std::map<std::string, TH1I*>> stubEfficiencyCoverageProfiles_;
+
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
@@ -372,7 +377,8 @@ namespace insur {
                          const std::vector<Track>& trackVector,
                          int graphAttributes,
                          const string& graphTag = "");
-    void fillTriggerEfficiencyGraphs(const std::vector<double>& triggerMomenta,
+    void fillTriggerEfficiencyGraphs(const Tracker& tracker,
+                                     const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
     void fillTriggerPerformanceMaps(Tracker& tracker);
     //void fillPowerMap(Tracker& tracker);
@@ -389,6 +395,7 @@ namespace insur {
     void fillMapRZ(const double& r, const double& z, const Material& mat);
     void transformEtaToZ();
     double findXThreshold(const TProfile& aProfile, const double& yThreshold, const bool& goForward );
+    std::pair<double, double> computeMinMaxTracksEta(const Tracker& t) const;
   private:
     // A random number generator
     TRandom3 myDice; 

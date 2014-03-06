@@ -46,6 +46,8 @@ public:
   PropertyVector<std::string, ','> irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
+  Property<double, NoDefault> minTracksEta, maxTracksEta;
+
   PropertyNode<std::string> taggedTracking;
 
   SimParms() : 
@@ -70,6 +72,8 @@ public:
       magneticField("magneticField", parsedOnly(), 3.8),
       irradiationMapFiles("irradiationMapFiles", parsedAndChecked()),
       //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
+      minTracksEta("minTracksEta", parsedOnly()),
+      maxTracksEta("maxTracksEta", parsedOnly()),
       taggedTracking("TaggedTracking", parsedOnly())
   { }
 

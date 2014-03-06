@@ -107,7 +107,7 @@ public:
 
   void visit(const BarrelModule& aModule) {
 
-    std::string myName = aModule.cntName() + "_" + any2str(aModule.layer());
+    std::string myName = aModule.cntName() + "_L" + any2str(aModule.layer()) + "R" + any2str(aModule.ring());
 
     std::vector<const DetectorModule*>& theseBarrelModules = selectedModules_[myName];
 

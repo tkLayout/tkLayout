@@ -19,7 +19,12 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
   typedef std::map<std::pair<std::string, int>, TH1D*> StubRateHistos;
 
   std::map<std::string, std::map<std::pair<int,int>, int>>   triggerFrequencyCounts_;
-  std::map<std::string, std::map<std::pair<int,int>, double>>  triggerFrequencyAverageTrue_, triggerFrequencyInterestingParticleTrue_, triggerFrequencyAverageFake_, triggerDataBandwidths_; // trigger frequency by module in Z and R, averaged over Phi
+  std::map<std::string, std::map<std::pair<int,int>, double>>  triggerFrequencyAverageTrue_, 
+                                                               triggerFrequencyInterestingParticleTrue_, 
+                                                               triggerFrequencyAverageFake_, 
+                                                               triggerFrequencyAverageMisfiltered_,
+                                                               triggerFrequencyAverageCombinatorial_,
+                                                               triggerDataBandwidths_; // trigger frequency by module in Z and R, averaged over Phi
   StubRateHistos totalStubRateHistos_, trueStubRateHistos_;
 
   int nbins_;
@@ -29,6 +34,8 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
     triggerFrequencyTrueSummaries[cntName].setHeader("Layer", "Ring");
     triggerFrequencyFakeSummaries[cntName].setHeader("Layer", "Ring");
     triggerFrequencyInterestingSummaries[cntName].setHeader("Layer", "Ring");
+    triggerFrequencyMisfilteredSummaries[cntName].setHeader("Layer", "Ring");
+    triggerFrequencyCombinatorialSummaries[cntName].setHeader("Layer", "Ring");
     triggerRateSummaries[cntName].setHeader("Layer", "Ring");
     triggerEfficiencySummaries[cntName].setHeader("Layer", "Ring");
     triggerPuritySummaries[cntName].setHeader("Layer", "Ring");
@@ -36,6 +43,8 @@ class TriggerFrequencyVisitor : public ConstGeometryVisitor {
     triggerFrequencyTrueSummaries[cntName].setPrecision(3);
     triggerFrequencyFakeSummaries[cntName].setPrecision(3);
     triggerFrequencyInterestingSummaries[cntName].setPrecision(3);
+    triggerFrequencyInterestingSummaries[cntName].setPrecision(3);
+    triggerFrequencyMisfilteredSummaries[cntName].setPrecision(3);
     triggerRateSummaries[cntName].setPrecision(3);
     triggerEfficiencySummaries[cntName].setPrecision(3);
     triggerPuritySummaries[cntName].setPrecision(3);
@@ -46,6 +55,8 @@ public:
   MultiSummaryTable triggerFrequencyTrueSummaries, 
                     triggerFrequencyFakeSummaries, 
                     triggerFrequencyInterestingSummaries, 
+                    triggerFrequencyMisfilteredSummaries,
+                    triggerFrequencyCombinatorialSummaries,
                     triggerRateSummaries, 
                     triggerEfficiencySummaries,
                     triggerPuritySummaries, 
@@ -99,20 +110,32 @@ public:
     int curCnt = triggerFrequencyCounts_[table][std::make_pair(row, col)]++;
     double curAvgTrue = triggerFrequencyAverageTrue_[table][std::make_pair(row, col)];
     double curAvgInteresting = triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)];
-    double curAvgFake = triggerFrequencyAverageFake_[table][std::make_pair(row, col)];
+    //double curAvgFake = triggerFrequencyAverageFake_[table][std::make_pair(row, col)];
+    double curAvgMisfiltered = triggerFrequencyAverageMisfiltered_[table][std::make_pair(row, col)];
+    double curAvgCombinatorial = triggerFrequencyAverageCombinatorial_[table][std::make_pair(row, col)];
 
     //curAvgTrue  = curAvgTrue + (module->getTriggerFrequencyTruePerEvent()*tracker.getNMB() - curAvgTrue)/(curCnt+1);
     //curAvgFake  = curAvgFake + (module->getTriggerFrequencyFakePerEvent()*pow(tracker.getNMB(),2) - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
 
-    curAvgTrue  = curAvgTrue + (pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_ - curAvgTrue)/(curCnt+1);
-    curAvgInteresting += (pterr.getParticleFrequencyPerEventAbove(interestingPt_)*nMB_ - curAvgInteresting)/(curCnt+1);
-    curAvgFake  = curAvgFake + ((pterr.getTriggerFrequencyFakePerEvent()*nMB_ + pterr.getTriggerFrequencyTruePerEventBelow(interestingPt_))*nMB_ - curAvgFake)/(curCnt+1); // triggerFrequencyFake scales with the square of Nmb!
+    double highPtParticlesRate = pterr.getParticleFrequencyPerEventAbove(interestingPt_)*nMB_;
+    double trueStubRate = pterr.getTriggerFrequencyTruePerEventAbove(interestingPt_)*nMB_; // highPtParticlesRate * triggerEfficiency
+    double misfilteredStubRate = pterr.getTriggerFrequencyTruePerEventBelow(interestingPt_)*nMB_; // low-Pt particles improperly considered to be high-pT, due to pT measurement errors, for which we form stubs
+    double combinatorialStubRate = pterr.getTriggerFrequencyFakePerEvent()*pow(nMB_,2); // stubs due to occupancy combinatorics - i.e. random pixels/strips turned on in the upper and lower sensors caused by separate tracks or secondaries which happen to fall within the trigger window
+    double fakeStubRate = misfilteredStubRate + combinatorialStubRate; // combinatoricStubRate scales with the square of Nmb, while misfilteredStubRate scales linearly with Nmb
 
+    curAvgTrue  += (trueStubRate - curAvgTrue)/(curCnt+1);
+    curAvgInteresting += (highPtParticlesRate - curAvgInteresting)/(curCnt+1);
+    curAvgMisfiltered  += (misfilteredStubRate - curAvgMisfiltered)/(curCnt+1);
+    curAvgCombinatorial += (combinatorialStubRate - curAvgCombinatorial)/(curCnt+1);
+
+    double curAvgFake = curAvgMisfiltered + curAvgCombinatorial;
     double curAvgTotal = curAvgTrue + curAvgFake;
 
     triggerFrequencyAverageTrue_[table][std::make_pair(row, col)] = curAvgTrue;            
     triggerFrequencyInterestingParticleTrue_[table][std::make_pair(row, col)] = curAvgInteresting;    
     triggerFrequencyAverageFake_[table][std::make_pair(row, col)] = curAvgFake;    
+    triggerFrequencyAverageMisfiltered_[table][std::make_pair(row, col)] = curAvgMisfiltered;
+    triggerFrequencyAverageCombinatorial_[table][std::make_pair(row, col)] = curAvgCombinatorial;
 
     int triggerDataHeaderBits  = module.numTriggerDataHeaderBits();
     int triggerDataPayloadBits = module.numTriggerDataPayloadBits();
@@ -130,6 +153,8 @@ public:
     triggerFrequencyTrueSummaries[table].setCell(row, col, curAvgTrue);
     triggerFrequencyInterestingSummaries[table].setCell(row, col, curAvgInteresting);
     triggerFrequencyFakeSummaries[table].setCell(row, col, curAvgFake);
+    triggerFrequencyMisfilteredSummaries[table].setCell(row, col, curAvgMisfiltered);
+    triggerFrequencyCombinatorialSummaries[table].setCell(row, col, curAvgCombinatorial);
     triggerRateSummaries[table].setCell(row, col, curAvgTotal);             
     triggerEfficiencySummaries[table].setCell(row, col, curAvgTrue/curAvgInteresting);                
     triggerPuritySummaries[table].setCell(row, col, curAvgTrue/(curAvgTrue+curAvgFake));                
