@@ -358,7 +358,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   auto it = rodTemplate.begin();
   int side = (direction == BuildDir::RIGHT ? 1 : -1);
   if (tmspecs.empty()) return;
-  int i = (direction == BuildDir::LEFT && tmspecs[0].z == 0.); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
+  int i = (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < tmspecs.size(); i++, ++it) {
     BarrelModule* mod = new BarrelModule(**it);
     mod->setup();

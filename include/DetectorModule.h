@@ -297,8 +297,8 @@ public:
     decorated().accept(v); 
   }
 
-  double minZ() const { return center().Z(); }
-  double maxZ() const { return center().Z(); }
+  double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
+  double maxZ() const { return center().Z(); } // ditto here
   double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
   double minR() const { XYZVector side[2];
                         std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });

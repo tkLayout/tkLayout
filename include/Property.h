@@ -40,7 +40,7 @@ public:
   template<class T> void pushPath(const T& obj, const string& objid) { pushPath(string(typeid(obj).name()) + "(" + objid + ")"); }
   template<class T, class U> void pushPath(const T& obj, const U& objid) { pushPath(string(typeid(obj).name()) + "(" + any2str(objid) + ")"); }
   const string& path() const { return path_; }
-  //virtual const char* what() const throw() override { return (pathString() + " : " + std::invalid_argument::what()).c_str(); }
+  virtual const char* what() const throw() override { return (path() + " : " + std::invalid_argument::what()).c_str(); }
 };
 
 struct CheckedPropertyMissing : public PathfulException { CheckedPropertyMissing(const string& objid) : PathfulException("Checked property not set", objid) {} };

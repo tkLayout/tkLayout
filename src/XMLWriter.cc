@@ -386,7 +386,7 @@ namespace insur {
                 switch (s.at(i).type) {
                     case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
                     break;
-                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
+                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dxx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
                     break;
                     case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
                     break;
@@ -532,13 +532,13 @@ namespace insur {
      * @param dz Half the volume length along z
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream) {
-        //stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
-        //stream << xml_trapezoid_second_inter << dx << xml_trapezoid_third_inter << dy;
-        //stream << xml_trapezoid_fourth_inter << dyy << xml_trapezoid_fifth_inter << dz;
-        stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dy;
-        stream << xml_trapezoid_second_inter << dyy << xml_trapezoid_third_inter << dx;
-        stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
+    void XMLWriter::trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream) {
+        stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
+        stream << xml_trapezoid_second_inter << dxx << xml_trapezoid_third_inter << dy;
+        stream << xml_trapezoid_fourth_inter << dyy << xml_trapezoid_fifth_inter << dz;
+        //stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dy; // CUIDADO Lovely hot fix by Nicola to rotate endcap modules -.-
+        //stream << xml_trapezoid_second_inter << dyy << xml_trapezoid_third_inter << dx;
+        //stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
         stream << xml_trapezoid_close;
     }
     

@@ -52,7 +52,7 @@ namespace insur {
                                                std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream);
         void logicalPart(std::string name, std::string solid, std::string material, std::ostringstream& stream);
         void box(std::string name, double dx, double dy, double dz, std::ostringstream& stream);
-        void trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream);
+        void trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream);
         void tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream);
         void polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
                                std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream);

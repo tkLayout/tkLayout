@@ -945,7 +945,7 @@ namespace insur {
         int count = 0;
         dname << xml_disc << layer;
 
-        shape.type = tp;
+        //shape.type = tp;
         shape.rmin = 0.0;
         shape.rmax = 0.0;
         pos.trans.dz = 0.0;
@@ -983,14 +983,16 @@ namespace insur {
 
             // module trapezoid
 
+            shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
+
             shape.name_tag = mname.str();
-            //shape.dy = iiter->getModule().getHeight() / 2.0;
-            //shape.dyy = iiter->getModule().getHeight() / 2.0;
-            //shape.dx = static_cast<EndcapModule&>(iiter->getModule()).getWidthLo() / 2.0;
-            shape.dx = iiter->getModule().length() / 2.0;
-            shape.dy = iiter->getModule().minWidth() / 2.0;
-            shape.dyy = iiter->getModule().maxWidth() / 2.0;
-            //shape.dz = iiter->getModule().moduleThickness() / 2.0;
+            shape.dx = iiter->getModule().minWidth() / 2.0;
+            shape.dxx = iiter->getModule().maxWidth() / 2.0;
+            shape.dy = iiter->getModule().length() / 2.0;
+            shape.dyy = iiter->getModule().length() / 2.0;
+            //shape.dx = iiter->getModule().length() / 2.0;
+            //shape.dy = iiter->getModule().minWidth() / 2.0;
+            //shape.dyy = iiter->getModule().maxWidth() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
 
@@ -1001,13 +1003,10 @@ namespace insur {
 
 
 
-            // wafer
+            // wafer -- same x and y size of parent shape, but different thickness
             string xml_base_inout = "";
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
-            shape.dx = iiter->getModule().length() / 2.0;
-            shape.dy = iiter->getModule().minWidth() / 2.0;
-            shape.dyy = iiter->getModule().maxWidth() / 2.0;
 
             pos.parent_tag = logic.shape_tag;
 
