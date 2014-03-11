@@ -21,6 +21,7 @@ namespace insur {
         unsigned int pos = 0;
         std::string line;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
             while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tob) == std::string::npos)) pos++;
             if ((pos < s.size()) && (s.at(pos).rzup.size() > 0)) {
@@ -55,6 +56,7 @@ namespace insur {
         unsigned pos = 0;
         std::string line;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
+        if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
             while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tid) == std::string::npos)) pos++;
             if ((pos < s.size()) && (s.at(pos).rzup.size() > 0) && (s.at(pos).rzdown.size() > 0)) {
