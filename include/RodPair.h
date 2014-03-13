@@ -39,6 +39,7 @@ public:
   Property<double, Computable> minZ, maxR, minR;
   ReadonlyProperty<double, Computable> minAperture;
   ReadonlyProperty<double, Computable> maxAperture;
+  ReadonlyProperty<double, Computable> maxModuleThickness;
 
   RodPair() :
       startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER) 
@@ -50,9 +51,12 @@ public:
     minZ.setup([&]() { double min = 99999; for (const auto& m : zMinusModules_) { min = MIN(min, m.minZ()); } return min; }); // we want the minZ so we don't bother with scanning the zPlus vector
     minR.setup([&]() { double min = 99999; for (const auto& m : zPlusModules_) { min = MIN(min, m.minR()); } return min; }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR.setup([&]() { double max = 0; for (const auto& m : zPlusModules_) { max = MAX(max, m.maxR()); } return max; });
+    maxModuleThickness.setup([&]() { double max = 0; for (const auto& m : zPlusModules_) { max = MAX(max, m.thickness()); } return max; });
     for (auto& m : zPlusModules_) m.setup();
     for (auto& m : zMinusModules_) m.setup();
   }
+  
+  virtual double thickness() const = 0;
 
   int numModules() const { return zPlusModules_.size() + zMinusModules_.size(); }
   int numModulesSide(int side) const { return side >= 0 ? zPlusModules_.size() : zMinusModules_.size(); }
@@ -116,6 +120,7 @@ public:
               ringNode            ("Ring"                , parsedOnly())
   {}
 
+  double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
 
   
   void build(const RodTemplate& rodTemplate);
@@ -137,6 +142,7 @@ struct TiltedModuleSpecs {
 class TiltedRodPair : public RodPair {
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
 public:
+  double thickness() const override { return maxR() - minR(); }
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
 
 }; 

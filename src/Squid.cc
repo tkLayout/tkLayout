@@ -307,9 +307,9 @@ namespace insur {
    * @param xmlout The name - without path - of the designated output subdirectory
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::translateFullSystemToXML(std::string xmlout, bool wt) {
+  bool Squid::translateFullSystemToXML(std::string xmlout) {
     if (mb) {
-      t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout.empty() ? baseName_ : xmlout, wt);
+      t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout.empty() ? baseName_ : xmlout, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
       return true;
     }
     else {

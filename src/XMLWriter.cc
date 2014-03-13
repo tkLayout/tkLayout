@@ -89,7 +89,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, bool wt) {
+    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool wt) {
         std::vector<Element>& e = d.elements;
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
@@ -104,7 +104,7 @@ namespace insur {
             materialSection(xml_newtrackerfile, e, c, buffer);
             rotationSection(r, xml_newtrackerfile, buffer);
             logicalPartSection(l, xml_newtrackerfile, buffer, true);
-            solidSection(s, xml_newtrackerfile, buffer, true, true);
+            solidSection(s, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, true);
             posPartSection(p, a, xml_newtrackerfile, buffer);
         }
         else {
@@ -112,7 +112,7 @@ namespace insur {
             materialSection(xml_trackerfile, e, c, buffer);
             rotationSection(r, xml_trackerfile, buffer);
             logicalPartSection(l, xml_trackerfile, buffer);
-            solidSection(s, xml_trackerfile, buffer, true);
+            solidSection(s, xml_trackerfile, buffer, trackerVolumeTemplate, true);
             posPartSection(p, a, xml_trackerfile, buffer);
         }
         buffer << xml_defclose;
@@ -368,6 +368,18 @@ namespace insur {
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
+
+
+    void XMLWriter::trackerLogicalVolume(std::ostringstream& stream, std::istream& instream) {
+      std::string line;
+      while (getline(instream, line)) {
+        size_t pos = line.find(xml_insert_marker);
+        if (pos != std::string::npos) {
+          line.replace(pos, xml_insert_marker.size(), xml_tracker);
+        }
+        stream << line << std::endl;
+      }
+    }
     
     /**
      * This function writes the opening and closing tags for the solid section in a CMSSW XML file. It writes an entry for the
@@ -378,9 +390,12 @@ namespace insur {
      * @param label The label of the solid section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid, bool wt) {
+    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt) {
         stream << xml_solid_section_open << label << xml_general_inter;
-        if (!wt) tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream);
+        if (!wt) {
+          //tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream); // CUIDADO old tracker volume, now parsed from a file
+          trackerLogicalVolume(stream, trackerVolumeTemplate);
+        }
         for (unsigned int i = 0; i < s.size(); i++) {
             if ((notobtid) &&
                     ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;

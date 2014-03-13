@@ -470,6 +470,7 @@ namespace insur {
       double deltar = rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
       //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
+      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rods().at(0).thickness();
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
 
@@ -712,7 +713,7 @@ namespace insur {
         shape.name_tag = rname.str();
         if (is_short) shape.name_tag = shape.name_tag + xml_plus;
         shape.dy = shape.dx; // CUIDADO EXPERIMENTAL - Rods must have the dx of modules as dy because modules are afterwards rotated with the Harry's tilt mod 
-        shape.dx = deltar / 2.0;
+        shape.dx = rodThickness / 2.0;
         if (is_short) shape.dz = (zmax - zmin) / 2.0;
         else shape.dz = zmax;
         s.push_back(shape);

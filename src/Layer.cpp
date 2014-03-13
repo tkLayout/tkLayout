@@ -147,7 +147,7 @@ void Layer::buildStraight() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    RodPair* rod = new StraightRodPair(i%2 ? *second : *first); // clone rods
     rod->setup();
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
@@ -195,7 +195,7 @@ void Layer::buildTilted() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new RodPair(i%2 ? *second : *first); // clone rods
+    RodPair* rod = new TiltedRodPair(i%2 ? *second : *first); // clone rods
     rod->setup();
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));

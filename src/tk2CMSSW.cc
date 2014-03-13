@@ -62,12 +62,12 @@ namespace insur {
                 outstream.clear();
                 std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
             }
-
             if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
             else outstream.open((outpath + xml_trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
             writeExtendedHeader(outstream);
-            wr.tracker(data, outstream, wt);
+            std::ifstream trackerVolumeTemplate((xmlpath + "/" + xml_trackervolumefile).c_str());
+            wr.tracker(data, outstream, trackerVolumeTemplate, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();

@@ -117,6 +117,7 @@ namespace insur {
      */
     static const std::string xml_trackerfile = "tracker.xml";
     static const std::string xml_newtrackerfile = "newtracker.xml";
+    static const std::string xml_trackervolumefile = "trackerVolumeTemplate.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";

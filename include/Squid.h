@@ -82,7 +82,7 @@ namespace insur {
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
-    bool translateFullSystemToXML(std::string xmlout = "", bool wt = false);
+    bool translateFullSystemToXML(std::string xmlout = "");
 
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);

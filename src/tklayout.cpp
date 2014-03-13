@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
           if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
         if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
-        if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir, false)) return (EXIT_FAILURE); //TODO: take care of flag in a more intelligent way...
+        if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);
       }
     }
 
