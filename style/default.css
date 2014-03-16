@@ -92,7 +92,7 @@ text-decoration: none;
 border-right: 0px solid #5D5F53; /*dark purple divider between menu items*/
 	text-transform: lowercase;
 	font-size: 1.1em;
-	font-weight: bold;
+	font-weight: normal;
 }
 
 #menu a:hover,
