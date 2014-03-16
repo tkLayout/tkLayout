@@ -47,20 +47,26 @@ if $TKG_SETUP_BIN ; then
       echo ERROR: the current directory is not under SVN revision
       exit -1
     }
-    dirlist="$TKG_SOURCE_MATTAB $TKG_SOURCE_GEOMETRIES $TKG_SOURCE_XML $TKG_SOURCE_STYLE"
+    dirlist="$TKG_SOURCE_MATTAB $TKG_SOURCE_GEOMETRIES $TKG_SOURCE_XML $TKG_SOURCE_STYLE deployStyle"
     for myDir in $dirlist; do
-       if [ -d $TKG_STANDARDDIRECTORY/$myDir ] ; then
-          otherBase=`$SVNBIN info $TKG_STANDARDDIRECTORY/$myDir | grep URL | cut -d' ' -f2-`
+       if [ "$myDir" == "deployStyle" ]; then
+          myDir=$TKG_SOURCE_STYLE
+          targetDiretcory=$TKG_LAYOUTDIRECTORY/$myDir
+       else
+          targetDiretcory=$TKG_STANDARDDIRECTORY/$myDir
+       fi
+       if [ -d $targetDiretcory ] ; then
+          otherBase=`$SVNBIN info $targetDiretcory | grep URL | cut -d' ' -f2-`
           if [ "$otherBase" != "$SVNURL/$myDir" ]; then
-            echo ERROR: directory $TKG_STANDARDDIRECTORY/$myDir is not under the same version control as `pwd`
+            echo ERROR: directory $targetDiretcory is not under the same version control as `pwd`
             exit -1
           fi
           echo -n Updating $myDir...
-          $SVNBIN up $TKG_STANDARDDIRECTORY/$myDir
+          $SVNBIN up $targetDiretcory
        else
           echo -n Checking out $myDir...
-          mkdir -p $TKG_STANDARDDIRECTORY/$myDir
-          $SVNBIN checkout $SVNURL/$myDir $TKG_STANDARDDIRECTORY/$myDir
+          mkdir -p $targetDiretcory
+          $SVNBIN checkout $SVNURL/$myDir $targetDiretcory
        fi
     done
 
