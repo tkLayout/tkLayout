@@ -51,22 +51,41 @@ if $TKG_SETUP_BIN ; then
     for myDir in $dirlist; do
        if [ "$myDir" == "deployStyle" ]; then
           myDir=$TKG_SOURCE_STYLE
-          targetDiretcory=$TKG_LAYOUTDIRECTORY/$myDir
+          targetDirectory=$TKG_LAYOUTDIRECTORY/$myDir
        else
-          targetDiretcory=$TKG_STANDARDDIRECTORY/$myDir
+          targetDirectory=$TKG_STANDARDDIRECTORY/$myDir
        fi
-       if [ -d $targetDiretcory ] ; then
-          otherBase=`$SVNBIN info $targetDiretcory | grep URL | cut -d' ' -f2-`
-          if [ "$otherBase" != "$SVNURL/$myDir" ]; then
-            echo ERROR: directory $targetDiretcory is not under the same version control as `pwd`
-            exit -1
+       if [ -d $targetDirectory ] ; then
+          echo -n Updating $targetDirectory...
+          if [ -d $targetDirectory/.svn ]; then
+            otherBase=`$SVNBIN info $targetDirectory | grep URL | cut -d' ' -f2-`
+            if [ "$otherBase" != "$SVNURL/$myDir" ]; then
+              echo ""
+              echo Directory $targetDirectory is under a different version control than `pwd`. 
+              echo Overwrite the old version control with the new one?
+              select yn in "Yes" "No"; do
+                case $yn in
+                  Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
+                  No ) echo Installation aborted by user; exit;;
+                esac
+              done
+            fi
+            $SVNBIN up $targetDirectory
+          else
+            echo ""
+            echo Directory $targetDirectory is not under a version control. 
+            echo Overwrite it with the latest version from svn?
+            select yn in "Yes" "No"; do
+              case $yn in
+                Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
+                No ) echo Installation aborted by user; exit;;
+              esac
+            done
           fi
-          echo -n Updating $myDir...
-          $SVNBIN up $targetDiretcory
        else
-          echo -n Checking out $myDir...
-          mkdir -p $targetDiretcory
-          $SVNBIN checkout $SVNURL/$myDir $targetDiretcory
+          echo -n Checking out $targetDirectory...
+          mkdir -p $targetDirectory
+          $SVNBIN checkout $SVNURL/$myDir $targetDirectory
        fi
     done
 

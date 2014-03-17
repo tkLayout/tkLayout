@@ -1514,27 +1514,30 @@ namespace insur {
 
       // Power (per module and total)
       aPower.str("");
-      double powerPerModule;
-      powerPerModule =  tagMapIt->second->totalPower(); // power [mW] of a module with this # strips // CUIDADO needs to take into account numChannels
-      aPower << std::fixed << std::setprecision(totalPowerPrecision)
-        << powerPerModule * v.tagMapCount[tagMapIt->first]; 
+      double powerPerModule =  tagMapIt->second->totalPower(); // power [mW] of a module with this # strips // CUIDADO needs to take into account numChannels
+      aPower << std::fixed << std::setprecision(totalPowerPrecision) << powerPerModule * v.tagMapCount[tagMapIt->first] * 1e-6; // converted from mW to kW 
       // number of modules of this type
 
       aPowerPerModule.str("");
-      aPowerPerModule << std::fixed << std::setprecision(modulePowerPrecision)
-      << powerPerModule;
+      aPowerPerModule << std::fixed << std::setprecision(modulePowerPrecision) << powerPerModule;
       totalPower += powerPerModule * v.tagMapCount[tagMapIt->first];
       // Power in sensors (per module and total)
       aSensorPower.str("");
       aSensorPowerPerModuleAvg.str("");
       aSensorPowerPerModuleMax.str("");
-      double& totalSensorPowerTag = v.tagMapSensorPowerAvg[tagMapIt->first];
-      aSensorPower << std::fixed << std::setprecision(totalPowerPrecision)
-                   << totalSensorPowerTag;
-      aSensorPowerPerModuleAvg << std::fixed << std::setprecision(modulePowerPrecision)
-                               << totalSensorPowerTag / v.tagMapCount[tagMapIt->first];
-      aSensorPowerPerModuleMax << std::fixed << std::setprecision(modulePowerPrecision)
-                               << v.tagMapSensorPowerMax[tagMapIt->first];
+      double totalSensorPowerTag = v.tagMapSensorPowerAvg[tagMapIt->first];
+      if (totalSensorPowerTag > 1e-6) { // non-zero checking with double
+        aSensorPower << std::fixed << std::setprecision(totalPowerPrecision)
+          << totalSensorPowerTag * 1e-3; // converted from W to kW
+        aSensorPowerPerModuleAvg << std::fixed << std::setprecision(modulePowerPrecision)
+          << totalSensorPowerTag / v.tagMapCount[tagMapIt->first] * 1e3; // converted from W to mW
+        aSensorPowerPerModuleMax << std::fixed << std::setprecision(modulePowerPrecision)
+          << v.tagMapSensorPowerMax[tagMapIt->first] * 1e3; // converted from W to mW
+      } else { // if sensor power is 0, it means we haven't run the power analysis (-p)
+        aSensorPower << "n/a";
+        aSensorPowerPerModuleAvg << "n/a";
+        aSensorPowerPerModuleMax << "n/a";
+      }
 
       // Cost
       aCost.str("");
@@ -1549,8 +1552,12 @@ namespace insur {
       // Weight
       aWeight.str("");
       TagMaker tmak(*aModule);
-      aWeight << std::fixed << std::setprecision(weightPrecision) <<
-        tagMapWeight[tmak.sensorGeoTag] / v.tagMapCount[(*tagMapIt).first];
+      if (tagMapWeight[tmak.sensorGeoTag] > 1e-6) { // non-zero check for double
+        aWeight << std::fixed << std::setprecision(weightPrecision) <<
+          tagMapWeight[tmak.sensorGeoTag] / v.tagMapCount[(*tagMapIt).first];
+      } else {
+        aWeight << "n/a";
+      }
       totalWeight += tagMapWeight[tmak.sensorGeoTag];
 
       moduleTable->setContent(0, iType, aName.str());
@@ -1648,11 +1655,18 @@ namespace insur {
     aSensorPowerPerModuleMax.str("");
     aCost.str("");
     aWeight.str("");
-    aPower << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-3; // W to kW
-    aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << v.totalSensorPower * 1e-3; // W to kW
+    aPower << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-6;
+    if (v.totalSensorPower > 1e-6) { // non-zero check for double
+      aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << v.totalSensorPower * 1e-3;
+    } else {
+      aSensorPower << "n/a";
+    }
     aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
-    aWeight  << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3
-      << " (kg)";
+    if (totalWeight > 1e-6) { // non-zero check for double
+      aWeight << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3 << " (kg)";
+    } else {
+      aWeight << "n/a";
+    }
     moduleTable->setContent(powerRow, iType, aPower.str());
     moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
     moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
