@@ -467,10 +467,10 @@ namespace insur {
       double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
       double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
       // CUIDADO maxR and minR should take into account dsDistance and sensorThickness (check if it's been already fixed in DetectorModule!!)
-      double deltar = rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
+      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
+      double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
       //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
-      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rods().at(0).thickness();
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
 
@@ -939,6 +939,8 @@ namespace insur {
         zmax = zmax + v.max / 2.0; 
         double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
         zmin = zmin - v.max / 2.0;
+        double ringThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
+        double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();
 
         std::ostringstream dname, pconverter;
 
@@ -1149,7 +1151,7 @@ namespace insur {
         shape.dx = 0.0;
         shape.dy = 0.0;
         shape.dyy = 0.0;
-        shape.dz = (zmax - zmin) / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
+        shape.dz = ringThickness / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
         //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
         std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1218,7 +1220,7 @@ namespace insur {
         shape.name_tag = dname.str();
         shape.rmin = rmin;
         shape.rmax = rmax;
-        shape.dz = (zmax - zmin) / 2.0;
+        shape.dz = diskThickness/2.0; //(zmax - zmin) / 2.0;
         s.push_back(shape);
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
@@ -1268,6 +1270,7 @@ namespace insur {
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
+    nspace = xml_pixbarident;
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1298,7 +1301,7 @@ namespace insur {
       logic.shape_tag = nspace + ":" + shapename.str();
       logic.material_tag = nspace + ":" + matname.str();
       l.push_back(logic);
-      pos.parent_tag = nspace + ":" + xml_tracker;
+      pos.parent_tag = nspace + ":" + xml_pixbar; //xml_tracker;
       pos.child_tag = logic.shape_tag;
       pos.trans.dz = iter->getZOffset() + shape.dz;
       p.push_back(pos);
@@ -1322,6 +1325,7 @@ namespace insur {
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
+    nspace = xml_pixfwdident;
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1353,7 +1357,7 @@ namespace insur {
         logic.shape_tag = nspace + ":" + shapename.str();
         logic.material_tag = nspace + ":" + matname.str();
         l.push_back(logic);
-        pos.parent_tag = nspace + ":" + xml_tracker;
+        pos.parent_tag = nspace + ":" + xml_pixfwd; // xml_tracker;
         pos.child_tag = logic.shape_tag;
         pos.trans.dz = iter->getZOffset() + shape.dz;
         p.push_back(pos);

@@ -64,6 +64,7 @@ void DetectorModule::setup() {
       return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
     }
   });
+  for (auto& s : sensors_) s.setup();
 };
 
 
@@ -185,6 +186,7 @@ void DetectorModule::buildSensorPolys() {
         Polygon3d<4>* poly = new Polygon3d<4>(basePoly());
         if (numSensors() > 1) poly->translate(normal()*(-dsDistance()/2 + dsDistance()*i++/(numSensors()-1)));
         s.assignPoly(poly);
+        s.setup();
     }
   }
 }

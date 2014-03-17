@@ -51,10 +51,12 @@ public:
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
+  ReadonlyProperty<double, Computable> maxModuleThickness;
 
   double minR() const { return minRadius_; }
   double maxR() const { return maxRadius_; }
   int numModules() const { return modules_.size(); }
+  double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
 
   Ring() :
       moduleShape           ("moduleShape"           , parsedAndChecked()),
@@ -71,6 +73,13 @@ public:
   void setup() {
     minZ.setup([this]() { double min = 99999; for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
     maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
+    maxModuleThickness.setup([this]() { 
+      double max = 0; 
+      for (const auto& m : modules_) { 
+        max = MAX(max, m.thickness()); 
+      } 
+      return max; 
+    });
     for (auto& m : modules_) m.setup();
   }
   

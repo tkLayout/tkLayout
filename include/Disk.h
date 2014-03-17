@@ -38,6 +38,7 @@ public:
 
   ReadonlyProperty<double, Computable> minZ, maxZ, minR, maxR;
   ReadonlyProperty<int, Computable> totalModules;
+  ReadonlyProperty<double, Computable> maxRingThickness;
 
   Disk() :
     numRings("numRings", parsedAndChecked()),
@@ -53,11 +54,12 @@ public:
   {}
 
   void setup() {
-    minZ.setup([this]() { double min = 99999; for (const auto& r : rings_) { min = MIN(min, r.minZ()); } return min; });
-    maxZ.setup([this]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
-    minR.setup([this]() { double min = 99999; for (const auto& r : rings_) { min = MIN(min, r.minR()); } return min; });
-    maxR.setup([this]() { double max = 0; for (const auto& r : rings_) { max = MAX(max, r.maxR()); } return max; });
-    totalModules.setup([this]() { int cnt = 0; for (const auto& r : rings_) { cnt += r.numModules(); } return cnt; });
+    minZ.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
+    maxZ.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    minR.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
+    maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
+    maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
+    totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
     for (auto& r : rings_) r.setup();
   }
 
@@ -68,6 +70,7 @@ public:
   void cutAtEta(double eta);
 
   double averageZ() const { return averageZ_; }
+  double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
 

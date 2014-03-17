@@ -15,6 +15,8 @@ public:
   ReadonlyProperty<double, Default> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
   Property<double, NoDefault> length, minWidth, maxWidth;
+  ReadonlyProperty<double, Computable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
+  ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
 
   Sensor() : 
       numSegments("numSegments", parsedOnly()),
@@ -46,6 +48,32 @@ public:
     catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
     cleanup(); 
   }
+
+  void setup() {
+    minR.setup([&]() {
+      XYZVector side[2];
+      std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
+      return std::min(minRVertex(), ((side[0]+side[1])/2).Rho());          
+    });
+    maxR.setup([&]() {
+      double max = 0.;
+      for (auto v : *poly_) max = MAX(max, v.Rho());
+      return max;
+    });
+    minZ.setup([&]() {
+      XYZVector side[2];
+      std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Z() < v2.Z(); });
+      return std::min(minZVertex(), ((side[0]+side[1])/2).Rho());
+    });
+    maxZ.setup([&]() {
+      double max = 0.;
+      for (auto v : *poly_) max = MAX(max, v.Z());
+      return max;
+    });
+  }
+
+  double minRVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Rho()); } return min; }
+  double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
   
   bool hasPoly() const { return poly_ != 0; }
   void clearPoly() { delete poly_; poly_ = 0; } 

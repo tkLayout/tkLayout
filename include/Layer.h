@@ -85,6 +85,7 @@ public:
   int numModulesPerRod() const { return rods_.front().numModules(); };
   int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
   int totalModules() const { return numModulesPerRod()*numRods(); };
+  double rodThickness() const { return rods_.front().thickness(); }
   
   double tilt() const { return 0.0; }
   double startAngle() const { return 0.0; }

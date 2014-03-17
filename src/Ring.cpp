@@ -135,6 +135,7 @@ void Ring::buildBottomUp() {
 
   }
 
+  emod->setup();
   emod->store(propertyTree());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0)); // CUIDADO it should use translateR
@@ -152,12 +153,14 @@ void Ring::buildTopDown() {
   buildStartRadius(buildStartRadius()-ringGap());
 
   RectangularModule* rmod = new RectangularModule();
+  rmod->setup();
   rmod->store(propertyTree());
 
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
   EndcapModule* emod = new EndcapModule(rmod); // decorator chain: new Endcap(new Wedge()))
+  emod->setup();
   emod->store(propertyTree());
   emod->build();
   emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0)); // CUIDADO it should use translateR
