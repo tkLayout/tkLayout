@@ -74,8 +74,8 @@ namespace insur {
     addCut("C", detaTrack, detaTrack);
     addCut("I", detaTrack*2, detaTrack*2);
     addCut("F", detaTrack*3, 2.1);
-    addCut("VF",detaTrack*4, 2.25);
-    addCut("VF",detaTrack*5, 2.4);
+    addCut("VF",detaTrack*4, 2.4);
+    addCut("WF",detaTrack*5, 4);
   }
 
   // public

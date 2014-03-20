@@ -4,6 +4,7 @@
  */
 
 #include <Vizard.h>
+#include <TPolyLine.h>
 
 namespace insur {
   // public
@@ -1688,6 +1689,25 @@ namespace insur {
     TCanvas *myCanvas = NULL;
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+    if (name=="pixel") {
+      std::cerr << "PIXEL HACK for beam pipe!! :)" << std::endl;
+      TPolyLine* beampipe  = new TPolyLine();
+      beampipe->SetPoint(0, 0, 45/2.);
+      beampipe->SetPoint(1, 2915/2., 45/2.);
+      beampipe->SetPoint(2, 3804/2., 56.6/2.);
+      beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
+      XYCanvasEC->cd();
+      drawCircle(22.5, true, kBlue-7);
+      XYCanvas->cd();
+      drawCircle(22.5, true, kBlue-7);
+      RZCanvas->cd();
+      beampipe->Draw("same");
+
+      TPolyLine* etafour  = new TPolyLine();
+      etafour->SetPoint(0, 0, 0);
+      etafour->SetPoint(1, 2700, 98.9376398798);
+      etafour->Draw("same");
+    }
     // createColorPlotCanvas(tracker, 1, RZCanvas);
 
 
@@ -4418,4 +4438,16 @@ namespace insur {
     t.accept(v);
     endcapModulesCsv_ = v.output.str();
   }
+
+  void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
+    TEllipse* myEllipse = new TEllipse(0,0,radius);
+    if (full) {
+      myEllipse->SetFillColor(color);
+      myEllipse->SetFillStyle(1001);
+    } else {
+      myEllipse->SetFillStyle(0);
+    }
+    myEllipse->Draw();
+  }
+
 }

@@ -263,6 +263,8 @@ namespace insur {
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();
+
+    void drawCircle(double radius, bool full, int color=kBlack);
   };
 
 
