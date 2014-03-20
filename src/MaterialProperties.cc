@@ -432,4 +432,5 @@ namespace insur {
         return split.first;
     }
 
+define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
 }

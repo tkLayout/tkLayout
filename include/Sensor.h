@@ -1,4 +1,5 @@
 #include <string>
+#include <exception>
 
 #include "global_funcs.h"
 #include "Polygon3d.h"
@@ -7,7 +8,19 @@
 enum class SensorType { Pixel, Largepix, Strip, None };
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
-  Polygon3d<4>* poly_ = 0;
+  class PolyHolder { 
+    const Polygon3d<4>* poly_; 
+  public:
+    PolyHolder() : poly_(0) {}
+    PolyHolder(const Polygon3d<4>* poly) : poly_(poly) {}
+    PolyHolder(const PolyHolder& other) { if (&other != this && other.poly_ != 0) poly_ = new Polygon3d<4>(*(other.poly_)); }
+    PolyHolder& operator=(const Polygon3d<4>* poly) { poly_ = poly; return *this; }
+    operator const Polygon3d<4>* const&() const { return poly_; }
+    const Polygon3d<4>* operator->() { return poly_; }
+    const Polygon3d<4>* const operator->() const { return poly_; }
+  } poly_; 
+  double sensorTranslation_;
+  Polygon3d<4> computeEnvelopePolygon() const; 
 public:
   ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<int, NoDefault> numStripsAcross;
@@ -50,7 +63,7 @@ public:
   }
 
   void setup() {
-    minR.setup([&]() {
+    /*minR.setup([&]() {
       XYZVector side[2];
       std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
       return std::min(minRVertex(), ((side[0]+side[1])/2).Rho());          
@@ -69,14 +82,20 @@ public:
       double max = 0.;
       for (auto v : *poly_) max = MAX(max, v.Z());
       return max;
-    });
+    });*/
+
+ //   minR.setup([&]() { return PolygonOperations::computeMinR(computeEnvelopePolygon()); });
+ //   maxR.setup([&]() { return PolygonOperations::computeMaxR(computeEnvelopePolygon()); });
+ //   minZ.setup([&]() { return PolygonOperations::computeMinZ(computeEnvelopePolygon()); });
+ //   maxZ.setup([&]() { return PolygonOperations::computeMaxZ(computeEnvelopePolygon()); });
   }
+
 
   double minRVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Rho()); } return min; }
   double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
   
   bool hasPoly() const { return poly_ != 0; }
   void clearPoly() { delete poly_; poly_ = 0; } 
-  void assignPoly(Polygon3d<4>* const poly) { poly_ = poly; }
+  void assignPoly(Polygon3d<4>* const poly, double sensorTranslation) { poly_ = poly; sensorTranslation_ = sensorTranslation; }
 };
 

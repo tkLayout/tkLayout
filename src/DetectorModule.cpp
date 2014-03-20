@@ -184,8 +184,13 @@ void DetectorModule::buildSensorPolys() {
   for (auto& s : sensors_) {
     if (!s.hasPoly()) {
         Polygon3d<4>* poly = new Polygon3d<4>(basePoly());
-        if (numSensors() > 1) poly->translate(normal()*(-dsDistance()/2 + dsDistance()*i++/(numSensors()-1)));
-        s.assignPoly(poly);
+        double sensorTranslation;
+        if (numSensors() > 1) { 
+          sensorTranslation = -dsDistance()/2 + dsDistance()*i++/(numSensors()-1);
+          poly->translate(normal()*sensorTranslation);
+          s.assignPoly(poly, sensorTranslation);
+        } else 
+          s.assignPoly(poly, 0.0);
         s.setup();
     }
   }

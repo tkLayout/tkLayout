@@ -166,10 +166,14 @@ public:
   ModuleShape shape() const { return decorated().shape(); }
 ////////
 
-  virtual double maxZ() const = 0;
-  virtual double minZ() const = 0;
-  virtual double maxR() const = 0;
-  virtual double minR() const = 0;
+  double maxZ() const { return gmax<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxZ(); }); }
+  double minZ() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minZ(); }); }
+  double maxR() const { return gmax<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxR(); }); }
+  double minR() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minR(); }); }
+  double planarMaxZ() const { return 0.0; }
+  double planarMinZ() const { return 0.0; }
+  double planarMaxR() const { return 0.0; }
+  double planarMinR() const { return 0.0; }
 
   double phiAperture() const { return maxPhi() - minPhi(); }
 
@@ -254,10 +258,10 @@ public:
   void build();
 
 
-  double maxZ() const { return MAX(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
-  double minZ() const { return MIN(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
-  double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-  double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
+  //double maxZ() const { return MAX(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
+  //double minZ() const { return MIN(basePoly().getVertex(0).Z(), basePoly().getVertex(2).Z()); } 
+  //double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
+  //double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
@@ -297,12 +301,12 @@ public:
     decorated().accept(v); 
   }
 
-  double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
-  double maxZ() const { return center().Z(); } // ditto here
-  double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
-  double minR() const { XYZVector side[2];
-                        std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
-                        return ((side[0]+side[1])/2).Rho(); }
+  //double minZ() const { return center().Z(); } // CUIDADO not accounting for sensor placement
+  //double maxZ() const { return center().Z(); } // ditto here
+  //double maxR() const { return MAX(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
+  //double minR() const { XYZVector side[2];
+  //                      std::partial_sort_copy(basePoly().begin(), basePoly().end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
+  //                      return ((side[0]+side[1])/2).Rho(); }
 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }

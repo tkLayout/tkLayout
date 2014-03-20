@@ -1270,7 +1270,6 @@ namespace insur {
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
-    nspace = xml_pixbarident;
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1301,7 +1300,7 @@ namespace insur {
       logic.shape_tag = nspace + ":" + shapename.str();
       logic.material_tag = nspace + ":" + matname.str();
       l.push_back(logic);
-      pos.parent_tag = nspace + ":" + xml_pixbar; //xml_tracker;
+      pos.parent_tag = xml_pixbarident + ":" + xml_pixbar; //xml_tracker;
       pos.child_tag = logic.shape_tag;
       pos.trans.dz = iter->getZOffset() + shape.dz;
       p.push_back(pos);
@@ -1325,7 +1324,6 @@ namespace insur {
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
-    nspace = xml_pixfwdident;
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1357,7 +1355,7 @@ namespace insur {
         logic.shape_tag = nspace + ":" + shapename.str();
         logic.material_tag = nspace + ":" + matname.str();
         l.push_back(logic);
-        pos.parent_tag = nspace + ":" + xml_pixfwd; // xml_tracker;
+        pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd; // xml_tracker;
         pos.child_tag = logic.shape_tag;
         pos.trans.dz = iter->getZOffset() + shape.dz;
         p.push_back(pos);
@@ -1404,7 +1402,7 @@ namespace insur {
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
       matname << xml_base_lazycomp << iter->getCategory();
-      shapename << xml_base_lazy << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
+      shapename << xml_base_lazy << any2str(iter->getCategory()) << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
 
       fres = found.find(iter->getCategory());
       if (fres == found.end()) {
@@ -1423,7 +1421,18 @@ namespace insur {
       logic.material_tag = nspace + ":" + matname.str();
       l.push_back(logic);
 
-      pos.parent_tag = nspace + ":" + xml_tracker;
+      switch (iter->getCategory()) {
+      case MaterialProperties::b_sup:
+      case MaterialProperties::t_sup:
+      case MaterialProperties::u_sup:
+          pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
+          break;
+      case MaterialProperties::e_sup:
+          pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+          break;
+      default:
+          pos.parent_tag = nspace + ":" + xml_tracker;
+      }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
           (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;

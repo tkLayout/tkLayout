@@ -58,7 +58,7 @@ class StringConverter<STRING_ENUM> {
   StringConverter();
 public:
   template<typename T> static std::string any2str(const T& from, int) {
-    return EnumTraits<T>::data[static_cast<std::underlying_type<T>>(from)];
+    return EnumTraits<T>::data[static_cast<typename std::underlying_type<T>::type>(from)];
   }
   template<typename T> static T str2any(const std::string& from) {
     static auto begin = std::begin(EnumTraits<T>::data);
@@ -140,5 +140,17 @@ inline double radius2pt(double radius, double magneticField) { return radius * 0
 inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
 inline double theta2eta(double theta) { return -log(tan(theta/2)); }
 
+
+template<class T, class I, class UnaryOperation> inline T gmax(I begin, I end, UnaryOperation op) {
+  T max = op(*begin++);
+  for (auto it = begin; it != end; ++it) max = MAX(max, op(*it));
+  return max;
+}
+
+template<class T, class I, class UnaryOperation> inline T gmin(I begin, I end, UnaryOperation op) {
+  T min = op(*begin++);
+  for (auto it = begin; it != end; ++it) min = MIN(min, op(*it));
+  return min;
+}
 
 #endif
