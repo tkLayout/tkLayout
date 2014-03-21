@@ -4,6 +4,7 @@
 #include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
+#include "CoordinateOperations.h"
 
 enum class SensorType { Pixel, Largepix, Strip, None };
 
@@ -16,6 +17,7 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
     PolyHolder(const PolyHolder& other) { if (&other != this && other.poly_ != 0) poly_ = new Polygon3d<4>(*(other.poly_)); }
     PolyHolder& operator=(const Polygon3d<4>* poly) { poly_ = poly; return *this; }
     operator const Polygon3d<4>* const&() const { return poly_; }
+    operator const Polygon3d<4>*&() { return poly_; }
     const Polygon3d<4>* operator->() { return poly_; }
     const Polygon3d<4>* const operator->() const { return poly_; }
   } poly_; 
@@ -84,10 +86,10 @@ public:
       return max;
     });*/
 
- //   minR.setup([&]() { return PolygonOperations::computeMinR(computeEnvelopePolygon()); });
- //   maxR.setup([&]() { return PolygonOperations::computeMaxR(computeEnvelopePolygon()); });
- //   minZ.setup([&]() { return PolygonOperations::computeMinZ(computeEnvelopePolygon()); });
- //   maxZ.setup([&]() { return PolygonOperations::computeMaxZ(computeEnvelopePolygon()); });
+    minR.setup([&]() { return CoordinateOperations::computeMinR(computeEnvelopePolygon()); });
+    maxR.setup([&]() { return CoordinateOperations::computeMaxR(computeEnvelopePolygon()); });
+    minZ.setup([&]() { return CoordinateOperations::computeMinZ(computeEnvelopePolygon()); });
+    maxZ.setup([&]() { return CoordinateOperations::computeMaxZ(computeEnvelopePolygon()); });
   }
 
 
@@ -95,7 +97,7 @@ public:
   double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
   
   bool hasPoly() const { return poly_ != 0; }
-  void clearPoly() { delete poly_; poly_ = 0; } 
+  void clearPoly() { if(hasPoly()) {delete (const Polygon3d<4>*)poly_; poly_ = 0;} }
   void assignPoly(Polygon3d<4>* const poly, double sensorTranslation) { poly_ = poly; sensorTranslation_ = sensorTranslation; }
 };
 

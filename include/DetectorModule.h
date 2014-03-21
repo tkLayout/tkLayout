@@ -4,6 +4,7 @@
 #include "Sensor.h"
 #include "ModuleBase.h"
 #include "GeometricModule.h"
+#include "CoordinateOperations.h"
 
 
 //
@@ -170,10 +171,11 @@ public:
   double minZ() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minZ(); }); }
   double maxR() const { return gmax<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxR(); }); }
   double minR() const { return gmin<double>(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minR(); }); }
-  double planarMaxZ() const { return 0.0; }
-  double planarMinZ() const { return 0.0; }
-  double planarMaxR() const { return 0.0; }
-  double planarMinR() const { return 0.0; }
+
+  double planarMaxZ() const { return CoordinateOperations::computeMaxZ(basePoly()); }
+  double planarMinZ() const { return CoordinateOperations::computeMinZ(basePoly()); }
+  double planarMaxR() const { return CoordinateOperations::computeMaxR(basePoly()); }
+  double planarMinR() const { return CoordinateOperations::computeMinR(basePoly()); }
 
   double phiAperture() const { return maxPhi() - minPhi(); }
 
