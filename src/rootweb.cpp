@@ -808,6 +808,11 @@ ostream& RootWSite::dumpHeader(ostream& output, RootWPage* thisPage) {
 	 << "  <head>" << endl
 	 << "    <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\" />" << endl
 	 << "    <title>"<< title_ << " - " << thisPage->getTitle() <<"</title>" << endl
+         << "    <meta http-equiv=\"cache-control\" content=\"max-age=0\" />" << endl
+         << "    <meta http-equiv=\"cache-control\" content=\"no-cache\" />" << endl
+         << "    <meta http-equiv=\"expires\" content=\"0\" />" << endl
+         << "    <meta http-equiv=\"expires\" content=\"Tue, 01 Jan 1980 1:00:00 GMT\" />" << endl
+         << "    <meta http-equiv=\"pragma\" content=\"no-cache\" />" << endl
 	 << "    <meta name=\"keywords\" content=\"CERN CMS tracker upgrade\" />" << endl
 	 << "    <meta name=\"description\" content=\"CMS Tracker upgrade summary page\" />" << endl
 	 << "    <link href=\"../style/default.css\" rel=\"stylesheet\" type=\"text/css\" />" << endl
