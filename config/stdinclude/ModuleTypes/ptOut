@@ -2,7 +2,7 @@
 moduleType ptOut
 
 sensorLayout pt
-zCorrelation multisegment
+zCorrelation samesegment
 
 numSensors 2
 
