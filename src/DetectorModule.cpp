@@ -32,18 +32,14 @@ void DetectorModule::build() {
   if (numSensors() > 0) {
     sensors_.resize(numSensors());
     for (int i = 0; i < sensors_.size(); i++) {
-      sensors_.at(i).length(length());
-      sensors_.at(i).minWidth(minWidth());
-      sensors_.at(i).maxWidth(maxWidth());
+      sensors_.at(i).setup(this);
       sensors_.at(i).store(propertyTree());
       if (sensorNode.count(i+1) > 0) sensors_.at(i).store(sensorNode.at(i+1));
       sensors_.at(i).build();
     }
   } else {
     Sensor s;  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
-    s.length(length());
-    s.minWidth(minWidth());
-    s.maxWidth(maxWidth());
+    s.setup(this);
     s.build();
     sensors_.push_back(s);
   }
@@ -64,7 +60,7 @@ void DetectorModule::setup() {
       return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
     }
   });
-  for (auto& s : sensors_) s.setup();
+  for (auto& s : sensors_) s.setup(this);
 };
 
 
@@ -159,7 +155,6 @@ double DetectorModule::effectiveDsDistance() const {
 }
 
 std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
-  buildSensorPolys();
   HitType ht = HitType::NONE;
   XYZVector gc; // global coordinates of the hit
   if (numSensors() == 1) {
@@ -178,23 +173,6 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   if (ht != HitType::NONE) numHits_++;
   return std::make_pair(gc, ht);
 };
-
-void DetectorModule::buildSensorPolys() {
-  int i = 0;
-  for (auto& s : sensors_) {
-    if (!s.hasPoly()) {
-        Polygon3d<4>* poly = new Polygon3d<4>(basePoly());
-        double sensorTranslation;
-        if (numSensors() > 1) { 
-          sensorTranslation = -dsDistance()/2 + dsDistance()*i++/(numSensors()-1);
-          poly->translate(normal()*sensorTranslation);
-          s.assignPoly(poly, sensorTranslation);
-        } else 
-          s.assignPoly(poly, 0.0);
-        s.setup();
-    }
-  }
-}
 
 void BarrelModule::build() {
   try {

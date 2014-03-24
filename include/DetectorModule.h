@@ -42,8 +42,7 @@ protected:
 
   int numHits_ = 0;
 
-  void buildSensorPolys();
-  void clearSensorPolys() { for (auto& s : sensors_) s.clearPoly(); }
+  void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
 public:
   Property<int16_t, AutoDefault> side;
 

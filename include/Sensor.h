@@ -1,3 +1,6 @@
+#ifndef SENSOR_H
+#define SENSOR_H
+
 #include <string>
 #include <exception>
 
@@ -6,30 +9,21 @@
 #include "Property.h"
 #include "CoordinateOperations.h"
 
+class DetectorModule;
+
 enum class SensorType { Pixel, Largepix, Strip, None };
 
 class Sensor : public PropertyObject, public Buildable, public Identifiable<int> {
-  class PolyHolder { 
-    const Polygon3d<4>* poly_; 
-  public:
-    PolyHolder() : poly_(0) {}
-    PolyHolder(const Polygon3d<4>* poly) : poly_(poly) {}
-    PolyHolder(const PolyHolder& other) { if (&other != this && other.poly_ != 0) poly_ = new Polygon3d<4>(*(other.poly_)); }
-    PolyHolder& operator=(const Polygon3d<4>* poly) { poly_ = poly; return *this; }
-    operator const Polygon3d<4>* const&() const { return poly_; }
-    operator const Polygon3d<4>*&() { return poly_; }
-    const Polygon3d<4>* operator->() { return poly_; }
-    const Polygon3d<4>* const operator->() const { return poly_; }
-  } poly_; 
-  double sensorTranslation_;
-  Polygon3d<4> computeEnvelopePolygon() const; 
+  const DetectorModule* parent_;
+  mutable const Polygon3d<4>* hitPoly_ = 0; 
+  mutable const Polygon3d<4>* envPoly_ = 0; 
+  Polygon3d<4>* buildOwnPoly(double polyOffset) const;
 public:
   ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<double, Default> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
-  Property<double, NoDefault> length, minWidth, maxWidth;
   ReadonlyProperty<double, Computable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
   ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
 
@@ -39,22 +33,21 @@ public:
       numROCX("numROCX", parsedOnly()),
       numROCY("numROCY", parsedOnly()),
       sensorThickness("sensorThickness", parsedOnly(), 0.1),
-      type("sensorType", parsedOnly(), SensorType::None),
-      length("l", checkedOnly()),
-      minWidth("w", checkedOnly()),
-      maxWidth("W", checkedOnly())
+      type("sensorType", parsedOnly(), SensorType::None)
   {}
 
   int numChannels() const { return numStripsAcross() * numSegments(); }
-  double minPitch() const { return minWidth() / (double)numStripsAcross(); }
-  double maxPitch() const { return maxWidth() / (double)numStripsAcross(); }
-  double pitch() const { return (maxWidth() + minWidth()) / 2. / (double)numStripsAcross(); }
-  double stripLength() const { return length() / numSegments(); }
+  double minPitch() const;
+  double maxPitch() const;
+  double pitch() const;
+  double stripLength() const;
 
   int numROCRows() const { return numStripsAcross() / numROCX(); } 
   int numROCCols() const { return numSegments() / numROCY(); }
 
   int totalROCs() const { return numROCX() * numROCY(); }
+
+  double normalOffset() const;
 
   std::pair<XYZVector, int> checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const;
 
@@ -64,7 +57,7 @@ public:
     cleanup(); 
   }
 
-  void setup() {
+  void setup(const DetectorModule* parent) {
     /*minR.setup([&]() {
       XYZVector side[2];
       std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
@@ -86,18 +79,21 @@ public:
       return max;
     });*/
 
-    minR.setup([&]() { return CoordinateOperations::computeMinR(computeEnvelopePolygon()); });
-    maxR.setup([&]() { return CoordinateOperations::computeMaxR(computeEnvelopePolygon()); });
-    minZ.setup([&]() { return CoordinateOperations::computeMinZ(computeEnvelopePolygon()); });
-    maxZ.setup([&]() { return CoordinateOperations::computeMaxZ(computeEnvelopePolygon()); });
+    parent_ = parent;
+    clearPolys();
+    minR.setup([&]() { return CoordinateOperations::computeMinR(envelopePoly()); });
+    maxR.setup([&]() { return CoordinateOperations::computeMaxR(envelopePoly()); });
+    minZ.setup([&]() { return CoordinateOperations::computeMinZ(envelopePoly()); });
+    maxZ.setup([&]() { return CoordinateOperations::computeMaxZ(envelopePoly()); });
   }
 
 
-  double minRVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Rho()); } return min; }
-  double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
+//  double minRVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Rho()); } return min; }
+//  double minZVertex() const { double min = std::numeric_limits<double>::max(); for (auto v : *poly_) { min = MIN(min, v.Z()); } return min; }
   
-  bool hasPoly() const { return poly_ != 0; }
-  void clearPoly() { if(hasPoly()) {delete (const Polygon3d<4>*)poly_; poly_ = 0;} }
-  void assignPoly(Polygon3d<4>* const poly, double sensorTranslation) { poly_ = poly; sensorTranslation_ = sensorTranslation; }
+  void clearPolys();
+  const Polygon3d<4>& hitPoly() const;
+  const Polygon3d<4>& envelopePoly() const;
 };
 
+#endif
