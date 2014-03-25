@@ -141,14 +141,14 @@ inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
 inline double theta2eta(double theta) { return -log(tan(theta/2)); }
 
 
-template<class T, class I, class UnaryOperation> inline T gmax(I begin, I end, UnaryOperation op) {
-  T max = op(*begin++);
+template<class I, class UnaryOperation> inline auto maxget(I begin, I end, UnaryOperation op) -> decltype(op(*begin)) {
+  auto max = op(*begin++);
   for (auto it = begin; it != end; ++it) max = MAX(max, op(*it));
   return max;
 }
 
-template<class T, class I, class UnaryOperation> inline T gmin(I begin, I end, UnaryOperation op) {
-  T min = op(*begin++);
+template<class I, class UnaryOperation> inline auto minget(I begin, I end, UnaryOperation op) -> decltype(op(*begin)) {
+  auto min = op(*begin++);
   for (auto it = begin; it != end; ++it) min = MIN(min, op(*it));
   return min;
 }

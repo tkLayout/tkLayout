@@ -610,6 +610,7 @@ void Track::computeCovarianceMatrix() {
     //	diffs.Print();
     //#endif
     // compute cov from diffsT, the correlation matrix and diffs
+    //std::cout << getEta() << std::endl; 
     cov = diffsT * C.Invert() * diffs;
     //#ifdef HIT_DEBUG
     //	cov.Print();
@@ -789,6 +790,7 @@ void Track::computeCovarianceMatrixRZ() {
     // 	}
     // #endif
     // Invert the C matrix
+    //std::cout << getEta() << std::endl; 
     C.Invert();
     // #ifdef HIT_DEBUG_RZ
     // 	if (debugRZCovarianceMatrix) {
@@ -832,6 +834,7 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
     TMatrixT<double> data(iter->second);
     pair<momentum, double> err;
     err.first = iter->first;
+    //std::cout << getEta() << std::endl; 
     data = data.Invert();
     // #ifdef HIT_DEBUG_RZ
     // 	if (debugRZErrorPropagation) {
@@ -868,6 +871,7 @@ void Track::computeErrors(const std::vector<momentum>& momentaList) {
     TMatrixT<double> data(iter->second);
     pair<momentum, double> err;
     err.first = iter->first;
+    //std::cout << getEta() << std::endl; 
     data = data.Invert();
     //#ifdef HIT_DEBUG
     //	std::cerr << "Matrix S" << std::endl;

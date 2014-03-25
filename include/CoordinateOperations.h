@@ -5,8 +5,8 @@
  *      Author: stefano
  */
 
-#ifndef CORDINATESOPERATIONS_H_
-#define CORDINATESOPERATIONS_H_
+#ifndef CORDINATEOPERATIONS_H_
+#define CORDINATEOPERATIONS_H_
 
 #include <Math/Vector3Dfwd.h>
 #include <vector>
@@ -15,8 +15,9 @@
 
 using ROOT::Math::XYZVector;
 
-namespace CoordinateOperations{
+namespace CoordinateOperations {
 
+/*
   template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
     std::vector<XYZVector> distanceVectors;
     auto vertex0 = polygon.begin();
@@ -35,23 +36,38 @@ namespace CoordinateOperations{
     }
     return distanceVectors;
   }
+*/
+
+  XYZVector computeDistanceVector(const XYZVector& v0, const XYZVector& v1); // minimum distance vector (from the origin) of the segment defined by v0 and v1
+
+  template<class Polygon> std::vector<XYZVector> computeDistanceVectors(const Polygon& polygon) {
+    std::vector<XYZVector> distanceVectors;
+    XYZVector v0 = polygon.getVertex(0);
+    for (int i = 1; i < polygon.getNumSides()+1; i++) {
+      XYZVector v1 = polygon.getVertex(i % polygon.getNumSides());
+      v0.SetZ(0.0);
+      v1.SetZ(0.0);
+      distanceVectors.push_back(computeDistanceVector(v0, v1));
+      v0 = v1;
+    }
+    return distanceVectors;
+  }
 
   template<class Polygon> double computeMinZ(const Polygon& polygon) {
-    return gmin<double>(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
+    return minget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
   }
 
   template<class Polygon> double computeMaxZ(const Polygon& polygon) {
-    return gmax<double>(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
+    return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Z(); });
   }
 
   template<class Polygon> double computeMinR(const Polygon& polygon) {
     auto distanceVectors = computeDistanceVectors(polygon);
-    return gmin<double>(distanceVectors.begin(), distanceVectors.end(), [](const XYZVector& v) { return v.Rho(); });
+    return minget(distanceVectors.begin(), distanceVectors.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
   template<class Polygon> double computeMaxR(const Polygon& polygon) {
-    auto distanceVectors = computeDistanceVectors(polygon);
-    return gmax<double>(distanceVectors.begin(), distanceVectors.end(), [](const XYZVector& v) { return v.Rho(); });
+    return maxget(polygon.begin(), polygon.end(), [](const XYZVector& v) { return v.Rho(); });
   }
 
 }
@@ -59,4 +75,4 @@ namespace CoordinateOperations{
 
 
 
-#endif /* CORDINATESOPERATIONS_H_ */
+#endif /* CORDINATEOPERATIONS_H_ */

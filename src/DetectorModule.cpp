@@ -32,6 +32,7 @@ void DetectorModule::build() {
   if (numSensors() > 0) {
     sensors_.resize(numSensors());
     for (int i = 0; i < sensors_.size(); i++) {
+      sensors_.at(i).myid(i+1);
       sensors_.at(i).setup(this);
       sensors_.at(i).store(propertyTree());
       if (sensorNode.count(i+1) > 0) sensors_.at(i).store(sensorNode.at(i+1));
@@ -39,6 +40,7 @@ void DetectorModule::build() {
     }
   } else {
     Sensor s;  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
+    s.myid(1);
     s.setup(this);
     s.build();
     sensors_.push_back(s);
