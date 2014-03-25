@@ -20,6 +20,8 @@ namespace insur {
     void XMLWriter::pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
+        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
@@ -55,6 +57,8 @@ namespace insur {
     void XMLWriter::pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned pos = 0;
         std::string line;
+        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
@@ -99,6 +103,7 @@ namespace insur {
         std::vector<Rotation>& r = d.rots;
         std::ostringstream buffer;
         buffer << xml_preamble;
+        buffer << getExtendedHeader();
         if (wt) {
             buffer << xml_new_const_section;
             materialSection(xml_newtrackerfile, e, c, buffer);
@@ -136,6 +141,8 @@ namespace insur {
         std::string line;
         unsigned int i;
         int pos;
+        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
 
         // Find the break
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
@@ -217,6 +224,8 @@ namespace insur {
     void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
+        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         // head of file
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         // TOB
@@ -249,6 +258,8 @@ namespace insur {
     void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
+        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         // TOB
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
@@ -286,6 +297,8 @@ namespace insur {
         b = buildPaths(t, b, wt);
         if (!b.empty()) {
             std::string line;
+            while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
+            out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
             while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
             std::vector<PathInfo>::iterator iter, guard = b.end();
             for (iter = b.begin(); iter != guard; iter++) {
@@ -967,4 +980,5 @@ namespace insur {
         }
         return result;
     }
+
 }

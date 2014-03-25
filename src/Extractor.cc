@@ -461,12 +461,11 @@ namespace insur {
       lagg.getBarrelLayers()->at(layer-1)->accept(v);
 
       double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
-      rmin = rmin - v.max / 2.0;
+      //rmin = rmin - v.max / 2.0; // no need to manually add/subtract the thickness, it is already taken into account by the new volumetric minR/maxR functions
       double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
-      rmax = rmax + v.max / 2.0;
+      //rmax = rmax + v.max / 2.0;
       double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
       double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
-      // CUIDADO maxR and minR should take into account dsDistance and sensorThickness (check if it's been already fixed in DetectorModule!!)
       double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
       double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
       //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
@@ -936,9 +935,9 @@ namespace insur {
         double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
         double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();
         double zmax = lagg.getEndcapLayers()->at(layer - 1)->maxZ();
-        zmax = zmax + v.max / 2.0; 
+        //zmax = zmax + v.max / 2.0; 
         double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
-        zmin = zmin - v.max / 2.0;
+        //zmin = zmin - v.max / 2.0;
         double ringThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
         double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();
 
