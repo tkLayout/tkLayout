@@ -72,19 +72,23 @@ namespace insur {
             double zOffsetDisc(int discindex);
             int realIndexLayer(int tintreplayer);
             int realIndexDisc(int tintrepdisc);
+            bool barrelHasServices(int barrelindex);
+            bool endcapHasServices(int endcapindex);
+            int endcapFromDisc(int discindex);
             std::list<std::pair<int, double> >& shortBarrelsList();
             virtual bool analyze(Tracker& tracker);
             void print();
         protected:
             std::vector<int> n_of_layers, n_of_discs, real_index_layer, real_index_disc;
+            std::vector<bool> barrel_has_services, endcap_has_services;
             std::list<std::pair<int, double> > short_layers;
             std::vector<std::pair<double, double> > layers_io_radius, endcaps_io_radius, barrels_length_offset, discs_length_offset;
         private:
             bool post_analysis;
             std::vector<int> analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short);
+                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short, std::vector<bool>& barrel_has_services);
             std::vector<int> analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
+                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::vector<bool>& endcap_has_services);
             bool analyzePolarity();
         };
         virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports);
@@ -113,6 +117,7 @@ namespace insur {
         double findMaxBarrelZ(TrackerIntRep& tintrep);
         std::pair<int, int> findBarrelSupportParams(TrackerIntRep& tracker, bool up);
         std::pair<int, int> findSupportStartStop(TrackerIntRep& tracker, std::pair<int, double> udef, std::pair<int, int> aux, double z, bool up);
+        double findBarrelSupportRingZ(TrackerIntRep& tracker, int i) const;
         void print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary);
     };
 }

@@ -227,6 +227,7 @@ namespace insur {
         else h = tracker.nOfBarrels() - tracker.nOfEndcaps();
         // cut layers
         for (int i = 0; i < h; i ++) {
+            if (!tracker.barrelHasServices(i)) continue;
             zo = tracker.zOffsetBarrel(i) + epsilon;
             zl = tracker.zOffsetBarrel(h) - zo;
             for (int j = 0; j < tracker.nOfLayers(i); j++) {
@@ -255,6 +256,7 @@ namespace insur {
             zl = volume_width;
             // barrel loop
             for (int i = h; i < tracker.nOfBarrels() - 1; i ++) {
+                if (!tracker.barrelHasServices(i)) continue;
                 zo = tracker.zOffsetBarrel(i) + epsilon;
                 // layer loop
                 for (int j = 0; j < tracker.nOfLayers(i); j++) {
@@ -298,6 +300,7 @@ namespace insur {
             rw = volume_width;
             // endcap loop
             for (int i = 0; i < tracker.nOfEndcaps(); i++) {
+                if (!tracker.endcapHasServices(i)) continue;
                 if (i < tracker.nOfEndcaps() - 1) {
                     int l = findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + 1, tracker);
                     ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * epsilon;
@@ -392,6 +395,7 @@ namespace insur {
         else zeo = findMaxBarrelZ(tracker);
         // inner barrels
         for (int i = 0; i < tracker.nOfBarrels() - 1; i++) {
+            if (!tracker.barrelHasServices(i)) continue;
             zbo = tracker.zOffsetBarrel(i) + epsilon;
             ztl = zeo - zbo;
             // layer loop
@@ -411,6 +415,7 @@ namespace insur {
         ri = r_outer - rtw - epsilon;
         // disc loop
         for (int i = 0; i < tracker.totalDiscs(); i++) {
+            if (!tracker.endcapHasServices(tracker.endcapFromDisc(i))) continue;
             if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
             else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
@@ -483,6 +488,7 @@ namespace insur {
         om_b = tracker.nOfBarrels() - 1;
         zl = volume_width;
         // last barrel without last layer
+        if (!tracker.barrelHasServices(om_b)) return layer;
         zo = tracker.zOffsetBarrel(om_b) + epsilon;
         for (int i = 0; i < tracker.nOfLayers(om_b) - 1; i++) {
             ri = tracker.innerRadiusLayer(layer);
@@ -530,7 +536,7 @@ namespace insur {
             // no supports modelled if barrel only has one layer (or less)
             if (tracker.nOfLayers(i) > 1) {
                 zl = volume_width;
-                zo = tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
+                zo = findBarrelSupportRingZ(tracker, i); // tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + tracker.nOfLayers(i) - 1) - ri;
                 is = addSupportRing(is, zl, zo, ri, rw);
@@ -1096,6 +1102,18 @@ namespace insur {
         }
         return startstop;
     }
+
+
+    double Usher::findBarrelSupportRingZ(TrackerIntRep& tracker, int i) const { // returns the Z of the supports at the end of the barrel (so that they clear any service ring)
+      double zDiff = i < tracker.nOfBarrels() - 1 ? tracker.zOffsetBarrel(i+1) - tracker.zOffsetBarrel(i) : 0.;
+      if (fabs(zDiff) >= z_threshold_service_zigzag) { // checking if services zigzag
+        return tracker.zOffsetBarrel(i) + volume_width + 2*epsilon;
+      } else {
+        double maxZOffset = tracker.zOffsetBarrel(0);
+        for (int i = 1; i < tracker.nOfBarrels(); i++) maxZOffset = MAX(maxZOffset, tracker.zOffsetBarrel(i));
+        return maxZOffset + volume_width + 2*epsilon;
+      } 
+    }
     
     /**
      * Print the internal status of the active and inactive surfaces given to the usher to be arranged.
@@ -1332,6 +1350,24 @@ namespace insur {
         }
         return -1;
     }
+
+    bool Usher::TrackerIntRep::barrelHasServices(int barrelindex) {
+      return barrel_has_services.at(barrelindex);
+    }
+
+    bool Usher::TrackerIntRep::endcapHasServices(int endcapindex) {
+      return endcap_has_services.at(endcapindex);
+    }
+
+    int Usher::TrackerIntRep::endcapFromDisc(int discindex) {
+      int sum = 0;
+      int i = 0;
+      for (; i < n_of_discs.size(); i++) {
+        sum += n_of_discs.at(i);
+        if (sum > discindex) break;
+      } 
+      return i;
+    }
     
     /**
      * Get access to the entire list of short layers as recorded during analysis.
@@ -1347,8 +1383,8 @@ namespace insur {
      */
     bool Usher::TrackerIntRep::analyze(Tracker& tracker) {
         bool up;
-        n_of_layers = analyzeBarrels(tracker, layers_io_radius, barrels_length_offset, real_index_layer, short_layers);
-        n_of_discs = analyzeEndcaps(tracker, endcaps_io_radius, discs_length_offset, real_index_disc);
+        n_of_layers = analyzeBarrels(tracker, layers_io_radius, barrels_length_offset, real_index_layer, short_layers, barrel_has_services);
+        n_of_discs = analyzeEndcaps(tracker, endcaps_io_radius, discs_length_offset, real_index_disc, endcap_has_services);
         post_analysis = true;
         up = tracker.servicesForcedUp() || analyzePolarity();
         return up;
@@ -1406,7 +1442,7 @@ namespace insur {
      * @return A vector listing the number of layers per barrel
      */
     std::vector<int> Usher::TrackerIntRep::analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short) {
+            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short, std::vector<bool>& barrel_has_services) {
         // do nothing if there are no barrel layers at all or if the first layer has no modules in it
 
         class BarrelVisitor : public ConstGeometryVisitor {
@@ -1415,6 +1451,7 @@ namespace insur {
           std::vector<int>& real_index_;
           std::list<std::pair<int, double> >& layers_short_;
           std::vector<int> layer_counters_;
+          std::vector<bool>& barrel_has_services_;
           
           double prevZ = -1.;
           int index = 0;
@@ -1422,11 +1459,15 @@ namespace insur {
           BarrelVisitor(std::vector<std::pair<double, double> >& radius_list_io, 
                         std::vector<std::pair<double, double> >& length_offset_list, 
                         std::vector<int>& real_index, 
-                        std::list<std::pair<int, double> >& layers_short) :
+                        std::list<std::pair<int, double> >& layers_short,
+                        std::vector<bool>& barrel_has_services) :
               radius_list_io_(radius_list_io),
               length_offset_list_(length_offset_list),
               real_index_(real_index),
-              layers_short_(layers_short) {}
+              layers_short_(layers_short),
+              barrel_has_services_(barrel_has_services) {}
+
+          void visit(const Barrel& b) { barrel_has_services_.push_back(!b.skipServices()); }
 
           void visit(const Layer& l) {
             if (l.maxZ() > 0.) { // skip Z- mezzanine layers
@@ -1448,7 +1489,7 @@ namespace insur {
         };
 
 
-        BarrelVisitor v(radius_list_io, length_offset_list, real_index, layers_short);
+        BarrelVisitor v(radius_list_io, length_offset_list, real_index, layers_short, barrel_has_services);
         tracker.accept(v);
 
         return v.layer_counters();
@@ -1463,23 +1504,30 @@ namespace insur {
      * @return A vector listing the number of discs per endcap
      */
     std::vector<int> Usher::TrackerIntRep::analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index) {
+            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::vector<bool>& endcap_has_services) {
         
         class EndcapVisitor : public ConstGeometryVisitor {
           std::vector<std::pair<double, double> >& radius_list_io_;
           std::vector<std::pair<double, double> >& length_offset_list_;
           std::vector<int>& real_index_;
           std::vector<int> layer_counters_;
+          std::vector<bool>& endcap_has_services_;
 
           double prevR = -1.;
           int index = 0;
         public:
           EndcapVisitor(std::vector<std::pair<double, double> >& radius_list_io, 
                         std::vector<std::pair<double, double> >& length_offset_list, 
-                        std::vector<int>& real_index) : 
+                        std::vector<int>& real_index,
+                        std::vector<bool>& endcap_has_services) : 
               radius_list_io_(radius_list_io),
               length_offset_list_(length_offset_list),
-              real_index_(real_index) {}
+              real_index_(real_index),
+              endcap_has_services_(endcap_has_services) {}
+        
+          void visit(const Endcap& e) { 
+            endcap_has_services_.push_back(!e.skipServices()); 
+          }
 
           void visit(const Disk& d) {
             if (d.maxZ() > 0.) {
@@ -1498,7 +1546,7 @@ namespace insur {
           const std::vector<int>& layer_counters() const { return layer_counters_; }
         };
         
-        EndcapVisitor v(radius_list_io, length_offset_list, real_index);
+        EndcapVisitor v(radius_list_io, length_offset_list, real_index, endcap_has_services);
         tracker.accept(v);
 
         return v.layer_counters();

@@ -24,12 +24,14 @@ public:
   Property<double, NoDefault> minZ;
   Property<double, NoDefault> maxZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  ReadonlyProperty<bool, Default> skipServices;
 
   Endcap() :
       barrelGap("barrelGap", parsedOnly()),
       numDisks("numDisks", parsedAndChecked()),
       minZ("minZ", parsedOnly()),
       maxZ("maxZ", parsedAndChecked()),
+      skipServices("skipServices", parsedOnly(), false), // broken, do not use
       diskNode("Disk", parsedOnly())
   {}
 

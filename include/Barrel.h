@@ -30,6 +30,7 @@ public:
   Property<int, NoDefault> numLayers;
   ReadonlyProperty<double, Computable> maxZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  ReadonlyProperty<bool, Default> skipServices;
 
   Barrel() : 
       numLayers("numLayers", parsedAndChecked()),
@@ -37,6 +38,7 @@ public:
       outerRadius("outerRadius", parsedAndChecked()),
       sameRods("sameRods", parsedAndChecked(), false),
       barrelRotation("barrelRotation", parsedOnly(), 0.),
+      skipServices("skipServices", parsedOnly(), false), // broken, do not use
       layerNode("Layer", parsedOnly())
   {}
 

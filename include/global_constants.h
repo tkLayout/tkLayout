@@ -27,6 +27,7 @@ namespace insur {
   static const double outer_radius = 1190.0;
   static const double max_length = 2910.0;
   static const double pixel_radius = 25.0;
+  static const double z_threshold_service_zigzag = 100.0;
 
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.

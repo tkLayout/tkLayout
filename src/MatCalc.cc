@@ -407,6 +407,26 @@ namespace insur {
                 }
                 else {
                   length = barrelcaps.at(i).at(*first).getModule().length();
+
+#define TILTED_HOTFIX
+#ifdef TILTED_HOTFIX
+                  // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
+                  if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
+                    if (j < modinrings.size()-1 &&
+                        (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
+                         barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
+                      double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                      double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
+                      length = (zNext - zPrev) / 2; // override length with half the distance between modules, so as to scale material defined as grams per metres over a bigger length
+                    } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
+                               barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
+                      double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                      double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
+                      double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
+                      length = (zMax - zThis) + (zThis - zPrev)/2;
+                    }
+                  }
+#endif
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator guard = vect.end();
                   std::vector<SingleMod>::const_iterator iter;
@@ -437,6 +457,24 @@ namespace insur {
                       }
                       else {
                         length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().length();
+#ifdef TILTED_HOTFIX
+                        // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
+                        if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
+                          if (j < modinrings.size()-1 &&
+                              (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
+                               barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
+                            double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                            double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
+                            length = (zNext - zPrev) / 2; // override length with half the distance between modules, so as to scale material defined as grams per metres over a bigger length
+                          } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
+                                     barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
+                            double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
+                            double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
+                            double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
+                            length = (zMax - zThis) + (zThis - zPrev)/2;
+                          }
+                        }
+#endif
                         std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                         std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                         for (iter = vect.begin(); iter != guard; iter++) {
@@ -449,27 +487,6 @@ namespace insur {
                           else C = convert(iter->C, iter->uC, density, surface);
                           // parameter scaling
                           A = A * stripseg_scalars.at(k);
-#define TILTED_HOTFIX
-#ifdef TILTED_HOTFIX
-                          // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
-                          if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
-                            if (j < modinrings.size()-1 &&
-                                (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
-                                 barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
-                              double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                              double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
-                              A = A/length * (zNext - zPrev)/2;
-                              C = C/length * (zNext - zPrev)/2;
-                            } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
-                                       barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
-                              double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                              double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
-                              double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
-                              A = A/length * ((zMax - zThis) + (zThis - zPrev)/2);
-                              C = C/length * ((zMax - zThis) + (zThis - zPrev)/2);
-                            }
-                          }
-#endif
                           // save converted and scaled material
                           if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
                           else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j

@@ -1401,7 +1401,7 @@ namespace insur {
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
       matname << xml_base_lazycomp << iter->getCategory();
-      shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */ << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
+      shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
 
       fres = found.find(iter->getCategory());
       if (fres == found.end()) {
@@ -1424,6 +1424,7 @@ namespace insur {
       case MaterialProperties::b_sup:
       case MaterialProperties::t_sup:
       case MaterialProperties::u_sup:
+      case MaterialProperties::o_sup:
           pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
           break;
       case MaterialProperties::e_sup:
