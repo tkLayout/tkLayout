@@ -27,8 +27,7 @@ nSegments = 2;
   #include <generic/NoEports>
 
 // Support mechanics
-#include <generic/SupportMechanics>
-
+#include <ps/SupportMechanics>
 
 
 
