@@ -23,6 +23,9 @@
 #include <InactiveTube.h>
 #include <global_constants.h>
 #include <StopWatch.h>
+#include <boost/ptr_container/ptr_vector.hpp>
+#include "Barrel.h"
+
 namespace insur {
     /*
      * @class Usher

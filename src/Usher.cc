@@ -1467,8 +1467,28 @@ namespace insur {
               layers_short_(layers_short),
               barrel_has_services_(barrel_has_services) {}
 
-          void visit(const Barrel& b) { barrel_has_services_.push_back(!b.skipServices()); }
 
+          void visit(const Barrel& barrel) {
+            int counter = 0;
+
+            barrel_has_services_.push_back(!barrel.skipServices());
+
+            for(const Layer& layer : barrel.layers()){
+            //for(Barrel::Container::const_iterator layerIter = barrel.layers().begin(); layerIter != barrel.layers().end(); ++ layerIter){
+              if (layer.maxZ() > 0.0) {
+                real_index_.push_back(index);
+                radius_list_io_.push_back(std::make_pair(layer.minR(), layer.maxR()));
+
+                counter ++;
+              }
+              index++;
+            }
+            layer_counters_.push_back(counter);
+            length_offset_list_.push_back(std::make_pair(barrel.maxZ() - barrel.minZ(), barrel.maxZ()));
+            if (barrel.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, barrel.minZ()));
+          }
+
+/*
           void visit(const Layer& l) {
             if (l.maxZ() > 0.) { // skip Z- mezzanine layers
               real_index_.push_back(index);
@@ -1484,6 +1504,7 @@ namespace insur {
             }
             index++;
           }
+*/
 
           const std::vector<int>& layer_counters() const { return layer_counters_; }
         };
@@ -1525,10 +1546,25 @@ namespace insur {
               real_index_(real_index),
               endcap_has_services_(endcap_has_services) {}
         
-          void visit(const Endcap& e) { 
-            endcap_has_services_.push_back(!e.skipServices()); 
+          void visit(const Endcap& endcap) {
+            int counter = 0;
+
+            endcap_has_services_.push_back(!endcap.skipServices());
+
+            for(const Disk& disk : endcap.disks()) {
+              if (disk.maxZ() > 0.0) {
+                length_offset_list_.push_back(std::make_pair(disk.maxZ() - disk.minZ(), disk.minZ()));
+                real_index_.push_back(index);
+                counter ++;
+              }
+              index ++;
+            }
+
+            layer_counters_.push_back(counter);
+            radius_list_io_.push_back(std::make_pair(endcap.minR(), endcap.maxR()));
           }
 
+          /*
           void visit(const Disk& d) {
             if (d.maxZ() > 0.) {
               double len = d.maxZ() - d.minZ();
@@ -1543,6 +1579,8 @@ namespace insur {
             }
             index++;
           }
+           */
+
           const std::vector<int>& layer_counters() const { return layer_counters_; }
         };
         
