@@ -1697,9 +1697,9 @@ namespace insur {
       beampipe->SetPoint(2, 3804/2., 56.6/2.);
       beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
       XYCanvasEC->cd();
-      drawCircle(22.5, true, kBlue-7);
+      drawCircle(22.5, true, 18); // "grey18"
       XYCanvas->cd();
-      drawCircle(22.5, true, kBlue-7);
+      drawCircle(22.5, true, 18); // "grey18"
       RZCanvas->cd();
       beampipe->Draw("same");
 
