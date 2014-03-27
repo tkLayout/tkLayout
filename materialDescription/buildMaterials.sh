@@ -21,7 +21,7 @@ tempMaterialFile=tempMaterials.cfg
 
 gcc -I modules -I parts -C -E $materialFile > $tempMaterialFile && {
   realText=`cat $tempMaterialFile | egrep -v '^#'`
-  echo "$realText" > $tempMaterialFile
+  echo "$realText" |  ./removeComments.pl - > $tempMaterialFile
   echo $diffCommand $referenceFile $tempMaterialFile
   $diffCommand $referenceFile $tempMaterialFile
   echo -n "Do you want to export these changes to the active configuration directory? (y/n) [y]: "
