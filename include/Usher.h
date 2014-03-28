@@ -81,6 +81,8 @@ namespace insur {
             std::list<std::pair<int, double> >& shortBarrelsList();
             virtual bool analyze(Tracker& tracker);
             void print();
+            bool skipAllServices();
+            bool skipAllSupports();
         protected:
             std::vector<int> n_of_layers, n_of_discs, real_index_layer, real_index_disc;
             std::vector<bool> barrel_has_services, endcap_has_services;
@@ -88,6 +90,7 @@ namespace insur {
             std::vector<std::pair<double, double> > layers_io_radius, endcaps_io_radius, barrels_length_offset, discs_length_offset;
         private:
             bool post_analysis;
+            bool skipAllServices_, skipAllSupports_;
             std::vector<int> analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
                     std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short, std::vector<bool>& barrel_has_services);
             std::vector<int> analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,

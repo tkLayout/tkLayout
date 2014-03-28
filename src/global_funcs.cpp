@@ -2,9 +2,9 @@
 
 template<typename T> const std::vector<std::string> EnumTraits<T>::data = {};
 
-template<> std::string StringConverter<NOT_STRING_ENUM>::str2any<std::string>(const std::string& from) { return from; };
+template<> std::string StringConverter<_NOT_STRING_ENUM>::str2any<std::string>(const std::string& from) { return from; };
 
-template<> bool StringConverter<NOT_STRING_ENUM>::str2any<bool>(const std::string& from) {
+template<> bool StringConverter<_NOT_STRING_ENUM>::str2any<bool>(const std::string& from) {
   static std::map<std::string, bool> boolstr = { {"true", true}, {"TRUE", true}, {"True", true}, {"T", true}, {"1", true},
                                                  {"false", false}, {"FALSE", false}, {"False", false}, {"F", false}, {"0", false} };
   return boolstr.at(from); 

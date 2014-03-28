@@ -41,8 +41,8 @@ namespace insur {
         TrackerIntRep pintrep;
         startTaskClock("Arranging Pixel configuration");
         is.setUp(pintrep.analyze(pixels));
-        is = servicesUp(pintrep, is, inner_radius, true);
-        is = supportsAll(pintrep, is, inner_radius, std::list<Support*>(), true);
+        if (!pixels.skipAllServices()) is = servicesUp(pintrep, is, inner_radius, true);
+        if (!pixels.skipAllSupports()) is = supportsAll(pintrep, is, inner_radius, std::list<Support*>(), true);
         stopTaskClock();
         is = mirror(pintrep, is);
         if (printstatus) print(pintrep, is, false);
@@ -61,8 +61,8 @@ namespace insur {
      */
     InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
         startTaskClock("Arranging UP configuration");
-        is = servicesUp(tracker, is, r_outer, false);
-        is = supportsAll(tracker, is, r_outer, supports, false);
+        if (!tracker.skipAllServices()) is = servicesUp(tracker, is, r_outer, false);
+        if (!tracker.skipAllSupports()) is = supportsAll(tracker, is, r_outer, supports, false);
         stopTaskClock();
         return is;
     }
@@ -78,8 +78,8 @@ namespace insur {
      */
     InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
         startTaskClock("Arranging DOWN configuration");
-        is = servicesDown(tracker, is, r_outer, false);
-        is = supportsAll(tracker, is, r_outer, supports, false);
+        if (!tracker.skipAllServices()) is = servicesDown(tracker, is, r_outer, false);
+        if (!tracker.skipAllSupports()) is = supportsAll(tracker, is, r_outer, supports, false);
         stopTaskClock();
         return is;
     }
@@ -1368,6 +1368,9 @@ namespace insur {
       } 
       return i;
     }
+
+    bool Usher::TrackerIntRep::skipAllServices() { return skipAllServices_; }
+    bool Usher::TrackerIntRep::skipAllSupports() { return skipAllSupports_; }
     
     /**
      * Get access to the entire list of short layers as recorded during analysis.
@@ -1383,6 +1386,8 @@ namespace insur {
      */
     bool Usher::TrackerIntRep::analyze(Tracker& tracker) {
         bool up;
+        skipAllServices_ = tracker.skipAllServices();
+        skipAllSupports_ = tracker.skipAllSupports();
         n_of_layers = analyzeBarrels(tracker, layers_io_radius, barrels_length_offset, real_index_layer, short_layers, barrel_has_services);
         n_of_discs = analyzeEndcaps(tracker, endcaps_io_radius, discs_length_offset, real_index_disc, endcap_has_services);
         post_analysis = true;

@@ -1176,6 +1176,7 @@ Material Analyzer::findModuleLayerRI(std::vector<ModuleCap>& layer,
           std::map<std::string, Material> moduleComponentsRI = iter->getComponentsRI();
           for (std::map<std::string, Material>::iterator cit = moduleComponentsRI.begin(); cit != moduleComponentsRI.end(); ++cit) {
             sumComponentsRI[cit->first].radiation += cit->second.radiation / (iter->getModule().subdet() == BARREL ? sin(theta + tiltAngle) : cos(theta + tiltAngle - M_PI/2));
+            //if (cit->first == "SupportMechanics") std::cout << eta << " " << distance << " " << cit->second.radiation / sin(theta + tiltAngle) << " " << cit->second.radiation << std::endl;
             tmpr += sumComponentsRI[cit->first].radiation;
             sumComponentsRI[cit->first].interaction += cit->second.interaction / (iter->getModule().subdet() == BARREL ? sin(theta + tiltAngle) : cos(theta + tiltAngle - M_PI/2));
             tmpi += sumComponentsRI[cit->first].interaction;

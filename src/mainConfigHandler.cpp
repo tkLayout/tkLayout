@@ -422,18 +422,21 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
   while(getline(is, line).good()) {
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
-    int tstart;
-    if ((tstart = trimmed.find("@include")) != string::npos) {
-      trimmed = trimmed.substr(tstart);
-      int qstart, qend;
+    int includeStart;
+    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std @include-weak @include-std-weak
+      trimmed = trimmed.substr(includeStart);
+      int quoteStart, quoteEnd;
       string filename;
-      if ((qstart = trimmed.find_first_of("\"")) != string::npos && (qend = trimmed.find_last_of("\"")) != string::npos) {
-        filename = ctrim(trimmed.substr(qstart, qend - qstart + 1), "\"");
+      if ((quoteStart = trimmed.find_first_of("\"")) != string::npos && (quoteEnd = trimmed.find_last_of("\"")) != string::npos) {
+        filename = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
       } else {
         auto tokens = split(trimmed, " ");
         filename = tokens.size() > 1 ? tokens[1] : "";
       }
-      string prefix = (trimmed.find("@includestd") != string::npos ? getStandardIncludeDirectory()+"/" : std::string(""));
+      bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported 
+      bool includeStdNew = trimmed.find("@include-std") != string::npos;
+     // bool includeWeak = trimmed.find("@include-weak") != string::npos || trimmed.find("@include-std-weak") != string::npos || trimmed.find("@includestd-weak") != string::npos; // include weak command not supported for the moment
+      string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : std::string("");
       filename = prefix + filename;
       ifstream ifs(filename);
       if (ifs) {

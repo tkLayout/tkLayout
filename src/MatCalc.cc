@@ -411,8 +411,13 @@ namespace insur {
 #define TILTED_HOTFIX
 #ifdef TILTED_HOTFIX
                   // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
-                  if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
-                    if (j < modinrings.size()-1 &&
+                  //if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {  // CUIDADO Hot fixing the hot fix -- now applied to untilted modules too!
+                    if (j == 0) { // the following code crashes for a layer with a single module, but c'mon, when is that gonna happen?
+                      double zMin = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
+                      double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().minZ();
+                      double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
+                      length = (zThis - zMin) + (zNext - zThis)/2.;
+                    } else if (j < modinrings.size()-1 &&
                         (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
                          barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
                       double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
@@ -423,9 +428,9 @@ namespace insur {
                       double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
                       double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
                       double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
-                      length = (zMax - zThis) + (zThis - zPrev)/2;
+                      length = (zMax - zThis) + (zThis - zPrev)/2.;
                     }
-                  }
+                  //}
 #endif
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator guard = vect.end();
@@ -459,8 +464,8 @@ namespace insur {
                         length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().length();
 #ifdef TILTED_HOTFIX
                         // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
-                        if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
-                          if (j < modinrings.size()-1 &&
+                        // if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
+                          if (j < modinrings.size()-1 && // we never accumulate material for the first module, so we don't need to take care of the case like in the firt block of hotfix
                               (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
                                barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
                             double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
@@ -471,9 +476,9 @@ namespace insur {
                             double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
                             double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
                             double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
-                            length = (zMax - zThis) + (zThis - zPrev)/2;
+                            length = (zMax - zThis) + (zThis - zPrev)/2.;
                           }
-                        }
+                        // }
 #endif
                         std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                         std::vector<SingleMod>::const_iterator iter, guard = vect.end();

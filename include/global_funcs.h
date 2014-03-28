@@ -18,13 +18,13 @@ struct EnumTraits {
 
 
 #define define_enum_strings(E) template<> const std::vector<std::string> EnumTraits<E>::data
-#define STRING_ENUM true
-#define NOT_STRING_ENUM false
+#define _STRING_ENUM true
+#define _NOT_STRING_ENUM false
 template<bool>
 class StringConverter {};
 
 template<>
-class StringConverter<NOT_STRING_ENUM> {
+class StringConverter<_NOT_STRING_ENUM> {
   StringConverter();
 public:
   template<typename ArgType> static std::string any2str(const ArgType& from, int precision = -1) {
@@ -38,7 +38,7 @@ public:
   }
   static std::string any2str(const std::string& from) { return from; } // null conversion (string to string)
 
-  static std::string any2str(bool from) { //std::pair<std::string, std::string> boolstr = std::make_pair("true", "false")) {
+  static std::string any2str(bool from) {
     return from == true ? "true" : "false";
   }
 
@@ -54,7 +54,7 @@ public:
 
 
 template<>
-class StringConverter<STRING_ENUM> {
+class StringConverter<_STRING_ENUM> {
   StringConverter();
 public:
   template<typename T> static std::string any2str(const T& from, int) {
@@ -76,7 +76,7 @@ template<typename T> std::string any2str(const T& from, int precision = -1) {
 
 
 template<typename T> T str2any(const std::string& from) {
-  return StringConverter<std::is_enum<T>::value>::template str2any<T>(from); // THIS SYNTAX IS HORRID +o(
+  return StringConverter<std::is_enum<T>::value>::template str2any<T>(from);
 };
 
 
@@ -97,7 +97,7 @@ template<class T, class I> std::string join(I begin, I end, const std::string& s
   return ss.str().substr(0, ss.str().length()-1);
 }
 
-template<class T> std::string join(const std::vector<T>& vec, const std::string& sep) { return join<T>(vec.begin(), vec.end(), sep); }
+template<template<class> class T, class U> std::string join(const T<U>& vec, const std::string& sep) { return join<U>(vec.begin(), vec.end(), sep); }
 
 
 std::string ltrim(std::string str);
@@ -108,19 +108,24 @@ std::string rctrim(std::string str, const std::string& chars);
 std::string ctrim(std::string str, const std::string& chars);
 
 
-template<typename ArgType> int signum(const ArgType& x) {
+template<typename ArgType> inline int signum(const ArgType& x) {
   return (x > ArgType(0)) - (x < ArgType(0));
 }
 
-template<int Precision, typename ArgRetType> ArgRetType roundprec(const ArgRetType& x) {
+template<int Precision, typename ArgRetType> inline ArgRetType roundprec(const ArgRetType& x) {
   static const float p = pow(10., Precision);
   return floor(x * p + 0.5) / p;
 }
 
 
-template<int Magnification, typename ArgType> int mapint(const ArgType& x) {
+template<int Magnification, typename ArgType> inline int mapint(const ArgType& x) { // magnification is the number of decimal digits to preserve
   static const float p = pow(10., Magnification);
   return floor(x * p + 0.5);
+}
+
+template<int Miniaturization, typename RetType> inline RetType unmapint(int x) { // miniaturization is the number of decimal digits to restore (from those that were preserved)
+  static const float p = pow(10., Miniaturization);
+  return (RetType)x / p;
 }
 
 template<class I>

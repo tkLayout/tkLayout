@@ -44,6 +44,8 @@ public:
   ReadonlyProperty<double, Computable> maxZ;
   ReadonlyProperty<double, Default> etaCut;
   ReadonlyProperty<bool, Default> servicesForcedUp;
+  ReadonlyProperty<bool, Default> skipAllServices;
+  ReadonlyProperty<bool, Default> skipAllSupports;
 
 private:
   Barrels barrels_;
@@ -54,6 +56,7 @@ private:
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
 
+  MultiProperty<set<string>, ','> containsOnly;
 
   Tracker(const Tracker&) = default;
 public:
@@ -62,7 +65,10 @@ public:
       barrelNode("Barrel", parsedOnly()),
       endcapNode("Endcap", parsedOnly()),
       etaCut("etaCut", parsedOnly(), 7.),
-      servicesForcedUp("servicesForcedUp", parsedOnly(), true)
+      servicesForcedUp("servicesForcedUp", parsedOnly(), true),
+      skipAllServices("skipAllServices", parsedOnly(), false),
+      skipAllSupports("skipAllSupports", parsedOnly(), false),
+      containsOnly("containsOnly", parsedOnly())
   {}
 
   void setup() {

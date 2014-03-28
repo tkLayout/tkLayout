@@ -19,6 +19,7 @@ void Tracker::build() {
     double barrelMaxZ = 0;
 
     for (auto& mapel : barrelNode) {
+      if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Barrel* b = new Barrel();
       b->setup();
       b->myid(mapel.first);
@@ -31,6 +32,7 @@ void Tracker::build() {
     }
 
     for (auto& mapel : endcapNode) {
+      if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Endcap* e = new Endcap();
       e->setup();
       e->myid(mapel.first);

@@ -194,7 +194,7 @@ public:
 
 
 template<typename T, const char Sep = ','>
-class PropertyVector : public Parsable {
+class PropertyVector : public Parsable {  // CUIDADO DEPRECATED
   std::vector<T> values_;
   const string& name_;
 public:
@@ -210,15 +210,43 @@ public:
   string name() const { return name_; }
   void fromPtree(const ptree& pt) { fromString(pt.data()); }
   void fromString(const string& s) { 
-    std::vector<T> values = split<T>(trim(s), string(1, Sep), true);
-    if (!values[0].empty()) values_.clear();
-    else values.erase(values.begin(), values.begin()+1);
+    string seq = trim(s);
+    if (seq.front() != Sep) values_.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
+    auto values = split<T>(seq, string(1, Sep));
     for (const auto& v : values) values_.push_back(v);
   }
   void appendString(const string& s) {
     values_.push_back(trim(s));
   }
 }; 
+
+template<typename T, const char Sep = ','>
+class MultiProperty : public T, public Parsable {
+  const string& name_;
+  typedef typename std::decay<decltype(*std::declval<T>().begin())>::type ValueType;
+public:
+  MultiProperty(const string& name, PropertyMap& registrar, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name)) { registrar[name] = this; }
+  MultiProperty(const string& name, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name)) {}
+  MultiProperty(const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref("unnamed")) {}
+  bool state() const { return !T::empty(); }
+  void clear() { T::clear(); }
+  //const T& operator()() const { return values_; }
+  //T& operator()() const { return values_; }
+  //void operator()(const T& values) { values_ = values; }
+  //typename T::const_iterator begin() const { return values_.begin(); }
+  //typename T::const_iterator end() const { return values_.end(); }
+  //typename T::iterator begin() { return values_.begin(); }
+  //typename T::iterator end() { return values_.end(); }
+  //void clear() { values_.clear(); }
+  string name() const { return name_; }
+  void fromPtree(const ptree& pt) { fromString(pt.data()); }
+  void fromString(const string& s) { 
+    string seq = trim(s);
+    if (seq.front() != Sep) clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
+    auto values = split<ValueType>(seq, string(1, Sep));
+    for (const auto& v : values) T::insert(T::end(), v);
+  }
+};
 
 
 template<typename T>
@@ -231,9 +259,10 @@ public:
   void clear() { map<T, ptree>::clear(); }
   string name() const { return name_; }
   void fromPtree(const ptree& pt) { 
-    T key = str2any<T>(pt.data());
-    if (this->count(key) == 0) this->insert(make_pair(key, pt)); 
-    else for (auto& tel : pt) this->at(key).add_child(tel.first, tel.second);
+    bool weak = pt.data().front() == '_'; // a weak key doesn't cause insertion if a key with the same name is not already present (be mindful of the include order when using weak keys)
+    T key = str2any<T>(!weak ? pt.data() : pt.data().substr(1)); // strip leading '_' in case of weak key
+    if (this->count(key) == 0 && !weak) this->insert(make_pair(key, pt)); 
+    else if (this->count(key) > 0) for (auto& tel : pt) this->at(key).add_child(tel.first, tel.second);
   }
   void fromString(const string& s) { this->insert(make_pair(str2any<T>(s), ptree())); }
 };
@@ -249,15 +278,16 @@ public:
   string name() const { return name_; }
   void fromPtree(const ptree& pt) { 
     vector<int> keys;
-    auto tokens = split(pt.data(), ","); // split sequences like 1, 2, 3, 4
+    bool weak = pt.data().front() == '_'; // weak key check ('_' can only appear as the leading character, even if the key is an interval and/or a sequence)
+    auto tokens = split(!weak ? pt.data() : pt.data().substr(1), ","); // split sequences like 1, 2, 3, 4
     for (auto t : tokens) {
       auto interval = split<int>(t, "-"); // split intervals like 1-5
-      if (interval.size() == 1) keys.push_back(interval[0]); // actually not an interval
+      if (interval.size() == 1) keys.push_back(interval[0]); // if size == 1, it means no '-' was found and the string was actually not an interval
       else for (int i = interval[0]; i <= interval[1]; i++) keys.push_back(i); // explode the interval
     }
     for (auto k : keys) {
-      if (this->count(k) == 0) this->insert(make_pair(k, pt)); 
-      else for (auto& tel : pt) this->at(k).add_child(tel.first, tel.second);
+      if (this->count(k) == 0 && !weak) this->insert(make_pair(k, pt)); 
+      else if (this->count(k) > 0) for (auto& tel : pt) this->at(k).add_child(tel.first, tel.second);
     }
   }
   void fromString(const string& s) { this->insert(make_pair(str2any<int>(s), ptree())); }
