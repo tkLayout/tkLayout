@@ -116,6 +116,16 @@ namespace insur {
         else tr = t;
       });
 
+      std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
+      if (!unmatchedProperties.empty()) {
+        std::ostringstream ss;
+        ss << "The following unknown properties were ignored:" << std::endl;
+        for (const string& s : unmatchedProperties) {
+          ss << "  " << s << std::endl;
+        }
+        logERROR(ss);
+      }
+
       simParms_ = new SimParms();
 
       //iter between the default irradiation files vector and add each to simParm

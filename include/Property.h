@@ -300,6 +300,8 @@ typedef ptree PropertyTree;
 class PropertyObject {
   PropertyMap parsedCheckedProperties_, checkedProperties_, parsedProperties_;
   PropertyTree pt_;
+  static std::set<string> globalMatchedProperties_;
+  static std::set<string> globalUnmatchedProperties_;
 
   void processProperties(PropertyMap& props) {
     for (auto& propElem : props) {
@@ -323,6 +325,13 @@ protected:
   PropertyMap& parsedOnly() { return parsedProperties_; }
   PropertyMap& checkedOnly() { return checkedProperties_; }
 
+  void recordMatchedProperties() {
+    for (auto& mapel : parsedCheckedProperties_) globalMatchedProperties_.insert(mapel.first);
+    for (auto& mapel : parsedProperties_) globalMatchedProperties_.insert(mapel.first);
+    for (auto& mapel : checkedProperties_) globalMatchedProperties_.insert(mapel.first);
+    for (auto& trel : pt_) globalUnmatchedProperties_.insert(trel.first);
+  }
+
 public:
   PropertyObject() {}
   virtual void store(const PropertyTree& newpt) {
@@ -337,6 +346,7 @@ public:
 //    printAll(pt_);
     processProperties(parsedCheckedProperties_);
     processProperties(parsedProperties_);
+    recordMatchedProperties();
   }
   virtual void check() {
     for (auto& v : parsedCheckedProperties_) {
@@ -349,6 +359,13 @@ public:
 
   virtual void cleanup() { pt_.clear(); parsedCheckedProperties_.clear(); parsedProperties_.clear(); }
 
+  static std::set<string> reportUnmatchedProperties() {
+    std::set<string> unmatched;
+    std::set_difference(globalUnmatchedProperties_.begin(), globalUnmatchedProperties_.end(),
+                        globalMatchedProperties_.begin(), globalMatchedProperties_.end(),
+                        std::inserter(unmatched, unmatched.end()));
+    return unmatched;
+  }
 };
 
 

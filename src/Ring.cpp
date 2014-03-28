@@ -143,6 +143,8 @@ void Ring::buildBottomUp() {
   minRadius_ = buildStartRadius();
   maxRadius_ = buildStartRadius() + modLength;
 
+  if (numModules.state()) numMods = numModules();
+  else numModules(numMods);
   buildModules(emod, numMods, smallDelta());
 
   delete emod;
@@ -159,7 +161,7 @@ void Ring::buildTopDown() {
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
-  EndcapModule* emod = new EndcapModule(rmod); // decorator chain: new Endcap(new Wedge()))
+  EndcapModule* emod = new EndcapModule(rmod);
   emod->setup();
   emod->store(propertyTree());
   emod->build();
@@ -168,6 +170,8 @@ void Ring::buildTopDown() {
   minRadius_ = buildStartRadius() - rmod->length();
   maxRadius_ = buildStartRadius();
 
+  if (numModules.state()) numMods = numModules();
+  else numModules(numMods);
   buildModules(emod, numMods, smallDelta());
 
   delete emod;

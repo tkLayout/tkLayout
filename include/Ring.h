@@ -51,11 +51,11 @@ public:
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
+  Property<int, NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
   ReadonlyProperty<double, Computable> maxModuleThickness;
 
   double minR() const { return minRadius_; }
   double maxR() const { return maxRadius_; }
-  int numModules() const { return modules_.size(); }
   double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
 
   Ring() :
@@ -63,6 +63,7 @@ public:
       moduleOverlapPhi      ("moduleOverlapPhi"      , parsedOnly(), 1.),
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
       phiSegments           ("phiSegments"           , parsedOnly(), 4),
+      numModules            ("numModules"            , parsedOnly()),
       additionalModules     ("additionalModules"     , parsedOnly(), 0),
       alignEdges            ("alignEdges"            , parsedOnly(), true),
       ringGap               ("ringGap"               , parsedOnly(), 0.),
