@@ -3547,8 +3547,6 @@ namespace insur {
     //*   Configuration maps         *//
     //*                              *//
     //********************************//
-    TH2D& thicknessMap = myMapBag.getMaps(mapBag::thicknessMap)[mapBag::dummyMomentum];
-    TH2D& windowMap = myMapBag.getMaps(mapBag::windowMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMap = myMapBag.getMaps(mapBag::suggestedSpacingMap)[mapBag::dummyMomentum];
     TH2D& suggestedSpacingMapAW = myMapBag.getMaps(mapBag::suggestedSpacingMapAW)[mapBag::dummyMomentum];
     TH2D& nominalCutMap = myMapBag.getMaps(mapBag::nominalCutMap)[mapBag::dummyMomentum];
@@ -3569,24 +3567,24 @@ namespace insur {
     suggestedSpacingAWCanvas.SetFillColor(color_plot_background);
     nominalCutCanvas.SetFillColor(color_plot_background);
 
-      //struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } }; // CUIDADO old map code still used, PlotDrawer based maps ready to be used for some maps, but for now commented out. All the obsolete map drawing code in Analyzer has to be removed before starting to use the new code, for uniformity
-    //PlotDrawer<YZ, Spacing> thicknessDrawer;
-    //thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    //thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
-    //thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
+    struct Spacing { double operator()(const Module& m) { return m.dsDistance(); } };
+    PlotDrawer<YZ, Spacing> thicknessDrawer;
+    thicknessDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    thicknessDrawer.drawFrame<HistogramFrameStyle>(thickCanvas);
+    thicknessDrawer.drawModules<ContourStyle>(thickCanvas);
 
-    //struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
-    //PlotDrawer<YZ, TriggerWindow> windowDrawer;
-    //windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
-    //windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
-    //windowDrawer.drawModules<ContourStyle>(windowCanvas);
+    struct TriggerWindow { double operator()(const Module& m) { return m.triggerWindow(); } };
+    PlotDrawer<YZ, TriggerWindow> windowDrawer;
+    windowDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
+    windowDrawer.drawFrame<HistogramFrameStyle>(windowCanvas);
+    windowDrawer.drawModules<ContourStyle>(windowCanvas);
 
 
     // Actually plot the maps
-    thickCanvas.cd();
-    thicknessMap.Draw("colz");
-    windowCanvas.cd();
-    windowMap.Draw("colz");
+    //thickCanvas.cd();
+    //thicknessMap.Draw("colz");
+    //windowCanvas.cd();
+    //windowMap.Draw("colz");
     if (extended) {
       suggestedSpacingCanvas.cd();
       suggestedSpacingMap.Draw("colz");

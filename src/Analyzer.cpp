@@ -1917,17 +1917,15 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
   // Then: single maps
 
-  for (int i=1; i<=thicknessMap.GetNbinsX(); ++i) {
-    for (int j=1; j<=thicknessMap.GetNbinsY(); ++j) {
-      thicknessMap.SetBinContent(i,j,0);
-      windowMap.SetBinContent(i,j,0);
+  for (int i=1; i<=suggestedSpacingMap.GetNbinsX(); ++i) {
+    for (int j=1; j<=suggestedSpacingMap.GetNbinsY(); ++j) {
       suggestedSpacingMap.SetBinContent(i,j,0);
       suggestedSpacingMapAW.SetBinContent(i,j,0);
       nominalCutMap.SetBinContent(i,j,0);
     }
   }
 
-  SpacingCutVisitor scv(thicknessMap, windowMap, suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
+  SpacingCutVisitor scv(suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
   simParms_->accept(scv);
   tracker.accept(scv);
   scv.postVisit();
