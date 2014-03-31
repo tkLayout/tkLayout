@@ -97,7 +97,7 @@ public:
   Property<double, NoDefault> minBuildRadius;
   Property<double, NoDefault> maxBuildRadius;
 
-  Property<double, Default> minModuleOverlap;
+  Property<double, Default> zOverlap;
   Property<double, NoDefault> zError;
   Property<int, NoDefault> zPlusParity;
   Property<int, NoDefault> buildNumModules;
@@ -110,7 +110,7 @@ public:
 
   
   StraightRodPair() :
-              minModuleOverlap    ("minModuleOverlap"    , parsedAndChecked() , 1.),
+              zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
               zError              ("zError"              , parsedAndChecked()),
               zPlusParity         ("smallParity"         , parsedAndChecked()),
               mezzanine           ("mezzanine"           , parsedOnly(), false),

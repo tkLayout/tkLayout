@@ -35,7 +35,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
       double newZ  = buildZ() + (parity > 0 ? + bigDelta() : - bigDelta()) - ring->smallDelta() - getDsDistance(buildDsDistances, i)/2;  
       double lastZ = buildZ() + (parity > 0 ? - bigDelta() : + bigDelta()) + lastSmallDelta + getDsDistance(buildDsDistances, i)/2;
       double originZ = parity > 0 ? -zError() : +zError();
-      double nextRhoOrigin = (lastRho - minRingOverlap())/lastZ * newZ;
+      double nextRhoOrigin = (lastRho - rOverlap())/lastZ * newZ;
       double nextRhoShifted = lastRho/(lastZ - originZ) * (newZ - originZ);
       double nextRho = MIN(nextRhoOrigin, nextRhoShifted);
       ring->buildStartRadius(nextRho);
@@ -65,7 +65,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
       double newZ  = buildZ() + (parity > 0 ? + bigDelta() : - bigDelta()) + ring->smallDelta() + getDsDistance(buildDsDistances, i)/2; // CUIDADO was + smallDelta + dsDistances[nRing-1]/2;
       double lastZ = buildZ() + (parity > 0 ? - bigDelta() : + bigDelta()) - lastSmallDelta - getDsDistance(buildDsDistances, i+1)/2; // CUIDADO was - smallDelta - dsDistances[nRing-1]/2; // try with prevRing here
       double originZ = parity > 0 ? zError() : -zError();
-      double nextRhoOrigin = (lastRho + minRingOverlap())/lastZ * newZ;
+      double nextRhoOrigin = (lastRho + rOverlap())/lastZ * newZ;
       double nextRhoShifted = lastRho/(lastZ - originZ) * (newZ - originZ);
       double nextRho = MAX(nextRhoOrigin, nextRhoShifted);
       ring->buildStartRadius(nextRho);

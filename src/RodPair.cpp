@@ -167,7 +167,7 @@ std::set<int> StraightRodPair::solveCollisionsZMinus() {
 double StraightRodPair::computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity) {
   double d = smallDelta();
   double dz = zError();
-  double ov = minModuleOverlap();
+  double ov = zOverlap();
   double maxr = maxBuildRadius();
   double minr = minBuildRadius();
 

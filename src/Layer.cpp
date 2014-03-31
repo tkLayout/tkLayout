@@ -48,7 +48,7 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
                                             rodTemplate.end(), 
                                             [](const unique_ptr<BarrelModule>& m1, const unique_ptr<BarrelModule>& m2) { return m1->dsDistance() > m2->dsDistance(); } ))->dsDistance();
   float moduleWidth = (*rodTemplate.rbegin())->minWidth();
-  float f = moduleWidth/2 - rodOverlapPhi()/2;
+  float f = moduleWidth/2 - phiOverlap()/2;
   float gamma = atan(f/(placeRadiusHint() + bigDelta() + smallDelta() + maxDsDistance/2)) + atan(f/(placeRadiusHint() - bigDelta() + smallDelta() + maxDsDistance/2));
   float tentativeModsPerSegment = 2*M_PI/(gamma * phiSegments());
 
@@ -58,11 +58,11 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   switch (radiusMode()) {
   case SHRINK:
     optimalModsPerSegment = floor(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
     break;
   case ENLARGE:
     optimalModsPerSegment = ceil(tentativeModsPerSegment);
-    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
+    optimalRadius = calculatePlaceRadius(optimalModsPerSegment*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
     break;
   case FIXED:
     optimalModsPerSegment = ceil(tentativeModsPerSegment);
@@ -71,8 +71,8 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
   case AUTO: {
     int modsPerSegLo = floor(tentativeModsPerSegment);
     int modsPerSegHi = ceil(tentativeModsPerSegment);
-    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
-    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, rodOverlapPhi());
+    float radiusLo = calculatePlaceRadius(modsPerSegLo*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
+    float radiusHi = calculatePlaceRadius(modsPerSegHi*phiSegments(), bigDelta(), smallDelta(), maxDsDistance, moduleWidth, phiOverlap());
 
     if (fabs(radiusHi - placeRadiusHint()) < fabs(radiusLo - placeRadiusHint())) {
       optimalRadius = radiusHi;

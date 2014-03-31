@@ -30,7 +30,7 @@ private:
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
-  Property<double, Default> rodOverlapPhi;
+  Property<double, Default> phiOverlap;
   Property<int, Default> phiSegments;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
@@ -59,7 +59,7 @@ public:
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
-            rodOverlapPhi  ("rodOverlapPhi"  , parsedAndChecked(), 1.),
+            phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
             ringNode       ("Ring"           , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),

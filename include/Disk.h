@@ -20,7 +20,7 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default> minRingOverlap;
+  Property<double, Default> rOverlap;
   Property<int, Default> bigParity;
 
   PropertyNode<int> ringNode;
@@ -46,7 +46,7 @@ public:
     outerRadius("outerRadius", parsedAndChecked()),
     bigDelta("bigDelta", parsedAndChecked()),
     zError("zError", parsedAndChecked()),
-    minRingOverlap("minRingOverlap", parsedOnly(), 1.),
+    rOverlap("rOverlap", parsedOnly(), 1.),
     bigParity("bigParity", parsedOnly(), 1),
     buildZ("buildZ", parsedOnly()),
     placeZ("placeZ", parsedOnly()),

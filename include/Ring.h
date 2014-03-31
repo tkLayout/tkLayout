@@ -33,7 +33,7 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int> {
   void buildTopDown();
 
   Property<ModuleShape, NoDefault> moduleShape;
-  Property<double, Default> moduleOverlapPhi;
+  Property<double, Default> phiOverlap;
   Property<bool, Default> requireOddModsPerSlice;
   Property<int, Default> phiSegments;
   Property<int, Default> additionalModules;
@@ -60,7 +60,7 @@ public:
 
   Ring() :
       moduleShape           ("moduleShape"           , parsedAndChecked()),
-      moduleOverlapPhi      ("moduleOverlapPhi"      , parsedOnly(), 1.),
+      phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
       phiSegments           ("phiSegments"           , parsedOnly(), 4),
       numModules            ("numModules"            , parsedOnly()),

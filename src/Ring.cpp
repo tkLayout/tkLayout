@@ -56,7 +56,7 @@ double Ring::computeTentativePhiAperture(double moduleWaferDiameter, double minR
 }
 
 std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius) {
-  double delta = moduleOverlapPhi()/minRadius;// SM: The needed overlap becomes an angle delta by
+  double delta = phiOverlap()/minRadius;// SM: The needed overlap becomes an angle delta by
   //     checking the unsafest point (r=r_min)
 
   double tentativeAlpha = computeTentativePhiAperture(moduleWaferDiameter, minRadius) - delta;
@@ -68,7 +68,7 @@ std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWafe
 }
 
 std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius) {
-  double delta = moduleOverlapPhi()/maxRadius;
+  double delta = phiOverlap()/maxRadius;
   double optimalAlpha = 2*asin(moduleWidth/2. / maxRadius) - delta;
   double tentativeNumMods = 2*M_PI/optimalAlpha;
   int modsPerSlice = ceil(tentativeNumMods/phiSegments());
