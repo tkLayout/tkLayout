@@ -2843,31 +2843,31 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       std::vector<std::pair<Module*, HitType>> result;
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
-      //double theta = direction.Theta()*180/M_PI; // CUIDADO remove all these debug lines during next code cleanup
-      //double phi = direction.Phi()*180/M_PI;
-      //double z = origin.Z();
+      double theta = direction.Theta()*180/M_PI; // CUIDADO remove all these debug lines during next code cleanup
+      double phi = direction.Phi()*180/M_PI;
+      double z = origin.Z();
 
-      //static std::ofstream ofs("hits.txt");
-      //ofs << "---- track eta=" << direction.Eta() << " theta=" << theta << " phi=" << phi << " origz=" << z << " ----" << std::endl;
+      static std::ofstream ofs("hits.txt");
+      ofs << "---- track eta=" << direction.Eta() << " theta=" << theta << " phi=" << phi << " origz=" << z << " ----" << std::endl;
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
         if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
           distance=m->trackCross(origin, direction);
           auto h = m->checkTrackHits(origin, direction); 
-          //if (distance > -1) { ofs << "    old "; printPosRefString(ofs, *m, "\t"); ofs << "\t" << distance << std::endl; }
-          //if (h.second != HitType::NONE) { ofs << "   new "; printPosRefString(ofs, *m, "\t"); ofs << "\thd=" << h.first.R() << " ht=" << h.second << std::endl; }
+          if (distance > -1) { ofs << "    old "; printPosRefString(ofs, *m, "\t"); ofs << "\t" << distance << std::endl; }
+          if (h.second != HitType::NONE) { ofs << "   new "; printPosRefString(ofs, *m, "\t"); ofs << "\thd=" << h.first.R() << " ht=" << h.second << std::endl; }
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));
           }
         }
       }
-      //if (direction.Eta() >= -2.4 && direction.Eta() <= 2.4 && std::count_if(result.begin(), result.end(), [](const std::pair<Module*, HitType>& p) { return p.second == HitType::STUB; }) == 0) {
-      //  ofs << "******** Track with eta = " << direction.Eta() << " with no stubs!!! ********" << std::endl;
+      if (direction.Eta() >= -2.4 && direction.Eta() <= 2.4 && std::count_if(result.begin(), result.end(), [](const std::pair<Module*, HitType>& p) { return p.second == HitType::STUB; }) == 0) {
+        ofs << "******** Track with eta = " << direction.Eta() << " with no stubs!!! ********" << std::endl;
       //  for (auto& hm : result) {
       //    ofs << "---- track eta=" << direction.Eta() << " theta=" << theta << " phi=" << phi << " origz=" << z << " ----" << std::endl;
       //    ofs << "   "; printPosRefString(ofs, *hm.first, "\t"); ofs << "\tht=" << hm.second << std::endl; }
-      //  }
+        }
       return result;
     }
 

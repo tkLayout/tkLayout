@@ -167,7 +167,7 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
     if (inSegm.second > -1 && outSegm.second > -1) { 
       gc = inSegm.first; // in case of both sensors are hit, the inner sensor hit coordinate is returned
-      ht = ((zCorrelation() == SAMESEGMENT && inSegm.second == outSegm.second) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
+      ht = ((zCorrelation() == SAMESEGMENT && (inSegm.second / (maxSegments()/minSegments()) == outSegm.second)) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
     } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
