@@ -4,8 +4,8 @@
 
 #include <rphi>
 #include <stereo>
-#include <ptOut>
-#include <ptMixed>
+#include <pt2S>
+#include <ptPS>
 #include <ptIn>
 
 // Generic services conversion rules

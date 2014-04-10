@@ -713,7 +713,7 @@ namespace insur {
 			stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
 		
 			//TO DO get rid of this if loop iif possible
-			//if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptMixed"){
+			//if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptPS"){
 			//	minfo.at(i).roccols = "16";
 			//}
 			stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;

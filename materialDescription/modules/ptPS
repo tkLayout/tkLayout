@@ -1,24 +1,24 @@
-// pt-2S module 10x10 for the outer region
+// pt-PS module 10x5 for the inner region
 // GBT on the module
 // Module type
-type = ptOut
+type = ptPS
 // Default sensor:
 nStripsAcross = 1024;
 nSegments = 2;
 // Sensor and hybrid stuff
   #include <generic/Sensor>
   #include <generic/Sensor>
-  #include <2s/Hybrids>
-  #include <2s/Asics>
-
+  #include <ps/Hybrids>
+  #include <ps/Asics>
+  #include <ps/PixelChip>
   #include <generic/ConnectorPair>
   #include <generic/ConnectorPair>
   #include <generic/LPGBTWithFiber>
   #include <generic/DcDcConverterWithWires>
-
+  #include <generic/DcDcConverterRaw> // For good measure
   #include <generic/BiasKapton>
   #include <generic/BiasKapton>
-  #include <2s/ModuleMechanics>
+  #include <ps/ModuleMechanics>
   #include <generic/HvLine>
 // ROD material
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
@@ -27,8 +27,7 @@ nSegments = 2;
   #include <generic/NoEports>
 
 // Support mechanics
-  #include <generic/SupportMechanics>
-
+#include <ps/SupportMechanics>
 
 
 

@@ -53,7 +53,7 @@ namespace insur {
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
     lastPickedColor = 1;
-    //colorPicker("ptOut");
+    //colorPicker("pt2S");
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
@@ -460,7 +460,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
            double curAvgTrue=0;
            double curAvgInteresting=0;
            double curAvgFake=0;
-           double bgReductionFactor; // Reduction of the combinatorial background for ptMixed modules by turning off the appropriate pixels
+           double bgReductionFactor; // Reduction of the combinatorial background for ptPS modules by turning off the appropriate pixels
            for (const auto& modAndType : hitModules) {
              Module* hitModule = modAndType.first;
              PtErrorAdapter pterr(*hitModule);
@@ -471,7 +471,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
                
              // The background is given by the contamination from low pT tracks...
              curAvgFake += pterr.getTriggerFrequencyTruePerEventBelow(*itMomentum);
-             // ... plus the combinatorial background from occupancy (can be reduced using ptMixed modules)
+             // ... plus the combinatorial background from occupancy (can be reduced using ptPS modules)
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
              curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
 
@@ -2603,7 +2603,8 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       nTrackHits=0;
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
+//      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
+      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
       //hitModules = trackHit(XYZVector(0, 0, 0), dir, tracker.modules());
       //dir.SetY(dir.Y()*cos(angle) - dir.Z()*sin(angle));
       //dir.SetZ(dir.Y()*sin(angle) + dir.Z()*cos(angle));
