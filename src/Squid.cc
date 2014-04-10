@@ -4,7 +4,9 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
+#include <SvnRevision.h>
 #include <Squid.h>
+
 namespace insur {
   // public
   /**
@@ -383,9 +385,7 @@ namespace insur {
     site.addAuthor("Giovanni Bianchi");
     site.addAuthor("Nicoletta De Maio");
     site.addAuthor("Stefano Mersi");
-#ifdef REVISIONNUMBER
-    site.setRevision(REVISIONNUMBER);
-#endif
+    site.setRevision(SvnRevision::revisionNumber);
     return true;
   }
 
