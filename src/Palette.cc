@@ -25,10 +25,10 @@ Color_t Palette::color(const std::string& type) {
       ++iColor;
       found=false;
       for (std::map<std::string, int>::iterator it=colorPickMap.begin(); it!=colorPickMap.end(); ++it) {
-	if (it->first==iColor) {
-	  found = true;
-	  break;
-	}
+        if (it->first==iColor) {
+          found = true;
+          break;
+        }
       }
     }
     colorPickMap[type]=Palette::color(iColor);

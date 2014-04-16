@@ -64,6 +64,7 @@ public:
     static auto begin = std::begin(EnumTraits<T>::data);
     static auto end = std::end(EnumTraits<T>::data); // + EnumTraits<T>::data_size;
     return static_cast<T>(std::distance(begin, std::find(begin, end, from)));
+    // TODO : throw exception if string not found
   }
 };
 
@@ -146,6 +147,7 @@ inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
 inline double theta2eta(double theta) { return -log(tan(theta/2)); }
 
 
+// example: double maxZ = maxget(vec.begin(), vec.end(), [](Module* m) { return m->maxZ(); }); // gets maxZ from a vector of modules
 template<class I, class UnaryOperation> inline auto maxget(I begin, I end, UnaryOperation op) -> decltype(op(*begin)) {
   auto max = op(*begin++);
   for (auto it = begin; it != end; ++it) max = MAX(max, op(*it));
@@ -155,6 +157,18 @@ template<class I, class UnaryOperation> inline auto maxget(I begin, I end, Unary
 template<class I, class UnaryOperation> inline auto minget(I begin, I end, UnaryOperation op) -> decltype(op(*begin)) {
   auto min = op(*begin++);
   for (auto it = begin; it != end; ++it) min = MIN(min, op(*it));
+  return min;
+}
+
+template<class I, class MemFn> inline auto maxget2(I begin, I end, MemFn fn) -> typename std::remove_reference<decltype((*begin.*fn)())>::type {
+  auto max = (*begin.*fn)();
+  for (auto it = begin+1; it != end; ++it) max = MAX(max, (*it.*fn)());
+  return max;
+}
+
+template<class I, class MemFn> inline auto minget2(I begin, I end, MemFn fn) -> typename std::remove_reference<decltype((*begin.*fn)())>::type {
+  auto min = (*begin.*fn)();
+  for (auto it = begin+1; it != end; ++it) min = MIN(min, (*it.*fn)());
   return min;
 }
 

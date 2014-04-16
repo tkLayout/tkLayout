@@ -95,8 +95,7 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
 RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
   for (int i = 0; i < rodTemplate.size(); i++) {
-    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(new BarrelModule(new RectangularModule())));
-    rodTemplate[i]->setup();
+    rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
     rodTemplate[i]->store(propertyTree());
     if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
     rodTemplate[i]->build();
@@ -119,8 +118,7 @@ void Layer::buildStraight() {
 
   float rodPhiRotation = 2*M_PI/numRods_;
 
-  StraightRodPair* first = new StraightRodPair();
-  first->setup();
+  StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
   first->myid(1);
   first->minBuildRadius(minBuildRadius()-bigDelta());
   first->maxBuildRadius(maxBuildRadius()+bigDelta());
@@ -132,8 +130,7 @@ void Layer::buildStraight() {
   first->build(rodTemplate);
 
   std::cout << ">>> Copying rod " << fullid(*first) << " <<<" << std::endl;
-  StraightRodPair* second = new StraightRodPair(*first);
-  second->setup();
+  StraightRodPair* second = GeometryFactory::clone(*first);
   second->myid(2);
   if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
@@ -147,8 +144,7 @@ void Layer::buildStraight() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new StraightRodPair(i%2 ? *second : *first); // clone rods
-    rod->setup();
+    RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
     rods_.push_back(rod);
@@ -179,15 +175,13 @@ void Layer::buildTilted() {
 
   float rodPhiRotation = 2*M_PI/numRods_;
 
-  TiltedRodPair* first = new TiltedRodPair();
-  first->setup();
+  TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
   first->store(propertyTree());
   first->build(rodTemplate, tmspecs1);
   rods_.push_back(first);
 
-  TiltedRodPair* second = new TiltedRodPair();
-  second->setup();
+  TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
   second->store(propertyTree());
   second->build(rodTemplate, tmspecs2);
@@ -195,8 +189,7 @@ void Layer::buildTilted() {
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
-    RodPair* rod = new TiltedRodPair(i%2 ? *second : *first); // clone rods
-    rod->setup();
+    RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
     rods_.push_back(rod);

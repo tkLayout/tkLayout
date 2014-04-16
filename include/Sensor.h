@@ -36,6 +36,8 @@ public:
       type("sensorType", parsedOnly(), SensorType::None)
   {}
 
+  void parent(const DetectorModule* m) { parent_ = m; }
+
   int numChannels() const { return numStripsAcross() * numSegments(); }
   double minPitch() const;
   double maxPitch() const;
@@ -57,29 +59,7 @@ public:
     cleanup(); 
   }
 
-  void setup(const DetectorModule* parent) {
-    /*minR.setup([&]() {
-      XYZVector side[2];
-      std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Rho() < v2.Rho(); });
-      return std::min(minRVertex(), ((side[0]+side[1])/2).Rho());          
-    });
-    maxR.setup([&]() {
-      double max = 0.;
-      for (auto v : *poly_) max = MAX(max, v.Rho());
-      return max;
-    });
-    minZ.setup([&]() {
-      XYZVector side[2];
-      std::partial_sort_copy(poly_->begin(), poly_->end(), std::begin(side), std::end(side), [](const XYZVector& v1, const XYZVector& v2) { return v1.Z() < v2.Z(); });
-      return std::min(minZVertex(), ((side[0]+side[1])/2).Rho());
-    });
-    maxZ.setup([&]() {
-      double max = 0.;
-      for (auto v : *poly_) max = MAX(max, v.Z());
-      return max;
-    });*/
-
-    parent_ = parent;
+  void setup() {
     clearPolys();
     minR.setup([&]() { return CoordinateOperations::computeMinR(envelopePoly()); });
     maxR.setup([&]() { return CoordinateOperations::computeMaxR(envelopePoly()); });

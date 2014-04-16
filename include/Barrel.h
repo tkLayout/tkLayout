@@ -14,9 +14,9 @@
 using std::string;
 using std::vector;
 
-class Barrel : public PropertyObject, public Buildable, public Identifiable<string> {
+class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel> {
 public:
-  typedef boost::ptr_vector<Layer> Container;
+  typedef PtrVector<Layer> Container;
 private:
   Container layers_;
 
@@ -47,7 +47,6 @@ public:
     minZ.setup([this]() { double min = 0; for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
     maxR.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
     minR.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
-    for (auto& l : layers_) l.setup();
   }
 
   void build(); 

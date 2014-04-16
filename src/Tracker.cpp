@@ -20,8 +20,7 @@ void Tracker::build() {
 
     for (auto& mapel : barrelNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
-      Barrel* b = new Barrel();
-      b->setup();
+      Barrel* b = GeometryFactory::make<Barrel>();
       b->myid(mapel.first);
       b->store(propertyTree());
       b->store(mapel.second);
@@ -33,8 +32,7 @@ void Tracker::build() {
 
     for (auto& mapel : endcapNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
-      Endcap* e = new Endcap();
-      e->setup();
+      Endcap* e = GeometryFactory::make<Endcap>();
       e->myid(mapel.first);
       e->barrelMaxZ(barrelMaxZ);
       e->store(propertyTree());

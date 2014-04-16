@@ -46,7 +46,8 @@ public:
       physicalLength("physicalLength", parsedOnly(), 0.)
   {}
   virtual ~GeometricModule() {}
-  void setup() {}
+
+  virtual GeometricModule* clone() const = 0;
 
   const Polygon3d<4>& basePoly() const { return basePoly_; }
   const XYZVector& center() const { return basePoly_.getCenter(); }
@@ -67,8 +68,6 @@ public:
   void rotateY(double angle) { basePoly_.rotateY(angle); skewAngle_ += angle; }
   void rotateZ(double angle) { basePoly_.rotateZ(angle); }
 
-  virtual GeometricModule* clone() = 0;
-
   virtual void accept(GeometryVisitor& v) = 0;
   virtual void accept(ConstGeometryVisitor& v) const = 0;
   virtual void build() = 0;
@@ -83,7 +82,7 @@ public:
 
 
 
-class RectangularModule : public GeometricModule {
+class RectangularModule : public GeometricModule, public Clonable<RectangularModule> {
   Property<double, NoDefault> length_;
 public:
   Property<double, NoDefault> width;
@@ -97,6 +96,8 @@ public:
       waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
+  virtual RectangularModule* clone() const { return Clonable<RectangularModule>::clone(); }
+
   virtual double area() const override { return length()*width(); }
   virtual double length() const override { return length_(); }
   virtual double maxWidth() const override { return width(); }
@@ -107,7 +108,6 @@ public:
 
   virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
   virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
-  virtual RectangularModule* clone() override { return new RectangularModule(*this); }
   virtual void check() override;
   virtual void build() override;
 
@@ -117,7 +117,7 @@ public:
 
 
 
-class WedgeModule : public GeometricModule {
+class WedgeModule : public GeometricModule, public Clonable<WedgeModule> {
   double length_, minWidth_, maxWidth_;
   double area_/*dist_*/;
   bool cropped_;
@@ -134,6 +134,8 @@ public:
       waferDiameter("waferDiameter", parsedAndChecked(), 131.)
   {}
 
+  virtual WedgeModule* clone() const { return Clonable<WedgeModule>::clone(); }
+
   virtual double area() const override { return area_; }
   virtual double length() const override { return length_; }
   virtual double minWidth() const override { return minWidth_; }
@@ -142,7 +144,6 @@ public:
 
   virtual void accept(GeometryVisitor& v) { v.visit(*this); v.visit(*(GeometricModule*)this); }
   virtual void accept(ConstGeometryVisitor& v) const { v.visit(*this); v.visit(*(const GeometricModule*)this); }
-  virtual WedgeModule* clone() override { return new WedgeModule(*this); }
 
   virtual void build() override;
 

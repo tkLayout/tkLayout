@@ -194,6 +194,7 @@ namespace insur {
     TGeoMaterial* matserf;
     TGeoMaterial* matlazy;
   private:
+    TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     bool geometry_created;
     std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
@@ -213,6 +214,8 @@ namespace insur {
     bool drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles); // generic business logic called by hit or stub version with appropriate parameters
     bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer); // for hits
     bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer); // for hits
+    bool drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer);
+    bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version

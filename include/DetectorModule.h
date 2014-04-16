@@ -1,6 +1,8 @@
 #ifndef DETECTOR_MODULE_H
 #define DETECTOR_MODULE_H
 
+#include <boost/ptr_container/ptr_vector.hpp>
+
 #include "Sensor.h"
 #include "ModuleBase.h"
 #include "GeometricModule.h"
@@ -28,7 +30,7 @@ struct UniRef { string cnt; int layer, ring, phi, side; };
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
-  typedef std::vector<Sensor> Sensors;
+  typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 protected:
@@ -112,8 +114,6 @@ public:
 
   virtual void setup();
 
-  virtual DetectorModule* clone() = 0;
-
   virtual void build();
 // Geometric module interface
   const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
@@ -166,10 +166,10 @@ public:
   ModuleShape shape() const { return decorated().shape(); }
 ////////
 
-  double maxZ() const { return maxget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxZ(); }); }
-  double minZ() const { return minget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minZ(); }); }
-  double maxR() const { return maxget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.maxR(); }); }
-  double minR() const { return minget(sensors_.begin(), sensors_.end(), [](const Sensor& s) { return s.minR(); }); }
+  double maxZ() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxZ); }
+  double minZ() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minZ); }
+  double maxR() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxR); }
+  double minR() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minR); }
 
   double planarMaxZ() const { return CoordinateOperations::computeMaxZ(basePoly()); }
   double planarMinZ() const { return CoordinateOperations::computeMinZ(basePoly()); }
@@ -192,7 +192,7 @@ public:
   const Sensors& sensors() const { return sensors_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
-  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; }
+  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
   int minSegments() const { int segm = 999999; for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
   int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
@@ -231,14 +231,13 @@ public:
 
 
 
-class BarrelModule : public DetectorModule {
+class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
   int16_t ring() const { return (int16_t)myid(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) : DetectorModule(decorated) {}
-  BarrelModule* clone() override { return new BarrelModule(*this); }
+  BarrelModule(Decorated* decorated) : DetectorModule(decorated) { setup(); }
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     v.visit(*(DetectorModule*)this);
@@ -273,22 +272,21 @@ public:
 
 
 
-class EndcapModule : public DetectorModule {
+class EndcapModule : public DetectorModule, public Clonable<EndcapModule> {
 public:
   Property<int16_t, AutoDefault> disk;
   Property<int16_t, AutoDefault> ring;
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
 
-  EndcapModule(Decorated* decorated) : DetectorModule(decorated) {} 
+  EndcapModule(Decorated* decorated) : DetectorModule(decorated) { setup(); } 
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){return std::min_element(basePoly().begin(), basePoly().end(), [](const XYZVector& v1, const XYZVector& v2) { return v1.Phi() < v2.Phi(); })->Phi();});
-    maxPhi.setup([&](){return std::max_element(basePoly().begin(), basePoly().end(), [](const XYZVector& v1, const XYZVector& v2) { return v1.Phi() < v2.Phi(); })->Phi();});
+    minPhi.setup([&](){return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    maxPhi.setup([&](){return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
   }
 
-  EndcapModule* clone() override { EndcapModule* m = new EndcapModule(*this); return m; }
   void build();
 
   void accept(GeometryVisitor& v) {
@@ -316,7 +314,6 @@ public:
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }
   UniRef uniRef() const { return UniRef{ cntName(), disk(), ring(), blade(), side() }; }
 };
-
 
 
 // ===================================================================================================================================

@@ -14,8 +14,7 @@ public:
   virtual void accept(GeometryVisitor& v) = 0;
   virtual void accept(ConstGeometryVisitor& v) const = 0;
   virtual void build() = 0;
-  virtual void setup() = 0;
-  virtual ModuleBase* clone() = 0;
+  //virtual ModuleBase* clone() = 0;
 
 };
 

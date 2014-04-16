@@ -23,8 +23,7 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
   double lastSmallDelta;
 
   for (int i = 1, parity = -bigParity(); lastRho < outerRadius(); i++, parity *= -1) {
-    Ring* ring = new Ring();
-    ring->setup();
+    Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::BOTTOMUP);
     ring->buildCropRadius(outerRadius());
     ring->store(propertyTree());
@@ -54,8 +53,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
   double lastRho;
   double lastSmallDelta;
   for (int i = numRings(), parity = -bigParity(); i > 0; i--, parity *= -1) {
-    Ring* ring = new Ring();
-    ring->setup();
+    Ring* ring = GeometryFactory::make<Ring>();
     ring->buildDirection(Ring::TOPDOWN);
     ring->store(propertyTree());
     if (ringNode.count(i) > 0) ring->store(ringNode.at(i));

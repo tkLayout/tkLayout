@@ -273,8 +273,7 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
 
 void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
-    BarrelModule* mod = new BarrelModule(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
-    mod->setup();
+    BarrelModule* mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
     mod->myid(i+1);
     mod->side(side);
     //mod->store(propertyTree());
@@ -338,8 +337,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   if (tmspecs.empty()) return;
   int i = (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < tmspecs.size(); i++, ++it) {
-    BarrelModule* mod = new BarrelModule(**it);
-    mod->setup();
+    BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);

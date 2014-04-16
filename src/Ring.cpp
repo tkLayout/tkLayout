@@ -62,7 +62,7 @@ std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWafe
   double tentativeAlpha = computeTentativePhiAperture(moduleWaferDiameter, minRadius) - delta;
   float tentativeNumMods = 2*M_PI / tentativeAlpha; 
   int optimalNumMods = (!requireOddModsPerSlice()? round(tentativeNumMods/phiSegments()) : roundToOdd(tentativeNumMods/phiSegments()) + additionalModules()) * phiSegments();
-  float optimalAlpha = 2*M_PI/optimalNumMods + delta; // CUIDADO check this!
+  float optimalAlpha = 2*M_PI/optimalNumMods + delta;
 
   return std::make_pair(optimalAlpha, optimalNumMods);
 }
@@ -80,17 +80,12 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 
 
 void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
-  double alignmentRotation = alignEdges() ? 0.5 : 0.; // CUIDADO ask stefano what this is about
+  double alignmentRotation = alignEdges() ? 0.5 : 0.;
   for (int i = 0, parity = smallParity(); i < numMods; i++, parity *= -1) {
-    EndcapModule* mod = templ->clone();
-    mod->setup();
-    //mod->blade(i+1);
+    EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->myid(i+1);
     mod->rotateZ(2*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
     mod->translateZ(parity*smallDelta); 
-
-    //XYZVector shift = XYZVector(0, 0, diskZ + nearDirection*ringParity*smallDelta + nearDirection*bigDelta);
-    //myModule->translate(shift);
     modules_.push_back(mod);  
   }
 }
@@ -103,7 +98,7 @@ void Ring::buildBottomUp() {
 
   EndcapModule* emod = nullptr;
   if (moduleShape() == ModuleShape::WEDGE) {
-    WedgeModule* wmod = new WedgeModule();
+    WedgeModule* wmod = GeometryFactory::make<WedgeModule>();
     wmod->store(propertyTree());
 
     auto optimalRingParms = computeOptimalRingParametersWedge(wmod->waferDiameter(), buildStartRadius());
@@ -118,11 +113,11 @@ void Ring::buildBottomUp() {
 
     modLength = wmod->length();
 
-    emod = new EndcapModule(wmod);
+    emod = GeometryFactory::make<EndcapModule>(wmod);
 
   } else {
 
-    RectangularModule* rmod = new RectangularModule();
+    RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
     rmod->store(propertyTree());
     rmod->build();
 
@@ -131,14 +126,13 @@ void Ring::buildBottomUp() {
 
     modLength = rmod->length();
 
-    emod = new EndcapModule(rmod); 
+    emod = GeometryFactory::make<EndcapModule>(rmod); 
 
   }
 
-  emod->setup();
   emod->store(propertyTree());
   emod->build();
-  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0)); // CUIDADO it should use translateR
+  emod->translate(XYZVector(buildStartRadius() + modLength/2, 0, 0));
 
   minRadius_ = buildStartRadius();
   maxRadius_ = buildStartRadius() + modLength;
@@ -154,18 +148,16 @@ void Ring::buildBottomUp() {
 void Ring::buildTopDown() {
   buildStartRadius(buildStartRadius()-ringGap());
 
-  RectangularModule* rmod = new RectangularModule();
-  rmod->setup();
+  RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
   rmod->store(propertyTree());
 
   auto optimalRingParms = computeOptimalRingParametersRectangle(rmod->width(), buildStartRadius());
   int numMods = optimalRingParms.second;
 
-  EndcapModule* emod = new EndcapModule(rmod);
-  emod->setup();
+  EndcapModule* emod = GeometryFactory::make<EndcapModule>(rmod);
   emod->store(propertyTree());
   emod->build();
-  emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0)); // CUIDADO it should use translateR
+  emod->translate(XYZVector(buildStartRadius() - rmod->length()/2, 0, 0));
 
   minRadius_ = buildStartRadius() - rmod->length();
   maxRadius_ = buildStartRadius();

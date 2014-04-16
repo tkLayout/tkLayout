@@ -18,7 +18,7 @@ using std::string;
 
 class Ring : public PropertyObject, public Buildable, public Identifiable<int> {
 
-  boost::ptr_vector<EndcapModule> modules_;
+  PtrVector<EndcapModule> modules_;
 
   template<class T> int roundToOdd(T x) { return round((x-1)/2)*2+1; }
   double solvex(double y);
@@ -81,7 +81,6 @@ public:
       } 
       return max; 
     });
-    for (auto& m : modules_) m.setup();
   }
   
   void build();

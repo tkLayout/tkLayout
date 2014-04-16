@@ -54,8 +54,7 @@ void Endcap::build() {
     double alpha = pow(maxZ()/minZ(), 1/double(numDisks()-1)); // geometric progression factor
 
     for (int i = 1; i <= numDisks(); i++) {
-      Disk* diskp = new Disk();
-      diskp->setup();
+      Disk* diskp = GeometryFactory::make<Disk>();
       diskp->myid(i);
 
       diskp->buildZ((minZ() + maxZ())/2);
@@ -69,8 +68,7 @@ void Endcap::build() {
 
       diskp->build(maxDsDistances);
 
-      Disk* diskn = new Disk(*diskp);
-      diskn->setup();
+      Disk* diskn = GeometryFactory::clone(*diskp);
       diskn->mirrorZ();
 
       tdisks.push_back(diskp);

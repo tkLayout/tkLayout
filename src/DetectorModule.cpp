@@ -30,26 +30,26 @@ void DetectorModule::build() {
     decorated().build();
   }
   if (numSensors() > 0) {
-    sensors_.resize(numSensors());
-    for (int i = 0; i < sensors_.size(); i++) {
-      sensors_.at(i).myid(i+1);
-      sensors_.at(i).setup(this);
-      sensors_.at(i).store(propertyTree());
-      if (sensorNode.count(i+1) > 0) sensors_.at(i).store(sensorNode.at(i+1));
-      sensors_.at(i).build();
+    for (int i = 0; i < numSensors(); i++) {
+      Sensor* s = GeometryFactory::make<Sensor>();
+      s->parent(this);
+      s->myid(i+1);
+      s->store(propertyTree());
+      if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
+      s->build();
+      sensors_.push_back(s);
     }
   } else {
-    Sensor s;  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
-    s.myid(1);
-    s.setup(this);
-    s.build();
+    Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
+    s->parent(this);
+    s->myid(1);
+    s->build();
     sensors_.push_back(s);
   }
 }
 
 
 void DetectorModule::setup() {
-  decorated().setup();
   resolutionLocalX.setup([this]() { 
     double res = 0;
     for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
@@ -62,7 +62,8 @@ void DetectorModule::setup() {
       return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
     }
   });
-  for (auto& s : sensors_) s.setup(this);
+
+  for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
 };
 
 

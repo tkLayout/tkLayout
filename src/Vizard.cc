@@ -1760,17 +1760,26 @@ namespace insur {
      */
 
     // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hits)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", 600, 600);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Hit coverage in eta");
+    myImage->setComment("Hit modules across eta");
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfile", "Eta profile (Stubs)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", 600, 600);
+    drawEtaProfilesSensors(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setComment("Hit coverage across eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", 600, 600);
     drawEtaProfilesStubs(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Stub coverage in eta");
+    myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
+
+    if (name != "pixel") totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
+    else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
     int prevStat = gStyle->GetOptStat();
@@ -1821,6 +1830,14 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfile, etaProfiles);
   }
 
+  bool Vizard::drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfileSensors = analyzer.getTotalEtaProfileSensors();
+    std::vector<TProfile>& etaProfilesSensors = analyzer.getTypeEtaProfilesSensors();
+    return drawEtaProfilesAny(totalEtaProfileSensors, etaProfilesSensors);
+  }
+
   bool Vizard::drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
@@ -1831,7 +1848,7 @@ namespace insur {
 
   bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles) {
     std::vector<TProfile>::iterator etaProfileIterator;
-    totalEtaProfile.SetMaximum(15); // TODO: make this configurable
+    //totalEtaProfile.SetMaximum(15); // TODO: make this configurable
     totalEtaProfile.SetMinimum(0); // TODO: make this configurable
 
     totalEtaProfile.Draw();
@@ -1850,6 +1867,12 @@ namespace insur {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
     return drawEtaProfiles(*myVirtualPad, analyzer);
+  }
+
+  bool Vizard::drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesSensors(*myVirtualPad, analyzer);
   }
 
   bool Vizard::drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer) {
@@ -1968,6 +1991,19 @@ namespace insur {
       anImage->setComment("RZ position of the modules (full layout)");
       fullLayoutContent->addItem(anImage);
     }
+
+    THStack* totalEtaStack = new THStack();
+    if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
+    if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
+    TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", 600, 600);
+    totalEtaProfileFull->cd();
+    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    totalEtaStack->GetStack()->Last()->Draw();
+    RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
+    myImage->setComment("Full hit coverage across eta");
+    fullLayoutContent->addItem(myImage);
+
 
     RootWInfo* cmdLineInfo;
     cmdLineInfo = new RootWInfo("Command line arguments");
@@ -4265,6 +4301,7 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
+
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
@@ -4382,7 +4419,7 @@ namespace insur {
       int numRods_;
     public:
       void preVisit() {
-        output_ << "BarrelLayer name, r(mm), z(mm), number of modules" << std::endl;
+        output_ << "Barrel-Layer name, r(mm), z(mm), ss(mm), num mods" << std::endl;
       }
       void visit(const Barrel& b) {
         barName_ = b.myid();
@@ -4393,7 +4430,7 @@ namespace insur {
       }
       void visit(const BarrelModule& m) {
         if (m.posRef().phi > 2) return;
-        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_ << std::endl;
+        output_ << barName_ << "-L" << layId_ << ", " << std::fixed << std::setprecision(3) << m.center().Rho() << ", " << m.center().Z() << ", " << m.dsDistance() << ", " << numRods_/2. << std::endl;
       }
 
       std::string output() const { return output_.str(); }

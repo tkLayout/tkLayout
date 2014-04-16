@@ -19,7 +19,7 @@
 using std::set;
 
 
-class Tracker : public PropertyObject, public Buildable, public Identifiable<string> {
+class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker> {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
@@ -36,8 +36,8 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
   };
 
 public:
-  typedef boost::ptr_vector<Barrel> Barrels;
-  typedef boost::ptr_vector<Endcap> Endcaps;
+  typedef PtrVector<Barrel> Barrels;
+  typedef PtrVector<Endcap> Endcaps;
   typedef ModuleSetVisitor::Modules Modules;
 
   ReadonlyProperty<double, Computable> maxR, minR;
@@ -90,8 +90,6 @@ public:
         for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
         return max;
      });
-     for (auto& b : barrels_) b.setup();
-     for (auto& e : endcaps_) e.setup(); 
   }
 
   void build();

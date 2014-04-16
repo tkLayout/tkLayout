@@ -40,7 +40,6 @@ public:
   void setup() {
     maxR.setup([&]() { double max = 0; for (const auto& d : disks_) { max = MAX(max, d.maxR()); } return max; });
     minR.setup([&]() { double min = 0; for (const auto& d : disks_) { min = MIN(min, d.minR()); } return min; });
-    for (auto& d : disks_) d.setup();
   }
 
   void build();

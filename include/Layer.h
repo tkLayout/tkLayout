@@ -5,8 +5,6 @@
 #include <string>
 #include <memory>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
 #include "global_funcs.h"
 #include "Property.h"
 #include "Module.h"
@@ -18,9 +16,9 @@ using std::pair;
 using std::unique_ptr;
 
 
-class Layer : public PropertyObject, public Buildable, public Identifiable<int> {
+class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer> {
 public:
-  typedef boost::ptr_vector<RodPair> Container;
+  typedef PtrVector<RodPair> Container;
 private:
   Container rods_;
 
@@ -70,14 +68,13 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
             sameParityRods ("sameParityRods" , parsedAndChecked(), false),
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
-  {}
+  { setup(); }
 
   void setup() {
     maxZ.setup([this]() { return rods_.front().maxZ(); });
     minZ.setup([this]() { return rods_.front().minZ(); });
     maxR.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
     minR.setup([this]() { double min = 99999; for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
-    for (auto& r : rods_) r.setup();
   }
 
   double placeRadius() const { return placeRadius_; }

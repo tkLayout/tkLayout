@@ -157,7 +157,7 @@ namespace insur {
                                           const std::vector<double>& thresholdProbabilities,
                                           int etaSteps = 50);
     void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
-    void analyzeGeometry(Tracker& tracker, int nTracks = 1000); // TODO: why virtual?
+    void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
     void computeIrradiatedPowerConsumption(Tracker& tracker);
@@ -167,9 +167,11 @@ namespace insur {
     TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
     TH1D& getHitDistribution() {return hitDistribution; }
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
+    TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
+    std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
     std::vector<TProfile>& getTypeEtaProfilesStubs() {return typeEtaProfileStubs; }
     std::map<std::string, TProfile>& getLayerEtaCoverageProfiles() {return layerEtaCoverageProfile;}
     std::map<std::string, TProfile>& getLayerEtaCoverageProfilesStubs() {return layerEtaCoverageProfileStubs; }
@@ -343,8 +345,8 @@ namespace insur {
     StubRateHistos trueStubRateHistos_;
 
     TGraph powerDensity;
-    TProfile totalEtaProfile, totalEtaProfileStubs;
-    std::vector<TProfile> typeEtaProfile, typeEtaProfileStubs;
+    TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs;
+    std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
     std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
 
     std::map<std::string, std::map<std::string, TH1I*>> stubEfficiencyCoverageProfiles_;

@@ -13,7 +13,7 @@
 
 class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
-  typedef boost::ptr_vector<Ring> Container;
+  typedef PtrVector<Ring> Container;
 private:
   Container rings_;
 
@@ -60,7 +60,6 @@ public:
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
-    for (auto& r : rings_) r.setup();
   }
 
   void check() override;

@@ -23,7 +23,7 @@ typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
 class RodPair : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
-  typedef boost::ptr_vector<BarrelModule> Container;
+  typedef PtrVector<BarrelModule> Container;
 protected:
   Container zPlusModules_, zMinusModules_;
 
@@ -46,14 +46,12 @@ public:
   {}
 
   void setup() {
-    minAperture.setup([this]() { double min = 999; for (auto& m : zPlusModules_) { min = MIN(min, m.phiAperture()); } return min; }); // CUIDADO not checking the zMinus modules, check if this could cause problems down the road
-    maxAperture.setup([this]() { double max = 0; for (auto& m : zPlusModules_) { max = MAX(max, m.phiAperture()); } return max; });
-    minZ.setup([&]() { double min = 99999; for (const auto& m : zMinusModules_) { min = MIN(min, m.minZ()); } return min; }); // we want the minZ so we don't bother with scanning the zPlus vector
-    minR.setup([&]() { double min = 99999; for (const auto& m : zPlusModules_) { min = MIN(min, m.minR()); } return min; }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
-    maxR.setup([&]() { double max = 0; for (const auto& m : zPlusModules_) { max = MAX(max, m.maxR()); } return max; });
-    maxModuleThickness.setup([&]() { double max = 0; for (const auto& m : zPlusModules_) { max = MAX(max, m.thickness()); } return max; });
-    for (auto& m : zPlusModules_) m.setup();
-    for (auto& m : zMinusModules_) m.setup();
+    minAperture.setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::phiAperture); }); // CUIDADO not checking the zMinus modules, check if this could cause problems down the road
+    maxAperture.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::phiAperture); });
+    minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
+    minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
+    maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
+    maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
   }
   
   virtual double thickness() const = 0;
@@ -82,7 +80,7 @@ public:
 
 };
 
-class StraightRodPair : public RodPair {
+class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
 
   // Templated because they need to work both with forward and reverse iterators (mezzanines are built right to left and the rodTemplate vector is iterated backwards)
   double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
@@ -139,10 +137,10 @@ struct TiltedModuleSpecs {
   }
 };
 
-class TiltedRodPair : public RodPair {
+class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
 public:
-  double thickness() const override { return maxR() - minR(); }
+  double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
 
 }; 
