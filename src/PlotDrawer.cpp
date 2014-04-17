@@ -28,6 +28,9 @@ template<> TH2D* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
+int g
+;
+
 template<> TH2D* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
   TH2D* frame = new TH2D(name.c_str(), ";x [mm];y [mm]", 1, -viewportX, viewportX, 1, -viewportY, viewportY);
@@ -35,6 +38,11 @@ template<> TH2D* FrameGetter<XY>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
+TPolyLine* drawMod() {
+  double x[] = { 131., 31., 31., 131., 131., 101. };
+  double y[] = { 132., 132., 32., 32., 81., 81. };
+  return new TPolyLine(6, x, y);
+}
 
 template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
                                                                           Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {

@@ -2545,11 +2545,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
 
-  /*for (std::map <std::string, TH2D*>::iterator it = etaProfileByType.begin();
-    it!=etaProfileByType.end(); it++) {
-    aPlot = (*it).second;
-    if (aPlot) delete aPlot;
-    }*/
   etaProfileByType.clear();
   etaProfileByTypeSensors.clear();
   etaProfileByTypeStubs.clear();
@@ -2622,11 +2617,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       // Reset the hit counter
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-//      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, myDice.Gaus(0, zError)), aLine.first, tracker.modules());
       std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
-      //hitModules = trackHit(XYZVector(0, 0, 0), dir, tracker.modules());
-      //dir.SetY(dir.Y()*cos(angle) - dir.Z()*sin(angle));
-      //dir.SetZ(dir.Y()*sin(angle) + dir.Z()*cos(angle));
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
       resetTypeCounter(sensorTypeCount);
@@ -2696,8 +2687,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       if (trackCount>0) {
         hitCount=mapPhiEta.GetBinContent(nx, ny);
         mapPhiEta.SetBinContent(nx, ny, hitCount/trackCount);
-        //hitCount=mapPhiEta.GetBinContent(nx, ny); //debug
-        //std::cerr << "hitCount " << hitCount << std::endl; //debug
       }
     }
   }
@@ -2780,8 +2769,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   std::map<std::string, double> typeToPower;
   std::map<std::string, double> typeToSurface;
 
-  //   for (ModuleVector::iterator aModule = allModules.begin();
-  //        aModule != allModules.end(); ++aModule) {
   for (auto aModule : tracker.modules()) {
     string aSensorType = aModule->moduleType();
     typeToCount[aSensorType] ++;
@@ -2840,17 +2827,12 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       std::string aType;
       int typeCounter=0;
 
-      //LayerVector& layerSet = tracker.getLayers();
-      //for (layIt=layerSet.begin(); layIt!=layerSet.end(); layIt++) {
-      //  moduleV = (*layIt)->getModuleVector();
-      //  for (modIt=moduleV->begin(); modIt!=moduleV->end(); modIt++) {
       for (auto m : tracker.modules()) {
           aType = m->moduleType();
           m->resetHits();
           if (moduleTypeCount.find(aType)==moduleTypeCount.end()) {
             moduleTypeCount[aType]=typeCounter++;
           }
-     //   }
       }
 
       return(typeCounter);
@@ -2896,31 +2878,18 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       std::vector<std::pair<Module*, HitType>> result;
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
-      double theta = direction.Theta()*180/M_PI; // CUIDADO remove all these debug lines during next code cleanup
-      double phi = direction.Phi()*180/M_PI;
-      double z = origin.Z();
 
       static std::ofstream ofs("hits.txt");
-      //ofs << "---- track eta=" << direction.Eta() << " theta=" << theta << " phi=" << phi << " origz=" << z << " ----" << std::endl;
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
         if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
-          //distance=m->trackCross(origin, direction);
           auto h = m->checkTrackHits(origin, direction); 
-          //if (distance > -1) { ofs << "    old "; printPosRefString(ofs, *m, "\t"); ofs << "\t" << distance << std::endl; }
-          //if (h.second != HitType::NONE) { ofs << "   new "; printPosRefString(ofs, *m, "\t"); ofs << "\thd=" << h.first.R() << " ht=" << h.second << std::endl; }
           if (h.second != HitType::NONE) {
             result.push_back(std::make_pair(m,h.second));
           }
         }
       }
-      if (direction.Eta() >= -2.4 && direction.Eta() <= 2.4 && std::count_if(result.begin(), result.end(), [](const std::pair<Module*, HitType>& p) { return p.second == HitType::STUB; }) == 0) {
-        ofs << "******** Track with eta = " << direction.Eta() << " with no stubs!!! ********" << std::endl;
-        ofs << "---- track eta=" << direction.Eta() << " theta=" << theta << " phi=" << phi << " origz=" << z << " ----" << std::endl;
-        for (auto& hm : result) {
-          ofs << "   "; printPosRefString(ofs, *hm.first, "\t"); ofs << "\tht=" << hm.second << std::endl; }
-        }
       return result;
     }
 

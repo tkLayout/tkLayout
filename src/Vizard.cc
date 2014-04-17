@@ -359,7 +359,6 @@ namespace insur {
 
 
 
-
   void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
     histogramSummary(a, site, "outer");
   }
@@ -1259,7 +1258,7 @@ namespace insur {
           auto* anEC = (*typeIt).second;
           int aRing=(*typeIt).first;
           ringTable->setContent(0, aRing, aRing);
-          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision); // CUIDADO minR was getDist()
+          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
           ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
         }
       }
@@ -2054,8 +2053,6 @@ namespace insur {
     RootWTextFile* myTextFile;
     createBarrelModulesCsv(tracker);
     createEndcapModulesCsv(tracker);
-//    tracker.printBarrelModuleZ(barrelModuleCoordinates);  // CUIDADO use a visitor for this
-//    tracker.printEndcapModuleRPhiZ(endcapModuleCoordinates);
     // Barrel coordinates
     myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
     myTextFile->addText(barrelModulesCsv_);
@@ -2234,7 +2231,7 @@ namespace insur {
     TCanvas triggerFrequencyPerEventCanvas;
 
     PlotDrawer<YZ, Type, Max> yzbwDrawer(0, 0); // we take the MAX because the Analyzer only sweeps across the first quadrant (up to PI/2),
-    PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's  // CUIDADO FIX THIS.. for now disabled!!
+    PlotDrawer<YZ, Type, Max> yztfDrawer(0, 0); // so there's plenty modules in Phi which don't have their property set, but Max disregards all the 0's
 
     yzbwDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yztfDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
@@ -3109,7 +3106,7 @@ namespace insur {
 
         // Prepare the cuts for the averages
         const std::vector<std::string>& cutNames = a.getCutNames();
-        const std::vector<double>& cuts = a.getTriggerCuts(); // CUIDADO uses trigger cuts (AFAIK they should be the same as tracking cuts)
+        const std::vector<double>& cuts = a.getTriggerCuts();
         ostringstream label;
         std::string name;      
         RootWTable* myTable;

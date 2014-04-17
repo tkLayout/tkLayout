@@ -582,7 +582,7 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
             shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
-            shape.dz = iiter->getModule().sensorThickness() / 2.0; //CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
+            shape.dz = iiter->getModule().sensorThickness() / 2.0;
             //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
             s.push_back(shape);
 
@@ -595,7 +595,6 @@ namespace insur {
 
             pos.child_tag = logic.shape_tag;
             pos.trans.dx = 0.0;
-            //pos.trans.dz = shape.dz - iiter->getModule().tmoduleThickness() / 2.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
 
@@ -711,7 +710,7 @@ namespace insur {
         // rod(s)
         shape.name_tag = rname.str();
         if (is_short) shape.name_tag = shape.name_tag + xml_plus;
-        shape.dy = shape.dx; // CUIDADO EXPERIMENTAL - Rods must have the dx of modules as dy because modules are afterwards rotated with the Harry's tilt mod 
+        shape.dy = shape.dx;
         shape.dx = rodThickness / 2.0;
         if (is_short) shape.dz = (zmax - zmin) / 2.0;
         else shape.dz = zmax;
