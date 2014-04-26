@@ -3,7 +3,7 @@
 // Module type
 type = ptPS
 // Default sensor:
-nStripsAcross = 1024;
+nStripsAcross = 960;
 nSegments = 2;
 // Sensor and hybrid stuff
   #include <generic/Sensor>
@@ -27,7 +27,7 @@ nSegments = 2;
   #include <generic/NoEports>
 
 // Support mechanics
-#include <ps/SupportMechanics>
+#include <generic/SupportMechanics>
 
 
 

@@ -1,0 +1,7 @@
+// Module mechanics (for 8 cm-long modules)
+comp = Mechanics
+M CF 0 0 0 5.00 g L ; // Module frame
+M CF 0 0 0 3.28 g L ; // Sensors supports
+M CF 0 0 0 0.69 g L ; // PGS Thermal conductor
+M Al 0 0 0 2.41 g L ; // Cooling blocks
+M Steel 0 0 0 0.48 g L ; // Screws

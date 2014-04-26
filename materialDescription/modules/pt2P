@@ -1,9 +1,9 @@
 // pt-IN 2P module 10x10 for the inner region
 // GBT on the module
 // Module type
-type = ptIn
+type = pt2P
 // Default sensor:
-nStripsAcross = 1024;
+nStripsAcross = 960;
 nSegments = 67;
 // Sensor and hybrid stuff
   #include <generic/Sensor>

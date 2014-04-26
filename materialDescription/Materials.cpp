@@ -6,7 +6,9 @@
 #include <stereo>
 #include <pt2S>
 #include <ptPS>
-#include <ptIn>
+#include <pt2P>
+#include <pt2SLong>
+#include <pt2SShort>
 
 // Generic services conversion rules
 #include <generic/ConversionRules>

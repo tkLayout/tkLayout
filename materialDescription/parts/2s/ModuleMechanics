@@ -1,4 +1,4 @@
-// Module mechanics
+// Module mechanics (for 10 cm-long modules)
 comp = Mechanics
 M CF    0 0 0 5.35 g L ; // Module frame
 M CF    0 0 0 3.28 g L ; // Sensors supports

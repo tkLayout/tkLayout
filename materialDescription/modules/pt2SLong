@@ -1,7 +1,7 @@
-// pt-2S module 10x10 for the outer region
+// pt-2S long module 10x16 for the outer region
 // GBT on the module
 // Module type
-type = pt2S
+type = pt2SLong
 // Default sensor:
 nStripsAcross = 1016;
 nSegments = 2;
@@ -18,7 +18,7 @@ nSegments = 2;
 
   #include <generic/BiasKapton>
   #include <generic/BiasKapton>
-  #include <2s/ModuleMechanics>
+  #include <2s/ModuleMechanics_16>
   #include <generic/HvLine>
 // ROD material
 //  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
