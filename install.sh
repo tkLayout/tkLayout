@@ -42,7 +42,7 @@ if $TKG_SETUP_BIN ; then
 	&& echo Main program installed/updated \
 	|| echo Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY
 
-    SVNURL=`$SVNBIN info | grep URL | cut -d' ' -f2-`
+    SVNURL=`$SVNBIN info | egrep ^URL | cut -d' ' -f2-`
     echo $SVNURL | grep -q -e '^http' || {
       echo ERROR: the current directory is not under SVN revision
       exit -1
