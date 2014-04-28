@@ -42,7 +42,7 @@ if $TKG_SETUP_BIN ; then
 	&& echo Main program installed/updated \
 	|| echo Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY
 
-    SVNURL=`$SVNBIN info | egrep ^URL | cut -d' ' -f2-`
+    SVNURL=`$SVNBIN info | egrep ^URL: | cut -d' ' -f2-`
     echo $SVNURL | grep -q -e '^http' || {
       echo ERROR: the current directory is not under SVN revision
       exit -1
@@ -58,7 +58,7 @@ if $TKG_SETUP_BIN ; then
        if [ -d $targetDirectory ] ; then
           echo -n Updating $targetDirectory...
           if [ -d $targetDirectory/.svn ]; then
-            otherBase=`$SVNBIN info $targetDirectory | grep URL | cut -d' ' -f2-`
+            otherBase=`$SVNBIN info $targetDirectory | egrep ^URL: | cut -d' ' -f2-`
             if [ "$otherBase" != "$SVNURL/$myDir" ]; then
               echo ""
               echo Directory $targetDirectory is under a different version control than `pwd`. 
@@ -66,7 +66,7 @@ if $TKG_SETUP_BIN ; then
               select yn in "Yes" "No"; do
                 case $yn in
                   Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
-                  No ) echo Installation aborted by user; exit;;
+                  * ) echo Installation aborted by user; exit;;
                 esac
               done
             fi
@@ -78,7 +78,7 @@ if $TKG_SETUP_BIN ; then
             select yn in "Yes" "No"; do
               case $yn in
                 Yes ) rm -rf $targetDirectory; $SVNBIN checkout $SVNURL/$myDir $targetDirectory; break;;
-                No ) echo Installation aborted by user; exit;;
+                * ) echo Installation aborted by user; exit;;
               esac
             done
           fi
