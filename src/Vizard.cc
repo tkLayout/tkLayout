@@ -1998,6 +1998,7 @@ namespace insur {
     totalEtaProfileFull->cd();
     ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
     ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalEtaStack->GetStack()->Last()->Draw();
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
     myImage->setComment("Full hit coverage across eta");
