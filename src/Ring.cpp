@@ -1,5 +1,5 @@
 #include "Ring.h"
-
+#include "messageLogger.h"
 
 inline void Ring::check() {
   PropertyObject::check();
@@ -85,6 +85,7 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
     EndcapModule* mod = GeometryFactory::clone(*templ);
     mod->myid(i+1);
     mod->rotateZ(2*M_PI*(i+alignmentRotation)/numMods); // CUIDADO had a rotation offset of PI/2
+    mod->rotateZ(zRotation());
     mod->translateZ(parity*smallDelta); 
     modules_.push_back(mod);  
   }
@@ -92,7 +93,16 @@ void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
 
 
 void Ring::buildBottomUp() {
-  buildStartRadius(buildStartRadius()+ringGap());
+  double startRadius = buildStartRadius()+ringGap();
+  if (ringOuterRadius()>0){
+    logWARNING("outer radius was set for a bottom-up endcap building. Ignoring ringOuterRadius.");
+  }
+  if (ringInnerRadius()>0)  {
+    if (ringGap()!=0) logWARNING("innerRadius and ringGap were both specified. Ignoring ringGap.");
+    startRadius = ringInnerRadius();
+  }
+  buildStartRadius(startRadius);
+
   int numMods;
   double modLength;
 
@@ -146,7 +156,15 @@ void Ring::buildBottomUp() {
 
 
 void Ring::buildTopDown() {
-  buildStartRadius(buildStartRadius()-ringGap());
+  double startRadius = buildStartRadius()-ringGap();
+  if (ringInnerRadius()>0){
+    logWARNING("inner radius was set for a top-down endcap building. Ignoring ringInnerRadius.");
+  }
+  if (ringOuterRadius()>0)  {
+    if (ringGap()!=0) logWARNING("outerRadius and ringGap were both specified. Ignoring ringGap.");
+    startRadius = ringOuterRadius();
+  }
+  buildStartRadius(startRadius);
 
   RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
   rmod->store(propertyTree());

@@ -40,9 +40,11 @@ public:
   ReadonlyProperty<double, Computable> minAperture;
   ReadonlyProperty<double, Computable> maxAperture;
   ReadonlyProperty<double, Computable> maxModuleThickness;
+  Property<bool, Default> beamSpotCover;
 
   RodPair() :
-      startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER) 
+      startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER),
+      beamSpotCover("beamSpotCover", parsedAndChecked(), true)
   {}
 
   void setup() {

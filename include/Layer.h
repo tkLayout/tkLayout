@@ -50,6 +50,7 @@ public:
   Property<double, NoDefault> minBuildRadius;
   Property<double, NoDefault> maxBuildRadius;
   Property<bool, Default> sameParityRods;
+  Property<double, Default> layerRotation;
 
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
@@ -66,6 +67,7 @@ public:
             placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
+            layerRotation  ("layerRotation",   parsedOnly(), 0.),
             sameParityRods ("sameParityRods" , parsedAndChecked(), false),
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
   { setup(); }

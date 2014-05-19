@@ -175,19 +175,20 @@ double StraightRodPair::computeNextZ(double newDsDistance, double lastDsDistance
   double lastR = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
 
   double newZ = lastZ;
-
+  if (!beamSpotCover()) dz = 0;
   if (direction == BuildDir::RIGHT) {
     double originZ = parity > 0 ? dz : -dz;
     double newZorigin = (newZ - ov) * newR/lastR;
     double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    newZ = MIN(newZorigin, newZshifted);
+    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
+    else newZ = newZorigin;
   } else {
     double originZ = parity > 0 ? -dz : dz;
     double newZorigin = (newZ + ov) * newR/lastR;
     double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    newZ = MAX(newZorigin, newZshifted);
+    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
+    else newZ = newZorigin;
   }
-
   return newZ;
 }
 
@@ -199,6 +200,8 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
 
   double targetZ = maxZ.state() ? maxZ() : std::numeric_limits<double>::max(); // unreachable target in case maxZ not set
   int targetMods = buildNumModules.state() ? buildNumModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
+  // If we rely on numModules and we start from the center, then the number of modules on the left side of the rod must be lower
+  if ((startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) targetMods--; 
 
   double newZ = startZ; // + lengthOffset/2;
 

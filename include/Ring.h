@@ -53,6 +53,10 @@ public:
   Property<double, Computable> minZ, maxZ;
   Property<int, NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
   ReadonlyProperty<double, Computable> maxModuleThickness;
+  Property<double, Default> zRotation;
+  Property<double, Default> ringOuterRadius;
+  Property<double, Default> ringInnerRadius;
+
 
   double minR() const { return minRadius_; }
   double maxR() const { return maxRadius_; }
@@ -68,7 +72,10 @@ public:
       alignEdges            ("alignEdges"            , parsedOnly(), true),
       ringGap               ("ringGap"               , parsedOnly(), 0.),
       smallParity           ("smallParity"           , parsedOnly(), 1),
-      smallDelta            ("smallDelta"            , parsedAndChecked())
+      smallDelta            ("smallDelta"            , parsedAndChecked()),
+      zRotation             ("zRotation"             , parsedOnly(), 0.),
+      ringOuterRadius       ("ringOuterRadius"       , parsedOnly(), -1.),
+      ringInnerRadius       ("ringInnerRadius"       , parsedOnly(), -1.)
   {}
 
   void setup() {

@@ -29,6 +29,7 @@ void Barrel::build() {
       if (layerNode.count(i) > 0) layer->store(layerNode.at(i));
       layer->build();
       layer->rotateZ(barrelRotation());
+      layer->rotateZ(layer->layerRotation());
       layers_.push_back(layer);
     }
 
