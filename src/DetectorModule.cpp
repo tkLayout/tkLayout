@@ -162,7 +162,8 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   XYZVector gc; // global coordinates of the hit
   if (numSensors() == 1) {
     auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
-    if (segm.second > -1) { gc = segm.first; ht = HitType::BOTH; }
+    // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
+    if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; } 
   } else {
     auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
