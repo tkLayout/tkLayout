@@ -409,7 +409,6 @@ $(TESTDIR)/%: $(SRCDIR)/Tests/%.cpp $(INCDIR)/Tests/%.h
 #CLEANUP
 cleanall:
 	@rm -rf $(LIBDIR)/*
-	@rm -rf $(TESTDIR)/
 
 clean: cleanall
 
