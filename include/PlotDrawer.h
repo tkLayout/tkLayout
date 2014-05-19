@@ -10,6 +10,7 @@
 #include <TPaletteAxis.h>
 #include <TList.h>
 #include <TH2D.h>
+#include <TH2C.h>
 #include <TText.h>
 #include <TLatex.h>
 #include <TLine.h>
@@ -269,13 +270,15 @@ public:
     sid << nextId();
     return sid.str(); 
   }
+protected:
+  static const int nBinsZoom;
 };
 
 
 
 template<class CoordType> class FrameGetter : private IdMaker {
 public:
-  TH2D* operator()(double viewportX, double viewportY) const;
+  TH2C* operator()(double viewportX, double viewportY) const;
 };
 
 
@@ -284,13 +287,13 @@ template<class CoordType> class SummaryFrameStyle {
   void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
 public:
-  void operator()(TH2D& frame, TCanvas& canvas, DrawerPalette&) const;
+  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette&) const;
 
 };
 
 template<class CoordType>
 struct HistogramFrameStyle {
-  void operator()(TH2D& frame, TCanvas& canvas, DrawerPalette& palette) const {
+  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette) const {
     frame.Fill(1,1,0);
     frame.SetMaximum(palette.getMaxValue());
     frame.SetMinimum(palette.getMinValue());
@@ -387,7 +390,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   canvas.cd();
   viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
   viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
-  TH2D* frame = getFrame(viewportMaxX_, viewportMaxY_);
+  TH2C* frame = getFrame(viewportMaxX_, viewportMaxY_);
   frameStyle(*frame, canvas, palette_);
 }
 
