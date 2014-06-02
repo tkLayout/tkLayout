@@ -217,6 +217,7 @@ public:
   virtual PosRef posRef() const = 0;
   virtual TableRef tableRef() const = 0;
   virtual UniRef uniRef() const = 0;
+  virtual int16_t moduleRing() const { return -1; }
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
@@ -235,6 +236,7 @@ class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
   int16_t ring() const { return (int16_t)myid(); }
+  int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
   BarrelModule(Decorated* decorated) : DetectorModule(decorated) { setup(); }
@@ -276,6 +278,7 @@ class EndcapModule : public DetectorModule, public Clonable<EndcapModule> {
 public:
   Property<int16_t, AutoDefault> disk;
   Property<int16_t, AutoDefault> ring;
+  int16_t moduleRing() const { return ring(); };
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
 

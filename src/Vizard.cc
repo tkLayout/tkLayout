@@ -2054,6 +2054,7 @@ namespace insur {
     RootWTextFile* myTextFile;
     createBarrelModulesCsv(tracker);
     createEndcapModulesCsv(tracker);
+    createAllModulesCsv(tracker);
     // Barrel coordinates
     myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
     myTextFile->addText(barrelModulesCsv_);
@@ -2061,6 +2062,10 @@ namespace insur {
     // Endcap coordinates
     myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
     myTextFile->addText(endcapModulesCsv_);
+    filesContent->addItem(myTextFile);
+    // All coordinates
+    myTextFile = new RootWTextFile("allCoordinates.csv", "Complete coordinate file");
+    myTextFile->addText(allModulesCsv_);
     filesContent->addItem(myTextFile);
 
     // TODO: make an object that handles this properly:
@@ -4407,6 +4412,41 @@ namespace insur {
       ss << csv_eol;
     }
     moduleConnectionsCsv_ = ss.str();
+  }
+
+  void Vizard::createAllModulesCsv(const Tracker& t) {
+    class TrackerVisitor : public ConstGeometryVisitor {
+      std::stringstream output_;
+      string sectionName_;
+      int layerId_;
+    public:
+      void preVisit() {
+        output_ << "Section/C:Layer/I:Ring/I:r_mm/D:z_mm/D:phi_rad/D:sensorSpacing_mm/D" <<  std::endl;
+        output_ << "Section/C, Layer/I, Ring/I, r_mm/D, z_mm/D, phi_rad/D, sensorSpacing_mm/D" << std::endl;
+      }
+      void visit(const Barrel& b) { sectionName_ = b.myid(); }
+      void visit(const Endcap& e) { sectionName_ = e.myid(); }
+      void visit(const Layer& l)  { layerId_ = l.myid(); }
+      void visit(const Disk& d)  { layerId_ = d.myid(); }
+      void visit(const Module& m) {
+        output_ << sectionName_ << ", "
+          << layerId_ << ", "
+          << m.moduleRing() << ", "
+          << std::fixed << std::setprecision(6)
+          << m.center().Rho() << ", "
+          << m.center().Z() << ", "
+          << m.center().Phi() << ", "
+          << m.dsDistance()
+          << std::endl;
+      }
+
+      std::string output() const { return output_.str(); }
+    };
+
+    TrackerVisitor v;
+    v.preVisit();
+    t.accept(v);
+    allModulesCsv_ = v.output();
   }
 
   void Vizard::createBarrelModulesCsv(const Tracker& t) {
