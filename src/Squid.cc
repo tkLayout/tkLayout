@@ -384,6 +384,7 @@ namespace insur {
     site.setCommentLink("../");
     site.addAuthor("Giovanni Bianchi");
     site.addAuthor("Nicoletta De Maio");
+    site.addAuthor("Stefano Martina");
     site.addAuthor("Stefano Mersi");
     site.setRevision(SvnRevision::revisionNumber);
     return true;
