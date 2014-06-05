@@ -44,7 +44,7 @@ std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, co
 
 double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcross(); }
 double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcross(); }
-double Sensor::pitch() const { return parent_->meanWidth() / 2. / (double)numStripsAcross(); }
+double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcross(); }
 double Sensor::stripLength() const { return parent_->length() / numSegments(); }
 
 define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };
