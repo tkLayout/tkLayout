@@ -31,9 +31,23 @@ COMPILERFLAGS+=-g
 #COMPILERFLAGS+=-O5
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 
-COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(SVNREVISIONDEFINE) 
+CXX := g++
+# COLORGCC
+PATH := $(addprefix .:, $(PATH))
+HASCOLOR = $(shell if test `which colorgcc`; then echo true; else echo false; fi)
+ifneq ($(HASCOLOR),true)
+HASCOLOR = $(shell if test -e colorgcc; then echo true; else echo false; fi)
+endif
 
-LINK=g++ $(LINKERFLAGS)
+ifeq ($(HASCOLOR),true)
+ifneq ($(COLOR), false)
+CXX := colorgcc
+endif
+endif
+
+COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS) $(SVNREVISIONDEFINE) 
+
+LINK=$(CXX) $(LINKERFLAGS)
 
 all: tklayout setup
 	@echo "Full build successful."
