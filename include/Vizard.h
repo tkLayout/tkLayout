@@ -232,9 +232,9 @@ namespace insur {
     void fillPlotMap(std::string& plotName, 
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
-                     std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
+                     std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
     
-    void fillTaggedPlotMap(graphBag& gb,
+    void fillTaggedPlotMap(GraphBag& gb,
                            const string& plotName,
                            int graphType,
                            const string& tag,

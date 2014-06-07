@@ -11,8 +11,11 @@
 
 using std::string;
 
-  class graphBag {
+  class GraphBag {
   public:
+    GraphBag();
+    GraphBag(string parameter);
+    const string& getParameterMeaning() const { return parameterMeaning_ ; }
     static const double Triggerable;
     static const int RhoGraph;
     static const int PhiGraph;
@@ -25,18 +28,22 @@ using std::string;
     static const int RealGraph;
     static const int TriggerGraph;
     static const int StandardGraph;
-    std::map<double, TGraph>& getGraphs(const int& attribute);
-    std::map<double, TGraph>& getTaggedGraphs(int attribute, const string& tag);
+    std::map<int, TGraph>& getGraphs(const int& attribute);
+    TGraph& getGraph(const int& attribute, const int& parameter);
+    std::map<int, TGraph>& getTaggedGraphs(int attribute, const string& tag);
+    TGraph& getTaggedGraph(const int& attribute, const string& tag, const int& parameter);
     const std::set<string>& getTagSet() const { return tagSet_; }
+    const std::set<int> getParameterSet();
     int clearTriggerGraphs();
     int clearStandardGraphs();
     static int buildAttribute(bool ideal, bool isTrigger);
     //static std::pair<double, double> splitMomenta(double momentum);
     //static double joinMomenta(double momentum1, double momentum2);
   private:
-    std::map<int, std::map<double, TGraph> > graphMap_;
-    std::map<std::pair<int, string>, std::map<double, TGraph> > taggedGraphMap_;
+    std::map<int, std::map<int, TGraph> > graphMap_;
+    std::map<std::pair<int, string>, std::map<int, TGraph> > taggedGraphMap_;
     std::set<string> tagSet_;
+    std::string parameterMeaning_;
     int clearGraphs(const int& attributeMask);
   };
 

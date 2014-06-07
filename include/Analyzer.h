@@ -43,8 +43,6 @@
 #include "TagMaker.h"
 
 
-// #define NO_TAGGED_TRACKING
-
 namespace insur {
 
   /**
@@ -73,6 +71,12 @@ namespace insur {
   typedef std::vector<Layer*> LayerVector;
   typedef TriggerProcessorBandwidthVisitor::ModuleConnectionMap ModuleConnectionMap;
   typedef TriggerProcessorBandwidthVisitor::TriggerSectorMap TriggerSectorMap;
+
+  // TODO:
+  // Move this to track.hh?
+  typedef std::vector<Track> TrackCollection;
+  //typedef double TrackCollectionKey;
+  typedef std::map<int, TrackCollection> TrackCollectionMap;
 
 
   class Analyzer {
@@ -121,13 +125,13 @@ namespace insur {
     TH2D& getHistoMapInteraction();
     TH1D& getHistoOptimalSpacing(bool actualWindow);
     //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
-    std::map<double, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
-    std::map<double, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
-    std::map<double, TGraph>& getDGraphs(bool ideal, bool isTrigger);
-    std::map<double, TGraph>& getCtgThetaGraphs(bool ideal, bool isTrigger);
-    std::map<double, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
-    std::map<double, TGraph>& getPGraphs(bool ideal, bool isTrigger);
-    graphBag& getGraphBag() { return myGraphBag; }
+    std::map<int, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getDGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getCtgThetaGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getPGraphs(bool ideal, bool isTrigger);
+    GraphBag& getGraphBag() { return myGraphBag; }
     mapBag& getMapBag() { return myMapBag; }
     profileBag& getProfileBag() { return myProfileBag; }
     std::map<int, TGraphErrors>& getSpacingTuningGraphs() { return spacingTuningGraphs; }
@@ -135,23 +139,14 @@ namespace insur {
     TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
     const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
     const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
-    virtual void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL, bool computeResolution = false);
-    //virtual void analyzeMaterialBudgetTrigger(MaterialBudget& mb, std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+    /*virtual*/ void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
     void computeTriggerProcessorsBandwidth(Tracker& tracker);
-#ifdef NO_TAGGED_TRACKING
-    virtual void analyzeTrigger(MaterialBudget& mb,
-                                const std::vector<double>& momenta,
-                                const std::vector<double>& triggerMomenta,
-                                const std::vector<double>& thresholdProbabilities,
-                                int etaSteps = 50, MaterialBudget* pm = NULL);
-#else
     void analyzeTaggedTracking(MaterialBudget& mb,
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
                                int etaSteps = 50,
                                MaterialBudget* pm = NULL);
-#endif
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -324,7 +319,7 @@ namespace insur {
     TriggerSectorMap triggerSectorMap_;
 
     TH1D hitDistribution;
-    graphBag myGraphBag;
+    GraphBag myGraphBag;
     mapBag myMapBag;
     profileBag myProfileBag;
     std::map<int, TGraphErrors> spacingTuningGraphs; // TODO: find a way to communicate the limits, not their plots!
@@ -375,10 +370,11 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
-    void calculateGraphs(const std::vector<double>& p,
-                         const std::vector<Track>& trackVector,
+    void clearGraphs(int graphAttributes, const std::string& aTag);
+    void calculateGraphs(const int& aMomentum,
+                         const TrackCollection& aTrackCollection,
                          int graphAttributes,
-                         const string& graphTag = "");
+                         const string& graphTag);
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);

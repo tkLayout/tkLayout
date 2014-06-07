@@ -70,12 +70,12 @@ namespace insur {
     trackingCuts.push_back(0.01);
     triggerCuts.push_back(0.01);
     double detaTrack = 0.8;
-    //double detaTrig = 0.8; // This used to be 0.7
+    // TODO: make this configurable
     addCut("C", detaTrack, detaTrack);
     addCut("I", detaTrack*2, detaTrack*2);
-    addCut("F", detaTrack*3, 2.1);
-    addCut("VF",detaTrack*4, 2.4);
-    addCut("WF",detaTrack*5, 4);
+    addCut("F", detaTrack*3, detaTrack*3);
+    addCut("VF",detaTrack*4, detaTrack*4);
+    addCut("WF",detaTrack*5, detaTrack*5);
   }
 
   // public
@@ -129,108 +129,27 @@ namespace insur {
   }
 
 
-#ifdef NO_TAGGED_TRACKING
-  /**
-   * The analysis function performing all necessary the trigger resolution
-   * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
-   * @param momenta A list of momentum values for which to perform the efficiency measurements
-   * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
-   * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
-   */
-  void Analyzer::analyzeTrigger(MaterialBudget& mb,
-                                const std::vector<double>& momenta,
-                                const std::vector<double>& triggerMomenta,
-                                const std::vector<double>& thresholdProbabilities,
-                                int etaSteps,
-                                MaterialBudget* pm) {
+  /* TODO: finish this :-)
+void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> materialBudgets,
+                                           int etaSteps,
+                                           double maxEta,
+                                           bool forceClean = false) {
+  
+  if (forceClean) taggedTrackCollectionMap_.clear();
+  if (taggedTrackCollectionMap_.size()!=0) return;
+    
+  double etaStep, eta, theta, phi;
+  
+  // prepare etaStep, phiStep, nTracks, nScans
+  if (etaSteps > 1) etaStep = maxEta / (double)(etaSteps - 1);
+  else etaStep = maxEta;
+  const int nTracks& = etaSteps;
 
-    double efficiency = simParms().efficiency();
-
-    materialTracksUsed = etaSteps;
-
-    int nTracks;
-    double etaStep, eta, theta, phi;
-
-    // prepare etaStep, phiStep, nTracks, nScans
-    if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
-    else etaStep = getEtaMaxTrigger();
-    nTracks = etaSteps;
-
-    // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
-
-    // reset the list of tracks
-    std::vector<Track> tv;
-    std::vector<Track> tvIdeal;
-
-    // used fixed phi
-    //phi = PI / 2.0;
-
-    // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
-    for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-      phi = myDice.Rndm() * PI * 2.0;
-      Material tmp;
-      Track track;
-      eta = i_eta * etaStep;
-      theta = 2 * atan(exp(-eta));
-      track.setTheta(theta);      
-      track.setPhi(phi);
-
-      tmp = findAllHits(mb, pm, eta, theta, phi, track);
-
-      // Debug: material amount
-      //std::cerr << "eta = " << eta
-      //        << ", material.radiation = " << tmp.radiation
-      //        << ", material.interaction = " << tmp.interaction
-      //        << std::endl;
-
-      // TODO: add the beam pipe as a user material eveywhere!
-      // in a coherent way
-      // Add the hit on the beam pipe
-      Hit* hit = new Hit(23./sin(theta));
-      hit->setOrientation(Hit::Horizontal);
-      hit->setObjectKind(Hit::Inactive);
-      Material beamPipeMat;
-      beamPipeMat.radiation = 0.0023 / sin(theta);
-      beamPipeMat.interaction = 0.0019 / sin(theta);
-      hit->setCorrectedMaterial(beamPipeMat);
-      track.addHit(hit);
-
-      if (!track.noHits()) {
-        // Keep only triggering hits
-        // std::cerr << "Material before = " << track.getCorrectedMaterial().radiation;
-        track.keepTriggerOnly();
-        // std::cerr << " material after = " << track.getCorrectedMaterial().radiation << std::endl;
-
-        // Assume the IP constraint here
-        // TODO: make this configurable
-        if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
-        track.sort();
-        track.setTriggerResolution(true);
-
-        if (efficiency!=1) track.addEfficiency(efficiency, false);
-        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          track.computeErrors(momenta);
-          tv.push_back(track);
-
-          Track trackIdeal = track;
-          trackIdeal.removeMaterial();
-          trackIdeal.computeErrors(momenta);
-          tvIdeal.push_back(trackIdeal);    
-        }    
-      }
-    }
-
-    // Compute the number of triggering points along the selected tracks
-    // fillTriggerEfficiencyGraphs(triggerMomenta, tv);
-
-    // Fill the trigger performance maps
-    // fillTriggerPerformanceMaps(tracker);
-
-    calculateGraphs(momenta, tv, graphBag::TriggerGraph | graphBag::RealGraph);
-    calculateGraphs(momenta, tvIdeal, graphBag::TriggerGraph | graphBag::IdealGraph);
-  }
-
-#else
+  
+        
+}
+    
+  */                                
 
 void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
                                      const std::vector<double>& momenta,
@@ -254,8 +173,10 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
 
   // reset the list of tracks
-  std::map<string, std::vector<Track>> tv;
-  std::map<string, std::vector<Track>> tvIdeal;
+  //std::map<string, std::vector<Track>> tv;
+  //std::map<string, std::vector<Track>> tvIdeal;
+  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMap;
+  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMapIdeal;
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * PI * 2.0;
@@ -295,22 +216,53 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
         if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          track.computeErrors(momenta);
-          tv[tag].push_back(track);
+          // For each transverse momentum
+          // compute the tracks error
+          for (const auto& ptit : momenta ) {
+            int parameter = ptit;
+            // parameter is pT in this case
+            track.setTransverseMomentum(parameter);
+            track.computeErrors();
+            TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
+            TrackCollection &myCollection = myMap[parameter];
+            myCollection.push_back(track);
 
-          Track trackIdeal = track;
-          trackIdeal.removeMaterial();
-          trackIdeal.computeErrors(momenta);
-          tvIdeal[tag].push_back(trackIdeal);    
+            Track idealTrack(track);
+            idealTrack.removeMaterial();
+            idealTrack.computeErrors();
+            TrackCollectionMap &myMapIdeal = taggedTrackCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
+            myCollectionIdeal.push_back(idealTrack);
+          }
         }    
       }
     }
   }
+  
+  // For each tracking system compute the resolution graphs // TODO: consts here
+  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMap) {
+    const string& myTag = ttcmIt.first;
+    clearGraphs(GraphBag::RealGraph, myTag);
+    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+    for (const auto& tcmIt : myTrackCollection) {
+      const int &parameter = tcmIt.first;
+      const TrackCollection& myCollection = tcmIt.second;
+      calculateGraphs(parameter, myCollection, GraphBag::RealGraph, myTag);
+    }
+  }
 
-  for (const auto& mit : tv) calculateGraphs(momenta, mit.second, graphBag::RealGraph, mit.first);
-  for (const auto& mit : tvIdeal) calculateGraphs(momenta, mit.second, graphBag::IdealGraph, mit.first);
+  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMapIdeal) {
+    const string& myTag = ttcmIt.first;
+    clearGraphs(GraphBag::IdealGraph, myTag);
+    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+    for (const auto& tcmIt : myTrackCollection) {
+      const int &parameter = tcmIt.first;
+      const TrackCollection& myCollection = tcmIt.second;
+      calculateGraphs(parameter, myCollection, GraphBag::IdealGraph, myTag);
+    }
+  }
+
 }
-#endif
 
   /**
    * The analysis function performing all necessary the trigger efficiencies
@@ -427,7 +379,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                            const std::vector<Track>& trackVector) {
 
   // Prepare the graphs to record the number of triggered points
-  //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+  //std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(GraphBag::TriggerGraph|GraphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
   std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
@@ -510,7 +462,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
  * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
  */
 void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps,
-                                     MaterialBudget* pm , bool computeResolution) {
+                                     MaterialBudget* pm) {
 
   Tracker& tracker = mb.getTracker();
   double efficiency = simParms().efficiency();
@@ -527,9 +479,10 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
   setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
+
   // reset the list of tracks
-  std::vector<Track> tv;
-  std::vector<Track> tvIdeal;
+  // std::vector<Track> tv;
+  // std::vector<Track> tvIdeal;
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * PI * 2.0;
@@ -693,24 +646,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
       track.sort();
       if (efficiency!=1) track.addEfficiency(efficiency, false);
       if (pixelEfficiency!=1) track.addEfficiency(efficiency, true);
-      if (track.nActiveHits(true)>2) { // At least 3 points needed
-        //#ifdef HIT_DEBUG_RZ
-        //      if ((eta >1.617) &&(theta>0.383)) {
-        //        Track::debugRZCorrelationMatrix = true;
-        //        Track::debugRZCovarianceMatrix = true;
-        //        Track::debugRZErrorPropagation = true;
-        //      }
-        //#endif
-        if (computeResolution) track.computeErrors(momenta);
-        tv.push_back(track);
-
-        if (computeResolution) {
-          Track trackIdeal = track;
-          trackIdeal.removeMaterial();
-          trackIdeal.computeErrors(momenta);
-          tvIdeal.push_back(trackIdeal);
-        }
-      }
 
       // @@ Hadrons
       int nActive = track.nActiveHits();
@@ -783,11 +718,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   transformEtaToZ();
 #endif // MATERIAL_SHADOW
 
-  if (computeResolution) {
-    // fill TGraph map
-    calculateGraphs(momenta, tv, graphBag::StandardGraph | graphBag::RealGraph);
-    calculateGraphs(momenta, tvIdeal, graphBag::StandardGraph | graphBag::IdealGraph);
-  }
 }
 
 
@@ -1591,142 +1521,130 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
   }
   return res;
 }
-
-/**
- * Calculate the error graphs for the radius curvature, the distance and the angle, for each momentum,
- * and store them internally for later visualisation.
- * @param p The list of different momenta that the error graphs are calculated for
- */
-void Analyzer::calculateGraphs(const std::vector<double>& p, 
-                               const std::vector<Track>& trackVector,
-                               int graphAttributes, 
-                               const string& graphTag) {
-
-  std::map<double, TGraph>& thisRhoGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::RhoGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::RhoGraph, graphTag);
-  std::map<double, TGraph>& thisPhiGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::PhiGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::PhiGraph, graphTag);
-  std::map<double, TGraph>& thisDGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::DGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::DGraph, graphTag);
-  std::map<double, TGraph>& thisCtgThetaGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::CtgthetaGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::CtgthetaGraph, graphTag);
-  std::map<double, TGraph>& thisZ0Graphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::Z0Graph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::Z0Graph, graphTag);
-  std::map<double, TGraph>& thisPGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | graphBag::PGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | graphBag::PGraph, graphTag);
-
-  std::map<double, double>::const_iterator miter, mguard;
-  std::vector<double>::const_iterator iter, guard = p.end();
-  int n = trackVector.size();
-  double eta, R;
+  
+  
+  void Analyzer::clearGraphs(int graphAttributes, const std::string& graphTag) {
+  std::map<int, TGraph>& thisRhoGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph, graphTag);
+  std::map<int, TGraph>& thisPhiGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph, graphTag);
+  std::map<int, TGraph>& thisDGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::DGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::DGraph, graphTag);
+  std::map<int, TGraph>& thisCtgThetaGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph, graphTag);
+  std::map<int, TGraph>& thisZ0Graphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph, graphTag);
+  std::map<int, TGraph>& thisPGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph, graphTag);
+  
   thisRhoGraphs.clear();
   thisPhiGraphs.clear();
   thisDGraphs.clear();
   thisCtgThetaGraphs.clear();
   thisZ0Graphs.clear();
   thisPGraphs.clear();
+  
+}
+ 
+ 
+/**
+ * Calculate the error graphs for the radius curvature, the distance and the angle, for each momentum,
+ * and store them internally for later visualisation.
+ * @param parameter The list of different momenta that the error graphs are calculated for
+ */
+void Analyzer::calculateGraphs(const int& parameter, 
+                               const TrackCollection& aTrackCollection,
+                               int graphAttributes, 
+                               const string& graphTag) {
+
+  TGraph& thisRhoGraph       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::RhoGraph, parameter )      : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::RhoGraph       , graphTag, parameter);
+  TGraph& thisPhiGraph       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PhiGraph, parameter )      : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PhiGraph       , graphTag, parameter);
+  TGraph& thisDGraph         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::DGraph, parameter )        : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::DGraph         , graphTag, parameter);
+  TGraph& thisCtgThetaGraph  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph  , graphTag, parameter);
+  TGraph& thisZ0Graph        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph, parameter )       : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph        , graphTag, parameter);
+  TGraph& thisPGraph         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph, parameter )        : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph         , graphTag, parameter);
+
+  int n = aTrackCollection.size();
+  double eta, R;
+
   // momentum loop
   std::ostringstream aName;
-  for (iter = p.begin(); iter != guard; iter++) {
-    std::pair<double, TGraph> elem;
-    TGraph graph;
-    elem.first = *iter;
-    elem.second = graph;
-    // Prepare plots: pT
-    thisRhoGraphs.insert(elem);
-    thisRhoGraphs[elem.first].SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
-    aName.str(""); aName << "pt_vs_eta" << *iter;
-    thisRhoGraphs[elem.first].SetName(aName.str().c_str());
-    // Prepare plots: phi
-    thisPhiGraphs.insert(elem);
-    thisPhiGraphs[elem.first].SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
-    aName.str(""); aName << "phi_vs_eta" << *iter;
-    thisPhiGraphs[elem.first].SetName(aName.str().c_str());
-    // Prepare plots: d
-    thisDGraphs.insert(elem);
-    thisDGraphs[elem.first].SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
-    aName.str(""); aName << "d_vs_eta" << *iter;
-    thisDGraphs[elem.first].SetName(aName.str().c_str());
-    // Prepare plots: ctg(theta)
-    thisCtgThetaGraphs.insert(elem);
-    thisCtgThetaGraphs[elem.first].SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
-    aName.str(""); aName << "ctgTheta_vs_eta" << *iter;
-    thisCtgThetaGraphs[elem.first].SetName(aName.str().c_str());
-    // Prepare plots: z0
-    thisZ0Graphs.insert(elem);
-    thisZ0Graphs[elem.first].SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
-    aName.str(""); aName << "z_vs_eta" << *iter;
-    thisZ0Graphs[elem.first].SetName(aName.str().c_str());
-    // Prepare plots: p
-    thisPGraphs.insert(elem);
-    thisPGraphs[elem.first].SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
-    aName.str(""); aName << "p_vs_eta" << *iter;
-    thisPGraphs[elem.first].SetName(aName.str().c_str());
-  }
+  TRandom3 antani;
+  int randomNumber = antani.Rndm();
+  // Prepare plots: pT
+
+  thisRhoGraph.SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+  aName.str(""); aName << "pt_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisRhoGraph.SetName(aName.str().c_str());
+  // Prepare plots: phi
+  thisPhiGraph.SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+  aName.str(""); aName << "phi_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisPhiGraph.SetName(aName.str().c_str());
+  // Prepare plots: d
+  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+  aName.str(""); aName << "d_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisDGraph.SetName(aName.str().c_str());
+  // Prepare plots: ctg(theta)
+  thisCtgThetaGraph.SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
+  aName.str(""); aName << "ctgTheta_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisCtgThetaGraph.SetName(aName.str().c_str());
+  // Prepare plots: z0
+  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+  aName.str(""); aName << "z_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisZ0Graph.SetName(aName.str().c_str());
+  // Prepare plots: p
+  thisPGraph.SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
+  aName.str(""); aName << "p_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisPGraph.SetName(aName.str().c_str());
+ 
   // track loop
-  std::map<double,int> rhoPointCount;
-  std::map<double,int> phiPointCount;
-  std::map<double,int> dPointCount;
-  std::map<double,int> ctgPointCount;
-  std::map<double,int> z0PointCount;
-  std::map<double,int> pPointCount;
+  // int rhoPointCount = 0;
+  // int phiPointCount = 0;
+  // int dPointCount = 0;
+  // int ctgPointCount = 0;
+  // int z0PointCount = 0;
+  // int pPointCount = 0;
   double graphValue;
   for (int i = 0; i < n; i++) {
-    const std::map<double, double>& drho = trackVector.at(i).getDeltaRho();
-    const std::map<double, double>& dphi = trackVector.at(i).getDeltaPhi();
-    const std::map<double, double>& dd = trackVector.at(i).getDeltaD();
-    const std::map<double, double>& dctg = trackVector.at(i).getDeltaCtgTheta();
-    const std::map<double, double>& dz0 = trackVector.at(i).getDeltaZ0();
-    const std::map<double, double>& dp = trackVector.at(i).getDeltaP();
-    eta = - log(tan(trackVector.at(i).getTheta() / 2));
-    mguard = drho.end();
-    // error by momentum loop
-    for (miter = drho.begin(); miter != mguard; miter++) {
-      if (thisRhoGraphs.find(miter->first) != thisRhoGraphs.end()) {
-        R = miter->first / magnetic_field / 0.3 * 1E3; // radius in mm
-        if ((miter->second)>0) {
-          // deltaRho / rho = deltaRho * R
-          graphValue = (miter->second * R) * 100; // in percent
-          //if (miter->first>50) std::cout << "eta = " << eta << ", error = " << graphValue << std::endl;
-          thisRhoGraphs[miter->first].SetPoint(rhoPointCount[miter->first]++, eta, graphValue);
-        }
-      }
+    const Track& myTrack = aTrackCollection.at(i);
+    const double& drho = myTrack.getDeltaRho();
+    const double& dphi = myTrack.getDeltaPhi();
+    const double& dd = myTrack.getDeltaD();
+    const double& dctg = myTrack.getDeltaCtgTheta();
+    const double& dz0 = myTrack.getDeltaZ0();
+    const double& dp = myTrack.getDeltaP();
+    eta = myTrack.getEta();
+    R = myTrack.getTransverseMomentum() / magnetic_field / 0.3 * 1E3; // radius in mm
+    if (parameter / magnetic_field / 0.3 * 1E3!=R) { std::cerr << "ERROR (for the moment) it should be the same" << std::endl; } // TODO: remove this check
+
+    if (drho>0) {
+      // deltaRho / rho = deltaRho * R
+      graphValue = (drho * R) * 100; // in percent
+      thisRhoGraph.SetPoint(thisRhoGraph.GetN(), eta, graphValue);
     }
-    mguard = dphi.end();
-    for (miter = dphi.begin(); miter != mguard; miter++) {
-      if (thisPhiGraphs.find(miter->first) != thisPhiGraphs.end())
-        if ((miter->second)>0) {
-          graphValue = miter->second; // radians is ok
-          thisPhiGraphs[miter->first].SetPoint(phiPointCount[miter->first]++, eta, graphValue);
-        }
+
+    if (dphi>0) {
+      graphValue = dphi; // radians is ok
+      thisPhiGraph.SetPoint(thisPhiGraph.GetN(), eta, graphValue);
     }
-    mguard = dd.end();
-    for (miter = dd.begin(); miter != mguard; miter++) {
-      if (thisDGraphs.find(miter->first) != thisDGraphs.end())
-        if ((miter->second)>0) {
-          graphValue =  (miter->second) / 10.; // in cm
-          thisDGraphs[miter->first].SetPoint(dPointCount[miter->first]++, eta, graphValue );
-        }
+
+    if (dd>0) {
+      graphValue = dd / 10.; // in cm
+      thisDGraph.SetPoint(thisDGraph.GetN(), eta, graphValue );
     }
-    mguard = dctg.end();
-    for (miter = dctg.begin(); miter != mguard; miter++) {
-      // Ctg theta (absolute number)
-      if (thisCtgThetaGraphs.find(miter->first) != thisCtgThetaGraphs.end()) {
-        graphValue = miter->second; // An absolute number
-        thisCtgThetaGraphs[miter->first].SetPoint(ctgPointCount[miter->first]++, eta, graphValue);
-      }
+
+    if (dctg>0) {
+      graphValue = dctg; // An absolute number
+      thisCtgThetaGraph.SetPoint(thisCtgThetaGraph.GetN(), eta, graphValue);
     }
-    mguard = dz0.end();
-    for (miter = dz0.begin(); miter != mguard; miter++) {
-      if (thisZ0Graphs.find(miter->first) != thisZ0Graphs.end()) {
-        graphValue =  (miter->second) / 10.; // in cm
-        thisZ0Graphs[miter->first].SetPoint(z0PointCount[miter->first]++, eta, graphValue);
-      }
-    }       
-    mguard = dp.end();
-    for (miter = dp.begin(); miter != mguard; miter++) {
-      if (thisPGraphs.find(miter->first) != thisPGraphs.end()) {
-        graphValue =  (miter->second) * 100.; // in percent 
-        thisPGraphs[miter->first].SetPoint(pPointCount[miter->first]++, eta, graphValue);
-      }
+
+    if (dz0>0) {
+        graphValue =  (dz0) / 10.; // in cm
+        thisZ0Graph.SetPoint(thisZ0Graph.GetN(), eta, graphValue);
+    }
+
+    if ((dp>0)||true) {
+      graphValue = dp * 100.; // in percent 
+      std::cerr << Form("[%d]: eta=%.2f, dp=%f", thisPGraph.GetN(),eta, graphValue) << std::endl;
+      thisPGraph.SetPoint(thisPGraph.GetN(), eta, graphValue);
     }
   }
 }
-
+ 
 /**
  * This convenience function resets and empties all histograms for the
  * material budget, so they are ready for a new round of analysis.
@@ -2034,7 +1952,7 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   myProfileBag.clearTriggerProfiles();
 
   // Prepare the graphs to record the number of triggered points
-  // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(graphBag::TriggerGraph|graphBag::TriggeredGraph);
+  // std::map<double, TGraph>& trigGraphs = myGraphBag.getGraphs(GraphBag::TriggerGraph|GraphBag::TriggeredGraph);
   std::map<double, TProfile>& trigProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredProfile);
   std::map<double, TProfile>& trigFractionProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggeredFractionProfile);
   std::map<double, TProfile>& trigPurityProfiles = myProfileBag.getProfiles(profileBag::TriggerProfile|profileBag::TriggerPurityProfile);
@@ -2083,17 +2001,17 @@ void Analyzer::prepareTriggerPerformanceHistograms(const int& nTracks, const dou
   //TGraph totalGraph;
   char dummyName[256]; sprintf(dummyName, "dummyName%d", bsCounter++);
   TProfile totalProfile(dummyName, dummyName, nbins, 0, myEtaMax);
-  //elemTotalGraph.first = graphBag::Triggerable;
+  //elemTotalGraph.first = GraphBag::Triggerable;
   //elemTotalGraph.second = totalGraph;
   elemTotalProfile.first = profileBag::Triggerable;
   elemTotalProfile.second = totalProfile;
   // Prepare plot: total trigger points
   //trigGraphs.insert(elemTotalGraph);
   trigProfiles.insert(elemTotalProfile);
-  //trigGraphs[graphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
+  //trigGraphs[GraphBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
   trigProfiles[profileBag::Triggerable].SetTitle("Average triggered points;#eta;Triggered points <N>");
   //aName.str(""); aName << "triggerable_vs_eta_graph";
-  //trigGraphs[graphBag::Triggerable].SetName(aName.str().c_str());
+  //trigGraphs[GraphBag::Triggerable].SetName(aName.str().c_str());
   aName.str(""); aName << "triggerable_vs_eta_profile";
   trigProfiles[profileBag::Triggerable].SetName(aName.str().c_str());
 
@@ -2963,39 +2881,39 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
 
 
-    std::map<double, TGraph>& Analyzer::getRhoGraphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::RhoGraph;
+    std::map<int, TGraph>& Analyzer::getRhoGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::RhoGraph;
       return myGraphBag.getGraphs(attribute);
     }
 
-    std::map<double, TGraph>& Analyzer::getPhiGraphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::PhiGraph;
+    std::map<int, TGraph>& Analyzer::getPhiGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::PhiGraph;
       return myGraphBag.getGraphs(attribute);
     }
 
-    std::map<double, TGraph>& Analyzer::getDGraphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::DGraph;
+    std::map<int, TGraph>& Analyzer::getDGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::DGraph;
       return myGraphBag.getGraphs(attribute);
     }
 
-    std::map<double, TGraph>& Analyzer::getCtgThetaGraphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::CtgthetaGraph;
+    std::map<int, TGraph>& Analyzer::getCtgThetaGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::CtgthetaGraph;
       return myGraphBag.getGraphs(attribute);
     }
 
-    std::map<double, TGraph>& Analyzer::getZ0Graphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::Z0Graph;
+    std::map<int, TGraph>& Analyzer::getZ0Graphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::Z0Graph;
       return myGraphBag.getGraphs(attribute);
     }
 
-    std::map<double, TGraph>& Analyzer::getPGraphs(bool ideal, bool isTrigger) {
-      int attribute = graphBag::buildAttribute(ideal, isTrigger);
-      attribute |= graphBag::PGraph;
+    std::map<int, TGraph>& Analyzer::getPGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::PGraph;
       return myGraphBag.getGraphs(attribute);
     }
 

@@ -1,18 +1,19 @@
 #include "Bag.h"
+#include <utility>
 
-const double graphBag::Triggerable     = 0.;
-const int graphBag::RhoGraph         = 0x001;
-const int graphBag::PhiGraph         = 0x002;
-const int graphBag::DGraph           = 0x003;
-const int graphBag::CtgthetaGraph    = 0x004;
-const int graphBag::Z0Graph          = 0x005;
-const int graphBag::PGraph           = 0x006;
-const int graphBag::TriggeredGraph   = 0x007;
-const int graphBag::IdealGraph       = 0x010;
-const int graphBag::RealGraph        = 0x020;
-const int graphBag::TriggerGraph     = 0x040;
-const int graphBag::StandardGraph    = 0x080;
-//const int graphBag::TriggerCorrelationGraph = 0x100;
+const double GraphBag::Triggerable     = 0.;
+const int GraphBag::RhoGraph         = 0x001;
+const int GraphBag::PhiGraph         = 0x002;
+const int GraphBag::DGraph           = 0x003;
+const int GraphBag::CtgthetaGraph    = 0x004;
+const int GraphBag::Z0Graph          = 0x005;
+const int GraphBag::PGraph           = 0x006;
+const int GraphBag::TriggeredGraph   = 0x007;
+const int GraphBag::IdealGraph       = 0x010;
+const int GraphBag::RealGraph        = 0x020;
+const int GraphBag::TriggerGraph     = 0x040;
+const int GraphBag::StandardGraph    = 0x080;
+//const int GraphBag::TriggerCorrelationGraph = 0x100;
 
 const int mapBag::efficiencyMap         = 0x001;
 const int mapBag::thresholdMap          = 0x002;
@@ -41,15 +42,40 @@ const std::string profileBag::TurnOnCurveName = "turnOnCurveTrigger";
 
 const double mapBag::dummyMomentum = 0.;
 
-int graphBag::clearTriggerGraphs() {
-  return clearGraphs(graphBag::TriggerGraph);
+GraphBag::GraphBag() {
+  parameterMeaning_ = "unknown";
 }
 
-int graphBag::clearStandardGraphs() {
-  return clearGraphs(graphBag::StandardGraph);
+GraphBag::GraphBag(string meaning) {
+  parameterMeaning_ = meaning;
 }
 
-int graphBag::clearGraphs(const int& attributeMask) {
+const std::set<int> GraphBag::getParameterSet() {
+  std::set<int> result;
+  for (const auto it : graphMap_) {
+    for (const auto it2 : it.second) {
+      result.insert(it2.first);
+    }
+  }
+
+  for (const auto it : taggedGraphMap_) {
+    for (const auto it2 : it.second) {
+      result.insert(it2.first);
+    }
+  }
+
+  return result;
+}
+
+int GraphBag::clearTriggerGraphs() {
+  return clearGraphs(GraphBag::TriggerGraph);
+}
+
+int GraphBag::clearStandardGraphs() {
+  return clearGraphs(GraphBag::StandardGraph);
+}
+
+int GraphBag::clearGraphs(const int& attributeMask) {
   int deleteCounter = 0;
   for (auto it = taggedGraphMap_.begin(); it != taggedGraphMap_.end();) { // first clear tagged graphs with the specified attribute
     if ((it->first.first & attributeMask) == attributeMask) {
@@ -57,8 +83,8 @@ int graphBag::clearGraphs(const int& attributeMask) {
       ++deleteCounter;
     } else ++it;
   }
-  std::map<int, std::map<double, TGraph> >::iterator it;
-  std::map<int, std::map<double, TGraph> >::iterator nextIt;
+  std::map<int, std::map<int, TGraph> >::iterator it;
+  std::map<int, std::map<int, TGraph> >::iterator nextIt;
 
   int anAttribute;
   for (it=graphMap_.begin(); it!=graphMap_.end(); ) {
@@ -75,7 +101,7 @@ int graphBag::clearGraphs(const int& attributeMask) {
   return deleteCounter;
 }
 
-int graphBag::buildAttribute(bool ideal, bool isTrigger) {
+int GraphBag::buildAttribute(bool ideal, bool isTrigger) {
   int result;
   if (ideal) result = IdealGraph;
   else result = RealGraph;
@@ -86,13 +112,23 @@ int graphBag::buildAttribute(bool ideal, bool isTrigger) {
   return result;
 }
 
-std::map<double, TGraph>& graphBag::getGraphs(const int& attribute) {
+std::map<int, TGraph>& GraphBag::getGraphs(const int& attribute) {
   return graphMap_[attribute];
 }
 
-std::map<double, TGraph>& graphBag::getTaggedGraphs(int attribute, const string& tag) {
+TGraph& GraphBag::getGraph(const int& attribute, const int& parameter) {
+  auto& aMap = getGraphs(attribute);
+  return aMap[parameter];
+}
+
+std::map<int, TGraph>& GraphBag::getTaggedGraphs(int attribute, const string& tag) {
   tagSet_.insert(tag);
   return taggedGraphMap_[std::make_pair(attribute, tag)];
+}
+
+TGraph& GraphBag::getTaggedGraph(const int& attribute, const string& tag, const int& parameter) {
+  auto& aMap = getTaggedGraphs(attribute, tag);
+  return aMap[parameter];
 }
 
 std::map<double, TH2D>& mapBag::getMaps(const int& attribute) {

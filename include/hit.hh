@@ -12,7 +12,6 @@
 #include <MaterialProperties.h>
 #include <cmath>
 #include <vector>
-#include <map>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
 #include <messageLogger.h>
@@ -22,6 +21,7 @@ using namespace std;
 
 class Track;
 
+// TODO: why this?
 typedef double momentum;  // Track momentum in MeV
 
 
@@ -122,27 +122,28 @@ protected:
   double cotgTheta_, eta_; // calculated from theta and then cached
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
-  map<momentum, TMatrixTSym<double> > correlations_;
-  map<momentum, TMatrixT<double> > covariances_;
-  map<momentum, TMatrixTSym<double> > correlationsRZ_;
-  map<momentum, TMatrixT<double> > covariancesRZ_;
-  map<momentum, double> deltarho_;
-  map<momentum, double>::iterator deltarhoIt_;
-  map<momentum, double> deltaphi_;
-  map<momentum, double> deltad_;
-  map<momentum, double> deltaCtgTheta_;
-  map<momentum, double> deltaZ0_;
-  map<momentum, double> deltaP_;
-  void computeCorrelationMatrixRZ(const vector<double>& momenta);
+  TMatrixTSym<double> correlations_;
+  TMatrixT<double> covariances_;
+  TMatrixTSym<double> correlationsRZ_;
+  TMatrixT<double> covariancesRZ_;
+  double deltarho_;
+  double deltaphi_;
+  double deltad_;
+  double deltaCtgTheta_;
+  double deltaZ0_;
+  double deltaP_;
+  void computeCorrelationMatrixRZ();
   void computeCovarianceMatrixRZ();
-  void computeCorrelationMatrix(const vector<double>& momenta);
+  void computeCorrelationMatrix();
   void computeCovarianceMatrix();
-
+  
   std::set<std::string> tags_;
+  double transverseMomentum_;
 public:
   Track();
   Track(const Track& t);
   ~Track();
+  Track& operator=(const Track &t);
   bool noHits() { return hitV_.empty(); }
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
@@ -151,25 +152,19 @@ public:
   double getCotgTheta() const { return cotgTheta_; } // ditto here
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
-  map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
-  map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; }
-  const map<momentum, double>& getDeltaRho() const { return deltarho_; }
-  const map<momentum, double>& getDeltaPhi() const { return deltaphi_; }
-  const map<momentum, double>& getDeltaD() const { return deltad_; }
-  const map<momentum, double>& getDeltaCtgTheta() const { return deltaCtgTheta_; }
-  const map<momentum, double>& getDeltaZ0() const { return deltaZ0_; }
-  const map<momentum, double>& getDeltaP() const { return deltaP_; }
-  // TODO: maybe updateradius is not necessary here. To be checked
-  Hit* addHit(Hit* newHit) {
-    hitV_.push_back(newHit); 
-    if (newHit->getHitModule() != NULL) tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
-    newHit->setTrack(this); 
-    newHit->updateRadius(); 
-    return newHit;
-  }
+  TMatrixTSym<double>& getCorrelations() { return correlations_; }
+  TMatrixT<double>& getCovariances() { return covariances_; }
+  const double& getDeltaRho() const { return deltarho_; }
+  const double& getDeltaPhi() const { return deltaphi_; }
+  const double& getDeltaD() const { return deltad_; }
+  const double& getDeltaCtgTheta() const { return deltaCtgTheta_; }
+  const double& getDeltaZ0() const { return deltaZ0_; }
+  const double& getDeltaP() const { return deltaP_; }
+
+  Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
-  void computeErrors(const std::vector<momentum>& momentaList);
+  void computeErrors();
   void printErrors();
   void removeMaterial();
   int nActiveHits(bool usePixels = false, bool useIP = true) const;
@@ -189,5 +184,8 @@ public:
   void addIPConstraint(double dr, double dz);
   RILength getCorrectedMaterial();
   std::vector<std::pair<Module*, HitType>> getHitModules() const;
+
+  void setTransverseMomentum(const double newPt) { transverseMomentum_ = newPt; }
+  double getTransverseMomentum() const { return transverseMomentum_; }
 };
 #endif

@@ -449,32 +449,28 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool trackingResolution, bool triggerResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
     if (mb) {
-      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
-      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm, trackingResolution);
+//      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
+      // TODO: insert the creation of sample tracks here, to compute intersections only once
+      startTaskClock("Analyzing material budget" );
+      a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
       stopTaskClock();
       if (pm) {
         startTaskClock("Analyzing pixel material budget");
-        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL, false);
+        pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL);
         stopTaskClock();
       }
+      startTaskClock("Computing the weight summary");
       a.computeWeightSummary(*mb);
+      stopTaskClock();
       if (triggerResolution) {
-        startTaskClock("Estimating tracking resolution of track-trigger");
-#ifdef NO_TAGGED_TRACKING
-        a.analyzeTrigger(*mb,
-                         mainConfiguration.getMomenta(),
-                         mainConfiguration.getTriggerMomenta(),
-                         mainConfiguration.getThresholdProbabilities(),
-                         tracks, pm);
-#else
+        startTaskClock("Estimating tracking resolutions");
         a.analyzeTaggedTracking(*mb,
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
                                 tracks, pm);
-#endif
         stopTaskClock();
       }
       return true;
