@@ -1,4 +1,5 @@
 #include "Endcap.h"
+#include "messageLogger.h"
 
 void Endcap::cutAtEta(double eta) { 
   for (auto& d : disks_) d.cutAtEta(eta); 
@@ -43,7 +44,7 @@ vector<double> Endcap::findMaxDsDistances() { // drill down into the property tr
 
 void Endcap::build() {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     if (!minZ.state()) minZ(barrelMaxZ() + barrelGap());

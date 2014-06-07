@@ -1,7 +1,6 @@
 #include "Layer.h"
 #include "RodPair.h"
-
-#include <iostream>
+#include "messageLogger.h"
 
 void Layer::check() {
   PropertyObject::check();
@@ -129,7 +128,7 @@ void Layer::buildStraight() {
   first->store(propertyTree());
   first->build(rodTemplate);
 
-  std::cout << ">>> Copying rod " << fullid(*first) << " <<<" << std::endl;
+  logINFO(Form("Copying rod %s", fullid(*this).c_str()));
   StraightRodPair* second = GeometryFactory::clone(*first);
   second->myid(2);
   if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
@@ -204,7 +203,7 @@ void Layer::buildTilted() {
 
 void Layer::build() {
   try { 
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     if (tiltedLayerSpecFile().empty()) buildStraight();

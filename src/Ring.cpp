@@ -190,7 +190,7 @@ void Ring::buildTopDown() {
 
 void Ring::build() {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
     if (buildDirection() == BOTTOMUP) buildBottomUp();
     else buildTopDown();

@@ -1,4 +1,5 @@
 #include "Disk.h"
+#include "messageLogger.h"
 
 void Disk::check() {
   PropertyObject::check();
@@ -79,7 +80,7 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
 
 void Disk::build(const vector<double>& buildDsDistances) {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     if (numRings.state()) buildTopDown(buildDsDistances);
     else buildBottomUp(buildDsDistances);
     translateZ(placeZ());

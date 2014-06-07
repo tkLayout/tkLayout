@@ -1,4 +1,5 @@
 #include "Barrel.h"
+#include "messageLogger.h"
 
 void Barrel::cutAtEta(double eta) { 
   for (auto& l : layers_) l.cutAtEta(eta); 
@@ -8,7 +9,7 @@ void Barrel::cutAtEta(double eta) {
 
 void Barrel::build() {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     for (int i = 1; i <= numLayers(); i++) {

@@ -1,4 +1,5 @@
 #include "RodPair.h"
+#include "messageLogger.h"
 
 void RodPair::clearComputables() { 
   minAperture.clear(); 
@@ -324,7 +325,7 @@ void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
 
 void StraightRodPair::build(const RodTemplate& rodTemplate) {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
     if (!mezzanine()) buildFull(rodTemplate);
     else buildMezzanine(rodTemplate);
@@ -353,7 +354,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
 
 void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
   try {
-    std::cout << ">>> Building " << fullid(*this) << " <<<" << std::endl;
+    logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
     buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT);
     buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT);
