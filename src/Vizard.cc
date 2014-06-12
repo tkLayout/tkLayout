@@ -1176,8 +1176,9 @@ namespace insur {
       void preVisit() {
         layerTable->setContent(0, 0, "Layer");
         layerTable->setContent(1, 0, "r");
-        layerTable->setContent(2, 0, "# mod");
-        layerTable->setContent(3, 0, "# rods");
+        layerTable->setContent(2, 0, "z_max");
+        layerTable->setContent(3, 0, "# mod");
+        layerTable->setContent(4, 0, "# rods");
         diskTable->setContent(0, 0, "Disk");
         diskTable->setContent(1, 0, "z");
         diskTable->setContent(2, 0, "# mod");
@@ -1195,8 +1196,9 @@ namespace insur {
         totalBarrelModules += nModules;
         layerTable->setContent(0, nBarrelLayers, l.myid());
         layerTable->setContent(1, nBarrelLayers, l.placeRadius(), coordPrecision);
-        layerTable->setContent(2, nBarrelLayers, nModules);
-        layerTable->setContent(3, nBarrelLayers, l.numRods());
+        layerTable->setContent(2, nBarrelLayers, l.maxZ(), coordPrecision);
+        layerTable->setContent(3, nBarrelLayers, nModules);
+        layerTable->setContent(4, nBarrelLayers, l.numRods());
       }
 
       void visit(const Disk& d) override {
@@ -1248,7 +1250,7 @@ namespace insur {
 
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
-        layerTable->setContent(2, nBarrelLayers+1, totalBarrelModules);
+        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
         diskTable->setContent(0, nDisks+1, "Total");
         diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
 
