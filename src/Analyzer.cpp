@@ -9,6 +9,8 @@
 #include <TLegend.h>
 #include <Palette.h>
 
+#include "AnalyzerVisitors/MaterialBillAnalyzer.h"
+
 #undef MATERIAL_SHADOW
 
 
@@ -1004,6 +1006,10 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   computeDetailedWeights(mb.getBarrelModuleCaps(), barrelComponentWeights, false);
   endcapComponentWeights.clear();
   computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
+
+  MaterialBillAnalyzer v;
+  v.inspectTracker(mb);
+  billOfMaterials_ = v.outputTable;
 }
 
 // protected

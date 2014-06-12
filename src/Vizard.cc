@@ -2122,6 +2122,11 @@ namespace insur {
     myTextFile->addText(occupancyCsv_);
     summaryContent->addItem(myTextFile);
 
+    // Bill of materials
+    myTextFile = new RootWTextFile("materials.csv", "Bill of materials");
+    myTextFile->addText(analyzer.getBillOfMaterials());
+    summaryContent->addItem(myTextFile);
+
     createTriggerSectorMapCsv(analyzer.getTriggerSectorMap());
     myTextFile = new RootWTextFile("trigger_sector_map.csv", "Trigger Towers to Modules connections");
     myTextFile->addText(triggerSectorMapCsv_);

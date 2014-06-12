@@ -246,6 +246,7 @@ namespace insur {
 
     void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }
+    const std::string & getBillOfMaterials() { return billOfMaterials_ ; }
   protected:
     /**
      * @struct Cell
@@ -430,6 +431,7 @@ namespace insur {
     static int bsCounter;
     
     SimParms* simParms_;
+    std::string billOfMaterials_;
   };
 }
 #endif  /* _ANALYZER_H */
