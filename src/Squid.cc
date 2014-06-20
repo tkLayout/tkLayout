@@ -4,8 +4,8 @@
  * @brief This implements the main interface between the tkgeometry library classes and the frontend
  */
 
-#include <SvnRevision.h>
-#include <Squid.h>
+#include "SvnRevision.h"
+#include "Squid.h"
 
 namespace insur {
   // public

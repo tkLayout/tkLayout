@@ -1691,7 +1691,7 @@ namespace insur {
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
-      std::cerr << "PIXEL HACK for beam pipe!! :)" << std::endl;
+      std::cerr << "PIXEL HACK for beam pipe!! :) ";
       TPolyLine* beampipe  = new TPolyLine();
       beampipe->SetPoint(0, 0, 45/2.);
       beampipe->SetPoint(1, 2915/2., 45/2.);
@@ -2504,15 +2504,18 @@ namespace insur {
       RootWContent& resolutionContent = myPage.addContent("Track resolution");
       RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
 
+      std::string scenarioStr;
       for (int scenario=0; scenario<2; ++scenario) {
         bool idealMaterial;
         RootWContent* myContent;
         if (scenario==0) {
           idealMaterial=false;
           myContent = &resolutionContent;
+
         } else {
           idealMaterial=true;
           myContent = &idealResolutionContent;
+          scenarioStr = "noMS";
         }
 
         TCanvas linearMomentumCanvas;
@@ -2700,25 +2703,25 @@ namespace insur {
         }
         RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
         linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
-        linearMomentumImage.setName("linptres");
+        linearMomentumImage.setName(Form("linptres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
         momentumImage.setComment("Transverse momentum resolution vs. eta");
-        momentumImage.setName("ptres");
+        momentumImage.setName(Form("ptres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
         distanceImage.setComment("Distance of closest approach resolution vs. eta");
-        distanceImage.setName("dxyres");
+        distanceImage.setName(Form("dxyres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
         angleImage.setComment("Angle resolution vs. eta");
-        angleImage.setName("phires");
+        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
         ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-        ctgThetaImage.setName("cotThetares");
+        ctgThetaImage.setName(Form("cotThetares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
         z0Image.setComment("z0 resolution vs. eta");
-        z0Image.setName("dzres");
+        z0Image.setName(Form("dzres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
         pImage.setComment("Momentum resolution vs. eta");
-        pImage.setName("pres");
+        pImage.setName(Form("pres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
       }
 
       // Check that the ideal and real have the same pts
@@ -2887,15 +2890,18 @@ namespace insur {
 
     
         // Create a page for the errors
+        std::string scenarioStr="";
         for (int scenario=0; scenario<2; ++scenario) {
           int idealMaterial;
           RootWContent* myContent;
           if (scenario==0) {
             idealMaterial=GraphBag::RealGraph;
             myContent = &resolutionContent;
+            scenarioStr = "MS";
           } else {
             idealMaterial=GraphBag::IdealGraph;
             myContent = &idealResolutionContent;
+            scenarioStr = "noMS";
           }
 
           TCanvas linearMomentumCanvas;
@@ -3076,25 +3082,25 @@ namespace insur {
           }
           RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
           linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
-          linearMomentumImage.setName("linptres");
+          linearMomentumImage.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
           momentumImage.setComment("Transverse momentum resolution vs. eta");
-          momentumImage.setName("ptres");
+          momentumImage.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
           distanceImage.setComment("Distance of closest approach resolution vs. eta");
-          distanceImage.setName("dxyres");
+          distanceImage.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
           angleImage.setComment("Angle resolution vs. eta");
-          angleImage.setName("phires");
+          angleImage.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
           ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-          ctgThetaImage.setName("cotThetares");
+          ctgThetaImage.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
           z0Image.setComment("z0 resolution vs. eta");
-          z0Image.setName("dzres");
+          z0Image.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
           RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
           pImage.setComment("Momentum resolution vs. eta");
-          pImage.setName("pres");
+          pImage.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
 
         // Check that the ideal and real have the same pts

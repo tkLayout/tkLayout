@@ -166,6 +166,7 @@ public:
   void sort();
   void computeErrors();
   void printErrors();
+  void print();
   void removeMaterial();
   int nActiveHits(bool usePixels = false, bool useIP = true) const;
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);

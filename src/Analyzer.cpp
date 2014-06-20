@@ -13,6 +13,8 @@
 
 #undef MATERIAL_SHADOW
 
+#include <TError.h>
+Int_t gErrorIgnoreLevel = kError;
 
 namespace insur {
 
@@ -192,10 +194,10 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     tmp = findAllHits(mb, pm, eta, theta, phi, track);
 
     // Debug: material amount
-    //std::cerr << "eta = " << eta
-    //        << ", material.radiation = " << tmp.radiation
-    //        << ", material.interaction = " << tmp.interaction
-    //        << std::endl;
+    // std::cerr << "eta = " << eta
+    //           << ", material.radiation = " << tmp.radiation
+    //           << ", material.interaction = " << tmp.interaction
+    //           << std::endl;
 
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
@@ -209,21 +211,27 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
 
+    // <SMe>
+    // track.sort();
+    // track.print();
+    // </SMe>
+
     if (!track.noHits()) {
       for (string tag : track.tags()) {
         track.keepTaggedOnly(tag);
         if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
         track.sort();
-        track.setTriggerResolution(true);
+        track.setTriggerResolution(true); // TODO: remove this (?)
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
         if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
           // For each transverse momentum
           // compute the tracks error
           for (const auto& ptit : momenta ) {
-            int parameter = ptit;
+            int parameter = ptit * 1000;       // <SMe> we store p or pT in MeV as int (key to the map) </SMe>
+            double transverseMomentum = ptit;  // <SMe> we assign the selected /transverse/ momentum to the track (in GeV) </SMe>
             // parameter is pT in this case
-            track.setTransverseMomentum(parameter);
+            track.setTransverseMomentum(transverseMomentum);
             track.computeErrors();
             TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
@@ -1564,49 +1572,40 @@ void Analyzer::calculateGraphs(const int& parameter,
   TGraph& thisZ0Graph        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph, parameter )       : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph        , graphTag, parameter);
   TGraph& thisPGraph         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph, parameter )        : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph         , graphTag, parameter);
 
-  int n = aTrackCollection.size();
   double eta, R;
 
   // momentum loop
   std::ostringstream aName;
-  TRandom3 antani;
-  int randomNumber = antani.Rndm();
   // Prepare plots: pT
+  double momentum = double(parameter)/1000.;
 
   thisRhoGraph.SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
-  aName.str(""); aName << "pt_vs_eta";// << parameter<<graphTag<<randomNumber;
+  aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph.SetName(aName.str().c_str());
   // Prepare plots: phi
   thisPhiGraph.SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
-  aName.str(""); aName << "phi_vs_eta";// << parameter<<graphTag<<randomNumber;
+  aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
-  aName.str(""); aName << "d_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisDGraph.SetTitle("Transverse impact momentum  error;#eta;#sigma (#delta d_{0}) [cm]");
+  aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
   thisCtgThetaGraph.SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
-  aName.str(""); aName << "ctgTheta_vs_eta";// << parameter<<graphTag<<randomNumber;
+  aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
-  aName.str(""); aName << "z_vs_eta";// << parameter<<graphTag<<randomNumber;
+  thisZ0Graph.SetTitle("Longitudinal impact momentum  error;#eta;#sigma (#delta z_{0}) [cm]");
+  aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph.SetName(aName.str().c_str());
   // Prepare plots: p
   thisPGraph.SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
-  aName.str(""); aName << "p_vs_eta";// << parameter<<graphTag<<randomNumber;
+  aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph.SetName(aName.str().c_str());
  
   // track loop
-  // int rhoPointCount = 0;
-  // int phiPointCount = 0;
-  // int dPointCount = 0;
-  // int ctgPointCount = 0;
-  // int z0PointCount = 0;
-  // int pPointCount = 0;
   double graphValue;
-  for (int i = 0; i < n; i++) {
-    const Track& myTrack = aTrackCollection.at(i);
+  for ( const auto& myTrack : aTrackCollection ) {
     const double& drho = myTrack.getDeltaRho();
     const double& dphi = myTrack.getDeltaPhi();
     const double& dd = myTrack.getDeltaD();
@@ -1615,7 +1614,7 @@ void Analyzer::calculateGraphs(const int& parameter,
     const double& dp = myTrack.getDeltaP();
     eta = myTrack.getEta();
     R = myTrack.getTransverseMomentum() / magnetic_field / 0.3 * 1E3; // radius in mm
-    if (parameter / magnetic_field / 0.3 * 1E3!=R) { std::cerr << "ERROR (for the moment) it should be the same" << std::endl; } // TODO: remove this check
+    if (momentum / magnetic_field / 0.3 * 1E3!=R) { std::cerr << "ERROR (for the moment) it should be the same" << std::endl; } // TODO: remove this check
 
     if (drho>0) {
       // deltaRho / rho = deltaRho * R
@@ -1645,7 +1644,6 @@ void Analyzer::calculateGraphs(const int& parameter,
 
     if ((dp>0)||true) {
       graphValue = dp * 100.; // in percent 
-      std::cerr << Form("[%d]: eta=%.2f, dp=%f", thisPGraph.GetN(),eta, graphValue) << std::endl;
       thisPGraph.SetPoint(thisPGraph.GetN(), eta, graphValue);
     }
   }

@@ -773,6 +773,25 @@ void Track::printErrors() {
     std::cout << "D errors by momentum: " << deltad_ << std::endl;
 }
 
+void Track::print() {
+  std::cout << "******************" << std::endl;
+  std::cout << "Track eta=" << eta_ << std::endl;
+  for (const auto& it:hitV_) {
+    std::cout << "    Hit"
+              << " r=" << it->getRadius()
+              << " d=" << it->getDistance()
+              << " rl=" << it->getCorrectedMaterial().radiation
+              << " il=" << it->getCorrectedMaterial().interaction
+              << " getObjectKind()=" << it->getObjectKind();
+    if (it->getObjectKind()==Hit::Active) {
+      std::cout << " activeHitType_=" << it->getActiveHitType();
+    }
+    std::cout << std::endl;
+  }
+}
+
+
+
 /**
  * Changes some active hits into inactive
  * according to the efficiency 
