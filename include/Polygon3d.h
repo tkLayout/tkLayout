@@ -238,18 +238,12 @@ bool Polygon3d<NumSides>::isPointInside(const XYZVector& p) const {
 }
 
 template<int NumSides>
-bool Polygon3d<NumSides>::isLineIntersecting(const XYZVector& orig, const XYZVector& dir) const {
-  XYZVector intersection;
-  return this->isLineAcross(orig, dir, intersection);
-}
-
-template<int NumSides>
 bool Polygon3d<NumSides>::isLineIntersecting(const XYZVector& orig, const XYZVector& dir, XYZVector& intersection) const {
   double normOrig = this->getNormal().Dot(orig);
   double normDir = this->getNormal().Dot(dir);
   double d = this->getCenter().Dot(this->getNormal());
   if (normDir < 1e-3) return false; // no fabs because if normDir < 0 we want to return false, as we're matching with the module in the opposite direction
-  intersection = orig + (((d - normOrig)/normDir) * dir);
+  intersection = orig + (((d - normOrig)/normDir) * dir); // TODO: slightly inefficient here: we do not need to go 3D and then 2D again...
   return isPointInside(intersection);
 }
 
