@@ -618,7 +618,7 @@ namespace insur {
       v.additionalInfoSite(includeSet_, getSettingsFile(),
                            getMaterialFile(), getPixelMaterialFile(),
                            defaultMaterialFile, defaultPixelMaterialFile,
-                           a, *tr, *simParms_, site);
+                           a, pixelAnalyzer, *tr, *simParms_, site);
       stopTaskClock();
       return true;
     }

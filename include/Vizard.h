@@ -170,7 +170,7 @@ namespace insur {
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
-                            Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
@@ -211,11 +211,11 @@ namespace insur {
                       double etaStep, double etaMax, double etaLongLine);
     void drawTicks(Analyzer& a, TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
-    bool drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles); // generic business logic called by hit or stub version with appropriate parameters
+    bool drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles, bool total=true); // generic business logic called by hit or stub version with appropriate parameters
     bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer); // for hits
     bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer); // for hits
-    bool drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer);
-    bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer, bool total=true);
+    bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
     bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
     bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
     bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version

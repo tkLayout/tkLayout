@@ -1831,12 +1831,12 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfile, etaProfiles);
   }
 
-  bool Vizard::drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer) {
+  bool Vizard::drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total/*=true*/) {
     myPad.cd();
     myPad.SetFillColor(color_plot_background);
     TProfile& totalEtaProfileSensors = analyzer.getTotalEtaProfileSensors();
     std::vector<TProfile>& etaProfilesSensors = analyzer.getTypeEtaProfilesSensors();
-    return drawEtaProfilesAny(totalEtaProfileSensors, etaProfilesSensors);
+    return drawEtaProfilesAny(totalEtaProfileSensors, etaProfilesSensors, total);
   }
 
   bool Vizard::drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer) {
@@ -1847,12 +1847,12 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
-  bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles) {
+  bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles, bool total/*=true*/) {
     std::vector<TProfile>::iterator etaProfileIterator;
     //totalEtaProfile.SetMaximum(15); // TODO: make this configurable
     totalEtaProfile.SetMinimum(0); // TODO: make this configurable
 
-    totalEtaProfile.Draw();
+    if (total) totalEtaProfile.Draw();
     for (etaProfileIterator=etaProfiles.begin();
          etaProfileIterator!=etaProfiles.end();
          ++etaProfileIterator) {
@@ -1870,10 +1870,10 @@ namespace insur {
     return drawEtaProfiles(*myVirtualPad, analyzer);
   }
 
-  bool Vizard::drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer) {
+  bool Vizard::drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer, bool total/*=true*/) {
     TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
     if (!myVirtualPad) return false;
-    return drawEtaProfilesSensors(*myVirtualPad, analyzer);
+    return drawEtaProfilesSensors(*myVirtualPad, analyzer, total);
   }
 
   bool Vizard::drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer) {
@@ -1960,7 +1960,7 @@ namespace insur {
   bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
                                   const std::string& matfile, const std::string& pixmatfile,
                                   bool defaultMaterial, bool defaultPixelMaterial,
-                                  Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
+                                  Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
@@ -2002,6 +2002,9 @@ namespace insur {
     ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
     ((TH1I*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalEtaStack->GetStack()->Last()->Draw();
+    // add profile for types here...##### 
+    drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
+    drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
     myImage->setComment("Full hit coverage across eta");
     fullLayoutContent->addItem(myImage);
