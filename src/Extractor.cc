@@ -974,7 +974,8 @@ namespace insur {
             rinf.name = rname.str();
             rinf.childname = mname.str();
             rinf.fw = (iiter->getModule().center().Z() < (zmin + zmax) / 2.0);
-            rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing-1).numModules();
+            //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing-1).numModules();
+            rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
             rinf.rin = iiter->getModule().minR();
             rinf.rout = iiter->getModule().maxR();
             rinf.rmid = iiter->getModule().center().Rho();

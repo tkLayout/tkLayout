@@ -2,6 +2,7 @@
 #define GEOMETRY_FACTORY
 
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/ptr_container/ptr_map.hpp>
 
 class GeometryFactory {
   template<class T> static void conditionalSetup(T* t, typename std::enable_if<std::is_void<decltype(t->setup())>::value>::type* = 0) { t->setup(); } 
@@ -21,6 +22,8 @@ struct FactoryCloneAllocator {
 };
 
 template<class T> using PtrVector = boost::ptr_vector<T, FactoryCloneAllocator>;
+
+template<class K, class V> using PtrMap = boost::ptr_multimap<K, V, std::less<K>, FactoryCloneAllocator>;
 
 
 #endif

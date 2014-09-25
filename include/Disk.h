@@ -14,8 +14,13 @@
 class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
 public:
   typedef PtrVector<Ring> Container;
+  //typedef boost::ptr_map<int, Ring> RingIndexMap;
+  //typedef PtrMap<int, Ring> RingIndexMap;
+  typedef std::map<int, Ring*> RingIndexMap;
 private:
   Container rings_;
+  RingIndexMap ringIndexMap_;
+  
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -72,6 +77,7 @@ public:
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
+  const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
