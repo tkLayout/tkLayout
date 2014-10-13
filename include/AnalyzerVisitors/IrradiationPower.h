@@ -46,7 +46,10 @@ public:
   }
 
   void visit(DetectorModule& m) {
-    if (m.maxZ() < 0) return;
+    // <Stefano Mersi>
+    // will visit also the modules with z<0, otherwise totals in the summaries will be wrong!
+    // if (m.maxZ() < 0) return;
+    // </Stefano Mersi>
     double irrxy = 0;
     double irrPoint = 0;
     /*double irrPointCen = 0;

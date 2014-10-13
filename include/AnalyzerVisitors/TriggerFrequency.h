@@ -85,6 +85,7 @@ public:
   void visit(const DetectorModule& module) {
 
     XYZVector center = module.center();
+    // TODO: check this too
     if ((center.Z()<0) || module.posRef().phi > 2/*(center.Phi()<0) || (center.Phi()>M_PI/2)*/ || (module.dsDistance()==0.0)) return;
 
     TH1D* currentTotalHisto;

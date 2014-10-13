@@ -2005,6 +2005,7 @@ namespace insur {
     // add profile for types here...##### 
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
+    totalEtaStack->GetStack()->Last()->Draw("same");
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
     myImage->setComment("Full hit coverage across eta");
     fullLayoutContent->addItem(myImage);
