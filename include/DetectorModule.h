@@ -80,8 +80,8 @@ public:
 
   Property<int8_t, Default> plotColor;
 
-  Property<double, Default> hibridWidth;
-  Property<double, Default> hibridLength;
+  Property<double, Default> hybridWidth;
+  Property<double, Default> hybridLength;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -113,8 +113,8 @@ public:
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
       resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
-      hibridWidth              ("hibridWidth"              , parsedOnly(), 5),
-      hibridLength             ("hibridLength"             , parsedOnly(), 5)
+      hybridWidth              ("hybridWidth"              , parsedOnly(), 5),
+      hybridLength             ("hybridLength"             , parsedOnly(), 5)
   {}
 
   virtual void setup();
