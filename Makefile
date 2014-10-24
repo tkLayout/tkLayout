@@ -34,7 +34,7 @@ LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 CXX := g++
 # COLORGCC
 PATH := $(addprefix .:, $(PATH))
-HASCOLOR = $(shell if test `which colorgcc`; then echo true; else echo false; fi)
+HASCOLOR = $(shell if test `which colorgcc 2> /dev/null`; then echo true; else echo false; fi)
 ifneq ($(HASCOLOR),true)
 HASCOLOR = $(shell if test -e colorgcc; then echo true; else echo false; fi)
 endif
