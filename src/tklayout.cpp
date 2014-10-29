@@ -1,9 +1,9 @@
-
 #include <boost/program_options.hpp> 
 #include <stdlib.h>
 #include <iostream>
 #include <string>
 #include <Squid.h>
+#include "SvnRevision.h"
 
 namespace po = boost::program_options;
 
@@ -58,6 +58,11 @@ int main(int argc, char* argv[]) {
     ("tracks-dir", po::value<std::string>(), "Override the default tracksim output dir.\nIf not supplied, the files will be saved in\nthe working dir")
     ;
 
+  po::options_description otheropt("Other options");
+  otheropt.add_options()
+    ("version,v", "Prints software version (SVN revision) and quits.")
+    ;
+
   
   po::options_description hidden;
   hidden.add_options()("base-name", po::value<std::string>(&basename));
@@ -67,7 +72,7 @@ int main(int argc, char* argv[]) {
 
 
   po::options_description mainopt;
-  mainopt.add(shown).add(hidden).add(trackopt);
+  mainopt.add(shown).add(hidden).add(trackopt).add(otheropt);
   
   po::variables_map vm;
   try {
@@ -84,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     if (geomtracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (mattracks < 1) throw po::invalid_option_value("material-tracks");
-    if (!vm.count("base-name") && !vm.count("help")) throw po::error("Missing geometry file"); 
+    if (!vm.count("base-name") && !vm.count("help") && !vm.count("version")) throw po::error("Missing geometry file"); 
 
   } catch(po::error e) {
     std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
@@ -93,7 +98,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (vm.count("help")) {
-    std::cout << usage << std::endl << shown << trackopt << std::endl;
+    std::cout << usage << std::endl << shown << trackopt << otheropt << std::endl;
+    return 0;
+  }
+
+  if (vm.count("version")) {
+    std::cout << "tklayout revision " << SvnRevision::revisionNumber << std::endl;
     return 0;
   }
 
