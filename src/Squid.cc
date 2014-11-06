@@ -487,8 +487,8 @@ namespace insur {
   bool Squid::reportGeometrySite() {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, site);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, site, "pixel");
+      v.geometrySummary(a, *tr, *simParms_, is, site);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, "pixel");
       stopTaskClock();
       return true;
     } else {

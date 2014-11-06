@@ -1107,7 +1107,7 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site, std::string name) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
@@ -1125,6 +1125,23 @@ namespace insur {
     site.addPage(myPage, 100);
     RootWContent* myContent;
 
+
+    // Inactive surfaces
+    double inactiveSurfacesTotalMass;
+    if (inactive) {
+      std::vector<InactiveElement>& inactiveBarrelServices = inactive->getBarrelServices();
+      std::vector<InactiveElement>& inactiveEndcapServices = inactive->getEndcapServices();
+      std::vector<InactiveElement>& inactiveSupports = inactive->getSupports();
+      std::vector<InactiveElement> allInactives;
+      allInactives.reserve( inactiveBarrelServices.size() + inactiveEndcapServices.size() + inactiveSupports.size() );
+      allInactives.insert(allInactives.end(), inactiveBarrelServices.begin(), inactiveBarrelServices.end() );
+      allInactives.insert(allInactives.end(), inactiveEndcapServices.begin(), inactiveEndcapServices.end() );
+      allInactives.insert(allInactives.end(), inactiveSupports.begin(), inactiveSupports.end() );
+      inactiveSurfacesTotalMass = 0;
+      for (const auto elem : allInactives ) {
+        if (elem.getTotalMass()>0) inactiveSurfacesTotalMass += elem.getTotalMass();
+      }
+    }
 
     //********************************//
     //*                              *//
@@ -1282,7 +1299,7 @@ namespace insur {
 
     double totalPower=0; 
     double totalCost=0;
-    double totalWeight=0;
+    double moduleTotalWeight=0;
 
     std::ostringstream aName;
     std::ostringstream aTag;
@@ -1346,7 +1363,9 @@ namespace insur {
     static const int powerRow = 22;
     static const int sensorPowerRow = 23;
     static const int costRow = 24;
-    static const int weightRow = 25;
+    static const int moduleWeightRow = 25;
+    static const int inactiveWeightRow = 26;
+    static const int totalWeightRow = 27;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
@@ -1373,7 +1392,9 @@ namespace insur {
     moduleTable->setContent(sensorPowerPerModuleAvgRow, 0, "Agerage sensor power/mod (mW)");
     moduleTable->setContent(sensorPowerPerModuleMaxRow, 0, "Max sensor power/mod (mW)");
     moduleTable->setContent(costRow, 0, "Cost (MCHF)");
-    moduleTable->setContent(weightRow, 0, "Weight (av, g)");
+    moduleTable->setContent(moduleWeightRow, 0, "Weight (av, g)");
+    moduleTable->setContent(inactiveWeightRow, 0, "Service Weight");
+    moduleTable->setContent(totalWeightRow, 0, "Total Weight");
 
     int loPitch;
     int hiPitch;
@@ -1560,7 +1581,7 @@ namespace insur {
       } else {
         aWeight << "n/a";
       }
-      totalWeight += tagMapWeight[tmak.sensorGeoTag];
+      moduleTotalWeight += tagMapWeight[tmak.sensorGeoTag];
 
       moduleTable->setContent(0, iType, aName.str());
       moduleTable->setContent(tagRow, iType, aTag.str());
@@ -1583,7 +1604,7 @@ namespace insur {
       moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
       moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
       moduleTable->setContent(costRow, iType, aCost.str());
-      moduleTable->setContent(weightRow, iType, aWeight.str());
+      moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
 
       moduleTable->setContent(thicknessRow, iType, aThickness.str());
       moduleTable->setContent(moduleAreaRow, iType, aModuleArea.str());
@@ -1602,7 +1623,9 @@ namespace insur {
     addSummaryElement(v.totChannel / 1e6);
     addSummaryElement(totalPower);
     addSummaryElement(totalCost);
-    addSummaryElement(totalWeight/1.e3);
+    addSummaryElement(moduleTotalWeight/1.e3);
+    addSummaryElement(inactiveSurfacesTotalMass/1.e3);
+    addSummaryElement((moduleTotalWeight+inactiveSurfacesTotalMass)/1.e3);
 
     addSummaryLabelElement("Area (total) mq");
     addSummaryLabelElement("Modules");
@@ -1611,7 +1634,9 @@ namespace insur {
     addSummaryLabelElement("pt channels (M)");
     addSummaryLabelElement("Power (kW)");
     addSummaryLabelElement("Cost (MCHF)");
-    addSummaryLabelElement("Weight (kg)");
+    addSummaryLabelElement("Modules weight (kg)");
+    addSummaryLabelElement("Services weight (kg)");
+    addSummaryLabelElement("Total weight (kg)");
 
     // Score totals
     ++iType;
@@ -1656,7 +1681,6 @@ namespace insur {
     aSensorPowerPerModuleAvg.str("");
     aSensorPowerPerModuleMax.str("");
     aCost.str("");
-    aWeight.str("");
     aPower << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-6;
     if (v.totalSensorPower > 1e-6) { // non-zero check for double
       aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << v.totalSensorPower * 1e-3;
@@ -1664,18 +1688,33 @@ namespace insur {
       aSensorPower << "n/a";
     }
     aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
-    if (totalWeight > 1e-6) { // non-zero check for double
-      aWeight << std::fixed << std::setprecision(weightPrecision) << totalWeight/1.e3 << " (kg)";
-    } else {
-      aWeight << "n/a";
-    }
     moduleTable->setContent(powerRow, iType, aPower.str());
     moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
     moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
     moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
     moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
     moduleTable->setContent(costRow, iType, aCost.str());
-    moduleTable->setContent(weightRow, iType, aWeight.str());
+    aWeight.str("");
+    if (moduleTotalWeight > 1e-6) { // non-zero check for double
+      aWeight << std::fixed << std::setprecision(weightPrecision) << moduleTotalWeight/1.e3 << " (kg)";
+    } else {
+      aWeight << "n/a";
+    }
+    moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
+    aWeight.str("");
+    if (inactiveSurfacesTotalMass > 1e-6) {
+      aWeight << std::fixed << std::setprecision(weightPrecision) << inactiveSurfacesTotalMass/1.e3 << " (kg)";
+    } else {
+      aWeight << "n/a";
+    }
+    moduleTable->setContent(inactiveWeightRow, iType, aWeight.str());
+    aWeight.str("");
+    if (inactiveSurfacesTotalMass+moduleTotalWeight > 1e-6) {
+      aWeight << std::fixed << std::setprecision(weightPrecision) << (moduleTotalWeight+inactiveSurfacesTotalMass)/1.e3 << " (kg)";
+    } else {
+      aWeight << "n/a";
+    }
+    moduleTable->setContent(totalWeightRow, iType, aWeight.str());
 
     //********************************//
     //*                              *//

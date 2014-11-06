@@ -159,7 +159,7 @@ namespace insur {
     void histogramSummary(Analyzer& a, RootWSite& site);
     void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, RootWSite& site, std::string alternativeName = "");
+    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
