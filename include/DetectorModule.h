@@ -82,6 +82,7 @@ public:
 
   Property<double, Default> hybridWidth;
   Property<double, Default> hybridLength;
+  Property<double, Default> hybridThickness;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -114,7 +115,8 @@ public:
       resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
       hybridWidth              ("hybridWidth"              , parsedOnly(), 5),
-      hybridLength             ("hybridLength"             , parsedOnly(), 5)
+      hybridLength             ("hybridLength"             , parsedOnly(), 5),
+      hybridThickness          ("hybridThickness"          , parsedOnly(), 1)
   {}
 
   virtual void setup();
