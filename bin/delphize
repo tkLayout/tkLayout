@@ -1,0 +1,69 @@
+#!/bin/bash
+source ~/tklayout.env 
+source $TKGEOMETRYRC
+source $TKG_BINDIRECTORY/setup.sh
+
+cd $TKG_LAYOUTDIRECTORY
+fileList=`ls */linptres_*_MS*.root 2> /dev/null`
+
+iFile=0;
+for aFile in $fileList; do
+  # echo file is $aFile
+  ((iFile++))
+  fileName[$iFile]=$aFile
+done
+nFiles=${#fileName[@]}
+if (( nFiles == 0 )); then
+  echo ERROR: I could not find any pt resolution root file in $TKG_LAYOUTDIRECTORY
+  exit -1
+fi
+
+echo
+echo "Available resolution files:"
+for ((iFile=1; iFile<=$nFiles; iFile++)); do
+  echo "File $iFile = ${fileName[iFile]}"
+done
+echo
+
+selected=""
+while [ "$selected" == "" ]; do
+  echo -n "Select the desired resolution: "
+  read resNum
+  selected="${fileName[resNum]}"
+  if [ "$selected" == "" ]; then
+    echo "ERROR: invalid selection"
+  fi
+done
+
+# then choose which to delphize
+# then start
+# root -l ~/
+
+# root -l "$TKG_BINDIRECTORY/delphize.cpp(\"${selected}\")"
+absSelected="`pwd`/${selected}"
+export TKG_TARGET_DIRECTORY=`dirname "$absSelected"`
+export SELECTED_LAYOUT_NAME=`echo $TKG_TARGET_DIRECTORY | sed -e 's#/ *$##g' -e 's#.*/##g'`
+mkdir -p "$TKG_TARGET_DIRECTORY/delphes/"
+export WWWDIR="http://www.desy.de/~${USER}/$SELECTED_LAYOUT_NAME/delphes"
+
+export TKG_DELPHES_TARGET_DIRECTORY="$TKG_TARGET_DIRECTORY/delphes"
+# echo $SELECTED_LAYOUT_NAME
+echo Newly generated configuration files and corresponding plots should be available here: $WWWDIR
+delphize.bin `pwd`/${selected} $TKG_DELPHES_TARGET_DIRECTORY/ResolutionFormula
+infoFile="$TKG_TARGET_DIRECTORY/info.html"
+if [ -f $infoFile ]; then
+  maxEta=`grep 'Coverage with at least' "$infoFile" | sed -e 's/.*eta = //g' -e 's/<.*//g'`
+  nPoints=`grep 'Coverage with at least' "$infoFile" | sed -e 's/.*at least *//g' -e 's/\([0-9.,]*\) .*/\1/g'`
+  echo max eta=$maxEta
+cat > $TKG_DELPHES_TARGET_DIRECTORY/EfficiencyFormula << @EOF
+  # Efficiency formula for $SELECTED_LAYOUT_NAME
+  # corresponding to at least $nPoints sensor hits
+  # Quite crude approximation: efficiency is 100% until this limit is reached
+  # and then it drops to zero
+  set EfficiencyFormula { (abs(eta) <= $maxEta ) * (1) + \
+                          (abs(eta) > $maxEta ) * (0)}
+@EOF
+else 
+  echo "Cannot compute Eta coverage (efficiency) because I cannot find file '$infoFile'"
+fi
+# Coverage with at least

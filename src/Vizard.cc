@@ -1803,18 +1803,21 @@ namespace insur {
     myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", 600, 600);
     drawEtaProfiles(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setName("nModuleHits_vs_eta");
     myImage->setComment("Hit modules across eta");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", 600, 600);
     drawEtaProfilesSensors(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setName("nSensorHits_vs_eta");
     myImage->setComment("Hit coverage across eta");
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", 600, 600);
     drawEtaProfilesStubs(*myCanvas, analyzer);
     myImage = new RootWImage(myCanvas, 600, 600);
+    myImage->setName("nStubs_vs_eta");
     myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
 
@@ -2037,17 +2040,27 @@ namespace insur {
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
     TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", 600, 600);
     totalEtaProfileFull->cd();
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
-    totalEtaStack->GetStack()->Last()->Draw();
-    // add profile for types here...##### 
+    TH1D* myTotalCoverage = (TH1D*)totalEtaStack->GetStack()->Last();
+    myTotalCoverage->SetMarkerStyle(8);
+    myTotalCoverage->SetMarkerSize(1);
+    myTotalCoverage->SetMinimum(0.);
+    myTotalCoverage->Draw();
+    // Computing top decent coverage
+    double limitHits=5;
+    double maxEtaCoverage=0;
+    for (int i=1; i<myTotalCoverage->GetNbinsX(); ++i) {
+	if (myTotalCoverage->GetBinContent(i)>limitHits) maxEtaCoverage=myTotalCoverage->GetXaxis()->GetBinCenter(i);
+    }
+    RootWText* myCoverageSummary = new RootWText();
+    myCoverageSummary->addText( Form("\n<br/>Coverage with at least %.0f hits up to eta = %.2f<br/>\n", limitHits, maxEtaCoverage));
+
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
     totalEtaStack->GetStack()->Last()->Draw("same");
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
     myImage->setComment("Full hit coverage across eta");
     fullLayoutContent->addItem(myImage);
+    fullLayoutContent->addItem(myCoverageSummary);
 
 
     RootWInfo* cmdLineInfo;
