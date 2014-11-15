@@ -9,8 +9,9 @@
 #include <string>
 #include <map>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
-
+#include <fstream>
 
 
 TFile* inputFile = NULL;
@@ -19,9 +20,14 @@ TCanvas* anotherCanvas = NULL;
 
 std::map<double, TProfile*> ptProfiles;
 
-#define VNAME(x) #x
-#define VDUMP(x) std::cout << #x << " = " << x << std::endl
+std::ostream* osp = &std::cout;
 
+#define VNAME(x) #x
+#ifdef DEBUG
+#define VDUMP(x) std::cerr << #x << " = " << x << std::endl
+#else
+#define VDUMP(x)
+#endif
 
 void browse(std::string fileNameString) {
   const char* fileName = fileNameString.c_str();
@@ -43,10 +49,10 @@ void browse(std::string fileNameString) {
           std::string aClassName = aList->At(i)->ClassName();
           if (aClassName=="TProfile") {
             TProfile* myProfile = (TProfile*)aList->At(i);
-            // std::cout << "TProfile:" << myProfile->GetName() << std::endl;
+            // std::cerr << "TProfile:" << myProfile->GetName() << std::endl;
             double aMomentum;
             if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
-              // std::cout << "aMomentum=" << aMomentum << std::endl;
+              // std::cerr << "aMomentum=" << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
           }
@@ -62,30 +68,32 @@ void browse(std::string fileNameString) {
   aCanvas->SetLogy();
   //for (std::map<int, TProfile*>::iterator it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
   for (auto it : ptProfiles) {
-    std::cout << "aMomentum=" << it.first << std::endl;
+    // std::cerr << "aMomentum=" << it.first << std::endl;
     it.second->Draw(plotOpt.c_str());
     plotOpt="same";
   }
+  aCanvas->SaveAs(Form("%s/ptResolution.png", getenv("TKG_DELPHES_TARGET_DIRECTORY")));
+  aCanvas->SaveAs(Form("%s/ptResolution.root", getenv("TKG_DELPHES_TARGET_DIRECTORY")));
 }
 
 void printEtaRange(double lowEta, double highEta) {
-  std::cout << Form("   (abs(eta) >= %.04f && abs(eta) < %.04f) * ",
+  (*osp) << Form("   (abs(eta) >= %.04f && abs(eta) < %.04f) * ",
                     lowEta, highEta);
 }
 
 void printPtRange(double lowPt, double highPt) {
   if (highPt>lowPt) {
-    std::cout << Form("(pt >= %.04f && pt < %.04f) * ",
+    (*osp) << Form("(pt >= %.04f && pt < %.04f) * ",
                       lowPt, highPt);
   } else {
-    std::cout << Form("(pt >= %.04f) * ",
+    (*osp) << Form("(pt >= %.04f) * ",
                       lowPt);
   }
 }
 
 void printNewLine(bool last) {
-  if (!last) std::cout << " + \\" << std::endl;
-  else std::cout << std::endl << "}" << std::endl;;
+  if (!last) (*osp) << " + \\" << std::endl;
+  else (*osp) << std::endl << "}" << std::endl;;
 }
 
 void printResolutionScale(double resolution1,
@@ -93,10 +101,10 @@ void printResolutionScale(double resolution1,
                           double resolution2,
                           double pt2) {
   if (pt1==pt2) {
-    std::cout << Form("(%.8f)", resolution1);
+    (*osp) << Form("(%.8f)", resolution1);
   } else { 
     // Linear scaling!
-    std::cout << Form("(%f + "                 // resolution1
+    (*osp) << Form("(%f + "                 // resolution1
                       "(pt-%f)"                // pt1
                       "* %f)",                 // (res2-res1) / (pt2-pt1)
                       resolution1, pt1,
@@ -105,7 +113,7 @@ void printResolutionScale(double resolution1,
 }
 
 void printResolutionStandardWorsen(double myResolution, double myPt) {
-  std::cout << Form("(%f*pt/%f)", myResolution, myPt);
+  (*osp) << Form("(%f*pt/%f)", myResolution, myPt);
 }
 
 
@@ -136,7 +144,8 @@ bool delphize(std::string rootFileName, double etaSlice=.2) {
   double lowEta, highEta;
   double myResolution, nextResolution;
   double myPt, nextPt;
-  std::cout << "set ResolutionFormula { ";
+  (*osp) << "# set ResolutionFormula for layout " << getenv("SELECTED_LAYOUT_NAME") << std::endl;
+  (*osp) << "set ResolutionFormula { ";
   for (int iBin=1; iBin<=newBins; ++iBin) {
     // Looping on pT
     lowEta = exampleProfile->GetXaxis()->GetBinLowEdge(iBin);
@@ -174,9 +183,18 @@ bool delphize(std::string rootFileName, double etaSlice=.2) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc!=1) {
-    std::cout << Form("Syntax: %s filename.root", argv[0]) << std::endl;
+  if (argc<2) {
+    std::cerr << Form("Syntax: %s filename.root [delphesConfig.txt]", argv[0]) << std::endl;
     return -1;
+  }
+  if (argc==3) {
+    std::ofstream* fout = new std::ofstream();
+    fout->open(argv[2]);
+    if (fout->is_open()) {
+      osp = fout;
+    } else {
+      std::cerr << "ERROR: could not open " << argv[2] << " writing config to the screen" << std::endl;
+    }
   }
   std::string rootFileName=argv[1];
   double etaSlice=.2;
