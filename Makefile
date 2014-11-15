@@ -49,7 +49,7 @@ COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS) $(SVNREVISIONDEFINE)
 
 LINK=$(CXX) $(LINKERFLAGS)
 
-all: tklayout setup
+all: tklayout setup delphize
 	@echo "Full build successful."
 
 bin: tklayout 
@@ -399,6 +399,13 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/tklayout.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
+
+delphize: $(BINDIR)/delphize
+
+$(BINDIR)/delphize: $(SRCDIR)/delphize.cpp
+	$(COMP) $(ROOTFLAGS) $(SRCDIR)/delphize.cpp \
+	$(LINKERFLAGS) $(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/delphize
 
 $(LIBDIR)/tklayout.o: $(SRCDIR)/tklayout.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o $(SRCDIR)/tklayout.cpp
