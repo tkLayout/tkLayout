@@ -387,6 +387,8 @@ namespace insur {
     site.addAuthor("Stefano Martina");
     site.addAuthor("Stefano Mersi");
     site.setRevision(SvnRevision::revisionNumber);
+    std::cout << "http://www.desy.de/~"
+              << getenv("USER") <<"/" << trackerName << "/ ... ";
     return true;
   }
 
