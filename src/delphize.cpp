@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     }
   }
   std::string rootFileName=argv[1];
-  double etaSlice=.2;
+  double etaSlice=.5;
   if (delphize(rootFileName, etaSlice))  {
     return 0;
   } else return -1;
