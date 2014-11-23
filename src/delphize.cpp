@@ -154,7 +154,7 @@ bool delphize(std::string rootFileName, double etaSlice=.2) {
       auto nextItem = (++it)--;
       TProfile* myProfile = it->second;
       myPt = it->first;
-      myResolution = myProfile->GetBinContent(iBin);
+      myResolution = myProfile->GetBinContent(iBin)/100.;
       printEtaRange(lowEta, highEta);
       if (it==ptProfiles.begin()) {
         // From here down the resolution will be always the same
@@ -171,7 +171,7 @@ bool delphize(std::string rootFileName, double etaSlice=.2) {
       } else {
         TProfile* nextProfile = nextItem->second;
         nextPt = nextItem->first;
-        nextResolution = nextProfile->GetBinContent(iBin);
+        nextResolution = nextProfile->GetBinContent(iBin)/100.;
         printPtRange(myPt, nextPt);
         printResolutionScale(myResolution, myPt, nextResolution, nextPt);
         printNewLine(false);
