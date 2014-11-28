@@ -20,15 +20,16 @@ namespace insur {
       CapsVisitor(Caps& capsbarrelmods, Caps& capsendmods) : capsbarrelmods_(capsbarrelmods), capsendmods_(capsendmods) {}
       void visit(Layer&) { capsbarrelmods_.push_back(std::vector<ModuleCap>()); }
       void visit(BarrelModule& m) {
-        ModuleCap cap(m);
-        cap.setCategory(MaterialProperties::b_mod);
-        capsbarrelmods_.back().push_back(cap);
+        ModuleCap* cap = new ModuleCap(m);
+        cap->setCategory(MaterialProperties::b_mod);
+        capsbarrelmods_.back().push_back(*cap);
+
       }
       void visit(Disk&) { capsendmods_.push_back(std::vector<ModuleCap>()); }
       void visit(EndcapModule& m) {
-        ModuleCap cap(m);
-        cap.setCategory(MaterialProperties::e_mod);
-        capsendmods_.back().push_back(cap);
+        ModuleCap* cap = new ModuleCap(m);
+        cap->setCategory(MaterialProperties::e_mod);
+        capsendmods_.back().push_back(*cap);
       }
     };
 

@@ -11,6 +11,7 @@ namespace insur {
      */
     ModuleCap::ModuleCap(Module& mod) { 
         module = &mod;
+        mod.setModuleCap(this);
     }
     
     /**

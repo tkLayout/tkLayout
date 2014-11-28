@@ -27,6 +27,10 @@ struct PosRef { int cnt, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string cnt; int layer, ring, phi, side; };
 
+namespace insur {
+  class ModuleCap;
+}
+using insur::ModuleCap;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
@@ -45,7 +49,11 @@ protected:
   int numHits_ = 0;
 
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
+  ModuleCap* myModuleCap_ = NULL;
 public:
+  void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
+  ModuleCap* getModuleCap() { return myModuleCap_ ; }
+
   Property<int16_t, AutoDefault> side;
   
   Property<double, Computable> minPhi, maxPhi;
