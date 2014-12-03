@@ -22,14 +22,15 @@ namespace insur {
       void visit(BarrelModule& m) {
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::b_mod);
-        capsbarrelmods_.back().push_back(*cap);
-
+        capsbarrelmods_.back().push_back(*cap); 
+        m.setModuleCap(& (capsbarrelmods_.back().back()));
       }
       void visit(Disk&) { capsendmods_.push_back(std::vector<ModuleCap>()); }
       void visit(EndcapModule& m) {
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::e_mod);
         capsendmods_.back().push_back(*cap);
+        m.setModuleCap(& (capsendmods_.back().back()));
       }
     };
 
