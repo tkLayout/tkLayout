@@ -26,10 +26,10 @@ public:
   typedef PtrVector<BarrelModule> Container;
 protected:
   Container zPlusModules_, zMinusModules_;
-
+public:
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
-
+protected:
   Property<StartZMode, Default> startZMode;
 
 private:
