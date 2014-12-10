@@ -12,6 +12,8 @@
 #include <TH2.h>
 #include <TH3.h>
 
+using namespace std;
+
 /*
 template<class T>
 class Seqv {
