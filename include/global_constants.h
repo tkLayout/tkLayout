@@ -7,7 +7,6 @@
  */
 
 #include <string>
-#include <vector>
 
 namespace insur {
   static const double PI = 3.14159265358979323846;
@@ -27,7 +26,6 @@ namespace insur {
   static const double outer_radius = 1190.0;
   static const double max_length = 2910.0;
   static const double pixel_radius = 25.0;
-  static const double z_threshold_service_zigzag = 100.0;
 
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
@@ -81,8 +79,7 @@ namespace insur {
   static const std::string default_mattabdir = "config";
   static const std::string default_mattabfile = "mattab.list";
   static const std::string default_irradiationdir = "config";
-  static const std::vector<std::string> default_irradiationfiles = {"irradiation.map", "irradiationPixel.map"};
-  //static const std::string default_irradiationfile = "irradiation.map";
+  static const std::string default_irradiationfile = "irradiation.map";
   static const std::string default_materialsdir = "config";
   static const std::string default_tracker_materials_file = "Materials.cfg";
   static const std::string default_pixel_materials_file = "PixelMaterials.cfg";
@@ -94,16 +91,13 @@ namespace insur {
   static const std::string default_rootfile = "trackergeometry.root";
   static const std::string default_graphdir = "graphs";
   static const std::string default_graphfile = "neighbours.graph";
+  static const std::string default_summarypath = "matsum";
   static const std::string default_summary = "profiles.html";
   static const std::string default_xmlpath = "xml";
   static const std::string default_xml = "tk2CMSSWxml";
   static const std::string default_styledir = "style";
-  static const std::string default_configdir = "config";
-  static const std::string default_stdincludedir = "stdinclude";
-  static const std::string default_geometriesdir = "geometries";
 
   static const std::string csv_separator = ",";
   static const std::string csv_eol = "\n";
-
 }
 #endif /* _GLOBAL_CONSTANTS_H */

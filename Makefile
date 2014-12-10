@@ -1,21 +1,16 @@
 # Define the REVISIONNUMBER variable to have it
 # apearing in the root web page output
 # -DREVISIONNUMBER=555
-SVNREVISIONDEFINE=`./getRevisionDefine`
+REVISION=$(which svnversion > /dev/null && svnversion)
+DEFINES=`./getVersionDefine`
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
 ROOTLIBFLAGS+=-lHistPainter
-ifneq ($(strip $(BOOST_INCLUDE)),)
-INCLUDEFLAGS=-I$(BOOST_INCLUDE)
-endif
-ifneq ($(strip $(BOOST_LIB)),)
-BOOSTLIBFLAGS=-L$(BOOST_LIB)
-endif
-BOOSTLIBFLAGS+=-L$(BOOST_LIB) -lboost_system$(BOOST_SUFFIX) -lboost_filesystem$(BOOST_SUFFIX) -lboost_program_options$(BOOST_SUFFIX)
+BOOSTLIBFLAGS=-L/usr/lib64/boost141 -L/usr/lib/boost141 -Wl,-Bstatic -lboost_system -lboost_filesystem -lboost_regex -lboost_program_options -Wl,-Bdynamic
 GEOMLIBFLAG=-lGeom
 GLIBFLAGS=`root-config --glibs`
-INCLUDEFLAGS+=-Iinclude/
+INCLUDEFLAGS=-I/usr/include/boost141/ -Iinclude/
 SRCDIR=src
 INCDIR=include
 LIBDIR=lib
@@ -23,37 +18,21 @@ BINDIR=bin
 TESTDIR=test
 DOCDIR=doc
 DOXYDIR=doc/doxygen
-#COMPILERFLAGS+=-Wall
-COMPILERFLAGS+=-std=c++11 
+COMPILERFLAGS+=-Wall
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
 #COMPILERFLAGS+=-Werror
+#COMPILERFLAGS+=-Wno-narrowing
+#COMPILERFLAGS+=-Wno-delete-non-virtual-dtor
 #COMPILERFLAGS+=-O5
-LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 
-CXX := g++
-# COLORGCC
-PATH := $(addprefix .:, $(PATH))
-HASCOLOR = $(shell if test `which colorgcc 2> /dev/null`; then echo true; else echo false; fi)
-ifneq ($(HASCOLOR),true)
-HASCOLOR = $(shell if test -e colorgcc; then echo true; else echo false; fi)
-endif
+COMP=g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(DEFINES)
 
-ifeq ($(HASCOLOR),true)
-ifneq ($(COLOR), false)
-CXX := colorgcc
-endif
-endif
-
-COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS) $(SVNREVISIONDEFINE) 
-
-LINK=$(CXX) $(LINKERFLAGS)
-
-all: tklayout setup
-	@echo "Full build successful."
-
-bin: tklayout 
+bin: tklayout setup tunePtParam houghtrack
 	@echo "Executable built."
+
+all: hit tkgeometry exocom general elements ushers dressers viz naly squid testObjects tklayout rootwebTest houghtrack
+	@echo "Full build successful."
 
 install:
 	./install.sh
@@ -63,7 +42,7 @@ $(LIBDIR)/ptError.o: $(SRCDIR)/ptError.cpp $(INCDIR)/ptError.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ptError.o $(SRCDIR)/ptError.cpp
 
 $(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
-	$(LINK) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp \
+	$(COMP) $(LIBDIR)/ptError.o $(SRCDIR)/tunePtParam.cpp \
 	$(ROOTLIBFLAGS) $(ROOTFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tunePtParam
 
@@ -71,115 +50,53 @@ $(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
 hit: $(LIBDIR)/hit.o
 	@echo "Built target 'hit'."
 
-$(LIBDIR)/CoordinateOperations.o: $(SRCDIR)/CoordinateOperations.cpp $(INCDIR)/CoordinateOperations.h
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/CoordinateOperations.o $(SRCDIR)/CoordinateOperations.cpp
 
 $(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o $(SRCDIR)/hit.cpp
 
+#TKGEOMETRY
+tkgeometry: $(LIBDIR)/configparser.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o  \
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/mainConfigHandler.o
+	@echo "Built target 'tkgeometry'."
+
 $(LIBDIR)/global_funcs.o: $(SRCDIR)/global_funcs.cpp $(INCDIR)/global_funcs.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/global_funcs.o $(SRCDIR)/global_funcs.cpp
 
-$(LIBDIR)/Property.o: $(SRCDIR)/Property.cpp $(INCDIR)/Property.h
-	@echo "Building target Property.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Property.o $(SRCDIR)/Property.cpp 
-	@echo "Built target Property.o"
+$(LIBDIR)/configparser.o: $(SRCDIR)/configparser.cpp $(INCDIR)/configparser.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/configparser.o $(SRCDIR)/configparser.cpp
 
-$(LIBDIR)/Sensor.o: $(SRCDIR)/Sensor.cpp $(INCDIR)/Sensor.h
-	@echo "Building target Sensor.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Sensor.o $(SRCDIR)/Sensor.cpp 
-	@echo "Built target Sensor.o"
+$(LIBDIR)/module.o: $(SRCDIR)/module.cpp $(INCDIR)/module.hh
+	@echo "Building target module.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/module.o $(SRCDIR)/module.cpp 
+	@echo "Built target module.o"
 
-$(LIBDIR)/GeometricModule.o: $(SRCDIR)/GeometricModule.cpp $(INCDIR)/GeometricModule.h
-	@echo "Building target GeometricModule.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/GeometricModule.o $(SRCDIR)/GeometricModule.cpp 
-	@echo "Built target GeometricModule.o"
-
-$(LIBDIR)/DetectorModule.o: $(SRCDIR)/DetectorModule.cpp $(INCDIR)/DetectorModule.h
-	@echo "Building target DetectorModule.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/DetectorModule.o $(SRCDIR)/DetectorModule.cpp 
-	@echo "Built target DetectorModule.o"
-
-$(LIBDIR)/RodPair.o: $(SRCDIR)/RodPair.cpp $(INCDIR)/RodPair.h
-	@echo "Building target RodPair.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/RodPair.o $(SRCDIR)/RodPair.cpp 
-	@echo "Built target RodPair.o"
-
-$(LIBDIR)/Layer.o: $(SRCDIR)/Layer.cpp $(INCDIR)/Layer.h
-	@echo "Building target Layer.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Layer.o $(SRCDIR)/Layer.cpp 
-	@echo "Built target Layer.o"
-
-$(LIBDIR)/Barrel.o: $(SRCDIR)/Barrel.cpp $(INCDIR)/Barrel.h
-	@echo "Building target Barrel.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Barrel.o $(SRCDIR)/Barrel.cpp 
-	@echo "Built target Barrel.o"
-
-$(LIBDIR)/Ring.o: $(SRCDIR)/Ring.cpp $(INCDIR)/Ring.h
-	@echo "Building target Ring.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Ring.o $(SRCDIR)/Ring.cpp 
-	@echo "Built target Ring.o"
-
-$(LIBDIR)/Disk.o: $(SRCDIR)/Disk.cpp $(INCDIR)/Disk.h
-	@echo "Building target Disk.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Disk.o $(SRCDIR)/Disk.cpp 
-	@echo "Built target Disk.o"
-
-$(LIBDIR)/Endcap.o: $(SRCDIR)/Endcap.cpp $(INCDIR)/Endcap.h
-	@echo "Building target Endcap.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Endcap.o $(SRCDIR)/Endcap.cpp 
-	@echo "Built target Endcap.o"
-
-$(LIBDIR)/Tracker.o: $(SRCDIR)/Tracker.cpp $(INCDIR)/Tracker.h
-	@echo "Building target Tracker.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Tracker.o $(SRCDIR)/Tracker.cpp 
-	@echo "Built target Tracker.o"
-
-$(LIBDIR)/SimParms.o: $(SRCDIR)/SimParms.cpp $(INCDIR)/SimParms.h
-	@echo "Building target SimParms.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SimParms.o $(SRCDIR)/SimParms.cpp 
-	@echo "Built target SimParms.o"
-
-$(LIBDIR)/Bag.o: $(SRCDIR)/Bag.cpp $(INCDIR)/Bag.h
-	@echo "Building target Bag.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Bag.o $(SRCDIR)/Bag.cpp 
-	@echo "Built target Bag.o"
-
-$(LIBDIR)/SummaryTable.o: $(SRCDIR)/SummaryTable.cpp $(INCDIR)/SummaryTable.h
-	@echo "Building target SummaryTable.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SummaryTable.o $(SRCDIR)/SummaryTable.cpp 
-	@echo "Built target SummaryTable.o"
-
-$(LIBDIR)/AnalyzerVisitors/%.o: $(SRCDIR)/AnalyzerVisitors/%.cpp $(INCDIR)/AnalyzerVisitors/%.h
-	@echo "Building target $@..."
-	mkdir -p $(LIBDIR)/AnalyzerVisitors
-	$(COMP) $(ROOTFLAGS) -c -o $@ $< 
-	@echo "Built target $@"
-
-$(LIBDIR)/AnalyzerVisitor.o: $(SRCDIR)/AnalyzerVisitor.cpp $(INCDIR)/AnalyzerVisitor.h
-	@echo "Building target AnalyzerVisitor.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/AnalyzerVisitor.o $(SRCDIR)/AnalyzerVisitor.cpp 
-	@echo "Built target AnalyzerVisitor.o"
-
-$(LIBDIR)/PtErrorAdapter.o: $(SRCDIR)/PtErrorAdapter.cpp $(INCDIR)/PtErrorAdapter.h
-	@echo "Building target PtErrorAdapter.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PtErrorAdapter.o $(SRCDIR)/PtErrorAdapter.cpp 
-	@echo "Built target PtErrorAdapter.o"
+$(LIBDIR)/moduleType.o: $(SRCDIR)/moduleType.cpp $(INCDIR)/moduleType.hh
+	@echo "Building target moduleType.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/moduleType.o $(SRCDIR)/moduleType.cpp
+	@echo "Built target moduleType.o"
 
 $(LIBDIR)/PlotDrawer.o: $(SRCDIR)/PlotDrawer.cpp $(INCDIR)/PlotDrawer.h
 	@echo "Building target PlotDrawer.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PlotDrawer.o $(SRCDIR)/PlotDrawer.cpp
 	@echo "Built target PlotDrawer.o"
 
-$(LIBDIR)/Polygon3d.o: $(SRCDIR)/Polygon3d.cpp $(INCDIR)/Polygon3d.h
-	@echo "Building target Polygon3d.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Polygon3d.o $(SRCDIR)/Polygon3d.cpp
-	@echo "Built target Polygon3d.o"
-
 $(LIBDIR)/TrackShooter.o: $(SRCDIR)/TrackShooter.cpp $(INCDIR)/TrackShooter.h
 	@echo "Building target TrackShooter.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/TrackShooter.o $(SRCDIR)/TrackShooter.cpp
 	@echo "Built target TrackShooter.o"
+
+$(LIBDIR)/layer.o: $(SRCDIR)/layer.cpp $(INCDIR)/layer.hh
+	@echo "Building target layer.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/layer.o $(SRCDIR)/layer.cpp 
+	@echo "Built target layer.o"
+
+$(LIBDIR)/tracker.o: $(SRCDIR)/tracker.cpp $(INCDIR)/tracker.hh
+	@echo "Building target tracker.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tracker.o $(SRCDIR)/tracker.cpp 	
+	@echo "Built target tracker.o"
+
+$(LIBDIR)/mainConfigHandler.o: $(SRCDIR)/mainConfigHandler.cpp $(INCDIR)/mainConfigHandler.h
+	$(COMP) -c -o $(LIBDIR)/mainConfigHandler.o $(SRCDIR)/mainConfigHandler.cpp
 
 $(LIBDIR)/messageLogger.o: $(SRCDIR)/messageLogger.cpp $(INCDIR)/messageLogger.h
 	$(COMP) -c -o $(LIBDIR)/messageLogger.o $(SRCDIR)/messageLogger.cpp
@@ -202,16 +119,6 @@ $(LIBDIR)/XMLWriter.o: $(SRCDIR)/XMLWriter.cc $(INCDIR)/XMLWriter.h
 	@echo "Building target XMLWriter.o..."
 	$(COMP) -c -o $(LIBDIR)/XMLWriter.o $(SRCDIR)/XMLWriter.cc
 	@echo "Built target XMLWriter.o"
-
-$(LIBDIR)/IrradiationMap.o: $(SRCDIR)/IrradiationMap.cpp $(INCDIR)/IrradiationMap.h
-	@echo "Building target IrradiationMap.o..."
-	$(COMP) -c -o $(LIBDIR)/IrradiationMap.o $(SRCDIR)/IrradiationMap.cpp
-	@echo "Built target IrradiationMap.o"
-
-$(LIBDIR)/IrradiationMapsManager.o: $(SRCDIR)/IrradiationMapsManager.cpp $(INCDIR)/IrradiationMapsManager.h
-	@echo "Building target IrradiationMap.o..."
-	$(COMP) -c -o $(LIBDIR)/IrradiationMapsManager.o $(SRCDIR)/IrradiationMapsManager.cpp
-	@echo "Built target IrradiationMap.o"
 
 #GENERAL
 general: $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
@@ -303,19 +210,14 @@ $(LIBDIR)/tk2CMSSW.o: $(SRCDIR)/tk2CMSSW.cc $(INCDIR)/tk2CMSSW.h
 naly: $(LIBDIR)/Analyzer.o
 	@echo "Built target 'naly'."
 
-$(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cpp $(INCDIR)/Analyzer.h
+$(LIBDIR)/Analyzer.o: $(SRCDIR)/Analyzer.cc $(INCDIR)/Analyzer.h
 	@echo "Building target Analyzer.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Analyzer.o $(SRCDIR)/Analyzer.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Analyzer.o $(SRCDIR)/Analyzer.cc
 	@echo "Built target Analyzer.o"
 
 #SQUID
 squid: $(LIBDIR)/Squid.o
 	@echo "Built target 'squid'."
-
-$(LIBDIR)/mainConfigHandler.o: $(SRCDIR)/mainConfigHandler.cpp $(INCDIR)/mainConfigHandler.h
-	@echo "Building target mainConfigHandler.o..."
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/mainConfigHandler.o $(SRCDIR)/mainConfigHandler.cpp
-	@echo "Built target mainConfigHandler.o"
 
 $(LIBDIR)/Squid.o: $(SRCDIR)/Squid.cc $(INCDIR)/Squid.h
 	@echo "Building target Squid.o..."
@@ -340,8 +242,8 @@ $(LIBDIR)/StopWatch.o: $(SRCDIR)/StopWatch.cpp $(INCDIR)/StopWatch.h
 setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
-$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp
-	$(COMP) $(LINKERFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp \
+$(BINDIR)/setup.bin: $(LIBDIR)/global_funcs.o $(LIBDIR)/mainConfigHandler.o setup.cpp
+	$(COMP) $(LIBDIR)/global_funcs.o $(LIBDIR)/mainConfigHandler.o setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
 
@@ -354,7 +256,7 @@ $(LIBDIR)/Histo.o: $(SRCDIR)/Histo.cpp
 	@echo "Built target Histo.o"
 
 $(BINDIR)/houghtrack: $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp $(INCDIR)/HoughTrack.h
-	$(COMP) $(LINKERFLAGS) $(ROOTFLAGS) $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp \
+	$(COMP) $(ROOTFLAGS) $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/moduleType.o $(LIBDIR)/global_funcs.o $(LIBDIR)/ptError.o $(LIBDIR)/Histo.o $(SRCDIR)/HoughTrack.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/houghtrack
 
@@ -366,42 +268,30 @@ tklayout: $(BINDIR)/tklayout
 tunePtParam: $(BINDIR)/tunePtParam
 	@echo "tunePtParam built"
 
-$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
-	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
-  $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
-	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
-	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
-	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
+$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/module.o $(LIBDIR)/layer.o \
+	$(LIBDIR)/tracker.o $(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+	$(LIBDIR)/XMLWriter.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o getRevisionDefine
-	#
-	# Let's make the revision object first
-	$(COMP) $(SVNREVISIONDEFINE) -c $(SRCDIR)/SvnRevision.cpp -o $(LIBDIR)/SvnRevision.o
-	#
-	# And compile the executable by linking the revision too
-	$(LINK)	$(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
-	$(LIBDIR)/Property.o \
-	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
-  $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
-	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
-	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
-	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
-	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
-	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o \
-	$(LIBDIR)/SvnRevision.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/TrackShooter.o \
+	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/moduleType.o $(LIBDIR)/ptError.o $(LIBDIR)/StopWatch.o
+	$(COMP) $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o \
+	$(LIBDIR)/configparser.o $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o \
+	$(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o $(LIBDIR)/ModuleCap.o \
+	$(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o \
+	$(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o $(LIBDIR)/TrackShooter.o $(LIBDIR)/Vizard.o \
+	$(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Analyzer.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
+	$(LIBDIR)/messageLogger.o \
+	$(LIBDIR)/Palette.o \
 	$(LIBDIR)/tklayout.o \
+	$(LIBDIR)/moduleType.o \
+	$(LIBDIR)/ptError.o \
+	$(LIBDIR)/StopWatch.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 
-$(LIBDIR)/tklayout.o: $(SRCDIR)/tklayout.cpp
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o $(SRCDIR)/tklayout.cpp
+$(LIBDIR)/tklayout.o: tklayout.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o tklayout.cpp
 
 testObjects: $(TESTDIR)/testObjects
 $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
@@ -413,20 +303,60 @@ rootwebTest: $(TESTDIR)/rootwebTest
 $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o $(TESTDIR)/rootwebTest.cpp $(ROOTLIBFLAGS) $(BOOSTLIBFLAGS) -o $(TESTDIR)/rootwebTest
 
-
-test: $(TESTDIR)/ModuleTest
-
-$(TESTDIR)/%: $(SRCDIR)/Tests/%.cpp $(INCDIR)/Tests/%.h
-	@echo "Building target $@..."
-	$(COMP) $(ROOTFLAGS) $(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAGS) -o $@ $< $(SRCDIR)/DetectorModule.cpp $(SRCDIR)/GeometricModule.cpp $(SRCDIR)/Sensor.cpp $(SRCDIR)/global_funcs.cpp $(SRCDIR)/Polygon3d.cpp
-	@echo "Built target $@"
-
-
 #CLEANUP
-cleanall:
-	@rm -rf $(LIBDIR)/*
+cleanhit:
+	@rm -f $(LIBDIR)/hit.o
 
-clean: cleanall
+cleantkgeometry:
+	@rm -f $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/tracker.o  $(LIBDIR)/messageLogger.o $(LIBDIR)/configparser.o $(LIBDIR)/mainConfigHandler.o
+
+cleanexocom:
+	@rm -f $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
+
+cleangeneral:
+	@rm -f $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialProperties.o \
+	$(LIBDIR)/InactiveSurfaces.o
+
+cleanelements:
+	@rm -f $(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o $(LIBDIR)/InactiveTube.o
+
+cleanushers:
+	@rm -f $(LIBDIR)/Usher.o
+
+cleandressers:
+	@rm -f $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o 
+
+cleanviz:
+	@rm -f $(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o
+
+cleannaly:
+	@rm -f $(LIBDIR)/Analyzer.o
+
+cleanrootweb:
+	@rm -f $(LIBDIR)/rootweb.o 
+
+cleanpalette:
+	@rm -f $(LIBDIR)/Palette.o
+
+cleantkmain:
+	@rm -f $(LIBDIR)/Squid.o $(LIBDIR)/tklayout.o $(BINDIR)/tklayout $(BINDIR)/tkLayout $(TESTDIR)/testObjects $(TESTDIR)/rootwebTest $(BINDIR)/setup.bin
+
+cleantuneptparam:
+	@rm -f #(BINDIR)/tunePtParam
+
+cleanmoduletype:
+	@rm -f $(LIBDIR)/moduleType.o
+
+cleanpt:
+	@rm -f $(LIBDIR)/ptError.o
+
+cleanothers:
+	@rm -f $(LIBDIR)/global_funcs.o	$(LIBDIR)/Histo.o  $(LIBDIR)/PlotDrawer.o  $(LIBDIR)/StopWatch.o  $(LIBDIR)/TrackShooter.o
+
+
+clean: cleanhit cleanexocom cleantkgeometry cleangeneral cleanelements \
+	cleanushers cleandressers cleanviz cleannaly cleanrootweb cleantkmain \
+	cleanpalette cleantuneptparam cleanpt cleanmoduletype cleanothers
 
 doc: doxydoc
 

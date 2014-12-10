@@ -3,9 +3,7 @@
  * @brief This class provides the interface to analyse a tracker and write the results to XML files for CMSSW
  */
 
-#include <SvnRevision.h>
 #include <tk2CMSSW.h>
-
 namespace insur {
     // public
     /**
@@ -32,13 +30,6 @@ namespace insur {
         // ex is an instance of Extractor class
         ex.analyse(mt, mb, data, wt);
 
-        std::stringstream extendedHeaderStream;
-        std::stringstream simpleHeaderStream;
-        writeExtendedHeader(extendedHeaderStream);
-        writeSimpleHeader(simpleHeaderStream);
-        wr.setExtendedHeader(extendedHeaderStream.str());
-        wr.setSimpleHeader(simpleHeaderStream.str());
-        
         // translate collected information to XML and write to buffers
         std::ifstream instream;
         std::ofstream outstream;
@@ -50,7 +41,7 @@ namespace insur {
                 instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
                 outstream.open((outpath + xml_pixbarfile).c_str());
                 if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
-                //writeSimpleHeader(outstream);
+                writeSimpleHeader(outstream);
                 wr.pixbar(data.shapes, instream, outstream);
                 if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
                 instream.close();
@@ -62,7 +53,7 @@ namespace insur {
                 instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
                 outstream.open((outpath + xml_pixfwdfile).c_str());
                 if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
-                //writeSimpleHeader(outstream);
+                writeSimpleHeader(outstream);
                 wr.pixfwd(data.shapes, instream, outstream);
                 if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
                 instream.close();
@@ -71,11 +62,12 @@ namespace insur {
                 outstream.clear();
                 std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
             }
+
             if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
             else outstream.open((outpath + xml_trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
-            std::ifstream trackerVolumeTemplate((xmlpath + "/" + xml_trackervolumefile).c_str());
-            wr.tracker(data, outstream, trackerVolumeTemplate, wt);
+            writeExtendedHeader(outstream);
+            wr.tracker(data, outstream, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
@@ -85,7 +77,7 @@ namespace insur {
             else instream.open((xmlpath + "/" + xml_topologyfile).c_str());
             outstream.open((outpath + xml_topologyfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
-            //writeSimpleHeader(outstream);
+            writeSimpleHeader(outstream);
             wr.topology(data.specs, instream, outstream);
             if (outstream.fail()) throw std::runtime_error("Error writing to topology file.");
             instream.close();
@@ -97,7 +89,7 @@ namespace insur {
             instream.open((xmlpath + "/" + xml_prodcutsfile).c_str());
             outstream.open((outpath + xml_prodcutsfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
-            //writeSimpleHeader(outstream);
+            writeSimpleHeader(outstream);
             wr.prodcuts(data.specs, instream, outstream);
             if (outstream.fail()) throw std::runtime_error("Error writing to prodcuts file.");
             instream.close();
@@ -109,7 +101,7 @@ namespace insur {
             instream.open((xmlpath + "/" + xml_trackersensfile).c_str());
             outstream.open((outpath + xml_trackersensfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
-            //writeSimpleHeader(outstream);
+            writeSimpleHeader(outstream);
             wr.trackersens(data.specs, instream, outstream);
             if (outstream.fail()) throw std::runtime_error("Error writing trackersens to file.");
             instream.close();
@@ -122,7 +114,7 @@ namespace insur {
             else instream.open((xmlpath + "/" + xml_recomatfile).c_str());
             outstream.open((outpath + xml_recomatfile).c_str());
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
-            //writeSimpleHeader(outstream);
+            writeSimpleHeader(outstream);
             wr.recomaterial(data.specs, data.lrilength, instream, outstream, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing recomaterial to file.");
             instream.close();
@@ -223,27 +215,27 @@ namespace insur {
 
     void tk2CMSSW::writeSimpleHeader(std::ostream& os) {
       os << "<!--" << std::endl;
-      os << "============= GENERATION METADATA HEADER =============" << std::endl;
-      os << "tkLayout revision: " << SvnRevision::revisionNumber << std::endl;
+      os << "============= GENERATION META HEADER =============" << std::endl;
+      os << "tkLayout revision: " << REVISIONNUMBER << std::endl;
       os << "generated by: " << fullUserName() << std::endl;
       os << "generation date: " << currentDateTime() << std::endl;
       os << "note: see tracker.xml for full config files" << std::endl;
-      os << "=========== END GENERATION METADATA HEADER ===========" << std::endl;
+      os << "==================================================" << std::endl;
       os << "-->" << std::endl;
     }
 
     void tk2CMSSW::writeExtendedHeader(std::ostream& os) {
       os << "<!--" << std::endl;
-      os << "============= GENERATION METADATA HEADER =============" << std::endl;
-      os << "tkLayout revision: " << SvnRevision::revisionNumber << std::endl;
+      os << "============= GENERATION META HEADER =============" << std::endl;
+      os << "tkLayout revision: " << REVISIONNUMBER << std::endl;
       os << "generated by: " << fullUserName() << std::endl;
       os << "generation date: " << currentDateTime() << std::endl;
-      for (std::vector<ConfigFile>::const_iterator it = getConfigFiles().begin(); it != getConfigFiles().end(); ++it) {
+      for (std::vector<configParser::ConfigFile>::const_iterator it = confParser.getConfigFiles().begin(); it != confParser.getConfigFiles().end(); ++it) {
         os << std::endl << std::endl;
         os << "CONFIG FILE: " << it->name << std::endl;
         os << it->content << std::endl; 
       }
-      os << "=========== END GENERATION METADATA HEADER ===========" << std::endl;
+      os << "==================================================" << std::endl;
       os << "-->" << std::endl;
     }
 
@@ -259,10 +251,10 @@ namespace insur {
 
     std::string tk2CMSSW::fullUserName() const {
       struct passwd* pwd = getpwuid(getuid());
-      char hn[256];
-      hn[255] = 0;
-      gethostname(hn, 255); // if hostname is too long it gets truncated and the string might or might not contain a terminating null byte, therefore we force the last char to be null by construction
-      return std::string(pwd->pw_gecos) + " (" + pwd->pw_name + " on " + hn + ")";
+      char hn[31];
+      hn[30] = 0;
+      gethostname(hn, 30); // if hostname is too long it gets truncated and the string might or might not contain a terminating null byte, therefore we force the last char to be null by construction
+      return std::string(pwd->pw_gecos) + " (" + pwd->pw_name + "@" + hn + ")";
     }
     
 }

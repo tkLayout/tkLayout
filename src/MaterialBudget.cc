@@ -5,42 +5,52 @@
 
 #include <MaterialBudget.h>
 namespace insur {
-  /**
-   * The constructor registers a tracker and a collection of inactive surfaces with the material budget before 
-   * creating a module cap object for each active module found in the tracker.
-   */
-  MaterialBudget::MaterialBudget(Tracker& tr, InactiveSurfaces& is) {
-    tracker = &tr;
-    inactive = &is;
-
-    class CapsVisitor : public GeometryVisitor {
-      typedef std::vector<std::vector<ModuleCap>> Caps;
-      Caps &capsbarrelmods_, &capsendmods_;
-    public:
-      CapsVisitor(Caps& capsbarrelmods, Caps& capsendmods) : capsbarrelmods_(capsbarrelmods), capsendmods_(capsendmods) {}
-      void visit(Layer&) { capsbarrelmods_.push_back(std::vector<ModuleCap>()); }
-      void visit(BarrelModule& m) {
-        ModuleCap* cap = new ModuleCap(m);
-        cap->setCategory(MaterialProperties::b_mod);
-        capsbarrelmods_.back().push_back(*cap); 
-        m.setModuleCap(& (capsbarrelmods_.back().back()));
-      }
-      void visit(Disk&) { capsendmods_.push_back(std::vector<ModuleCap>()); }
-      void visit(EndcapModule& m) {
-        ModuleCap* cap = new ModuleCap(m);
-        cap->setCategory(MaterialProperties::e_mod);
-        capsendmods_.back().push_back(*cap);
-        m.setModuleCap(& (capsendmods_.back().back()));
-      }
-    };
-
-    CapsVisitor v(capsbarrelmods, capsendmods);
-    tr.accept(v);
-  }
-
-  /**
-   * Nothing to do for the destructor...
-   */
+    /**
+     * The constructor registers a tracker and a collection of inactive surfaces with the material budget before 
+     * creating a module cap object for each active module found in the tracker.
+     */
+    MaterialBudget::MaterialBudget(Tracker& tr, InactiveSurfaces& is) {
+        tracker = &tr;
+        inactive = &is;
+        std::vector<Layer*>::const_iterator liter = tracker->getBarrelLayers()->begin();
+        std::vector<Layer*>::const_iterator lend = tracker->getBarrelLayers()->end();
+        std::vector<Module*>::const_iterator miter;
+        std::vector<Module*>::const_iterator mend;
+        // create module caps for barrel layers
+        while (liter != lend) {
+            std::vector<ModuleCap> tmp;
+            capsbarrelmods.push_back(tmp);
+            miter = (*liter)->getModuleVector()->begin();
+            mend = (*liter)->getModuleVector()->end();
+            while (miter != mend) {
+                ModuleCap cap(*(*miter));
+                cap.setCategory(MaterialProperties::b_mod);
+                capsbarrelmods.back().push_back(cap);
+                miter++;
+            }
+            liter++;
+        }
+        // create module caps for endcap layers
+        liter = tracker->getEndcapLayers()->begin();
+        lend = tracker->getEndcapLayers()->end();
+        while (liter != lend) {
+            std::vector<ModuleCap> tmp;
+            capsendmods.push_back(tmp);
+            miter = (*liter)->getModuleVector()->begin();
+            mend = (*liter)->getModuleVector()->end();
+            while (miter != mend) {
+                ModuleCap cap(*(*miter));
+                cap.setCategory(MaterialProperties::e_mod);
+                capsendmods.back().push_back(cap);
+                miter++;
+            }
+            liter++;
+        }
+    }
+    
+    /**
+     * Nothing to do for the destructor...
+     */
     MaterialBudget::~MaterialBudget() {}
     
     /**
@@ -124,9 +134,13 @@ namespace insur {
             else if (inactive->getSupportPart(i).getCategory() == MaterialProperties::o_sup) o++;
             else x++;
         }
+        for (unsigned int i = 0; i < tracker->getBarrelLayers()->size(); i++) c = c + tracker->getBarrelLayers()->at(i)->getModuleVector()->size();
         for (unsigned int i = 0; i < capsbarrelmods.size(); i++) d = d + capsbarrelmods.at(i).size();
+        for (unsigned int i = 0; i < tracker->getEndcapLayers()->size(); i++) e = e + tracker->getEndcapLayers()->at(i)->getModuleVector()->size();
         for (unsigned int i = 0; i < capsendmods.size(); i++) f = f + capsendmods.at(i).size();
+        std::cout << "Tracker: " << c << " barrel modules in " << tracker->getBarrelLayers()->size() << " layers." << std::endl;
         std::cout << "MaterialBudget: " << d << " barrel modcaps in " << capsbarrelmods.size() << " vectors." << std::endl;
+        std::cout << "Tracker: " << e << " endcap modules in " << tracker->getEndcapLayers()->size() << " discs." << std::endl;
         std::cout << "MaterialBudget: " << f << " endcap modcaps in " << capsendmods.size() << " vectors." << std::endl;
         std::cout << "InactiveSurfaces: " << inactive->getBarrelServices().size() << " barrel services and ";
         std::cout << inactive->getEndcapServices().size() << " endcap services." << std::endl;
@@ -362,9 +376,8 @@ namespace insur {
         int ring = 0, index = 0;
         if ((layer >= 0) && (layer < (int)source.size())) {
             for (unsigned int mod = 0; mod < source.at(layer).size(); mod++) {
-                int myring = source.at(layer).at(mod).getModule().as<BarrelModule>()->ring();
-                if (myring > ring) {
-                    ring = myring; 
+                if (source.at(layer).at(mod).getModule().getRing() > ring) {
+                    ring = source.at(layer).at(mod).getModule().getRing();
                     index = mod;
                 }
             }

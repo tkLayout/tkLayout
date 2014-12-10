@@ -35,16 +35,12 @@
 #include <TGraphErrors.h>
 #include <TPaletteAxis.h>
 #include <TProfile.h>
-#include <TPolyLine3D.h>
 #include <TArc.h>
 // Program constants
 #include <global_constants.h>
 // Custom objects
-#include <SimParms.h>
-#include <Tracker.h>
+#include <tracker.hh>
 #include <Analyzer.h>
-#include <TagMaker.h>
-
 #include <InactiveSurfaces.h>
 #include <rootweb.hh>
 #include <vector>
@@ -94,7 +90,7 @@ namespace insur {
   static const unsigned int padEC = 4;
 
   // Formatting parameters
-  static const int coordPrecision = 3;
+  static const int coordPrecision = 0;
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
@@ -103,12 +99,17 @@ namespace insur {
   static const int millionChannelPrecision = 2;
   static const int totalPowerPrecision = 2;
   static const int modulePowerPrecision = 0;
-  static const int powerPrecision = 1;
   static const int costPrecision  = 1;
   static const int powerPerUnitPrecision = 2;
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
   static const int weightPrecision = 0;
+
+  // Plot range parameters
+  static const double triggerEtaMin = 0;
+  static const double triggerEtaMax = 3;
+  static const double triggerEfficiencyMin = 1e-4;
+  static const double triggerEfficiencyMax = 1;
 
   class graphIndex {
   public:
@@ -153,24 +154,24 @@ namespace insur {
     void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
     void dotGraph(InactiveSurfaces& is, std::string outfile); // temporary, does nothing yet
+    void histogramSummary(Analyzer& a, std::string outfilename);
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
     void histogramSummary(Analyzer& a, RootWSite& site);
     void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
-    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+    bool geometrySummary(Analyzer& a, Tracker& tracker, RootWSite& site, std::string alternativeName = "");
+    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool taggedErrorSummary(Analyzer& a, RootWSite& site);
-    bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
+    bool triggerSummary(Analyzer& a, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
-    bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
+    bool additionalInfoSite(const std::string& geomfile, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
-                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+                            Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
@@ -194,7 +195,6 @@ namespace insur {
     TGeoMaterial* matserf;
     TGeoMaterial* matlazy;
   private:
-    TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
     bool geometry_created;
     std::string commandLine_;
     int detailedModules(std::vector<Layer*>* layers,
@@ -211,40 +211,25 @@ namespace insur {
                       double etaStep, double etaMax, double etaLongLine);
     void drawTicks(Analyzer& a, TView* myView, double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
     void drawGrid(double maxL, double maxR, int noAxis=1, double spacing = 100., Option_t* option = "same"); // shold become obsolete
-    bool drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles, bool total=true); // generic business logic called by hit or stub version with appropriate parameters
-    bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer); // for hits
-    bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer); // for hits
-    bool drawEtaProfilesSensors(TCanvas& myCanvas, Analyzer& analyzer, bool total=true);
-    bool drawEtaProfilesSensors(TVirtualPad& myPad, Analyzer& analyzer, bool total=true);
-    bool drawEtaProfilesStubs(TCanvas& myCanvas, Analyzer& analyzer);
-    bool drawEtaProfilesStubs(TVirtualPad& myPad, Analyzer& analyzer);
-    bool drawEtaCoverageAny(RootWPage& myPage, std::map<std::string, TProfile>& layerEtaCoverage, const std::string& type); // generic business logic called by hit or stub version
-    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer); // for hits
-    bool drawEtaCoverageStubs(RootWPage& myPage, Analyzer& analyzer);
+    bool drawEtaProfiles(TCanvas& myCanvas, Analyzer& analyzer);
+    bool drawEtaProfiles(TVirtualPad& myPad, Analyzer& analyzer);
+    bool drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer);
     int momentumColor(int iMomentum);
     void closeGraph(TGraph& myGraph);
 
-    double getDrawAreaZ(const Tracker& tracker) const { return tracker.maxZ()*1.1; }
-    double getDrawAreaR(const Tracker& tracker) const { return tracker.maxR()*1.1; }
-    double getDrawAreaX(const Tracker& tracker) const { return tracker.maxR()*1.1; }
-    double getDrawAreaY(const Tracker& tracker) const { return tracker.maxR()*1.1; }
+    double getDrawAreaZ(const Tracker& tracker) const { return tracker.getMaxL()*1.1; }
+    double getDrawAreaR(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaX(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
+    double getDrawAreaY(const Tracker& tracker) const { return tracker.getMaxR()*1.1; }
 
     void fillPlotMap(std::string& plotName, 
                      std::map<graphIndex, TGraph*>& myPlotMap,
                      Analyzer *a,
-                     std::map<int, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
-    
-    void fillTaggedPlotMap(GraphBag& gb,
-                           const string& plotName,
-                           int graphType,
-                           const string& tag,
-                           std::map<graphIndex, TGraph*>& myPlotMap);
+                     std::map<double, TGraph>& (Analyzer::*retriveFunction)(bool, bool), bool isTrigger);
     std::string summaryCsv_;
     std::string summaryCsvLabels_;
     std::string occupancyCsv_;
     std::string triggerSectorMapCsv_;
-    std::string moduleConnectionsCsv_;
-    std::string barrelModulesCsv_, endcapModulesCsv_, allModulesCsv_;
     void setSummaryString(std::string);
     void addSummaryElement(std::string element, bool first = false);
     void setSummaryLabelString(std::string);
@@ -257,18 +242,14 @@ namespace insur {
     void addOccupancyEOL();
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
-    void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
-    void createBarrelModulesCsv(const Tracker& t);
-    void createEndcapModulesCsv(const Tracker& t);
-    void createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
     // int getNiceColor(unsigned int plotIndex);
+
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();
 
-    void drawCircle(double radius, bool full, int color=kBlack);
   };
 
 

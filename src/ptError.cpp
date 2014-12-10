@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <ptError.h>
+#include <module.hh>
 #include <global_constants.h>
 
 using namespace std;
@@ -10,6 +11,9 @@ using namespace std;
 double ptError::IP_length = 70;     // mm
 double ptError::B = insur::magnetic_field; // T
 
+double ptError::minimumPt = 0.3;
+double ptError::maximumPt = 30;
+
 void ptError::defaultParameters() {
   Module_pitch = defaultModulePitch;
   Module_strip_l = defaultStripLength;
@@ -17,12 +21,80 @@ void ptError::defaultParameters() {
   Module_r = defaultModuleR;
   Module_d = defaultModuleD;
   Module_h = defaultModuleHeight;
-  zCorrelation = defaultZCorrelation;
-  moduleType = ModuleSubdetector::BARREL; // Barrel is the default moduleType 
-  endcapType = ModuleShape::RECTANGULAR; // Barrel is the default moduleType 
+  inefficiencyType = defaultInefficiencyType;
+  moduleType = Module::Barrel; // Barrel is the default moduleType 
+  endcapType = Module::Rectangular; // Barrel is the default moduleType 
 }
 
-double ptError::computeErrorBE(double p) {
+double ptError::geometricEfficiency() {
+  double inefficiency;
+  switch ( moduleType ) {
+  case Module::Barrel:
+    inefficiency = Module_d * Module_z / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_r ;
+    break;
+  case Module::Endcap:
+    inefficiency = Module_d * Module_r / (inefficiencyType==StripWise ? Module_strip_l : Module_h) / Module_z ;
+    break;
+  default:
+    // This should never happen
+    inefficiency = 0;
+    std::cerr << "Error: in TODO:addFunctionNameHere"
+              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
+  }
+  return (1-inefficiency);
+}
+
+double ptError::stripsToP(double strips) {
+  double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
+  double p;
+  double x;
+  double effective_d;
+
+  switch ( moduleType ) {
+  case Module::Barrel:
+    effective_d = Module_d;
+    break;
+  case Module::Endcap:
+    effective_d = Module_d * Module_r / Module_z;
+    break;
+  default:
+    // This should never happen
+    strips = 0;
+    effective_d = 0;
+    std::cerr << "Error: in TODO:addFunctionNameHere"
+              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
+  }
+
+  x = strips * Module_pitch;
+  p = A * sqrt( pow(effective_d/x,2) + 1 );
+  return p;
+}
+
+double ptError::pToStrips(double p) {
+  double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
+  double a = pow(p/A,2);
+  double strips;
+
+  switch ( moduleType ) {
+  case Module::Barrel:
+    strips = Module_d / sqrt(a-1);
+    break;
+  case Module::Endcap:
+    strips = Module_d / sqrt(a-1) * (Module_r / Module_z);
+    break;
+  default:
+    // This should never happen
+    strips = 0;
+    std::cerr << "Error: in TODO:addFunctionNameHere"
+              << "I just found a module which is neither Barrel nor Endcap" << std::endl;
+  }
+
+  strips /= Module_pitch;
+  return strips;
+} 
+
+
+double ptError::computeError(double p) {
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double g = 1/a;
@@ -74,28 +146,19 @@ double ptError::computeErrorBE(double p) {
   }
 
   switch ( moduleType ) {
-  case BARREL:
+  case Module::Barrel:
     relativeError2 = f1_sq * pow(Module_pitch / Module_d, 2) / 6;
     if (material.radiation!=0) relativeError2 += f2_sq * pow( deltaPhi ,2);
     //#ifdef ADD_ERR
     //relativeError = f1 * sqrt(2*pow(Module_pitch,2)+pow(Module_strip_l*0.01,2)) /sqrt(12) / Module_d;
     //#endif
     break;
-  case ENDCAP:
-      {
-//        static std::ofstream ofs("pterr.txt");
-//        ofs << Module_z << "\t" << Module_r << "\t" << Module_d << "\t" << Module_ed << "\t" << Module_d*Module_r/Module_z << "...\t"; 
+  case Module::Endcap:
     relativeError2 = f1_sq * pow(Module_pitch / (Module_d * Module_r / Module_z),2) / 6; // * 1/tg(theta)
-//        ofs << relativeError2 << "\t";
     relativeError2 += f2_sq * pow( deltaPhi ,2);
-//        ofs << relativeError2 << "\t";
     relativeError2 += pow( f3 * Module_strip_l / Module_r ,2) / 12;
-//        ofs << relativeError2 << "\t";
     relativeError2 += pow( f4 * IP_length / Module_z ,2);
-//        ofs << relativeError2 << "\t";
     if (material.radiation!=0) relativeError2 += pow( f5 * deltaTheta, 2);
-//        ofs << relativeError2 << std::endl;
-      }
     break;
   default:
     // This should never happen
@@ -105,18 +168,6 @@ double ptError::computeErrorBE(double p) {
   }
 
   return sqrt(relativeError2);
-}
-
-double ptError::computeError(double p) { // CUIDADO TODO this should be refactored (remove type checks!), but we have to refit the new occupancy data first
-  if (moduleType == BARREL && fabs(Module_tilt) > 1e-3) {
-    double errB = computeErrorBE(p);
-    moduleType = ENDCAP;
-    double errE = computeErrorBE(p);
-    moduleType = BARREL;
-    return errB*pow(cos(Module_tilt),2) + errE*pow(sin(Module_tilt),2);
-  } else {
-    return computeErrorBE(p);
-  }
 }
 
 double ptError::oneSidedGaussInt(double x) {
@@ -138,5 +189,46 @@ double ptError::probabilityInside(double cut, double value, double value_err) {
 }
 
 /* */
+double ptError::find_probability(double target, double ptCut) {
+
+  double lowerPt = minimumPt;
+  double higherPt = maximumPt;
+
+  double lowerProbability =  geometricEfficiency() * probabilityInside(1/ptCut, 1/lowerPt, computeError(lowerPt)/lowerPt);
+  double higerProbability =  geometricEfficiency() * probabilityInside(1/ptCut, 1/higherPt, computeError(higherPt)/higherPt);
+
+  double testPt;
+  double testProbability;
+
+  //std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
+  //std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
+
+  if ((target<lowerProbability)||(target>higerProbability)) return -1; // probability not reachable within desired pt range
+
+  for (int i=0; i<100; ++i) {
+    //std::cerr << std::endl;
+    //std::cerr << std::endl;
+    //std::cerr << std::endl;
+    //std::cerr << "****** STEP # " << i << "*********" << std::endl;
+    testPt = sqrt(lowerPt*higherPt);
+    testProbability = geometricEfficiency() * probabilityInside(1/ptCut, 1/testPt, computeError(testPt)/testPt);
+    //std::cerr << "Geometric efficiency is " << geometricEfficiency() << std::endl;
+    //std::cerr << "LO: prob("<<lowerPt<<") = " << lowerProbability << std::endl;
+    //std::cerr << "HI: prob("<<higherPt<<") = " << higerProbability << std::endl;
+    //std::cerr << "XX: prob("<<testPt<<") = " << testProbability << std::endl;
+
+    if (testProbability>target) {
+      higherPt = testPt;
+      // higerProbability = testProbability; // debug
+    } else {
+      lowerPt = testPt;
+      // lowerProbability = testProbability; // debug
+    }
+
+    if (fabs(testProbability-target)<1E-5) return (testPt);
+  }
+
+  return -1; // could not converge
+}
 
 

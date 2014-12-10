@@ -1,9 +1,6 @@
 #ifndef _ROOTWEB_HH_
 #define _ROOTWEB_HH_
 
-#define BOOST_NO_CXX11_SCOPED_ENUMS
-#define BOOST_NO_CXX11_SCOPED_ENUM
-
 #include <boost/filesystem/exception.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
@@ -19,7 +16,6 @@
 #include <vector>
 #include <TColor.h>
 #include <TROOT.h>
-#include "global_funcs.h"
 
 using namespace std;
 
@@ -132,7 +128,7 @@ private:
   RootWImageSize makeSizeCode(int sw, int sh, int lw, int lh);
   vector<string> fileTypeV_;
 
-  static constexpr double thumb_compression_ = 2.;
+  static const double thumb_compression_ = 2.;
   string allowedExtensions_; // Will be initialized in the constructor
   void setDefaultExtensions();
 
@@ -156,24 +152,6 @@ public:
   string getDescription() { return description_ ; };
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   bool isFile() {return true;};
-};
-
-class RootWFileList : public RootWItem {
-protected:
-  std::list<string> fileNames_;
-  string description_;
-  string targetDirectory_;
-public:
-  RootWFileList() {};
-  template<class I> RootWFileList(I begin, I end) { addFileNames(begin, end); }
-  template<class I> RootWFileList(I begin, I end, const string& description) : description_(description) { addFileNames(begin, end); }
-  void addFileName(string newFileName) { fileNames_.push_back(newFileName); }
-  template<class I> void addFileNames(I begin, I end) { fileNames_.insert(fileNames_.end(), begin, end); }
-  void setDescription(string newDescription) { description_ = newDescription; }
-  const std::list<string>& getFileNames() const { return fileNames_; }
-  string getDescription() { return description_; }
-  void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; }
-  bool isFile() {return true;}
 };
 
 class RootWTextFile : public RootWFile {
@@ -202,22 +180,6 @@ public:
   void setOriginalFile(string newFile) {originalFileName_ = newFile ; };
   ostream& dump(ostream& output);
 };
-
-class RootWBinaryFileList : public RootWFileList {
-private:
-  std::list<string> originalFileNames_;
-public:
-  RootWBinaryFileList() {};
-  ~RootWBinaryFileList() {};
-  template<class I> RootWBinaryFileList(I begin, I end) : RootWFileList(begin, end) {}
-  template<class I> RootWBinaryFileList(I begin, I end, string newDescription) : RootWFileList(begin, end, newDescription) {}
-  template<class I, class J> RootWBinaryFileList(I beginDestNames, I endDestNames, string newDescription, J beginOrigNames, J endOrigNames) : RootWFileList(beginDestNames, endDestNames, newDescription) { 
-    setOriginalFiles(beginOrigNames, endOrigNames); 
-  }
-  template<class I> void setOriginalFiles(I begin, I end) { originalFileNames_.insert(originalFileNames_.end(), begin, end); }
-  ostream& dump(ostream& output);
-};
-
 
 class RootWContent {
 public:

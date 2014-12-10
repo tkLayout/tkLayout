@@ -8,16 +8,14 @@
 
 #include <TPolyLine.h>
 #include <TPaletteAxis.h>
-#include <TList.h>
 #include <TH2D.h>
-#include <TH2C.h>
 #include <TText.h>
 #include <TLatex.h>
 #include <TLine.h>
 #include <TCanvas.h>
 
-#include <Palette.h>
-#include <Module.h>
+#include <module.hh>
+#include <layer.hh>
 
 
 
@@ -25,8 +23,9 @@
 
 // ========================================================================================
 // Here be STATISTICS
-// If possible, additional statistics should be local to the plot drawer instantiation
+// To be extended at will!
 // ========================================================================================
+
 
 class NoStat {
   double value_;
@@ -76,7 +75,7 @@ public:
 
 // ==============================================================================================
 // Here be VALUEGETTERS
-// If possible, additional value getters should be local to the plot drawer instantiation
+// To be extended at will!
 // ==============================================================================================
 
 
@@ -85,26 +84,39 @@ struct Method {
   double operator()(const Module& m) const { return (double)(m.*ModuleMethod)(); }
 };
 
+struct Property {
+  const char* name;
+  Property(const char* nameString) : name(nameString) {}
+  double operator()(const Module& m) const { return m.getProperty(name); }
+};
 
+struct PropertyPerSensor {
+  const char* name;
+  PropertyPerSensor(const char* nameString) : name(nameString) {}
+  double operator()(const Module& m) const { return m.getProperty(name)/m.getNFaces(); }
+};
 
-struct TypeAutoColor { // Auto-assign colors
-  std::set<std::string> colorSet_;
+struct TotalIrradiatedPower {
   double operator()(const Module& m) { 
-    std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
-    return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
+    double chipPower = m.getModuleType()->getPower(m.getNChannels());
+    return m.getIrradiatedPowerConsumption()+chipPower;
   }
 };
 
-
-struct Type { // Module-maintained color
+struct TotalIrradiatedPowerPerSensor {
   double operator()(const Module& m) { 
-    return Palette::color(m.plotColor());
+    double chipPower = m.getModuleType()->getPower(m.getNChannels());
+    return (m.getIrradiatedPowerConsumption()+chipPower)/m.getNFaces();
   }
+};
+
+struct Type {
+  double operator()(const Module& m) { return m.getColor(); }
 };
 
 
 struct CoordZ {
-  double operator()(const Module& m) { return m.center().Z(); }
+  double operator()(const Module& m) { return m.getMeanPoint().Z(); }
 };
 
 
@@ -112,7 +124,7 @@ struct CoordZ {
 
 // =============================================================================================
 // Here be DRAWSTYLES 
-// If possible, additional draw styles should be local to the plot drawer instantiation
+// To be extended at will!
 // =============================================================================================
 
 class DrawerPalette {
@@ -146,9 +158,6 @@ struct FillStyle {
   }
 };
 
-extern int
-g;
-
 class ContourStyle {
   const int lineWidth_;
 public:
@@ -163,19 +172,24 @@ public:
 
 // ===============================================================================================
 // Here be VALIDATORS 
-// If possible, additional module validators should be local to the plot drawer instantiation
+// Extend at will!
 // ===============================================================================================
 
 
 
 template<const int SubdetType>
 struct CheckType {
-  bool operator()(const Module& m) const { return m.subdet() & SubdetType; }
+  bool operator()(const Module& m) const { return m.getSubdetectorType() & SubdetType; }
+};
+
+template<const int Section>
+struct CheckSection {
+  bool operator()(const Module& m) const { return m.getSection() & Section; } 
 };
 
 template<const int PhiIndex>
 struct CheckPhiIndex {
-  bool operator()(const Module& m) const { return m.posRef().phi == PhiIndex; }
+  bool operator()(const Module& m) const { return m.getPhiIndex() == PhiIndex; }
 };
 
 // ===============================================================================================
@@ -190,9 +204,11 @@ struct Rounder {
   int round(double x) { return floor(x*mmFraction+0.5)/mmFraction; }
 };
 
+
+
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  XY(const Module& m) : std::pair<int, int>(round(m.getMeanPoint().X()), round(m.getMeanPoint().Y())), valid(m.getMeanPoint().Z() >= 0) {}
   XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
@@ -202,12 +218,13 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
-  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+  YZ(const Module& m) : std::pair<int,int>(round(m.getMeanPoint().Z()), round(m.getMeanPoint().Rho())), valid(m.getMeanPoint().Z() >= 0) {}
   YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
   int z() const { return this->first; }
 };
+
 
 struct YZFull : public YZ {
   const bool valid;
@@ -215,10 +232,9 @@ struct YZFull : public YZ {
   YZFull(const XYZVector& v) : YZ(v), valid(true) {}
 };
 
-TPolyLine* drawMod();
 
 template<class CoordType> class LineGetter {
-  typedef typename CoordType::first_type CoordTypeX; 
+  typedef typename CoordType::first_type CoordTypeX;  // C++ syntax is bewildering sometimes (to say the least)
   typedef typename CoordType::first_type CoordTypeY;
   CoordTypeX maxx_, minx_;
   CoordTypeY maxy_, miny_;
@@ -233,7 +249,7 @@ public:
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
     int j=0;
     for (int i=0; i<4; i++) {
-      CoordType c(m.basePoly().getVertex(i));
+      CoordType c(m.getCorner(i));
       if (xy.insert(c).second == true) {
         x[j] = c.first;
         y[j++] = c.second;
@@ -247,7 +263,7 @@ public:
       x[j] = x[0]; 
       y[j++] = y[0];
     }
-    return !g ? new TPolyLine(j, x, y) : drawMod();
+    return new TPolyLine(j, x, y);
   }
 };
 
@@ -270,15 +286,13 @@ public:
     sid << nextId();
     return sid.str(); 
   }
-protected:
-  static const int nBinsZoom;
 };
 
 
 
 template<class CoordType> class FrameGetter : private IdMaker {
 public:
-  TH2C* operator()(double viewportX, double viewportY) const;
+  TH2D* operator()(double viewportX, double viewportY) const;
 };
 
 
@@ -287,13 +301,14 @@ template<class CoordType> class SummaryFrameStyle {
   void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
 public:
-  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette&) const;
+  void operator()(TH2D& frame, TCanvas& canvas, DrawerPalette&) const;
 
 };
 
+
 template<class CoordType>
 struct HistogramFrameStyle {
-  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette) const {
+  void operator()(TH2D& frame, TCanvas& canvas, DrawerPalette& palette) const {
     frame.Fill(1,1,0);
     frame.SetMaximum(palette.getMaxValue());
     frame.SetMinimum(palette.getMinValue());
@@ -313,28 +328,8 @@ struct HistogramFrameStyle {
 
 
 
-/// PlotDrawer is the class drawing module plots on user-supplied canvas. Alas, not visitor-enabled, since it was written before the new visitable geometry was conceived
-/// Usage:
-/// 1) Construct a PlotDrawer object: PlotDrawer<CoordType, ValueGetterType, StatType> drawer(viewportMaxX, viewportMaxY, valueGetter);
-///    - CoordType is the coordinate class: XY, YZ or YZFull (for Z- and Z+ sections together)
-///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a Module& and returning a double can be used here. 
-///      Some ValueGetters are pre-defined. In case of user-defined ValueGetters, if possible use lambda or classes local to the instantiation of your PlotDrawer to avoid polluting this header with additional declarations
-///    - StatType is the type of statistic to do on the module values obtained with the ValueGetters, in case two modules occupy the same map bin.
-///      Default is NoStat, where values overwrite each other and the last one counts. Average, Max, Min, Sum are also available and custom statistics can be defined by the user.
-///    - viewportMaxX, viewportMaxY specify the size of the viewport on the canvas. If set to 0, the viewport is automatically calculated to include all the modules. Default is 0 for both.
-///    - valueGetter is an instance of a ValueGetterType that can be used by the user to pass a custom valueGetter. Default is valueGetter().
-/// 2) Add modules to the internal maps, using either:
-///    - void addModulesType(begin, end, moduleTypes); where the last argument moduleTypes can be the constants BARREL, ENDCAP or BARREL | ENDCAP, to restrict to one subdetector or both
-///    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type. 
-///      A ModuleValidator is a lambda or functor taking a const Module& and returning a bool, used to decide whether a module should be included or not in the plot
-/// 3) Draw the plot frame: void drawFrame<FrameStyleType>(canvas, frameStyle)
-///   - FrameStyleType is the type of frame to draw. The predefined classes are SummaryFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
-///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
-///   - frameStyle is the instance of a FrameStyleType class, which can be used in case of custom frame styles. Default is FrameStyleType<CoordType>()
-/// 4) Draw the modules: void drawModules<DrawStyleType>(canvas, drawStyle)
-///   - DrawStyleType is the style of module drawing. The predefined classes are ContourStyle (which only draws the contours of modules) and FillStyle (which draws solid modules).
-///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
-///   - drawStyle is the instance of a DrawStyleType class, which can be used in case of custom draw styles. Default is DrawStyleType<CoordType>()
+
+
 
 template<class CoordType, class ValueGetterType, class StatType = NoStat >
 class PlotDrawer {
@@ -360,8 +355,11 @@ public:
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
-  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
-  template<class ModuleValidator, class InputIterator> void addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid = ModuleValidator());
+
+  void addModulesType(const std::vector<Layer*>& layers, int moduleTypes = Module::Barrel | Module::Endcap); // moduleTypes takes the type of modules to be added as an OR list. Check the possible values in module.hh
+  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = Module::Barrel | Module::Endcap);
+  template<class ModuleValidator> void addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid = ModuleValidator());
+  template<class InputIterator, class ModuleValidator> void addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid);
 
 };
 
@@ -390,7 +388,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   canvas.cd();
   viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
   viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
-  TH2C* frame = getFrame(viewportMaxX_, viewportMaxY_);
+  TH2D* frame = getFrame(viewportMaxX_, viewportMaxY_);
   frameStyle(*frame, canvas, palette_);
 }
 
@@ -410,7 +408,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canv
 template<class CoordType, class ValueGetterType, class StatType>
 void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
   CoordType c(m);
-  if (!c.valid) return;
+  if (!c.valid) return;  // for XY and YZ plots negative Z modules are not needed and are therefore filtered out, YZFull plots on the other hand retain all the modules (CUIDADO I don't actually like the way this works)
   if (bins_[c] == NULL) {
     bins_[c] = new StatType();
     lines_[c] = getLine(m);
@@ -420,17 +418,40 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(const std::vector<Layer*>& layers, int moduleTypes) {
+  for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
+    std::vector<Module*>* layerModules = (*it)->getModuleVector();
+    for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+      //if ((*modIt)->getMeanPoint().Z()<0) continue;
+      int subDet = (*modIt)->getSubdetectorType();
+      if (subDet & moduleTypes) add(**modIt);
+    }
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
 template<class InputIterator>
 void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
   for (InputIterator it = begin; it != end; ++it) {
-      int subDet = (*it)->subdet();
+      int subDet = (*it)->getSubdetectorType();
       if (subDet & moduleTypes) add(**it);
   }
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-template<class ModuleValidator, class InputIterator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid) {
+template<class ModuleValidator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModules(const std::vector<Layer*>& layers, const ModuleValidator& isValid) {
+  for (std::vector<Layer*>::const_iterator it = layers.begin(); it != layers.end(); ++it) {
+    std::vector<Module*>* layerModules = (*it)->getModuleVector();
+    for (std::vector<Module*>::const_iterator modIt=layerModules->begin(); modIt!=layerModules->end(); ++modIt) {
+      if (/*(*modIt)->getMeanPoint().Z()>0 &&*/ isValid(**modIt)) add(**modIt);
+    }
+  }
+}
+
+template<class CoordType, class ValueGetterType, class StatType>
+template<class InputIterator, class ModuleValidator>
+void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, const ModuleValidator& isValid) {
   for (InputIterator it = begin; it != end; ++it) {
       if (isValid(**it)) add(**it);
   }

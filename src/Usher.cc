@@ -17,11 +17,11 @@ namespace insur {
      * @param printstatus A flag that turns the command line summary at the end of processing on or off
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus) {
+    InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
-        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, supports);
-        else is = arrangeDown(tintrep, is, outer_radius, supports);
+        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, geomfile);
+        else is = arrangeDown(tintrep, is, outer_radius, geomfile);
         is = mirror(tintrep, is);
         if (printstatus) print(tintrep, is, false);
         return is;
@@ -41,8 +41,8 @@ namespace insur {
         TrackerIntRep pintrep;
         startTaskClock("Arranging Pixel configuration");
         is.setUp(pintrep.analyze(pixels));
-        if (!pixels.skipAllServices()) is = servicesUp(pintrep, is, inner_radius, true);
-        if (!pixels.skipAllSupports()) is = supportsAll(pintrep, is, inner_radius, std::list<Support*>(), true);
+        is = servicesUp(pintrep, is, inner_radius, true);
+        is = supportsAll(pintrep, is, inner_radius, "", true);
         stopTaskClock();
         is = mirror(pintrep, is);
         if (printstatus) print(pintrep, is, false);
@@ -59,10 +59,10 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
+    InactiveSurfaces& Usher::arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
         startTaskClock("Arranging UP configuration");
-        if (!tracker.skipAllServices()) is = servicesUp(tracker, is, r_outer, false);
-        if (!tracker.skipAllSupports()) is = supportsAll(tracker, is, r_outer, supports, false);
+        is = servicesUp(tracker, is, r_outer, false);
+        is = supportsAll(tracker, is, r_outer, geomfile, false);
         stopTaskClock();
         return is;
     }
@@ -76,10 +76,10 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file in case there are user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports) {
+    InactiveSurfaces& Usher::arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile) {
         startTaskClock("Arranging DOWN configuration");
-        if (!tracker.skipAllServices()) is = servicesDown(tracker, is, r_outer, false);
-        if (!tracker.skipAllSupports()) is = supportsAll(tracker, is, r_outer, supports, false);
+        is = servicesDown(tracker, is, r_outer, false);
+        is = supportsAll(tracker, is, r_outer, geomfile, false);
         stopTaskClock();
         return is;
     }
@@ -227,7 +227,6 @@ namespace insur {
         else h = tracker.nOfBarrels() - tracker.nOfEndcaps();
         // cut layers
         for (int i = 0; i < h; i ++) {
-            if (!tracker.barrelHasServices(i)) continue;
             zo = tracker.zOffsetBarrel(i) + epsilon;
             zl = tracker.zOffsetBarrel(h) - zo;
             for (int j = 0; j < tracker.nOfLayers(i); j++) {
@@ -256,7 +255,6 @@ namespace insur {
             zl = volume_width;
             // barrel loop
             for (int i = h; i < tracker.nOfBarrels() - 1; i ++) {
-                if (!tracker.barrelHasServices(i)) continue;
                 zo = tracker.zOffsetBarrel(i) + epsilon;
                 // layer loop
                 for (int j = 0; j < tracker.nOfLayers(i); j++) {
@@ -300,7 +298,6 @@ namespace insur {
             rw = volume_width;
             // endcap loop
             for (int i = 0; i < tracker.nOfEndcaps(); i++) {
-                if (!tracker.endcapHasServices(i)) continue;
                 if (i < tracker.nOfEndcaps() - 1) {
                     int l = findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + 1, tracker);
                     ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * epsilon;
@@ -395,7 +392,6 @@ namespace insur {
         else zeo = findMaxBarrelZ(tracker);
         // inner barrels
         for (int i = 0; i < tracker.nOfBarrels() - 1; i++) {
-            if (!tracker.barrelHasServices(i)) continue;
             zbo = tracker.zOffsetBarrel(i) + epsilon;
             ztl = zeo - zbo;
             // layer loop
@@ -415,7 +411,6 @@ namespace insur {
         ri = r_outer - rtw - epsilon;
         // disc loop
         for (int i = 0; i < tracker.totalDiscs(); i++) {
-            if (!tracker.endcapHasServices(tracker.endcapFromDisc(i))) continue;
             if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
             else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
@@ -453,7 +448,7 @@ namespace insur {
      * @param track_all A flag indicating whether all volumes should be considered as being inside the tracking volume; true if yes, false otherwise
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports, bool track_all) {
+    InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all) {
         // outer tube
         is = addSupportTube(is, 2 * max_length, 0.0 - max_length, r_outer, volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::o_sup);
@@ -467,7 +462,7 @@ namespace insur {
         // endcaps
         is = supportsEndcaps(tracker, is, track_all);
         // rings from config file
-        is = supportsUserDefined(tracker, is, supports);
+        if (!geomfile.empty()) is = supportsUserDefined(tracker, is, geomfile);
         return is;
     }
     
@@ -488,7 +483,6 @@ namespace insur {
         om_b = tracker.nOfBarrels() - 1;
         zl = volume_width;
         // last barrel without last layer
-        if (!tracker.barrelHasServices(om_b)) return layer;
         zo = tracker.zOffsetBarrel(om_b) + epsilon;
         for (int i = 0; i < tracker.nOfLayers(om_b) - 1; i++) {
             ri = tracker.innerRadiusLayer(layer);
@@ -536,7 +530,7 @@ namespace insur {
             // no supports modelled if barrel only has one layer (or less)
             if (tracker.nOfLayers(i) > 1) {
                 zl = volume_width;
-                zo = findBarrelSupportRingZ(tracker, i); // tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
+                zo = tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + tracker.nOfLayers(i) - 1) - ri;
                 is = addSupportRing(is, zl, zo, ri, rw);
@@ -678,25 +672,29 @@ namespace insur {
      * @param geomfile The name of the tracker's geometry configuration file for the user-defined supports
      * @return A reference to the modified collection of inactive surfaces
      */
-    InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, const std::list<Support*>& extras) {
+    InactiveSurfaces& Usher::supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile) {
         std::pair<int, int> aux, stst;
         std::pair<int, double> tmp;
         double z;
         // extract list of support positions
+        configParser persian;
+        std::list<std::pair<int, double> >* extras = NULL;
+        std::list<std::pair<int, double> >::iterator iter;
+        extras = persian.parseSupportsFromFile(geomfile);
         // do nothing if parser returns a null pointer
-        if (extras.size()) {
+        if (extras) {
             // find relevant barrel range taking into account cut layers
             aux = findBarrelSupportParams(tracker, is.isUp());
             // support positions loop
-            for (auto iter = extras.begin(); iter != extras.end(); iter++) {
+            for (iter = extras->begin(); iter != extras->end(); iter++) {
                 // skip support definition if position is outside tracker volume
-                if ((*iter)->midZ() < max_length) {
-                    z = (*iter)->midZ() - volume_width / 2.0;
+                if (iter->second < max_length) {
+                    z = iter->second - volume_width / 2.0;
                     // support definition applies across all layers
-                    if ((*iter)->index() == 0) {
+                    if (iter->first == 0) {
                         for (int i = 0; i < aux.second; i++) {
                             tmp.first = i + 1;
-                            tmp.second = (*iter)->midZ();
+                            tmp.second = iter->second;
                             stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
                             is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
                         }
@@ -704,13 +702,14 @@ namespace insur {
                     // support is only relevant for barrel iter->first - 1
                     else {
                         // skip support definition if it applies to a barrel outside the relevant range
-                        if ((*iter)->index() <= aux.second) {
-                            stst = findSupportStartStop(tracker, (*iter)->toPair(), aux, z, is.isUp());
+                        if (iter->first <= aux.second) {
+                            stst = findSupportStartStop(tracker, *iter, aux, z, is.isUp());
                             is = addBarrelSupportsUserDefined(is, tracker, stst.first, stst.second, z);
                         }
                     }
                 }
             }
+            delete extras;
         }
         return is;
     }
@@ -1102,18 +1101,6 @@ namespace insur {
         }
         return startstop;
     }
-
-
-    double Usher::findBarrelSupportRingZ(TrackerIntRep& tracker, int i) const { // returns the Z of the supports at the end of the barrel (so that they clear any service ring)
-      double zDiff = i < tracker.nOfBarrels() - 1 ? tracker.zOffsetBarrel(i+1) - tracker.zOffsetBarrel(i) : 0.;
-      if (fabs(zDiff) >= z_threshold_service_zigzag) { // checking if services zigzag
-        return tracker.zOffsetBarrel(i) + volume_width + 2*epsilon;
-      } else {
-        double maxZOffset = tracker.zOffsetBarrel(0);
-        for (int i = 1; i < tracker.nOfBarrels(); i++) maxZOffset = MAX(maxZOffset, tracker.zOffsetBarrel(i));
-        return maxZOffset + volume_width + 2*epsilon;
-      } 
-    }
     
     /**
      * Print the internal status of the active and inactive surfaces given to the usher to be arranged.
@@ -1350,27 +1337,6 @@ namespace insur {
         }
         return -1;
     }
-
-    bool Usher::TrackerIntRep::barrelHasServices(int barrelindex) {
-      return barrel_has_services.at(barrelindex);
-    }
-
-    bool Usher::TrackerIntRep::endcapHasServices(int endcapindex) {
-      return endcap_has_services.at(endcapindex);
-    }
-
-    int Usher::TrackerIntRep::endcapFromDisc(int discindex) {
-      int sum = 0;
-      int i = 0;
-      for (; i < n_of_discs.size(); i++) {
-        sum += n_of_discs.at(i);
-        if (sum > discindex) break;
-      } 
-      return i;
-    }
-
-    bool Usher::TrackerIntRep::skipAllServices() { return skipAllServices_; }
-    bool Usher::TrackerIntRep::skipAllSupports() { return skipAllSupports_; }
     
     /**
      * Get access to the entire list of short layers as recorded during analysis.
@@ -1386,12 +1352,10 @@ namespace insur {
      */
     bool Usher::TrackerIntRep::analyze(Tracker& tracker) {
         bool up;
-        skipAllServices_ = tracker.skipAllServices();
-        skipAllSupports_ = tracker.skipAllSupports();
-        n_of_layers = analyzeBarrels(tracker, layers_io_radius, barrels_length_offset, real_index_layer, short_layers, barrel_has_services);
-        n_of_discs = analyzeEndcaps(tracker, endcaps_io_radius, discs_length_offset, real_index_disc, endcap_has_services);
+        n_of_layers = analyzeBarrels(*(tracker.getBarrelLayers()), layers_io_radius, barrels_length_offset, real_index_layer, short_layers);
+        n_of_discs = analyzeEndcaps(*(tracker.getEndcapLayers()), endcaps_io_radius, discs_length_offset, real_index_disc);
         post_analysis = true;
-        up = tracker.servicesForcedUp() || analyzePolarity();
+        up = tracker.isForcedUp() || analyzePolarity();
         return up;
     }
     
@@ -1446,79 +1410,56 @@ namespace insur {
      * @param layers_short A reference to an empty list of pairs that will contain the internal index and the leftmost z of the short layers
      * @return A vector listing the number of layers per barrel
      */
-    std::vector<int> Usher::TrackerIntRep::analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short, std::vector<bool>& barrel_has_services) {
+    std::vector<int> Usher::TrackerIntRep::analyzeBarrels(std::vector<Layer*>& barrel_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short) {
+        std::vector<int> layer_counters;
         // do nothing if there are no barrel layers at all or if the first layer has no modules in it
-
-        class BarrelVisitor : public ConstGeometryVisitor {
-          std::vector<std::pair<double, double> >& radius_list_io_;
-          std::vector<std::pair<double, double> >& length_offset_list_;
-          std::vector<int>& real_index_;
-          std::list<std::pair<int, double> >& layers_short_;
-          std::vector<int> layer_counters_;
-          std::vector<bool>& barrel_has_services_;
-          
-          double prevZ = -1.;
-          int index = 0;
-        public:
-          BarrelVisitor(std::vector<std::pair<double, double> >& radius_list_io, 
-                        std::vector<std::pair<double, double> >& length_offset_list, 
-                        std::vector<int>& real_index, 
-                        std::list<std::pair<int, double> >& layers_short,
-                        std::vector<bool>& barrel_has_services) :
-              radius_list_io_(radius_list_io),
-              length_offset_list_(length_offset_list),
-              real_index_(real_index),
-              layers_short_(layers_short),
-              barrel_has_services_(barrel_has_services) {}
-
-
-          void visit(const Barrel& barrel) {
-            int counter = 0;
-
-            barrel_has_services_.push_back(!barrel.skipServices());
-
-            for(const Layer& layer : barrel.layers()){
-            //for(Barrel::Container::const_iterator layerIter = barrel.layers().begin(); layerIter != barrel.layers().end(); ++ layerIter){
-              if (layer.maxZ() > 0.0) {
-                real_index_.push_back(index);
-                radius_list_io_.push_back(std::make_pair(layer.minR(), layer.maxR()));
-
-                counter ++;
-              }
-              index++;
+        if (!barrel_layers.empty() && !barrel_layers.at(0)->getModuleVector()->empty()) {
+            int index = 0;
+            std::vector<Layer*>::iterator current = barrel_layers.begin();
+            double z_old, z_new, r_in, r_out, len;
+            // skip initial short layers in z- if they exist
+            while ((current != barrel_layers.end()) && ((*current)->getMaxZ() < 0)) {
+                current++;
+                index++;
             }
-            layer_counters_.push_back(counter);
-            length_offset_list_.push_back(std::make_pair(barrel.maxZ() - barrel.minZ(), barrel.maxZ()));
-            if (barrel.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, barrel.minZ()));
-          }
-
-/*
-          void visit(const Layer& l) {
-            if (l.maxZ() > 0.) { // skip Z- mezzanine layers
-              real_index_.push_back(index);
-              radius_list_io_.push_back(std::make_pair(l.minR(), l.maxR()));
-              if (prevZ == l.maxZ()) layer_counters_.back()++;
-              else {
-                prevZ = l.maxZ();
-                double len = l.maxZ() - l.minZ();
-                layer_counters_.push_back(1);
-                length_offset_list_.push_back(std::make_pair(len, l.maxZ()));
-                if (l.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, l.minZ()));
-              }
+            // continue analysis if there are more layers
+            if (current != barrel_layers.end()) {
+                // first relevant layer
+                z_old = (*current)->getMaxZ();
+                len = z_old - (*current)->getMinZ();
+                r_in = (*current)->getMinRho();
+                r_out = (*current)->getMaxRho();
+                layer_counters.push_back(1);
+                radius_list_io.push_back(std::pair<double, double>(r_in, r_out));
+                length_offset_list.push_back(std::pair<double, double>(len, z_old));
+                real_index.push_back(index);
+                current++;
+                index++;
+                // remaining layers loop
+                while(current != barrel_layers.end()) {
+                    // skip further short layers in z-
+                    if ((*current)->getMaxZ() > 0) {
+                        r_in = (*current)->getMinRho();
+                        r_out = (*current)->getMaxRho();
+                        radius_list_io.push_back(std::pair<double, double>(r_in, r_out));
+                        real_index.push_back(index);
+                        if ((*current)->getMinZ() > 0) layers_short.push_back(std::pair<int, double>(radius_list_io.size() - 1, (*current)->getMinZ()));
+                        z_new = (*current)->getMaxZ();
+                        if (z_new == z_old) layer_counters.back()++;
+                        else {
+                            len = z_new - (*current)->getMinZ();
+                            layer_counters.push_back(1);
+                            length_offset_list.push_back(std::pair<double, double>(len, z_new));
+                            z_old = z_new;
+                        }
+                    }
+                    current++;
+                    index++;
+                }
             }
-            index++;
-          }
-*/
-
-          const std::vector<int>& layer_counters() const { return layer_counters_; }
-        };
-
-
-        BarrelVisitor v(radius_list_io, length_offset_list, real_index, layers_short, barrel_has_services);
-        tracker.accept(v);
-
-        return v.layer_counters();
+        }
+        return layer_counters;
     }
     
     /**
@@ -1529,70 +1470,52 @@ namespace insur {
      * @param real_index A reference to an empty vector that will contain the index of each disc within the collection of the tracker object
      * @return A vector listing the number of discs per endcap
      */
-    std::vector<int> Usher::TrackerIntRep::analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::vector<bool>& endcap_has_services) {
-        
-        class EndcapVisitor : public ConstGeometryVisitor {
-          std::vector<std::pair<double, double> >& radius_list_io_;
-          std::vector<std::pair<double, double> >& length_offset_list_;
-          std::vector<int>& real_index_;
-          std::vector<int> layer_counters_;
-          std::vector<bool>& endcap_has_services_;
-
-          double prevR = -1.;
-          int index = 0;
-        public:
-          EndcapVisitor(std::vector<std::pair<double, double> >& radius_list_io, 
-                        std::vector<std::pair<double, double> >& length_offset_list, 
-                        std::vector<int>& real_index,
-                        std::vector<bool>& endcap_has_services) : 
-              radius_list_io_(radius_list_io),
-              length_offset_list_(length_offset_list),
-              real_index_(real_index),
-              endcap_has_services_(endcap_has_services) {}
-        
-          void visit(const Endcap& endcap) {
-            int counter = 0;
-
-            endcap_has_services_.push_back(!endcap.skipServices());
-
-            for(const Disk& disk : endcap.disks()) {
-              if (disk.maxZ() > 0.0) {
-                length_offset_list_.push_back(std::make_pair(disk.maxZ() - disk.minZ(), disk.minZ()));
-                real_index_.push_back(index);
-                counter ++;
-              }
-              index ++;
+    std::vector<int> Usher::TrackerIntRep::analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
+            std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index) {
+        std::vector<int> layer_counters;
+        // do nothing if there are no endcap discs at all or if the first disc has no modules in it
+        if (!endcap_layers.empty() && !(endcap_layers.at(0)->getModuleVector()->empty())) {
+            int index = 0;
+            std::vector<Layer*>::iterator current = endcap_layers.begin();
+            double z_length, z_offset, r_min, r_old, r_new;
+            // skip discs in z-
+            while ((current != endcap_layers.end()) && ((*current)->getMinZ() < 0)) {
+                current++;
+                index++;
             }
-
-            layer_counters_.push_back(counter);
-            radius_list_io_.push_back(std::make_pair(endcap.minR(), endcap.maxR()));
-          }
-
-          /*
-          void visit(const Disk& d) {
-            if (d.maxZ() > 0.) {
-              double len = d.maxZ() - d.minZ();
-              length_offset_list_.push_back(std::make_pair(len, d.minZ()));
-              real_index_.push_back(index);
-              if (prevR == d.maxR()) layer_counters_.back()++;
-              else {
-                prevR = d.maxR();
-                layer_counters_.push_back(1);
-                radius_list_io_.push_back(std::make_pair(d.minR(), d.maxR()));
-              }
+            // continue analysis if there are more discs
+            if (current != endcap_layers.end()) {
+                // first relevant disc
+                z_offset = (*current)->getMinZ();
+                z_length = (*current)->getMaxZ() - z_offset;
+                r_min = (*current)->getMinRho();
+                r_old = (*current)->getMaxRho();
+                layer_counters.push_back(1);
+                radius_list_io.push_back(std::pair<double, double>(r_min, r_old));
+                length_offset_list.push_back(std::pair<double, double>(z_length, z_offset));
+                real_index.push_back(index);
+                current++;
+                index++;
+                // remaining discs loop
+                while (current != endcap_layers.end()) {
+                    z_offset = (*current)->getMinZ();
+                    z_length = (*current)->getMaxZ() - z_offset;
+                    r_new = (*current)->getMaxRho();
+                    length_offset_list.push_back(std::pair<double, double>(z_length, z_offset));
+                    real_index.push_back(index);
+                    if (r_new == r_old) layer_counters.back()++;
+                    else {
+                        layer_counters.push_back(1);
+                        r_min = (*current)->getMinRho();
+                        radius_list_io.push_back(std::pair<double, double>(r_min, r_new));
+                        r_old = r_new;
+                    }
+                    current++;
+                    index++;
+                }
             }
-            index++;
-          }
-           */
-
-          const std::vector<int>& layer_counters() const { return layer_counters_; }
-        };
-        
-        EndcapVisitor v(radius_list_io, length_offset_list, real_index, endcap_has_services);
-        tracker.accept(v);
-
-        return v.layer_counters();
+        }
+        return layer_counters;
     }
     
     /**

@@ -94,7 +94,7 @@ namespace insur {
         void clearMassVectors();
         void copyMassVectors(MaterialProperties& mp);
         // calculated output values
-        double getTotalMass() const;
+        double getTotalMass();
         double getLocalMass();
         double getExitingMass();
         double getRadiationLength();

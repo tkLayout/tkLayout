@@ -231,7 +231,7 @@ namespace insur {
      * Get the cumulative mass of the inactive element.
      * @return The overall mass, taking into account all registered materials; -1 if the value has not yet been computed
      */
-    double MaterialProperties::getTotalMass() const { return total_mass; }
+    double MaterialProperties::getTotalMass() { return total_mass; }
     
     /**
      * Get the local mass of the inactive element.
@@ -432,5 +432,4 @@ namespace insur {
         return split.first;
     }
 
-define_enum_strings(MaterialProperties::Category) = { "Nocat", "Bmod", "Emod", "Bser", "Eser", "Bsup", "Esup", "Osup", "Tsup", "Usup" };
 }

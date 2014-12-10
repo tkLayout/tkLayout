@@ -1,23 +1,15 @@
-/**
- * @file mainConfigHandler.h
- * @brief Takes care of creating, reading and administering the configuration file .tkgeometryrc
- */
-
 #ifndef _MAINCONFIGHANDLER_H__
 #define _MAINCONFIGHANDLER_H__
 
 #include <string>
 #include <vector>
-#include <set>
 #include <global_constants.h>
-#include <global_funcs.h>
 
 using namespace std;
 
 #define HOMEDIRECTORY "HOME"
 #define CONFIGURATIONFILENAME ".tkgeometryrc"
 #define CONFIGURATIONFILENAMEDEFINITION "TKGEOMETRYRC"
-#define BINDIRECTORYDEFINITION "TKG_BINDIRECTORY"
 #define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
 #define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
 #define MOMENTADEFINITION "TKG_MOMENTA" 
@@ -29,6 +21,7 @@ using namespace std;
 // be asked directly through std::cin and the corresponding
 // configuration file will be saved in the home directory
 
+
 class mainConfigHandler {
 public:
   mainConfigHandler();
@@ -36,25 +29,23 @@ public:
   bool getConfiguration(bool checkDirExists = true);
   //bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& layoutDirectory);
-  string getBinDirectory();
   string getLayoutDirectory();
   string getStandardDirectory();
   string getStyleDirectory();
   string getXmlDirectory();
   string getMattabDirectory();
   string getIrradiationDirectory();
+  string getRootfileDirectory();
+  string getGraphDirectory();
+  string getSummaryDirectory();
   string getDefaultMaterialsDirectory();
-  string getStandardIncludeDirectory();
-  string getGeometriesDirectory();
   string getConfigFileName();
-  std::set<string> preprocessConfiguration(istream& is, ostream& os, const string& istreamid);
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();
 private:
   bool goodConfigurationRead_;
   //string styleDirectory_;
-  string binDirectory_;
   string layoutDirectory_;
   //string xmlDirectory_;
   string standardDirectory_;
@@ -62,27 +53,21 @@ private:
   vector<double> triggerMomenta_;
   vector<double> thresholdProbabilities_;
   bool checkDirectory(string dirName) ;
-  void askBinDirectory();
-  void askLayoutDirectory();
-  void askStandardDirectory();
-  void askMomenta();
-  void askTriggerMomenta();
-  void askThresholdProbabilities();
   bool createConfigurationFileFromQuestions(string& configFileName);
   bool parseLine(const char* codeLine, string& parameter, string& value);
-  bool readConfigurationFile(string& configFileName);
+  bool readConfigurationFile(ifstream& configFile);
   bool readConfiguration(bool checkDirExists);
   vector<double> parseDoubleList(string);
-  string getBinDirectory_();
   string getLayoutDirectory_();
   string getStandardDirectory_();
   string getStyleDirectory_();
   string getXmlDirectory_();
   string getMattabDirectory_();
   string getIrradiationDirectory_();
+  string getRootfileDirectory_();
+  string getGraphDirectory_();
+  string getSummaryDirectory_();
   string getDefaultMaterialsDirectory_();
-  string getStandardIncludeDirectory_();
-  string getGeometriesDirectory_();
 };
 
 #endif

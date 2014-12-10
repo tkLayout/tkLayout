@@ -1,1 +1,0 @@
-#include "AnalyzerVisitors/IrradiationPower.h"

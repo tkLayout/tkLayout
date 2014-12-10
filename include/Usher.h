@@ -16,16 +16,12 @@
 #include <cmath>
 #include <list>
 #include <utility>
-#include <Tracker.h>
-#include <Support.h>
+#include <tracker.hh>
+#include <configparser.hh>
 #include <InactiveSurfaces.h>
 #include <InactiveRing.h>
 #include <InactiveTube.h>
 #include <global_constants.h>
-#include <StopWatch.h>
-#include <boost/ptr_container/ptr_vector.hpp>
-#include "Barrel.h"
-
 namespace insur {
     /*
      * @class Usher
@@ -42,7 +38,7 @@ namespace insur {
     public:
         Usher() {}
         virtual ~Usher() {}
-        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus = false);
+        virtual InactiveSurfaces& arrange(Tracker& tracker, InactiveSurfaces& is, std::string geomfile, bool printstatus = false);
         virtual InactiveSurfaces& arrangePixels(Tracker& pixels, InactiveSurfaces& is, bool printstatus = false);
     protected:
         /**
@@ -75,41 +71,34 @@ namespace insur {
             double zOffsetDisc(int discindex);
             int realIndexLayer(int tintreplayer);
             int realIndexDisc(int tintrepdisc);
-            bool barrelHasServices(int barrelindex);
-            bool endcapHasServices(int endcapindex);
-            int endcapFromDisc(int discindex);
             std::list<std::pair<int, double> >& shortBarrelsList();
             virtual bool analyze(Tracker& tracker);
             void print();
-            bool skipAllServices();
-            bool skipAllSupports();
         protected:
             std::vector<int> n_of_layers, n_of_discs, real_index_layer, real_index_disc;
-            std::vector<bool> barrel_has_services, endcap_has_services;
             std::list<std::pair<int, double> > short_layers;
             std::vector<std::pair<double, double> > layers_io_radius, endcaps_io_radius, barrels_length_offset, discs_length_offset;
         private:
             bool post_analysis;
-            bool skipAllServices_, skipAllSupports_;
-            std::vector<int> analyzeBarrels(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short, std::vector<bool>& barrel_has_services);
-            std::vector<int> analyzeEndcaps(Tracker& tracker, std::vector<std::pair<double, double> >& radius_list_io,
-                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::vector<bool>& endcap_has_services);
+            std::vector<int> analyzeBarrels(std::vector<Layer*>& barrel_layers, std::vector<std::pair<double, double> >& radius_list_io,
+                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index, std::list<std::pair<int, double> >& layers_short);
+            std::vector<int> analyzeEndcaps(std::vector<Layer*>& endcap_layers, std::vector<std::pair<double, double> >& radius_list_io,
+                    std::vector<std::pair<double, double> >& length_offset_list, std::vector<int>& real_index);
             bool analyzePolarity();
         };
-        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports);
-        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports);
+        virtual InactiveSurfaces& arrangeUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
+        virtual InactiveSurfaces& arrangeDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile);
         InactiveSurfaces& mirror(TrackerIntRep& tracker, InactiveSurfaces& is);
         virtual InactiveSurfaces& servicesUp(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
         virtual InactiveSurfaces& servicesDown(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, bool track_all);
-        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports, bool track_all);
+        virtual InactiveSurfaces& supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, std::string geomfile, bool track_all);
     private:
         int servicesOutmostBarrel(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, int layer);
         InactiveSurfaces& supportsRegularBarrels(TrackerIntRep& tracker, InactiveSurfaces& is);
         InactiveSurfaces& supportsBarrelTubes(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
         InactiveSurfaces& supportsShortBarrels(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer);
         InactiveSurfaces& supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all);
-        InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, const std::list<Support*>& supports);
+        InactiveSurfaces& supportsUserDefined(TrackerIntRep& tracker, InactiveSurfaces& is, std::string geomfile);
         InactiveSurfaces& joinBarrelEndcapServices(TrackerIntRep& tracker, InactiveSurfaces& is, int begin_b, int end_b, int begin_e, int end_e, int d_offset);
         InactiveSurfaces& addBarrelServiceRing(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);
         InactiveSurfaces& addBarrelServiceTube(InactiveSurfaces& is, double length, double offset, double radius, double width, bool final);
@@ -123,7 +112,6 @@ namespace insur {
         double findMaxBarrelZ(TrackerIntRep& tintrep);
         std::pair<int, int> findBarrelSupportParams(TrackerIntRep& tracker, bool up);
         std::pair<int, int> findSupportStartStop(TrackerIntRep& tracker, std::pair<int, double> udef, std::pair<int, int> aux, double z, bool up);
-        double findBarrelSupportRingZ(TrackerIntRep& tracker, int i) const;
         void print(TrackerIntRep& tintrep, InactiveSurfaces& is, bool full_summary);
     };
 }

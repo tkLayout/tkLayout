@@ -1,20 +1,20 @@
 #include <PlotDrawer.h>
 
 int IdMaker::id = 0;
-const int IdMaker::nBinsZoom = 1000;
 
-template<> TH2C* FrameGetter<YZFull>::operator()(double viewportX, double viewportY) const {
+
+template<> TH2D* FrameGetter<YZFull>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, 0, viewportY);
+  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, -viewportX, viewportX, 1, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
 
 
-template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
+template<> TH2D* FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0, viewportX, nBinsZoom, 0, viewportY);
+  TH2D* frame = new TH2D(name.c_str(), ";z [mm];r [mm]", 1, 0, viewportX, 1, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
   //    frame->GetXaxis()->SetTickLength(-0.03);
   //    frame->GetXaxis()->SetLabelOffset(0.03);
@@ -28,21 +28,13 @@ template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
-int g
-;
-
-template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
+template<> TH2D* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2D* frame = new TH2D(name.c_str(), ";x [mm];y [mm]", 1, -viewportX, viewportX, 1, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   return frame;
 }
 
-TPolyLine* drawMod() {
-  double x[] = { 131., 31., 31., 131., 131., 101. };
-  double y[] = { 132., 132., 32., 32., 81., 81. };
-  return new TPolyLine(6, x, y);
-}
 
 template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
                                                                           Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {
@@ -62,7 +54,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double thetaLimit = atan(startR/startL);
   std::vector<double> etaSteps;
   for (eta=0; eta<=etaMax; eta+=etaStep) etaSteps.push_back(eta);
-  if (etaLongLine>0) etaSteps.push_back(etaLongLine);
+  if (etaLongLine>0) etaSteps.push_back(2.5);
 
   for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
     eta=*it;
@@ -107,12 +99,12 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
 }
 
 
-template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+template<> void SummaryFrameStyle<YZ>::operator()(TH2D& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();
-  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 3.4, 4);
+  drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), 0.2, 2.2, 2.5);
 }
 
-template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas&, DrawerPalette&) const {
+template<> void SummaryFrameStyle<XY>::operator()(TH2D& frame, TCanvas&, DrawerPalette&) const {
   frame.Draw();    
 }
 

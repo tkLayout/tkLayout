@@ -5,11 +5,13 @@ std::map<std::string, int> Palette::colorPickMap;
 
 
 void Palette::initializeMe() {
-  Palette::colorPickMap["pt2S"] = 2;
+  Palette::colorPickMap["ptOut"] = 2;
   Palette::colorPickMap["rphi"] = 4;
   Palette::colorPickMap["stereo"] = 6;
   Palette::colorPickMap["ptIn"] = 9;
-  Palette::colorPickMap["ptPS"] = 1;
+  Palette::colorPickMap["ptMixed"] = 1;
+  Palette::colorPickMap["pt2SLong"] = 11;
+  Palette::colorPickMap["pt2SShort"] = 4;
   Palette::colorPickMap["pixel"] = 9;
   initialized = true;
 }
@@ -25,10 +27,10 @@ Color_t Palette::color(const std::string& type) {
       ++iColor;
       found=false;
       for (std::map<std::string, int>::iterator it=colorPickMap.begin(); it!=colorPickMap.end(); ++it) {
-        if (it->first==iColor) {
-          found = true;
-          break;
-        }
+	if (it->first==iColor) {
+	  found = true;
+	  break;
+	}
       }
     }
     colorPickMap[type]=Palette::color(iColor);

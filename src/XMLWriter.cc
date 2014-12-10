@@ -20,10 +20,7 @@ namespace insur {
     void XMLWriter::pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
-        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
-        if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
             while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tob) == std::string::npos)) pos++;
             if ((pos < s.size()) && (s.at(pos).rzup.size() > 0)) {
@@ -57,10 +54,7 @@ namespace insur {
     void XMLWriter::pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out) {
         unsigned pos = 0;
         std::string line;
-        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
-        if (in.eof()) return; // No mid point marker, no party
         if (s.size() > 0) {
             while ((pos < s.size()) && (s.at(pos).name_tag.find(xml_tid) == std::string::npos)) pos++;
             if ((pos < s.size()) && (s.at(pos).rzup.size() > 0) && (s.at(pos).rzdown.size() > 0)) {
@@ -93,7 +87,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool wt) {
+    void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, bool wt) {
         std::vector<Element>& e = d.elements;
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
@@ -103,13 +97,12 @@ namespace insur {
         std::vector<Rotation>& r = d.rots;
         std::ostringstream buffer;
         buffer << xml_preamble;
-        buffer << getExtendedHeader();
         if (wt) {
             buffer << xml_new_const_section;
             materialSection(xml_newtrackerfile, e, c, buffer);
             rotationSection(r, xml_newtrackerfile, buffer);
             logicalPartSection(l, xml_newtrackerfile, buffer, true);
-            solidSection(s, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, true);
+            solidSection(s, xml_newtrackerfile, buffer, true, true);
             posPartSection(p, a, xml_newtrackerfile, buffer);
         }
         else {
@@ -117,7 +110,7 @@ namespace insur {
             materialSection(xml_trackerfile, e, c, buffer);
             rotationSection(r, xml_trackerfile, buffer);
             logicalPartSection(l, xml_trackerfile, buffer);
-            solidSection(s, xml_trackerfile, buffer, trackerVolumeTemplate, true);
+            solidSection(s, xml_trackerfile, buffer, true);
             posPartSection(p, a, xml_trackerfile, buffer);
         }
         buffer << xml_defclose;
@@ -141,8 +134,6 @@ namespace insur {
         std::string line;
         unsigned int i;
         int pos;
-        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
 
         // Find the break
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
@@ -224,8 +215,6 @@ namespace insur {
     void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
-        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         // head of file
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         // TOB
@@ -258,8 +247,6 @@ namespace insur {
     void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
         unsigned int pos = 0;
         std::string line;
-        while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-        out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
         // TOB
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
@@ -297,8 +284,6 @@ namespace insur {
         b = buildPaths(t, b, wt);
         if (!b.empty()) {
             std::string line;
-            while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
-            out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
             while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
             std::vector<PathInfo>::iterator iter, guard = b.end();
             for (iter = b.begin(); iter != guard; iter++) {
@@ -381,18 +366,6 @@ namespace insur {
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
-
-
-    void XMLWriter::trackerLogicalVolume(std::ostringstream& stream, std::istream& instream) {
-      std::string line;
-      while (getline(instream, line)) {
-        size_t pos = line.find(xml_insert_marker);
-        if (pos != std::string::npos) {
-          line.replace(pos, xml_insert_marker.size(), xml_tracker);
-        }
-        stream << line << std::endl;
-      }
-    }
     
     /**
      * This function writes the opening and closing tags for the solid section in a CMSSW XML file. It writes an entry for the
@@ -403,12 +376,9 @@ namespace insur {
      * @param label The label of the solid section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt) {
+    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, bool notobtid, bool wt) {
         stream << xml_solid_section_open << label << xml_general_inter;
-        if (!wt) {
-          //tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream); // CUIDADO old tracker volume, now parsed from a file
-          trackerLogicalVolume(stream, trackerVolumeTemplate);
-        }
+        if (!wt) tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream);
         for (unsigned int i = 0; i < s.size(); i++) {
             if ((notobtid) &&
                     ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;
@@ -416,7 +386,7 @@ namespace insur {
                 switch (s.at(i).type) {
                     case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
                     break;
-                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dxx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
+                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
                     break;
                     case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
                     break;
@@ -463,6 +433,7 @@ namespace insur {
         for (titer = t.begin(); titer != tguard; titer++) specPar(titer->name, titer->parameter, titer->partselectors, stream);
         stream << xml_spec_par_section_close;
     }
+   
 
     /**
      * This formatter writes an XML entry describing a call to a volume placement algorithm to the stream that serves as a
@@ -562,13 +533,13 @@ namespace insur {
      * @param dz Half the volume length along z
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::trapezoid(std::string name, double dx, double dxx, double dy, double dyy, double dz, std::ostringstream& stream) {
-        stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
-        stream << xml_trapezoid_second_inter << dxx << xml_trapezoid_third_inter << dy;
-        stream << xml_trapezoid_fourth_inter << dyy << xml_trapezoid_fifth_inter << dz;
-        //stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dy; // CUIDADO Lovely hot fix by Nicola to rotate endcap modules -.-
-        //stream << xml_trapezoid_second_inter << dyy << xml_trapezoid_third_inter << dx;
-        //stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
+    void XMLWriter::trapezoid(std::string name, double dx, double dy, double dyy, double dz, std::ostringstream& stream) {
+        //stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dx;
+        //stream << xml_trapezoid_second_inter << dx << xml_trapezoid_third_inter << dy;
+        //stream << xml_trapezoid_fourth_inter << dyy << xml_trapezoid_fifth_inter << dz;
+        stream << xml_trapezoid_open << name << xml_trapezoid_first_inter << dy;
+        stream << xml_trapezoid_second_inter << dyy << xml_trapezoid_third_inter << dx;
+        stream << xml_trapezoid_fourth_inter << dx << xml_trapezoid_fifth_inter << dz;
         stream << xml_trapezoid_close;
     }
     
@@ -713,9 +684,9 @@ namespace insur {
 			stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
 		
 			//TO DO get rid of this if loop iif possible
-			//if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptPS"){
-			//	minfo.at(i).roccols = "16";
-			//}
+			if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptMixed"){
+				minfo.at(i).roccols = "16";
+			}
 			stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
 			stream<< xml_spec_par_parameter_first << xml_roc_x           << xml_spec_par_parameter_second  << minfo.at(i).rocx     << xml_general_endline;
 			stream<< xml_spec_par_parameter_first << xml_roc_y           << xml_spec_par_parameter_second  << minfo.at(i).rocy     << xml_spec_par_close;
@@ -980,5 +951,4 @@ namespace insur {
         }
         return result;
     }
-
 }

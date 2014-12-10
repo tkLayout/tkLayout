@@ -348,35 +348,33 @@ namespace insur {
      * @param barrelcaps The collection mapping to the barrel modules that need to have a material mix assigned to them
      * @return True if there were no errors during processing, false otherwise
      */
-    bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) { // sorry, but this code is a POS
+    bool MatCalc::calculateBarrelMaterials(std::vector<std::vector<ModuleCap> >& barrelcaps) {
       // layer loop
       for (unsigned int i = 0; i < barrelcaps.size(); i++) {
         if (barrelcaps.at(i).size() > 0) {
           try {
             int rindex = 0;
-            int maxRing = 0; // only considers Z+
             std::vector<double> stripseg_scalars;
             std::vector<std::string> mtypes;
             std::vector<std::list<int> > modinrings;
             // module loop for ring types and multipliers for strips and segments
             for (unsigned int j = 0; j < barrelcaps.at(i).size(); j++) {
               // ring index of current module
-              rindex = barrelcaps.at(i).at(j).getModule().uniRef().ring;
-              maxRing = barrelcaps.at(i).at(j).getModule().uniRef().side > 0 ? MAX(barrelcaps.at(i).at(j).getModule().uniRef().ring, maxRing) : maxRing;
+              rindex = barrelcaps.at(i).at(j).getModule().getRing();
               // collect ring types
               if ((int)mtypes.size() < rindex) {
                 while ((int)mtypes.size() < rindex) mtypes.push_back("");
               }
-              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().moduleType();
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = barrelcaps.at(i).at(j).getModule().getType();
               // collect multipliers for strips and segments
               if ((int)stripseg_scalars.size() < rindex) {
                 while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().outerSensor().numStripsAcross();
+                  stripseg_scalars.at(rindex - 1) = (double)barrelcaps.at(i).at(j).getModule().getNStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)barrelcaps.at(i).at(j).getModule().outerSensor().numSegments()); // CUIDADO: as of now only the outer sensor is considered for the scaling
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)barrelcaps.at(i).at(j).getModule().getNMeanSegments();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
@@ -392,7 +390,7 @@ namespace insur {
             rindex = modinrings.size(); // CUIDADO Tentative fix, rindex is max of ring index found in modules
 
             // ring loop
-            for (int j = 0; j < /*maxRing*/ rindex; j++) { // CUIDADO rindex WTF!?!?!?
+            for (int j = 0; j < rindex; j++) { // CUIDADO rindex WTF!?!?!?
               if (!modinrings.at(j).empty()) {
                 double A, B, C, D;
                 double density, surface, length;
@@ -406,32 +404,7 @@ namespace insur {
                   return false;
                 }
                 else {
-                  length = barrelcaps.at(i).at(*first).getModule().length();
-
-#define TILTED_HOTFIX
-#ifdef TILTED_HOTFIX
-                  // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
-                  //if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {  // CUIDADO Hot fixing the hot fix -- now applied to untilted modules too!
-                    if (j == 0) { // the following code crashes for a layer with a single module, but c'mon, when is that gonna happen?
-                      double zMin = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
-                      double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().minZ();
-                      double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
-                      length = (zThis - zMin) + (zNext - zThis)/2.;
-                    } else if (j < modinrings.size()-1 &&
-                        (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
-                         barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
-                      double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                      double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
-                      length = (zNext - zPrev) / 2; // override length with half the distance between modules, so as to scale material defined as grams per metres over a bigger length
-                    } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
-                               barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
-                      double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                      double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
-                      double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
-                      length = (zMax - zThis) + (zThis - zPrev)/2.;
-                    }
-                  //}
-#endif
+                  length = barrelcaps.at(i).at(*first).getModule().getHeight();
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator guard = vect.end();
                   std::vector<SingleMod>::const_iterator iter;
@@ -461,25 +434,7 @@ namespace insur {
                         return false;
                       }
                       else {
-                        length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().length();
-#ifdef TILTED_HOTFIX
-                        // hot fix to scale the services materials for the non contiguous modules in the tilted barrel
-                        // if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().tiltAngle() != 0.) {
-                          if (j < modinrings.size()-1 && // we never accumulate material for the first module, so we don't need to take care of the case like in the firt block of hotfix
-                              (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we switch sides (due to asym barrel), 
-                               barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().side())) { // jumping to the farthest z- mod (nasty bug in orig code)
-                            double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                            double zNext = barrelcaps.at(i).at(modinrings.at(j+1).front()).getModule().center().Z();
-                            length = (zNext - zPrev) / 2; // override length with half the distance between modules, so as to scale material defined as grams per metres over a bigger length
-                          } else if (barrelcaps.at(i).at(modinrings.at(j).front()).getModule().side() == // CUIDADO we check if we've switched sides
-                                     barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().side()) { // jumping to the farthest z- mod (nasty bug in orig code)
-                            double zPrev = barrelcaps.at(i).at(modinrings.at(j-1).front()).getModule().center().Z();
-                            double zThis = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().center().Z();
-                            double zMax = barrelcaps.at(i).at(modinrings.at(j).front()).getModule().maxZ();
-                            length = (zMax - zThis) + (zThis - zPrev)/2.;
-                          }
-                        // }
-#endif
+                        length = barrelcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
                         std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                         std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                         for (iter = vect.begin(); iter != guard; iter++) {
@@ -511,6 +466,7 @@ namespace insur {
                     start++;
                   }
                 }
+              // CUIDADO cout << "MC bmod: " << barrelcaps.at(i).at(j).getModule().getLayer() << "," << barrelcaps.at(i).at(j).getModule().getRing() << "," << barrelcaps.at(i).at(j).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(i).at(j).getComponentsRI().size() << endl;
               }
             }
           }
@@ -520,6 +476,11 @@ namespace insur {
           }
         }
       }
+      for (size_t r = 0; r < barrelcaps.size(); r++)
+        for (size_t t = 0; t < barrelcaps.at(r).size(); t++)
+          if (barrelcaps.at(r).at(t).getComponentsRI().size()==0) {
+            cout << r << "," << t << " MC bmod: " << barrelcaps.at(r).at(t).getModule().getLayer() << "," << barrelcaps.at(r).at(t).getModule().getRing() << "," << barrelcaps.at(r).at(t).getModule().getPhiIndex()  << " has comps: " << barrelcaps.at(r).at(t).getComponentsRI().size() << endl;
+          }
       return true;
     }
 
@@ -545,7 +506,7 @@ namespace insur {
             // module loop for ring types and multipliers for strips and segments
             for (unsigned int j = 0; j < endcapcaps.at(i).size(); j++) {
               // sum up the number of modules per ring
-              rindex = endcapcaps.at(i).at(j).getModule().uniRef().ring;
+              rindex = endcapcaps.at(i).at(j).getModule().getRing();
               if ((int)mods.size() < rindex) {
                 while ((int)mods.size() < rindex) mods.push_back(0);
               }
@@ -554,16 +515,16 @@ namespace insur {
               if ((int)mtypes.size() < rindex) {
                 while ((int)mtypes.size() < rindex) mtypes.push_back("");
               }
-              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().moduleType();
+              if (mtypes.at(rindex - 1).empty()) mtypes.at(rindex - 1) = endcapcaps.at(i).at(j).getModule().getType();
               // collect multipliers for strips and segments
               if ((int)stripseg_scalars.size() < rindex) {
                 while ((int)stripseg_scalars.size() < rindex) stripseg_scalars.push_back(0.0);
               }
               if (stripseg_scalars.at(rindex - 1) == 0.0) {
                 if (!mtypes.at(rindex - 1).empty()) {
-                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().outerSensor().numStripsAcross(); // CUIDADO as it this now, only the outer sensor is considered for the scaling
+                  stripseg_scalars.at(rindex - 1) = (double)endcapcaps.at(i).at(j).getModule().getNStripsAcross();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getStripsAcross(mtypes.at(rindex - 1));
-                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * ((double)endcapcaps.at(i).at(j).getModule().outerSensor().numSegments());
+                  stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) * (double)endcapcaps.at(i).at(j).getModule().getNMeanSegments();
                   stripseg_scalars.at(rindex - 1) = stripseg_scalars.at(rindex - 1) / (double)getSegmentsAlong(mtypes.at(rindex - 1));
                 }
               }
@@ -593,7 +554,7 @@ namespace insur {
                 }
                 // calculation of static parameters for all rings
                 else {
-                  length = endcapcaps.at(i).at(*first).getModule().length();
+                  length = endcapcaps.at(i).at(*first).getModule().getHeight();
                   std::vector<SingleMod>& vect = getModVector(mtypes.at(j));
                   std::vector<SingleMod>::const_iterator iter, guard = vect.end();
                   // materials loop
@@ -622,7 +583,7 @@ namespace insur {
                           return false;
                         }
                         else {
-                          length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().length();
+                          length = endcapcaps.at(i).at(modinrings.at(k).front()).getModule().getHeight();
                           std::vector<SingleMod>& vect = getModVector(mtypes.at(k));
                           std::vector<SingleMod>::const_iterator guard = vect.end();
                           std::vector<SingleMod>::const_iterator iter;
@@ -687,7 +648,7 @@ namespace insur {
       double length, surface;
       // main loop over barrel service volumes
       for(unsigned int i = 0; i < barrelservices.size(); i++) {
-//        try {
+        try {
           // collect information about feeder and neighbour volumes
           ftype = barrelservices.at(i).getFeederType();
           feeder = barrelservices.at(i).getFeederIndex();
@@ -721,15 +682,15 @@ namespace insur {
           barrelservices.at(i).calculateTotalMass();
           barrelservices.at(i).calculateRadiationLength(mt);
           barrelservices.at(i).calculateInteractionLength(mt);
-//        }
-//        catch(std::runtime_error& re) {
-//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-//          return false;
-//        }
-//        catch(std::exception& e) {
-//          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-//          return false;
-//        }
+        }
+        catch(std::runtime_error& re) {
+          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+        catch(std::exception& e) {
+          std::cerr << "MatCalc::calculateBarrelServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+          return false;
+        }
       }
       return true;
     }
@@ -752,7 +713,7 @@ namespace insur {
       double length, surface;
       // main loop over endcap service volumes
       for (unsigned int i = 0; i < endcapservices.size(); i++) {
-        //try {
+        try {
           // collect information about feeder and neighbour volumes
           ftype = endcapservices.at(i).getFeederType();
           feeder = endcapservices.at(i).getFeederIndex();
@@ -786,15 +747,15 @@ namespace insur {
           endcapservices.at(i).calculateTotalMass();
           endcapservices.at(i).calculateRadiationLength(mt);
           endcapservices.at(i).calculateInteractionLength(mt);
-       // }
-       // catch(std::runtime_error& re) {
-       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
-       //   return false;
-       // }
-       // catch(std::exception& e) {
-       //   std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
-       //   return false;
-       // }
+        }
+        catch(std::runtime_error& re) {
+          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << re.what() << " " << msg_abort << std::endl;
+          return false;
+        }
+        catch(std::exception& e) {
+          std::cerr << "MatCalc::calculateEndcapServiceMaterials(): " << e.what() << " " << msg_abort << std::endl;
+          return false;
+        }
       }
       return true;
     }
@@ -1118,11 +1079,11 @@ namespace insur {
       int index = 1;
       if ((layer >= 0) && (layer < (int)caps.size())) {
         for (unsigned int i = 0; i < caps.at(layer).size(); i++) {
-          if (caps.at(layer).at(i).getModule().uniRef().ring > index) {
-            index = caps.at(layer).at(i).getModule().uniRef().ring;
+          if (caps.at(layer).at(i).getModule().getRing() > index) {
+            index = caps.at(layer).at(i).getModule().getRing();
             res = 1;
           }
-          else if (caps.at(layer).at(i).getModule().uniRef().ring == index) res++;
+          else if (caps.at(layer).at(i).getModule().getRing() == index) res++;
         }
       }
       return res;
@@ -1173,9 +1134,9 @@ namespace insur {
       int modsonrod = 0, lastmod = 0;
       // loop to find information about contributing source modules
       for (unsigned int j = 0; j < source.size(); j++) {
-        if (modsonrod < source.at(j).getModule().uniRef().ring) {
+        if (modsonrod < source.at(j).getModule().getRing()) {
           // modsonrod finds the number of modules along a rod
-          modsonrod = source.at(j).getModule().uniRef().ring;
+          modsonrod = source.at(j).getModule().getRing();
           // lastmod finds the index of a sample module at the end of a rod
           lastmod = j;
         }
@@ -1186,7 +1147,7 @@ namespace insur {
         try {
           // unit conversion per parameter (internal unit is grammes)
           double In, Out;
-          if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().length());
+          if (eiter->uIn == grpm) In = convert(eiter->In, eiter->uIn, source.at(lastmod).getModule().getHeight());
           else In = convert(eiter->In, eiter->uIn, mt.getMaterial(eiter->tagIn).density, source.at(lastmod).getSurface());
           if (eiter->uOut == grpm) Out = convert(eiter->Out, eiter->uOut, l);
           else Out = convert(eiter->Out, eiter->uOut, mt.getMaterial(eiter->tagOut).density, s);

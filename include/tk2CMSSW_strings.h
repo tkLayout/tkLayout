@@ -20,7 +20,6 @@ namespace insur {
     /**
      * XML tags and attributes
      */
-    static const std::string xml_preamble_concise = "<?xml ";
     static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
@@ -118,7 +117,6 @@ namespace insur {
      */
     static const std::string xml_trackerfile = "tracker.xml";
     static const std::string xml_newtrackerfile = "newtracker.xml";
-    static const std::string xml_trackervolumefile = "trackerVolumeTemplate.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";

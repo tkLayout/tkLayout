@@ -1,6 +1,4 @@
 //Mechanics
 comp = Mechanics
-//M CF 0 0 0 0.5 mm L;
-//M PE 0 0 0 0.066435935 mm L; // obsolete
-M CF 0 0 0 81.12 g/m L;
-M PE 0 0 0 6.05895727 g/m L;
+M CF 0 0 0 0.5 mm L;
+M PE 0 0 0 0.066435935 mm L;

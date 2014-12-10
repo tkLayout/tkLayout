@@ -13,8 +13,7 @@
 #ifndef _MODULECAP_H
 #define	_MODULECAP_H
 
-//#include <module.hh>
-#include "Module.h"
+#include <module.hh>
 #include <MaterialProperties.h>
 #include <global_constants.h>
 namespace insur {

@@ -39,13 +39,13 @@ namespace insur {
     void setVertical(bool vertical);
     bool isFinal();
     void setFinal(bool final);
-    double getZOffset() const;
+    double getZOffset();
     void setZOffset(double zoffset);
-    double getZLength() const;
+    double getZLength();
     void setZLength(double zlength);
-    double getInnerRadius() const;
+    double getInnerRadius();
     void setInnerRadius(double iradius);
-    double getRWidth() const;
+    double getRWidth();
     void setRWidth(double width);
     int getFeederIndex();
     void setFeederIndex(int layer);

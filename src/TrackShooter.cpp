@@ -13,6 +13,160 @@ std::set<int> getModuleOctants(const Module* mod) {
 
 
 
+template<int NumSides, class Coords, class Random, class FloatType> 
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::operator<<(const Coords& vertex) {
+  if (!isComplete()) v_.push_back(vertex);
+  if (isComplete()) computeProperties();
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::operator<<(const std::vector<Coords>& vertices) {
+  for(typename std::vector<Coords>::const_iterator it = vertices.begin(); (v_.size() < NumSides) && (it != vertices.end()); ++it) {
+    *this << *it;
+  }
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline bool AbstractPolygon<NumSides, Coords, Random, FloatType>::isComplete() const { 
+  return v_.size() == NumSides; 
+}
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline const std::vector<Coords>& AbstractPolygon<NumSides, Coords, Random, FloatType>::getVertices() const { 
+  return v_; 
+}
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+inline const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getVertex(int index) const { 
+  return v_[index]; 
+}
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+double AbstractPolygon<NumSides, Coords, Random, FloatType>::getDoubleArea() const {
+  return area_;
+}
+
+
+template<int NumSides, class Coords, class Random, class FloatType> 
+const Coords& AbstractPolygon<NumSides, Coords, Random, FloatType>::getCenter() const {
+  if (dirty_) {
+    for (int i=0; i<NumSides; i++)
+      center_ += v_[i];
+    center_ /= NumSides;
+    dirty_ = false;
+  }
+  return center_;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::translate(const Coords& vector) {
+  std::transform(v_.begin(), v_.end(), std::bind2nd(std::plus<Coords>(), vector));
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateX(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->X(),
+                 it->Y()*cos(angle) - it->Z()*sin(angle),
+                 it->Y()*sin(angle) + it->Z()*cos(angle));
+  }
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateY(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->Z()*sin(angle) + it->X()*cos(angle),
+                 it->Y(),
+                 it->Z()*cos(angle) - it->X()*sin(angle));
+  }
+  dirty_ = true;
+  return *this;
+}
+
+template<int NumSides, class Coords, class Random, class FloatType>
+AbstractPolygon<NumSides, Coords, Random, FloatType>& AbstractPolygon<NumSides, Coords, Random, FloatType>::rotateZ(FloatType angle) {
+  for (typename std::vector<Coords>::iterator it = v_.begin(); it != v_.end(); ++it) {
+    *it = Coords(it->X()*cos(angle) - it->Y()*sin(angle),
+                 it->X()*sin(angle) + it->Y()*cos(angle),
+                 it->Z());
+  }
+  dirty_ = true;
+  return *this;
+}
+
+
+
+template<int NumSides>
+bool Polygon3d<NumSides>::isPointInside(const XYZVector& p) const {
+  double sum = 0;
+  for (typename std::vector<XYZVector>::const_iterator it = this->v_.begin(); it != this->v_.end(); ++it) {
+    Triangle3d t;
+    t << p << *it << (it+1 < this->v_.end() ? *(it+1) : *this->v_.begin());
+    sum += t.getDoubleArea();
+    if (sum - this->getDoubleArea() > 1e-4) return false;  // early quit if sum area is already bigger
+  }
+  return fabs(this->getDoubleArea() - sum) < 1e-4;
+}
+
+
+
+template<int NumSides>
+void Polygon3d<NumSides>::computeProperties() {
+  this->area_ = 0;
+  for (typename std::vector<XYZVector>::const_iterator it = this->v_.begin()+1; it != this->v_.end()-1; ++it) {
+    Triangle3d t;
+    t << *this->v_.begin() << *it << *(it+1);
+    double triangleArea = t.getDoubleArea();
+    trianglesByArea_.insert(t);
+    this->area_ += triangleArea;
+  }
+}
+
+template<int NumSides>
+inline const std::multiset<Triangle3d, PolygonLess<Triangle3d> >& Polygon3d<NumSides>::getTriangulation() const {
+  return trianglesByArea_;
+}
+
+template<int NumSides> 
+XYZVector Polygon3d<NumSides>::generateRandomPoint(TRandom* die) const {
+  double binPicker = die->Uniform(this->getDoubleArea());
+  double prevBin = 0;
+  TriangleSet::const_iterator it;
+  for (it = getTriangulation().begin(); it != getTriangulation().end(); it++) {
+    if (it->getDoubleArea() + prevBin >= binPicker) break;  // found triangle
+    prevBin += it->getDoubleArea();
+  }
+  return it->generateRandomPoint(die);
+}
+
+void Triangle3d::computeProperties() {
+   this->area_ = sqrt((this->v_[1] - this->v_[0]).Cross(this->v_[2] - this->v_[0]).Mag2());
+}
+
+XYZVector Triangle3d::generateRandomPoint(TRandom* die) const {
+  double a = die->Rndm(), b = die->Rndm();
+  if (a + b > 1) { a = 1 - a; b = 1 - b; }
+  return this->v_[0] + a*(this->v_[1]-this->v_[0]) + b*(this->v_[2]-this->v_[0]); // seriously C++??? you've been around for a while now, time to fix this horrid syntax??
+}
+
+bool Triangle3d::isPointInside(const XYZVector& p) const { // note: this is exactly the same as the non specialized case
+  double sum = 0;
+  for (std::vector<XYZVector>::const_iterator it = this->v_.begin(); it != this->v_.end(); ++it) {
+    Triangle3d t;
+    t << p << *it << (it+1 < this->v_.end() ? *(it+1) : *this->v_.begin());
+    sum += t.getDoubleArea();
+    if (sum - this->getDoubleArea() > 1e-4) return false;  // early quit if sum area is already bigger
+  }
+  return fabs(this->getDoubleArea() - sum) < 1e-4;
+}
+
+
 
 
 ParticleGenerator::ParticleGenerator(TRandom& aDie) : die(aDie) {
@@ -192,23 +346,20 @@ int detectCollisionSlanted(XYVector& helixAxis, double R, double z0, double thet
 }
 */
 
-int TrackShooter::detectCollisionEndcap(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
+int TrackShooter::detectCollisionEndcap(double h, double k, double pt, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
   // get z from module
   // put z in the helix equations, solve for t and obtain x and y
   // check whether x and y are inside the polygon of the module (only 1 collision is possible)
   
-  double h = helix.h;
-  double k = helix.k;
-  double L = helix.L;
-  double Rs = helix.Rs;
-  double z0 = helix.z0;
-  double phi0 = helix.phi0;
+  double R = pt/(0.3*insur::magnetic_field) * 1e3;
 
   double z = poly.getVertex(0).Z();
+  
+  double L = tan(M_PI/2 - theta);
 
-  double t = (z - z0)/(L*Rs);
-  double x = h + Rs*sin(phi0 + t);
-  double y = k - Rs*cos(phi0 + t);
+  double t = (z - z0)/(L*R);
+  double x = h + R*sin(phi0 + t);
+  double y = k - R*cos(phi0 + t);
   
   XYZVector hit(x, y, z);
   if (poly.isPointInside(hit)) {
@@ -219,7 +370,7 @@ int TrackShooter::detectCollisionEndcap(const Helix& helix, const Polygon3d<4>& 
   }
 }
 
-int TrackShooter::detectCollisionBarrel(const Helix& helix, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
+int TrackShooter::detectCollisionBarrel(double h, double k, double pt, double z0, double phi0, double theta, const Polygon3d<4>& poly, std::vector<XYZVector>& collisions) {
   // this method solves the equations of the intersection between a circle (particle track in the XY plane) and a line segment (module in XY)
   // both equation are expressed in their parametric forms, to aid in boundary checking.
   // In case of the mocule the parameter u must be between 0 and 1 for the hit to be inside the module
@@ -239,17 +390,8 @@ int TrackShooter::detectCollisionBarrel(const Helix& helix, const Polygon3d<4>& 
   // 
   // The method returns the x,y,t of the intersections (2, 1 or possibly a null intersection if the track never hits the module) 
 
-  double h = helix.h;
-  double k = helix.k;
-  double Rs = helix.Rs;
-  double theta = helix.theta;
-  double pt = helix.pt;
-  double phi0 = helix.phi0;
-  double z0 = helix.z0;
-  double L = helix.L;
-
-
-  if (fabs(2*Rs) < poly.getCenter().Rho()) return 0; // not even a tangent collision is possible (this is only valid inasmuch the center of the module is the closest point to the beam axis - always true for barrel modules)
+  double R = pt/(0.3*insur::magnetic_field) * 1e3;
+  if (fabs(2*R) < poly.getCenter().Rho()) return 0; // not even a tangent collision is possible (this is only valid inasmuch the center of the module is the closest point to the beam axis - always true for barrel modules)
 
   double v = poly.getVertex(0).X(),     w = poly.getVertex(0).Y();
   double m = poly.getVertex(1).X() - v, n = poly.getVertex(1).Y() - w;
@@ -262,35 +404,37 @@ int TrackShooter::detectCollisionBarrel(const Helix& helix, const Polygon3d<4>& 
 
   double a = m*m + n*n;
   double b = 2*(m*v + n*w - h*m - k*n);
-  double c = h*h + k*k + v*v + w*w - 2*h*v - 2*k*w - Rs*Rs;
+  double c = h*h + k*k + v*v + w*w - 2*h*v - 2*k*w - R*R;
   double delta = b*b - 4*a*c;
   if (delta < 0.) return 0; // track can never collide with module
 
   double u1 = (-b + sqrt(delta))/(2*a);
   double u2 = (-b - sqrt(delta))/(2*a);
+ 
+  double L = tan(M_PI/2 - theta);
 
   int initialCollisionSize = collisions.size();
   //if (phi0 < 0) phi0 += 2*M_PI;
   if (u1 >= 0. && u1 <= 1.) {
     double x = v + m*u1;
     double y = w + n*u1;
-    double t1_1 = fmod(asin((v + m*u1 - h)/Rs) - phi0, 2*M_PI); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
+    double t1_1 = fmod(asin((v + m*u1 - h)/R) - phi0, 2*M_PI); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
     t1_1 = t1_1 - (pt < 0 && t1_1 > 0 ? 2*M_PI : 0.); // wrapping the root in 0,2pi, if pt is < 0 we want negative numbers
-    double t1_2 = fmod(M_PI - asin((v + m*u1 - h)/Rs) - phi0, 2*M_PI);
+    double t1_2 = fmod(M_PI - asin((v + m*u1 - h)/R) - phi0, 2*M_PI);
     t1_2 = t1_2 - (pt < 0 && t1_2 > 0 ? 2*M_PI : 0.);
-    double y1 = k - Rs*cos(phi0 + t1_1);
-    double y2 = k - Rs*cos(phi0 + t1_2);
+    double y1 = k - R*cos(phi0 + t1_1);
+    double y2 = k - R*cos(phi0 + t1_2);
     y2 = y2;
     double t1 = fabs(y1 - y) < 1e-3 ? t1_1 : t1_2; // to figure out which one we want, we plug the first candidate in the second parametric circle eq and we check whether the resulting y has the same sign of the y of the intersection point. If signs differ, the good t root is the other one. This is because the 2 two roots result in cosines with same modulo but opposite sign.
-    double z = z0 + L*Rs*t1;
+    double z = z0 + L*R*t1;
     if (fabs(pt) >= HIGH_PT_THRESHOLD) {
       if (z >= minZ && z <= maxZ && fabs(t1) < M_PI/2) collisions.push_back(XYZVector(x, y, z)); // the condition on t1 weeds out tracks curving back in the detector (in a coarse way)
     } else {
-      double imin = (minZ - z0 - L*Rs*t1)/(L*Rs*t1*2*M_PI);
-      double imax = (maxZ - z0 - L*Rs*t1)/(L*Rs*t1*2*M_PI);
+      double imin = (minZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
+      double imax = (maxZ - z0 - L*R*t1)/(L*R*t1*2*M_PI);
       if (signum(pt) == signum(imax)) {
         for (int i = ceil(imin); i <= floor(imax); i++) {
-          collisions.push_back(XYZVector(x, y, z0 + L*Rs*t1*(1 + 2*M_PI*i)));
+          collisions.push_back(XYZVector(x, y, z0 + L*R*t1*(1 + 2*M_PI*i)));
         }
       }
     }
@@ -298,23 +442,23 @@ int TrackShooter::detectCollisionBarrel(const Helix& helix, const Polygon3d<4>& 
   if (u2 >= 0. && u2 <= 1.) {
     double x = v + m*u2;
     double y = w + n*u2;
-    double t2_1 = fmod(asin((v + m*u2 - h)/Rs) - phi0, 2*M_PI);
+    double t2_1 = fmod(asin((v + m*u2 - h)/R) - phi0, 2*M_PI);
     t2_1 = t2_1 - (pt < 0 && t2_1 > 0 ? 2*M_PI : 0.); // each u root, plugged in the first parametric circle eq, results in 2 candidate t roots (because of sine, which in [0,2pi] always has two angles resulting in the same sine value)
-    double t2_2 = fmod(M_PI - asin((v + m*u2 - h)/Rs) - phi0, 2*M_PI);
+    double t2_2 = fmod(M_PI - asin((v + m*u2 - h)/R) - phi0, 2*M_PI);
     t2_2 = t2_2 - (pt < 0 && t2_2 > 0 ? 2*M_PI : 0.);
-    double y1 = k - Rs*cos(phi0 + t2_1);
-    double y2 = k - Rs*cos(phi0 + t2_2);
+    double y1 = k - R*cos(phi0 + t2_1);
+    double y2 = k - R*cos(phi0 + t2_2);
     y2 = y2;
     double t2 = fabs(y1 - y) < 1e-3 ? t2_1 : t2_2; // to figure out which one we want, we plug the first candidate in the second parametric circle eq and we check whether the resulting y has the same sign of the y of the intersection point. If signs differ, the good t root is the other one. This is because the 2 two roots result in cosines with same modulo but opposite sign.
-    double z = z0 + L*Rs*t2;
+    double z = z0 + L*R*t2;
     if (fabs(pt) >= HIGH_PT_THRESHOLD) {
       if (z >= minZ && z <= maxZ && fabs(t2) < M_PI/2) collisions.push_back(XYZVector(x, y, z));
     } else { 
-      double imin = (minZ - z0 - L*Rs*t2)/(L*Rs*t2*2*M_PI);
-      double imax = (maxZ - z0 - L*Rs*t2)/(L*Rs*t2*2*M_PI);
+      double imin = (minZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
+      double imax = (maxZ - z0 - L*R*t2)/(L*R*t2*2*M_PI);
       if (signum(pt)*signum(imax)) {
         for (int i = ceil(imin); i <= floor(imax); i++) {
-          collisions.push_back(XYZVector(x, y, z0 + L*Rs*t2*(1 + 2*M_PI*i)));
+          collisions.push_back(XYZVector(x, y, z0 + L*R*t2*(1 + 2*M_PI*i)));
         }
       }
     }
@@ -445,7 +589,7 @@ void TrackShooter::shootTracks() {
 
   Tracks tracks("tracks");
   Hits hits("hits");
-//  Hits plhits("plhits");
+  Hits plhits("plhits");
 
   printParameters();
 
@@ -465,8 +609,10 @@ void TrackShooter::shootTracks() {
 
   tracks.setupBranches(*tree);
   hits.setupBranches(*tree);
-  //plhits.setupBranches(*tree);
+  plhits.setupBranches(*tree);
 
+
+  int numpl = 0, numcyl = 0;
   // build ordered maps
   for (long int i=eventOffset_, totTracks = eventOffset_*numTracksEv_; i<numEvents_+eventOffset_; i++) {
     // new event
@@ -494,11 +640,13 @@ void TrackShooter::shootTracks() {
       double z0 = particle.z0;
   */    
 
-      Helix helix(pt, eta, phi0, z0, 0.); // CUIDADO: d0 not supported yet
-      int dir = helix.dir;
-      double theta = helix.theta;
-      double R = helix.R; 
+      int dir = signum(pt);
+      double theta = 2*atan(exp(-eta));
+      double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
       double B = tan(theta)/R;
+
+      double helixCenterX = -dir*R*sin(phi0);
+      double helixCenterY =  dir*R*cos(phi0);
 
       std::vector<XYZVector> collisions;
       collisions.clear();
@@ -511,8 +659,8 @@ void TrackShooter::shootTracks() {
         double y = dir*R*(1-cos(B*(z-z0)));
         double xrot = x*cos(phi0) - y*sin(phi0);
         double yrot = x*sin(phi0) + y*cos(phi0);
-       // double phirot = atan2(y,x) + phi0;
-       // if (phirot > M_PI) phirot -= 2*M_PI;
+        double phirot = atan2(y,x) + phi0;
+        if (phirot > M_PI) phirot -= 2*M_PI;
 
         const BarrelOctants& octants = rit->second;
         const BarrelModules& bmods = octants[getPointOctant(xrot, yrot, z)]; // jump to the octant of the point (CUIDADO octant is determined used non-planar mods)
@@ -520,12 +668,13 @@ void TrackShooter::shootTracks() {
         for (BarrelModules::const_iterator mit = bmods.begin(); mit != bmods.end(); ++mit) {
           BarrelModule* mod = (*mit);
 
-          const Polygon3d<4>& poly = mod->getFacePolygon(0);
+          Polygon3d<4> poly;
+          poly << mod->getCorner(0) << mod->getCorner(1) << mod->getCorner(2) << mod->getCorner(3);
           double xpl;
           double ypl;
           double zpl;
-          //bool planarcoll = false;
-          if (detectCollisionBarrel(helix, poly, collisions)) { // planar collisions 
+          bool planarcoll = false;
+          if (detectCollisionBarrel(helixCenterX, helixCenterY, pt, z0, phi0, theta, poly, collisions)) { // planar collisions 
             xpl = collisions[0].X();
             ypl = collisions[0].Y();
             zpl = collisions[0].Z(); 
@@ -535,15 +684,14 @@ void TrackShooter::shootTracks() {
             float deltaStrips = modPtError->pToStrips(pt);
             XYVector locv = convertToLocalCoords(collisions[0], mod); 
             PosRef posref = mod->getPositionalReference();
-            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi/*, -1., -1., eta*/);
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
             collisions.clear();
-            //planarcoll = true;
-            //numpl++;
-            //xpl = locv.X();
-            //ypl = locv.Y();
-            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
+            planarcoll = true;
+            numpl++;
+            xpl = locv.X();
+            ypl = locv.Y();
           }
-/*
+
           double minPhi = mod->getMinPhi();
           double maxPhi = mod->getMaxPhi();
           if (mod->getMinZ() <= z && z <= mod->getMaxZ() &&
@@ -558,13 +706,12 @@ void TrackShooter::shootTracks() {
            // double dist = planarcoll ? sqrt((xrot - xpl)*(xrot - xpl) + (yrot - ypl)*(yrot - ypl) + (z - zpl)*(z - zpl)) : -1.;
             double distx = planarcoll ? fabs(locv.X() - xpl) : -1.;
             double disty = planarcoll ? fabs(locv.Y() - ypl) : -1.;
-            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, distx, disty, eta);
+            hits.push_back(xrot, yrot, z, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, distx, disty);
 
             numcyl++;
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
             // CUIDADO this optimization has been disabled for debug
           }
-*/
         }
       }
 
@@ -594,13 +741,13 @@ void TrackShooter::shootTracks() {
         for (EndcapModules::const_iterator mit = emods.begin(); mit != emods.end(); ++mit) {
           EndcapModule* mod = (*mit);
 
-          const Polygon3d<4>& poly = mod->getFacePolygon(0);
-         // poly << (mod->getCorner(0) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
-         //   << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
+          Polygon3d<4> poly;
+          poly << (mod->getCorner(0) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+            << (mod->getCorner(1) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+            << (mod->getCorner(2) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2))
+            << (mod->getCorner(3) - XYZVector(0, 0, mod->getZSide()*mod->getStereoDistance()/2)); 
 
-          if (detectCollisionEndcap(helix, poly, collisions)) {
+          if (detectCollisionEndcap(helixCenterX, helixCenterY, pt, z0, phi0, theta, poly, collisions)) {
             ptError* modPtError = mod->getPtError();
             float pterr = modPtError->computeError(pt);
             float hitprob = mod->getTriggerProbability(pt);
@@ -610,11 +757,10 @@ void TrackShooter::shootTracks() {
             double ypl = collisions[0].Y();
             double zpl = collisions[0].Z();
             XYVector locv = convertToLocalCoords(collisions[0], mod);
-            hits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi);
+            plhits.push_back(xpl, ypl, zpl, locv.X(), locv.Y(), pterr, hitprob, deltaStrips, posref.cnt, posref.z, posref.rho, posref.phi, -1., -1.);
             collisions.clear();
-            if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }
-/*
+
           XYZVector hitv(xrot, yrot, z);
           // check if hit lies in module
 
@@ -632,7 +778,6 @@ void TrackShooter::shootTracks() {
 
             //if (fabs(pt) >= HIGH_PT_THRESHOLD) break; // high pT particles never curve back inside the detector so after a layer/disk has been hit it makes no sense to look for more hits in modules in the same layer/disk
           }      
-*/
         }
 
       }
@@ -663,6 +808,7 @@ void TrackShooter::shootTracks() {
     }
 #endif
   }
+  std::cout << "numpl=" << numpl << " numcyl=" << numcyl << std::endl;
 
   outfile->Write();
   outfile->Close();

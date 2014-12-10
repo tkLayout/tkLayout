@@ -82,7 +82,6 @@ namespace insur {
       std::string tag_;
       std::set<std::string> aliases_;
     public:
-      virtual ~BaseMaterial() {}
       std::string getTag() const { return tag_; }
       const std::set<std::string>& getAliases() const { return aliases_; }
       virtual double getDensity() = 0;

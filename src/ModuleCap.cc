@@ -11,7 +11,6 @@ namespace insur {
      */
     ModuleCap::ModuleCap(Module& mod) { 
         module = &mod;
-        //mod.setModuleCap(this);
     }
     
     /**
@@ -32,7 +31,7 @@ namespace insur {
      * @return The module surface that is relevant for tracking
      */
     double ModuleCap::getSurface() {
-        return module->area();
+        return module->getArea();
     }
     
     /**
@@ -40,6 +39,6 @@ namespace insur {
      */
     void ModuleCap::print() {
         MaterialProperties::print();
-        std::cout << "Associated module is of type " << module->moduleType() << "." << std::endl;
+        std::cout << "Associated module is of type " << module->getType() << "." << std::endl;
     }
 }

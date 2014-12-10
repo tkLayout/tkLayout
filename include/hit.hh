@@ -7,11 +7,11 @@
 #ifndef _HIT_HH_
 #define _HIT_HH_
 
-#include "Module.h"
-#include "PtErrorAdapter.h"
+#include "module.hh"
 #include <MaterialProperties.h>
 #include <cmath>
 #include <vector>
+#include <map>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
 #include <messageLogger.h>
@@ -21,7 +21,6 @@ using namespace std;
 
 class Track;
 
-// TODO: why this?
 typedef double momentum;  // Track momentum in MeV
 
 
@@ -52,7 +51,6 @@ protected:
   bool isPixel_;
   bool isTrigger_;
   bool isIP_;
-  HitType activeHitType_;
 
 private:
   double myResolutionRphi_; // Only used for virtual hits on non-modules
@@ -63,10 +61,10 @@ public:
   Hit();
   Hit(const Hit& h);
   Hit(double myDistance);
-  Hit(double myDistance, Module* myModule, HitType activeHitType);
+  Hit(double myDistance, Module* myModule);
   Module* getHitModule() { return hitModule_; };
-  double getResolutionRphi(double trackR);
-  double getResolutionZ(double trackR);
+  double getResolutionRphi();
+  double getResolutionY();
   void setHitModule(Module* myModule);
   /**
    * @enum An enumeration of the category and orientation constants used within the object
@@ -97,10 +95,6 @@ public:
 
   bool isSquareEndcap();
   double getD();
-
-  void setActiveHitType(HitType activeHitType) { activeHitType_ = activeHitType; }
-  HitType getActiveHitType() const { return activeHitType_; } // NONE, INNER, OUTER, BOTH or STUB -- only meaningful for hits on active elements
-  bool isStub() const { return activeHitType_ == HitType::STUB; }
 };
 
 /**
@@ -119,61 +113,52 @@ class Track {
 protected:
   double theta_;
   double phi_;
-  double cotgTheta_, eta_; // calculated from theta and then cached
   std::vector<Hit*> hitV_;
   // Track resolution as a function of momentum
-  TMatrixTSym<double> correlations_;
-  TMatrixT<double> covariances_;
-  TMatrixTSym<double> correlationsRZ_;
-  TMatrixT<double> covariancesRZ_;
-  double deltarho_;
-  double deltaphi_;
-  double deltad_;
-  double deltaCtgTheta_;
-  double deltaZ0_;
-  double deltaP_;
-  void computeCorrelationMatrixRZ();
+  map<momentum, TMatrixTSym<double> > correlations_;
+  map<momentum, TMatrixT<double> > covariances_;
+  map<momentum, TMatrixTSym<double> > correlationsRZ_;
+  map<momentum, TMatrixT<double> > covariancesRZ_;
+  map<momentum, double> deltarho_;
+  map<momentum, double>::iterator deltarhoIt_;
+  map<momentum, double> deltaphi_;
+  map<momentum, double> deltad_;
+  map<momentum, double> deltaCtgTheta_;
+  map<momentum, double> deltaZ0_;
+  map<momentum, double> deltaP_;
+  void computeCorrelationMatrixRZ(const vector<double>& momenta);
   void computeCovarianceMatrixRZ();
-  void computeCorrelationMatrix();
+  void computeCorrelationMatrix(const vector<double>& momenta);
   void computeCovarianceMatrix();
-  
-  std::set<std::string> tags_;
-  double transverseMomentum_;
 public:
   Track();
   Track(const Track& t);
   ~Track();
-  Track& operator=(const Track &t);
   bool noHits() { return hitV_.empty(); }
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);
   double getTheta() const {return theta_;}
-  double getEta() const { return eta_; } // calculated when theta is set, then cached
-  double getCotgTheta() const { return cotgTheta_; } // ditto here
   double setPhi(double& newPhi);
   double getPhi() const {return phi_;}
-  TMatrixTSym<double>& getCorrelations() { return correlations_; }
-  TMatrixT<double>& getCovariances() { return covariances_; }
-  const double& getDeltaRho() const { return deltarho_; }
-  const double& getDeltaPhi() const { return deltaphi_; }
-  const double& getDeltaD() const { return deltad_; }
-  const double& getDeltaCtgTheta() const { return deltaCtgTheta_; }
-  const double& getDeltaZ0() const { return deltaZ0_; }
-  const double& getDeltaP() const { return deltaP_; }
-
-  Hit* addHit(Hit* newHit);
-  const std::set<std::string>& tags() const { return tags_; }
+  map<momentum, TMatrixTSym<double> >& getCorrelations() { return correlations_; }
+  map<momentum, TMatrixT<double> >& getCovariances() { return covariances_; }
+  const map<momentum, double>& getDeltaRho() const { return deltarho_; }
+  const map<momentum, double>& getDeltaPhi() const { return deltaphi_; }
+  const map<momentum, double>& getDeltaD() const { return deltad_; }
+  const map<momentum, double>& getDeltaCtgTheta() const { return deltaCtgTheta_; }
+  const map<momentum, double>& getDeltaZ0() const { return deltaZ0_; }
+  const map<momentum, double>& getDeltaP() const { return deltaP_; }
+  // TODO: maybe updateradius is not necessary here. To be checked
+  Hit* addHit(Hit* newHit) {hitV_.push_back(newHit); newHit->setTrack(this); newHit->updateRadius(); return newHit;}
   void sort();
-  void computeErrors();
+  void computeErrors(const std::vector<momentum>& momentaList);
   void printErrors();
-  void print();
   void removeMaterial();
   int nActiveHits(bool usePixels = false, bool useIP = true) const;
   std::vector<double> hadronActiveHitsProbability(bool usePixels = false);
   double hadronActiveHitsProbability(int nHits, bool usePixels = false);
   void addEfficiency(double efficiency, bool alsoPixel = false);
   void keepTriggerOnly();
-  void keepTaggedOnly(const string& tag);
   void setTriggerResolution(bool isTrigger);
   // static bool debugRemoval; // debug
   double expectedTriggerPoints(const double& triggerMomentum) const;
@@ -184,9 +169,6 @@ public:
 #endif
   void addIPConstraint(double dr, double dz);
   RILength getCorrectedMaterial();
-  std::vector<std::pair<Module*, HitType>> getHitModules() const;
-
-  void setTransverseMomentum(const double newPt) { transverseMomentum_ = newPt; }
-  double getTransverseMomentum() const { return transverseMomentum_; }
+  std::vector<Module*> getHitModules() const;
 };
 #endif
