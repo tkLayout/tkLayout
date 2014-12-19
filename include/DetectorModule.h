@@ -88,8 +88,8 @@ public:
 
   Property<int8_t, Default> plotColor;
 
-  Property<double, Default> hybridWidth;
-  Property<double, Default> hybridLength;
+  Property<double, Default> serviceHybridWidth;
+  Property<double, Default> frontEndHybridWidth;
   Property<double, Default> hybridThickness;
 
   int16_t cntId() const { return cntId_; }
@@ -122,8 +122,8 @@ public:
       resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
       resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
-      hybridWidth              ("hybridWidth"              , parsedOnly(), 5),
-      hybridLength             ("hybridLength"             , parsedOnly(), 5),
+      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
+      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 1)
   {}
 
