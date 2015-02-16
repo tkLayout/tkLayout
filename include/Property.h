@@ -1,6 +1,7 @@
 #ifndef PROPERTY_H
 #define PROPERTY_H
 
+#include <iostream>
 #include <vector>
 #include <map>
 #include <string>
@@ -45,7 +46,7 @@ public:
 
 struct CheckedPropertyMissing : public PathfulException { CheckedPropertyMissing(const string& objid) : PathfulException("Checked property not set", objid) {} };
 struct RequestedUnsetValue : public PathfulException { RequestedUnsetValue() : PathfulException("Tried to get value from an unset property") {} };
-struct InvalidPropertyValue : public PathfulException { InvalidPropertyValue(const string& objid, const string& val) : PathfulException("Value '" + val + "' is invalid for property", objid) {} };
+struct InvalidPropertyValue : public PathfulException { InvalidPropertyValue(const string& objid) : PathfulException("Value for " + objid + " is invalid") {} };
 struct InvalidComputable : public PathfulException { InvalidComputable() : PathfulException("Computable object is invalid or unset") {} };
 
 
@@ -55,7 +56,12 @@ struct Stateful {
   virtual State state() const = 0; 
 };
 
-struct Parsable : public Stateful<bool> {
+class Validful {
+ public:
+  virtual bool valid() const { return true ; }
+};
+
+struct Parsable : public Stateful<bool>, public Validful {
   virtual string name() const = 0;
   virtual void fromPtree(const ptree& pt) = 0;
   virtual void fromString(const string& s) = 0;
@@ -220,14 +226,15 @@ public:
   }
 }; 
 
+
 template<typename T, const char Sep = ','>
 class MultiProperty : public T, public Parsable {
   const string& name_;
   typedef typename std::decay<decltype(*std::declval<T>().begin())>::type ValueType;
 public:
-  MultiProperty(const string& name, PropertyMap& registrar, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name)) { registrar[name] = this; }
-  MultiProperty(const string& name, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name)) {}
-  MultiProperty(const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref("unnamed")) {}
+ MultiProperty(const string& name, PropertyMap& registrar, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name))  { registrar[name] = this; }
+ MultiProperty(const string& name, const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref(name)) {}
+ MultiProperty(const T& valueHolder = T()) : T(valueHolder), name_(StringSet::ref("unnamed")) {}
   bool state() const { return !T::empty(); }
   void clear() { T::clear(); }
   //const T& operator()() const { return values_; }
@@ -293,6 +300,18 @@ public:
   void fromString(const string& s) { this->insert(make_pair(str2any<int>(s), ptree())); }
 };
 
+template <typename T, int numElem,  const char Sep = ','>
+  class FixedSizeMultiProperty : public MultiProperty<T, Sep> {
+ public:
+ FixedSizeMultiProperty(const string& name, PropertyMap& registrar) : MultiProperty<T, Sep>(name, registrar) { };
+ bool valid() const override {
+   int mySize = MultiProperty<T, Sep>::size();
+   bool result = (mySize == numElem);
+   return result;
+ }
+};
+
+template <typename T> using RangeProperty = FixedSizeMultiProperty<T, 2, '-'>;
 
 typedef ptree PropertyTree;
 
@@ -349,11 +368,16 @@ public:
     recordMatchedProperties();
   }
   virtual void check() {
+    for (auto& v : parsedProperties_) {
+      if (v.second->state() && !v.second->valid()) throw InvalidPropertyValue(v.first);
+    }
     for (auto& v : parsedCheckedProperties_) {
       if (!v.second->state()) throw CheckedPropertyMissing(v.first); 
+      if (v.second->state() && !v.second->valid()) throw InvalidPropertyValue(v.first);
     }
     for (auto& v : checkedProperties_) {
       if (!v.second->state()) throw CheckedPropertyMissing(v.first); 
+      if (v.second->state() && !v.second->valid()) throw InvalidPropertyValue(v.first);
     }
   }
 
