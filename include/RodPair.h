@@ -121,7 +121,7 @@ public:
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
 	      ringNode            ("Ring"                , parsedOnly())
-		{}
+  {}
 
   double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
 
