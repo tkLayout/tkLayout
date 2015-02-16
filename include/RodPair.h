@@ -85,7 +85,7 @@ public:
 class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
 
   // Templated because they need to work both with forward and reverse iterators (mezzanines are built right to left and the rodTemplate vector is iterated backwards)
-  double computeNextZ(double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
+  double computeNextZ(double newDsLength, double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
   template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
   void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side);
@@ -93,6 +93,8 @@ class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
   void buildMezzanine(const RodTemplate& rodTemplate); 
 
 public:
+ 
+  RangeProperty<std::vector<double> > forbiddenRange;
   Property<double, NoDefault> smallDelta;
   Property<double, NoDefault> minBuildRadius;
   Property<double, NoDefault> maxBuildRadius;
@@ -110,6 +112,7 @@ public:
 
   
   StraightRodPair() :
+              forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
               zError              ("zError"              , parsedAndChecked()),
               zPlusParity         ("smallParity"         , parsedAndChecked()),
@@ -117,8 +120,8 @@ public:
               startZ              ("startZ"              , parsedOnly()),
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
-              ringNode            ("Ring"                , parsedOnly())
-  {}
+	      ringNode            ("Ring"                , parsedOnly())
+		{}
 
   double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
 
