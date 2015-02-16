@@ -1,7 +1,6 @@
 #ifndef PROPERTY_H
 #define PROPERTY_H
 
-#include <iostream>
 #include <vector>
 #include <map>
 #include <string>
