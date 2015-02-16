@@ -55,6 +55,8 @@ namespace insur {
   bool Squid::buildTracker() {
     if (tr) delete tr;
     if (px) delete px;
+    tr = NULL;
+    px = NULL;
 
     std::ifstream ifs(getGeometryFile());
     if (ifs.fail()) {
