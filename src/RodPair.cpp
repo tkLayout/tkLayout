@@ -184,7 +184,18 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
     if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
-      if (newZ-lastZ >= (forbiddenRange[0] - newDsLength) && newZ - lastZ <= (forbiddenRange[1] - newDsLength)){newZ = lastZ + forbiddenRange[0] - newDsLength;}; 
+      double forbiddenRange_begin,forbiddenRange_end; 
+      forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
+      forbiddenRange_end=forbiddenRange[1];
+      if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
+        newZ = lastZ + forbiddenRange_begin - newDsLength;
+      } else {
+         forbiddenRange_begin=forbiddenRange[0];
+         forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
+	 if (newZ-lastZ >= (forbiddenRange_begin - newDsLength) && newZ - lastZ <= (forbiddenRange_end - newDsLength)) {
+            newZ = lastZ + forbiddenRange_begin - newDsLength;
+	 }
+      }
     }
   } 
   else {
@@ -194,7 +205,18 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
     if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
-      if (lastZ - newZ >= (forbiddenRange[0] - newDsLength) && lastZ - newZ <= (forbiddenRange[1] - newDsLength)){newZ = lastZ - forbiddenRange[0] + newDsLength;};
+      double forbiddenRange_begin,forbiddenRange_end;              
+      forbiddenRange_begin=(forbiddenRange[0]+forbiddenRange[1])/2;
+      forbiddenRange_end=forbiddenRange[1];
+      if (lastZ - newZ >= (forbiddenRange_begin - newDsLength) && lastZ - newZ <= (forbiddenRange_end - newDsLength)){
+        newZ = lastZ - forbiddenRange_begin + newDsLength;
+      } else {
+        forbiddenRange_begin=forbiddenRange[0];
+        forbiddenRange_end=(forbiddenRange[0]+forbiddenRange[1])/2;
+        if (lastZ - newZ >= (forbiddenRange_begin - newDsLength) && lastZ - newZ <= (forbiddenRange_end - newDsLength)){
+          newZ = lastZ - forbiddenRange_begin + newDsLength;
+        }
+      }
     }
   }
   return newZ;
