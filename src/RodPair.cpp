@@ -194,7 +194,7 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
     if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
-      if (lastZ - newZ >= (forbiddenRange[0] - newDsLength) && lastZ - newZ <= (forbiddenRange[1] - newDsLength)){newZ = lastZ - forbiddenRange[0] - newDsLength;};
+      if (lastZ - newZ >= (forbiddenRange[0] - newDsLength) && lastZ - newZ <= (forbiddenRange[1] - newDsLength)){newZ = lastZ - forbiddenRange[0] + newDsLength;};
     }
   }
   return newZ;
