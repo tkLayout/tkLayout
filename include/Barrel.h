@@ -24,6 +24,8 @@ private:
   Property<double, NoDefault> outerRadius;
   Property<bool, Default> sameRods;
   Property<double, Default> barrelRotation;
+  Property<bool, Default> innerRadiusFixed;
+  Property<bool, Default> outerRadiusFixed;
 
   PropertyNode<int> layerNode;
 public:
@@ -36,6 +38,8 @@ public:
       numLayers("numLayers", parsedAndChecked()),
       innerRadius("innerRadius", parsedAndChecked()),
       outerRadius("outerRadius", parsedAndChecked()),
+      innerRadiusFixed("innerRadiusFixed", parsedAndChecked(), true),
+      outerRadiusFixed("outerRadiusFixed", parsedAndChecked(), true),
       sameRods("sameRods", parsedAndChecked(), false),
       barrelRotation("barrelRotation", parsedOnly(), 0.),
       skipServices("skipServices", parsedOnly(), false), // broken, do not use
