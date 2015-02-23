@@ -20,8 +20,8 @@ public:
 private:
   Container layers_;
 
-  Property<int, NoDefault> innerRadius;
-  Property<int, NoDefault> outerRadius;
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
   Property<bool, Default> sameRods;
   Property<double, Default> barrelRotation;
 
