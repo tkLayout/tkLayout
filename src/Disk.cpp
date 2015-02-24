@@ -1,5 +1,6 @@
 #include "Disk.h"
 #include "messageLogger.h"
+#include "ConversionStation.h"
 
 void Disk::check() {
   PropertyObject::check();
@@ -14,8 +15,13 @@ double Disk::getDsDistance(const vector<double>& buildDsDistances, int rindex) c
 
 void Disk::cutAtEta(double eta) { 
   for (auto& r : rings_) r.cutAtEta(eta); 
-  rings_.erase_if([](const Ring& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
+  //  rings_.erase_if([](const Ring& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
+  rings_.erase_if([](const Ring& r) { return r.modules().size() == 0; }); // get rid of rods which have been completely pruned
   numRings(rings_.size());
+  minZ.clear();
+  minR.clear();
+  maxZ.clear();
+  maxR.clear();
 }
 
 void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
@@ -44,8 +50,8 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
     rings_.push_back(ring);
-    //ringIndexMap_.insert(i, ring);
-    ringIndexMap_[i] = ring;
+    ////ringIndexMap_.insert(i, ring);
+    //ringIndexMap_[i] = ring;
     lastRho = ring->maxR();
     lastSmallDelta = ring->smallDelta();
   }
@@ -74,21 +80,42 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     ring->myid(i);
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
-    rings_.push_back(ring);
-    //ringIndexMap_.insert(i, ring);
-    ringIndexMap_[i] = ring;
+    //rings_.push_back(ring);
+    rings_.insert(rings_.begin(), ring);
+    ////ringIndexMap_.insert(i, ring);
+    //ringIndexMap_[i] = ring;
     lastRho = ring->minR();
     lastSmallDelta = ring->smallDelta();
   }
 }
 
 void Disk::build(const vector<double>& buildDsDistances) {
+  ConversionStation* conversionStation;
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     if (numRings.state()) buildTopDown(buildDsDistances);
     else buildBottomUp(buildDsDistances);
     translateZ(placeZ());
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+
+  for (auto& currentStationNode : stationsNode) {
+    conversionStation = new ConversionStation();
+    conversionStation->store(currentStationNode.second);
+    conversionStation->check();
+    conversionStation->build();
+      
+    if(conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+      if(flangeConversionStation_ == nullptr) { //take only first defined flange station
+        flangeConversionStation_ = conversionStation;
+      }
+    } else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+      secondConversionStations_.push_back(conversionStation);
+    }
+  }
+
   cleanup();
   builtok(true);
 }
@@ -99,5 +126,17 @@ void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : rings_) r.trans
 void Disk::mirrorZ() {
   averageZ_ = -averageZ_;
   for (auto& r : rings_) r.mirrorZ();
+}
+
+const MaterialObject& Disk::materialObject() const {
+  return materialObject_;
+}
+
+ConversionStation* Disk::flangeConversionStation() const {
+  return flangeConversionStation_;
+}
+
+const std::vector<ConversionStation*>& Disk::secondConversionStations() const {
+  return secondConversionStations_;
 }
 

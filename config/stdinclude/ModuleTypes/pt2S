@@ -35,3 +35,7 @@ Sensor 2 {
 }
 
 plotColor 2 
+
+@includestd Materials/pt2S
+@includestd Materials/rodPt2S
+

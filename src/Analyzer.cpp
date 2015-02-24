@@ -561,6 +561,13 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
     iserfbarrel.Fill(eta, tmp.interaction);
     rbarrelall.Fill(eta, tmp.radiation);
     ibarrelall.Fill(eta, tmp.interaction);
+    /*
+    if (eta<0.03) {
+      std::cout << "eta = " << eta << std::endl;
+      track.sort();
+      track.print();
+    }
+    */
     rserfall.Fill(eta, tmp.radiation);
     iserfall.Fill(eta, tmp.interaction);
     rglobal.Fill(eta, tmp.radiation);
@@ -1299,12 +1306,22 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
 
 Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& elements, double eta,
                                            double theta, Track& t, MaterialProperties::Category cat, bool isPixel) {
+
+  /*
+  for (InactiveElement& currElem : elements) {
+    currElem.calculateTotalMass();
+    currElem.calculateRadiationLength();
+    currElem.calculateInteractionLength();
+  }
+  */
+  
   std::vector<InactiveElement>::iterator iter = elements.begin();
   std::vector<InactiveElement>::iterator guard = elements.end();
   Material res, corr;
   std::pair<double, double> tmp;
   double s = 0.0;
-  while (iter != guard) {
+  while ((iter != guard)) {
+    //if  ((iter->getInteractionLength() > 0) && (iter->getRadiationLength() > 0)) {
     // collision detection: rays are in z+ only, so only volumes in z+ need to be considered
     // only volumes of the requested category, or those without one (which should not exist) are examined
     if (((iter->getZOffset() + iter->getZLength()) > 0)
@@ -1314,6 +1331,17 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       // volume was hit
       if ((tmp.first < eta) && (tmp.second > eta)) {
         double r, z;
+        /*
+        if (eta<0.01) {
+          std::cout << "Hitting an inactive surface at z=("
+                    << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
+                    << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
+          const std::map<std::string, double>& localMasses = iter->getLocalMasses();
+          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
+          for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
+        }
+        */
         // radiation and interaction lenth scaling for vertical volumes
         if (iter->isVertical()) {
           z = iter->getZOffset() + iter->getZLength() / 2.0;
@@ -1445,6 +1473,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
       }
     }
     iter++;
+    //}
   }
   return res;
 }

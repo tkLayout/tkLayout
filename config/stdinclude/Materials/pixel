@@ -1,0 +1,133 @@
+
+Materials module-pixel {
+  type module
+
+  // Default sensor:
+  ReferenceSensor 1 {
+    numStripsAcross 1024
+    numSegments 128
+  }
+
+  // Modules: masses taken from TOB modules / 2
+  Component {
+    componentName Module
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Si
+      quantity 0.3
+      unit mm
+    }
+    Element {
+      elementName CF
+      quantity 0.7
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 0.08
+      unit g
+    }
+    Element {
+      elementName Al
+      quantity 0.16
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 0.5
+      unit g
+    }
+  }
+
+  //Cooling blocks
+  Component {
+    componentName "Cooling blocks"
+    service false
+    Element {
+      scaleOnSensor 1
+      elementName Al
+      quantity 0.3
+      unit g
+    }
+    Element {
+      scaleOnSensor 0
+      elementName Al
+      quantity 0.26
+      unit g
+    }
+  }
+
+  // CCUM -> move to service ring
+
+  // End connectivity -> move to service ring
+
+  // AOH
+  Component {
+    componentName AOH
+    service false
+    scaleOnSensor 1
+    Element {
+      elementName Cu
+      quantity 0.0263
+      unit g
+    }
+    Element {
+      elementName G10
+      quantity 0.0324
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 0.0557
+      unit g
+    }
+  }
+
+  // HV
+  Component {
+    componentName HV
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Cu 
+      quantity 0.56
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 0.56
+      unit g/m
+    }
+  }
+
+  // Fibers (side)
+  Component {
+    componentName Fibers
+    service true
+    scaleOnSensor 1
+    Element {
+      elementName PE
+      quantity 0.56
+      unit g/m
+    }
+  }
+
+  // Mechanics 
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity  0.608
+      unit g
+    }
+    Element {
+      elementName Al
+      quantity  0.0456
+      unit g
+    }
+  }
+}
+

@@ -9,19 +9,29 @@
 #include "Property.h"
 #include "Module.h"
 #include "RodPair.h"
+#include "Visitable.h"
+#include "MaterialObject.h"
+
+namespace material {
+  class ConversionStation;
+}
 
 using std::string;
 using std::vector;
 using std::pair;
 using std::unique_ptr;
+using material::MaterialObject;
+using material::ConversionStation;
 
-
-class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer> {
+class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
   typedef PtrVector<RodPair> Container;
 private:
   Container rods_;
-
+  MaterialObject materialObject_;
+  ConversionStation* flangeConversionStation_;
+  std::vector<ConversionStation*> secondConversionStations_;
+ 
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate();
@@ -32,6 +42,7 @@ private:
   Property<int, Default> phiSegments;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
+  PropertyNodeUnique<std::string> stationsNode;
 
   double placeRadius_;
   int numRods_;
@@ -55,12 +66,15 @@ public:
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
+            materialObject_(MaterialObject::LAYER),
+            flangeConversionStation_(nullptr),
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
             phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
             ringNode       ("Ring"           , parsedOnly()),
+            stationsNode   ("Station"        , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),
             maxZ           ("maxZ"           , parsedOnly()),
             radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
@@ -105,6 +119,10 @@ public:
     v.visit(*this); 
     for (const auto& r : rods_) { r.accept(v); }
   }
+  const MaterialObject& materialObject() const;
+
+  ConversionStation* flangeConversionStation() const;
+  const std::vector<ConversionStation*>& secondConversionStations() const;
 };
 
 

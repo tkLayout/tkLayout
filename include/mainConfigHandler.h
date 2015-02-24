@@ -30,9 +30,11 @@ using namespace std;
 // configuration file will be saved in the home directory
 
 class mainConfigHandler {
-public:
+private:
   mainConfigHandler();
+public:
   ~mainConfigHandler() {};
+  static mainConfigHandler& instance();
   bool getConfiguration(bool checkDirExists = true);
   //bool getConfiguration(string& layoutDirectory, string& xmlDirectory);
   bool getConfiguration(string& layoutDirectory);

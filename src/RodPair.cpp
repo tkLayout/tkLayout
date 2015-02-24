@@ -29,6 +29,9 @@ void RodPair::cutAtEta(double eta) {
   zMinusModules_.erase_if([eta](BarrelModule& m) { return fabs(m.center().Eta()) > eta; }); 
 }
 
+const MaterialObject& RodPair::materialObject() const{
+  return materialObject_;
+}
 
 void StraightRodPair::compressToZ(double z) {
 
@@ -353,6 +356,9 @@ void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
 
 
 void StraightRodPair::build(const RodTemplate& rodTemplate) {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
@@ -382,6 +388,9 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
 
 
 void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();

@@ -4,15 +4,14 @@
 
 #include "Visitor.h"
 #include "Property.h"
+#include "Visitable.h"
 
 
 //typedef uint32_t ModuleType;
 
 
-class ModuleBase : public PropertyObject, public Buildable, public Placeable, public Identifiable<int> {
+class ModuleBase : public PropertyObject, public Buildable, public Placeable, public Identifiable<int>, public Visitable {
 public:
-  virtual void accept(GeometryVisitor& v) = 0;
-  virtual void accept(ConstGeometryVisitor& v) const = 0;
   virtual void build() = 0;
   //virtual ModuleBase* clone() = 0;
 

@@ -102,6 +102,7 @@ namespace insur {
      * @struct SingleMod
      * @brief This struct contains the values for a single material that contributes to the mix within the modules.
      * @param tag A string that identifies the material unambiguously
+     * @param comp A string that identifies the component originating the material
      * @param A The component that depends on the position of the module on the rod as well as its layout of chips and segments
      * @param B The component that depends on the layout of chips and segments on an individual module
      * @param C The component that depends on the position of a module on a rod

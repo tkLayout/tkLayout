@@ -10,17 +10,28 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Ring.h"
+#include "Visitable.h"
+#include "MaterialObject.h"
 
-class Disk : public PropertyObject, public Buildable, public Identifiable<int> {
+namespace material {
+  class ConversionStation;
+}
+
+using material::MaterialObject;
+using material::ConversionStation;
+
+class Disk : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<Ring> Container;
   //typedef boost::ptr_map<int, Ring> RingIndexMap;
   //typedef PtrMap<int, Ring> RingIndexMap;
-  typedef std::map<int, Ring*> RingIndexMap;
+  //typedef std::map<int, Ring*> RingIndexMap;
 private:
   Container rings_;
-  RingIndexMap ringIndexMap_;
-  
+  //RingIndexMap ringIndexMap_;
+  MaterialObject materialObject_;
+  ConversionStation* flangeConversionStation_;
+  std::vector<ConversionStation*> secondConversionStations_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
@@ -29,6 +40,7 @@ private:
   Property<int, Default> bigParity;
 
   PropertyNode<int> ringNode;
+  PropertyNodeUnique<std::string> stationsNode;
 
   inline double getDsDistance(const vector<double>& buildDsDistances, int rindex) const;
   void buildTopDown(const vector<double>& buildDsDistances);
@@ -46,6 +58,8 @@ public:
   ReadonlyProperty<double, Computable> maxRingThickness;
 
   Disk() :
+    materialObject_(MaterialObject::LAYER),
+    flangeConversionStation_(nullptr),
     numRings("numRings", parsedAndChecked()),
     innerRadius("innerRadius", parsedAndChecked()),
     outerRadius("outerRadius", parsedAndChecked()),
@@ -55,12 +69,13 @@ public:
     bigParity("bigParity", parsedOnly(), 1),
     buildZ("buildZ", parsedOnly()),
     placeZ("placeZ", parsedOnly()),
-    ringNode("Ring", parsedOnly())
+    ringNode("Ring", parsedOnly()),
+    stationsNode("Station", parsedOnly())
   {}
 
   void setup() {
     minZ.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
-    maxZ.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    maxZ.setup([this]() { double max = -99999; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
     minR.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
@@ -77,7 +92,7 @@ public:
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
-  const RingIndexMap& ringsMap() const { return ringIndexMap_; }
+  //const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
@@ -87,6 +102,9 @@ public:
     v.visit(*this); 
     for (const auto& r : rings_) { r.accept(v); }
   }
+  const MaterialObject& materialObject() const;
+  ConversionStation* flangeConversionStation() const;
+  const std::vector<ConversionStation*>& secondConversionStations() const;
 };
 
 #endif

@@ -25,7 +25,15 @@ MessageLogger::MessageLogger() {
   ++countInstances;
 }
 
-bool MessageLogger::addMessage(string sourceFunction, string message, int level /*=UNKNOWN*/ ) {
+bool MessageLogger::addMessage(string sourceFunction, string message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
+  if(unique) {
+    if(uniqueMessages.count(message) == 0) {
+      uniqueMessages.insert(message);
+    } else {
+      return false;
+    }
+  }
+    
   if (level<=screenLevel_) {
     std::cout << "(" + shortLevelCode[level]+ ") "
 	      << sourceFunction<<": " << message << std::endl;
@@ -46,9 +54,9 @@ bool MessageLogger::addMessage(string sourceFunction, string message, int level 
   } else return false;
 }
 
-bool MessageLogger::addMessage(string sourceFunction, ostringstream& message, int level /*=UNKNOWN*/ ) {
+bool MessageLogger::addMessage(string sourceFunction, ostringstream& message, int level /*=UNKNOWN*/, bool unique /*=false*/ ) {
   string newMessage = message.str();
-  return addMessage(sourceFunction, newMessage, level);
+  return addMessage(sourceFunction, newMessage, level, unique);
 }
 
 bool MessageLogger::hasEmptyLog(int level) {

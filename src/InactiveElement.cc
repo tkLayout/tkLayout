@@ -1,3 +1,6 @@
+#include <cmath>
+#include <iostream>
+
 /**
  * @file InactiveElement.cc
  * @brief This is the base class implementation of a single inactive element
@@ -21,7 +24,7 @@ namespace insur {
      * Get the surface of the element that is relevant for material budget calculation.
      * @return The average cylinder surface for a horizontal tube, the disc surface for a vertical disc
      */
-    double InactiveElement::getSurface() {
+    double InactiveElement::getSurface() const {
         if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * PI;
         else return 2 * PI * (i_radius + w_radius / 2.0) * z_length;
     }
@@ -30,7 +33,7 @@ namespace insur {
      * Get the orientation of the object.
      * @return True if the element points up or down, false if it points sideways
      */
-    bool InactiveElement::isVertical() { return is_vertical; }
+    bool InactiveElement::isVertical() const { return is_vertical; }
     
     /**
      * Set the orientation flag of the object.
@@ -98,6 +101,18 @@ namespace insur {
      */
     void InactiveElement::setRWidth(double rwidth) { w_radius = rwidth; }
     
+    double InactiveElement::getLength() const {
+      if(is_vertical) {
+        return getRWidth();
+      } else {
+        return getZLength();
+      }
+    }
+
+    double InactiveElement::getVolume() const {
+      return M_PI * w_radius * (w_radius + 2*i_radius) * z_length;
+    }
+
     /**
      * Get the index of the element's feeder volume.
      * @return The index within the tracker object's layer or disc vector, or of the service volume; -1 if there is none
@@ -209,8 +224,8 @@ namespace insur {
             }
         }
         // convert angle theta to pseudorapidity eta
-        res.first = -1 * log(tan(theta0 / 2.0));
-        res.second = -1 * log(tan(theta1 / 2.0));
+        res.first = -1 * log(tan(theta0 / 2.0));    // TODO change to the default converters
+        res.second = -1 * log(tan(theta1 / 2.0));   // TODO change to the default converters
         return res;
     }
     

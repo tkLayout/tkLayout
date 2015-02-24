@@ -448,7 +448,7 @@ namespace insur {
                     B = B * stripseg_scalars.at(j);
                     // save converted and scaled material
                     if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D); // CUIDADO MIXED UP j and *first?? was j
-                    else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D); // was j
+                    //else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D); // was j
                   }
                   //accumulation of travelling parameters for outer rings
                   if (j > 0) {
@@ -494,7 +494,7 @@ namespace insur {
                           A = A * stripseg_scalars.at(k);
                           // save converted and scaled material
                           if (iter->is_local) barrelcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C); // was j
-                          else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
+                          //else barrelcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C); // was j
                         }
                       }
                     }
@@ -608,7 +608,7 @@ namespace insur {
                     B = B * stripseg_scalars.at(j);
                     // save converted and scaled material
                     if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, B + D);
-                    else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
+                    //else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, B + D);
                   }
                   // accumulation of travelling parameters for outer rings
                   if (j > 0) {
@@ -639,7 +639,7 @@ namespace insur {
                             C = C * (double)mods.at(k) / (double)mods.at(j);
                             // save converted and scaled material
                             if (iter->is_local) endcapcaps.at(i).at(*first).addLocalMass(iter->tag, iter->comp, A + C);
-                            else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
+                            //else endcapcaps.at(i).at(*first).addExitingMass(iter->tag, iter->comp, A + C);
                           }
                         }
                       }
@@ -1130,7 +1130,7 @@ namespace insur {
 
     /**
      * This is a convenience function that converts an amount of material from one of the units available to the
-     * config file to the internal unit ofgrammes. Since this normally requires additional information about the
+     * config file to the internal unit of grams. Since this normally requires additional information about the
      * geometry of the volume or about the material, those parameters must be supplied as well. If the caller
      * attempts to convert from an unknown unit, an exception is thrown.
      * @param value The amount of material that is to be converted

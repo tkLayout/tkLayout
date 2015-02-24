@@ -13,12 +13,15 @@ using std::string;
 #include "global_funcs.h"
 #include "Property.h"
 #include "Module.h"
+#include "Visitable.h"
 
 #define MAX_WEDGE_CALC_LOOPS 100
 
-class Ring : public PropertyObject, public Buildable, public Identifiable<int> {
 
-  PtrVector<EndcapModule> modules_;
+class Ring : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+  typedef PtrVector<EndcapModule> Container;
+  Container modules_;
+  MaterialObject materialObject_;
 
   template<class T> int roundToOdd(T x) { return round((x-1)/2)*2+1; }
   double solvex(double y);
@@ -62,7 +65,11 @@ public:
   double maxR() const { return maxRadius_; }
   double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
 
+  const Container& modules() const { return modules_; }
+
+
   Ring() :
+      materialObject_(MaterialObject::ROD),
       moduleShape           ("moduleShape"           , parsedAndChecked()),
       phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
       requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
@@ -105,6 +112,7 @@ public:
     v.visit(*this); 
     for (const auto& m : modules_) { m.accept(v); }
   }
+  const MaterialObject& materialObject() const;
 };
 
 

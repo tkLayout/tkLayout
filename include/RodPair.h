@@ -13,6 +13,7 @@
 #include "Property.h"
 #include "Module.h"
 #include "messageLogger.h"
+#include "Visitable.h"
 
 using std::string;
 using std::vector;
@@ -21,11 +22,12 @@ using std::unique_ptr;
 
 typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
-class RodPair : public PropertyObject, public Buildable, public Identifiable<int> {
+class RodPair : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
 public:
   typedef PtrVector<BarrelModule> Container;
 protected:
   Container zPlusModules_, zMinusModules_;
+  MaterialObject materialObject_;
 public:
   enum class BuildDir { RIGHT = 1, LEFT = -1 };
   enum class StartZMode { MODULECENTER, MODULEEDGE };
@@ -43,6 +45,7 @@ public:
   Property<bool, Default> beamSpotCover;
 
   RodPair() :
+      materialObject_(MaterialObject::ROD),
       startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER),
       beamSpotCover("beamSpotCover", parsedAndChecked(), true)
   {}
@@ -80,6 +83,7 @@ public:
     for (const auto& m : zMinusModules_) { m.accept(v); }
   }
 
+  const MaterialObject& materialObject() const;
 };
 
 class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {

@@ -31,7 +31,8 @@ int main(int argc, char* argv[]) {
     ("resolution,r", "Report resolution analysis.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
-    ("all,a", "Report all analyses, except extended\ntrigger. (implies all other relevant\nreport options)")
+    ("debug-services,d", "Service routing debug page")
+    ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
     ("graph,g", "Build and report neighbour graph.")
     ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
     ("html-dir", po::value<std::string>(&htmldir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
@@ -138,7 +139,9 @@ int main(int argc, char* argv[]) {
 
     // If we need to have the material model, then we build it
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
-      if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+      //if (squid.buildInactiveSurfaces(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+      if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+      //if (squid.createMaterialBudget(verboseMaterial)) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
           if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;

@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
   bool result = false;
-  mainConfigHandler m;
+  mainConfigHandler& m = mainConfigHandler::instance();
   // No arguments: just read the configuration file
   // or create it if necessary
   if (argc==1) {

@@ -12,10 +12,11 @@
 #include "capabilities.h"
 #include "Visitor.h"
 #include "IrradiationMapsManager.h"
+#include "Visitable.h"
 
 //typedef std::map<std::pair<int,int>, double> IrradiationMap;
 
-class SimParms : public PropertyObject, public Buildable {
+class SimParms : public PropertyObject, public Buildable, public Visitable {
   IrradiationMapsManager irradiationMapsManager_;
 public:
   

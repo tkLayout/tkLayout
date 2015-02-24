@@ -1,0 +1,70 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[margin=1cm]{geometry}
+\usepackage{pdflscape}
+\usepackage{color}
+\usepackage{footnote}
+\pagestyle{empty}
+\newcommand{\cell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+\newcommand{\rowhead}[2]{\cell{\color{red}#1\\ \color{green}#2}}
+\newcommand{\cont}[5]{\cell{\color{red}#1\\ \color{blue}#2\\ #3\\ #4\\ \color{green}#5}}
+\newcommand{\deprecont}[5]{\cell{\color{red}#1\\ \color{blue}#2\\ #3\\ #4\\ \color{green}#5\\ \color{red}Deprecated warning}}
+\newcommand{\noacc}{No accumulation}
+\newcommand{\acc}{Accumulation}
+\newcommand{\noconv}{No conversion}
+\newcommand{\sca}{Scaling possible}
+\newcommand{\nosca}{Scaling not possible}
+\newcommand{\conv}{Conversion}
+\newcommand{\serfal}{Service=false}
+\newcommand{\sertru}{Service=true}
+\newcommand{\err}{\color{red}Error}
+\newcommand{\depre}{\color{red}Deprecated}
+\newcommand{\follsup}{Following supports $S_{R+1}\dots S_i\dots S_N$}
+\newcommand{\allsup}{All supports $S_1\dots S_i\dots S_N$}
+\newcommand{\modlen}{moduleLength}
+\newcommand{\modsur}{moduleSurface}
+\newcommand{\nummod}{numModules}
+\newcommand{\suplen}{supportLength}
+\newcommand{\supsur}{supportSurface}
+
+
+\begin{document}
+\begin{landscape}
+  \section*{Material routing effects}
+  The first column is where the material is defined and if is defined with \emph{service} true or false. The other columns are the different effect regarding the unit of measure of the material, for each cell: the first field is the destination volume; the second is the amount of material in grams; the third specify if the material is accumulating along the layer/disk; the fourth specify if the material is converted after the layer/disk or only stay in the layer/disk; the fifth if is possible or not to set the scaling on channels.
+  \begin{savenotes}
+    \begin{center}
+      \fontsize{9pt}{10}\selectfont
+      \begin{tabular}{|c||c|c|c|}
+        \hline
+        & \color{green}Unit=$g/m$ & \color{green}Unit=$mm$ & \color{green}Unit=$g$\\
+        \hline\hline
+        \rowhead{Module}{\serfal} & \cont{Module}{$\times \modlen$}{\noacc}{\noconv}{\sca}& \cont{Module}{$\times \modsur\times \rho$ (sensor surface)}{\noacc}{\noconv}{\sca}& \cont{Module}{$\times 1$}{\noacc}{\noconv}{\sca}\\
+        \hline
+        \rowhead{Module in ring $R$\footnote{of $N$ rings}}{\sertru\footnote{\label{sertrunote}may be converted by station}} & \cont{\follsup}{$\times \nummod_R \times \suplen_i$}{\acc}{\conv (1:1 by default, with warning)}{\sca} & \deprecont{\follsup}{$\times \supsur_i \times \rho$}{\acc}{\conv  (1:1 by default, with warning)}{\sca} & \err \\
+        \hline
+        \rowhead{Rod (barrel\footnote{line of one module per ring with same $\phi$})}{\serfal} & \cont{\allsup}{$\times \nummod_1 \times \suplen_i$}{\noacc}{\noconv}{\nosca} & \cont{\allsup}{$\times \supsur_i \times \rho$}{\noacc}{\noconv}{\nosca} & \cont{\allsup}{$\times \nummod_1 \times \frac{\suplen_i}{\sum_{j=1}^N\suplen_j}$}{\noacc}{\noconv}{\nosca} \\
+        \hline
+        \rowhead{Rod (barrel)}{\sertru\footnotemark[\ref{sertrunote}]} & \cont{\allsup}{$\times \nummod_1 \times \suplen_i$}{\noacc}{\conv}{\nosca} & \deprecont{\allsup}{$\times \supsur_i \times \rho$}{\noacc}{\conv}{\nosca} & \err \\
+        \hline
+        \rowhead{Layer/Disk}{\serfal} & \cont{\allsup}{$\times \suplen_i$}{\noacc}{\noconv}{\nosca} & \cont{\allsup}{$\times \supsur_i \times \rho$}{\noacc}{\noconv}{\nosca} & \cont{\allsup}{$\times \frac{\suplen_i}{\sum_{j=1}^N\suplen_j}$}{\noacc}{\noconv}{\nosca} \\
+        \hline
+        \rowhead{Layer/Disk}{\sertru\footnotemark[\ref{sertrunote}]} & \cont{\allsup}{$\times \suplen_i$}{\noacc}{\conv}{\nosca} & \deprecont{\allsup}{$\times \supsur_i \times \rho$}{\noacc}{\conv}{\nosca} & \err \\
+        \hline
+      \end{tabular}
+    \end{center}
+    \begin{center}
+      \tiny
+      \begin{tabular}{|c|c|c|c|}
+        \hline
+        & Modules & Cylind. service sections & disk service section \\
+        \hline
+        Length & Local $y$ & $\Delta z$ & $\Delta r$ \\
+        \hline
+        Surface & Sensor surface & $2\pi r \Delta z$ & $\pi({r_2}^2 - {r_1}^2)$ \\
+        \hline
+      \end{tabular}
+    \end{center}
+  \end{savenotes}
+\end{landscape}
+\end{document}
