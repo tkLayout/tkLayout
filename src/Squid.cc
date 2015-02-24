@@ -6,13 +6,18 @@
 
 #include "SvnRevision.h"
 #include "Squid.h"
+#include "StopWatch.h"
 
 namespace insur {
   // public
   /**
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
-  Squid::Squid() : t2c(mainConfiguration) {
+  Squid::Squid() :
+      mainConfiguration(mainConfigHandler::instance()),
+      t2c(mainConfiguration),
+      weightDistributionTracker(0.1),
+      weightDistributionPixel(0.1) {
     tr = NULL;
     is = NULL;
     mb = NULL;
@@ -71,6 +76,7 @@ namespace insur {
     ptree pt;
     info_parser::read_info(ss, pt);
 
+    /*
     class CoordExportVisitor : public ConstGeometryVisitor {
       std::ofstream barof, endof;
     public:
@@ -103,6 +109,7 @@ namespace insur {
            << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
       }
     };
+    */
 
     try { 
       auto childRange = getChildRange(pt, "Tracker");
@@ -228,6 +235,58 @@ namespace insur {
       stopTaskClock();
       return false;
     }
+  }
+
+  bool Squid::buildMaterials(bool verbose) {
+    startTaskClock("Building materials");
+
+    if (tr) {
+        std::string trackm = getMaterialFile();
+        if (trackm=="") { stopTaskClock(); return false; }
+        if (!is) is = new InactiveSurfaces();
+        //if (mb) delete mb;
+        //mb  = new MaterialBudget(*tr, *is);
+        //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
+        //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
+
+        //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+        materialwayTracker.build(*tr, *is, weightDistributionTracker);
+
+          // mb->materialsAll(tkMaterialCalc);
+          // if (verbose) mb->print();
+
+          if (px) {
+            std::string pixm = getPixelMaterialFile();
+            if (pixm!="") {
+              //if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+                if (!pi) pi = new InactiveSurfaces();
+                //if (pm) delete pm;
+                //pm = new MaterialBudget(*px, *pi);
+                materialwayPixel.build(*px, *pi, weightDistributionPixel);
+
+                //pm->materialsAll(pxMaterialCalc);
+                //if (verbose) pm->print();
+                //}
+            }
+          }
+
+          /*
+        } else {
+          //if (mb) delete mb;
+          //mb = NULL;
+          //if (pm) delete pm;
+          //pm = NULL;
+          logERROR(err_init_failed);
+          return false;
+        }
+        */
+      } else {
+        logERROR(err_no_tracker);
+        stopTaskClock();
+        return false;
+      }
+    stopTaskClock();
+    return true;
   }
 
 
@@ -401,6 +460,7 @@ namespace insur {
     startTaskClock("Creating website");
     if (!prepareWebsite()) {
       logERROR("Problem in preparing website");
+      stopTaskClock();
       return false;
     }
 
@@ -553,7 +613,7 @@ namespace insur {
       startTaskClock("Creating material budget report");
       v.histogramSummary(a, site, "outer");
       if (pm) v.histogramSummary(pixelAnalyzer, site, "pixel");
-      v.weigthSummart(a, site, "outer");
+      v.weigthSummart(a, weightDistributionTracker, site, "outer");
       stopTaskClock();
       return true;
     }

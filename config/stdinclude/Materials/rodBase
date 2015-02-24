@@ -1,0 +1,196 @@
+// ROD material
+// In rod service true means that exit from the rod
+//        service false means that stay in the rod (but in the service cylinder)
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 7.860696517
+      unit g/m
+    }
+    Element {
+      elementName CO2
+      quantity 1.791044776
+      unit g/m
+    }
+  }
+
+  // 6 TWP/Rod
+  // (4 for sensors and 2 for converters)
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.48
+      unit mm
+    }
+    Element {
+      elementName PE
+      quantity 0.063778498
+      unit mm
+    }
+  }

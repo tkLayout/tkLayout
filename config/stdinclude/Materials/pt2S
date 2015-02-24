@@ -1,0 +1,326 @@
+// pt-2S module 10x10 for the outer region
+// GBT on the module
+
+Materials module-pt2S {
+  type module
+
+  // Default sensor:
+  ReferenceSensor 1 {
+    numStripsAcross 1016
+    numSegments 2
+  }
+  ReferenceSensor 2 {
+    numStripsAcross 1016
+    numSegments 2
+  } 
+
+  // Sensor and hybrid stuff
+  // Sensor
+  Component {
+    componentName Sensor
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
+      targetVolume 1
+    }
+  }
+
+  // Sensor
+  Component {
+    componentName Sensor
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
+      targetVolume 2
+    }
+  }
+
+  // Two hybrids
+  Component {
+    componentName FEHybrids
+    service false
+    scaleOnSensor 1
+    targetVolume 56
+    Element {
+      elementName G10
+      quantity 1.60
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 0.90
+      unit g
+    }
+  }
+
+  // ASICs
+  Component {
+    componentName ASICs
+    service false
+    scaleOnSensor 1
+    targetVolume 56
+    Element {
+      elementName Si
+      quantity 0.46
+      unit g
+    }
+  }
+
+
+  // Two NaIS pairs (male+female)
+  Component {
+    componentName 2NaISPairs
+    service false
+    scaleOnSensor 0
+    targetVolume 3
+    Element {
+      elementName Cu
+      quantity 0.1952
+      unit g
+    }
+    Element {
+      elementName G10
+      quantity 0.3934
+      unit g
+    }
+  }
+
+  // LP-GBT with its fiber pair
+  // 1 LP-GBT
+  Component {
+    componentName GBTs
+    service false
+    scaleOnSensor 0
+    // Service board PCB
+    targetVolume 3
+    Element {
+      elementName G10
+      quantity 0.25
+      unit g
+    }
+    // Service board PCB
+    Element {
+      elementName Cu
+      quantity 0.15
+      unit g
+    }
+    // Packaging
+    Element {
+      elementName PE
+      quantity 2.50
+      unit g
+    }
+  }
+
+  // 2 Optical fibers
+  Component {
+    componentName Fibers
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName PE
+      quantity 1.51390639
+      unit g/m
+    }
+  }
+
+  // DC/DC converter
+  Component {
+    componentName DC/DC
+    service false
+    scaleOnSensor 0
+    // Service board PCB
+    targetVolume 3
+    Element {
+      elementName G10
+      quantity 0.25
+      unit g
+    }
+    // Service board PCB
+    Element {
+      elementName Cu
+      quantity 0.15
+      unit g
+    }
+    // AMIS
+    Element {
+      elementName Si
+      quantity 0.0699
+      unit g
+    }
+    // Add. Voltage Chip
+    Element {
+      elementName Si
+      quantity 0.01048
+      unit g
+    }
+    // Coil Windings
+    Element {
+      elementName Cu
+      quantity 0.5967
+      unit g
+    }
+    // Coil Core
+    Element {
+      elementName PE
+      quantity 0.1038
+      unit g
+    }
+    // Pi-Filter Coil
+    Element {
+      elementName Cu
+      quantity 0.04659
+      unit g
+    }
+    // Shielding Alu
+    Element {
+      elementName Al
+      quantity 0.1377
+      unit g
+    }
+    // Nickel Coating
+    Element {
+      elementName Ni
+      quantity 0.07456
+      unit g
+    }
+    // Solder
+    Element {
+      elementName Sn
+      quantity 0.02412
+      unit g
+    }
+    // Heat Conducting Paste
+    Element {
+      elementName Silicone
+      quantity 0.1408
+      unit g
+    }
+    // Cap/Res Ceramic
+    Element {
+      elementName Al2O3
+      quantity 0.3505
+      unit g
+    }
+    // Cap/Res Cu
+    Element {
+      elementName Cu
+      quantity 0.06182
+      unit g
+    }
+    // Cap/Res Ni
+    Element {
+      elementName Ni
+      quantity 0.02574
+      unit g
+    }
+    // Converter Connector
+    Element {
+      elementName ConCon
+      quantity 0.2168
+      unit g
+    }
+    // Solder Paste
+    Element {
+      elementName BGA
+      quantity 0.1411
+      unit g
+    }
+  }
+
+  // Power for the converter (10V)
+  // 2 wires
+  Component {
+    componentName "Power lines"
+    service true
+    scaleOnSensor 1
+    Element {
+      elementName Cu_MV
+      quantity 2.36
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 1.92
+      unit g/m
+    }
+  }
+
+  // 2 Kapton tails for the HV of one sensor
+  Component {
+    componentName "HV tails"
+    service false
+    scaleOnSensor 0
+    targetVolume 7
+    Element {
+      elementName Kapton
+      quantity 0.170
+      unit g
+    }
+  }
+
+  // Module mechanics (for 10 cm-long modules)
+  Component {
+    componentName "Module Mechanics"
+    service false
+    scaleOnSensor 0
+    // Module frame
+    Element {
+      elementName CF
+      quantity 5.35
+      unit g
+      targetVolume 0
+    }
+    // Sensors supports
+    Element {
+      elementName CF
+      quantity 3.28
+      unit g
+      targetVolume 7
+    }
+    // PGS Thermal conductor
+    Element {
+      elementName CF
+      quantity 0.69
+      unit g
+      targetVolume 7
+    }
+    // Cooling blocks
+    Element {
+      elementName Al
+      quantity 2.41
+      unit g
+      targetVolume 0
+    }
+    // Screws
+    Element {
+      elementName Steel
+      quantity 0.48
+      unit g
+      targetVolume 0
+    }
+  }
+  
+  // HV: 1 wire
+  Component {
+    componentName "HV lines"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Cu_HV
+      quantity 1.18
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 0.96
+      unit g/m
+    }
+  }
+}

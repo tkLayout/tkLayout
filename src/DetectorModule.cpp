@@ -1,5 +1,7 @@
 
 #include "DetectorModule.h"
+#include "ModuleCap.h"
+
 /*
 DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m) {
   using namespace boost::property_tree;
@@ -38,6 +40,7 @@ void DetectorModule::build() {
       if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
       s->build();
       sensors_.push_back(s);
+      materialObject_.sensorChannels[i+1]=s->numChannels();
     }
   } else {
     Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
@@ -46,6 +49,9 @@ void DetectorModule::build() {
     s->build();
     sensors_.push_back(s);
   }
+
+  materialObject_.store(propertyTree());
+  materialObject_.build();
 }
 
 
@@ -178,9 +184,17 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   return std::make_pair(gc, ht);
 };
 
+BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
+  setup();
+  
+  //myModuleCap_ = new ModuleCap(this);
+  //myModuleCap_->setCategory(MaterialProperties::b_mod);
+}
+
 void BarrelModule::build() {
   try {
     DetectorModule::build();
+    //myModuleCap_->setCategory(MaterialProperties::b_mod);
     decorated().rotateY(M_PI/2);
     rAxis_ = normal();
     tiltAngle_ = 0.;
@@ -191,10 +205,17 @@ void BarrelModule::build() {
   builtok(true);
 }
 
+EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
+  setup();
+  
+  //myModuleCap_ = new ModuleCap(this);
+  //myModuleCap_->setCategory(MaterialProperties::e_mod);
+} 
 
 void EndcapModule::build() {
   try {
     DetectorModule::build();
+    //myModuleCap_->setCategory(MaterialProperties::e_mod);
     rAxis_ = (basePoly().getVertex(0) + basePoly().getVertex(3)).Unit();
     tiltAngle_ = M_PI/2.;
     skewAngle_ = 0.;

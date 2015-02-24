@@ -47,25 +47,26 @@ void Endcap::build() {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
-    if (!minZ.state()) minZ(barrelMaxZ() + barrelGap());
+    if (!innerZ.state()) innerZ(barrelMaxZ() + barrelGap());
+    else if(barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
 
     vector<double> maxDsDistances = findMaxDsDistances();
     vector<Disk*> tdisks;
 
-    double alpha = pow(maxZ()/minZ(), 1/double(numDisks()-1)); // geometric progression factor
+    double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
 
     for (int i = 1; i <= numDisks(); i++) {
       Disk* diskp = GeometryFactory::make<Disk>();
       diskp->myid(i);
 
-      diskp->buildZ((minZ() + maxZ())/2);
-      double offset = pow(alpha, i-1) * minZ();
+      diskp->buildZ((innerZ() + outerZ())/2);
+      double offset = pow(alpha, i-1) * innerZ();
       diskp->placeZ(offset);
 
       diskp->store(propertyTree());
       if (diskNode.count(i) > 0) diskp->store(diskNode.at(i));
 
-      diskp->zError(diskp->zError() + (maxZ()-minZ())/2);
+      diskp->zError(diskp->zError() + (outerZ()-innerZ())/2);
 
       diskp->build(maxDsDistances);
 

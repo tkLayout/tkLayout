@@ -10,9 +10,10 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Disk.h"
+#include "Visitable.h"
 
 
-class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string> {
+class Endcap : public PropertyObject, public Buildable, public Identifiable<std::string>, public Visitable {
   typedef boost::ptr_vector<Disk> Container;
 
   Container disks_;
@@ -23,16 +24,17 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
 public:
   Property<int, NoDefault> numDisks;
   Property<double, NoDefault> barrelMaxZ;
-  Property<double, NoDefault> minZ;
-  Property<double, NoDefault> maxZ;
+  Property<double, NoDefault> innerZ;
+  Property<double, NoDefault> outerZ;
+  ReadonlyProperty<double, Computable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<bool, Default> skipServices;
 
   Endcap() :
       barrelGap("barrelGap", parsedOnly()),
       numDisks("numDisks", parsedAndChecked()),
-      minZ("minZ", parsedOnly()),
-      maxZ("maxZ", parsedAndChecked()),
+      innerZ("minZ", parsedOnly()),
+      outerZ("maxZ", parsedAndChecked()),
       skipServices("skipServices", parsedOnly(), false), // broken, do not use
       diskNode("Disk", parsedOnly())
   {}
@@ -40,6 +42,8 @@ public:
   void setup() {
     maxR.setup([&]() { double max = 0; for (const auto& d : disks_) { max = MAX(max, d.maxR()); } return max; });
     minR.setup([&]() { double min = 0; for (const auto& d : disks_) { min = MIN(min, d.minR()); } return min; });
+    maxZ.setup([&]() { double max = 0; for (const auto& d : disks_) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
+    minZ.setup([&]() { double min = 9999999999; for (const auto& d : disks_) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
   }
 
   void build();

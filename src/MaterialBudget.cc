@@ -20,17 +20,23 @@ namespace insur {
       CapsVisitor(Caps& capsbarrelmods, Caps& capsendmods) : capsbarrelmods_(capsbarrelmods), capsendmods_(capsendmods) {}
       void visit(Layer&) { capsbarrelmods_.push_back(std::vector<ModuleCap>()); }
       void visit(BarrelModule& m) {
+		/*
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::b_mod);
-        capsbarrelmods_.back().push_back(*cap); 
-        m.setModuleCap(& (capsbarrelmods_.back().back()));
+        capsbarrelmods_.back().push_back(*cap);
+	m.setModuleCap(& (capsbarrelmods_.back().back()));
+		*/
+        capsbarrelmods_.back().push_back(*m.getModuleCap());
       }
       void visit(Disk&) { capsendmods_.push_back(std::vector<ModuleCap>()); }
       void visit(EndcapModule& m) {
+		/*
         ModuleCap* cap = new ModuleCap(m);
         cap->setCategory(MaterialProperties::e_mod);
         capsendmods_.back().push_back(*cap);
         m.setModuleCap(& (capsendmods_.back().back()));
+		*/
+        capsendmods_.back().push_back(*m.getModuleCap());
       }
     };
 
@@ -72,9 +78,9 @@ namespace insur {
      * @param calc A reference to the material calculator that will do the actual work
      */
     void MaterialBudget::materialsAll(MatCalc& calc) {
-        materialsModules(calc);
-        materialsServices(calc);
-        materialsSupports(calc);
+      //materialsModules(calc);
+      //materialsServices(calc);
+      //materialsSupports(calc);
     }
     
     /**

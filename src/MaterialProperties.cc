@@ -4,6 +4,7 @@
  */
 
 #include <MaterialProperties.h>
+#include<MaterialTab.h>
 
 RILength& RILength::operator+=(const RILength &a) {
   interaction += a.interaction;
@@ -57,7 +58,9 @@ namespace insur {
      * expected to provide a meaningful value that this function can return.
      * @return A constant value of <i>-1</i>
      */
-    double MaterialProperties::getSurface() { return -1; }
+    double MaterialProperties::getSurface() const { return -1; }
+
+    double MaterialProperties::getLength() const { return -1; }
     
     /**
      * Get the local mass of one of the materials, as identified by its name, that make up the element.
@@ -131,7 +134,7 @@ namespace insur {
      * @param comp The name of the component
      * @param ms The mass value
      */
-  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms) {
+  void MaterialProperties::addLocalMass(std::string tag, std::string comp, double ms, int minZ) {
         msl_set = true;
         localmasses[tag] += ms;
         localmassesComp[getSubName(comp)] += ms;
@@ -213,7 +216,7 @@ namespace insur {
      * @param mp The destination object
      */
     void MaterialProperties::copyMassVectors(MaterialProperties& mp) {
-        mp.clearMassVectors();
+      mp.clearMassVectors(); //TODO: why?!?!?!?!?!
         //for (unsigned int i = 0; i < localMassCount(); i++) mp.addLocalMass(localmasses.at(i));
         //for (unsigned int i = 0; i < exitingMassCount(); i++) mp.addExitingMass(exitingmasses.at(i));
         //for (unsigned int i = 0; i < localMassCompCount(); i++) mp.addLocalMassComp(localmassesComp.at(i));
@@ -378,6 +381,70 @@ namespace insur {
             }
         }
     }
+
+  // Versions with new material tab definition
+    void MaterialProperties::calculateRadiationLength(double offset) {
+      const material::MaterialTab& materialTab = material::MaterialTab::instance();
+ 
+        if (getSurface() > 0) {
+            r_length = offset;
+            if (msl_set) {
+                // local mass loop
+                for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface() / 100.0);
+                }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface() / 100.0);
+                    }
+                }
+            }
+            if (mse_set) {
+                // exiting mass loop
+                for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
+                    r_length += it->second / (materialTab.radiationLength(it->first) * getSurface() / 100.0);
+                }
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        componentsRI[getSuperName(cit->first)].radiation += mit->second / (materialTab.radiationLength(mit->first) * getSurface() / 100.0);
+                    }
+                }
+            }
+        }
+    }
+    
+    void MaterialProperties::calculateInteractionLength(double offset) {
+      const material::MaterialTab& materialTab =  material::MaterialTab::instance();
+
+        if (getSurface() > 0) {
+            i_length = offset;
+            if (msl_set) {
+                // local mass loop
+                for (std::map<std::string, double>::iterator it = localmasses.begin(); it != localmasses.end(); ++it) {
+                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface() / 100.0);
+                }
+                    
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = localCompMats.begin(); cit != localCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface() / 100.0);
+                    }
+                }
+            }
+            if (mse_set) {
+                // exiting mass loop
+                for (std::map<std::string, double>::iterator it = exitingmasses.begin(); it != exitingmasses.end(); ++it) {
+                    i_length += it->second / (materialTab.interactionLength(it->first) * getSurface() / 100.0);
+                }
+
+                for (std::map<std::string, std::map<std::string, double> >::iterator cit = exitingCompMats.begin(); cit != exitingCompMats.end(); ++cit) {
+                    for (std::map<std::string, double>::iterator mit = cit->second.begin(); mit != cit->second.end(); ++mit) {
+                        componentsRI[getSuperName(cit->first)].interaction += mit->second / (materialTab.interactionLength(mit->first) * getSurface() / 100.0);
+                    }
+                }
+            }
+        }
+    }
+
     
     /**
      * Find out if the volume is relevant for tracking during analysis.

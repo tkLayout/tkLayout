@@ -223,7 +223,7 @@ template<class CoordType> class LineGetter {
   CoordTypeX maxx_, minx_;
   CoordTypeY maxy_, miny_;
 public:
-  LineGetter() : maxx_(std::numeric_limits<double>::min()), minx_(std::numeric_limits<double>::max()), maxy_(std::numeric_limits<double>::min()), miny_(std::numeric_limits<double>::max()) {}
+  LineGetter() : maxx_(std::numeric_limits<CoordTypeX>::min()), minx_(std::numeric_limits<CoordTypeX>::max()), maxy_(std::numeric_limits<CoordTypeY>::min()), miny_(std::numeric_limits<CoordTypeY>::max()) {}
   CoordTypeX maxx() const { return maxx_; }
   CoordTypeX minx() const { return minx_; }
   CoordTypeY maxy() const { return maxy_; }

@@ -790,8 +790,6 @@ void Track::print() {
   }
 }
 
-
-
 /**
  * Changes some active hits into inactive
  * according to the efficiency 

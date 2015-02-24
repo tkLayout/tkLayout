@@ -63,7 +63,8 @@ namespace insur {
         Category getCategory();
         void setCategory(Category c);
         // to be used by the subclasses
-        virtual double getSurface();
+        virtual double getSurface() const;
+        virtual double getLength() const;
         // material mass handling
         const std::map<std::string, double>& getLocalMasses() const;
         const std::map<std::string, double>& getExitingMasses() const;
@@ -82,7 +83,7 @@ namespace insur {
 //        std::string getExitingTag(int index);
 //        std::string getExitingTagComp(int index);
         //void setLocalMass(std::string tag, std::string comp, double ms);
-        void addLocalMass(std::string tag, std::string comp, double ms);
+        void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
         void addLocalMass(std::string tag, double ms);
         //void setExitingMass(std::string tag, std::string comp, double ms);
         void addExitingMass(std::string tag, std::string comp, double ms);
@@ -107,6 +108,8 @@ namespace insur {
         void calculateExitingMass(double offset = 0);
         void calculateRadiationLength(MaterialTable& materials, double offset = 0.0);
         void calculateInteractionLength(MaterialTable& materials,  double offset = 0.0);
+        void calculateRadiationLength(double offset = 0.0);
+        void calculateInteractionLength(double offset = 0.0);
         // tracking information
         bool track();
         void track(bool tracking_on);

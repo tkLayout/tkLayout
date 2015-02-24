@@ -14,12 +14,14 @@
 #include "Property.h"
 #include "Barrel.h"
 #include "Endcap.h"
+#include "SupportStructure.h"
 #include "Visitor.h"
+#include "Visitable.h"
 
 using std::set;
+using material::SupportStructure;
 
-
-class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker> {
+class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
@@ -38,6 +40,7 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
 public:
   typedef PtrVector<Barrel> Barrels;
   typedef PtrVector<Endcap> Endcaps;
+  typedef PtrVector<SupportStructure> SupportStructures;
   typedef ModuleSetVisitor::Modules Modules;
 
   ReadonlyProperty<double, Computable> maxR, minR;
@@ -50,11 +53,13 @@ public:
 private:
   Barrels barrels_;
   Endcaps endcaps_;
+  SupportStructures supportStructures_;
 
   ModuleSetVisitor moduleSetVisitor_;
 
   PropertyNode<string> barrelNode;
   PropertyNode<string> endcapNode;
+  PropertyNodeUnique<string> supportNode;
 
   MultiProperty<set<string>, ','> containsOnly;
 
@@ -64,6 +69,7 @@ public:
   Tracker() :
       barrelNode("Barrel", parsedOnly()),
       endcapNode("Endcap", parsedOnly()),
+      supportNode("Support", parsedOnly()),
       etaCut("etaCut", parsedOnly(), 7.),
       servicesForcedUp("servicesForcedUp", parsedOnly(), true),
       skipAllServices("skipAllServices", parsedOnly(), false),
@@ -118,6 +124,8 @@ public:
   TCanvas* getGeomLiteXY() { return NULL; }
   TCanvas* getGeomLiteYZ() { return NULL; }
   TCanvas* getGeomLiteEC() { return NULL; }
+  
+  SupportStructures& supportStructures() {return supportStructures_;}
 };
 
 

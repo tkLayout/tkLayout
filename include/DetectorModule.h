@@ -7,7 +7,10 @@
 #include "ModuleBase.h"
 #include "GeometricModule.h"
 #include "CoordinateOperations.h"
+#include "Visitable.h"
+#include "MaterialObject.h"
 
+using material::MaterialObject;
 
 //
 // ======================================================= DETECTOR MODULES ===============================================================
@@ -31,13 +34,16 @@ namespace insur {
   class ModuleCap;
 }
 using insur::ModuleCap;
+using material::ElementsVector;
 
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
+
   typedef PtrVector<Sensor> Sensors;
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 protected:
+  MaterialObject materialObject_;
   Sensors sensors_;
   std::string cntName_;
   int16_t cntId_;
@@ -98,6 +104,7 @@ public:
   
  DetectorModule(Decorated* decorated) : 
     Decorator<GeometricModule>(decorated),
+      materialObject_(MaterialObject::MODULE),
       sensorNode               ("Sensor"                   , parsedOnly()),
       moduleType               ("moduleType"               , parsedOnly() , string("notype")),
       numSensors               ("numSensors"               , parsedOnly()),
@@ -125,7 +132,7 @@ public:
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 1)
-  {}
+  { }
 
   virtual void setup();
 
@@ -135,7 +142,12 @@ public:
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
-  double area() const { return decorated().area(); }
+  double area() const { 
+    //return decorated().area();
+    const GeometricModule& module = decorated();
+    double area = module.area(); 
+    return area;
+  }
   double dsDistance() const { return decorated().dsDistance(); }
   void dsDistance(double d) { decorated().dsDistance(d); }
   double thickness() const { return dsDistance() + sensorThickness(); }
@@ -205,8 +217,10 @@ public:
   double thetaAperture() const { return maxTheta() - minTheta(); }
 
   const Sensors& sensors() const { return sensors_; }
+  const MaterialObject& materialObject() const { return materialObject_; }
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
+  ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
   int minSegments() const { int segm = 999999; for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
   int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
@@ -244,9 +258,6 @@ public:
 
 
 
-
-
-
 class BarrelModule : public DetectorModule, public Clonable<BarrelModule> {
 public:
   Property<int16_t, AutoDefault> layer;
@@ -254,7 +265,9 @@ public:
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
 
-  BarrelModule(Decorated* decorated) : DetectorModule(decorated) { setup(); }
+
+  BarrelModule(Decorated* decorated);
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     v.visit(*(DetectorModule*)this);
@@ -297,7 +310,7 @@ public:
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
 
-  EndcapModule(Decorated* decorated) : DetectorModule(decorated) { setup(); } 
+  EndcapModule(Decorated* decorated);
 
   void setup() override {
     DetectorModule::setup();

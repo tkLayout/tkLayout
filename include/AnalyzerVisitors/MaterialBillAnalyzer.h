@@ -30,7 +30,7 @@ class MaterialBillAnalyzer {
   ServicesMaterialVector servicesMaterialVector_;
   LayerMaterialMap layerMaterialMap_;
   void inspectInactiveElements(const std::vector<InactiveElement>& inactiveElements);
-  void inspectModules(std::vector<std::vector<ModuleCap> >& tracker);
+  void inspectModules(std::vector<std::vector<insur::ModuleCap> >& tracker);
 
 
  public:

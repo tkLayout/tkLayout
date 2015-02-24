@@ -30,11 +30,15 @@
 #include <rootweb.hh>
 #include <mainConfigHandler.h>
 #include <messageLogger.h>
-#include <StopWatch.h>
-//#include <TrackShooter.h>
 
 #include <Tracker.h>
 #include <Support.h>
+#include "Materialway.h"
+#include "WeightDistributionGrid.h"
+
+
+using material::Materialway;
+using material::WeightDistributionGrid;
 
 namespace po = boost::program_options;
 /**
@@ -79,6 +83,7 @@ namespace insur {
     //bool buildTrackerSystem();
     //bool irradiateTracker();
     bool buildInactiveSurfaces(bool verbose = false);
+    bool buildMaterials(bool verbose = false);
     bool createMaterialBudget(bool verbose = false);
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
@@ -117,13 +122,15 @@ namespace insur {
     MaterialBudget* pm;
     MatParser mp;
     Usher u;
+    Materialway materialwayTracker;
+    Materialway materialwayPixel;
     MatCalc tkMaterialCalc;
     MatCalc pxMaterialCalc;
     Analyzer a;
     Analyzer pixelAnalyzer;
     Vizard v;
+    mainConfigHandler& mainConfiguration;
     tk2CMSSW t2c;
-    mainConfigHandler mainConfiguration;
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
     Squid(const Squid& s);
@@ -144,6 +151,10 @@ namespace insur {
     bool defaultPixelMaterialFile;
 
     RootWSite site;
+
+    WeightDistributionGrid weightDistributionTracker;
+    WeightDistributionGrid weightDistributionPixel;
+
     bool prepareWebsite();
     bool sitePrepared;
 

@@ -24,6 +24,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using std::pair;
 using std::list;
 using std::shared_ptr;
 
@@ -299,15 +300,28 @@ public:
   void fromString(const string& s) { this->insert(make_pair(str2any<int>(s), ptree())); }
 };
 
+template<typename T>
+class PropertyNodeUnique : public Parsable, public vector<pair<T, ptree> > {
+  const string& name_;
+public:
+  PropertyNodeUnique(const string& name, PropertyMap& registrar) : name_(StringSet::ref(name)) { registrar[name] = this; }
+  PropertyNodeUnique(const string& name) : name_(StringSet::ref(name)) {}
+  bool state() const { return !this->empty(); }
+  void clear() { vector<pair<T, ptree> >::clear(); }
+  string name() const { return name_; }
+  void fromPtree(const ptree& pt) { this->push_back(make_pair(pt.data(), pt)); }
+  void fromString(const string& s) { this->push_back(make_pair(str2any<T>(s), ptree())); }
+};
+
 template <typename T, int numElem,  const char Sep = ','>
-  class FixedSizeMultiProperty : public MultiProperty<T, Sep> {
- public:
- FixedSizeMultiProperty(const string& name, PropertyMap& registrar) : MultiProperty<T, Sep>(name, registrar) { };
- bool valid() const override {
-   int mySize = MultiProperty<T, Sep>::size();
-   bool result = (mySize == numElem);
-   return result;
- }
+class FixedSizeMultiProperty : public MultiProperty<T, Sep> {
+  public:
+  FixedSizeMultiProperty(const string& name, PropertyMap& registrar) : MultiProperty<T, Sep>(name, registrar) { };
+  bool valid() const override {
+    int mySize = MultiProperty<T, Sep>::size();
+    bool result = (mySize == numElem);
+    return result;
+  }
 };
 
 template <typename T> using RangeProperty = FixedSizeMultiProperty<T, 2, '-'>;
@@ -381,6 +395,7 @@ public:
   }
 
   virtual void cleanup() { pt_.clear(); parsedCheckedProperties_.clear(); parsedProperties_.clear(); }
+  virtual void cleanupTree() { pt_.clear(); }
 
   static std::set<string> reportUnmatchedProperties() {
     std::set<string> unmatched;
@@ -391,7 +406,6 @@ public:
   }
 
 };
-
 
 inline ptree getChild(const ptree& pt, const string& name) { return pt.get_child(name, ptree()); }
 inline auto getChildRange(const ptree& pt, const string& name) -> decltype(pt.equal_range(name)) { return pt.equal_range(name); } 

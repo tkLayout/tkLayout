@@ -13,10 +13,9 @@
 #ifndef _INACTIVEELEMENT_H
 #define	_INACTIVEELEMENT_H
 
-#include <cmath>
-#include <iostream>
-#include <MaterialProperties.h>
-#include <global_constants.h>
+
+#include "MaterialProperties.h"
+#include "global_constants.h"
 namespace insur {
   /**
    * @class InactiveElement
@@ -34,8 +33,8 @@ namespace insur {
     enum InType { no_in, tracker, barrel, endcap };
     InactiveElement();
     virtual ~InactiveElement() {}
-    virtual double getSurface();
-    bool isVertical();
+    virtual double getSurface() const;
+    bool isVertical() const;
     void setVertical(bool vertical);
     bool isFinal();
     void setFinal(bool final);
@@ -47,6 +46,8 @@ namespace insur {
     void setInnerRadius(double iradius);
     double getRWidth() const;
     void setRWidth(double width);
+    virtual double getLength() const;
+    double getVolume() const;
     int getFeederIndex();
     void setFeederIndex(int layer);
     InType getFeederType();

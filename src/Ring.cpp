@@ -189,6 +189,13 @@ void Ring::buildTopDown() {
 
 
 void Ring::build() {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
+  if(materialObject_.isPopulated()) {
+    logUniqueWARNING("Is not possible to define rod material for disks, material ignored.");
+  }
+
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
@@ -210,6 +217,10 @@ void Ring::mirrorZ() {
   for (auto& m : modules_) {
     m.mirrorZ();
   }
+}
+
+const MaterialObject& Ring::materialObject() const{
+  return materialObject_;
 }
 
 define_enum_strings(Ring::BuildDirection) = { "topdown", "bottomup" };

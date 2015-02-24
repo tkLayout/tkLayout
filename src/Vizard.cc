@@ -370,13 +370,19 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */  
-  void Vizard::weigthSummart(Analyzer& a, RootWSite& site, std::string name) {
+  void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+    RootWContent* myContent;
+
     // Initialize the page with the material budget
     std::string pageTitle="Weights";
     if (name!="") pageTitle+=" (" +name+")";
     std::string pageAddress="weights"+name+".html";
     RootWPage& myPage = site.addPage(pageTitle);
     myPage.setAddress(pageAddress);
+
+    // weight plot
+    myContent = new RootWContent("Overview plot", true);
+    myPage.addContent(myContent);
 
     std::map<std::string, SummaryTable>* summaryTables;
 
@@ -1730,7 +1736,7 @@ namespace insur {
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
-      std::cerr << "PIXEL HACK for beam pipe!! :) ";
+      logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
       beampipe->SetPoint(0, 0, 45/2.);
       beampipe->SetPoint(1, 2915/2., 45/2.);

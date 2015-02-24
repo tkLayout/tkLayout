@@ -41,6 +41,14 @@ void Tracker::build() {
       e->cutAtEta(etaCut());
       endcaps_.push_back(e);
     }
+
+    for (auto& mapel : supportNode) {
+      SupportStructure* s = new SupportStructure();
+      s->store(propertyTree());
+      s->store(mapel.second);
+      s->buildInTracker();
+      supportStructures_.push_back(s);
+    }
   }
   catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 

@@ -17,6 +17,7 @@
 #include "Module.h"
 #include <MaterialProperties.h>
 #include <global_constants.h>
+
 namespace insur {
     /**
      * @class ModuleCap
@@ -32,7 +33,8 @@ namespace insur {
         ModuleCap(Module& mod);
         virtual ~ModuleCap();
         Module& getModule();
-        virtual double getSurface();
+        virtual double getSurface() const;
+        virtual double getLength() const;
         virtual void print();
     protected:
         Module* module;

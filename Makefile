@@ -27,9 +27,12 @@ DOXYDIR=doc/doxygen
 COMPILERFLAGS+=-std=c++11 
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
+COMPILERFLAGS+=-fpermissive
+#COMPILERFLAGS+=-pg
 #COMPILERFLAGS+=-Werror
 #COMPILERFLAGS+=-O5
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
+#LINKERFLAGS+=-pg
 
 CXX := g++
 # COLORGCC
@@ -271,6 +274,40 @@ $(LIBDIR)/Usher.o: $(SRCDIR)/Usher.cc $(INCDIR)/Usher.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Usher.o $(SRCDIR)/Usher.cc
 	@echo "Built target Usher.o"
 
+#MATERIALWAY
+materialways: $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o
+	@echo "Built target 'Materialways'."
+
+$(LIBDIR)/Materialway.o: $(SRCDIR)/Materialway.cpp $(INCDIR)/Materialway.h
+	@echo "Building target Materialway.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Materialway.o $(SRCDIR)/Materialway.cpp
+	@echo "Built target Materialway.o"
+
+$(LIBDIR)/MaterialTab.o: $(SRCDIR)/MaterialTab.cpp $(INCDIR)/MaterialTab.h
+	@echo "Building target MaterialTab.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MaterialTab.o $(SRCDIR)/MaterialTab.cpp
+	@echo "Built target MaterialTab.o"
+
+$(LIBDIR)/MaterialObject.o: $(SRCDIR)/MaterialObject.cpp $(INCDIR)/MaterialObject.h
+	@echo "Building target MaterialObject.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MaterialObject.o $(SRCDIR)/MaterialObject.cpp
+	@echo "Built target MaterialObject.o"
+
+$(LIBDIR)/WeightDistributionGrid.o: $(SRCDIR)/WeightDistributionGrid.cpp $(INCDIR)/WeightDistributionGrid.h
+	@echo "Building target WeightDistributionGrid.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/WeightDistributionGrid.o $(SRCDIR)/WeightDistributionGrid.cpp
+	@echo "Built target WeightDistributionGrid.o"
+
+$(LIBDIR)/ConversionStation.o: $(SRCDIR)/ConversionStation.cpp $(INCDIR)/ConversionStation.h
+	@echo "Building target ConversionStation.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ConversionStation.o $(SRCDIR)/ConversionStation.cpp
+	@echo "Built target ConversionStation.o"
+
+$(LIBDIR)/SupportStructure.o: $(SRCDIR)/SupportStructure.cpp $(INCDIR)/SupportStructure.h
+	@echo "Building target SupportStructure.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/SupportStructure.o $(SRCDIR)/SupportStructure.cpp
+	@echo "Built target SupportStructure.o"
+
 #DRESSERS
 dressers: $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o
 	@echo "Built target 'dressers'."
@@ -375,7 +412,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o getRevisionDefine
 	#
@@ -392,7 +429,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
-	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
+	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
 	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o \
 	$(LIBDIR)/SvnRevision.o \

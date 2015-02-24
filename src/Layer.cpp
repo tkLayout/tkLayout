@@ -1,6 +1,7 @@
 #include "Layer.h"
 #include "RodPair.h"
 #include "messageLogger.h"
+#include "ConversionStation.h"
 
 void Layer::check() {
   PropertyObject::check();
@@ -202,19 +203,54 @@ void Layer::buildTilted() {
 }
 
 void Layer::build() {
+  ConversionStation* conversionStation;
+
   try { 
+    materialObject_.store(propertyTree());
+    materialObject_.build();
+
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
-    
+
+    for (auto& currentStationNode : stationsNode) {
+      conversionStation = new ConversionStation();
+      conversionStation->store(currentStationNode.second);
+      conversionStation->check();
+      conversionStation->build();
+      
+      if(conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+        if(flangeConversionStation_ == nullptr) { //take only first defined flange station
+          flangeConversionStation_ = conversionStation;
+        }
+      }else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+        secondConversionStations_.push_back(conversionStation);
+      }
+    }
+
+        
     cleanup();
     builtok(true);
+
   } catch (PathfulException& pe) { 
     pe.pushPath(fullid(*this)); 
     throw; 
   }
 }
+
+const MaterialObject& Layer::materialObject() const{
+  return materialObject_;
+}
+
+ConversionStation* Layer::flangeConversionStation() const {
+  return flangeConversionStation_;
+}
+
+const std::vector<ConversionStation*>& Layer::secondConversionStations() const {
+  return secondConversionStations_;
+}
+
 
 define_enum_strings(Layer::RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };

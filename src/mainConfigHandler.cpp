@@ -35,6 +35,11 @@ mainConfigHandler::mainConfigHandler() {
   standardDirectory_ = "";
 }
 
+mainConfigHandler& mainConfigHandler::instance() {
+  static mainConfigHandler instance_;
+  return instance_;
+}
+
 bool mainConfigHandler::checkDirectory(string dirName) {
   if (! filesystem::exists(dirName)) {
     cout << "Directory '" << dirName << "' does not exist!" << endl;
@@ -288,7 +293,7 @@ bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
   return result;
 }
 
-string mainConfigHandler::getConfigFileName() {  
+string mainConfigHandler::getConfigFileName() {
   char* specialConfigFile = getenv(CONFIGURATIONFILENAMEDEFINITION);
   if (specialConfigFile) return string(specialConfigFile);
   string homeDirectory = string(getenv(HOMEDIRECTORY));
@@ -405,7 +410,7 @@ string mainConfigHandler::getBinDirectory_() { return binDirectory_; }
 string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
 string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
 string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
-string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; } 
+string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; }
 string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
 string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
 string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }

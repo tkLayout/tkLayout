@@ -36,6 +36,16 @@ void Barrel::build() {
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
+  for (auto& mapel : supportNode) {
+    SupportStructure* s = new SupportStructure();
+    s->store(propertyTree());
+    s->store(mapel.second);
+    s->buildInBarrel(*this);
+    supportStructures_.push_back(s);
+  }
+
+
   cleanup();
   builtok(true);
 }
+

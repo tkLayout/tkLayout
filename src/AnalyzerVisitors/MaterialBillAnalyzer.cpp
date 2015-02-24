@@ -21,7 +21,7 @@ void MaterialBillAnalyzer::inspectInactiveElements(const std::vector<InactiveEle
   }
 }
 
-void MaterialBillAnalyzer::inspectModules(std::vector<std::vector<ModuleCap> >& tracker) {
+void MaterialBillAnalyzer::inspectModules(std::vector<std::vector<insur::ModuleCap> >& tracker) {
   // loop over layers
   for (auto layerIt : tracker ) {
     // Loop over modules
