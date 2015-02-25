@@ -50,8 +50,8 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
     ring->build();
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
     rings_.push_back(ring);
-    ////ringIndexMap_.insert(i, ring);
-    //ringIndexMap_[i] = ring;
+    //ringIndexMap_.insert(i, ring);
+    ringIndexMap_[i] = ring;
     lastRho = ring->maxR();
     lastSmallDelta = ring->smallDelta();
   }
@@ -82,8 +82,8 @@ void Disk::buildTopDown(const vector<double>& buildDsDistances) {
     ring->translateZ(parity > 0 ? bigDelta() : -bigDelta());
     //rings_.push_back(ring);
     rings_.insert(rings_.begin(), ring);
-    ////ringIndexMap_.insert(i, ring);
-    //ringIndexMap_[i] = ring;
+    //ringIndexMap_.insert(i, ring);
+    ringIndexMap_[i] = ring;
     lastRho = ring->minR();
     lastSmallDelta = ring->smallDelta();
   }
