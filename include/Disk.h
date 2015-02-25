@@ -25,10 +25,10 @@ public:
   typedef PtrVector<Ring> Container;
   //typedef boost::ptr_map<int, Ring> RingIndexMap;
   //typedef PtrMap<int, Ring> RingIndexMap;
-  //typedef std::map<int, Ring*> RingIndexMap;
+  typedef std::map<int, Ring*> RingIndexMap;
 private:
   Container rings_;
-  //RingIndexMap ringIndexMap_;
+  RingIndexMap ringIndexMap_;
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
@@ -92,7 +92,7 @@ public:
   double thickness() const { return bigDelta()*2 + maxRingThickness(); } 
 
   const Container& rings() const { return rings_; }
-  //const RingIndexMap& ringsMap() const { return ringIndexMap_; }
+  const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
