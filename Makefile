@@ -1,7 +1,6 @@
 # Define the REVISIONNUMBER variable to have it
 # apearing in the root web page output
-# -DREVISIONNUMBER=555
-SVNREVISIONDEFINE=`./getRevisionDefine`
+SVNREVISIONDEFINE=$(shell ./getRevisionDefine)
 ROOTFLAGS=`root-config --cflags`
 ROOTLIBDIR=`root-config --libdir`
 ROOTLIBFLAGS=`root-config --libs`
@@ -34,7 +33,12 @@ COMPILERFLAGS+=-fpermissive
 LINKERFLAGS+=-Wl,--copy-dt-needed-entries
 #LINKERFLAGS+=-pg
 
-CXX := g++
+OUT_DIR+=$(LIBDIR)
+OUT_DIR+=$(BINDIR)
+MKDIR_P = mkdir -p
+.PHONY: directories
+
+CXX := g++ $(JUST_DO_IT)
 # COLORGCC
 PATH := $(addprefix .:, $(PATH))
 HASCOLOR = $(shell if test `which colorgcc 2> /dev/null`; then echo true; else echo false; fi)
@@ -48,15 +52,16 @@ CXX := colorgcc
 endif
 endif
 
-COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS) $(SVNREVISIONDEFINE) 
+COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS)
 
 LINK=$(CXX) $(LINKERFLAGS)
 
-all: tklayout setup
+all: directories tklayout setup
 	@echo "Full build successful."
 
-bin: tklayout 
-	@echo "Executable built."
+directories: ${OUT_DIR}
+${OUT_DIR}:
+	${MKDIR_P} ${OUT_DIR}
 
 install:
 	./install.sh

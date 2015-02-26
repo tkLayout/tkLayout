@@ -1,11 +1,28 @@
 #!/bin/sh
 
-if which svnversion >/dev/null; then
-  # svnversion exists
-  myVersion=`svnversion`
-  base_repo=`svn info | egrep '^URL' | sed -e 's/^URL: *//g' -e 's#.*/##g'`
-  if echo $myVersion | grep -qe '[0-9]' ; then
-    # There is a number in the version, so probably it makes sense
-    echo -DREVISIONNUMBER=\"${base_repo}/${myVersion}\"
+alias errecho='>&2 echo'
+
+if [ -d '.git' ]; then
+  myVersion="`git rev-parse --abbrev-ref HEAD`-`git rev-list --count HEAD` on `git config --get remote.origin.url`"
+#  echo "-DREVISIONNUMBER=\"\\\"$myVersion\\\"\""
+elif [ -d '.svn' ] ; then
+  if which svnversion >/dev/null; then
+    # svnversion exists
+    myVersion=`svnversion`
+    base_repo=`svn info | egrep '^URL' | sed -e 's/^URL: *//g' -e 's#.*/##g'`
+    serverName=`svn info | egrep ^Repository:  | sed -e 's/^Repository: //g'`
+    if echo $myVersion | grep -qe '[0-9]' ; then
+      # There is a number in the version, so probably it makes sense
+       myVersion="${base_repo}/${myVersion} on $serverName"
+#      echo -DREVISIONNUMBER=\"${base_repo}/${myVersion}\"
+    else
+       myVersion="UNKNOWN"
+    fi
   fi
+else
+  errecho This repository is not under git or svn. Cannot get a version define
+#  echo "-DREVISIONNUMBER=\"UNKNOWN\""
+  myVersion="UNKNOWN"
 fi
+
+echo -DREVISIONNUMBER=\"\\\"$myVersion\\\"\"

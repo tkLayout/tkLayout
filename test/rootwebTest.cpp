@@ -80,9 +80,6 @@ int main(int argc, char** argv) {
   mySite->setComment("layout summary");
   mySite->addAuthor("Nicoletta De Maio");
   mySite->addAuthor("Stefano Mersi");
-#ifdef REVISIONNUMBER
-  mySite->setRevision(REVISIONNUMBER);
-#endif
     
 
   RootWPage* myPage = new RootWPage("First");
