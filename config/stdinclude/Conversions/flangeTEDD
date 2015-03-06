@@ -1,0 +1,216 @@
+// Generic services conversion rules
+// Services for the standard rods
+// (scales with respective material)
+// SERVICES
+// HV, MV, LV
+Station {
+  stationName flangeTEDD
+  type flange
+
+  // PE and Al
+  Conversion {
+    Input {
+      Element {
+        elementName PE
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName PE
+        quantity 10
+        unit g/m
+        service true
+      }
+    }  
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Al
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Al
+        quantity 10
+        unit g/m
+        service true
+      }
+    }  
+  }
+
+  // Wires and cables one-to-one
+  Conversion {
+    Input {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Cu_MV
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+      Element {
+        elementName Cu
+        quantity 0.423
+        unit g
+        service false
+      }
+      Element {
+        elementName PE
+        quantity 0.371
+        unit g
+        service false
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Cu_HV
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+      Element {
+        elementName Cu
+        quantity 1.692
+        unit g
+        service false
+      }
+      Element {
+        elementName PE
+        quantity 1.485
+        unit g
+        service false
+      }
+    }
+  }
+
+  // Manifolds + radial pipes + holders
+  Conversion {
+    Input {
+      Element {
+        elementName TEDD_Steel
+        quantity 1
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Steel
+        quantity 1000
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName TEDD_CO2
+        quantity 1
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName CO2
+        quantity 1000
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName TEDD_Cu
+        quantity 1
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 1000
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName TEDD_PE
+        quantity 1
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName PE
+        quantity 1000
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName TEDD_Al
+        quantity 1
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Al
+        quantity 1000
+        unit g/m
+        service true
+      }
+    }
+  }
+}
