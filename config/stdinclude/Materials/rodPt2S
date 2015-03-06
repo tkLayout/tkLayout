@@ -6,5 +6,60 @@
 
 Materials rodPt2S {
   type rod
-  @includestd Materials/rodBase
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 10.29
+      unit g/m
+    }
+    Element {
+      elementName CO2
+      quantity 6.28
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod for pipe thermistor
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.339
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.194
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.330
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.9
+      unit mm
+    }
+  }
 }
