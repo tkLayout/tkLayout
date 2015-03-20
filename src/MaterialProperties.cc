@@ -32,11 +32,11 @@ namespace insur {
         mse_set = false;
         trck = true;
         cat = no_cat;
-        total_mass = -1;
-        local_mass = -1;
-        exiting_mass = -1;
-        r_length = -1;
-        i_length = -1;
+        total_mass = 0;
+        local_mass = 0;
+        exiting_mass = 0;
+        r_length = 0;
+        i_length = 0;
     }
     
     /**
