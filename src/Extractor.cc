@@ -1932,7 +1932,7 @@ namespace insur {
   //  ====== ================ ====== Hybrids    +----> x
   //         ---------------- InnerSensor(1)
   //  ============================== 
-  //             Under(8)                      
+  //             Bottom(8)                      
   //
   //  R(6) and L(5) are Front-End Hybrids
   //  B(4) and F(3) are Service Hybdrids
