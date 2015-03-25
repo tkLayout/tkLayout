@@ -545,17 +545,20 @@ namespace insur {
 #ifndef __ADDVOLUMES__
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().thickness() / 2.0;
 #else
             // Expand volumes for hybrids
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+            float underHybridThickness = 1.; // FIXME tentative value
+            shape.dz = iiter->getModule().thickness() / 2.0 + underHybridThickness;
 #endif
-            shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
 #ifdef __ADDVOLUMES__ 
             // Get it back for sensors
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().thickness() / 2.0;
 #endif
 
             logic.name_tag = shape.name_tag;
@@ -620,15 +623,8 @@ namespace insur {
             pos.rotref = "";
 
 #ifdef __ADDVOLUMES__ 
-#if 0
-            if (iiter->getModule().numSensors() == 2) { // PS/2S module
-               std::cerr << (*iiter).getModule().length() << " " 
-                         << (*iiter).getModule().area()/(*iiter).getModule().length() << " " 
-                         << (*iiter).getModule().thickness() << std::endl;
-            } 
-#endif
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter);
+            HybridVolumes hvs(moduleName,*iiter,underHybridThickness);
             hvs.buildVolumes();
 #endif
 
@@ -1067,16 +1063,18 @@ namespace insur {
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().thickness() / 2.0;
 #else       // Expand module size for hybrids
             shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
             shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+            float underHybridThickness = 1.; // FIXME tentative value
+            shape.dz = iiter->getModule().thickness() / 2.0 + underHybridThickness;
 #endif
             //shape.dx = iiter->getModule().length() / 2.0;
             //shape.dy = iiter->getModule().minWidth() / 2.0;
             //shape.dyy = iiter->getModule().maxWidth() / 2.0;
-            shape.dz = iiter->getModule().thickness() / 2.0;
             s.push_back(shape);
 #ifdef __ADDVOLUMES__ 
             // Get it back for sensors
@@ -1084,6 +1082,7 @@ namespace insur {
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().thickness() / 2.0;
 #endif
 
             logic.name_tag = shape.name_tag;
@@ -1097,7 +1096,7 @@ namespace insur {
 
 #ifdef __ADDVOLUMES__ 
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter);
+            HybridVolumes hvs(moduleName,*iiter,underHybridThickness);
             hvs.buildVolumes();
 #endif
 
@@ -1879,30 +1878,36 @@ namespace insur {
   const int HybridVolumes::Left    = 5; 
   const int HybridVolumes::Right   = 6; 
   const int HybridVolumes::Between = 7; 
-  const int HybridVolumes::nTypes  = 8; 
+  const int HybridVolumes::Bottom  = 8; 
+  const int HybridVolumes::nTypes  = 9; 
   // extras
   const int HybridVolumes::FrontAndBack = 34; 
   const int HybridVolumes::LeftAndRight = 56; 
+  const int HybridVolumes::FBLR         = 3456; 
 
   const double HybridVolumes::kmm3Tocm3 = 1e-3; 
 
   HybridVolumes::HybridVolumes(std::string moduleName,
-                               ModuleCap&  modcap     ) : moduleId(moduleName),
-                                                          modulecap(modcap),
-                                                          module(modcap.getModule()),
-                                                          modWidth(module.area()/module.length()),
-                                                          modLength(module.length()),
-                                                          modThickness(module.thickness()),
-                                                          frontEndHybridWidth(module.frontEndHybridWidth()),
-                                                          serviceHybridWidth(module.serviceHybridWidth()),
-                                                          hybridThickness(module.hybridThickness()),
-                                                          hybridTotalMass(0.),
-                                                          hybridTotalVolume_mm3(-1.),
-                                                          hybridFrontAndBackVolume_mm3(-1.),
-                                                          hybridLeftAndRightVolume_mm3(-1.),
-                                                          moduleMassWithoutSensors_expected(0.),
-                                                          prefix_xmlfile("tracker:"),
-                                                          prefix_material("hybridcomposite") {
+                               ModuleCap&  modcap, 
+                               double      uHybThickness ) : moduleId(moduleName),
+                                                             modulecap(modcap),
+                                                             module(modcap.getModule()),
+                                                             modWidth(module.area()/module.length()),
+                                                             modLength(module.length()),
+                                                             modThickness(module.thickness()),
+                                                             sensorThickness(module.sensorThickness()),
+                                                             sensorDistance(module.dsDistance()),
+                                                             underHybridThickness(uHybThickness),
+                                                             frontEndHybridWidth(module.frontEndHybridWidth()),
+                                                             serviceHybridWidth(module.serviceHybridWidth()),
+                                                             hybridThickness(module.hybridThickness()),
+                                                             hybridTotalMass(0.),
+                                                             hybridTotalVolume_mm3(-1.),
+                                                             hybridFrontAndBackVolume_mm3(-1.),
+                                                             hybridLeftAndRightVolume_mm3(-1.),
+                                                             moduleMassWithoutSensors_expected(0.),
+                                                             prefix_xmlfile("tracker:"),
+                                                             prefix_material("hybridcomposite") {
   }
 
   HybridVolumes::~HybridVolumes() {
@@ -1917,16 +1922,17 @@ namespace insur {
   //  |----------------------------|     y
   //  |     |                |     |     ^
   //  |B(4) |     Between    | F(3)|     |
-  //  |     |       (7)      |     |     |----> x
+  //  |     |       (7)      |     |     +----> x
   //  |----------------------------|
   //  |            R(6)            |     
   //  ------------------------------     
   //                                            z
-  //  Side View              OuterSensor(2)     ^
-  //         ----------------                   |
-  //  ====== ================ ====== Hybrids    |----> x
-  //         ---------------- 
-  //                         InnerSensor(1)
+  //  Side View                                 ^
+  //         ---------------- OuterSensor(2)    |
+  //  ====== ================ ====== Hybrids    +----> x
+  //         ---------------- InnerSensor(1)
+  //  ============================== 
+  //             Under(8)                      
   //
   //  R(6) and L(5) are Front-End Hybrids
   //  B(4) and F(3) are Service Hybdrids
@@ -1967,13 +1973,22 @@ namespace insur {
     // RightSide Volume
     vol[Right] = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
 
-    dx = (modWidth); 
-    dy = (modLength); 
+    dx = modWidth; 
+    dy = modLength; 
     posx = 0.;
     posy = 0.;
     posz = 0.;
     // Between Volume
     vol[Between] = new Volume(moduleId+"Between",moduleId,dx,dy,dz,posx,posy,posz);
+
+    dx = modWidth+2*serviceHybridWidth;  
+    dy = modLength+2*frontEndHybridWidth; 
+    dz = underHybridThickness; 
+    posx = 0.;
+    posy = 0.;
+    posz = ( sensorDistance + sensorThickness + underHybridThickness )/2.; 
+    // Bottom Volume
+    vol[Bottom] = new Volume(moduleId+"Bottom",moduleId,dx,dy,dz,posx,posy,posz);
 
     ElementsVector matElements = module.getLocalElements();
     ElementsVector::const_iterator meit;
@@ -1982,11 +1997,12 @@ namespace insur {
        if ( el->componentName() == "Sensor") continue; // Only for hybrids
        moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
-       if ( el->targetVolume() == Front ||
-            el->targetVolume() == Back  ||
-            el->targetVolume() == Left  ||
-            el->targetVolume() == Right ||
-            el->targetVolume() == Between ) {
+       if ( el->targetVolume() == Front   ||
+            el->targetVolume() == Back    ||
+            el->targetVolume() == Left    ||
+            el->targetVolume() == Right   ||
+            el->targetVolume() == Between ||
+            el->targetVolume() == Bottom     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
        } else if ( el->targetVolume() == FrontAndBack ) { 
@@ -2007,7 +2023,7 @@ namespace insur {
           vol[Right]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[Left]->addMass(el->quantityInGrams(module)*vol[Left]->getVolume()/hybridLeftAndRightVolume_mm3);
           vol[Right]->addMass(el->quantityInGrams(module)*vol[Right]->getVolume()/hybridLeftAndRightVolume_mm3);
-       } else if ( el->targetVolume() == All ) { // Uniformly Distribute
+       } else if ( el->targetVolume() == All || el->targetVolume() == FBLR ) { // Uniformly Distribute
           vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[Left]->addMaterial(el->elementName(),el->quantityInGrams(module));
@@ -2033,6 +2049,7 @@ namespace insur {
     volumes.push_back(vol[Left]);
     volumes.push_back(vol[Right]);
     volumes.push_back(vol[Between]);
+    volumes.push_back(vol[Bottom]);
 
   }
 
