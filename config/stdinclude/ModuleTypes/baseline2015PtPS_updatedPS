@@ -1,0 +1,44 @@
+
+moduleType ptPS
+
+sensorLayout pt
+zCorrelation multisegment
+
+numSensors 2
+
+//powerStripChip 0.915625
+//powerModuleChip 640
+//powerModuleOptical 500
+powerStripChip 0
+powerModuleChip 6300 
+powerModuleOptical 0
+
+sensorThickness 0.2
+
+serviceHybridWidth 12.0 //10.63 hybrid + 1.37 inactive silicon // OK
+frontEndHybridWidth 11.5//10.05 hybrid + 1.45 inactive silicon // OK
+
+reduceCombinatorialBackground true
+
+Sensor 1 {
+  sensorType largepix
+  numStripsAcross 960
+  numSegments 32
+  numROCX 4
+  numROCY 2
+}
+
+Sensor 2 {
+  sensorType strip
+  numStripsAcross 960
+  numSegments 2
+  numROCX 4
+  numROCY 2
+}
+
+//resolutionLocalY 0.433013
+
+plotColor 1
+
+
+
