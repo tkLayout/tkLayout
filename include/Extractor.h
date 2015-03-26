@@ -119,7 +119,7 @@ namespace insur {
 #ifdef __ADDVOLUMES__
   class HybridVolumes {
     public :
-     HybridVolumes(std::string moduleName, ModuleCap& modcap);
+     HybridVolumes(std::string moduleName, ModuleCap& modcap, double underHybridThickness);
      ~HybridVolumes();
      void buildVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
@@ -142,9 +142,11 @@ namespace insur {
       static const int Left;
       static const int Right;
       static const int Between;
+      static const int Bottom;
       static const int nTypes;
       static const int FrontAndBack;
       static const int LeftAndRight;
+      static const int FBLR; // Front Back Left Right
       static const double kmm3Tocm3;
 
       class Volume {
@@ -202,6 +204,9 @@ namespace insur {
       std::vector<Volume*> volumes;
       std::string          moduleId;
       const double         modThickness;
+      const double         sensorThickness;
+      const double         sensorDistance;
+      const double         underHybridThickness;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
       const double         frontEndHybridWidth;
