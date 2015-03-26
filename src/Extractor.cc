@@ -10,6 +10,9 @@
 //#define __FLIPSENSORS_IN__
 
 #include <Extractor.h>
+#ifdef __ADDVOLUMES__
+#include <cstdlib>
+#endif
 namespace insur {
   //public
   /**
@@ -550,8 +553,8 @@ namespace insur {
             // Expand volumes for hybrids
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            float underHybridThickness = 1.; // FIXME tentative value
-            shape.dz = iiter->getModule().thickness() / 2.0 + underHybridThickness;
+            float bottomHybridThickness = 1.; // FIXME tentative value
+            shape.dz = iiter->getModule().thickness() / 2.0 + bottomHybridThickness;
 #endif
             s.push_back(shape);
 #ifdef __ADDVOLUMES__ 
@@ -624,7 +627,7 @@ namespace insur {
 
 #ifdef __ADDVOLUMES__ 
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter,underHybridThickness);
+            HybridVolumes hvs(moduleName,*iiter,bottomHybridThickness);
             hvs.buildVolumes();
 #endif
 
@@ -1069,8 +1072,8 @@ namespace insur {
             shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
             shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            float underHybridThickness = 1.; // FIXME tentative value
-            shape.dz = iiter->getModule().thickness() / 2.0 + underHybridThickness;
+            float bottomHybridThickness = 1.; // FIXME tentative value
+            shape.dz = iiter->getModule().thickness() / 2.0 + bottomHybridThickness;
 #endif
             //shape.dx = iiter->getModule().length() / 2.0;
             //shape.dy = iiter->getModule().minWidth() / 2.0;
@@ -1096,7 +1099,7 @@ namespace insur {
 
 #ifdef __ADDVOLUMES__ 
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter,underHybridThickness);
+            HybridVolumes hvs(moduleName,*iiter,bottomHybridThickness);
             hvs.buildVolumes();
 #endif
 
@@ -1889,7 +1892,7 @@ namespace insur {
 
   HybridVolumes::HybridVolumes(std::string moduleName,
                                ModuleCap&  modcap, 
-                               double      uHybThickness ) : moduleId(moduleName),
+                               double      bHybThickness ) : moduleId(moduleName),
                                                              modulecap(modcap),
                                                              module(modcap.getModule()),
                                                              modWidth(module.area()/module.length()),
@@ -1897,7 +1900,7 @@ namespace insur {
                                                              modThickness(module.thickness()),
                                                              sensorThickness(module.sensorThickness()),
                                                              sensorDistance(module.dsDistance()),
-                                                             underHybridThickness(uHybThickness),
+                                                             bottomHybridThickness(bHybThickness),
                                                              frontEndHybridWidth(module.frontEndHybridWidth()),
                                                              serviceHybridWidth(module.serviceHybridWidth()),
                                                              hybridThickness(module.hybridThickness()),
@@ -1983,18 +1986,34 @@ namespace insur {
 
     dx = modWidth+2*serviceHybridWidth;  
     dy = modLength+2*frontEndHybridWidth; 
-    dz = underHybridThickness; 
+    dz = bottomHybridThickness; 
     posx = 0.;
     posy = 0.;
-    posz = ( sensorDistance + sensorThickness + underHybridThickness )/2.; 
+    posz = ( sensorDistance + sensorThickness + bottomHybridThickness )/2.; 
     // Bottom Volume
     vol[Bottom] = new Volume(moduleId+"Bottom",moduleId,dx,dy,dz,posx,posy,posz);
 
     ElementsVector matElements = module.getLocalElements();
     ElementsVector::const_iterator meit;
     for (meit = matElements.begin(); meit != matElements.end(); meit++) {
+
        const MaterialObject::Element* el = *meit;
-       if ( el->componentName() == "Sensor") continue; // Only for hybrids
+
+       // We skip in the case of ...
+       if ( el->componentName() == "Sensor"     || 
+            el->componentName() == "PS Sensors" ||
+            el->componentName() == "2S Sensors"    ) continue; // Only for hybrids
+       else if ( ( el->targetVolume() >= nTypes && 
+                   el->targetVolume() != FrontAndBack && // exception
+                   el->targetVolume() != LeftAndRight && // exception
+                   el->targetVolume() != FBLR ) ||       // exception
+                 el->targetVolume() == InSens   ||
+                 el->targetVolume() == OtSens     ) { // Unexpected case
+          std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+          std::cerr << "targetVolume " << el->targetVolume() << " is not supported for hybrid volumes. Exit." << std::endl;
+          std::exit(1);
+       }
+
        moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
        if ( el->targetVolume() == Front   ||
