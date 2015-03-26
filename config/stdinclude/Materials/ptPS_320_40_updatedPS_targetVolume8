@@ -305,6 +305,7 @@ Component {
     componentName "PS Support plate"
     service false
     scaleOnSensor 0
+    targetVolume 8
     Element {
       elementName CFRP
       quantity 2.49
@@ -319,23 +320,5 @@ Component {
 
 
 
-  Component {
-    componentName "PS SupportPlate"
-    service false
-    scaleOnSensor 0
-    targetVolume 8
-    Element {
-      elementName CFRP
-      quantity 0.305
-      unit mm
-    }
-   Element {
-      elementName Epoxy
-      quantity 0.057
-      unit mm
-    }
-  }
-
-
-
+  
 }
