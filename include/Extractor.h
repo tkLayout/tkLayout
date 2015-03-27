@@ -119,7 +119,7 @@ namespace insur {
 #ifdef __ADDVOLUMES__
   class HybridVolumes {
     public :
-     HybridVolumes(std::string moduleName, ModuleCap& modcap, double underHybridThickness);
+     HybridVolumes(std::string moduleName, ModuleCap& modcap, double bottomHybridThickness);
      ~HybridVolumes();
      void buildVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
@@ -206,7 +206,7 @@ namespace insur {
       const double         modThickness;
       const double         sensorThickness;
       const double         sensorDistance;
-      const double         underHybridThickness;
+      const double         bottomHybridThickness;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
       const double         frontEndHybridWidth;
