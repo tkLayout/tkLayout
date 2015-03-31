@@ -36,6 +36,10 @@ if $TKG_SETUP_BIN ; then
 	&& echo Main program installed/updated \
 	|| echo Failed copying the main program $TKG_MAIN to $TKG_BINDIRECTORY
 
+    # Copying the directory with .css and all that jazz
+    cp -R $TKG_SOURCE_STYLE $TKG_LAYOUTDIRECTORY
+          
+
     if ! $TKG_SETUP_BIN --checkDir ; then
 	echo Problem during installation
 	exit -1
