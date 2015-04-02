@@ -1,0 +1,23 @@
+// Endcap disks material
+
+//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
+
+Materials TEDD_PS_SupportPlate {
+  type layer
+
+  Component {
+    componentName "PS SupportPlate"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CFRP
+      quantity 0.305
+      unit mm
+    }
+   Element {
+      elementName Epoxy
+      quantity 0.057
+      unit mm
+    }
+  }
+}
