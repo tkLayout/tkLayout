@@ -553,8 +553,7 @@ namespace insur {
             // Expand volumes for hybrids
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            float bottomHybridThickness = 1.; // FIXME tentative value
-            shape.dz = iiter->getModule().thickness() / 2.0 + bottomHybridThickness;
+            shape.dz = iiter->getModule().thickness() / 2.0; // + iiter->getModule().supportPlateThickness(); This is only needed PS module on endcaps
 #endif
             s.push_back(shape);
 #ifdef __ADDVOLUMES__ 
@@ -627,8 +626,8 @@ namespace insur {
 
 #ifdef __ADDVOLUMES__ 
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter,bottomHybridThickness);
-            hvs.buildVolumes();
+            ModuleComplex modcomplex(moduleName,*iiter);
+            modcomplex.buildSubVolumes();
 #endif
 
             // wafer
@@ -753,12 +752,12 @@ namespace insur {
 
               mspec.moduletypes.push_back(minfo);
 #ifdef __ADDVOLUMES__
-              hvs.addMaterialInfo(c);
-              hvs.addShapeInfo(s);
-              hvs.addLogicInfo(l);
-              hvs.addPositionInfo(p);
+              modcomplex.addMaterialInfo(c);
+              modcomplex.addShapeInfo(s);
+              modcomplex.addLogicInfo(l);
+              modcomplex.addPositionInfo(p);
 #ifdef __DEBUGPRINT__
-              hvs.print();
+              modcomplex.print();
 #endif
 #endif
             } // End of replica for Pt-modules
@@ -1072,8 +1071,7 @@ namespace insur {
             shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
             shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            float bottomHybridThickness = 1.; // FIXME tentative value
-            shape.dz = iiter->getModule().thickness() / 2.0 + bottomHybridThickness;
+            shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
 #endif
             //shape.dx = iiter->getModule().length() / 2.0;
             //shape.dy = iiter->getModule().minWidth() / 2.0;
@@ -1099,8 +1097,8 @@ namespace insur {
 
 #ifdef __ADDVOLUMES__ 
             std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            HybridVolumes hvs(moduleName,*iiter,bottomHybridThickness);
-            hvs.buildVolumes();
+            ModuleComplex modcomplex(moduleName,*iiter);
+            modcomplex.buildSubVolumes();
 #endif
 
 
@@ -1237,12 +1235,12 @@ namespace insur {
               //mspec.moduletypes.push_back(iiter->getModule().getType());
 
 #ifdef __ADDVOLUMES__ 
-              hvs.addMaterialInfo(c);
-              hvs.addShapeInfo(s);
-              hvs.addLogicInfo(l);
-              hvs.addPositionInfo(p);
+              modcomplex.addMaterialInfo(c);
+              modcomplex.addShapeInfo(s);
+              modcomplex.addLogicInfo(l);
+              modcomplex.addPositionInfo(p);
 #ifdef __DEBUGPRINT__
-              hvs.print();
+              modcomplex.print();
 #endif
 #endif
             }
@@ -1534,7 +1532,11 @@ namespace insur {
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
       matname << xml_base_lazycomp << iter->getCategory();
+#if 0
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
+#else
+      shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
+#endif
 
       fres = found.find(iter->getCategory());
 #if 0
@@ -1873,26 +1875,25 @@ namespace insur {
 #ifdef __ADDVOLUMES__ 
   // These value should be consistent with 
   // the configuration file
-  const int HybridVolumes::All     = 0; 
-  const int HybridVolumes::InSens  = 1; 
-  const int HybridVolumes::OtSens  = 2; 
-  const int HybridVolumes::Front   = 3; 
-  const int HybridVolumes::Back    = 4; 
-  const int HybridVolumes::Left    = 5; 
-  const int HybridVolumes::Right   = 6; 
-  const int HybridVolumes::Between = 7; 
-  const int HybridVolumes::Bottom  = 8; 
-  const int HybridVolumes::nTypes  = 9; 
+  const int ModuleComplex::HybridFBLR_0  = 0; // Front + Back + Right + Left
+  const int ModuleComplex::InnerSensor   = 1; 
+  const int ModuleComplex::OuterSensor   = 2; 
+  const int ModuleComplex::HybridFront   = 3; 
+  const int ModuleComplex::HybridBack    = 4; 
+  const int ModuleComplex::HybridLeft    = 5; 
+  const int ModuleComplex::HybridRight   = 6; 
+  const int ModuleComplex::HybridBetween = 7; 
+  const int ModuleComplex::SupportPlate  = 8; // Support Plate 
+  const int ModuleComplex::nTypes        = 9; 
   // extras
-  const int HybridVolumes::FrontAndBack = 34; 
-  const int HybridVolumes::LeftAndRight = 56; 
-  const int HybridVolumes::FBLR         = 3456; 
+  const int ModuleComplex::HybridFB        = 34; 
+  const int ModuleComplex::HybridLR        = 56; 
+  const int ModuleComplex::HybridFBLR_3456 = 3456; 
 
-  const double HybridVolumes::kmm3Tocm3 = 1e-3; 
+  const double ModuleComplex::kmm3Tocm3 = 1e-3; 
 
-  HybridVolumes::HybridVolumes(std::string moduleName,
-                               ModuleCap&  modcap, 
-                               double      bHybThickness ) : moduleId(moduleName),
+  ModuleComplex::ModuleComplex(std::string moduleName,
+                               ModuleCap&  modcap        ) : moduleId(moduleName),
                                                              modulecap(modcap),
                                                              module(modcap.getModule()),
                                                              modWidth(module.area()/module.length()),
@@ -1900,10 +1901,10 @@ namespace insur {
                                                              modThickness(module.thickness()),
                                                              sensorThickness(module.sensorThickness()),
                                                              sensorDistance(module.dsDistance()),
-                                                             bottomHybridThickness(bHybThickness),
                                                              frontEndHybridWidth(module.frontEndHybridWidth()),
                                                              serviceHybridWidth(module.serviceHybridWidth()),
                                                              hybridThickness(module.hybridThickness()),
+                                                             supportPlateThickness(module.supportPlateThickness()),
                                                              hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
@@ -1913,12 +1914,12 @@ namespace insur {
                                                              prefix_material("hybridcomposite") {
   }
 
-  HybridVolumes::~HybridVolumes() {
+  ModuleComplex::~ModuleComplex() {
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) delete *vit;
   }
 
-  void HybridVolumes::buildVolumes() {
+  void ModuleComplex::buildSubVolumes() {
   //  Top View
   //  ------------------------------
   //  |            L(5)            |  
@@ -1943,9 +1944,9 @@ namespace insur {
   //
     Volume* vol[nTypes];
     //Unused pointers
-    vol[All]    = 0;
-    vol[InSens] = 0;
-    vol[OtSens] = 0;
+    vol[HybridFBLR_0] = 0;
+    vol[InnerSensor]  = 0;
+    vol[OuterSensor]  = 0;
 
     double dx = serviceHybridWidth;              
     double dy = modLength; 
@@ -1953,45 +1954,45 @@ namespace insur {
     double posx = (modWidth+serviceHybridWidth)/2.;
     double posy = 0.;
     double posz = 0.;
-    // FrontSide Volume
-    vol[Front] = new Volume(moduleId+"FSide",moduleId,dx,dy,dz,posx,posy,posz);
+    // Hybrid FrontSide Volume
+    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,moduleId,dx,dy,dz,posx,posy,posz);
 
     posx = -(modWidth+serviceHybridWidth)/2.;
     posy = 0.;
     posz = 0.;
-    // BackSide Volume
-    vol[Back] = new Volume(moduleId+"BSide",moduleId,dx,dy,dz,posx,posy,posz);
+    // Hybrid BackSide Volume
+    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,moduleId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth+2*serviceHybridWidth;  
     dy = frontEndHybridWidth;
     posx = 0.;
     posy = (modLength+frontEndHybridWidth)/2.;
     posz = 0.;
-    // LeftSide Volume
-    vol[Left] = new Volume(moduleId+"LSide",moduleId,dx,dy,dz,posx,posy,posz);
+    // Hybrid LeftSide Volume
+    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,moduleId,dx,dy,dz,posx,posy,posz);
 
     posx = 0.;
     posy = -(modLength+frontEndHybridWidth)/2.;
     posz = 0.;
-    // RightSide Volume
-    vol[Right] = new Volume(moduleId+"RSide",moduleId,dx,dy,dz,posx,posy,posz);
+    // Hybrid RightSide Volume
+    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,moduleId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth; 
     dy = modLength; 
     posx = 0.;
     posy = 0.;
     posz = 0.;
-    // Between Volume
-    vol[Between] = new Volume(moduleId+"Between",moduleId,dx,dy,dz,posx,posy,posz);
+    // Hybrid Between Volume
+    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,moduleId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth+2*serviceHybridWidth;  
     dy = modLength+2*frontEndHybridWidth; 
-    dz = bottomHybridThickness; 
+    dz = supportPlateThickness; 
     posx = 0.;
     posy = 0.;
-    posz = ( sensorDistance + sensorThickness + bottomHybridThickness )/2.; 
-    // Bottom Volume
-    vol[Bottom] = new Volume(moduleId+"Bottom",moduleId,dx,dy,dz,posx,posy,posz);
+    posz = - ( sensorDistance + sensorThickness + supportPlateThickness )/2.; 
+    // SupportPlate
+    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,moduleId,dx,dy,dz,posx,posy,posz);
 
     ElementsVector matElements = module.getLocalElements();
     ElementsVector::const_iterator meit;
@@ -2000,79 +2001,84 @@ namespace insur {
        const MaterialObject::Element* el = *meit;
 
        // We skip in the case of ...
-       if ( el->componentName() == "Sensor"     || 
+       // Filter sensor material and unexpected targetVolumes.
+       if ( el->componentName() == "Sensor"     ||
             el->componentName() == "PS Sensors" ||
-            el->componentName() == "2S Sensors"    ) continue; // Only for hybrids
-       else if ( ( el->targetVolume() >= nTypes && 
-                   el->targetVolume() != FrontAndBack && // exception
-                   el->targetVolume() != LeftAndRight && // exception
-                   el->targetVolume() != FBLR ) ||       // exception
-                 el->targetVolume() == InSens   ||
-                 el->targetVolume() == OtSens     ) { // Unexpected case
-          std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-          std::cerr << "targetVolume " << el->targetVolume() << " is not supported for hybrid volumes. Exit." << std::endl;
-          std::exit(1);
+            el->componentName() == "2S Sensors"    ) {
+          continue; // We will not handle sensors in this class 
+       } else if ( el->targetVolume() == InnerSensor ||
+                   el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
+         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+         std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
+         std::exit(1);
+       } else if ( el->targetVolume() >= nTypes   &&
+                   el->targetVolume() != HybridFB &&     
+                   el->targetVolume() != HybridLR &&     
+                   el->targetVolume() != HybridFBLR_3456  ) {  
+         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+         std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
+         std::exit(1);
        }
 
        moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
-       if ( el->targetVolume() == Front   ||
-            el->targetVolume() == Back    ||
-            el->targetVolume() == Left    ||
-            el->targetVolume() == Right   ||
-            el->targetVolume() == Between ||
-            el->targetVolume() == Bottom     ) {
+       if ( el->targetVolume() == HybridFront   ||
+            el->targetVolume() == HybridBack    ||
+            el->targetVolume() == HybridLeft    ||
+            el->targetVolume() == HybridRight   ||
+            el->targetVolume() == HybridBetween ||
+            el->targetVolume() == SupportPlate     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
-       } else if ( el->targetVolume() == FrontAndBack ) { 
+       } else if ( el->targetVolume() == HybridFB ) { 
           if (hybridFrontAndBackVolume_mm3 < 0) { // Need only once
-            hybridFrontAndBackVolume_mm3 = vol[Front]->getVolume()
-                                         + vol[Back]->getVolume();
+            hybridFrontAndBackVolume_mm3 = vol[HybridFront]->getVolume()
+                                         + vol[HybridBack]->getVolume();
           }
-          vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Front]->addMass(el->quantityInGrams(module)*vol[Front]->getVolume()/hybridFrontAndBackVolume_mm3);
-          vol[Back]->addMass(el->quantityInGrams(module)*vol[Back]->getVolume()/hybridFrontAndBackVolume_mm3);
-       } else if ( el->targetVolume() == LeftAndRight ) { 
+          vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
+          vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
+       } else if ( el->targetVolume() == HybridLR ) { 
           if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
-            hybridLeftAndRightVolume_mm3 = vol[Left]->getVolume()
-                                         + vol[Right]->getVolume();
+            hybridLeftAndRightVolume_mm3 = vol[HybridLeft]->getVolume()
+                                         + vol[HybridRight]->getVolume();
           }
-          vol[Left]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Right]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Left]->addMass(el->quantityInGrams(module)*vol[Left]->getVolume()/hybridLeftAndRightVolume_mm3);
-          vol[Right]->addMass(el->quantityInGrams(module)*vol[Right]->getVolume()/hybridLeftAndRightVolume_mm3);
-       } else if ( el->targetVolume() == All || el->targetVolume() == FBLR ) { // Uniformly Distribute
-          vol[Front]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Back]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Left]->addMaterial(el->elementName(),el->quantityInGrams(module));
-          vol[Right]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
+          vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
+       } else if ( el->targetVolume() == HybridFBLR_0 || el->targetVolume() == HybridFBLR_3456 ) { // Uniformly Distribute
+          vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
 
           if (hybridTotalVolume_mm3 < 0) { // Need only once
-            hybridTotalVolume_mm3 = vol[Front]->getVolume()
-                                  + vol[Back]->getVolume()
-                                  + vol[Left]->getVolume()
-                                  + vol[Right]->getVolume();
+            hybridTotalVolume_mm3 = vol[HybridFront]->getVolume()
+                                  + vol[HybridBack]->getVolume()
+                                  + vol[HybridLeft]->getVolume()
+                                  + vol[HybridRight]->getVolume();
           }
 
           // Uniform density distribution and consistent with total mass
-          vol[Front]->addMass(el->quantityInGrams(module)*vol[Front]->getVolume()/hybridTotalVolume_mm3); 
-          vol[Back]->addMass(el->quantityInGrams(module)*vol[Back]->getVolume()/hybridTotalVolume_mm3);   
-          vol[Left]->addMass(el->quantityInGrams(module)*vol[Left]->getVolume()/hybridTotalVolume_mm3);   
-          vol[Right]->addMass(el->quantityInGrams(module)*vol[Right]->getVolume()/hybridTotalVolume_mm3);
+          vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridTotalVolume_mm3); 
+          vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridTotalVolume_mm3);   
+          vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridTotalVolume_mm3);   
+          vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridTotalVolume_mm3);
        }
     }
 
-    volumes.push_back(vol[Front]);
-    volumes.push_back(vol[Back]);
-    volumes.push_back(vol[Left]);
-    volumes.push_back(vol[Right]);
-    volumes.push_back(vol[Between]);
-    volumes.push_back(vol[Bottom]);
+    volumes.push_back(vol[HybridFront]);
+    volumes.push_back(vol[HybridBack]);
+    volumes.push_back(vol[HybridLeft]);
+    volumes.push_back(vol[HybridRight]);
+    volumes.push_back(vol[HybridBetween]);
+    volumes.push_back(vol[SupportPlate]);
 
   }
 
-  void HybridVolumes::addShapeInfo(std::vector<ShapeInfo>& vec) {
+  void ModuleComplex::addShapeInfo(std::vector<ShapeInfo>& vec) {
     ShapeInfo ele;
     ele.type = bx; // Box 
     std::vector<Volume*>::const_iterator vit;
@@ -2086,7 +2092,7 @@ namespace insur {
     }
   }
 
-  void HybridVolumes::addLogicInfo(std::vector<LogicalInfo>& vec) {
+  void ModuleComplex::addLogicInfo(std::vector<LogicalInfo>& vec) {
     LogicalInfo ele;
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
@@ -2098,7 +2104,7 @@ namespace insur {
     }
   }
 
-  void HybridVolumes::addPositionInfo(std::vector<PosInfo>& vec) {
+  void ModuleComplex::addPositionInfo(std::vector<PosInfo>& vec) {
     PosInfo ele;
     ele.copy = 1;
     std::vector<Volume*>::const_iterator vit;
@@ -2113,7 +2119,7 @@ namespace insur {
     }
   }
 
-  void HybridVolumes::addMaterialInfo(std::vector<Composite>& vec) {
+  void ModuleComplex::addMaterialInfo(std::vector<Composite>& vec) {
     std::vector<Volume*>::const_iterator vit;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
       if ( !((*vit)->getDensity()>0.) ) continue; 
@@ -2137,8 +2143,8 @@ namespace insur {
   }
 
 
-  void HybridVolumes::print() const {
-    std::cout << "HybridVolumes::print():" << std::endl;
+  void ModuleComplex::print() const {
+    std::cout << "ModuleComplex::print():" << std::endl;
     std::cout << "  Parent Module Name:" << moduleId << std::endl;
     std::vector<Volume*>::const_iterator vit;
     double moduleTotalMass = 0.;
