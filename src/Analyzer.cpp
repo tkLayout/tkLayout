@@ -1616,7 +1616,7 @@ void Analyzer::calculateGraphs(const int& parameter,
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph.SetTitle("Transverse impact momentum  error;#eta;#sigma (#delta d_{0}) [cm]");
+  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
@@ -1624,7 +1624,7 @@ void Analyzer::calculateGraphs(const int& parameter,
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph.SetTitle("Longitudinal impact momentum  error;#eta;#sigma (#delta z_{0}) [cm]");
+  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph.SetName(aName.str().c_str());
   // Prepare plots: p

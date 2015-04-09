@@ -1,7 +1,7 @@
 // pt-2S module 10x10 for the outer region
 // GBT on the module
 
-Materials module-pt2S_320_40 {
+Materials module-pt2S_320_18 {
   type module
 
   // Default sensor:
