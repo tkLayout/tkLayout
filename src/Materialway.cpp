@@ -749,7 +749,11 @@ namespace material {
 
         //if the module is in z plus
         if(module.maxZ() > 0) {
-          attachPoint = discretize(module.maxZ());
+          if(module.maxZ() <= currLayer_->maxZ()) {
+            attachPoint = discretize(module.maxZ());
+          } else {
+            attachPoint = discretize(currLayer_->maxZ());
+          }
           section = startLayer;
           while (section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
