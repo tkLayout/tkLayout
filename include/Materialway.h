@@ -195,7 +195,8 @@ namespace material {
 
     struct BoundaryComparator {
       bool operator()(Boundary* const& one, Boundary* const& two) {
-        return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
+        //return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
+        return ((one->maxZ() + one->maxR()) > (two->maxZ() + two->maxR()));
       }
     };
 
