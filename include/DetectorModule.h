@@ -97,6 +97,7 @@ public:
   Property<double, Default> serviceHybridWidth;
   Property<double, Default> frontEndHybridWidth;
   Property<double, Default> hybridThickness;
+  Property<double, Default> supportPlateThickness;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -131,7 +132,8 @@ public:
       plotColor                ("plotColor"                , parsedOnly(), 0),
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
-      hybridThickness          ("hybridThickness"          , parsedOnly(), 1)
+      hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
+      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
   { }
 
   virtual void setup();
