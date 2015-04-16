@@ -737,7 +737,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 }
 
-
 void Analyzer::analyzePower(Tracker& tracker) {
   computeIrradiatedPowerConsumption(tracker);
   preparePowerHistograms();

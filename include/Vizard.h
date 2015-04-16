@@ -162,8 +162,8 @@ namespace insur {
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
-    void histogramSummary(Analyzer& a, RootWSite& site);
-    void histogramSummary(Analyzer& a, RootWSite& site, std::string alternativeName);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
+    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
@@ -173,6 +173,7 @@ namespace insur {
     bool taggedErrorSummary(Analyzer& a, RootWSite& site);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
+    void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
                             const std::string& matfile, const std::string& pixmatfile,
                             bool defaultMaterial, bool defaultPixelMaterial,
