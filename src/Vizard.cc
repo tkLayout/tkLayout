@@ -359,8 +359,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
-    histogramSummary(a, site, "outer");
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
+    histogramSummary(a, materialBudget, debugServices, site, "outer");
   }
 
   /**
@@ -424,7 +424,7 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, RootWSite& site, std::string name) {
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
     // Initialize the page with the material budget
     RootWPage* myPage;
     RootWContent* myContent;
@@ -918,6 +918,10 @@ namespace insur {
     //} else {
     //  delete materialSummaryTable;
     //}
+
+    if (debugServices) {
+        drawInactiveSurfacesSummary(materialBudget, *myPage);
+    }
 
   }
 
@@ -4583,6 +4587,111 @@ namespace insur {
       myEllipse->SetFillStyle(0);
     }
     myEllipse->Draw();
+  }
+
+  
+  void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
+    RootWContent& myContent = myPage.addContent("Service detials");
+
+    auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
+    auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();
+    auto& supports = materialBudget.getInactiveSurfaces().getSupports();
+
+    std::vector<InactiveElement> allServices;
+
+    allServices.reserve( barrelServices.size() + endcapServices.size() + supports.size() ); // preallocate memory
+    allServices.insert( allServices.end(), barrelServices.begin(), barrelServices.end() );
+    allServices.insert( allServices.end(), endcapServices.begin(), endcapServices.end() );
+    allServices.insert( allServices.end(), supports.begin(), supports.end() );
+
+    int serviceId = 0;
+    double z1, z2, r1, r2, length, il, rl;
+    double mass;
+    std::stringstream myStringStream;
+
+    // Graphic representation of the services in the rz plane
+    TCanvas* servicesCanvas = new TCanvas("servicesCanvas", "servicesCanvas", 2400, 600); // TODO Factory for canvases?!
+    servicesCanvas->cd();
+    TH2D* myFrame = new TH2D("aServicesFrame", ";z [mm];r [mm]", 200, -3000, 3000, 100, 0, 1200);
+    myFrame->Draw();
+    TBox* myBox;
+    TText* myText;
+
+    myStringStream << "ID/I:z1/D:z2/D:r1/D:r2/D:Element/C:mass/D:mass_per_length/D:rl/D:il/D:local/I" << std::endl;
+
+    for (auto& iter : allServices) {
+      z1 = iter.getZOffset();
+      z2 = iter.getZOffset()+iter.getZLength();
+      r1 = iter.getInnerRadius();
+      r2 = iter.getInnerRadius()+iter.getRWidth();
+      length = iter.getLength();
+      rl = iter.getInteractionLength();
+      il = iter.getRadiationLength();
+
+      bool isEmpty = true;
+
+      const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      const std::map<std::string, double>& exitingMasses = iter.getExitingMasses();
+
+      for (auto& massIt : localMasses) {
+	mass = massIt.second;
+	if (mass==0) continue;
+	isEmpty=false;
+	myStringStream << serviceId << " "
+		       << z1 << " "
+		       << z2 << " "
+		       << r1 << " "
+		       << r2 << " "
+		       << massIt.first << " "
+		       << mass << " "
+		       << mass/length << " "
+                       << rl << " "
+                       << il << " " 
+                       << " 1" << std::endl;
+      }
+      for (auto& massIt : exitingMasses) {
+	mass = massIt.second;
+	if (mass==0) continue;
+	isEmpty=false;
+	myStringStream << serviceId << " "
+		       << z1 << " "
+		       << z2 << " "
+		       << r1 << " "
+		       << r2 << " "
+		       << massIt.first << " "
+		       << mass << " "
+		       << mass/length << " 0" << std::endl;
+      }
+
+      if (!isEmpty) {
+	myBox = new TBox(z1, r1, z2, r2);
+	myBox->SetLineColor(kBlack);
+	myBox->SetFillStyle(0);
+	myBox->Draw();
+	
+	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+	myText->SetTextAlign(22);
+        myText->SetTextSize(2e-2);
+	myText->Draw();
+      }
+    
+
+    
+      serviceId++;
+    }
+
+    RootWImage& servicesImage = myContent.addImage(servicesCanvas, 1800, 400);
+    servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
+    servicesImage.setName("InactiveSurfacesPosition");
+
+    Tracker& myTracker = materialBudget.getTracker();
+    std::string myName = myTracker.myid();
+    
+    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s", myName.c_str()), "file containing all the materials");
+    myTextFile->addText(myStringStream.str());
+    myContent.addItem(myTextFile);
+    
+
   }
 
 }
