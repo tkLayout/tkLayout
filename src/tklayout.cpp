@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     ("resolution,r", "Report resolution analysis.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
-    ("debug-services,d", "Service routing debug page")
+    ("debug-services,d", "Service additional debug info")
     ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
     ("graph,g", "Build and report neighbour graph.")
     ("xml", po::value<std::string>(&xmldir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
       //if (squid.createMaterialBudget(verboseMaterial)) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
           if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"))) return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite()) return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
         if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
