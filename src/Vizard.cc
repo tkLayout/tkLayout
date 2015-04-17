@@ -4594,7 +4594,7 @@ namespace insur {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
 
-    RootWContent& myContent = myPage.addContent("Service detials");
+    RootWContent& myContent = myPage.addContent("Service details");
 
     auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
     auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();
@@ -4632,8 +4632,8 @@ namespace insur {
       r1 = iter.getInnerRadius();
       r2 = iter.getInnerRadius()+iter.getRWidth();
       length = iter.getLength();
-      rl = iter.getInteractionLength();
-      il = iter.getRadiationLength();
+      rl = iter.getRadiationLength();
+      il = iter.getInteractionLength();
 
       // Update the maxZ and maxR with respect to the inactive surfaces
       if (fabs(z1)>maxZ) maxZ=fabs(z1);
