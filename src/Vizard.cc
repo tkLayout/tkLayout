@@ -4649,8 +4649,7 @@ namespace insur {
       int elementId=0;
       for (auto& massIt : localMasses) {
 	mass = massIt.second;
-	if (mass==0) continue;
-	isEmpty=false;
+	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
                        << elementId++ << ","
 		       << z1 << ","
@@ -4666,8 +4665,7 @@ namespace insur {
       }
       for (auto& massIt : exitingMasses) {
 	mass = massIt.second;
-	if (mass==0) continue;
-	isEmpty=false;
+	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
                        << elementId++ << ","
 		       << z1 << ","
@@ -4682,18 +4680,17 @@ namespace insur {
                        << "1" << std::endl;
       }
 
-      if (!isEmpty) {
-	myBox = new TBox(z1, r1, z2, r2);
-	myBox->SetLineColor(kBlack);
-	myBox->SetFillStyle(3003);
-	myBox->SetFillColor(kGray);
-	myBox->Draw("l");
+      myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(kBlack);
+      myBox->SetFillStyle(3003);
+      if (isEmpty) myBox->SetFillColor(kRed);
+      else myBox->SetFillColor(kGray);
+      myBox->Draw("l");
 	
-	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
-	myText->SetTextAlign(22);
-        myText->SetTextSize(2e-2);
-	myText->Draw();
-      }
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText->SetTextAlign(22);
+      myText->SetTextSize(2e-2);
+      myText->Draw();
     
       serviceId++;
     }
