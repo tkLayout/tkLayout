@@ -175,8 +175,6 @@ namespace insur {
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
-                            const std::string& matfile, const std::string& pixmatfile,
-                            bool defaultMaterial, bool defaultPixelMaterial,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();

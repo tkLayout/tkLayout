@@ -1675,11 +1675,13 @@ namespace material {
           std::cout<<"ERRORE INT LEN"<<std::endl;
         }
         */
-        if((section->inactiveElement()->localMassCount() > 0)) { // && (section->minZ() > 0)) {
-          inactiveSurface.addBarrelServicePart(*section->inactiveElement());
-          // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
-        } else {
-          logUniqueERROR("Inactive element mass = 0.");
+	inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+        if((section->inactiveElement()->localMassCount() == 0)) {
+          logWARNING(std::string(Form("Empty inactive element at r=%f, dr=%f, z=%f, dz=%f",
+				      section->inactiveElement()->getInnerRadius(),
+				      section->inactiveElement()->getRWidth(),
+				      section->inactiveElement()->getZOffset(),
+				      section->inactiveElement()->getZLength() )));
         }
       } else {
         logUniqueERROR(inactiveElementError);

@@ -241,45 +241,14 @@ namespace insur {
     startTaskClock("Building materials");
 
     if (tr) {
-        std::string trackm = getMaterialFile();
-        if (trackm=="") { stopTaskClock(); return false; }
         if (!is) is = new InactiveSurfaces();
-        //if (mb) delete mb;
-        //mb  = new MaterialBudget(*tr, *is);
-        //if (tkMaterialCalc.initDone()) tkMaterialCalc.reset(); // TODO: obsolete these
-        //if (pxMaterialCalc.initDone()) pxMaterialCalc.reset(); // TODO: obsolete these
-
-        //if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
         materialwayTracker.build(*tr, *is, weightDistributionTracker);
 
-          // mb->materialsAll(tkMaterialCalc);
-          // if (verbose) mb->print();
-
           if (px) {
-            std::string pixm = getPixelMaterialFile();
-            if (pixm!="") {
-              //if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-                if (!pi) pi = new InactiveSurfaces();
-                //if (pm) delete pm;
-                //pm = new MaterialBudget(*px, *pi);
-                materialwayPixel.build(*px, *pi, weightDistributionPixel);
-
-                //pm->materialsAll(pxMaterialCalc);
-                //if (verbose) pm->print();
-                //}
-            }
+	    if (!pi) pi = new InactiveSurfaces();
+	    materialwayPixel.build(*px, *pi, weightDistributionPixel);
           }
 
-          /*
-        } else {
-          //if (mb) delete mb;
-          //mb = NULL;
-          //if (pm) delete pm;
-          //pm = NULL;
-          logERROR(err_init_failed);
-          return false;
-        }
-        */
       } else {
         logERROR(err_no_tracker);
         stopTaskClock();
@@ -302,28 +271,23 @@ namespace insur {
    */
   bool Squid::createMaterialBudget(bool verbose) {
     if (tr) {
-      std::string trackm = getMaterialFile();
-      if (trackm=="") return false;
       if (!is) is = new InactiveSurfaces();
       if (mb) delete mb;
       mb  = new MaterialBudget(*tr, *is);
       if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
       if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
-      if (mp.initMatCalc(trackm, tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
+      if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
         mb->materialsAll(tkMaterialCalc);
         if (verbose) mb->print();
-
+	
         if (px) {
-          std::string pixm = getPixelMaterialFile();
-          if (pixm!="") {
-            if (mp.initMatCalc(pixm, pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
-              if (!pi) pi = new InactiveSurfaces();
-              if (pm) delete pm;
-              pm = new MaterialBudget(*px, *pi);
-              pm->materialsAll(pxMaterialCalc);
-              if (verbose) pm->print();
-            }
-          }
+	  if (mp.initMatCalc(pxMaterialCalc, mainConfiguration.getMattabDirectory())) {
+	    if (!pi) pi = new InactiveSurfaces();
+	    if (pm) delete pm;
+	    pm = new MaterialBudget(*px, *pi);
+	    pm->materialsAll(pxMaterialCalc);
+	    if (verbose) pm->print();
+	  }
         }
         return true;
       } else {
@@ -674,12 +638,8 @@ namespace insur {
       logERROR(err_no_tracker);
       return false;
     } else {
-      getMaterialFile();
-      getPixelMaterialFile();
       startTaskClock("Saving additional information");
       v.additionalInfoSite(includeSet_, getSettingsFile(),
-                           getMaterialFile(), getPixelMaterialFile(),
-                           defaultMaterialFile, defaultPixelMaterialFile,
                            a, pixelAnalyzer, *tr, *simParms_, site);
       stopTaskClock();
       return true;
@@ -714,42 +674,6 @@ namespace insur {
       mySettingsFile_ = baseName_ + suffix_types_file;
     }
     return mySettingsFile_;
-  }
-
-  std::string Squid::getMaterialFile() {
-    if (myMaterialFile_=="") {
-      myMaterialFile_ = baseName_ + suffix_tracker_material_file; 
-      if (fileExists(myMaterialFile_)) {
-        logWARNING(warn_custom_matfile);
-        defaultMaterialFile = false;
-      } else {
-        myMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_tracker_materials_file;
-        defaultMaterialFile = true;
-        if (!fileExists(myMaterialFile_)) {
-          logERROR(err_no_matfile);
-          myMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
-        }
-      }
-    }
-    return myMaterialFile_;
-  }
-
-  std::string Squid::getPixelMaterialFile() {
-    if (myPixelMaterialFile_=="") {
-      myPixelMaterialFile_ = baseName_ + suffix_pixel_material_file;         
-      if (fileExists(myPixelMaterialFile_)) {
-        logWARNING(warn_custom_matfile_pixel);
-        defaultPixelMaterialFile = false;
-      } else {
-        myPixelMaterialFile_ = mainConfiguration.getDefaultMaterialsDirectory() + "/" + default_pixel_materials_file;
-        defaultPixelMaterialFile = true;
-        if (!fileExists(myPixelMaterialFile_)) {
-          logERROR(err_no_matfile_pixel);
-          myPixelMaterialFile_ = ""; // TODO: put an "undefined" here to mark your passage
-        }
-      }
-    }
-    return myPixelMaterialFile_;
   }
 
   void Squid::simulateTracks(const po::variables_map& varmap, int seed) { // CUIDADO not ported to coderev -- yet?

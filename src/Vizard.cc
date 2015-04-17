@@ -2007,8 +2007,6 @@ namespace insur {
   
 
   bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
-                                  const std::string& matfile, const std::string& pixmatfile,
-                                  bool defaultMaterial, bool defaultPixelMaterial,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
@@ -2075,24 +2073,6 @@ namespace insur {
       });
       RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", includeSet.begin(), includeSet.end());
       simulationContent->addItem(myBinaryFileList);
-    }
-
-//    if (settingsfile!="") {
-//      destinationFilename = trackerName + suffix_types_file;
-//      myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
-//      simulationContent->addItem(myBinaryFile);
-//    }
-    if (matfile!="") {
-      if (defaultMaterial) destinationFilename = default_tracker_materials_file;
-      else destinationFilename = trackerName + suffix_tracker_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
-      simulationContent->addItem(myBinaryFile);
-    }
-    if (pixmatfile!="") {
-      if (defaultPixelMaterial) destinationFilename = default_pixel_materials_file;
-      else destinationFilename = trackerName + suffix_pixel_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
-      simulationContent->addItem(myBinaryFile);
     }
 
     RootWInfo* myInfo;
