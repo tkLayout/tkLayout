@@ -4670,6 +4670,8 @@ namespace insur {
       myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
       myText->SetTextAlign(22);
       myText->SetTextSize(2e-2);
+      if (isEmpty) myText->SetTextColor(kRed);
+      else myText->SetTextColor(kBlack);
       myText->Draw();
     
       serviceId++;
@@ -4685,7 +4687,6 @@ namespace insur {
     RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
     myTextFile->addText(myStringStream.str());
     myContent.addItem(myTextFile);
-    
 
   }
 
