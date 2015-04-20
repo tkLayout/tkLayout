@@ -477,7 +477,7 @@ namespace material {
           cutCoordinate = minZ;
         }
         newSection = splitSection(sectionCollision.second, cutCoordinate, direction);
-        sectionsList_.push_back(newSection);
+        //sectionsList_.push_back(newSection);
         updateLastSectionPointer(lastSection, newSection);
       } else {
         //set directly the pointer
