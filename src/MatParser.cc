@@ -214,18 +214,17 @@ namespace insur {
      * @param mattabdir The location of the global material table if it is not in the default place
      * @return True if the config file was successfully parsed, false otherwise
      */
-  bool MatParser::initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir ) {
+     bool MatParser::initMatCalc(MatCalc& calc, std::string mattabdir ) {
         // fill up the global material table if necessary
-        if (calc.getMaterialTable().empty()) {
-  	    if (mattabdir.empty()) mattabdir = default_mattabdir;
-            std::string filename(mattabdir + "/" + default_mattabfile);
-            if(!fillTable(filename, calc.getMaterialTable())) return false;
-        }
-        // read the material config file provided by the user
-        calc.initDone(readParameters(configfile, calc));
-        if (calc.initDone()) return true;
-        return false;
-    }
+       if (calc.getMaterialTable().empty()) {
+	 if (mattabdir.empty()) mattabdir = default_mattabdir;
+	 std::string filename(mattabdir + "/" + default_mattabfile);
+	 if(!fillTable(filename, calc.getMaterialTable())) return false;
+	 calc.initDone(true);
+	 return true;
+       }
+       return false;
+     }
     
     // protected
     /**

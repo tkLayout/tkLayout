@@ -2007,8 +2007,6 @@ namespace insur {
   
 
   bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
-                                  const std::string& matfile, const std::string& pixmatfile,
-                                  bool defaultMaterial, bool defaultPixelMaterial,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
@@ -2075,24 +2073,6 @@ namespace insur {
       });
       RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", includeSet.begin(), includeSet.end());
       simulationContent->addItem(myBinaryFileList);
-    }
-
-//    if (settingsfile!="") {
-//      destinationFilename = trackerName + suffix_types_file;
-//      myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
-//      simulationContent->addItem(myBinaryFile);
-//    }
-    if (matfile!="") {
-      if (defaultMaterial) destinationFilename = default_tracker_materials_file;
-      else destinationFilename = trackerName + suffix_tracker_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
-      simulationContent->addItem(myBinaryFile);
-    }
-    if (pixmatfile!="") {
-      if (defaultPixelMaterial) destinationFilename = default_pixel_materials_file;
-      else destinationFilename = trackerName + suffix_pixel_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
-      simulationContent->addItem(myBinaryFile);
     }
 
     RootWInfo* myInfo;
@@ -4649,8 +4629,7 @@ namespace insur {
       int elementId=0;
       for (auto& massIt : localMasses) {
 	mass = massIt.second;
-	if (mass==0) continue;
-	isEmpty=false;
+	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
                        << elementId++ << ","
 		       << z1 << ","
@@ -4666,8 +4645,7 @@ namespace insur {
       }
       for (auto& massIt : exitingMasses) {
 	mass = massIt.second;
-	if (mass==0) continue;
-	isEmpty=false;
+	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
                        << elementId++ << ","
 		       << z1 << ","
@@ -4682,18 +4660,19 @@ namespace insur {
                        << "1" << std::endl;
       }
 
-      if (!isEmpty) {
-	myBox = new TBox(z1, r1, z2, r2);
-	myBox->SetLineColor(kBlack);
-	myBox->SetFillStyle(3003);
-	myBox->SetFillColor(kGray);
-	myBox->Draw("l");
+      myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(kBlack);
+      myBox->SetFillStyle(3003);
+      if (isEmpty) myBox->SetFillColor(kRed);
+      else myBox->SetFillColor(kGray);
+      myBox->Draw("l");
 	
-	myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
-	myText->SetTextAlign(22);
-        myText->SetTextSize(2e-2);
-	myText->Draw();
-      }
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText->SetTextAlign(22);
+      myText->SetTextSize(2e-2);
+      if (isEmpty) myText->SetTextColor(kRed);
+      else myText->SetTextColor(kBlack);
+      myText->Draw();
     
       serviceId++;
     }
@@ -4708,7 +4687,6 @@ namespace insur {
     RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
     myTextFile->addText(myStringStream.str());
     myContent.addItem(myTextFile);
-    
 
   }
 

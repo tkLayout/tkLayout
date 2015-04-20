@@ -94,7 +94,7 @@ namespace insur {
         bool fillTable(std::string materialfile, MaterialTable& mattab);
         bool fillTable(std::string materialfile, MaterialTable2& mattab);
         bool readParameters(std::string configfile, MatCalc& calc);
-        bool initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir );
+        bool initMatCalc(MatCalc& calc, std::string mattabdir );
     protected:
         bool parseStripsSegs(std::ifstream& instream, std::string& strips, std::string& segs);
         bool parseMLine(std::string line, std::string type, MatCalc& calc, std::string comp);
