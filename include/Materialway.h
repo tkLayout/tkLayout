@@ -291,6 +291,7 @@ namespace material {
     static const int sectionTolerance;
     static const int layerStationLenght;
     static const int layerStationWidth;
+    static const double radialDistribError;
 
     static int discretize(double input);
     static double undiscretize(int input);
