@@ -2829,7 +2829,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
-      static std::ofstream ofs("hits.txt");
+      //static std::ofstream ofs("hits.txt");
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
