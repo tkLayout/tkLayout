@@ -225,7 +225,7 @@ namespace material {
 
       zNegativeElement = new InactiveRing;
       zNegativeElement->setZLength(inactiveElementWidth);
-      zNegativeElement->setZOffset(-1 * startZ);
+      zNegativeElement->setZOffset(-1 * startZ - inactiveElementWidth);
       zNegativeElement->setInnerRadius(startR);
       zNegativeElement->setRWidth(length);
       zNegativeElement->setFinal(true);
