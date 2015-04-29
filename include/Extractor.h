@@ -117,11 +117,11 @@ namespace insur {
   static const std::string rot_sensor_tag = "SensorFlip";
 #endif
 #ifdef __ADDVOLUMES__
-  class HybridVolumes {
+  class ModuleComplex {
     public :
-     HybridVolumes(std::string moduleName, ModuleCap& modcap);
-     ~HybridVolumes();
-     void buildVolumes();
+     ModuleComplex(std::string moduleName, ModuleCap& modcap);
+     ~ModuleComplex();
+     void buildSubVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
      void addLogicInfo   (std::vector<LogicalInfo>& vec);
      void addPositionInfo(std::vector<PosInfo>&     vec);
@@ -134,24 +134,27 @@ namespace insur {
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
     private :
-      static const int All;
-      static const int InSens;
-      static const int OtSens;
-      static const int Front;
-      static const int Back;
-      static const int Left;
-      static const int Right;
-      static const int Between;
+      static const int HybridFBLR_0; // Front Back Left Right
+      static const int InnerSensor;
+      static const int OuterSensor;
+      static const int HybridFront;
+      static const int HybridBack;
+      static const int HybridLeft;
+      static const int HybridRight;
+      static const int HybridBetween;
+      static const int SupportPlate;
       static const int nTypes;
-      static const int FrontAndBack;
-      static const int LeftAndRight;
+      static const int HybridFB;
+      static const int HybridLR;
+      static const int HybridFBLR_3456; // Front Back Left Right (ailias of HybridFBLR_0)
       static const double kmm3Tocm3;
 
       class Volume {
         public :
-          Volume(std::string name, std::string pname, 
+          Volume(std::string name, const int type, std::string pname, 
                  double dx,   double dy,   double dz,
                  double posx, double posy, double posz) : fname(name),
+                                                          ftype(type),
                                                           fparentname(pname),
                                                           fdx(dx),
                                                           fdy(dy),
@@ -171,6 +174,7 @@ namespace insur {
           const double      getY()         const { return fy;    }
           const double      getZ()         const { return fz;    }
           const std::string getName()      const { return fname; }
+          const int         getType()      const { return ftype; }
           const std::string getParentName()const { return fparentname; }
 
           double getDensity() {
@@ -188,6 +192,7 @@ namespace insur {
           }
         private :
           std::string  fname;
+          const int    ftype;
           std::string  fparentname;
           const double fdx,fdy,fdz;
           const double fx,fy,fz;
@@ -202,11 +207,14 @@ namespace insur {
       std::vector<Volume*> volumes;
       std::string          moduleId;
       const double         modThickness;
+      const double         sensorThickness;
+      const double         sensorDistance;
       const double         modWidth;  // Sensor width
       const double         modLength; // Sensor length
       const double         frontEndHybridWidth;
       const double         serviceHybridWidth;
       const double         hybridThickness;
+      const double         supportPlateThickness;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;

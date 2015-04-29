@@ -359,8 +359,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, RootWSite& site) {
-    histogramSummary(a, site, "outer");
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
+    histogramSummary(a, materialBudget, debugServices, site, "outer");
   }
 
   /**
@@ -424,7 +424,7 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, RootWSite& site, std::string name) {
+  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
     // Initialize the page with the material budget
     RootWPage* myPage;
     RootWContent* myContent;
@@ -918,6 +918,10 @@ namespace insur {
     //} else {
     //  delete materialSummaryTable;
     //}
+
+    if (debugServices) {
+        drawInactiveSurfacesSummary(materialBudget, *myPage);
+    }
 
   }
 
@@ -2003,8 +2007,6 @@ namespace insur {
   
 
   bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
-                                  const std::string& matfile, const std::string& pixmatfile,
-                                  bool defaultMaterial, bool defaultPixelMaterial,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
@@ -2071,24 +2073,6 @@ namespace insur {
       });
       RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", includeSet.begin(), includeSet.end());
       simulationContent->addItem(myBinaryFileList);
-    }
-
-//    if (settingsfile!="") {
-//      destinationFilename = trackerName + suffix_types_file;
-//      myBinaryFile = new RootWBinaryFile(destinationFilename, "Module types configuration file", settingsfile);
-//      simulationContent->addItem(myBinaryFile);
-//    }
-    if (matfile!="") {
-      if (defaultMaterial) destinationFilename = default_tracker_materials_file;
-      else destinationFilename = trackerName + suffix_tracker_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (outer)", matfile);
-      simulationContent->addItem(myBinaryFile);
-    }
-    if (pixmatfile!="") {
-      if (defaultPixelMaterial) destinationFilename = default_pixel_materials_file;
-      else destinationFilename = trackerName + suffix_pixel_material_file;
-      myBinaryFile = new RootWBinaryFile(destinationFilename, "Material configuration file (pixel)", pixmatfile);
-      simulationContent->addItem(myBinaryFile);
     }
 
     RootWInfo* myInfo;
@@ -4583,6 +4567,127 @@ namespace insur {
       myEllipse->SetFillStyle(0);
     }
     myEllipse->Draw();
+  }
+
+  
+  void Vizard::drawInactiveSurfacesSummary(MaterialBudget& materialBudget, RootWPage& myPage) {
+    Tracker& myTracker = materialBudget.getTracker();
+    std::string myTrackerName = myTracker.myid();
+
+    RootWContent& myContent = myPage.addContent("Service details");
+
+    auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
+    auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();
+    auto& supports = materialBudget.getInactiveSurfaces().getSupports();
+
+    // We put all services inside the same container
+    std::vector<InactiveElement> allServices;
+    allServices.reserve( barrelServices.size() + endcapServices.size() + supports.size() ); // preallocate memory
+    allServices.insert( allServices.end(), barrelServices.begin(), barrelServices.end() );
+    allServices.insert( allServices.end(), endcapServices.begin(), endcapServices.end() );
+    allServices.insert( allServices.end(), supports.begin(), supports.end() );
+
+    // Counting services with an ad-hoc index
+    int serviceId = 0;
+    double z1, z2, r1, r2, length, il, rl;
+    double mass;
+    std::stringstream myStringStream;
+
+    // Graphic representation of the services in the rz plane
+    double maxR = myTracker.maxR()*1.2;
+    double maxZ = myTracker.maxZ()*1.2;
+    TCanvas* servicesCanvas = new TCanvas("servicesCanvas", "servicesCanvas"); // TODO Factory for canvases?!
+    servicesCanvas->cd();
+    TH2D* aServicesFrame = new TH2D("aServicesFrame", ";z [mm];r [mm]", 200, -maxZ, maxZ, 100, 0, maxR);
+    maxZ=0; maxR=0;
+    aServicesFrame->Draw();
+    TBox* myBox;
+    TText* myText;
+
+    myStringStream << "serviceID/I,elementID/I,z1/D,z2/D,r1/D,r2/D,Element/C,mass/D,mass_per_length/D,rl/D,il/D,local/I" << std::endl;
+
+    for (auto& iter : allServices) {
+      z1 = iter.getZOffset();
+      z2 = iter.getZOffset()+iter.getZLength();
+      r1 = iter.getInnerRadius();
+      r2 = iter.getInnerRadius()+iter.getRWidth();
+      length = iter.getLength();
+      rl = iter.getRadiationLength();
+      il = iter.getInteractionLength();
+
+      // Update the maxZ and maxR with respect to the inactive surfaces
+      if (fabs(z1)>maxZ) maxZ=fabs(z1);
+      if (fabs(z2)>maxZ) maxZ=fabs(z2);
+      if (fabs(r1)>maxR) maxR=fabs(r1);
+      if (fabs(r2)>maxR) maxR=fabs(r2);
+
+      bool isEmpty = true;
+
+      const std::map<std::string, double>& localMasses = iter.getLocalMasses();
+      const std::map<std::string, double>& exitingMasses = iter.getExitingMasses();
+
+      int elementId=0;
+      for (auto& massIt : localMasses) {
+	mass = massIt.second;
+	if (mass!=0) isEmpty=false;
+	myStringStream << serviceId << ","
+                       << elementId++ << ","
+		       << z1 << ","
+		       << z2 << ","
+		       << r1 << ","
+		       << r2 << ","
+		       << massIt.first << ","
+		       << mass << ","
+		       << mass/length << ","
+                       << rl << ","
+                       << il << "," 
+                       << "1" << std::endl;
+      }
+      for (auto& massIt : exitingMasses) {
+	mass = massIt.second;
+	if (mass!=0) isEmpty=false;
+	myStringStream << serviceId << ","
+                       << elementId++ << ","
+		       << z1 << ","
+		       << z2 << ","
+		       << r1 << ","
+		       << r2 << ","
+		       << massIt.first << ","
+		       << mass << ","
+		       << mass/length << ","
+                       << rl << ","
+                       << il << "," 
+                       << "1" << std::endl;
+      }
+
+      myBox = new TBox(z1, r1, z2, r2);
+      myBox->SetLineColor(kBlack);
+      myBox->SetFillStyle(3003);
+      if (isEmpty) myBox->SetFillColor(kRed);
+      else myBox->SetFillColor(kGray);
+      myBox->Draw("l");
+	
+      myText = new TText((z1+z2)/2, (r1+r2)/2, Form("%d", serviceId));
+      myText->SetTextAlign(22);
+      myText->SetTextSize(2e-2);
+      if (isEmpty) myText->SetTextColor(kRed);
+      else myText->SetTextColor(kBlack);
+      myText->Draw();
+    
+      serviceId++;
+    }
+    
+    aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
+    aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
+
+    RootWImage& servicesImage = myContent.addImage(servicesCanvas, 1800, 400);
+    servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
+    servicesImage.setName("InactiveSurfacesPosition");
+
+    RootWTextFile* myTextFile = new RootWTextFile(Form("inactiveSurfacesMaterials_%s.csv", myTrackerName.c_str()), "file containing all the materials");
+    myTextFile->addText(myStringStream.str());
+    myContent.addItem(myTextFile);
+
   }
 
 }

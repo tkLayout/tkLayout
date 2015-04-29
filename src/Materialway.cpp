@@ -429,6 +429,7 @@ namespace material {
     bool foundSectionCollision = false;
     bool returnValue = true;
     std::pair<int,Section*> sectionCollision;
+    int N_subsections;
 
     //search for collisions
     foundSectionCollision = findSectionCollision(sectionCollision, startZ, startR, end, direction);
@@ -457,16 +458,40 @@ namespace material {
     }
 
     //build section and update last section's nextSection pointer
-    if ((maxZ > minZ) && (maxR > minR)) {
-      newSection = new Section(minZ, minR, maxZ, maxR, direction);
-      sectionsList_.push_back(newSection);
-      updateLastSectionPointer(lastSection, newSection);
-      lastSection = newSection;
-      //if firstSection is not yet set, set it
-      if(firstSection == nullptr) {
-        firstSection = newSection;
+    if ((maxZ > minZ) && (maxR > minR)) { 
+      //calculate number of subsections. If direction == HORIZONTAL, no sectioning
+      N_subsections = (direction == HORIZONTAL) ? 1 : ceil( log( double(maxR) / minR ) / log( (1 + radialDistribError) / (1 - radialDistribError) ) );
+
+      if (N_subsections == 1){    
+	newSection = new Section(minZ, minR, maxZ, maxR, direction);
+	sectionsList_.push_back(newSection);
+	updateLastSectionPointer(lastSection, newSection);
+	lastSection = newSection;
+	//if firstSection is not yet set, set it
+	if(firstSection == nullptr) {
+	  firstSection = newSection;
+	}
       }
+
+      else {
+	double ratioR = pow( double(minR) / maxR, 1 / double(N_subsections) );
+	double maxR_temp = maxR; 
+	double minR_temp = maxR * ratioR;
+	for (int i=0; i<N_subsections; i++){
+	  newSection = new Section(minZ, minR_temp, maxZ, maxR_temp, direction);
+	  sectionsList_.push_back(newSection);
+	  updateLastSectionPointer(lastSection, newSection);
+	  lastSection = newSection;
+	  maxR_temp = minR_temp;
+	  minR_temp *= ratioR;
+	  //if firstSection is not yet set, set it
+	  if(firstSection == nullptr && i==0) {
+	    firstSection = newSection;
+	  }
+	}
+      } 
     }
+    else { logERROR( Form( "While building sections of services, I found minZ=%d maxZ=%d minR=%d maxR=%d", minZ, maxZ, minR, maxR ) ); }
 
     //if found a collision and the section is perpendicular split the collided section and update nextSection pointer
     if(foundSectionCollision) {
@@ -477,7 +502,7 @@ namespace material {
           cutCoordinate = minZ;
         }
         newSection = splitSection(sectionCollision.second, cutCoordinate, direction);
-        sectionsList_.push_back(newSection);
+        //sectionsList_.push_back(newSection);
         updateLastSectionPointer(lastSection, newSection);
       } else {
         //set directly the pointer
@@ -749,7 +774,11 @@ namespace material {
 
         //if the module is in z plus
         if(module.maxZ() > 0) {
-          attachPoint = discretize(module.maxZ());
+          if(module.maxZ() <= currLayer_->maxZ()) {
+            attachPoint = discretize(module.maxZ());
+          } else {
+            attachPoint = discretize(currLayer_->maxZ());
+          }
           section = startLayer;
           while (section->maxZ() < attachPoint + sectionTolerance) {
             if(!section->hasNextSection()) {
@@ -1017,7 +1046,7 @@ namespace material {
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
   const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
-
+  const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
   Materialway::Materialway() :
     outerUsher(sectionsList_, boundariesList_),
@@ -1671,11 +1700,13 @@ namespace material {
           std::cout<<"ERRORE INT LEN"<<std::endl;
         }
         */
-        if((section->inactiveElement()->localMassCount() > 0)) { // && (section->minZ() > 0)) {
-          inactiveSurface.addBarrelServicePart(*section->inactiveElement());
-          // inactiveSurface.addBarrelServicePart(*buildOppositeInactiveElement(section->inactiveElement()));
-        } else {
-          logUniqueERROR("Inactive element mass = 0.");
+	inactiveSurface.addBarrelServicePart(*section->inactiveElement());
+        if((section->inactiveElement()->localMassCount() == 0)) {
+          logWARNING(std::string(Form("Empty inactive element at r=%f, dr=%f, z=%f, dz=%f",
+				      section->inactiveElement()->getInnerRadius(),
+				      section->inactiveElement()->getRWidth(),
+				      section->inactiveElement()->getZOffset(),
+				      section->inactiveElement()->getZLength() )));
         }
       } else {
         logUniqueERROR(inactiveElementError);
