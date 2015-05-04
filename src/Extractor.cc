@@ -1414,7 +1414,14 @@ namespace insur {
 #if 0
       if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 #else
-      if ((iter->getZOffset() + iter->getZLength()) > 0 && compositeDensity(*iter) > 1.e-6 ) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+      if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
+        if ( iter->getLocalMasses().size() ) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+        else {
+          std::stringstream msg;
+          msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
+          logWARNING( msg.str() ); 
+        }
+      }
 #endif
       shape.name_tag = shapename.str();
       shape.dz = iter->getZLength() / 2.0;
@@ -1473,8 +1480,13 @@ namespace insur {
       if ((iter->getZOffset() + iter->getZLength()) > 0) { // This is necessary because of replication of Forward volumes!
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 #else
-      if ((iter->getZOffset() + iter->getZLength()) > 0 && compositeDensity(*iter) > 1.e-6 ) { 
-        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+      if ( (iter->getZOffset() + iter->getZLength()) > 0 ) { 
+        if ( iter->getLocalMasses().size() ) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+        else {
+          std::stringstream msg;
+          msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
+          logWARNING( msg.str() ); 
+        }
 #endif
         shape.name_tag = shapename.str();
         shape.dz = iter->getZLength() / 2.0;
