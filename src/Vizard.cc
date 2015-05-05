@@ -369,7 +369,9 @@ namespace insur {
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
-   */  
+   */ 
+ 
+  // TODO: if weightGrid is actually unused, then remove it
   void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
     RootWContent* myContent;
 

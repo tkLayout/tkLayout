@@ -490,6 +490,11 @@ namespace insur {
       startTaskClock("Computing the weight summary");
       a.computeWeightSummary(*mb);
       stopTaskClock();
+      if (pm) {
+        startTaskClock("Computing the weight summary for pixels");
+        pixelAnalyzer.computeWeightSummary(*pm);
+        stopTaskClock();
+      }
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolutions");
         a.analyzeTaggedTracking(*mb,
@@ -578,6 +583,7 @@ namespace insur {
       v.histogramSummary(a, *mb, debugServices, site, "outer");
       if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
       v.weigthSummart(a, weightDistributionTracker, site, "outer");
+      if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
       stopTaskClock();
       return true;
     }
