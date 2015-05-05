@@ -277,7 +277,6 @@ namespace insur {
       if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
       if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
       if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-        mb->materialsAll(tkMaterialCalc);
         if (verbose) mb->print();
 	
         if (px) {
@@ -285,7 +284,6 @@ namespace insur {
 	    if (!pi) pi = new InactiveSurfaces();
 	    if (pm) delete pm;
 	    pm = new MaterialBudget(*px, *pi);
-	    pm->materialsAll(pxMaterialCalc);
 	    if (verbose) pm->print();
 	  }
         }

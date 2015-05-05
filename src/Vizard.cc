@@ -4626,26 +4626,9 @@ namespace insur {
       bool isEmpty = true;
 
       const std::map<std::string, double>& localMasses = iter.getLocalMasses();
-      const std::map<std::string, double>& exitingMasses = iter.getExitingMasses();
 
       int elementId=0;
       for (auto& massIt : localMasses) {
-	mass = massIt.second;
-	if (mass!=0) isEmpty=false;
-	myStringStream << serviceId << ","
-                       << elementId++ << ","
-		       << z1 << ","
-		       << z2 << ","
-		       << r1 << ","
-		       << r2 << ","
-		       << massIt.first << ","
-		       << mass << ","
-		       << mass/length << ","
-                       << rl << ","
-                       << il << "," 
-                       << "1" << std::endl;
-      }
-      for (auto& massIt : exitingMasses) {
 	mass = massIt.second;
 	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
