@@ -46,15 +46,11 @@ namespace insur {
     InactiveSurfaces& getInactiveSurfaces();
     std::vector<std::vector<ModuleCap> >& getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& getEndcapModuleCaps();
-    void materialsAll(MatCalc& calc);
     void print();
   protected:
     Tracker* tracker;
     InactiveSurfaces* inactive;
     std::vector<std::vector<ModuleCap> > capsbarrelmods, capsendmods;
-    void materialsSupports(MatCalc& calc);
-    void materialsServices(MatCalc& calc);
-    void materialsModules(MatCalc& calc);
     int onBoundary(std::vector<std::vector<ModuleCap> >& source, int layer); //throws exception
   private:
     MaterialBudget();

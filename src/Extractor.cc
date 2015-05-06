@@ -1610,24 +1610,6 @@ namespace insur {
         m += it->second;
       }
     }
-    for (std::map<std::string, double>::const_iterator it = mp.getExitingMasses().begin(); it != mp.getExitingMasses().end(); ++it) {
-      if (!nosensors || (it->first.compare(xml_sensor_silicon) != 0)) {
-        std::pair<std::string, double> p = *it;
-        //    p.first = mp.getExitingTag(i);
-        //    p.second = mp.getExitingMass(i);
-        bool found = false;
-        std::vector<std::pair<std::string, double> >::iterator iter, guard = comp.elements.end();
-        for (iter = comp.elements.begin(); iter != guard; iter++) {
-          if (iter->first == p.first) {
-            found = true;
-            break;
-          }
-        }
-        if (found) iter->second = iter->second + p.second;
-        else comp.elements.push_back(p);
-        m += it->second; // mp.getExitingMass(i);
-      }
-    }
     for (unsigned int i = 0; i < comp.elements.size(); i++)
       comp.elements.at(i).second = comp.elements.at(i).second / m;
     return comp;
@@ -1764,9 +1746,6 @@ namespace insur {
     for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
       if (it->first.compare(xml_sensor_silicon) == 0) m += it->second;
     }
-    for (std::map<std::string, double>::const_iterator it = mc.getExitingMasses().begin(); it != mc.getExitingMasses().end(); ++it) {
-      if (it->first.compare(xml_sensor_silicon) == 0) m += it->second;
-    }
     try { d = mt.getMaterial(xml_sensor_silicon).density; }
     catch (std::exception& e) { return 0.0; }
     t = 1000 * m / (d * mc.getSurface());
@@ -1822,9 +1801,6 @@ namespace insur {
     if (nosensors) {
       double m = 0.0;
       for (std::map<std::string, double>::const_iterator it = mc.getLocalMasses().begin(); it != mc.getLocalMasses().end(); ++it) {
-        if (it->first.compare(xml_sensor_silicon) != 0) m += it->second;
-      }
-      for (std::map<std::string, double>::const_iterator it = mc.getExitingMasses().begin(); it != mc.getExitingMasses().end(); ++it) {
         if (it->first.compare(xml_sensor_silicon) != 0) m += it->second;
       }
       d = 1000 * m / d;

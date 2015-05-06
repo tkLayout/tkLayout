@@ -36,9 +36,7 @@ namespace insur {
      * Errors and messages that may be reported during operations on member variables
      */
     static const std::string err_local_mass = "Local mass not found";
-    static const std::string err_exiting_mass = "Exiting mass not found";
     static const std::string msg_mattab_except_local = "Exception other than runtime_error occurred accessing material table for local masses: ";
-    static const std::string msg_mattab_except_exiting = "Exception other than runtime_error occurred accessing material table for exiting masses: ";
     /**
      * @class MaterialProperties
      * @brief This is the base class for collections of properties related to the material budget.
@@ -67,37 +65,18 @@ namespace insur {
         virtual double getLength() const;
         // material mass handling
         const std::map<std::string, double>& getLocalMasses() const;
-        const std::map<std::string, double>& getExitingMasses() const;
         const std::map<std::string, double>& getLocalMassesComp() const;
-        const std::map<std::string, double>& getExitingMassesComp() const;
         double getLocalMass(std::string tag); // throws exception
-//        double getLocalMass(int index); // throws exception
         double getLocalMassComp(std::string tag); // throws exception
-//        double getLocalMassComp(int index); // throws exception
-//        std::string getLocalTag(int index);
-//        std::string getLocalTagComp(int index);
-        double getExitingMass(std::string tag); // throws exception
-//        double getExitingMass(int index); // throws exception
-        double getExitingMassComp(std::string tag); // throws exception
-//        double getExitingMassComp(int index); // throws exception
-//        std::string getExitingTag(int index);
-//        std::string getExitingTagComp(int index);
-        //void setLocalMass(std::string tag, std::string comp, double ms);
         void addLocalMass(std::string tag, std::string comp, double ms, int minZ = -777);
         void addLocalMass(std::string tag, double ms);
-        //void setExitingMass(std::string tag, std::string comp, double ms);
-        void addExitingMass(std::string tag, std::string comp, double ms);
-        void addExitingMass(std::string tag, double ms);
         unsigned int localMassCount();
-        unsigned int exitingMassCount();
         unsigned int localMassCompCount();
-        unsigned int exitingMassCompCount();
         void clearMassVectors();
         void copyMassVectors(MaterialProperties& mp);
         // calculated output values
         double getTotalMass() const;
         double getLocalMass();
-        double getExitingMass();
         double getRadiationLength();
         double getInteractionLength();
         RILength getMaterialLengths();
@@ -105,7 +84,6 @@ namespace insur {
         // output calculations
         void calculateTotalMass(double offset = 0);
         void calculateLocalMass(double offset = 0);
-        void calculateExitingMass(double offset = 0);
         void calculateRadiationLength(MaterialTable& materials, double offset = 0.0);
         void calculateInteractionLength(MaterialTable& materials,  double offset = 0.0);
         void calculateRadiationLength(double offset = 0.0);
@@ -118,39 +96,20 @@ namespace insur {
 
     protected:
         // init flags and tracking
-        bool msl_set, mse_set, trck;
+        bool msl_set, trck;
         // geometry-dependent parameters
         Category cat;
-        std::map<std::string, double> localmasses, exitingmasses;
-        std::map<std::string, double> localmassesComp, exitingmassesComp;
+        std::map<std::string, double> localmasses;
+        std::map<std::string, double> localmassesComp;
 
-        std::map<std::string, std::map<std::string, double> > localCompMats, exitingCompMats; // format here is <component name string, <material name, mass> >
+        std::map<std::string, std::map<std::string, double> > localCompMats; // format here is <component name string, <material name, mass> >
 
         std::map<std::string, RILength> componentsRI;  // component-by-component radiation and interaction lengths
         // complex parameters (OUTPUT)
-        double total_mass, local_mass, exiting_mass, r_length, i_length;
+        double total_mass, local_mass, r_length, i_length;
         // internal help
         std::string getSuperName(std::string name) const;
         std::string getSubName(std::string name) const;
-	// Masses by type
-//        void setLocalMass(std::pair<std::string, double> ms);
-//        void addLocalMass(std::pair<std::string, double> ms);
-//        void setExitingMass(std::pair<std::string, double> ms);
-//        void addExitingMass(std::pair<std::string, double> ms);
-//        int findLocalIndex(std::string tag);
-//        int findExitingIndex(std::string tag);
-//        bool newLocalMaterial(std::string tag);
-//        bool newExitingMaterial(std::string tag);
-	// Masses by component
-//        void setLocalMassComp(std::pair<std::string, double> ms);
-//        void addLocalMassComp(std::pair<std::string, double> ms);
-//        void setExitingMassComp(std::pair<std::string, double> ms);
-//        void addExitingMassComp(std::pair<std::string, double> ms);
-//        int findLocalIndexComp(std::string comp);
-//        int findExitingIndexComp(std::string comp);
-//        bool newLocalComp(std::string comp);
-//        bool newExitingComp(std::string comp);
-
     };
 }
 #endif	/* _MATERIALPROPERTIES_H */

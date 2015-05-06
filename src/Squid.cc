@@ -277,7 +277,6 @@ namespace insur {
       if (tkMaterialCalc.initDone()) tkMaterialCalc.reset();
       if (pxMaterialCalc.initDone()) pxMaterialCalc.reset();
       if (mp.initMatCalc(tkMaterialCalc, mainConfiguration.getMattabDirectory())) {
-        mb->materialsAll(tkMaterialCalc);
         if (verbose) mb->print();
 	
         if (px) {
@@ -285,7 +284,6 @@ namespace insur {
 	    if (!pi) pi = new InactiveSurfaces();
 	    if (pm) delete pm;
 	    pm = new MaterialBudget(*px, *pi);
-	    pm->materialsAll(pxMaterialCalc);
 	    if (verbose) pm->print();
 	  }
         }
@@ -490,6 +488,11 @@ namespace insur {
       startTaskClock("Computing the weight summary");
       a.computeWeightSummary(*mb);
       stopTaskClock();
+      if (pm) {
+        startTaskClock("Computing the weight summary for pixels");
+        pixelAnalyzer.computeWeightSummary(*pm);
+        stopTaskClock();
+      }
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolutions");
         a.analyzeTaggedTracking(*mb,
@@ -578,6 +581,7 @@ namespace insur {
       v.histogramSummary(a, *mb, debugServices, site, "outer");
       if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
       v.weigthSummart(a, weightDistributionTracker, site, "outer");
+      if (pm) v.weigthSummart(pixelAnalyzer, weightDistributionPixel, site, "pixel");
       stopTaskClock();
       return true;
     }
