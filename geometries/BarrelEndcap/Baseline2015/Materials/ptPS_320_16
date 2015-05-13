@@ -50,9 +50,15 @@ Materials module-ptPS_320_16 {
     //Silicon deep diffused
     Element {
       elementName Si
-      quantity 2.483
+      quantity 1.242
       unit g
       targetVolume 7
+    }
+    Element {
+      elementName Si
+      quantity 1.242
+      unit g
+      targetVolume 8
     }
     //Sensor inactive edges
     Element {

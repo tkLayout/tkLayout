@@ -47,23 +47,10 @@ Materials module-ptPS_320_40 {
     componentName "PS Inactive silicon"
     service false
     scaleOnSensor 0
-    //Silicon deep diffused
-    Element {
-      elementName Si
-      quantity 1.242
-      unit g
-      targetVolume 7
-    }
-    Element {
-      elementName Si
-      quantity 1.242
-      unit g
-      targetVolume 8
-    }
     //Sensor inactive edges
     Element {
       elementName Si
-      quantity 0.616
+      quantity 0.385
       unit g
       targetVolume 0
     }
