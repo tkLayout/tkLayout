@@ -48,8 +48,8 @@ fle will be created in $HOME/.tkgeometry:
 # Update
 To get the latest development version (usually UNSTABLE) you simply type
 
-   git fetch
-   git chechout master
-   make
-   make install
+    git fetch
+    git chechout master
+    make
+    make install
   
