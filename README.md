@@ -3,7 +3,7 @@
    git clone https://github.com/tkLayout/tkLayout.git
    cd tkLayout
 
-# Before the compilation:
+# Before the compilation/run
 
 You need a working version of root active (root and root-config should be in your path) and a few
 libraries are required:
