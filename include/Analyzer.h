@@ -20,7 +20,8 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <hit.hh>
+#include <Hit.hh>
+#include <Track.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
@@ -145,7 +146,7 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-                               int etaSteps = 50,
+                               int nTracks = 50,
                                MaterialBudget* pm = NULL);
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,

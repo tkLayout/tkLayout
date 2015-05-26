@@ -68,7 +68,7 @@ namespace insur {
       std::cerr << "ERROR: cannot open geometry file " << getGeometryFile() << std::endl;
       return false;
     }
-    startTaskClock("Building tracker and pixel");
+    startTaskClock("Building full tracker");
     std::stringstream ss;
     includeSet_ = mainConfiguration.preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
@@ -124,7 +124,16 @@ namespace insur {
         //t->accept(v);
         //t->accept(v1);
         if (t->myid() == "Pixels") px = t;
-        else tr = t;
+        else tr = t; 
+
+        if (t->myid() == "Pixels") {
+           px = t;
+           px->setIsPixelType(true);
+        }
+        else {
+           tr = t;
+           tr->setIsStripType(true);
+        }
       });
 
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
@@ -443,10 +452,14 @@ namespace insur {
    */
   bool Squid::pureAnalyzeGeometry(int tracks) {
     if (tr) {
-      startTaskClock("Analyzing geometry");
+      startTaskClock("Analyzing geometry - outer tracker");
       a.analyzeGeometry(*tr, tracks);
-      if (px) pixelAnalyzer.analyzeGeometry(*px, tracks);
       stopTaskClock();
+      if (px) {
+        startTaskClock("Analyzing geometry - inner tracker");
+        pixelAnalyzer.analyzeGeometry(*px, tracks);
+        stopTaskClock();
+      }
       return true; // TODO: this return value is not really meaningful
     } else {
       std::cout << "Squid::pureAnalyzeGeometry(): " << err_no_tracker << std::endl;
@@ -483,7 +496,7 @@ namespace insur {
       a.analyzeMaterialBudget(*mb, mainConfiguration.getMomenta(), tracks, pm);
       stopTaskClock();
       if (pm) {
-        startTaskClock("Analyzing pixel material budget");
+        startTaskClock("Analyzing inner tracker material budget");
         pixelAnalyzer.analyzeMaterialBudget(*pm, mainConfiguration.getMomenta(), tracks, NULL);
         stopTaskClock();
       }
@@ -492,6 +505,7 @@ namespace insur {
       stopTaskClock();
       if (triggerResolution) {
         startTaskClock("Estimating tracking resolutions");
+        //std::cout << "Number of simulated tracks: " << tracks << std::endl;
         a.analyzeTaggedTracking(*mb,
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
@@ -512,10 +526,14 @@ namespace insur {
    */
   bool Squid::reportGeometrySite() {
     if (tr) {
-      startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, is, site);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, "pixel");
+      startTaskClock("Creating geometry report - outer tracker");
+      v.geometrySummary(a, *tr, *simParms_, is, site,"TRK");
       stopTaskClock();
+      if (px) {
+         startTaskClock("Creating geometry report - inner tracker");
+         v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site,"VXD");
+         stopTaskClock();
+      }
       return true;
     } else {
       logERROR(err_no_tracker);
@@ -575,9 +593,9 @@ namespace insur {
   bool Squid::reportMaterialBudgetSite(bool debugServices) {
     if (mb) {
       startTaskClock("Creating material budget report");
-      v.histogramSummary(a, *mb, debugServices, site, "outer");
-      if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "pixel");
-      v.weigthSummart(a, weightDistributionTracker, site, "outer");
+      v.histogramSummary(a, *mb, debugServices, site, "TRK");
+      if (pm) v.histogramSummary(pixelAnalyzer, *pm, debugServices, site, "VXD");
+      v.weigthSummart(a, weightDistributionTracker, site, "TRK");
       stopTaskClock();
       return true;
     }
@@ -594,9 +612,9 @@ namespace insur {
   bool Squid::reportResolutionSite() {
     if (mb) {
       startTaskClock("Creating resolution report");
-      v.errorSummary(a, site, "", false);
+//      v.errorSummary(a, site, "", false);
 #ifdef NO_TAGGED_TRACKING
-      v.errorSummary(a, site, "trigger", true);
+//      v.errorSummary(a, site, "trigger", true);
 #else
       v.taggedErrorSummary(a, site);
 #endif

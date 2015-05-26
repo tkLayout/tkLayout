@@ -897,6 +897,8 @@ bool RootWSite::makeSite(bool verbose) {
   vector<RootWPage*>::iterator it;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
+      
+    std::cout << " " << myPage->getTitle() << std::endl;
     if (verbose) std::cout << " " << myPage->getTitle() << std::flush;
     myPageFileName = targetDirectory_+"/"+myPage->getAddress();
     myPageFile.open(myPageFileName.c_str(), ios::out);

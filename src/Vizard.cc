@@ -437,7 +437,9 @@ namespace insur {
     myPage = new RootWPage(pageTitle);
     std::string pageAddress="material"+name+".html";
     myPage->setAddress(pageAddress);
-    site.addPage(myPage);
+    if      (name=="VXD") site.addPage(myPage,80);
+    else if (name=="TRK") site.addPage(myPage,79);
+    else                  site.addPage(myPage,78);
 
     std::string name_overviewMaterial = std::string("overviewMaterial") + name ;
     std::string name_materialInTrackingVolume = std::string("materialInTrackingVolume") + name ;
@@ -1121,18 +1123,24 @@ namespace insur {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
-    
+   
+    //if (name == "" && tracker.isPixelType()) name = "pixel"; 
 
     std::string pageTitle = "Geometry";
-    if (name!="") pageTitle+=" (" +name+")";
+
+    if (name!="") pageTitle+=" (" + name + ")";
     
     RootWPage* myPage = new RootWPage(pageTitle);
+    
     // TODO: the web site should decide which page to call index.html
-
-    std::string pageAddress="index"+name+".html";
+    std::string pageAddress = "";
+    if (name=="TRK") pageAddress = "index.html";
+    else             pageAddress = "index"+name+".html";
     myPage->setAddress(pageAddress);
 
-    site.addPage(myPage, 100);
+    if      (name=="VXD" ) site.addPage(myPage,100);
+    else if (name=="TRK")  site.addPage(myPage, 99); 
+    else                   site.addPage(myPage);
     RootWContent* myContent;
 
 
@@ -1739,25 +1747,25 @@ namespace insur {
     TCanvas *myCanvas = NULL;
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
-    if (name=="pixel") {
-      logINFO("PIXEL HACK for beam pipe");
-      TPolyLine* beampipe  = new TPolyLine();
-      beampipe->SetPoint(0, 0, 45/2.);
-      beampipe->SetPoint(1, 2915/2., 45/2.);
-      beampipe->SetPoint(2, 3804/2., 56.6/2.);
-      beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
-      XYCanvasEC->cd();
-      drawCircle(22.5, true, 18); // "grey18"
-      XYCanvas->cd();
-      drawCircle(22.5, true, 18); // "grey18"
-      RZCanvas->cd();
-      beampipe->Draw("same");
+    //if (name=="pixel") {
+    //  logINFO("PIXEL HACK for beam pipe");
+    //  TPolyLine* beampipe  = new TPolyLine();
+    //  beampipe->SetPoint(0, 0, 45/2.);
+    //  beampipe->SetPoint(1, 2915/2., 45/2.);
+    //  beampipe->SetPoint(2, 3804/2., 56.6/2.);
+    //  beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
+    //  XYCanvasEC->cd();
+    //  drawCircle(22.5, true, 18); // "grey18"
+    //  XYCanvas->cd();
+    //  drawCircle(22.5, true, 18); // "grey18"
+    //  RZCanvas->cd();
+    //  beampipe->Draw("same");
 
-      TPolyLine* etafour  = new TPolyLine();
-      etafour->SetPoint(0, 0, 0);
-      etafour->SetPoint(1, 2700, 98.9376398798);
-      etafour->Draw("same");
-    }
+    //  TPolyLine* etafour  = new TPolyLine();
+    //  etafour->SetPoint(0, 0, 0);
+    //  etafour->SetPoint(1, 2700, 98.9376398798);
+    //  etafour->Draw("same");
+    //}
     // createColorPlotCanvas(tracker, 1, RZCanvas);
 
 
@@ -1828,8 +1836,8 @@ namespace insur {
     myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
 
-    if (name != "pixel") totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
-    else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
+    if (tracker.isPixelType()) totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
+    else                       totalEtaProfileSensors_      = &analyzer.getTotalEtaProfileSensors();
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
     int prevStat = gStyle->GetOptStat();
@@ -1995,8 +2003,8 @@ namespace insur {
       yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     }
 
-    int rzCanvasX = int(maxL/scaleFactor);
-    int rzCanvasY = int(maxR/scaleFactor);
+    int rzCanvasX = 1800; //int(maxL/scaleFactor);
+    int rzCanvasY =  600; //int(maxR/scaleFactor);
     result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
@@ -2910,16 +2918,28 @@ namespace insur {
         std::string pageTitle = "Resolution";
         std::string additionalSummaryTag;
         double verticalScale=1;
-        pageTitle += " ("+tag+")";
-        additionalSummaryTag = "_"+tag+"_";
+
+        // Correct this naming...
+        std::string wName = "";
+        if (tag=="pixel")   wName = "VXD";
+        if (tag=="trigger") wName = "TRK";
+        if (tag=="tracker") wName = "FULL";
+
+        pageTitle += " ("+wName+")";
+        additionalSummaryTag = "_"+wName+"_";
         verticalScale = 10;
-        std::string pageAddress = "errors" + tag + ".html";
-        RootWPage& myPage = site.addPage(pageTitle);
-        myPage.setAddress(pageAddress);
+        std::string pageAddress = "errors" + wName + ".html";
+
+        RootWPage* myPage = new RootWPage(pageTitle);
+        myPage->setAddress(pageAddress);
+        if      (wName=="VXD")  site.addPage(myPage,90);
+        else if (wName=="TRK")  site.addPage(myPage,89);
+        else if (wName=="FULL") site.addPage(myPage,88);
+        else                    site.addPage(myPage);
 
         // Create the contents
-        RootWContent& resolutionContent = myPage.addContent("Track resolution");
-        RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
+        RootWContent& resolutionContent = myPage->addContent("Track resolution");
+        RootWContent& idealResolutionContent = myPage->addContent("Track resolution (without material)");
 
     
         // Create a page for the errors
@@ -2967,11 +2987,11 @@ namespace insur {
             TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
 
             if (idealMaterial == GraphBag::IdealGraph) {
-              momentumProfile.SetMinimum(1E-5*100);
-              momentumProfile.SetMaximum(.11*100*verticalScale);
+              momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
+              momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
             } else {
-              momentumProfile.SetMinimum(4E-3*100);
-              momentumProfile.SetMaximum(.5*100*verticalScale);
+              momentumProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
+              momentumProfile.SetMaximum(insur::max_dPtOverPt); //.5*100*verticalScale);
             }
             linearMomentumCanvas.SetLogy(0);        
             momentumCanvas.SetLogy(1);
@@ -2993,6 +3013,30 @@ namespace insur {
           }
           plotOption = "";
           myColor=0;
+          // p canvas loop
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph | idealMaterial, tag)) {
+            const TGraph& pGraph = mapel.second;
+            TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
+            if (idealMaterial == GraphBag::IdealGraph) {
+              pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
+              pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);       
+            } else {
+              pProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
+              pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            }
+            pCanvas.SetLogy();
+            pProfile.SetLineColor(momentumColor(myColor));
+            pProfile.SetMarkerColor(momentumColor(myColor));
+            myColor++;
+            pProfile.SetMarkerStyle(markerStyle);
+            pProfile.SetMarkerSize(markerSize);
+            pCanvas.SetFillColor(color_plot_background);
+            if (pGraph.GetN() > 0) {
+              pCanvas.cd();
+              pProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
           // distance canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph | idealMaterial, tag)) {
             const TGraph& distanceGraph = mapel.second;
@@ -3089,67 +3133,45 @@ namespace insur {
           }
           plotOption = "";
           myColor=0;
-          // p canvas loop
-          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph | idealMaterial, tag)) {
-            const TGraph& pGraph = mapel.second;
-            TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
-            if (idealMaterial == GraphBag::IdealGraph) {
-              pProfile.SetMinimum(1E-5*100);
-              pProfile.SetMaximum(.11*100*verticalScale);       
-            } else {
-              pProfile.SetMinimum(4E-3*100);
-              pProfile.SetMaximum(.11*100*verticalScale);
-            }
-            pCanvas.SetLogy();
-            pProfile.SetLineColor(momentumColor(myColor));
-            pProfile.SetMarkerColor(momentumColor(myColor));
-            myColor++;
-            pProfile.SetMarkerStyle(markerStyle);
-            pProfile.SetMarkerSize(markerSize);
-            pCanvas.SetFillColor(color_plot_background);
-            if (pGraph.GetN() > 0) {
-              pCanvas.cd();
-              pProfile.Draw(plotOption.c_str());
-              plotOption = "p same";
-            }
-          }
-          RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, 600, 600);
+          
+          RootWImage& linearMomentumImage = myContent->addImage(linearMomentumCanvas, std_canvas_sizeX, min_canvas_sizeY);
           linearMomentumImage.setComment("Transverse momentum resolution vs. eta (linear scale)");
           linearMomentumImage.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& momentumImage = myContent->addImage(momentumCanvas, 600, 600);
+          RootWImage& momentumImage = myContent->addImage(momentumCanvas, std_canvas_sizeX, min_canvas_sizeY);
           momentumImage.setComment("Transverse momentum resolution vs. eta");
           momentumImage.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& distanceImage = myContent->addImage(distanceCanvas, 600, 600);
-          distanceImage.setComment("Distance of closest approach resolution vs. eta");
-          distanceImage.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& angleImage = myContent->addImage(angleCanvas, 600, 600);
-          angleImage.setComment("Angle resolution vs. eta");
-          angleImage.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, 600, 600);
-          ctgThetaImage.setComment("CtgTheta resolution vs. eta");
-          ctgThetaImage.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& z0Image = myContent->addImage(z0Canvas, 600, 600);
-          z0Image.setComment("z0 resolution vs. eta");
-          z0Image.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-          RootWImage& pImage = myContent->addImage(pCanvas, 600, 600);
+          RootWImage& pImage = myContent->addImage(pCanvas, std_canvas_sizeX, min_canvas_sizeY);
           pImage.setComment("Momentum resolution vs. eta");
           pImage.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+          RootWImage& distanceImage = myContent->addImage(distanceCanvas, std_canvas_sizeX, min_canvas_sizeY);
+          distanceImage.setComment("Distance of closest approach resolution vs. eta");
+          distanceImage.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+          RootWImage& angleImage = myContent->addImage(angleCanvas, std_canvas_sizeX, min_canvas_sizeY);
+          angleImage.setComment("Angle resolution vs. eta");
+          angleImage.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
+          RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, std_canvas_sizeX, min_canvas_sizeY);
+          ctgThetaImage.setComment("CtgTheta resolution vs. eta");
+          ctgThetaImage.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
+          RootWImage& z0Image = myContent->addImage(z0Canvas, std_canvas_sizeX, min_canvas_sizeY);
+          z0Image.setComment("z0 resolution vs. eta");
+          z0Image.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
 
         // Check that the ideal and real have the same pts
         // Otherwise the table cannot be prepared
 
-        RootWContent& summaryContent = myPage.addContent("Summary", false);
+        RootWContent& summaryContent = myPage->addContent("Summary", false);
         RootWTable& cutsTable = summaryContent.addTable();
+        RootWTable& momTable  = summaryContent.addTable();
         std::vector<std::string> plotNames;
         std::map<std::string, RootWTable*> tableMap;
         std::map<std::string, RootWTable*>::iterator tableMapIt;
         plotNames.push_back("pt");
+        plotNames.push_back("p");
         plotNames.push_back("d");
         plotNames.push_back("phi");
         plotNames.push_back("ctg(theta)");
         plotNames.push_back("z0");
-        plotNames.push_back("p");
         for (std::vector<std::string>::iterator it=plotNames.begin();
              it!=plotNames.end(); ++it) {
           tableMap[(*it)] = &(summaryContent.addTable());
@@ -3169,6 +3191,7 @@ namespace insur {
         cutsTable.setContent(0,0,"Region");
         cutsTable.setContent(1,0,"etaMin");
         cutsTable.setContent(2,0,"etaMax");
+
         myTable = &cutsTable;
         for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
           myTable->setContent(0,iBorder+1,cutNames[iBorder]);
@@ -3177,16 +3200,39 @@ namespace insur {
           label.str(""); label << cuts[iBorder+1];
           myTable->setContent(2,iBorder+1,label.str());
         }
-
+        // Table explaining momenta
+        std::vector<double> momentum;
         std::map<graphIndex, TGraph*> myPlotMap;
+        
+        fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[1], GraphBag::PGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[2], GraphBag::DGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[3], GraphBag::PhiGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[4], GraphBag::CtgthetaGraph, tag, myPlotMap);
+        fillTaggedPlotMap(gb, plotNames[5], GraphBag::Z0Graph, tag, myPlotMap);
+        
+        std::vector<std::string>::iterator plotNameIt = plotNames.begin();
+        std::vector<double>::iterator      momentumIt;
         graphIndex myIndex;
 
-        fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[1], GraphBag::DGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[2], GraphBag::PhiGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[3], GraphBag::CtgthetaGraph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[4], GraphBag::Z0Graph, tag, myPlotMap);
-        fillTaggedPlotMap(gb, plotNames[5], GraphBag::PGraph, tag, myPlotMap);
+        for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
+             myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
+          myIndex =  (*myPlotMapIt).first;
+          if (myIndex.name==(*plotNameIt)) {
+          momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
+          if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
+          }
+        }
+
+        std::sort(momentum.begin(), momentum.end());
+        momTable.setContent(0,0,"Particle momenta in GeV:  " );
+        myTable = &momTable;
+        for (unsigned int iMom=0; iMom<momentum.size(); ++iMom) {
+          label.str(""); 
+          if (iMom!=momentum.size()-1) label << momentum[iMom]/1000 << ",";
+          else                         label << momentum[iMom]/1000 << ".";
+          myTable->setContent(0,iMom+1,label.str());
+        }
 
         // Cycle over the different measurements
         for (std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -3197,21 +3243,20 @@ namespace insur {
           if (!myTable) continue;
 
           // Count the realistic plots' momenta
-          std::vector<double> momentum;
-          std::vector<double>::iterator momentumIt;
+          //std::vector<double> momentum;
+          //std::vector<double>::iterator momentumIt;
 
-          for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
-               myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
-            myIndex =  (*myPlotMapIt).first;
-            //std::cerr << "Check3: myIndex.name = " << myIndex.name << std::endl; // debug
-            if (myIndex.name==(*plotNameIt)) {
-              //std::cerr << "found momentum " << myIndex.p <<std::endl; // debug
-              momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
-              if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
-            }
-          }
+          //for (std::map<graphIndex, TGraph*>::iterator myPlotMapIt = myPlotMap.begin();
+          //     myPlotMapIt!=myPlotMap.end(); ++myPlotMapIt) {
+          //  myIndex =  (*myPlotMapIt).first;
+          //  //std::cerr << "Check3: myIndex.name = " << myIndex.name << std::endl; // debug
+          //  if (myIndex.name==(*plotNameIt)) {
+          //    //std::cerr << "found momentum " << myIndex.p <<std::endl; // debug
+          //    momentumIt = std::find(momentum.begin(), momentum.end(), myIndex.p);
+          //    if (momentumIt == momentum.end()) momentum.push_back(myIndex.p);
+          //  }
+          //}
 
-          std::sort(momentum.begin(), momentum.end());
           //std::cerr << "momentum.size() = " << momentum.size() <<std::endl; // debug
 
           // Fill the table with the values
@@ -3223,15 +3268,16 @@ namespace insur {
           int myColor = kBlack;
           myIndex.name=(*plotNameIt);
           std::ostringstream myLabel;
+          // Put units & better formatting
           for (unsigned int i=0; i<momentum.size(); ++i) {
             baseColumn = nCuts*i+1;
-            myTable->setContent(0, baseColumn, momentum[i],0);
+            myTable->setContent(0, baseColumn, momentum[i]/1000,0);
             myIndex.p=momentum[i];
             myIndex.ideal = false;
             myGraph = myPlotMap[myIndex];
             myTable->setContent(2, 0, "Real");
             myTable->setContent(3, 0, "Ideal");
-            myTable->setContent(4, 0, "Loss");
+            myTable->setContent(4, 0, "Real/Ideal");
             if (myGraph) {
               averagesReal=Analyzer::average(*myGraph, cuts);
               myColor = myGraph->GetMarkerColor();
@@ -3244,11 +3290,18 @@ namespace insur {
               myTable->setContent(1, baseColumn+j, cutNames[j]);
               myTable->setColor(1, baseColumn+j, myColor);
               if (averagesReal.size() > j) {
-                myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+                
+                // Check item iterated and set precision
+                int iItem = plotNameIt - plotNames.begin();
+                if (iItem==0 || iItem==1) myTable->setContent(2, baseColumn+j,averagesReal[j],2);
+                else                      myTable->setContent(2, baseColumn+j,averagesReal[j],5);
                 myTable->setColor(2, baseColumn+j, myColor);
               }
               if (averagesIdeal.size() > j) {
-                myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+                // Check item iterated and set precision
+                int iItem = plotNameIt - plotNames.begin();
+                if (iItem==0 || iItem==1) myTable->setContent(3, baseColumn+j,averagesIdeal[j],2);
+                else                      myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
                 myTable->setColor(3, baseColumn+j, myColor);
               }
               if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
@@ -4344,27 +4397,28 @@ namespace insur {
                                         TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
+    bool   isPixelType = tracker.isPixelType();
 
-    int rzCanvasX = int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = int(tracker.maxR()/scaleFactor);
+    int rzCanvasX = insur::max_canvas_sizeX; //int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::min_canvas_sizeY; //int(tracker.maxR()/scaleFactor);
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
 
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas, isPixelType);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
     XYCanvasEC->cd();
     PlotDrawer<XY, Type> xyEndcapDrawer; 
     xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
@@ -4423,6 +4477,7 @@ namespace insur {
   TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */) { 
     TProfile* resultProfile;
     int nPoints = sourceGraph.GetN()/rebin;
+
     resultProfile = new TProfile(Form("%s_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
     double x, y;
 

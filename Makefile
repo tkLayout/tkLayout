@@ -76,14 +76,17 @@ $(BINDIR)/tunePtParam: $(SRCDIR)/tunePtParam.cpp $(LIBDIR)/ptError.o
 	-o $(BINDIR)/tunePtParam
 
 #TRACKS
-hit: $(LIBDIR)/hit.o
-	@echo "Built target 'hit'."
+Hit: $(LIBDIR)/Hit.o
+	@echo "Built target 'Hit'."
 
 $(LIBDIR)/CoordinateOperations.o: $(SRCDIR)/CoordinateOperations.cpp $(INCDIR)/CoordinateOperations.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/CoordinateOperations.o $(SRCDIR)/CoordinateOperations.cpp
 
-$(LIBDIR)/hit.o: $(SRCDIR)/hit.cpp $(INCDIR)/hit.hh
-	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/hit.o $(SRCDIR)/hit.cpp
+$(LIBDIR)/Hit.o: $(SRCDIR)/Hit.cpp $(INCDIR)/Hit.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Hit.o $(SRCDIR)/Hit.cpp
+
+$(LIBDIR)/Track.o: $(SRCDIR)/Track.cpp $(INCDIR)/Track.hh
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/Track.o $(SRCDIR)/Track.cpp
 
 $(LIBDIR)/global_funcs.o: $(SRCDIR)/global_funcs.cpp $(INCDIR)/global_funcs.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/global_funcs.o $(SRCDIR)/global_funcs.cpp
@@ -408,7 +411,7 @@ tklayout: $(BINDIR)/tklayout
 tunePtParam: $(BINDIR)/tunePtParam
 	@echo "tunePtParam built"
 
-$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
+$(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/Hit.o $(LIBDIR)/Track.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
@@ -425,7 +428,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(COMP) $(SVNREVISIONDEFINE) -c $(SRCDIR)/SvnRevision.cpp -o $(LIBDIR)/SvnRevision.o
 	#
 	# And compile the executable by linking the revision too
-	$(LINK)	$(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
+	$(LINK)	$(LIBDIR)/CoordinateOperations.o $(LIBDIR)/Hit.o $(LIBDIR)/Track.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \
 	$(LIBDIR)/Sensor.o $(LIBDIR)/GeometricModule.o $(LIBDIR)/DetectorModule.o $(LIBDIR)/RodPair.o $(LIBDIR)/Layer.o $(LIBDIR)/Barrel.o $(LIBDIR)/Ring.o $(LIBDIR)/Disk.o $(LIBDIR)/Endcap.o $(LIBDIR)/Tracker.o $(LIBDIR)/SimParms.o \
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \

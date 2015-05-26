@@ -286,14 +286,18 @@ public:
 template<class CoordType> class SummaryFrameStyle {
   void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
                     Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const;
+  void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickScaleFactor, double textScaleFactor,
+                    Style_t labelFont, Float_t labelSize, double etaStepShort, double etaStepLong, double etaMax, double etaLongLineI, 
+                    double etaLongLineII) const;
+  
 public:
-  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette&) const;
+  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const;
 
 };
 
 template<class CoordType>
 struct HistogramFrameStyle {
-  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette) const {
+  void operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
     frame.Fill(1,1,0);
     frame.SetMaximum(palette.getMaxValue());
     frame.SetMinimum(palette.getMinValue());
@@ -356,7 +360,7 @@ public:
 
   ~PlotDrawer();
 
-  template<template<class> class FrameStyleType> void drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle = FrameStyleType<CoordType>());
+  template<template<class> class FrameStyleType> void drawFrame(TCanvas& canvas, bool isPixelType=false, const FrameStyleType<CoordType>& frameStyle = FrameStyleType<CoordType>());
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
@@ -377,7 +381,7 @@ template<class CoordType, class ValueGetterType, class StatType> PlotDrawer<Coor
 
 template<class CoordType, class ValueGetterType, class StatType>
 template<template<class> class FrameStyleType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas, const FrameStyleType<CoordType>& frameStyle) {
+void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas, bool isPixelType, const FrameStyleType<CoordType>& frameStyle) {
   double minValue = std::numeric_limits<double>::max();
   double maxValue = 0;
   for (typename std::map<CoordType, StatType*>::const_iterator it = bins_.begin(); it != bins_.end(); ++it) {
@@ -391,7 +395,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawFrame(TCanvas& canvas
   viewportMaxX_ = viewportMaxX_ == 0 ? getLine.maxx()*1.1 : viewportMaxX_;  // in case the viewport coord is 0, auto-viewport mode is used and getLine is queried for the farthest X or Y it has registered
   viewportMaxY_ = viewportMaxY_ == 0 ? getLine.maxy()*1.1 : viewportMaxY_;
   TH2C* frame = getFrame(viewportMaxX_, viewportMaxY_);
-  frameStyle(*frame, canvas, palette_);
+  frameStyle(*frame, canvas, palette_, isPixelType);
 }
 
 

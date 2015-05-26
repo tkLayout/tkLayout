@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <Squid.h>
+#include <global_constants.h>
 #include "SvnRevision.h"
 
 namespace po = boost::program_options;
@@ -22,8 +23,8 @@ int main(int argc, char* argv[]) {
   shown.add_options()
     ("help,h", "Display this help message.")
     ("opt-file", po::value<std::string>(&optfile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
-    ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(100), "N. of tracks for geometry calculations.")
-    ("material-tracks,N", po::value<int>(&mattracks)->default_value(100), "N. of tracks for material calculations.")
+    ("geometry-tracks,n", po::value<int>(&geomtracks)->default_value(insur::default_n_tracks), "N. of tracks for geometry calculations.")
+    ("material-tracks,N", po::value<int>(&mattracks)->default_value(insur::default_n_tracks), "N. of tracks for material calculations.")
     ("power,p", "Report irradiated power analysis.")
     ("bandwidth,b", "Report base bandwidth analysis.")
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")

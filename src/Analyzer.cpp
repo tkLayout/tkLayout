@@ -61,25 +61,25 @@ namespace insur {
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
-    geomLite = NULL;   geomLiteCreated=false;
+    geomLite   = NULL; geomLiteCreated=false;
     geomLiteXY = NULL; geomLiteXYCreated=false;
     geomLiteYZ = NULL; geomLiteYZCreated=false;
     geomLiteEC = NULL; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
 
-    //etaMaxMaterial = 3.1;
-    etaMaxGeometry = 2.6;
+    // Start with epsilon instead of eta=0
+    trackingCuts.push_back(insur::step_eta_epsilon);
+    triggerCuts.push_back(insur::step_eta_epsilon);
+    
+    // Calculate dEtaTrack (eta region cuts)
+    double dEtaTrack = insur::max_eta_coverage/insur::n_eta_regions;
+    
+    // Add eta regions and name them accordingly
+    for (unsigned int iEta=1; iEta<=insur::n_eta_regions; iEta++) {
 
-    trackingCuts.push_back(0.01);
-    triggerCuts.push_back(0.01);
-    double detaTrack = 0.8;
-    // TODO: make this configurable
-    addCut("C", detaTrack, detaTrack);
-    addCut("I", detaTrack*2, detaTrack*2);
-    addCut("F", detaTrack*3, detaTrack*3);
-    addCut("VF",detaTrack*4, detaTrack*4);
-    addCut("WF",detaTrack*5, detaTrack*5);
+      addCut(name_eta_regions[iEta-1], dEtaTrack*iEta, dEtaTrack*iEta);
+    }
   }
 
   // public
@@ -159,41 +159,41 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
                                      const std::vector<double>& momenta,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<double>& thresholdProbabilities,
-                                     int etaSteps,
+                                     int nTracks,
                                      MaterialBudget* pm) {
-
-  double efficiency = simParms().efficiency();
-
-  materialTracksUsed = etaSteps;
-
-  int nTracks;
+  // Local variables
   double etaStep, eta, theta, phi;
+  
+  // Initialize
+  materialTracksUsed = nTracks;
+  double efficiency  = simParms().efficiency();
 
-  // prepare etaStep, phiStep, nTracks, nScans
-  if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
-  else etaStep = getEtaMaxTrigger();
-  nTracks = etaSteps;
-
-  // prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
-
-  // reset the list of tracks
-  //std::map<string, std::vector<Track>> tv;
-  //std::map<string, std::vector<Track>> tvIdeal;
-  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMap;
-  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMapIdeal;
-
+  // Prepare etaStep
+  if (nTracks > 1) etaStep = getEtaMaxTrigger() / (double)(nTracks); // / (double)(nTracks - 1);
+  else             etaStep = getEtaMaxTrigger();
+  
+  // Tracks with pt const at given eta or p const at given eta
+  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMap;
+  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMapIdeal;
+  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMap;
+  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMapIdeal;
+  
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-    phi = myDice.Rndm() * PI * 2.0;
-    Material tmp;
+    
+    // Define track
     Track track;
-    eta = i_eta * etaStep;
+
+    eta   = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
+    phi   = myDice.Rndm() * PI * 2.0;
+
     track.setTheta(theta);      
     track.setPhi(phi);
 
-    tmp = findAllHits(mb, pm, eta, theta, phi, track);
-
-    // Debug: material amount
+    // Assign hits to track
+    Material tmpMat = findAllHits(mb, pm, eta, theta, phi, track);
+    
+   // Debug: material amount
     // std::cerr << "eta = " << eta
     //           << ", material.radiation = " << tmp.radiation
     //           << ", material.interaction = " << tmp.interaction
@@ -202,47 +202,76 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     // TODO: add the beam pipe as a user material eveywhere!
     // in a coherent way
     // Add the hit on the beam pipe
-    Hit* hit = new Hit(23./sin(theta));
-    hit->setOrientation(Hit::Horizontal);
-    hit->setObjectKind(Hit::Inactive);
-    Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
-    hit->setCorrectedMaterial(beamPipeMat);
-    track.addHit(hit);
+    //Hit* hit = new Hit(23./sin(theta));
+    //hit->setOrientation(Hit::Horizontal);
+    //hit->setObjectKind(Hit::Inactive);
+    //Material beamPipeMat;
+    //beamPipeMat.radiation = 0.0023 / sin(theta);
+    //beamPipeMat.interaction = 0.0019 / sin(theta);
+    //hit->setCorrectedMaterial(beamPipeMat);
+    //track.addHit(hit);
 
-    // <SMe>
-    // track.sort();
-    // track.print();
-    // </SMe>
-
+    // Go through tracks with non-zero number of hits
     if (!track.noHits()) {
       for (string tag : track.tags()) {
+        
+        // Analyze only tracks of the same tag, i.e. TRK, ...
         track.keepTaggedOnly(tag);
+
+        // Add IP constraint
         if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
         track.sort();
-        track.setTriggerResolution(true); // TODO: remove this (?)
+        //track.print();
 
+
+        // Remove some hits randomly based on inefficiency parameter
         if (efficiency!=1) track.addEfficiency(efficiency, false);
-        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          // For each transverse momentum
-          // compute the tracks error
-          for (const auto& ptit : momenta ) {
-            int parameter = ptit * 1000;       // <SMe> we store p or pT in MeV as int (key to the map) </SMe>
-            double transverseMomentum = ptit;  // <SMe> we assign the selected /transverse/ momentum to the track (in GeV) </SMe>
-            // parameter is pT in this case
-            track.setTransverseMomentum(transverseMomentum);
-            track.computeErrors();
-            TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
-            TrackCollection &myCollection = myMap[parameter];
-            myCollection.push_back(track);
 
-            Track idealTrack(track);
-            idealTrack.removeMaterial();
-            idealTrack.computeErrors();
-            TrackCollectionMap &myMapIdeal = taggedTrackCollectionMapIdeal[tag];
+        // At least 3 hits needed to measure track
+        if (track.nActiveHits(true)>2) { 
+          
+          // For each momentum/transverse momentum compute the tracks error
+          for (const auto& pIter : momenta ) {
+            int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+            double momentum  = pIter;        
+            
+            // Case I) Initial momentum is equal to pT
+            double pT = momentum;
+              
+            // Active+passive material
+            Track trackPt(track);
+            trackPt.setTransverseMomentum(pT);
+            trackPt.computeErrors();
+            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+            TrackCollection &myCollection = myMap[parameter];
+            myCollection.push_back(trackPt);
+
+            // Active material only
+            Track idealTrackPt(trackPt);
+            idealTrackPt.removeMaterial();
+            idealTrackPt.computeErrors();
+            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-            myCollectionIdeal.push_back(idealTrack);
+            myCollectionIdeal.push_back(idealTrackPt);
+
+            // Case II) Initial momentum is equal to p
+            pT = momentum*sin(theta);
+              
+            // Active+passive material
+            Track trackP(track);
+            trackP.setTransverseMomentum(pT);
+            trackP.computeErrors();
+            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+            TrackCollection &myCollectionII = myMapII[parameter];
+            myCollectionII.push_back(trackP);
+
+            // Active material only
+            Track idealTrackP(trackP);
+            idealTrackP.removeMaterial();
+            idealTrackP.computeErrors();
+            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+            myCollectionIdealII.push_back(idealTrackP);
           }
         }    
       }
@@ -250,18 +279,19 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   }
   
   // For each tracking system compute the resolution graphs // TODO: consts here
-  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMap) {
+  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
     const string& myTag = ttcmIt.first;
     clearGraphs(GraphBag::RealGraph, myTag);
     /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
     for (const auto& tcmIt : myTrackCollection) {
       const int &parameter = tcmIt.first;
       const TrackCollection& myCollection = tcmIt.second;
+      //std::cout << myCollection.size() << std::endl; 
       calculateGraphs(parameter, myCollection, GraphBag::RealGraph, myTag);
     }
   }
 
-  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMapIdeal) {
+  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
     const string& myTag = ttcmIt.first;
     clearGraphs(GraphBag::IdealGraph, myTag);
     /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
@@ -1607,27 +1637,28 @@ void Analyzer::calculateGraphs(const int& parameter,
   // Prepare plots: pT
   double momentum = double(parameter)/1000.;
 
-  thisRhoGraph.SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+  //thisRhoGraph.SetTitle("Transverse momentum resolution versus eta;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+  thisRhoGraph.SetTitle("Transverse momentum resolution versus eta;#eta;#delta p_{T}/p_{T} [%]");
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph.SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+  thisPhiGraph.SetTitle("Track azimuthal angle error;#eta;#delta #phi [rad]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#delta d_{0} [cm]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
-  thisCtgThetaGraph.SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
+  thisCtgThetaGraph.SetTitle("Track polar angle error;#eta;#delta ctg(#theta)");
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#delta z_{0} [cm]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph.SetName(aName.str().c_str());
   // Prepare plots: p
-  thisPGraph.SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
+  thisPGraph.SetTitle("Momentum resolution versus eta;#eta;#delta p/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph.SetName(aName.str().c_str());
  
@@ -1636,13 +1667,12 @@ void Analyzer::calculateGraphs(const int& parameter,
   for ( const auto& myTrack : aTrackCollection ) {
     const double& drho = myTrack.getDeltaRho();
     const double& dphi = myTrack.getDeltaPhi();
-    const double& dd = myTrack.getDeltaD();
+    const double& dd   = myTrack.getDeltaD();
     const double& dctg = myTrack.getDeltaCtgTheta();
-    const double& dz0 = myTrack.getDeltaZ0();
-    const double& dp = myTrack.getDeltaP();
+    const double& dz0  = myTrack.getDeltaZ0();
+    const double& dp   = myTrack.getDeltaP();
     eta = myTrack.getEta();
     R = myTrack.getTransverseMomentum() / magnetic_field / 0.3 * 1E3; // radius in mm
-    if (momentum / magnetic_field / 0.3 * 1E3!=R) { std::cerr << "ERROR (for the moment) it should be the same" << std::endl; } // TODO: remove this check
 
     if (drho>0) {
       // deltaRho / rho = deltaRho * R
@@ -2438,10 +2468,10 @@ std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) con
  * @param nTracker the number of tracks to be used to analyze the coverage (defaults to 1000)
  */
 void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
+  
   geometryTracksUsed = nTracks;
   savingGeometryV.clear();
   clearGeometryHistograms();
-
 
   // A bunch of pointers
   std::map <std::string, int> moduleTypeCount; // counts hit per module type -- if any of the sensors (or both) are hit, it counts 1
@@ -2468,7 +2498,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   createResetCounters(tracker, moduleTypeCount);
   createResetCounters(tracker, sensorTypeCount);
   createResetCounters(tracker, moduleTypeCountStubs);
-
   class LayerNameVisitor : public ConstGeometryVisitor {
     string id_;
   public:
