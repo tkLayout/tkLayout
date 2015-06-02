@@ -146,7 +146,7 @@ ELSE()
                                 " -- failed to find ROOT ${libname} library!!" ) 
             ENDIF() 
         ELSE() 
-            MESSAGE(STATUS ">>> ${ROOT_LIB_${libname}}")
+            #MESSAGE(STATUS ">>> ${ROOT_LIB_${libname}}")
             LIST( APPEND ROOT_LIBS ${ROOT_LIB_${libname}} ) 
         ENDIF() 
     ENDFOREACH() 
@@ -178,10 +178,10 @@ FOREACH( file ${all_sources} )
    ENDIF()
  ELSE()
    IF( ${file} MATCHES "mainConfigHandler.cpp" )
-     SET( source_mainHandler ${file} )
+     SET( source_mainhandler ${file} )
    ENDIF()
    IF( ${file} MATCHES "global_funcs.cpp" )
-     SET( source_globalFunctions ${file} )
+     SET( source_globalfunctions ${file} )
    ENDIF()
    LIST( APPEND sources ${file} )
  ENDIF()
@@ -195,15 +195,15 @@ ADD_CUSTOM_TARGET(revisiontag ALL)
 # creates svnversion.h using cmake script
 ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
    -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} 
-   -P ${CMAKE_CURRENT_SOURCE_DIR}/GetGit.cmake)
+   -P ${CMAKE_CURRENT_SOURCE_DIR}/GetGitVersion.cmake)
 
 #----------------------------------------------------------------------------
-# Add the executable, and link it to the Geant4 libraries
+# add the executable, and link it to the geant4 libraries
 #
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainHandler} ${source_globalFunctions} ${headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${headers} )
 
-# Explicitly say that the executable depends on custom target
+# explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
 TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS})
@@ -214,3 +214,8 @@ TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
 #
 INSTALL(TARGETS tklayout DESTINATION bin)
 INSTALL(TARGETS setup.bin DESTINATION bin)
+
+IF(CMAKE_HOST_UNIX)
+    INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
+                   EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/tklayout $ENV{HOME}/bin/tklayout)" )
+ENDIF()
