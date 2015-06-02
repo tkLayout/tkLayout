@@ -100,6 +100,7 @@ class HoughTrack {
 
   SparseMatrix<ModuleData, 4> mods_;
   typedef Histo<4, SmartBin, BinKey<4, uint16_t> > HistoType;
+  double magField_;
   HistoType histo_;
 
   TRandom3 die_;
@@ -113,10 +114,11 @@ class HoughTrack {
 
   enum { H_K = 0, H_PHI0 = 1, H_Z0 = 2, H_THETA = 3 };
 public:                     //     invPt,phi0,  z0, theta
-  HoughTrack() : histo_(seq<4>(1000)(1000)(100)(1000),
+  HoughTrack(double magField) : magField_(magField),
+                        histo_(seq<4>(1000)(1000)(100)(1000),
                         seq<4>(-0.5)(-3.14)(-70.5)(0.),
                         seq<4>(0.5)(3.14)(69.5)(3.14)),
-                 die_(0xcafebabe) {}
+                        die_(0xcafebabe) {}
   void processTree(std::string filename, long int startev, long int howmany);
   ~HoughTrack();
 };

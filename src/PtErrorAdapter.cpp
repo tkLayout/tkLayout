@@ -62,6 +62,8 @@ double PtErrorAdapter::getTriggerFrequencyTruePerEventBelow(const double& myCut)
 
 // TODO: this and the next one should be merged in the same code...
 double PtErrorAdapter::getTriggerFrequencyTruePerEventBetween(double myLowCut, double myHighCut) { 
+
+  std::cout << "PtErrorAdapter::getTriggerFrequencyTruePerEventBetween() - WARNING: magnetic field used from global constants not from SimParms file" << std::endl;;
   if (myLowCut<ptMinFit) myLowCut=ptMinFit;
   if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
   double r = mod_.center().Rho()/1000;
@@ -91,6 +93,8 @@ double PtErrorAdapter::getTriggerFrequencyTruePerEventBetween(double myLowCut, d
 double PtErrorAdapter::getParticleFrequencyPerEventBetween(double myLowCut, double myHighCut) {
   if (myLowCut<ptMinFit) myLowCut=ptMinFit;
   if (myHighCut>ptMaxFit) myHighCut=ptMaxFit;
+
+  std::cout << "PtErrorAdapter::getParticleFrequencyPerEventBetween() - WARNING: magnetic field used from global constants not from SimParms file" << std::endl;;
   double r = mod_.center().Rho()/1000;
   double ptMin = MAX(0.3 * insur::magnetic_field * r, myLowCut);
   double integral = 0.0;
@@ -124,6 +128,7 @@ double PtErrorAdapter::getPtThreshold(const double& myEfficiency) {
 }
 
 double PtErrorAdapter::stripsToP(double strips) const {
+  std::cout << "PtErrorAdapter::stripsToP() - WARNING: magnetic field used from global constants not from SimParms file" << std::endl;
   double A = 0.3 * insur::magnetic_field * mod_.center().Rho() / 1000. / 2.; // GeV
   double p;
   double x;
@@ -135,6 +140,7 @@ double PtErrorAdapter::stripsToP(double strips) const {
 }
 
 double PtErrorAdapter::pToStrips(double p) const {
+  std::cout << "PtErrorAdapter::pToStrips() - WARNING: magnetic field used from global constants not from SimParms file" << std::endl;
   double A = 0.3 * insur::magnetic_field * mod_.center().Rho() / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double strips = mod_.effectiveDsDistance() / sqrt(a-1) / mod_.outerSensor().pitch();

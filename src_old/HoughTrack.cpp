@@ -25,7 +25,7 @@ double HoughTrack::calcPhi0(double x, double y, double pt) {
   x = xrot;
   y = yrot;
 
-  double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3; // particle curve radius
+  double R = fabs(pt)/(0.3*magField_) * 1e3; // particle curve radius
 
   double sqdelta = sqrt(4*R*R*pow(x,4) + 4*R*R*x*x*y*y - pow(x,6) - 2*pow(x,4)*y*y - x*x*pow(y,4));
 
@@ -52,7 +52,7 @@ double HoughTrack::calcTheta(double x, double y, double z, double z0, double pt)
   
   double r = sqrt(x*x + y*y);
 
-  double R = fabs(pt)/(0.3*insur::magnetic_field) * 1e3;
+  double R = fabs(pt)/(0.3*magField_) * 1e3;
 
   double theta = myatan2(R*acos(1-r*r/(2*R*R)),(z-z0));
 //  double theta = atan(R*acos(1-r*r/(2*R*R))/(z-z0));

@@ -29,7 +29,7 @@ bool AnalyzerHelpers::isPointInCircle(const Point& p, const Circle& c) { return 
 double AnalyzerHelpers::calculatePetalAreaMC(const Tracker& tracker, const SimParms& simParms, double crossoverR) {
   static TRandom3 die;
 
-  double r = simParms.triggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
+  double r = simParms.triggerPtCut()/(0.3*simParms.magneticField()) * 1e3; // curvature radius of particles with the minimum accepted pt
 
   std::pair<Circle, Circle> cc = findCirclesTwoPoints((Point){0, 0}, (Point){0, crossoverR}, r);
 
@@ -179,7 +179,7 @@ bool AnalyzerHelpers::isModuleInCircleSector(const DetectorModule& module, doubl
 #endif
 
 bool AnalyzerHelpers::isModuleInPhiSector(const SimParms& simParms, const DetectorModule& module, double crossoverR, int phiSector) {
-  static const double curvatureR = simParms.triggerPtCut()/(0.3*insur::magnetic_field) * 1e3; // curvature radius of particles with the minimum accepted pt
+  static const double curvatureR = simParms.triggerPtCut()/(0.3*simParms.magneticField()) * 1e3; // curvature radius of particles with the minimum accepted pt
 
   double phiSlice = 2*M_PI / simParms.numTriggerTowersPhi();  // aka Psi
   double phi = phiSlice*phiSector;

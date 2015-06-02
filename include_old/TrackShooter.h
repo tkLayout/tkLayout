@@ -28,7 +28,7 @@
 
 #include <global_funcs.h>
 #include <global_constants.h>
-#include <module.hh>
+//#include <module.hh>
 #include <PlotDrawer.h>
 #include <Palette.h>
 

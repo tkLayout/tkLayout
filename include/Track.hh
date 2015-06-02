@@ -35,8 +35,9 @@ protected:
   double theta_;
   double phi_;
   double cotgTheta_; 
-  double eta_;      // calculated from theta and then cached
+  double eta_;                // calculated from theta and then cached
   double transverseMomentum_;
+  double magField_;
 
   std::vector<Hit*> hitV_;
 
@@ -76,6 +77,10 @@ public:
   double getPhi() const {return phi_;}
   void   setTransverseMomentum(const double newPt) { transverseMomentum_ = newPt; }
   double getTransverseMomentum() const { return transverseMomentum_; }
+  void   setMagField(const double & magField) { magField_ = magField; }
+  double getMagField() const;
+  double getRho() const;
+  double getRadius() const;
   
   TMatrixTSym<double>& getCorrelations() { return correlations_; }
   TMatrixT<double>&    getCovariances()  { return covariances_; }

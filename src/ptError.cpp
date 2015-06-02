@@ -23,6 +23,7 @@ void ptError::defaultParameters() {
 }
 
 double ptError::computeErrorBE(double p) {
+  std::cout << "ptError::computeErrorBE() - WARNING: magnetic field used from global constants not from SimParms file" << std::endl;;
   double A = 0.3 * B * Module_r / 1000. / 2.; // GeV
   double a = pow(p/A,2);
   double g = 1/a;

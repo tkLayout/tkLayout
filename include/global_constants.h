@@ -15,28 +15,6 @@ namespace insur {
   static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
 
   /**
-   * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range 
-   * short_eta_coverage - long_eta_coverage
-   */
-  static const double step_eta_short     = 0.2;
-  static const double step_eta_long      = 0.5;
-  static const double step_eta_epsilon   = 0.001;
-  static const double short_eta_coverage = 3.0;
-  static const double trk_eta_coverage   = 4.0;
-  static const double long_eta_coverage  = 5.0;    
-  
-  
-  static const double max_dPtOverPt      = 105; // [%]
-  static const double min_dPtOverPt      = 0.1; // [%]            
- 
-  static const int    min_canvas_sizeX   = 600;
-  static const int    std_canvas_sizeX   = 900;
-  static const int    max_canvas_sizeX   =1800;
-  static const int    min_canvas_sizeY   = 600;
-  static const int    std_canvas_sizeY   = 900;
-  static const int    max_canvas_sizeY   =1800;
-      
-  /**
    * Geometry constants; all length measurements are in mm
    * @param epsilon The standard distance between one solid object and the next
    * @param volume_width The standard geometrical thickness of an inactive volume
@@ -56,7 +34,7 @@ namespace insur {
 
   static const std::string name_eta_regions[n_eta_regions] = {"TRK-C","TRK-I","TRK-F","TRK-VF","FWD-F","FWD-VF"}; // Name eta regions
 
-  static const int    default_n_tracks           = 120;   // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)  
+  static const int    default_n_tracks           = 120;                   // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.
@@ -83,6 +61,29 @@ namespace insur {
   static const double d_carbon = 1.9;
   static const double top_volume_pad = 200;
   static const int temperature_levels = 512;
+
+  /**
+   * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
+   * short_eta_coverage - long_eta_coverage
+   */
+  static const double step_eta_short     = 0.2;
+  static const double step_eta_long      = 0.5;
+  static const double step_eta_epsilon   = 0.001;
+  static const double short_eta_coverage = 3.0;
+  static const double trk_eta_coverage   = 4.0;
+  static const double long_eta_coverage  = 5.0;
+
+  static const double max_dPtOverPt      = 105; // [%]
+  static const double min_dPtOverPt      = 0.1; // [%]
+
+  static const int    min_canvas_sizeX   = 600;
+  static const int    std_canvas_sizeX   = 900;
+  static const int    max_canvas_sizeX   =1800;
+  static const int    min_canvas_sizeY   = 600;
+  static const int    std_canvas_sizeY   = 900;
+  static const int    max_canvas_sizeY   =1800;
+
+  static const int    default_n_bins     = max_eta_coverage/0.2;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types

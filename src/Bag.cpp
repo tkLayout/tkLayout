@@ -1,18 +1,23 @@
 #include "Bag.h"
 #include <utility>
 
-const double GraphBag::Triggerable     = 0.;
-const int GraphBag::RhoGraph         = 0x001;
-const int GraphBag::PhiGraph         = 0x002;
-const int GraphBag::DGraph           = 0x003;
-const int GraphBag::CtgthetaGraph    = 0x004;
-const int GraphBag::Z0Graph          = 0x005;
-const int GraphBag::PGraph           = 0x006;
-const int GraphBag::TriggeredGraph   = 0x007;
-const int GraphBag::IdealGraph       = 0x010;
-const int GraphBag::RealGraph        = 0x020;
-const int GraphBag::TriggerGraph     = 0x040;
-const int GraphBag::StandardGraph    = 0x080;
+const double GraphBag::Triggerable   = 0.;
+const int GraphBag::RhoGraph_Pt      = 0x001;
+const int GraphBag::PhiGraph_Pt      = 0x002;
+const int GraphBag::DGraph_Pt        = 0x003;
+const int GraphBag::CtgthetaGraph_Pt = 0x004;
+const int GraphBag::Z0Graph_Pt       = 0x005;
+const int GraphBag::PGraph_Pt        = 0x006;
+const int GraphBag::RhoGraph_P       = 0x008;
+const int GraphBag::PhiGraph_P       = 0x009;
+const int GraphBag::DGraph_P         = 0x010;
+const int GraphBag::CtgthetaGraph_P  = 0x011;
+const int GraphBag::Z0Graph_P        = 0x012;
+const int GraphBag::PGraph_P         = 0x013;
+const int GraphBag::IdealGraph       = 0x020;
+const int GraphBag::RealGraph        = 0x040;
+const int GraphBag::TriggerGraph     = 0x080;
+const int GraphBag::StandardGraph    = 0x100;
 //const int GraphBag::TriggerCorrelationGraph = 0x100;
 
 const int mapBag::efficiencyMap         = 0x001;

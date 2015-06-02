@@ -519,7 +519,8 @@ ostream& RootWContent::dump(ostream& output) {
   RootWItem* myItem;
   RootWImage* myImage;
   RootWFile* myFile;
-  //std::cerr << "Content: " << title_ <<endl; //debug 
+
+  //std::cerr << "Content: " << title_ <<endl; //debug
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
   if (visible_) {
     output << "<div class=\"hideable\"> ";

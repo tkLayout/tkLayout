@@ -58,6 +58,7 @@ private:
   bool pixelTypeTracker_;
   bool stripTypeTracker_;
   bool combinedTracker_;
+  bool fwdTypeTracker_;
 
   ModuleSetVisitor moduleSetVisitor_;
 
@@ -83,7 +84,8 @@ public:
       containsOnly("containsOnly", parsedOnly()),
       pixelTypeTracker_(false),
       stripTypeTracker_(false),
-      combinedTracker_(false)
+      combinedTracker_(false),
+      fwdTypeTracker_(false)
   {}
 
   // Set & get tracker type: pixel or strip
@@ -95,6 +97,9 @@ public:
   
   inline void setIsCombinedType(bool combinedType) { combinedTracker_ = combinedType;}
   inline bool isCombinedType() const {return combinedTracker_;};
+
+  inline void setIsForwardType(bool fwdType) { fwdTypeTracker_ = fwdType;}
+  inline bool isForwardType() const {return fwdTypeTracker_;};
  
  
  

@@ -18,7 +18,8 @@ using namespace std;
  * The default constructor sets the parameter for the track angle to zero.
  */
 Track::Track() {
-    theta_ = 0;
+    theta_    = 0;
+    magField_ = 0;
 }
 
 /**
@@ -28,6 +29,7 @@ Track::Track(const Track& t) {
   theta_ = t.theta_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
+  magField_ = t.magField_;
   correlations_.ResizeTo(t.correlations_);
   correlations_ = t.correlations_;
   covariances_.ResizeTo(t.covariances_);
@@ -61,6 +63,7 @@ Track& Track::operator= (const Track &t) {
   theta_ = t.theta_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
+  magField_ = t.magField_;
   correlations_.ResizeTo(t.correlations_);
   correlations_ = t.correlations_;
   covariances_.ResizeTo(t.covariances_);
@@ -238,6 +241,37 @@ double Track::setPhi(double& newPhi) {
     return phi_;
 };
 
+/*
+ * Getter for the magnetic field
+ */
+double Track::getMagField() const {
+
+  if (magField_==0) {
+    logERROR("Track::getMagField(): magnetic field not defined!!!");
+    EXIT_FAILURE;
+    return 0;
+  }
+  else return magField_;
+}
+
+/*
+ * Getter for rho = 1/R
+ */
+double Track::getRho() const {
+
+  double rho = 1E-3 * getMagField() * 0.3 / transverseMomentum_;
+  return rho;
+}
+
+/*
+ * Getter for radius
+ */
+double Track::getRadius() const {
+
+  double R = transverseMomentum_ / (1E-3 * getMagField() * 0.3);
+  return R;
+}
+
 
 /**
  * Adds a new hit to the track
@@ -266,6 +300,7 @@ void Track::sort() {
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
  */
 void Track::computeCorrelationMatrix() {
+
   // matrix size
   int n = hitV_.size();
   correlations_.ResizeTo(n,n);
@@ -277,7 +312,7 @@ void Track::computeCorrelationMatrix() {
   double deltaCtgT = deltaCtgTheta_;
 
   // precompute the curvature in mm^-1
-  double rho = 1E-3 * insur::magnetic_field * 0.3 / transverseMomentum_;
+  double rho = getRho();
   for (int i = 0; i < n - 1; i++) {
     double th = hitV_.at(i)->getCorrectedMaterial().radiation;
     //#ifdef HIT_DEBUG
@@ -306,7 +341,7 @@ void Track::computeCorrelationMatrix() {
           for (int i = 0; i < r; i++)
             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
           if (r == c) {
-            double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
+            double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, getMagField())); // if Bmod = getResoX natural
             sum = sum + prec * prec;
           }
           correlations_(r, c) = sum;
@@ -380,7 +415,7 @@ void Track::computeCorrelationMatrixRZ() {
   correlationsRZ_.ResizeTo(n,n);
 
   // set up correlation matrix
-  double curvatureR = pt2radius(transverseMomentum_, insur::magnetic_field);
+  double curvatureR = pt2radius(transverseMomentum_, getMagField());
   // pre-compute the squares of the scattering angles
   // already divided by sin^2 (that is : we should use p instead of p_T here
   // but the result for theta^2 differ by a factor 1/sin^2, which is exactly the
@@ -534,7 +569,7 @@ void Track::computeErrors() {
 
   // Combining into p measurement
   double ptErr = deltarho_;
-  double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
+  double R = getRadius(); // curvature radius in mm
   ptErr *= R; // fractional dpT/pT = dRho / Rho = dRho * R
   // dp/p = dp_t/p_t + A / (1+A^2) * dA // with A = ctg(theta)
   // dp/p = dp_t/p_t + sin(theta)*cos(theta) //

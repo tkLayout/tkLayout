@@ -444,6 +444,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
       string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : std::string("");
       filename = prefix + filename;
       ifstream ifs(filename);
+      //std::cout << "INFO: " << filename << std::endl;
       if (ifs) {
         stringstream ss;
         auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
