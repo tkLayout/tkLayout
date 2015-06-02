@@ -44,11 +44,13 @@ ENDIF()
 #
 # Get boost include & lib directory
 #
-SET( BOOST_INCLUDE_DIR "/usr/include/boost" )
+SET( BOOST_INCLUDE_DIR "$ENV{BOOST_INCLUDE}" )
 
 # Find all the libraries and save them 
-SET( BOOST_LIBS_NAMES "boost_system" "boost_filesystem" "boost_program_options" )
-SET( BOOST_LIBS_DIR "/usr/lib/x86_64-linux-gnu" )
+SET( BOOST_LIBS_NAMES "boost_system$ENV{BOOST_SUFFIX}" 
+                      "boost_filesystem$ENV{BOOST_SUFFIX}" 
+                      "boost_program_options$ENV{BOOST_SUFFIX}" )
+SET( BOOST_LIBS_DIR "$ENV{BOOST_LIB}" )
 
 FOREACH( libname ${BOOST_LIBS_NAMES} )
 
@@ -59,7 +61,7 @@ FOREACH( libname ${BOOST_LIBS_NAMES} )
             NAMES ${libname} 
             PATHS ${BOOST_LIBS_DIR} 
             PATH_SUFFIXES lib )
-
+        #MESSAGE( STATUS ">>> ${BOOST_LIB_${libname}}" )
         IF( NOT BOOST_LIB_${libname} )
             SET( BOOST_FINDLIB_FAILED TRUE )
             IF( NOT BOOST_FIND_QUIETLY )
@@ -74,7 +76,7 @@ FOREACH( libname ${BOOST_LIBS_NAMES} )
 #
 # Get include directory using root-config
 #
-SET( ROOT_HOME "/usr/bin" )
+SET( ROOT_HOME "$ENV{ROOTSYS}/bin" )
 EXEC_PROGRAM( "${ROOT_HOME}/root-config" "."
     ARGS --incdir
     OUTPUT_VARIABLE out_var
@@ -157,6 +159,7 @@ ENDIF()
 #
 # Compiler flags
 #add_definitions( "-Wall -Wno-long-long -std=c++11 -pedantic" )
+SET ( CMAKE_CXX_COMPILER "g++" )
 ADD_DEFINITIONS( "-std=c++11 -g -fpermissive -Wno-deprecated-declarations" )
 SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
 
