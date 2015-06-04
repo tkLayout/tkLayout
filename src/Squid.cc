@@ -409,6 +409,7 @@ namespace insur {
     site.addAuthor("Nicoletta De Maio");
     site.addAuthor("Stefano Martina");
     site.addAuthor("Stefano Mersi");
+    site.addAuthor("Gabrielle Hugo");
     site.setRevision(SvnRevision::revisionNumber);
     return true;
   }
