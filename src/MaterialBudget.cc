@@ -74,49 +74,6 @@ namespace insur {
     std::vector<std::vector<ModuleCap> >& MaterialBudget::getEndcapModuleCaps() { return capsendmods; }
     
     /**
-     * This is the general function that calls all other functions related to material assignment in sequence.
-     * @param calc A reference to the material calculator that will do the actual work
-     */
-    void MaterialBudget::materialsAll(MatCalc& calc) {
-      //materialsModules(calc);
-      //materialsServices(calc);
-      //materialsSupports(calc);
-    }
-    
-    /**
-     * This is the specialised function that causes materials to be assigned to the support volumes.
-     * @param calc A reference to the material calculator that will do the actual work
-     */
-    void MaterialBudget::materialsSupports(MatCalc& calc) {
-        if (!calc.calculateSupportMaterials(inactive->getSupports()))
-            std::cout << err_materials_supports << std::endl;
-    }
-    
-    /**
-     * This is the specialised function that causes materials to be assigned to the service volumes.
-     * @param calc A reference to the material calculator that will do the actual work
-     */
-    void MaterialBudget::materialsServices(MatCalc& calc) {
-        if (calc.calculateBarrelServiceMaterials(capsbarrelmods, inactive->getBarrelServices(), inactive->getEndcapServices())) {
-            if (!calc.calculateEndcapServiceMaterials(capsendmods, inactive->getBarrelServices(), inactive->getEndcapServices()))
-                std::cout << err_materials_eservices << std::endl;
-        }
-        else std::cout << err_materials_bservices << std::endl;
-    }
-    
-    /**
-     * This is the specialised function that causes materials to be assigned to the tracker modules.
-     * @param calc A reference to the material calculator that will do the actual work
-     */
-    void MaterialBudget::materialsModules(MatCalc& calc) {
-        if (calc.calculateBarrelMaterials(capsbarrelmods)) {
-            if (!calc.calculateEndcapMaterials(capsendmods))
-                std::cout << err_materials_emodules << std::endl;
-        }
-        else std::cout << err_materials_bmodules << std::endl;
-    }
-    
-    /**
      * Print a summary of the material budget to <i>cout</i>.
      */
     void MaterialBudget::print() {

@@ -1037,8 +1037,8 @@ namespace material {
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
   const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
   const int Materialway::boundaryPrincipalPadding = discretize(15.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
-  const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for exiting the services) */
-  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for exiting the services) */
+  const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
+  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
@@ -1503,29 +1503,13 @@ namespace material {
     for (Station* station : stationListFirst_) {
       if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
         //put local materials in the materialObject of the station
-        //put exiting services in the materialObject of the adiacent section of station
+        //put routed services in the materialObject of the adiacent section of station
         station->conversionStation().routeConvertedElements(station->materialObject(), station->outgoingMaterialObject(), *station->inactiveElement());
         if (station->nextSection() != nullptr) {
           //route converted materials
           station->nextSection()->getServicesAndPass(station->outgoingMaterialObject());
         }
       }
-      /*
-      if (station->materialObject() != nullptr) {
-        station->conversionStation().routeConvertedLocalsTo(station->materialObject());
-      }
-
-      if (station->nextSection() != nullptr) {
-        if (station->nextSection()->materialObject() != nullptr) {
-          //put exiting services in the materialObject of the adiacent section of station
-          station->conversionStation().routeConvertedServicesTo(station->nextSection()->materialObject());
-          if (station->nextSection()->nextSection() != nullptr) {
-            //route from the adiacent section of the adiacent section of the station the materials of the adiacent section of the station
-            station->nextSection()->nextSection()->getServicesAndPass(station->nextSection()->materialObject());
-          }
-        }
-      }
-      */
     }
   }
 
@@ -1533,7 +1517,7 @@ namespace material {
     for (Station* station : stationListSecond_) {
       if ((station->nextSection() != nullptr) && (station->inactiveElement() != nullptr)) {
         //put local materials in the materialObject of the station
-        //put exiting services in the materialObject of the adiacent section of station
+        //put routed services in the materialObject of the adiacent section of station
         station->conversionStation().routeConvertedElements(station->materialObject(), station->outgoingMaterialObject(), *station->inactiveElement());
         if (station->nextSection() != nullptr) {
           //route converted materials

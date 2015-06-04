@@ -6,11 +6,7 @@
 void MaterialBillAnalyzer::inspectInactiveElements(const std::vector<InactiveElement>& inactiveElements) {
   for (const auto& it : inactiveElements) {
     const std::map<std::string, double>& localMasses = it.getLocalMasses();
-    const std::map<std::string, double>& exitingMasses = it.getExitingMasses();
-    std::map<std::string, double> totalMasses;
-    for (auto massIt : localMasses) totalMasses[massIt.first]+=massIt.second;
-    for (auto massIt : exitingMasses) totalMasses[massIt.first]+=massIt.second;
-    for (auto massIt : totalMasses) {
+    for (auto massIt : localMasses) {
       outputTable += any2str(it.getInnerRadius()) + ", ";
       outputTable += any2str(it.getInnerRadius()+it.getRWidth()) + ", ";
       outputTable += any2str(it.getZOffset()) + ", ";
@@ -39,9 +35,7 @@ void MaterialBillAnalyzer::inspectModules(std::vector<std::vector<insur::ModuleC
       myModule->accept(v);
       MaterialMap& layerMaterial = layerMaterialMap_[v.id_];
       const std::map<std::string, double>& localMasses = myModuleCap.getLocalMasses();
-      const std::map<std::string, double>& exitingMasses = myModuleCap.getExitingMasses();
       for (const auto &it : localMasses)  layerMaterial[it.first]+=it.second;
-      for (const auto &it : exitingMasses) layerMaterial[it.first]+=it.second;
     }
   }
 }

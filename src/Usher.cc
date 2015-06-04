@@ -921,7 +921,6 @@ namespace insur {
         ir.setRWidth(blueprint.getRWidth());
         ir.setTotalMass(blueprint.getTotalMass());
         ir.setLocalMass(blueprint.getLocalMass());
-        ir.setExitingMass(blueprint.getExitingMass());
         ir.setRadiationLength(blueprint.getRadiationLength());
         ir.setInteractionLength(blueprint.getInteractionLength());
         blueprint.copyMassVectors(ir);
@@ -950,7 +949,6 @@ namespace insur {
         it.setRWidth(blueprint.getRWidth());
         it.setTotalMass(blueprint.getTotalMass());
         it.setLocalMass(blueprint.getLocalMass());
-        it.setExitingMass(blueprint.getExitingMass());
         it.setRadiationLength(blueprint.getRadiationLength());
         it.setInteractionLength(blueprint.getInteractionLength());
         blueprint.copyMassVectors(it);
