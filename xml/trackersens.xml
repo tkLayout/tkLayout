@@ -15,6 +15,13 @@
       <PartSelector path="//PixelForwardSensor1"/>
       <PartSelector path="//PixelForwardSensor2"/>
       <PartSelector path="//PixelForwardSensor3"/>
+      <PartSelector path="//PixelForwardSensor4" />
+      <PartSelector path="//PixelForwardSensor5" />
+      <PartSelector path="//PixelForwardSensor6" />
+      <PartSelector path="//PixelForwardSensor7" />
+      <PartSelector path="//PixelForwardSensor8" />
+      <PartSelector path="//PixelForwardSensor9" />
+      <PartSelector path="//PixelForwardSensor10" />
     <!--mid point marker-->
     <Parameter name="SensitiveDetector" value="TkAccumulatingSensitiveDetector" />
     <Parameter name="ReadOutName" value="TrackerHitsPixelEndcap" />
