@@ -1,0 +1,313 @@
+// pt-PS module 10x5 for the inner region
+// GBT on the module
+
+Materials module-ptPS_320_16 {
+  type module
+
+  // Default sensor:
+  ReferenceSensor 1 {
+    numStripsAcross 960
+    //numSegments 2
+    numSegments 32
+  }
+  ReferenceSensor 2 {
+    numStripsAcross 960
+    //numSegments 32
+    numSegments 2
+  } 
+
+// Sensor and hybrid stuff
+  // Sensor
+  Component {
+    componentName "PS Sensors"
+    service false
+    scaleOnSensor 0
+    targetVolume 1
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
+    }
+  }
+
+// Sensor
+  Component {
+    componentName "PS Sensors"
+    service false
+    scaleOnSensor 0
+    targetVolume 2
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
+    }
+  }
+
+ Component {
+    componentName "PS Inactive silicon"
+    service false
+    scaleOnSensor 0
+    //Sensor inactive edges
+    Element {
+      elementName Si
+      quantity 0.385
+      unit g
+      targetVolume 0
+    }
+  }
+
+ Component {
+    componentName "MPA and Bumps"
+    service false
+    scaleOnSensor 0
+    //MPA on sensors
+    Element {
+      elementName Si
+      quantity 2.069
+      unit g
+      targetVolume 7
+    }
+    //MPA periphery
+    Element {
+      elementName Si
+      quantity 0.256
+      unit g
+      targetVolume 56
+    }
+    // Underfill
+    Element {
+      elementName Epoxy
+      quantity 0.874
+      unit g
+      targetVolume 7
+    }
+    // Bumps
+    Element {
+      elementName Sn95Ag5
+      quantity 0.407
+      unit g
+      targetVolume 7
+    }
+  }
+
+
+// Two hybrids
+  Component {
+    componentName "PS FE hybrids"
+    service false
+    scaleOnSensor 0
+    targetVolume 56
+    //FEH copper
+    Element {
+      elementName Cu
+      quantity 1.390
+      unit g
+    }
+    //FEH board + components
+    Element {
+      elementName PS-FEH-mix
+      quantity 1.318
+      unit g
+    }
+    //FEH-sensors wirebonds
+    Element {
+      elementName Al
+      quantity 0.025
+      unit g
+    }
+    //Wirebond encapsulant
+    Element {
+      elementName WB-enc
+      quantity 0.935
+      unit g
+    }
+    //FEH spacer 1.6 mm
+    Element {
+      elementName Al-CF
+      quantity 0.240
+      unit g
+    }
+    //FEH CFRP support
+    Element {
+      elementName CFRP
+      quantity 2.140
+      unit g
+    }
+    //FEH CFRP stiffener
+    Element {
+      elementName CFRP
+      quantity 1.499
+      unit g
+    }
+    //FEH glue 1.6 mm
+    Element {
+      elementName Epoxy
+      quantity 0.260
+      unit g
+    }
+  }
+
+
+
+Component {
+    componentName "PS Sensor spacers"
+    service false
+    scaleOnSensor 0
+    targetVolume 7
+    //1.6mm bridge
+    Element {
+      elementName Al-CF
+      quantity 1.120
+      unit g
+    }
+  
+    //Parylene 1.6mm
+    Element {
+      elementName Epoxy
+      quantity 0.09
+      unit g
+    }
+    //Bridges glue 1.6 mm
+    Element {
+      elementName Epoxy
+      quantity 0.163
+      unit g
+    }
+  }
+
+
+ Component {
+    componentName "PS Readout hybrid"
+    service false
+    scaleOnSensor 0
+    targetVolume 3
+    //ROH CFRP support
+    Element {
+      elementName CFRP
+      quantity 0.247
+      unit g
+    }
+    //ROH glue 1.6 mm
+    Element {
+      elementName Epoxy
+      quantity 0.061
+      unit g
+    }
+    //ROH copper
+    Element {
+      elementName Cu
+      quantity 0.474
+      unit g
+    }
+    //ROH board + components
+    Element {
+      elementName PS-ROH-mix
+      quantity 3.024
+      unit g
+    }
+    //ROH spacer 1.6 mm
+    Element {
+      elementName Al-CF
+      quantity 0.300
+      unit g
+    }
+  }
+
+Component {
+    componentName "PS Power hybrid"
+    service false
+    scaleOnSensor 0
+    targetVolume 4
+    //POH CFRP support
+    Element {
+      elementName CFRP
+      quantity 0.247
+      unit g
+    }
+    //POH glue
+    Element {
+      elementName Epoxy
+      quantity 0.095
+      unit g
+    }
+    //POH copper
+    Element {
+      elementName Cu
+      quantity 2.419
+      unit g
+    }
+    //POH board + components
+    Element {
+      elementName PS-ROH-mix
+      quantity 3.108
+      unit g
+    }
+  }
+
+
+
+ // 2 Optical fibers
+  Component {
+    componentName "2S Fibers"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName PE
+      quantity 1.51390639
+      unit g/m
+    }
+  }
+
+  // Power for the converter (10V)
+  // 2 wires
+  Component {
+    componentName "2S Power lines"
+    service true
+    scaleOnSensor 1
+    Element {
+      elementName Cu_MV
+      quantity 2.36
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 1.92
+      unit g/m
+    }
+  }
+
+ 
+  // HV: 1 wire
+  Component {
+    componentName "2S HV lines"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Cu_HV
+      quantity 1.18
+      unit g/m
+    }
+    Element {
+      elementName PE
+      quantity 0.96
+      unit g/m
+    }
+  }
+
+  Component {
+    componentName "PS Support plate"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CFRP
+      quantity 2.49
+      unit g
+    }
+   Element {
+      elementName Epoxy
+      quantity 0.294
+      unit g
+    }
+  }
+
+}
