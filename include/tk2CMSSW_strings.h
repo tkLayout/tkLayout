@@ -187,6 +187,7 @@ namespace insur {
     static const std::string xml_det_tobdet = "TOBDet";
     static const std::string xml_tob_subdet = "TOBSubDet";
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
+    static const std::string xml_subdet_2OT_layer = "Phase2OTBarrelLayer";
     static const std::string xml_subdet_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_tobdet = "PixelBarrelModule";
     static const std::string xml_subdet_tobdet_1 = "PixelBarrelDet";
@@ -195,6 +196,7 @@ namespace insur {
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
     static const std::string xml_subdet_wheel = "PixelEndcapDisk";
+    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
     static const std::string xml_subdet_ring = "PixelEndcapPanel";
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";

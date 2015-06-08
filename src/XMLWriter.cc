@@ -155,7 +155,7 @@ namespace insur {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_layer;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_layer;
         out << xml_spec_par_close;
 
 
@@ -179,7 +179,7 @@ namespace insur {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_wheel;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
         out << xml_spec_par_close;
 
         // Add Rings
