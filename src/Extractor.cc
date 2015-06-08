@@ -842,7 +842,7 @@ namespace insur {
         logic.name_tag = shape.name_tag;
         logic.shape_tag = nspace + ":" + logic.name_tag;
         l.push_back(logic);
-        pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
+        pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
         pos.child_tag = logic.shape_tag;
         p.push_back(pos);
         lspec.partselectors.push_back(logic.name_tag);
@@ -1341,7 +1341,7 @@ namespace insur {
         logic.material_tag = xml_material_air;
         l.push_back(logic);
 
-        pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+        pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
         pos.child_tag = nspace + ":" + logic.name_tag;
         pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
         p.push_back(pos);
@@ -1352,7 +1352,7 @@ namespace insur {
         //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
         //   logic.extra = xml_minus;
         //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+        //   pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
         //   pos.child_tag = nspace + ":" + logic.name_tag;
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
@@ -1431,7 +1431,7 @@ namespace insur {
           logic.material_tag = nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixbarident + ":" + xml_pixbar; //xml_tracker;
+          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
@@ -1502,7 +1502,7 @@ namespace insur {
           logic.material_tag = nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd; // xml_tracker;
+          pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
@@ -1585,10 +1585,10 @@ namespace insur {
       case MaterialProperties::t_sup:
       case MaterialProperties::u_sup:
       case MaterialProperties::o_sup:
-          pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
+          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
           break;
       case MaterialProperties::e_sup:
-          pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+          pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
           break;
       default:
           pos.parent_tag = nspace + ":" + xml_tracker;
@@ -1619,10 +1619,10 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-            pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
+            pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
             break;
         case MaterialProperties::e_sup:
-            pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+            pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
             break;
         default:
             pos.parent_tag = nspace + ":" + xml_tracker;
