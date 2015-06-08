@@ -147,6 +147,12 @@ namespace insur {
         // Find the break
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
 
+        // Add Phase2OTBarrel
+        out << xml_spec_par_open << xml_2OTbar << "SubDet" << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_selector << xml_2OTbar << xml_general_endline;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_2OTbar;
+        out << xml_spec_par_close;
+
         // Add Layers
         out << xml_spec_par_open << "OuterTracker" << xml_subdet_layer << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_layer + xml_par_tail);
@@ -170,6 +176,11 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_rod;
         out << xml_spec_par_close;
 
+        // Add Phase2OTForward
+        out << xml_spec_par_open << xml_2OTendcap << "SubDet" << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_selector << xml_2OTfwd << xml_general_endline;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_2OTendcap;
+        out << xml_spec_par_close;
 
         // Add Disks
         out << xml_spec_par_open << "OuterTracker" << xml_subdet_wheel << xml_par_tail << xml_general_inter;

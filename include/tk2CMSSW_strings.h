@@ -160,6 +160,7 @@ namespace insur {
     static const std::string xml_2OTbar = "Phase2OTBarrel";
     static const std::string xml_pixfwd = "PixelForward"; 
     static const std::string xml_2OTfwd = "Phase2OTForward";
+    static const std::string xml_2OTendcap = "Phase2OTEndcap";
     static const std::string xml_pixfwd_plus = "PixelForward[1]"; // CUIDADO was: "PixelForwardZPlus";
     static const std::string xml_pixfwd_minus = "PixelForward[2]"; // CUIDADO was: "PixelForwardZMinus";
     static const std::string xml_tracker = "Tracker";
