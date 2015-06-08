@@ -160,7 +160,8 @@ ENDIF()
 # Compiler flags
 #add_definitions( "-Wall -Wno-long-long -std=c++11 -pedantic" )
 SET ( CMAKE_CXX_COMPILER "g++" )
-ADD_DEFINITIONS( "-std=c++11 -g -fpermissive -Wno-deprecated-declarations" )
+ADD_DEFINITIONS( -DREVISIONNUMBER=$ENV{GIT_REVISION} )
+SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprecated-declarations")
 SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
@@ -219,6 +220,20 @@ INSTALL(TARGETS tklayout DESTINATION bin)
 INSTALL(TARGETS setup.bin DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
+    
+    # Set the default version of SvnRevision.cpp file
+    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cpp to default\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cpp ]; then rm -f ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; mv SvnRevision.orig.cpp ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; fi\")" )
+    
+    # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
                    EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/tklayout $ENV{HOME}/bin/tklayout)" )
+
+    # Configure tkLayout
+    INSTALL( CODE "MESSAGE(STATUS \"Configuring tkLayout software...\" )
+                   MESSAGE(STATUS \" Target directories setup:\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e ${PROJECT_SOURCE_DIR}/bin/setup.bin ]; then ${PROJECT_SOURCE_DIR}/bin/setup.bin --dirNames; fi\")" ) 
+    INSTALL( CODE "MESSAGE(STATUS \" Installation status:\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if ! ${PROJECT_SOURCE_DIR}/bin/setup.bin --checkDir; then echo \\\"Problem during installation\\\"; else echo \\\"Installation successful\\\"; fi\")" )
+    
 ENDIF()
