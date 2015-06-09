@@ -93,17 +93,7 @@ namespace insur {
         ~MatParser();
         bool fillTable(std::string materialfile, MaterialTable& mattab);
         bool fillTable(std::string materialfile, MaterialTable2& mattab);
-        bool readParameters(std::string configfile, MatCalc& calc);
-        bool initMatCalc(std::string configfile, MatCalc& calc, std::string mattabdir );
-    protected:
-        bool parseStripsSegs(std::ifstream& instream, std::string& strips, std::string& segs);
-        bool parseMLine(std::string line, std::string type, MatCalc& calc, std::string comp);
-        bool parseDLine(std::string line, MatCalc& calc);
-        bool parseSimpleLine(std::string line, MatCalc& calc, std::string marker);
-    private:
-        std::string readFromLine(std::string source, std::string paramname);
-        std::string getValue(std::string source, bool final_delim = true, std::string delimiter = name_value_delim);
-        MatCalc::Matunit getUnit(std::string source); // throws exception
+        bool initMatCalc(MatCalc& calc, std::string mattabdir);
     };
 }
 #endif	/* _MATPARSER_H */

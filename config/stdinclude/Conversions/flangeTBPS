@@ -1,0 +1,180 @@
+// Generic services conversion rules
+// Services for the standard rods
+// (scales with respective material)
+// SERVICES
+// HV, MV, LV
+Station {
+  stationName flangeTBPS
+  type flange
+
+  // PE and Al
+  Conversion {
+    Input {
+      Element {
+        elementName PE
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName PE
+        quantity 10
+        unit g/m
+        service true
+      }
+    }  
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Al
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Al
+        quantity 10
+        unit g/m
+        service true
+      }
+    }  
+  }
+
+  // Wires and cables one-to-one
+  Conversion {
+    Input {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Cu_MV
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+      Element {
+        elementName Cu
+        quantity 0.423
+        unit g
+        service false
+      }
+      Element {
+        elementName PE
+        quantity 0.371
+        unit g
+        service false
+      }
+    }
+  }
+
+  Conversion {
+    Input {
+      Element {
+        elementName Cu_HV
+        quantity 10
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Cu
+        quantity 10
+        unit g/m
+        service true
+      }
+      Element {
+        elementName Cu
+        quantity 1.692
+        unit g
+        service false
+      }
+      Element {
+        elementName PE
+        quantity 1.485
+        unit g
+        service false
+      }
+    }
+  }
+
+  // Manifolds + radial pipes + holders
+  Conversion {
+    Input {
+      Element {
+        elementName Steel
+        quantity 7.9
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName Steel
+        quantity 17.2
+        unit g/m
+        service true
+      }
+      Element {
+        elementName Steel
+        quantity 4.2
+        unit g
+        service false
+      }
+      Element {
+        elementName Al
+        quantity 7.4
+        unit g
+        service false
+      }
+    }
+  }
+  Conversion {
+    Input {
+      Element {
+        elementName CO2
+        quantity 1.8
+        unit g/m
+      }
+    }
+    Output {
+      Element {
+        elementName CO2
+        quantity 1.4
+        unit g
+        service false
+      }
+      Element {
+        elementName CO2
+        quantity 3.7
+        unit g/m
+        service true
+      }
+    }
+  }
+
+}

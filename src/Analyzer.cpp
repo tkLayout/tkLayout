@@ -737,7 +737,6 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
 
 }
 
-
 void Analyzer::analyzePower(Tracker& tracker) {
   computeIrradiatedPowerConsumption(tracker);
   preparePowerHistograms();
@@ -824,20 +823,15 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
   Module* myModule;
 
   //  unsigned int nLocalMasses;
-  //  unsigned int nExitingMasses;
 
   std::map<std::string, double>::const_iterator localmassesBegin;
   std::map<std::string, double>::const_iterator localmassesEnd;
-
-  std::map<std::string, double>::const_iterator exitingmassesBegin;
-  std::map<std::string, double>::const_iterator exitingmassesEnd;
 
   // First create a list of material used anywhere
   std::vector<std::string> materialTagV;
   std::vector<std::string>::iterator materialTagIt;
 
   double localMaterial;
-  double exitingMaterial;
   string materialTag;
 
   // loop over layers
@@ -872,31 +866,16 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
         }
         if (byMaterial) { // sort by Material tag
           //nLocalMasses = myModuleCap->localMassCount();
-          //nExitingMasses = myModuleCap->exitingMassCount();
           localmassesBegin = myModuleCap->getLocalMasses().begin();
           localmassesEnd = myModuleCap->getLocalMasses().end();
-          exitingmassesBegin = myModuleCap->getExitingMasses().begin();
-          exitingmassesEnd = myModuleCap->getExitingMasses().end();
         } else { // sort by Component tag
           //nLocalMasses = myModuleCap->localMassCompCount();
-          //nExitingMasses = myModuleCap->exitingMassCompCount();
           localmassesBegin = myModuleCap->getLocalMassesComp().begin();
           localmassesEnd = myModuleCap->getLocalMassesComp().end();
-          exitingmassesBegin = myModuleCap->getExitingMassesComp().begin();
-          exitingmassesEnd = myModuleCap->getExitingMassesComp().end();
         }
         for (std::map<std::string, double>::const_iterator it = localmassesBegin; it != localmassesEnd; ++it) {
           // if (byMaterial) materialTag = myModuleCap->getLocalTag(iLocalMasses); // sort by Material tag
           //  else materialTag = myModuleCap->getLocalTagComp(iLocalMasses);           // sort by Component tag
-          materialTag = it->first;
-          materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
-          if (materialTagIt==materialTagV.end()) {
-            materialTagV.push_back(materialTag);
-          }
-        }
-        for (std::map<std::string, double>::const_iterator it = exitingmassesBegin; it != exitingmassesEnd; ++it) {
-          //  if (byMaterial) materialTag = myModuleCap->getExitingTag(iExitingMasses); // sort by Material tag
-          //  else materialTag = myModuleCap->getExitingTagComp(iExitingMasses);           // sort by Component tag
           materialTag = it->first;
           materialTagIt = find(materialTagV.begin(), materialTagV.end(), materialTag);
           if (materialTagIt==materialTagV.end()) {
@@ -931,9 +910,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
       if (byMaterial) {
         typeWeight[tmak.posTag]+=myModuleCap->getLocalMass();
-        typeWeight[tmak.posTag]+=myModuleCap->getExitingMass();
         tagWeight[tmak.sensorGeoTag]+=myModuleCap->getLocalMass();
-        tagWeight[tmak.sensorGeoTag]+=myModuleCap->getExitingMass();
       }
       if (myModule->posRef().phi == 1) {
         // If we did not write this module type yet
@@ -960,7 +937,7 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
             //           << ", type = " << myModule->getType()
             //           << ", ring = " << myModule->getRing()
             //           << endl;
-            // std::cout << "Material\tLocal\texiting\n";
+            // std::cout << "Material\tLocal\n";
 
             // Then we fill in the proper column
             // Prepare the columns of the table
@@ -969,30 +946,21 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
               if (byMaterial) { // table by materials
                 try { localMaterial = myModuleCap->getLocalMass(materialTag); }
                 catch (exception e) { localMaterial = 0; }
-                try { exitingMaterial = myModuleCap->getExitingMass(materialTag); }
-                catch (exception e) { exitingMaterial = 0; }
               } else { // table by components
                 try { localMaterial = myModuleCap->getLocalMassComp(materialTag); }
                 catch (exception e) { localMaterial = 0; }
-                try { exitingMaterial = myModuleCap->getExitingMassComp(materialTag); }
-                catch (exception e) { exitingMaterial = 0; }
               }
               //cout << materialTag << "\t"
               //<< localMaterial << "\t"
-              //<< exitingMaterial << "\t" << endl;
+              //<< endl;
               tempSS.str("");
               // TODO: move this to Vizard
-              tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
-                << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
-                << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
+              tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial;
               result[tempString].setCell(materialTag_i+1, myModule->tableRef().col, tempSS.str());
             }
             localMaterial = myModuleCap->getLocalMass();
-            exitingMaterial = myModuleCap->getExitingMass();
             tempSS.str("");
-            tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial << "+"
-              << std::dec << std::fixed << std::setprecision(1) << exitingMaterial << "="
-              << std::dec << std::fixed << std::setprecision(1) << localMaterial+exitingMaterial;
+            tempSS << std::dec << std::fixed << std::setprecision(1) << localMaterial;
             result[tempString].setCell(materialTagV.size()+1, myModule->tableRef().col, tempSS.str());
           } else {
             cerr << "ERROR in Analyzer::detailedWeights(): "
@@ -1337,9 +1305,7 @@ Material Analyzer::analyzeInactiveSurfaces(std::vector<InactiveElement>& element
                     << iter->getZOffset() << " to " << iter->getZOffset()+iter->getZLength()
                     << ") r=(" << iter->getInnerRadius() << " to " << iter->getInnerRadius()+iter->getRWidth() << ")" << std::endl;
           const std::map<std::string, double>& localMasses = iter->getLocalMasses();
-          const std::map<std::string, double>& exitingMasses = iter->getExitingMasses();
           for (auto massIt : localMasses) std::cerr   << "       localMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
-          for (auto massIt : exitingMasses) std::cerr << "     exitingMass" <<  massIt.first << " = " << any2str(massIt.second) << " g" << std::endl;
         }
         */
         // radiation and interaction lenth scaling for vertical volumes
@@ -1616,7 +1582,7 @@ void Analyzer::calculateGraphs(const int& parameter,
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph.SetTitle("Transverse impact momentum  error;#eta;#sigma (#delta d_{0}) [cm]");
+  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
@@ -1624,7 +1590,7 @@ void Analyzer::calculateGraphs(const int& parameter,
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph.SetTitle("Longitudinal impact momentum  error;#eta;#sigma (#delta z_{0}) [cm]");
+  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph.SetName(aName.str().c_str());
   // Prepare plots: p
@@ -2830,7 +2796,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       double distance;
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
-      static std::ofstream ofs("hits.txt");
+      //static std::ofstream ofs("hits.txt");
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)

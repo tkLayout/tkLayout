@@ -195,7 +195,8 @@ namespace material {
 
     struct BoundaryComparator {
       bool operator()(Boundary* const& one, Boundary* const& two) {
-        return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
+        //return ((one->maxZ() > two->maxZ()) || (one->maxR() > two->maxR()));
+        return ((one->maxZ() + one->maxR()) > (two->maxZ() + two->maxR()));
       }
     };
 
@@ -290,6 +291,7 @@ namespace material {
     static const int sectionTolerance;
     static const int layerStationLenght;
     static const int layerStationWidth;
+    static const double radialDistribError;
 
     static int discretize(double input);
     static double undiscretize(int input);
