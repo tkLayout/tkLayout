@@ -2,6 +2,8 @@
 #
 # CMAKE file for building tkLayout software
 #
+#  Author: Z. Drasal, CERN
+#
 #############################################################################
 
 #----------------------------------------------------------------------------
@@ -160,9 +162,9 @@ ENDIF()
 # Compiler flags
 #add_definitions( "-Wall -Wno-long-long -std=c++11 -pedantic" )
 SET ( CMAKE_CXX_COMPILER "g++" )
-ADD_DEFINITIONS( -DREVISIONNUMBER=$ENV{GIT_REVISION} )
+ADD_DEFINITIONS( "-Wl,--copy-dt-needed-entries" )
 SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprecated-declarations")
-SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
+#SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
 
 INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
                      ${BOOST_INCLUDE_DIR}
@@ -204,6 +206,9 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 #----------------------------------------------------------------------------
 # add the executable, and link it to the geant4 libraries
 #
+SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
 ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${headers} )
 
@@ -216,8 +221,8 @@ TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
-INSTALL(TARGETS tklayout DESTINATION bin)
-INSTALL(TARGETS setup.bin DESTINATION bin)
+INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
+INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
@@ -235,5 +240,17 @@ IF(CMAKE_HOST_UNIX)
                    EXECUTE_PROCESS(COMMAND bash -c \"if [ -e ${PROJECT_SOURCE_DIR}/bin/setup.bin ]; then ${PROJECT_SOURCE_DIR}/bin/setup.bin --dirNames; fi\")" ) 
     INSTALL( CODE "MESSAGE(STATUS \" Installation status:\" )
                    EXECUTE_PROCESS(COMMAND bash -c \"if ! ${PROJECT_SOURCE_DIR}/bin/setup.bin --checkDir; then echo \\\"Problem during installation\\\"; else echo \\\"Installation successful\\\"; fi\")" )
-    
+
 ENDIF()
+
+#----------------------------------------------------------------------------
+# Uninstall 
+#
+CONFIGURE_FILE(
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMakeUninstall.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+ADD_CUSTOM_TARGET(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+    

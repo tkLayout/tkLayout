@@ -1,3 +1,10 @@
+#############################################################################
+#
+# CMAKE module to find Git version
+#
+#  Author: Z. Drasal, CERN
+#
+#############################################################################
 FIND_PACKAGE(Git)
 IF(GIT_FOUND)
 
@@ -36,7 +43,8 @@ IF(GIT_FOUND)
  
   # All information found
   IF ( (${res_var_branch} EQUAL 0) AND (${res_var_version} EQUAL 0) AND (${res_var_author} EQUAL 0) ) 
-    STRING( CONCAT GIT_REVISION ${GIT_BRANCH} "-" ${GIT_VERSION} " on " ${GIT_AUTHOR} )
+    #STRING( CONCAT GIT_REVISION ${GIT_BRANCH} "-" ${GIT_VERSION} " on " ${GIT_AUTHOR} )
+    SET( GIT_REVISION "${GIT_BRANCH}-${GIT_VERSION} on ${GIT_AUTHOR}" )
 
     MESSAGE( STATUS "")
     MESSAGE( STATUS "Git Revision: ${GIT_REVISION} " )
