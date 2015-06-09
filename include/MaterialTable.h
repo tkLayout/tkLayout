@@ -92,6 +92,7 @@ namespace insur {
       virtual void fromCfg(std::string) = 0;
     };
 
+    // TODO: restart the development of this "new" material table so that supports composite materials and syncs with CMSSW
     class MaterialTable2 {
       std::map<std::string, BaseMaterial*> materials_;
     public:

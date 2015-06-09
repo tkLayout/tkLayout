@@ -523,7 +523,7 @@ namespace material {
     std::cout << "    DATA "
         << " componentName " << (componentName.state() ? componentName() : "NOT_SET")
         << " nSegments " << (nSegments.state() ? std::to_string(nSegments()) : "NOT_SET")
-        << " exiting " << service()
+        << " service " << service()
         << " scaleOnSensor " << scaleOnSensor()
         << " quantity " << quantity()
         << " unit " << unit()
