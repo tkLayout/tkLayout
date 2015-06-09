@@ -1,7 +1,7 @@
 // pt-PS module 10x5 for the inner region
 // GBT on the module
 
-Materials module-ptPS_320_40 {
+Materials module-ptPS_320_16 {
   type module
 
   // Default sensor:
@@ -47,23 +47,10 @@ Materials module-ptPS_320_40 {
     componentName "PS Inactive silicon"
     service false
     scaleOnSensor 0
-    //Silicon deep diffused
-    Element {
-      elementName Si
-      quantity 1.242
-      unit g
-      targetVolume 7
-    }
-    Element {
-      elementName Si
-      quantity 1.242
-      unit g
-      targetVolume 8
-    }
     //Sensor inactive edges
     Element {
       elementName Si
-      quantity 0.616
+      quantity 0.385
       unit g
       targetVolume 0
     }
@@ -134,10 +121,10 @@ Materials module-ptPS_320_40 {
       quantity 0.935
       unit g
     }
-    //FEH spacer 4.0 mm
+    //FEH spacer 1.6 mm
     Element {
       elementName Al-CF
-      quantity 2.9
+      quantity 0.240
       unit g
     }
     //FEH CFRP support
@@ -152,10 +139,10 @@ Materials module-ptPS_320_40 {
       quantity 1.499
       unit g
     }
-    //FEH glue 4.0 mm
+    //FEH glue 1.6 mm
     Element {
       elementName Epoxy
-      quantity 0.212
+      quantity 0.260
       unit g
     }
   }
@@ -167,20 +154,20 @@ Component {
     service false
     scaleOnSensor 0
     targetVolume 7
-    //4.0mm bridge
+    //1.6mm bridge
     Element {
       elementName Al-CF
-      quantity 2.64
+      quantity 1.120
       unit g
     }
   
-    //Parylene 4.0mm
+    //Parylene 1.6mm
     Element {
       elementName Epoxy
       quantity 0.09
       unit g
     }
-    //Bridges glue 4.0 mm
+    //Bridges glue 1.6 mm
     Element {
       elementName Epoxy
       quantity 0.163
@@ -200,10 +187,10 @@ Component {
       quantity 0.247
       unit g
     }
-    //ROH glue 4.0 mm
+    //ROH glue 1.6 mm
     Element {
       elementName Epoxy
-      quantity 0.057
+      quantity 0.061
       unit g
     }
     //ROH copper
@@ -218,10 +205,10 @@ Component {
       quantity 3.024
       unit g
     }
-    //ROH spacer 4.0 mm
+    //ROH spacer 1.6 mm
     Element {
       elementName Al-CF
-      quantity 0.61
+      quantity 0.300
       unit g
     }
   }
@@ -322,6 +309,5 @@ Component {
       unit g
     }
   }
-
 
 }
