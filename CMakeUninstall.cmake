@@ -31,7 +31,7 @@ ENDFOREACH( file )
 
 # Remove symlink
 MESSAGE( STATUS "Uninstalling symlink $ENV{HOME}/bin/tklayout" )
-IF( IS_SYMLINK "/home/drasal/bin/tklayout")
+IF( IS_SYMLINK "$ENV{HOME}/bin/tklayout")
   EXEC_PROGRAM(
          "@CMAKE_COMMAND@" ARGS "-E remove \"$ENV{HOME}/bin/tklayout\""
          OUTPUT_VARIABLE rm_out
