@@ -40,6 +40,5 @@ Sensor 2 {
 
 plotColor 1
 
-@includestd Materials/ptPS
-@includestd Materials/rodPtPS
+
 

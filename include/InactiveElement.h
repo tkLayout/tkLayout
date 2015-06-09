@@ -58,7 +58,6 @@ namespace insur {
     void setNeighbourIndex(int previous);
     void setTotalMass(double mass);
     void setLocalMass(double mass);
-    void setExitingMass(double mass);
     void setRadiationLength(double rlength);
     void setInteractionLength(double ilength);
     std::pair<double, double> getEtaMinMax();

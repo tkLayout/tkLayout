@@ -369,7 +369,9 @@ namespace insur {
    * @param a A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
-   */  
+   */ 
+ 
+  // TODO: if weightGrid is actually unused, then remove it
   void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
     RootWContent* myContent;
 
@@ -4624,26 +4626,9 @@ namespace insur {
       bool isEmpty = true;
 
       const std::map<std::string, double>& localMasses = iter.getLocalMasses();
-      const std::map<std::string, double>& exitingMasses = iter.getExitingMasses();
 
       int elementId=0;
       for (auto& massIt : localMasses) {
-	mass = massIt.second;
-	if (mass!=0) isEmpty=false;
-	myStringStream << serviceId << ","
-                       << elementId++ << ","
-		       << z1 << ","
-		       << z2 << ","
-		       << r1 << ","
-		       << r2 << ","
-		       << massIt.first << ","
-		       << mass << ","
-		       << mass/length << ","
-                       << rl << ","
-                       << il << "," 
-                       << "1" << std::endl;
-      }
-      for (auto& massIt : exitingMasses) {
 	mass = massIt.second;
 	if (mass!=0) isEmpty=false;
 	myStringStream << serviceId << ","
