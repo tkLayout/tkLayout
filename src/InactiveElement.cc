@@ -174,12 +174,6 @@ namespace insur {
     void InactiveElement::setLocalMass(double mass) { local_mass = mass; }
     
     /**
-     * Set the total mass of the inactive element.
-     * @param mass The new overall mass
-     */
-    void InactiveElement::setExitingMass(double mass) { exiting_mass = mass; }
-    
-    /**
      * Set the radiation length of the inactive element.
      * @param rlength The new overall radiation length, averaged over all the different material that occur in the inactive element
      */
