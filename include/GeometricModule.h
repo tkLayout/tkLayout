@@ -61,6 +61,7 @@ public:
  
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
+  bool flipped() const { return (basePoly_.getCenter().Z() > 0); } // TODO: this is a mickey mouse interface. replace with correct flip version
 
   void translate(const XYZVector& vector) { basePoly_.translate(vector); }
   void mirror(const XYZVector& vector) { basePoly_.mirror(vector); }

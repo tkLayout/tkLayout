@@ -192,6 +192,7 @@ public:
   void tilt(double angle) { rotateX(-angle); tiltAngle_ += angle; } // CUIDADO!!! tilt and skew can only be called BEFORE translating/rotating the module, or they won't work as expected!!
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
+  bool flipped() const { return decorated().flipped(); } 
   ModuleShape shape() const { return decorated().shape(); }
 ////////
 
