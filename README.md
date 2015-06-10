@@ -22,6 +22,8 @@ Compilation using make:
 
     make
 
+This will build the needed programs and put them in the ./bin directory.
+
 Compilation using cmake (NEW):
 
     mkdir build     (all object files, help files, libs, ... will be kept here)
@@ -32,7 +34,7 @@ Compilation using cmake (NEW):
     make uninstall  (if cleaning needed)
     rm *            (clean all content in build directory & restart if needed)
 
-This will build the needed programs and put them in the ./bin directory.
+This will build the needed programs, copy the executables into tkLayout/bin directory and create symlink in ${HOME}/bin directory.
 
 
 # Install
