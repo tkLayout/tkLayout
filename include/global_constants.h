@@ -22,7 +22,7 @@ namespace insur {
    * @param max_length The maximum length, in +z, available to place the tracker components
    */
   static const double epsilon = 0.1;
-  static const double volume_width = 4.5;
+  static const double volume_width = 10.0;
   static const double inner_radius = 214.0;
   static const double outer_radius = 1190.0;
   static const double max_length = 2910.0;
