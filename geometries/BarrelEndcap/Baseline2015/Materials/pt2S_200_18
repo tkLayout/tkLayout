@@ -187,7 +187,17 @@ Materials module-pt2S_320_18 {
     scaleOnSensor 0
     Element {
       elementName PE
-      quantity 1.51390639
+      quantity 1.139
+      unit g/m
+    }
+    Element {
+      elementName Glass
+      quantity 0.06
+      unit g/m
+    }
+    Element {
+      elementName Acrylate
+      quantity 0.07
       unit g/m
     }
   }
@@ -218,14 +228,26 @@ Materials module-pt2S_320_18 {
     // Cooling blocks
     Element {
       elementName Al-CF
-      quantity 2.41
+      quantity 4.32
       unit g
       targetVolume 0
     }
     // Screws
     Element {
       elementName Steel
-      quantity 0.48
+      quantity 0.34
+      unit g
+      targetVolume 0
+    }
+    Element {
+      elementName Al
+      quantity 0.08
+      unit g
+      targetVolume 0
+    }
+    Element {
+      elementName Brass
+      quantity 0.56
       unit g
       targetVolume 0
     }

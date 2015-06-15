@@ -59,8 +59,13 @@ Materials rodPt2S {
     scaleOnSensor 0
     Element {
       elementName CF
-      quantity 0.9
-      unit mm
+      quantity 176.7
+      unit g
+    }
+    Element {
+      elementName Al
+      quantity 14.3
+      unit g
     }
   }
 }
