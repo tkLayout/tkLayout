@@ -6,20 +6,21 @@
    // Cooling for the module
   Component {
     componentName Cooling
-    service true
+    service false
     scaleOnSensor 0
-    targetVolume 0
+    targetVolume 8
     Element {
       elementName Steel
-      quantity 0.29
-      unit g/m
+      quantity 0.5
+      unit g
     }
     Element {
       elementName CO2
-      quantity 0.18
-      unit g/m
+      quantity 0.3
+      unit g
     }
   }
+
 
 
 
@@ -27,31 +28,31 @@
   // (This is a bus line: service does not accumulate)
   Component {
     componentName "Twisted pairs"
-    service true
+    service false
     scaleOnSensor 0
     targetVolume 0
     // Two conductors and a drain
     Element {
       elementName Cu
-      quantity 0.0094
-      unit g/m
+      quantity 0.0339
+      unit g
     }
     // Two insulations
     Element {
       elementName PE
-      quantity 0.0054
-      unit g/m
+      quantity 0.0194
+      unit g
     }
     // Aluminium polyester foil
     Element {
       elementName Al
-      quantity 0.0092
-      unit g/m
+      quantity 0.0330
+      unit g
     }
   }
 
 
- 
+
   // Support Mechanics
   // Mechanics
   Component {
@@ -61,13 +62,21 @@
     targetVolume 8
     Element {
       elementName CFRP
-      quantity 3.1
+      quantity 5.4
       unit g
     }
-     Element {
-      elementName Airex
-      quantity 0.75
+    Element {
+      elementName Al-CF
+      quantity 7.0
       unit g
     }
   }
- 
+
+
+
+
+
+
+
+
+

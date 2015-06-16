@@ -4,9 +4,23 @@
 Materials module-TBPS_L2_tilted {
   type module
 
- 
   @include ../Materials/ptPS_320_16_notypedef
-  @include ../Materials/TBPS_moduleservices
+  @include ../Materials/TBPS_moduleservices_tilted
   @include ../Materials/TBPS_services_rings_L2
+
+
+  // Support Profiles
+  // Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    targetVolume 0
+    Element {
+      elementName CFRP
+      quantity 0.5
+      unit g
+    }
+  }
 
 }
