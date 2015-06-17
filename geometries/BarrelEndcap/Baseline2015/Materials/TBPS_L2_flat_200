@@ -6,20 +6,6 @@ Materials module-TBPS_L2_flat_200 {
 
   @include ../Materials/ptPS_200_16_notypedef
   @include ../Materials/TBPS_moduleservices
- 
-
-  // Support Profiles
-  // Mechanics
-  Component {
-    componentName Mechanics
-    service false
-    scaleOnSensor 0
-    targetVolume 0
-    Element {
-      elementName CFRP
-      quantity 0.5
-      unit g
-    }
-  }
+  @include ../Materials/TBPS_supportprofiles_L2 
 
 }
