@@ -170,10 +170,10 @@ namespace insur {
             std::cout << std::endl;
         }
         std::cout << "rotations: " << data.rots.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < data.rots.size(); i++) {
-            std::cout << "name = " << data.rots.at(i).name << ", thetax = " << data.rots.at(i).thetax << ", phix = ";
-            std::cout << data.rots.at(i).phix << ", thetay = " << data.rots.at(i).thetay << ", phiy = " << data.rots.at(i).phiy;
-            std::cout << ", thetaz = " << data.rots.at(i).thetaz << ", phiz = " << data.rots.at(i).phiz << std::endl;
+        for (auto const &it : data.rots) {
+            std::cout << "name = " << it.second.name << ", thetax = " << it.second.thetax << ", phix = ";
+            std::cout << it.second.phix << ", thetay = " << it.second.thetay << ", phiy = " << it.second.phiy;
+            std::cout << ", thetaz = " << it.second.thetaz << ", phiz = " << it.second.phiz << std::endl;
         }
         std::cout << "logic: " << data.logic.size() << " entries." << std::endl;
         for (unsigned int i = 0; i < data.logic.size(); i++) {

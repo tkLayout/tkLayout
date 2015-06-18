@@ -100,7 +100,7 @@ namespace insur {
         std::vector<ShapeInfo>& s = d.shapes;
         std::vector<PosInfo>& p = d.positions;
         std::vector<AlgoInfo>& a = d.algos;
-        std::vector<Rotation>& r = d.rots;
+        std::map<std::string,Rotation>& r = d.rots;
         std::ostringstream buffer;
         buffer << xml_preamble;
         buffer << getExtendedHeader();
@@ -367,11 +367,11 @@ namespace insur {
      * @param label The label of the rotation section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::rotationSection(std::vector<Rotation>& r, std::string label, std::ostringstream& stream) {
+  void XMLWriter::rotationSection(std::map<std::string,Rotation>& r, std::string label, std::ostringstream& stream) {
         if (!r.empty()) {
             stream << xml_rotation_section_open << label << xml_general_inter;
-            for (unsigned int i = 0; i < r.size(); i++)
-                rotation(r.at(i).name, r.at(i).thetax, r.at(i).phix, r.at(i).thetay, r.at(i).phiy, r.at(i).thetaz, r.at(i).phiz, stream);
+            for (auto const &it : r)
+                rotation(it.second.name, it.second.thetax, it.second.phix, it.second.thetay, it.second.phiy, it.second.thetaz, it.second.phiz, stream);
             stream << xml_rotation_section_close;
         }
     }

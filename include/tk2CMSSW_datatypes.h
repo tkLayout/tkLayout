@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace insur {
     /**
@@ -243,15 +244,15 @@ namespace insur {
      * @param specs 
      */
     struct CMSSWBundle {
-        std::vector<Element> elements;
-        std::vector<Composite> composites;
-        std::vector<LogicalInfo> logic;
-        std::vector<ShapeInfo> shapes;
-        std::vector<PosInfo> positions;
-        std::vector<AlgoInfo> algos;
-        std::vector<Rotation> rots;
-        std::vector<SpecParInfo> specs;
-        std::vector<RILengthInfo> lrilength;
+      std::vector<Element> elements;
+      std::vector<Composite> composites;
+      std::vector<LogicalInfo> logic;
+      std::vector<ShapeInfo> shapes;
+      std::vector<PosInfo> positions;
+      std::vector<AlgoInfo> algos;
+      std::map<std::string,Rotation> rots;
+      std::vector<SpecParInfo> specs;
+      std::vector<RILengthInfo> lrilength;
     };
 }
 #endif /* _TK2CMSSW_DATATYPES_H */

@@ -210,7 +210,8 @@ namespace insur {
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
-    static const std::string xml_barrel_tilt = "HCZ2YX";
+    static const std::string xml_default_mod_rot = "HCZ2YX";
+    static const std::string xml_flip_mod_rot = "FLIP";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants

@@ -41,7 +41,7 @@ namespace insur {
     std::vector<ShapeInfo>& s = d.shapes;
     std::vector<PosInfo>& p = d.positions;
     std::vector<AlgoInfo>& a = d.algos;
-    std::vector<Rotation>& r = d.rots;
+    std::map<std::string,Rotation>& r = d.rots;
     std::vector<SpecParInfo>& t = d.specs;
     std::vector<RILengthInfo>& ri = d.lrilength;
 
@@ -70,14 +70,25 @@ namespace insur {
 
     // Initialise rotation list with Harry's tilt mod
     Rotation rot;
-    rot.name = xml_barrel_tilt;
+    rot.name = xml_default_mod_rot;
     rot.thetax = 90.0;
-    rot.phix = 270.0;
-    rot.thetay = 180.0;
+    rot.phix = 90.0;
+    rot.thetay = 0.0;
     rot.phiy = 0.0;
     rot.thetaz = 90.0;
     rot.phiz = 0.0;
-    r.push_back(rot);
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+    // Flip module (Fix Y axis)
+    rot.name = xml_flip_mod_rot;
+    rot.thetax = 90.0;
+    rot.phix = 180.0;
+    rot.thetay = 90.0;
+    rot.phiy = 90.0;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
     rot.name = rot_sensor_tag;
@@ -94,7 +105,7 @@ namespace insur {
 #endif
     rot.thetaz = 180.0;
     rot.phiz   = 0.0;
-    r.push_back(rot);
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 #endif
 
     // EndcapRot is not needed any more
@@ -409,7 +420,7 @@ namespace insur {
    */
   void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr,
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                                std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+                                std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
     int layer;
 
     std::string nspace;
@@ -422,6 +433,7 @@ namespace insur {
     // Container inits
     ShapeInfo shape;
     shape.dyy = 0.0;
+
 
     LogicalInfo logic;
 
@@ -488,7 +500,7 @@ namespace insur {
       };
       ThicknessVisitor v;
       lagg.getBarrelLayers()->at(layer-1)->accept(v);
-
+      
       double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
       //rmin = rmin - v.max / 2.0; // no need to manually add/subtract the thickness, it is already taken into account by the new volumetric minR/maxR functions
       double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
@@ -575,19 +587,59 @@ namespace insur {
             // name_tag is BModule1Layer1 and it goes into all files
 
             pos.child_tag = logic.shape_tag;
-            pos.rotref = nspace + ":" + xml_barrel_tilt;
+	    double tiltAngle;
+	    std::string xml_tilted_mod_rot;
+            if (lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
+	    else {
+	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
+	      if (tiltAngle == 0) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
+	      else {
+		pconverter << xml_default_mod_rot << "_tilt_" << tiltAngle;
+		xml_tilted_mod_rot = pconverter.str();
+		pconverter.str(""); 
+	      
+		rot.name = xml_tilted_mod_rot + "_PLUS";
+		if (r.count(rot.name) == 0 ) {
+		  rot.thetax = 90.0;
+		  rot.phix = 90.0;
+		  rot.thetay = tiltAngle;
+		  rot.phiy = 180.0;
+		  rot.thetaz = 90.0 - tiltAngle;
+		  rot.phiz = 0.0;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot)); }
+		  
+		rot.name = xml_tilted_mod_rot + "_MINUS";
+		if (r.count(rot.name) == 0 ) {
+		  rot.thetax = 90.0;
+		  rot.phix = 90.0;
+		  rot.thetay = tiltAngle;
+		  rot.phiy = 0.0;
+		  rot.thetaz = 90.0 + tiltAngle;
+		  rot.phiz = 0.0;
+		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot)); }
+	      }	
+	    }
+	    //if (logic.shape_tag == "tracker:BModule5Layer1") { pos.rotref = nspace + ":" + xml_barrel_tilt_47; }
 
+	    // TODO: comment this lime
             if ((iiter->getModule().center().Rho() > (rmax - deltar / 2.0))
                 || ((iiter->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-                    && (iiter->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
-            else pos.trans.dx = shape.dz - deltar / 2.0;
+                    && (iiter->getModule().center().Rho() > (rmin + deltar / 2.0)))) {
+	      pos.trans.dx = deltar / 2.0 - shape.dz; 
+	    }
+	    else pos.trans.dx = shape.dz - deltar / 2.0;
+	    // debug cout << the values here for a known rod
 
             if (is_short) {
               pos.parent_tag = nspace + ":" + rname.str() + xml_plus;
               pos.trans.dz = iiter->getModule().minZ() - ((zmax + zmin) / 2.0) + shape.dy;
+	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		{pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_PLUS";}
               p.push_back(pos);
               pos.parent_tag = nspace + ":" + rname.str() + xml_minus;
               pos.trans.dz = -pos.trans.dz;
+	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		{pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_MINUS";}
               pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
               p.push_back(pos);
               pos.copy = 1;
@@ -596,6 +648,8 @@ namespace insur {
               partner = findPartnerModule(iiter, iguard, modRing);
               if (iiter->getModule().uniRef().side > 0) { 
                 pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
+		if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		  {pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_PLUS";}
                 p.push_back(pos);
                 if (partner != iguard) {
                   if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
@@ -603,14 +657,18 @@ namespace insur {
                           && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                   else pos.trans.dx = shape.dz - deltar / 2.0;
                   pos.trans.dz = partner->getModule().maxZ() - shape.dy;
+		  if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		    {pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_MINUS";}
                   pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
                   p.push_back(pos);
                   pos.copy = 1;
                 }
               } else {
                 pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
-                pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-                p.push_back(pos);
+		if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		  {pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_MINUS";}
+		pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
+		p.push_back(pos);
                 pos.copy = 1;
                 if (partner != iguard) {
                   if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
@@ -618,6 +676,8 @@ namespace insur {
                           && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
                   else pos.trans.dx = shape.dz - deltar / 2.0;
                   pos.trans.dz = partner->getModule().maxZ() - shape.dy;
+		  if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) 
+		    {pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_PLUS";}
                   p.push_back(pos);
                 }
               }
@@ -672,7 +732,7 @@ namespace insur {
                 rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
-                r.push_back(rot);
+                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
                 pos.rotref = nspace + ":" + rot.name;
               }
               p.push_back(pos);
@@ -921,7 +981,7 @@ namespace insur {
    */
   void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                               std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
     int layer;
 
     std::string nspace;
@@ -1149,7 +1209,7 @@ namespace insur {
                 rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
-                r.push_back(rot);
+                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
                 pos.rotref = nspace + ":" + rot.name;
               }
 
@@ -1656,7 +1716,7 @@ namespace insur {
     comp.density = density;
     comp.method = wt;
     double m = 0.0;
-    for (std::map<std::string, double>::const_iterator it = mp.getLocalMasses().begin(); it != mp.getLocalMasses().end(); ++it) {
+   for (std::map<std::string, double>::const_iterator it = mp.getLocalMasses().begin(); it != mp.getLocalMasses().end(); ++it) {
       if (!nosensors || (it->first.compare(xml_sensor_silicon) != 0)) {
         //    std::pair<std::string, double> p;
         //    p.first = mp.getLocalTag(i);
