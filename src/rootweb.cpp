@@ -1,7 +1,25 @@
 #include <rootweb.hh>
 
+#include <messageLogger.h>
+
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
+
+//*******************************************//
+// RootWeb                                   //
+//*******************************************//
+std::string RootWeb::cleanUpObjectName(const std::string& source) {
+  std::string dest = "";
+  const std::string allowedChars = "abcdefghijklmnopqrstuvwxyz"   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"   "0123456789._-()";
+  auto N=source.size();
+  auto i=N;
+  for (i=0; i<N; ++i) {
+    if (source[i]==' ') dest+="_";
+    if (allowedChars.find(source[i])<allowedChars.size()) dest+=source[i];
+  }
+  return dest;
+}
+
 
 //*******************************************//
 // RootWTable                                //
@@ -350,6 +368,62 @@ bool RootWImage::addExtension(string myExtension) {
   return result;
 }
 
+void RootWImage::saveSummary(std::string baseName, TFile* myTargetFile) {
+  if (!myCanvas_) return;
+  baseName += name_;
+  saveSummaryLoop(myCanvas_, baseName, myTargetFile);
+}
+
+void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile) {
+  TList* aList;
+  TObject* anObject;
+  TPad* myPad;
+  std::string myClass;
+  std::string myName;
+
+  TNamed* aNamed;
+
+  // TSystemFile* aFile;
+  // string aFileName;
+  // string aFileNameTail;
+  // TFile* myRootFile;
+
+  aList = basePad->GetListOfPrimitives();
+  for (int i=0; i<aList->GetEntries(); ++i) {
+    anObject = aList->At(i);
+    myClass = anObject->ClassName();
+    if (myClass=="TPad") { // Go one step inside
+      myPad = (TPad*) anObject;
+      saveSummaryLoop(myPad, baseName, myTargetFile);
+    } else if (
+	       (myClass=="TProfile") ||
+	       (myClass=="TGraph") ||
+	       (myClass=="TH1D") ||
+	       (myClass=="TH2C") ||
+	       (myClass=="TH2D") ||
+	       (myClass=="THStack") 
+	       ) {
+      aNamed = (TNamed*) anObject;
+      myTargetFile->cd();
+      myName = Form("%s.%s", baseName.c_str(), aNamed->GetName());
+      myName = RootWeb::cleanUpObjectName(myName);
+      aNamed->SetName(myName.c_str());
+      aNamed->Write();
+    } else if (
+	       (myClass=="TEllipse") ||
+	       (myClass=="TFrame") ||
+	       (myClass=="TLatex") ||
+	       (myClass=="TLegend") ||
+	       (myClass=="TLine") ||
+	       (myClass=="TPaveText") ||
+	       (myClass=="TPolyLine") ||
+	       (myClass=="TText") 
+	       ) {
+    } else {
+      logWARNING(Form("Unhandled class %s", myClass.c_str()));
+    }
+  }
+}
 
 //*******************************************//
 // RootWContent                              //
@@ -519,6 +593,10 @@ ostream& RootWContent::dump(ostream& output) {
   RootWItem* myItem;
   RootWImage* myImage;
   RootWFile* myFile;
+  TFile* summaryFile = getSummaryFile();
+  std::string baseName="";
+  if (page_ != nullptr) baseName = page_->getTitle() + ".";
+
   //std::cerr << "Content: " << title_ <<endl; //debug 
   output << "<h2 class=\"hidingTitle\">"<<title_<<"</h2>" << endl;
   if (visible_) {
@@ -531,6 +609,7 @@ ostream& RootWContent::dump(ostream& output) {
     if (myItem->isImage()) {
       if ( (myImage=dynamic_cast<RootWImage*>(myItem)) ) {
         myImage->setTargetDirectory(targetDirectory_);
+	if (summaryFile) myImage->saveSummary(baseName, summaryFile);
         myImage->saveFiles(THUMBSMALLSIZE, THUMBSMALLSIZE);
       } else {
         cout << "WARNING: this should never happen. contact the author immediately!" << endl;
@@ -550,6 +629,18 @@ ostream& RootWContent::dump(ostream& output) {
   output << "<div class=\"clearer\">&nbsp;</div>";
   output << "</div>" << endl;
   return output;
+}
+
+void RootWContent::setPage(RootWPage* newPage) {
+  page_ = newPage;
+}
+
+TFile* RootWContent::getSummaryFile() {
+  if (page_==nullptr) {
+    return nullptr;
+  } else {
+    return page_->getSummaryFile();
+  }
 }
 
 //*******************************************//
@@ -638,6 +729,7 @@ ostream& RootWPage::dump(ostream& output) {
   for (it = contentList_.begin(); it != contentList_.end(); ++it) {
     myContent =(*it);
     myContent->setTargetDirectory(targetDirectory_);
+    myContent->setPage(this);
     myContent->dump(output);
   }
   
@@ -663,6 +755,14 @@ int RootWPage::getRelevance() {
   return relevance;
 }
 
+TFile* RootWPage::getSummaryFile() {
+  if (site_) {
+    return site_->getSummaryFile();
+  } else {
+    return nullptr;
+  }
+}
+
 
 //*******************************************//
 // RootWSite                                 //
@@ -676,7 +776,7 @@ RootWSite::RootWSite() {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  //styleDirectory_ = ".";
+  summaryFile_ = nullptr;
 }
 
 RootWSite::RootWSite(string title) {
@@ -687,7 +787,7 @@ RootWSite::RootWSite(string title) {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  //styleDirectory_ = ".";
+  summaryFile_ = nullptr;
 }
 
 RootWSite::RootWSite(string title, string comment) {
@@ -698,7 +798,7 @@ RootWSite::RootWSite(string title, string comment) {
   programSite_ = DEFAULTPROGRAMSITE;
   revision_="";
   targetDirectory_ = ".";
-  //styleDirectory_ = ".";
+  summaryFile_ = nullptr;
 }
 
 RootWSite::~RootWSite() {
@@ -895,6 +995,7 @@ bool RootWSite::makeSite(bool verbose) {
   //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
   
   vector<RootWPage*>::iterator it;
+  summaryFile_ = new TFile(Form("%s/summary.root", targetDirectory_.c_str()), "RECREATE");
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
     if (verbose) std::cout << " " << myPage->getTitle() << std::flush;
@@ -905,8 +1006,13 @@ bool RootWSite::makeSite(bool verbose) {
     myPageFile.close();
   }
   if (verbose) std::cout << " ";
+  if (summaryFile_) summaryFile_->Close();
 
   return true;
+}
+
+TFile* RootWSite::getSummaryFile() {
+  return summaryFile_;
 }
 
 //*******************************************//
