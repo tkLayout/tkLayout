@@ -282,6 +282,8 @@ private:
   string targetDirectory_;
   TFile* summaryFile_;
   static const int least_relevant = -1000;
+  bool createSummaryFile_;
+  string summaryFileName_;
 public:
   ~RootWSite();
   RootWSite();
@@ -303,7 +305,9 @@ public:
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
   bool makeSite(bool verbose);
+  void setSummaryFile(bool);
   TFile* getSummaryFile();
+  void setSummaryFileName(std::string);
 };
 
 class RootWPage {

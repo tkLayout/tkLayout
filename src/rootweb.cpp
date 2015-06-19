@@ -777,6 +777,8 @@ RootWSite::RootWSite() {
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
+  createSummaryFile_ = true;
+  summaryFileName_ = "summary.root";
 }
 
 RootWSite::RootWSite(string title) {
@@ -788,6 +790,8 @@ RootWSite::RootWSite(string title) {
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
+  createSummaryFile_ = true;
+  summaryFileName_ = "summary.root";
 }
 
 RootWSite::RootWSite(string title, string comment) {
@@ -799,6 +803,8 @@ RootWSite::RootWSite(string title, string comment) {
   revision_="";
   targetDirectory_ = ".";
   summaryFile_ = nullptr;
+  createSummaryFile_ = true;
+  summaryFileName_ = "summary.root";
 }
 
 RootWSite::~RootWSite() {
@@ -995,7 +1001,11 @@ bool RootWSite::makeSite(bool verbose) {
   //boost::filesystem::create_symlink(styleDirectory_, targetStyleDirectory);
   
   vector<RootWPage*>::iterator it;
-  summaryFile_ = new TFile(Form("%s/summary.root", targetDirectory_.c_str()), "RECREATE");
+  if (createSummaryFile_) {
+    summaryFile_ = new TFile(Form("%s/%s",
+				  targetDirectory_.c_str(),
+				  summaryFileName_.c_str()), "RECREATE");
+  } else summaryFile_ = nullptr;
   for (it=pageList_.begin(); it!=pageList_.end(); it++) {
     myPage = (*it);
     if (verbose) std::cout << " " << myPage->getTitle() << std::flush;
@@ -1014,6 +1024,16 @@ bool RootWSite::makeSite(bool verbose) {
 TFile* RootWSite::getSummaryFile() {
   return summaryFile_;
 }
+
+void RootWSite::setSummaryFile(bool doSummary) {
+  createSummaryFile_ = doSummary;
+}
+
+void RootWSite::setSummaryFileName(std::string newName) {
+  summaryFileName_ = newName;
+  createSummaryFile_ = true;
+}
+
 
 //*******************************************//
 // RootWItemCollection                       //
