@@ -145,6 +145,8 @@ namespace insur {
     static const std::string xml_ring = "Ring";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
+    static const std::string xml_tilted = "Tilted";
+    static const std::string xml_flipped = "Flipped";
     static const std::string xml_barrel_module = "BModule";
     static const std::string xml_endcap_module = "EModule";
     static const std::string xml_base_actcomp = "modulecomposite";
