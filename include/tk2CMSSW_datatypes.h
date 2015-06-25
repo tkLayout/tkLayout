@@ -149,7 +149,7 @@ namespace insur {
         std::vector<std::string> parameters;
     };
     /**
-     * @struct RingInfo
+     * @struct ERingInfo
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
@@ -161,7 +161,7 @@ namespace insur {
      * @param mthk The total thickness of one of the ring modules
      * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
      */
-    struct RingInfo {
+    struct ERingInfo {
         std::string name;
         std::string childname;
         bool fw;
@@ -172,7 +172,36 @@ namespace insur {
         double mthk;
         double phi;
     };
-
+    /**
+     * @struct BTiltedRingInfo
+     * @brief This is a struct to collect temporary information about a barrel tilted ring and the modules within it.
+     * @param name The logical part name that identifies the ring
+     * @param childname The logical part name that identifies the modules contained in the ring
+     * @param fw A flag indicating where in z the ring is: true if it is in z+, false if it is in z-
+     * @param modules The number of modules within the ring
+     * @param rin The minimum radius of the ring as measured from the z-axis
+     * @param rout The maximum radius of the ring as measured from the z-axis
+     * @param rmid The radius of the module mean point as measured from the z-axis
+     * @param mthk The total thickness of one of the ring modules
+     * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     */
+    struct BTiltedRingInfo {
+        std::string name;
+        std::string childname;
+        std::string flippedchildname;
+        bool inner_flipped;
+      //bool fw;
+        double r1;
+        double z1;
+        double r2;
+        double z2;
+        int modules;
+        double mdx;
+        double mdy;
+        double mdz;
+        double tiltAngle;
+        double phi;
+    };
      /*
       * * @struct ModuleROCInfo
       * * @brief The information in this struct is a parameter in SpecParInfo.
