@@ -593,7 +593,7 @@ namespace insur {
 	      rinf.inner_flipped = 1; // iiter->getModule().isflipped();
 	      rinf.r1 = iiter->getModule().center().Rho();
 	      rinf.z1 = iiter->getModule().center().Z();
-	      rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
+	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
 	      rinf.mdx = shape.dx;
 	      rinf.mdy = shape.dy;	      
 	      rinf.mdz = shape.dz;
