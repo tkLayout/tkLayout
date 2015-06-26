@@ -506,6 +506,7 @@ namespace insur {
       //rmax = rmax + v.max / 2.0;
       double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
       double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
+      double flatzmax;
       double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
       double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
       //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
@@ -559,7 +560,6 @@ namespace insur {
             // This is the Barrel Case
             std::vector<ModuleCap>::iterator partner;
             std::ostringstream ringname, mname, matname, specname;
-
 
 #ifndef __ADDVOLUMES__ 
             // module composite material
@@ -912,8 +912,8 @@ namespace insur {
 
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
               minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
-              minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
-              minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
+              minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
+              minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
 
               mspec.moduletypes.push_back(minfo);
 #ifdef __ADDVOLUMES__
@@ -933,19 +933,26 @@ namespace insur {
             count++;
             dt = iiter->getModule().thickness();
           }
-	    if (iiter->getModule().uniRef().phi == 2 && !lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
-	      std::map<int,BTiltedRingInfo>::iterator it;
-	      it = rinfoplus.find(modRing);
-	      if (it != rinfoplus.end()) {
-		it->second.r2 = iiter->getModule().center().Rho();
-		it->second.z2 = iiter->getModule().center().Z();
+
+	    if (iiter->getModule().uniRef().phi == 2 && !lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
+	      if (tiltAngle == 0) { 
+		flatzmax = iiter->getModule().center().Z() + iiter->getModule().thickness() / 2.0;
 	      }
-	      it = rinfominus.find(modRing);
-	      if (it != rinfominus.end()) {
-		it->second.r2 = iiter->getModule().center().Rho();
-		it->second.z2 = - iiter->getModule().center().Z();
+	      else {
+		std::map<int,BTiltedRingInfo>::iterator it;
+		it = rinfoplus.find(modRing);
+		if (it != rinfoplus.end()) {
+		  it->second.r2 = iiter->getModule().center().Rho();
+		  it->second.z2 = iiter->getModule().center().Z();
+		}
+		it = rinfominus.find(modRing);
+		if (it != rinfominus.end()) {
+		  it->second.r2 = iiter->getModule().center().Rho();
+		  it->second.z2 = - iiter->getModule().center().Z();
+		}
 	      }
 	    }
+
 	  }
 	}
         if (count > 0) {
@@ -963,6 +970,7 @@ namespace insur {
         shape.dx = rodThickness / 2.0;
         if (is_short) shape.dz = (zmax - zmin) / 2.0;
         else shape.dz = zmax;
+	if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) { shape.dz = flatzmax; }
         s.push_back(shape);
         logic.name_tag = rodname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
