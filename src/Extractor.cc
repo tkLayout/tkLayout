@@ -558,7 +558,7 @@ namespace insur {
 
             // This is the Barrel Case
             std::vector<ModuleCap>::iterator partner;
-            std::ostringstream ringname, mname, matname, shapename, specname;
+            std::ostringstream ringname, mname, matname, specname;
 
 
 #ifndef __ADDVOLUMES__ 
@@ -571,8 +571,7 @@ namespace insur {
             mname << xml_barrel_module << modRing << lname.str();
 
             // module box
-            shapename << modRing << lname.str();
-            shape.name_tag = xml_barrel_module + shapename.str();
+            shape.name_tag = mname.str();
 #ifndef __ADDVOLUMES__
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
@@ -608,18 +607,18 @@ namespace insur {
 	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 
 	      // module boxes
-	      shape.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_plus + xml_flipped;
+	      shape.name_tag = mname.str() + xml_tilted + xml_plus + xml_flipped;
 	      s.push_back(shape);
-	      shape.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_plus;
+	      shape.name_tag = mname.str() + xml_tilted + xml_plus;
 	      s.push_back(shape);
-	      shape.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_minus + xml_flipped;
+	      shape.name_tag = mname.str() + xml_tilted + xml_minus + xml_flipped;
 	      s.push_back(shape);
-	      shape.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_minus;
+	      shape.name_tag = mname.str() + xml_tilted + xml_minus;
 	      s.push_back(shape);
-	      shape.name_tag = xml_barrel_module + shapename.str() + xml_flipped;
+	      shape.name_tag = mname.str() + xml_flipped;
 	      s.push_back(shape);
 	    }
-	    shape.name_tag = xml_barrel_module + shapename.str();
+	    shape.name_tag = mname.str();
 	    s.push_back(shape);
 
 #ifdef __ADDVOLUMES__ 
@@ -636,29 +635,29 @@ namespace insur {
             logic.material_tag = xml_material_air;
 #endif
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
-	      logic.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_plus + xml_flipped;
+	      logic.name_tag = mname.str() + xml_tilted + xml_plus + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag ;
 	      l.push_back(logic);
-	      logic.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_plus;
+	      logic.name_tag = mname.str() + xml_tilted + xml_plus;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
-	      logic.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_minus + xml_flipped;
+	      logic.name_tag = mname.str() + xml_tilted + xml_minus + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
-	      logic.name_tag = xml_barrel_module + shapename.str() + xml_tilted + xml_minus;
+	      logic.name_tag = mname.str() + xml_tilted + xml_minus;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
-	      logic.name_tag = xml_barrel_module + shapename.str() + xml_flipped;
+	      logic.name_tag = mname.str() + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
 	    }
-            logic.name_tag = xml_barrel_module + shapename.str();
+            logic.name_tag = mname.str();
             logic.shape_tag = nspace + ":" + logic.name_tag;
 	    l.push_back(logic);
 
             // name_tag is BModule1Layer1 and it goes into all files
 
-            pos.child_tag = logic.shape_tag;
+            pos.child_tag = nspace + ":" + mname.str();
 	    
 	    std::string xml_tilted_mod_rot;
             if (lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
@@ -669,7 +668,7 @@ namespace insur {
 		xml_tilted_mod_rot = pconverter.str();
 		pconverter.str("");
 	      
-		rot.name = xml_tilted_mod_rot + "_PLUS";
+		rot.name = xml_tilted_mod_rot + "_" + xml_plus;
 		if (r.count(rot.name) == 0 ) {
 		  rot.thetax = 90.0;
 		  rot.phix = 90.0;
@@ -680,7 +679,7 @@ namespace insur {
 		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 		}
 		  
-		rot.name = xml_tilted_mod_rot + "_MINUS";
+		rot.name = xml_tilted_mod_rot + "_" + xml_minus;
 		if (r.count(rot.name) == 0 ) {
 		  rot.thetax = 90.0;
 		  rot.phix = 90.0;
@@ -709,12 +708,12 @@ namespace insur {
 	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
-		pos.rotref = nspace + ":" + xml_tilted_mod_rot + xml_plus;
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_plus + xml_flipped;
-		pos.child_tag = logic.shape_tag + xml_flipped;
+		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_plus;
+		pos.parent_tag =  nspace + ":" + mname.str() + xml_tilted + xml_plus + xml_flipped;
+		pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
 		p.push_back(pos);
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_plus;
-		pos.child_tag = logic.shape_tag;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
+		pos.child_tag = nspace + ":" + mname.str();
 	      }
 	      p.push_back(pos);
               pos.parent_tag = nspace + ":" + rodname.str() + xml_minus;
@@ -723,12 +722,12 @@ namespace insur {
 	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
-		pos.rotref = nspace + ":" + xml_tilted_mod_rot + xml_minus;
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_minus + xml_flipped;
-		pos.child_tag = logic.shape_tag + xml_flipped;
+		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_minus;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus + xml_flipped;
+		pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
 		p.push_back(pos);
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_minus;
-		pos.child_tag = logic.shape_tag;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus;
+		pos.child_tag = nspace + ":" + mname.str();
 	      }
 	      p.push_back(pos);
 	      pos.copy = 1;
@@ -736,8 +735,8 @@ namespace insur {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
-		pos.parent_tag = logic.shape_tag + xml_flipped;
-		pos.child_tag = logic.shape_tag;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_flipped;
+		pos.child_tag = nspace + ":" + mname.str();
 		p.push_back(pos);
 	      }
             }
@@ -749,12 +748,12 @@ namespace insur {
 	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
-		pos.rotref = nspace + ":" + xml_tilted_mod_rot + xml_plus;
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_plus + xml_flipped;
-		pos.child_tag = logic.shape_tag + xml_flipped;
+		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_plus;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus + xml_flipped;
+		pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
 		p.push_back(pos);
-		pos.parent_tag = logic.shape_tag + xml_tilted + xml_plus;
-		pos.child_tag = logic.shape_tag;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
+		pos.child_tag = nspace + ":" + mname.str();
 	      } 
 	      p.push_back(pos);
 	      
@@ -768,12 +767,12 @@ namespace insur {
 		if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 		  pos.trans.dx = 0;
 		  pos.trans.dz = 0;
-		  pos.rotref = nspace + ":" + xml_tilted_mod_rot + xml_minus;
-		  pos.parent_tag = logic.shape_tag + xml_tilted + xml_minus + xml_flipped;
-		  pos.child_tag = logic.shape_tag + xml_flipped;
+		  pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_minus;
+		  pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus + xml_flipped;
+		  pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
 		  p.push_back(pos);
-		  pos.parent_tag = logic.shape_tag + xml_tilted + xml_minus;
-		  pos.child_tag = logic.shape_tag;
+		  pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus;
+		  pos.child_tag = nspace + ":" + mname.str();
 		}
 		p.push_back(pos);
 		pos.copy = 1;
@@ -783,16 +782,16 @@ namespace insur {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
-		pos.parent_tag = logic.shape_tag + xml_flipped;
-		pos.child_tag = logic.shape_tag;
+		pos.parent_tag = nspace + ":" + mname.str() + xml_flipped;
+		pos.child_tag = nspace + ":" + mname.str();
 		p.push_back(pos);
 	      }
             }
             pos.rotref = "";
 
 #ifdef __ADDVOLUMES__ 
-            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            ModuleComplex modcomplex(moduleName,*iiter);
+            //std::string moduleName = mname.str(); // e.g. BModule1Layer1
+            ModuleComplex modcomplex(mname.str(),*iiter);
             modcomplex.buildSubVolumes();
 #endif
 
@@ -800,19 +799,19 @@ namespace insur {
             string xml_base_inout = "";
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
-            shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+            shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
             //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
             s.push_back(shape);
 
-            pos.parent_tag = logic.shape_tag;
+            pos.parent_tag = nspace + ":" + mname.str();
 
-            logic.name_tag = shape.name_tag;
+            logic.name_tag = mname.str() + xml_base_inout + xml_base_waf;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
-            pos.child_tag = logic.shape_tag;
+            pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
@@ -821,19 +820,19 @@ namespace insur {
 
               xml_base_inout = xml_base_outer;
 
-              shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+              shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
               s.push_back(shape);
 
-              logic.name_tag = shape.name_tag;
+              logic.name_tag = mname.str() + xml_base_inout + xml_base_waf;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = logic.shape_tag;
+              pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
               if (iiter->getModule().stereoRotation() != 0) {
-                rot.name = type_stereo + xml_barrel_module + shapename.str();
+                rot.name = type_stereo + mname.str();
                 rot.thetax = 90.0;
                 rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                 rot.thetay = 90.0;
@@ -859,18 +858,18 @@ namespace insur {
             xml_base_inout = "";
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
-            shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
+            shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
             s.push_back(shape);
 
             //pos.parent_tag = logic.shape_tag;
-            pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+            pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
 
-            logic.name_tag = shape.name_tag;
+            logic.name_tag = mname.str() + xml_base_inout + xml_base_act;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = nspace + ":" + xml_sensor_silicon;
             l.push_back(logic);
 
-            pos.child_tag = logic.shape_tag;
+            pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_act;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
             pos.rotref = nspace + ":" + rot_sensor_tag;
@@ -878,7 +877,7 @@ namespace insur {
             p.push_back(pos);
 
             // topology
-            mspec.partselectors.push_back(logic.name_tag);
+            mspec.partselectors.push_back(mname.str() + xml_base_inout + xml_base_act);
 
             minfo.name		= iiter->getModule().moduleType();
             minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
@@ -893,23 +892,23 @@ namespace insur {
               // active surface
               xml_base_inout = xml_base_outer;
 
-              shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
+              shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
               s.push_back(shape);
 
-              pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+              pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
 
-              logic.name_tag = shape.name_tag;
+              logic.name_tag = mname.str() + xml_base_inout + xml_base_act;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = logic.shape_tag;
+              pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_act;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
               pos.rotref = nspace + ":" + rot_sensor_tag;
 #endif
               p.push_back(pos);
 
               // topology
-              mspec.partselectors.push_back(logic.name_tag);
+              mspec.partselectors.push_back(mname.str() + xml_base_inout + xml_base_act);
 
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
               minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
@@ -965,20 +964,20 @@ namespace insur {
         if (is_short) shape.dz = (zmax - zmin) / 2.0;
         else shape.dz = zmax;
         s.push_back(shape);
-        logic.name_tag = shape.name_tag;
+        logic.name_tag = rodname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
         logic.material_tag = xml_material_air;
         l.push_back(logic);
-        rspec.partselectors.push_back(logic.name_tag);
+        rspec.partselectors.push_back(rodname.str());
         rspec.moduletypes.push_back(minfo_zero);
         //rspec.moduletypes.push_back("");
         if (is_short) {
           shape.name_tag = rodname.str() + xml_minus;
           s.push_back(shape);
-          logic.name_tag = shape.name_tag;
+          logic.name_tag = rodname.str() + xml_minus;
           logic.shape_tag = nspace + ":" + logic.name_tag;
           l.push_back(logic);
-          rspec.partselectors.push_back(logic.name_tag);
+          rspec.partselectors.push_back(rodname.str() + xml_minus);
           //rspec.moduletypes.push_back("");
           rspec.moduletypes.push_back(minfo_zero);
         }
@@ -991,21 +990,21 @@ namespace insur {
           shape.rmax = rmax;
           shape.name_tag = lname.str() + xml_plus;
           s.push_back(shape);
-          logic.name_tag = shape.name_tag;
+          logic.name_tag = lname.str() + xml_plus;
           logic.shape_tag = nspace + ":" + logic.name_tag;
           l.push_back(logic);
           pos.trans.dx = 0.0;
           pos.trans.dz = zmin + (zmax - zmin) / 2.0;
           pos.parent_tag = nspace + ":" + lname.str();
-          pos.child_tag = logic.shape_tag;
+          pos.child_tag = nspace + ":" + lname.str() + xml_plus;
           p.push_back(pos);
           shape.name_tag = lname.str() + xml_minus;
           s.push_back(shape);
-          logic.name_tag = shape.name_tag;
+          logic.name_tag = lname.str() + xml_minus;
           logic.shape_tag = nspace + ":" + logic.name_tag;
           l.push_back(logic);
-          pos.trans.dz = -pos.trans.dz;
-          pos.child_tag = logic.shape_tag;
+          pos.trans.dz = - pos.trans.dz;
+          pos.child_tag =  nspace + ":" + lname.str() + xml_minus;
           p.push_back(pos);
         }
         // rods in layer algorithm(s)
@@ -1042,7 +1041,7 @@ namespace insur {
         a.push_back(alg);
         // extras for short layers
         if (is_short) {
-          if (wt) alg.parent = logic.shape_tag + xml_minus;
+          if (wt) alg.parent = nspace + ":" + lname.str() + xml_minus;
           pconverter << nspace << ":" << rodname.str() << xml_minus;
           alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
           pconverter.str("");
@@ -1081,24 +1080,24 @@ namespace insur {
 	      shape.dz = (rinfo[*riter].z2 - rinfo[*riter].z1) / 2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * cos(rinfo[*riter].tiltAngle * M_PI / 180 - atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
 	      s.push_back(shape);
 	      
-	      logic.name_tag = shape.name_tag;
+	      logic.name_tag = rinfo[*riter].name;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      
 	      pos.parent_tag = nspace + ":" + lname.str();
-	      pos.child_tag = logic.shape_tag;
+	      pos.child_tag = nspace + ":" + rinfo[*riter].name;
 	      
 	      //if (rinfo[*riter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
 	      //else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
 	      pos.trans.dz = (rinfo[*riter].z1 + rinfo[*riter].z2) / 2; 
 	      p.push_back(pos);
 	      
-	      rspec.partselectors.push_back(logic.name_tag);
+	      rspec.partselectors.push_back(rinfo[*riter].name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
 	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = logic.shape_tag;
+	      alg.parent = nspace + ":" + rinfo[*riter].name;
 	      if (rinfo[*riter].inner_flipped) {
 		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
 	      } else {
@@ -1174,24 +1173,24 @@ namespace insur {
 	      shape.dz = (rinfo[*riter].z2 - rinfo[*riter].z1) / 2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * cos(rinfo[*riter].tiltAngle * M_PI / 180 - atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
 	      s.push_back(shape);
 	      
-	      logic.name_tag = shape.name_tag;
+	      logic.name_tag = rinfo[*riter].name;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      
 	      pos.parent_tag = nspace + ":" + lname.str();
-	      pos.child_tag = logic.shape_tag;
+	      pos.child_tag = nspace + ":" + rinfo[*riter].name;
 	      
 	      //if (rinfo[*riter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
 	      //else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
 	      pos.trans.dz = (rinfo[*riter].z1 + rinfo[*riter].z2) / 2; 
 	      p.push_back(pos);
 	      
-	      rspec.partselectors.push_back(logic.name_tag);
+	      rspec.partselectors.push_back(rinfo[*riter].name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
 	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = logic.shape_tag;
+	      alg.parent = nspace + ":" + rinfo[*riter].name;
 	      if (rinfo[*riter].inner_flipped) {
 		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
 	      } else {
@@ -1252,13 +1251,13 @@ namespace insur {
         shape.rmax = rmax;
         shape.dz = zmax;
         s.push_back(shape);
-        logic.name_tag = shape.name_tag;
+        logic.name_tag = lname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
         l.push_back(logic);
         pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
-        pos.child_tag = logic.shape_tag;
+        pos.child_tag = nspace + ":" + lname.str();
         p.push_back(pos);
-        lspec.partselectors.push_back(logic.name_tag);
+        lspec.partselectors.push_back(lname.str());
         //lspec.moduletypes.push_back("");
         lspec.moduletypes.push_back(minfo_zero);
       }
