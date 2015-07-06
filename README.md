@@ -17,11 +17,24 @@ If you are on lxplus you just have to run a bash shell and then
 
 
 # Compilation
-  Simply type:
 
-      make
+Compilation using make:
+
+    make
 
 This will build the needed programs and put them in the ./bin directory.
+
+Compilation using cmake (NEW):
+
+    mkdir build     (all object files, help files, libs, ... will be kept here)
+    cd build
+    cmake ..        (generate makefile)
+    make install    (or write make all + make install)
+
+    make uninstall  (if cleaning needed)
+    rm *            (clean all content in build directory & restart if needed)
+
+This will build the needed programs, copy the executables into tkLayout/bin directory and create symlink in ${HOME}/bin directory.
 
 
 # Install
