@@ -20,7 +20,8 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <hit.hh>
+#include <Hit.hh>
+#include <Track.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
