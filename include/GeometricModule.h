@@ -35,6 +35,7 @@ enum ModuleShape { RECTANGULAR, WEDGE };
 class GeometricModule : public ModuleDecorable {
 protected:
   int numHits_ = 0;
+  bool flipped_ = false;
   int tiltAngle_ = 0., skewAngle_ = 0.;
   Polygon3d<4> basePoly_;
   double triangleCross(const XYZVector& P1, const XYZVector& P2, const XYZVector& P3, const XYZVector& PL, const XYZVector& PU);
@@ -61,7 +62,8 @@ public:
  
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
-  bool flipped() const { return (basePoly_.getCenter().Z() > 0); } // TODO: this is a mickey mouse interface. replace with correct flip version
+  bool flipped() const { return flipped_; }
+  bool flipped(bool newFlip) { flipped_=newFlip; return flipped_; }
 
   void translate(const XYZVector& vector) { basePoly_.translate(vector); }
   void mirror(const XYZVector& vector) { basePoly_.mirror(vector); }

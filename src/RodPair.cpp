@@ -316,6 +316,7 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
     //mod->build();
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
+    mod->flipped(!bool(parity)); // Attaching the correct flipped() value to the module
     mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules.push_back(mod);
@@ -381,6 +382,7 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
+    mod->flipped(i%2); // May be right, may be wrong... 50%/50%
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);
   }

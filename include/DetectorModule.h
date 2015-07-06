@@ -193,6 +193,7 @@ public:
   void skew(double angle) { rotateY(-angle); skewAngle_ += angle; }
 
   bool flipped() const { return decorated().flipped(); } 
+  bool flipped(bool newFlip) { return decorated().flipped(newFlip); } 
   ModuleShape shape() const { return decorated().shape(); }
 ////////
 
