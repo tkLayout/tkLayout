@@ -13,6 +13,7 @@ namespace insur {
   static const double PI = 3.14159265358979323846;
   static const double E = 2.71828182845904523536;
   static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
+
   /**
    * Geometry constants; all length measurements are in mm
    * @param epsilon The standard distance between one solid object and the next
@@ -29,6 +30,7 @@ namespace insur {
   static const double pixel_radius = 25.0;
   static const double z_threshold_service_zigzag = 100.0;
 
+  static const int    default_n_tracks           = 120;                   // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.
