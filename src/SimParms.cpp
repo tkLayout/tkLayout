@@ -1,7 +1,7 @@
 #include "SimParms.h"
 
 
-void SimParms::build() {
+void SimParms::crosscheck() {
   try {
     check();
 
@@ -10,8 +10,8 @@ void SimParms::build() {
       irradiationMapsManager_.addIrradiationMap((*iterMapFile).c_str());
     }
 
-    cleanup();
     builtok(true);
+    cleanup();
   } catch (PathfulException& pe) { pe.pushPath("SimParms"); throw; }
 }
 

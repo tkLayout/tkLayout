@@ -49,19 +49,19 @@ namespace insur {
   /*
    * Error messages and warnings that may be reported.
    */
-  static const std::string err_no_geomfile = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
-  static const std::string err_no_matfile = "The provided material configuration file does not exist.";
+  static const std::string err_no_geomfile      = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
+  static const std::string err_no_matfile       = "The provided material configuration file does not exist.";
   static const std::string err_no_matfile_pixel = "The material configuration file for the pixels does not exist.";
-  static const std::string err_init_failed = "Initialisation of the material calculator failed.";
-  static const std::string err_no_tracker = "The tracker object does not exist. The tracker must be created before calling this function.";
-  static const std::string err_no_inacsurf = "The collection of inactive surfaces does not exist. It must be created before calling this function";
-  static const std::string err_no_matbudget = "The material budget does not exist. It must be created before calling this function.";
-  static const std::string err_no_triggerSummary = "Could not report on the trigger performance.";
-  static const std::string warn_rootonly = "The collection of inactive surfaces does not exist. Only the .root file will be written.";
-  static const std::string warn_custom_matfile = "A customized material file was used for the tracker";
+  static const std::string err_init_failed      = "Initialisation of the material calculator failed.";
+  static const std::string err_no_tracker       = "The tracker object does not exist. The tracker must be created before calling this function.";
+  static const std::string err_no_inacsurf      = "The collection of inactive surfaces does not exist. It must be created before calling this function";
+  static const std::string err_no_matbudget     = "The material budget does not exist. It must be created before calling this function.";
+  static const std::string err_no_triggerSummary= "Could not report on the trigger performance.";
+  static const std::string warn_rootonly        = "The collection of inactive surfaces does not exist. Only the .root file will be written.";
+  static const std::string warn_custom_matfile  = "A customized material file was used for the tracker";
   static const std::string warn_custom_matfile_pixel = "A customized material file was used for the pixel";
 
-  static const std::string default_trackername = "defaultTrackerName";
+  static const std::string default_trackername  = "defaultTrackerName";
 
   /**
    * @class Squid
@@ -101,8 +101,8 @@ namespace insur {
     bool reportResolutionSite();
     bool reportTriggerPerformanceSite(bool extended);
     bool reportNeighbourGraphSite();
-    bool additionalInfoSite();
-    bool makeSite(bool addLogPage = true);
+    bool reportInfoSite();
+    bool makeWebSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);
     void setGeometryFile(std::string geomFile);
     void setHtmlDir(std::string htmlDir);
@@ -111,25 +111,41 @@ namespace insur {
     void setCommandLine(int argc, char* argv[]);
 
   private:
-    //std::string g;
-    Tracker* tr;
-    SimParms* simParms_;
-    InactiveSurfaces* is;
-    MaterialBudget* mb;
-    Tracker* px;
+
+    Tracker  * pxd_;
+    Tracker  * std_;
+
+    InactiveSurfaces* pxdPasive_;
+    InactiveSurfaces* stdPasive_;
+
     std::list<Support*> supports_;
-    InactiveSurfaces* pi;
-    MaterialBudget* pm;
-    MatParser mp;
-    Usher u;
+
+    MaterialBudget * bpMb_;
+    MaterialBudget * pxdMb_;
+    MaterialBudget * stdMb_;
+    
+    SimParms * simParms_;
+
+    Analyzer pixelAnalyzer_;
+    Analyzer stripAnalyzer_;
+    Analyzer trackerAnalyzer_;
+    
+    MatCalc pixelMaterialCalc_;
+    MatCalc stripMaterialCalc_;
+
     Materialway materialwayTracker;
     Materialway materialwayPixel;
-    MatCalc tkMaterialCalc;
-    MatCalc pxMaterialCalc;
-    Analyzer a;
-    Analyzer pixelAnalyzer;
-    Vizard v;
-    mainConfigHandler& mainConfiguration;
+
+    MatParser          matParser_;
+    Vizard             vizard_;
+    mainConfigHandler& mainConfig_; // Instance of main configuration paramaters
+
+    RootWSite webSite_; // General web container
+    bool      prepareWebSite();
+    bool      sitePrepared_;
+
+    Usher u;
+
     tk2CMSSW t2c;
     bool fileExists(std::string filename);
     std::string extractFileName(const std::string& full);

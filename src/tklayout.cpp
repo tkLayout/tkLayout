@@ -178,8 +178,8 @@ int main(int argc, char* argv[]) {
 
     // Report tracker geometry
     if (!squid.reportGeometrySite()) return EXIT_FAILURE;
-    if (!squid.additionalInfoSite()) return EXIT_FAILURE;
-    if (!squid.makeSite())           return EXIT_FAILURE;
+    if (!squid.reportInfoSite())     return EXIT_FAILURE;
+    if (!squid.makeWebSite())        return EXIT_FAILURE;
 
   }
   // Do specific simulated tracks analysis
