@@ -55,6 +55,10 @@ private:
   Endcaps endcaps_;
   SupportStructures supportStructures_;
 
+  bool pixelTypeTracker_;
+  bool stripTypeTracker_;
+  bool combinedTracker_;
+  
   ModuleSetVisitor moduleSetVisitor_;
 
   PropertyNode<string> barrelNode;
@@ -74,9 +78,25 @@ public:
       servicesForcedUp("servicesForcedUp", parsedOnly(), true),
       skipAllServices("skipAllServices", parsedOnly(), false),
       skipAllSupports("skipAllSupports", parsedOnly(), false),
-      containsOnly("containsOnly", parsedOnly())
+      containsOnly("containsOnly", parsedOnly()),
+      pixelTypeTracker_(false),
+      stripTypeTracker_(false),
+      combinedTracker_(false)
   {}
 
+  // Set & get tracker type: pixel or strip
+  inline void setIsPixelType(bool pixelType) { pixelTypeTracker_ = pixelType;}
+  inline bool isPixelType() const {return pixelTypeTracker_;};
+  
+  inline void setIsStripType(bool stripType) { stripTypeTracker_ = stripType;}
+  inline bool isStripType() const {return stripTypeTracker_;};
+  
+  inline void setIsCombinedType(bool combinedType) { combinedTracker_ = combinedType;}
+  inline bool isCombinedType() const {return combinedTracker_;};
+
+   
+ 
+ 
   void setup() {
       maxR.setup([this]() { 
         double max = 0; 

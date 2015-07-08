@@ -360,7 +360,7 @@ namespace insur {
 
 
   void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    histogramSummary(a, materialBudget, debugServices, site, "outer");
+    histogramSummary(a, materialBudget, debugServices, site, "trigger");
   }
 
   /**
@@ -1132,8 +1132,9 @@ namespace insur {
     RootWPage* myPage = new RootWPage(pageTitle);
     
     // TODO: the web site should decide which page to call index.html
-
-    std::string pageAddress="index"+name+".html";
+    std::string pageAddress = "";
+    if (name=="trigger") pageAddress = "index.html";
+    else                 pageAddress = "index"+name+".html";
     myPage->setAddress(pageAddress);
 
     site.addPage(myPage, 100);
@@ -1757,10 +1758,6 @@ namespace insur {
       RZCanvas->cd();
       beampipe->Draw("same");
 
-      TPolyLine* etafour  = new TPolyLine();
-      etafour->SetPoint(0, 0, 0);
-      etafour->SetPoint(1, 2700, 98.9376398798);
-      etafour->Draw("same");
     }
     // createColorPlotCanvas(tracker, 1, RZCanvas);
 
@@ -1999,8 +1996,8 @@ namespace insur {
       yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     }
 
-    int rzCanvasX = int(maxL/scaleFactor);
-    int rzCanvasY = int(maxR/scaleFactor);
+    int rzCanvasX = 1800; //int(maxL/scaleFactor);
+    int rzCanvasY =  600; //int(maxR/scaleFactor);
     result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
@@ -2518,6 +2515,7 @@ namespace insur {
     //*    Resolution estimate       *//
     //*                              *//
     //********************************//
+      GraphBag& gb = a.getGraphBag();
 
     // Here you should check if the TGraph
     // list is empty => maybe not?
@@ -2679,6 +2677,7 @@ namespace insur {
           ctgThetaCanvas.SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineWidth(lineWidth);
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
@@ -2701,6 +2700,7 @@ namespace insur {
           z0Canvas.SetLogy();
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineWidth(lineWidth);
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
@@ -2728,6 +2728,7 @@ namespace insur {
           pCanvas.SetLogy();
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineWidth(lineWidth);
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
@@ -2915,12 +2916,17 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     
     RootWPage* myPage = new RootWPage(pageTitle);
     myPage->setAddress(pageAddress);
+   
+    if      (tag=="trigger") site.addPage(myPage, 99);
+    else if (tag=="pixel")   site.addPage(myPage, 98);
+    else if (tag=="tracker") site.addPage(myPage, 97);
+    else                     site.addPage(myPage,100);
 
     // Create the contents
     RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across eta (active+pasive material)");
-    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across eta (active material only)");
+    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across eta (ideal - no material)");
     RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P  across eta (active+pasive material)");
-    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across eta (active material only)");
+    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across eta (ideal - no material)");
 
     // Create a page for the errors - 2 scenarios with/without multiple scattering (active+pasive or just active material)
     std::string scenarioStr="";
@@ -2975,7 +2981,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& momentumGraph = mapel.second;
-          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3010,7 +3016,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& pGraph = mapel.second;
-          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3024,6 +3030,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineWidth(lineWidth);
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
@@ -3040,7 +3047,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& distanceGraph = mapel.second;
-          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             distanceProfile.SetMinimum(4*1e-4);
@@ -3071,7 +3078,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& angleGraph = mapel.second;
-          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             angleProfile.SetMinimum(1E-5);
@@ -3102,7 +3109,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& ctgThetaGraph = mapel.second;
-          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           ctgThetaProfile.SetMinimum(1E-5);
           ctgThetaProfile.SetMaximum(0.1*verticalScale);
@@ -3111,6 +3118,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineWidth(lineWidth);
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
@@ -3127,7 +3135,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_Pt | idealMaterial, tag)) {
 
           const TGraph& z0Graph = mapel.second;
-          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           z0Profile.SetMinimum(1E-5);
           z0Profile.SetMaximum(1*verticalScale);
@@ -3136,6 +3144,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineWidth(lineWidth);
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
@@ -3226,7 +3235,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_P | idealMaterial, tag)) {
 
           const TGraph& momentumGraph = mapel.second;
-          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3261,7 +3270,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_P | idealMaterial, tag)) {
 
           const TGraph& pGraph = mapel.second;
-          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3275,6 +3284,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineWidth(lineWidth);
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
@@ -3291,7 +3301,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_P | idealMaterial, tag)) {
 
           const TGraph& distanceGraph = mapel.second;
-          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             distanceProfile.SetMinimum(4*1e-4);
@@ -3322,7 +3332,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_P | idealMaterial, tag)) {
 
           const TGraph& angleGraph = mapel.second;
-          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             angleProfile.SetMinimum(1E-5);
@@ -3345,7 +3355,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
             phiCanvas_P.cd();
             angleProfile.Draw(plotOption.c_str());
             plotOption = "same";
-          } 
+          }
         }
         // Draw ctgTheta
         plotOption = "";
@@ -3353,7 +3363,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_P | idealMaterial, tag)) {
 
           const TGraph& ctgThetaGraph = mapel.second;
-          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           ctgThetaProfile.SetMinimum(1E-5);
           ctgThetaProfile.SetMaximum(0.1*verticalScale);
@@ -3362,6 +3372,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineWidth(lineWidth);
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
@@ -3378,7 +3389,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_P | idealMaterial, tag)) {
 
           const TGraph& z0Graph = mapel.second;
-          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), 1, nBins);
 
           z0Profile.SetMinimum(1E-5);
           z0Profile.SetMaximum(1*verticalScale);
@@ -3387,6 +3398,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineWidth(lineWidth);
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
@@ -4748,27 +4760,28 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
                                         TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
+    bool   isPixelType = tracker.isPixelType();
 
-    int rzCanvasX = int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = int(tracker.maxR()/scaleFactor);
+    int rzCanvasX = insur::max_canvas_sizeX; //int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::min_canvas_sizeY; //int(tracker.maxR()/scaleFactor);
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
 
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
+    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas, isPixelType);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", 600, 600 );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", 600, 600 );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
     XYCanvasEC->cd();
     PlotDrawer<XY, Type> xyEndcapDrawer; 
     xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
@@ -4824,9 +4837,13 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     return resultProfile;
   }
 
-  TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */) { 
+  TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */, int nBins) {
     TProfile* resultProfile;
-    int nPoints = sourceGraph.GetN()/rebin;
+    int nPoints = sourceGraph.GetN();
+    // Rebin by factor 1 or user defined factor
+    if (nBins==0) nPoints /= rebin;
+    // Or set new number of bins
+    else if (nBins <= nPoints) nPoints = nBins;
     resultProfile = new TProfile(Form("%s_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
     double x, y;
 

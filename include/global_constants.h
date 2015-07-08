@@ -50,28 +50,28 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
-  static const double a_silicon = 28.0855;
-  static const double z_silicon = 14;
-  static const double d_silicon = 2.329;
-  static const double a_copper = 63.546;
-  static const double z_copper = 29;
-  static const double d_copper = 8.96;
-  static const double a_carbon = 12.0107;
-  static const double z_carbon = 6;
-  static const double d_carbon = 1.9;
-  static const double top_volume_pad = 200;
+  static const double a_silicon       = 28.0855;
+  static const double z_silicon       = 14;
+  static const double d_silicon       = 2.329;
+  static const double a_copper        = 63.546;
+  static const double z_copper        = 29;
+  static const double d_copper        = 8.96;
+  static const double a_carbon        = 12.0107;
+  static const double z_carbon        = 6;
+  static const double d_carbon        = 1.9;
+  static const double top_volume_pad  = 200;
   static const int temperature_levels = 512;
 
   /**
    * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
    * short_eta_coverage - long_eta_coverage
    */
-  static const double step_eta_short     = 0.2;
-  static const double step_eta_long      = 0.5;
+  static const double step_eta_short     = 0.20;
+  static const double step_eta_long      = 0.50;
   static const double step_eta_epsilon   = 0.001;
-  static const double short_eta_coverage = 2.5;
-  static const double trk_eta_coverage   = 4.0;
-  static const double long_eta_coverage  = 4.0;
+  static const double short_eta_coverage = 2.0;
+  static const double trk_eta_coverage   = 2.5;   // Tracker eta coverage
+  static const double long_eta_coverage  = 4.0;   // Tracker + forward tracker eta coverage
 
   static const double max_dPtOverPt      = 105; // [%]
   static const double min_dPtOverPt      = 0.1; // [%]
@@ -83,7 +83,7 @@ namespace insur {
   static const int    std_canvas_sizeY   = 900;
   static const int    max_canvas_sizeY   =1800;
 
-  static const int    default_n_bins     = max_eta_coverage/0.2;  // Default number of bins in histogram from eta=0  to max_eta_coverage
+  static const int    default_n_bins     = max_eta_coverage/0.1;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types

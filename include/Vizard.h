@@ -268,7 +268,7 @@ namespace insur {
     void createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
-    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();

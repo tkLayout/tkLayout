@@ -594,8 +594,8 @@ bool Squid::reportGeometrySite() {
   if (pxd_ || std_) {
 
     startTaskClock("Creating geometry report");
-    if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"STD");
-    if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"PXD");
+    if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"trigger");
+    if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"pixel");
     stopTaskClock();
     return true;
   } else {
@@ -660,9 +660,9 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
     if (stdMb_ || pxdMb_) {
 
       startTaskClock("Creating material budget report");
-      if (stdMb_) vizard_.histogramSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "outer");
+      if (stdMb_) vizard_.histogramSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "trigger");
       if (pxdMb_) vizard_.histogramSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "pixel");
-      if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "outer");
+      if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "trigger");
       if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel, webSite_, "pixel");
       stopTaskClock();
       return true;
