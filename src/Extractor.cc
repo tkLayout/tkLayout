@@ -589,7 +589,7 @@ namespace insur {
 	      rinf.name = ringname.str() + xml_plus;
 	      rinf.childname = mname.str() + xml_tilted + xml_plus;
 	      rinf.flippedchildname = mname.str() + xml_tilted + xml_plus + xml_flipped;
-	      rinf.inner_flipped = 1; // iiter->getModule().isflipped();
+	      rinf.inner_flipped = iiter->getModule().flipped();
 	      rinf.r1 = iiter->getModule().center().Rho();
 	      rinf.z1 = iiter->getModule().center().Z();
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
