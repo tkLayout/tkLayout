@@ -371,7 +371,7 @@ void StraightRodPair::build(const RodTemplate& rodTemplate) {
   builtok(true);
 }
 
-void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction) {
+void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip) {
   auto it = rodTemplate.begin();
   int side = (direction == BuildDir::RIGHT ? 1 : -1);
   if (tmspecs.empty()) return;
@@ -382,22 +382,22 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
-    mod->flipped(i%2); // May be right, may be wrong... 50%/50%
+    mod->flipped(flip); // i is the ring number !!
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);
   }
 }
 
 
-void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
+void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
   materialObject_.store(propertyTree());
   materialObject_.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT);
-    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT);
+    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
+    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();
