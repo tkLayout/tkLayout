@@ -1062,190 +1062,95 @@ namespace insur {
         alg.parameters.clear();
 
         // tilted rings
-	if (!rinfoplus.empty()) {
-        shape.type = tb;
-        shape.dx = 0.0;
-        shape.dy = 0.0;
-        shape.dyy = 0.0;
-	pos.trans.dx = 0;
-	pos.trans.dy = 0;
-	pos.trans.dz = 0;
+	if ( !rinfoplus.empty() || !rinfominus.empty() ) {
 
-	//std::vector<BTiltedRingInfo> rtotal;
-	//rtotal[0] = rinfoplus;
-	//rtotal[1] = rinfominus;
-	//std::vector<BTiltedRingInfo>::const_iterator rinfo, rend = rtotal.end();
-	std::map<int,BTiltedRingInfo> rinfo = rinfoplus;
+	  std::map<std::string, std::map<int,BTiltedRingInfo>> rinfototal;
+	  if ( !rinfoplus.empty() ) { rinfototal.insert({"rinfoplus", rinfoplus}); }
+	  if ( !rinfominus.empty() ) { rinfototal.insert({"rinfominus", rinfominus}); }
 
-        std::set<int>::const_iterator riter, rguard = ridx.end();
-        for (riter = ridx.begin(); riter != rguard; riter++) {
-	  //for (rinfo = rtotal.begin(); rinfo != rend; rinfo++) {
-	    if (rinfo[*riter].modules > 0) {
+	  for (auto const &rinfoside : rinfototal) {
+	    shape.type = tb;
+	    shape.dx = 0.0;
+	    shape.dy = 0.0;
+	    shape.dyy = 0.0;
+	    pos.trans.dx = 0;
+	    pos.trans.dy = 0;
+	    pos.trans.dz = 0;
+
+	    for (auto const &ringinfo : rinfoside.second) {
+	      auto const& rinfo = ringinfo.second;
+	      if (rinfo.modules > 0) {
 	      
-	      shape.name_tag = rinfo[*riter].name;
-	      shape.rmin = rinfo[*riter].r1 - sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * sin(rinfo[*riter].tiltAngle * M_PI / 180 + atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      shape.rmax = rinfo[*riter].r2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * sin(rinfo[*riter].tiltAngle * M_PI / 180 + atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      shape.dz = (rinfo[*riter].z2 - rinfo[*riter].z1) / 2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * cos(rinfo[*riter].tiltAngle * M_PI / 180 - atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      s.push_back(shape);
+		shape.name_tag = rinfo.name;
+		shape.rmin = rinfo.r1 - sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
+		shape.rmax = rinfo.r2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
+		shape.dz = (rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
+		s.push_back(shape);
 	      
-	      logic.name_tag = rinfo[*riter].name;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      logic.material_tag = xml_material_air;
-	      l.push_back(logic);
+		logic.name_tag = rinfo.name;
+		logic.shape_tag = nspace + ":" + logic.name_tag;
+		logic.material_tag = xml_material_air;
+		l.push_back(logic);
 	      
-	      pos.parent_tag = nspace + ":" + lname.str();
-	      pos.child_tag = nspace + ":" + rinfo[*riter].name;
+		pos.parent_tag = nspace + ":" + lname.str();
+		pos.child_tag = nspace + ":" + rinfo.name;
 	      
-	      //if (rinfo[*riter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
-	      //else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
-	      pos.trans.dz = (rinfo[*riter].z1 + rinfo[*riter].z2) / 2; 
-	      p.push_back(pos);
+		//if (rinfo.fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
+		//else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
+		pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2; 
+		p.push_back(pos);
 	      
-	      rspec.partselectors.push_back(rinfo[*riter].name);
-	      //rspec.moduletypes.push_back(minfo_zero);
+		rspec.partselectors.push_back(rinfo.name);
+		//rspec.moduletypes.push_back(minfo_zero);
 	      
-	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = nspace + ":" + rinfo[*riter].name;
-	      if (rinfo[*riter].inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].childname));
+		alg.name = xml_tilted_rings_algo;
+		alg.parent = nspace + ":" + rinfo.name;
+		if (rinfo.inner_flipped) {
+		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
+		} else {
+		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
+		}
+		pconverter << (rinfo.modules / 2);
+		alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+		pconverter.str("");
+		alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+		alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+		alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+		pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi - 1);
+		alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+		pconverter.str("");
+		pconverter << rinfo.r1;
+		alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+		pconverter.str("");
+		alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));
+		a.push_back(alg);
+		alg.parameters.clear();
+	      
+		alg.name = xml_tilted_rings_algo;
+		alg.parent = logic.shape_tag;
+		if (rinfo.inner_flipped) {
+		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
+		} else {
+		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
+		}
+		pconverter << (rinfo.modules / 2);
+		alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+		pconverter.str("");
+		alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+		alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+		alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+		pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi);
+		alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+		pconverter.str("");
+		pconverter << rinfo.r2;
+		alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+		pconverter.str("");
+		alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
+		a.push_back(alg);
+		alg.parameters.clear();
 	      }
-	      pconverter << (rinfo[*riter].modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo[*riter].modules) * (rinfo[*riter].phi - 1);
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo[*riter].r1;
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo[*riter].z1 - rinfo[*riter].z2) / 2.0));
-	      a.push_back(alg);
-	      alg.parameters.clear();
-	      
-	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = logic.shape_tag;
-	      if (rinfo[*riter].inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].childname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
-	      }
-	      pconverter << (rinfo[*riter].modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo[*riter].modules) * (rinfo[*riter].phi);
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo[*riter].r2;
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo[*riter].z2 - rinfo[*riter].z1) / 2.0));
-	      a.push_back(alg);
-	      alg.parameters.clear();
 	    }
-	    
-          }
-        //}
-	}
-
-	if (!rinfominus.empty()) {
-        shape.type = tb;
-        shape.dx = 0.0;
-        shape.dy = 0.0;
-        shape.dyy = 0.0;
-	pos.trans.dx = 0;
-	pos.trans.dy = 0;
-	pos.trans.dz = 0;
-
-	//std::vector<BTiltedRingInfo> rtotal;
-	//rtotal[0] = rinfoplus;
-	//rtotal[1] = rinfominus;
-	//std::vector<BTiltedRingInfo>::const_iterator rinfo, rend = rtotal.end();
-	std::map<int,BTiltedRingInfo> rinfo = rinfominus;
-
-        std::set<int>::const_iterator riter, rguard = ridx.end();
-        for (riter = ridx.begin(); riter != rguard; riter++) {
-	  //for (rinfo = rtotal.begin(); rinfo != rend; rinfo++) {
-	    if (rinfo[*riter].modules > 0) {
-	      
-	      shape.name_tag = rinfo[*riter].name;
-	      shape.rmin = rinfo[*riter].r1 - sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * sin(rinfo[*riter].tiltAngle * M_PI / 180 + atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      shape.rmax = rinfo[*riter].r2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * sin(rinfo[*riter].tiltAngle * M_PI / 180 + atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      shape.dz = (rinfo[*riter].z2 - rinfo[*riter].z1) / 2 + sqrt( pow(rinfo[*riter].mdy , 2) + pow(rinfo[*riter].mdz , 2)) * cos(rinfo[*riter].tiltAngle * M_PI / 180 - atan(rinfo[*riter].mdz / rinfo[*riter].mdy));
-	      s.push_back(shape);
-	      
-	      logic.name_tag = rinfo[*riter].name;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      logic.material_tag = xml_material_air;
-	      l.push_back(logic);
-	      
-	      pos.parent_tag = nspace + ":" + lname.str();
-	      pos.child_tag = nspace + ":" + rinfo[*riter].name;
-	      
-	      //if (rinfo[*riter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
-	      //else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
-	      pos.trans.dz = (rinfo[*riter].z1 + rinfo[*riter].z2) / 2; 
-	      p.push_back(pos);
-	      
-	      rspec.partselectors.push_back(rinfo[*riter].name);
-	      //rspec.moduletypes.push_back(minfo_zero);
-	      
-	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = nspace + ":" + rinfo[*riter].name;
-	      if (rinfo[*riter].inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].childname));
-	      }
-	      pconverter << (rinfo[*riter].modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo[*riter].modules) * (rinfo[*riter].phi - 1);
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo[*riter].r1;
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo[*riter].z1 - rinfo[*riter].z2) / 2.0));
-	      a.push_back(alg);
-	      alg.parameters.clear();
-	      
-	      alg.name = xml_tilted_rings_algo;
-	      alg.parent = logic.shape_tag;
-	      if (rinfo[*riter].inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].childname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*riter].flippedchildname));
-	      }
-	      pconverter << (rinfo[*riter].modules / 2);
-	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
-	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo[*riter].modules) * (rinfo[*riter].phi);
-	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-	      pconverter.str("");
-	      pconverter << rinfo[*riter].r2;
-	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
-	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo[*riter].z2 - rinfo[*riter].z1) / 2.0));
-	      a.push_back(alg);
-	      alg.parameters.clear();
-	    }
-	    
-          }
-        //}
+	  }
 	}
 
         // layer
