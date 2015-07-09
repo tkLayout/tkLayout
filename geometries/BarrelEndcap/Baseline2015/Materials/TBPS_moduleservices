@@ -8,15 +8,15 @@
     componentName Cooling
     service false
     scaleOnSensor 0
-    targetVolume 0
+    targetVolume 8
     Element {
       elementName Steel
-      quantity 1.03
+      quantity 0.5
       unit g
     }
     Element {
       elementName CO2
-      quantity 0.63
+      quantity 0.3
       unit g
     }
   }
@@ -53,19 +53,27 @@
 
 
 
- // Support Mechanics
-  //Mechanics
+  // Support Mechanics
+  // Mechanics
   Component {
     componentName Mechanics
     service false
     scaleOnSensor 0
-    targetVolume 0
+    targetVolume 8
     Element {
       elementName CFRP
-      quantity 1
-      unit mm
+      quantity 12.2
+      unit g
+    }
+    Element {
+      elementName Airex
+      quantity 2.7
+      unit g
     }
   }
+
+
+
 
 
 
