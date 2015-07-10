@@ -563,7 +563,7 @@ namespace insur {
 
 #ifndef __ADDVOLUMES__ 
             // module composite material
-            matname << xml_base_actcomp << "L" << layer << "P" << modRing; 
+            matname << xml_base_actcomp << "L" << layer << "P" << modRing;
             c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 #endif
 
