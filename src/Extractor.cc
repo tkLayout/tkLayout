@@ -509,7 +509,7 @@ namespace insur {
       double flatzmax;
       double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
       double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
-      //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+      // lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
@@ -548,11 +548,11 @@ namespace insur {
 
 	    int modRing = iiter->getModule().uniRef().ring;
 	    // Tilt angle of the module
-	    double tiltAngle;
+	    double tiltAngle = 0;
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
-
+	    std::cout << iiter->getModule().flipped() << std::endl;
 	    if (iiter->getModule().uniRef().phi == 1){
 	      ridx.insert(modRing);
 	      //if (ridx.find(modRing) == ridx.end()) {
@@ -582,6 +582,7 @@ namespace insur {
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
             shape.dz = iiter->getModule().thickness() / 2.0; // + iiter->getModule().supportPlateThickness(); This is only needed PS module on endcaps
 #endif
+	    
 
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 	      // collect ring info
@@ -594,7 +595,7 @@ namespace insur {
 	      rinf.z1 = iiter->getModule().center().Z();
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
 	      rinf.mdx = shape.dx;
-	      rinf.mdy = shape.dy;	      
+	      rinf.mdy = shape.dy;
 	      rinf.mdz = shape.dz;
 	      rinf.tiltAngle = tiltAngle;
 	      rinf.phi = iiter->getModule().uniRef().phi;
@@ -628,7 +629,7 @@ namespace insur {
             shape.dz = iiter->getModule().thickness() / 2.0;
 #endif
 
-            
+
 #if 0
             logic.material_tag = nspace + ":" + matname.str();
 #else
@@ -715,6 +716,9 @@ namespace insur {
 		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
 		pos.child_tag = nspace + ":" + mname.str();
 	      }
+	      else {
+		if (iiter->getModule().flipped()) pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	      }
 	      p.push_back(pos);
               pos.parent_tag = nspace + ":" + rodname.str() + xml_minus;
               pos.trans.dz = -pos.trans.dz;
@@ -728,6 +732,9 @@ namespace insur {
 		p.push_back(pos);
 		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus;
 		pos.child_tag = nspace + ":" + mname.str();
+	      }
+	      else {
+		if (iiter->getModule().flipped()) pos.rotref = nspace + ":" + xml_flip_mod_rot;
 	      }
 	      p.push_back(pos);
 	      pos.copy = 1;
@@ -755,6 +762,11 @@ namespace insur {
 		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
 		pos.child_tag = nspace + ":" + mname.str();
 	      } 
+	      else {
+		if (iiter->getModule().flipped()) { 
+		  std::cout << "iiter->getModule().flipped()" << std::endl;
+		  pos.rotref = nspace + ":" + xml_flip_mod_rot;}
+	      }
 	      p.push_back(pos);
 	      
 	      if (partner != iguard) {
@@ -773,6 +785,11 @@ namespace insur {
 		  p.push_back(pos);
 		  pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus;
 		  pos.child_tag = nspace + ":" + mname.str();
+		}
+		else {
+		  if (iiter->getModule().flipped()) {
+std::cout << "iiter->getModule().flipped()" << std::endl;
+ pos.rotref = nspace + ":" + xml_flip_mod_rot;}
 		}
 		p.push_back(pos);
 		pos.copy = 1;
