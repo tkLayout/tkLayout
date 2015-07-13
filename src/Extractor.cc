@@ -552,8 +552,10 @@ namespace insur {
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
-	    std::cout << iiter->getModule().flipped() << std::endl;
-	    if (iiter->getModule().uniRef().phi == 1){
+	    
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
+	    if (iiter->getModule().uniRef().phi == 1) {
+	      
 	      ridx.insert(modRing);
 	      //if (ridx.find(modRing) == ridx.end()) {
 
@@ -764,7 +766,7 @@ namespace insur {
 	      } 
 	      else {
 		if (iiter->getModule().flipped()) { 
-		  std::cout << "iiter->getModule().flipped()" << std::endl;
+		  //std::cout << "iiter->getModule().flipped()" << std::endl;
 		  pos.rotref = nspace + ":" + xml_flip_mod_rot;}
 	      }
 	      p.push_back(pos);
@@ -788,7 +790,7 @@ namespace insur {
 		}
 		else {
 		  if (iiter->getModule().flipped()) {
-std::cout << "iiter->getModule().flipped()" << std::endl;
+		    //std::cout << "iiter->getModule().flipped()" << std::endl;
  pos.rotref = nspace + ":" + xml_flip_mod_rot;}
 		}
 		p.push_back(pos);

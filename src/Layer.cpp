@@ -178,13 +178,13 @@ void Layer::buildTilted() {
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
   first->store(propertyTree());
-  first->build(rodTemplate, tmspecs1, 0);
+  first->build(rodTemplate, tmspecs1, 1);
   rods_.push_back(first);
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
   second->store(propertyTree());
-  second->build(rodTemplate, tmspecs2, 1);
+  second->build(rodTemplate, tmspecs2, 0);
   second->rotateZ(rodPhiRotation);
   rods_.push_back(second);
 
