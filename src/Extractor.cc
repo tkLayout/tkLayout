@@ -509,7 +509,7 @@ namespace insur {
       double flatzmax;
       double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
       double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
-      //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+      // lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
@@ -548,12 +548,14 @@ namespace insur {
 
 	    int modRing = iiter->getModule().uniRef().ring;
 	    // Tilt angle of the module
-	    double tiltAngle;
+	    double tiltAngle = 0;
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
-
-	    if (iiter->getModule().uniRef().phi == 1){
+	    
+	    //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
+	    if (iiter->getModule().uniRef().phi == 1) {
+	      
 	      ridx.insert(modRing);
 	      //if (ridx.find(modRing) == ridx.end()) {
 
@@ -582,6 +584,7 @@ namespace insur {
             shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
             shape.dz = iiter->getModule().thickness() / 2.0; // + iiter->getModule().supportPlateThickness(); This is only needed PS module on endcaps
 #endif
+	    
 
 	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
 	      // collect ring info
@@ -589,12 +592,12 @@ namespace insur {
 	      rinf.name = ringname.str() + xml_plus;
 	      rinf.childname = mname.str() + xml_tilted + xml_plus;
 	      rinf.flippedchildname = mname.str() + xml_tilted + xml_plus + xml_flipped;
-	      rinf.inner_flipped = 1; // iiter->getModule().isflipped();
+	      rinf.inner_flipped = iiter->getModule().flipped();
 	      rinf.r1 = iiter->getModule().center().Rho();
 	      rinf.z1 = iiter->getModule().center().Z();
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
 	      rinf.mdx = shape.dx;
-	      rinf.mdy = shape.dy;	      
+	      rinf.mdy = shape.dy;
 	      rinf.mdz = shape.dz;
 	      rinf.tiltAngle = tiltAngle;
 	      rinf.phi = iiter->getModule().uniRef().phi;
@@ -615,6 +618,8 @@ namespace insur {
 	      s.push_back(shape);
 	      shape.name_tag = mname.str() + xml_tilted + xml_minus;
 	      s.push_back(shape);
+	    }
+	    if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
 	      shape.name_tag = mname.str() + xml_flipped;
 	      s.push_back(shape);
 	    }
@@ -628,7 +633,7 @@ namespace insur {
             shape.dz = iiter->getModule().thickness() / 2.0;
 #endif
 
-            
+
 #if 0
             logic.material_tag = nspace + ":" + matname.str();
 #else
@@ -647,6 +652,8 @@ namespace insur {
 	      logic.name_tag = mname.str() + xml_tilted + xml_minus;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
+	    }
+	    if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
 	      logic.name_tag = mname.str() + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
@@ -656,8 +663,8 @@ namespace insur {
 	    l.push_back(logic);
 
             // name_tag is BModule1Layer1 and it goes into all files
-
-            pos.child_tag = nspace + ":" + mname.str();
+	    if (!iiter->getModule().flipped()) pos.child_tag = nspace + ":" + mname.str();
+            else pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
 	    
 	    std::string xml_tilted_mod_rot;
             if (lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
@@ -731,7 +738,7 @@ namespace insur {
 	      }
 	      p.push_back(pos);
 	      pos.copy = 1;
-	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	      if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
@@ -754,9 +761,9 @@ namespace insur {
 		p.push_back(pos);
 		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
 		pos.child_tag = nspace + ":" + mname.str();
-	      } 
+	      }
 	      p.push_back(pos);
-	      
+ 
 	      if (partner != iguard) {
 		if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
 		    || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
@@ -778,7 +785,7 @@ namespace insur {
 		pos.copy = 1;
 	      }
 
-	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	      if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
