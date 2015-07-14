@@ -1,0 +1,13 @@
+  // Support Profiles
+  // Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    targetVolume 0
+    Element {
+      elementName CFRP
+      quantity 1.25
+      unit g
+    }
+  }

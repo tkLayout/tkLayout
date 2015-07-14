@@ -7,5 +7,6 @@ Materials module-TBPS_L3_central_200 {
   @include ../Materials/ptPS_200_16_notypedef
   @include ../Materials/TBPS_moduleservices
   @include ../Materials/TBPS_services_central 
+  @include ../Materials/TBPS_supportprofiles_L3
 
 }
