@@ -1091,9 +1091,9 @@ namespace insur {
 		shape.name_tag = rinfo.name;
 		shape.rmin = rinfo.r1 - sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
 		shape.rmax = rinfo.r2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
-		shape.dz = (rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
+		shape.dz = abs(rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
 		s.push_back(shape);
-	      
+
 		logic.name_tag = rinfo.name;
 		logic.shape_tag = nspace + ":" + logic.name_tag;
 		logic.material_tag = xml_material_air;
