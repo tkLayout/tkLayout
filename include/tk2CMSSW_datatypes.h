@@ -195,6 +195,10 @@ namespace insur {
         double z1;
         double r2;
         double z2;
+        double rmin;
+        double rmax;
+        double zmin;
+        double zmax;
         int modules;
         double mdx;
         double mdy;
