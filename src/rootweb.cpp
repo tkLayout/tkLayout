@@ -1,7 +1,5 @@
 #include <rootweb.hh>
 
-#include <messageLogger.h>
-
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
 
@@ -420,7 +418,7 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TText") 
 	       ) {
     } else {
-      logWARNING(Form("Unhandled class %s", myClass.c_str()));
+      std::cerr << Form("Unhandled class %s", myClass.c_str()) << std::endl;
     }
   }
 }
