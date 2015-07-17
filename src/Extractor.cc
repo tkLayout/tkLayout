@@ -4,13 +4,13 @@
  */
 
 
-#define __ADDVOLUMES__
+#define __USE_MODULECOMPLEX__
 //#define __DEBUGPRINT__
 //#define __FLIPSENSORS_OUT__
 //#define __FLIPSENSORS_IN__
 
 #include <Extractor.h>
-#ifdef __ADDVOLUMES__
+#ifdef __USE_MODULECOMPLEX__
 #include <cstdlib>
 #endif
 namespace insur {
@@ -554,6 +554,15 @@ namespace insur {
 	    }
 	    
 	    //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
+
+            std::ostringstream mname;
+            mname << xml_barrel_module << modRing << lname.str();
+#ifdef __USE_MODULECOMPLEX__ 
+            std::string parentName = mname.str(); 
+            //if (iiter->getModule().flipped()) parentName = mname.str() + xml_flipped; 
+            ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+            modcomplex.buildSubVolumes();
+#endif
 	    if (iiter->getModule().uniRef().phi == 1) {
 	      
 	      ridx.insert(modRing);
@@ -561,28 +570,26 @@ namespace insur {
 
             // This is the Barrel Case
             std::vector<ModuleCap>::iterator partner;
-            std::ostringstream ringname, mname, matname, specname;
+            std::ostringstream ringname, matname, specname;
 
-#ifndef __ADDVOLUMES__ 
+#ifndef __USE_MODULECOMPLEX__ 
             // module composite material
             matname << xml_base_actcomp << "L" << layer << "P" << modRing;
             c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 #endif
 
 	    ringname << xml_ring << modRing << lname.str();
-            mname << xml_barrel_module << modRing << lname.str();
 
             // module box
             shape.name_tag = mname.str();
-#ifndef __ADDVOLUMES__
+#ifndef __USE_MODULECOMPLEX__
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
 #else
-            // Expand volumes for hybrids
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dz = iiter->getModule().thickness() / 2.0; // + iiter->getModule().supportPlateThickness(); This is only needed PS module on endcaps
+            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
 #endif
 	    
 
@@ -596,9 +603,14 @@ namespace insur {
 	      rinf.r1 = iiter->getModule().center().Rho();
 	      rinf.z1 = iiter->getModule().center().Z();
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+#ifndef __USE_MODULECOMPLEX__
 	      rinf.mdx = shape.dx;
 	      rinf.mdy = shape.dy;
 	      rinf.mdz = shape.dz;
+#else
+	      rinf.rmin = modcomplex.getRmin();
+	      rinf.zmin = modcomplex.getZmin();
+#endif
 	      rinf.tiltAngle = tiltAngle;
 	      rinf.phi = iiter->getModule().uniRef().phi;
 	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
@@ -626,7 +638,7 @@ namespace insur {
 	    shape.name_tag = mname.str();
 	    s.push_back(shape);
 
-#ifdef __ADDVOLUMES__ 
+#ifdef __USE_MODULECOMPLEX__ 
             // Get it back for sensors
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
@@ -796,12 +808,6 @@ namespace insur {
             }
             pos.rotref = "";
 
-#ifdef __ADDVOLUMES__ 
-            //std::string moduleName = mname.str(); // e.g. BModule1Layer1
-            ModuleComplex modcomplex(mname.str(),*iiter);
-            modcomplex.buildSubVolumes();
-#endif
-
             // wafer
             string xml_base_inout = "";
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
@@ -923,7 +929,7 @@ namespace insur {
               minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
 
               mspec.moduletypes.push_back(minfo);
-#ifdef __ADDVOLUMES__
+#ifdef __USE_MODULECOMPLEX__ 
               modcomplex.addMaterialInfo(c);
               modcomplex.addShapeInfo(s);
               modcomplex.addLogicInfo(l);
@@ -951,11 +957,15 @@ namespace insur {
 		if (it != rinfoplus.end()) {
 		  it->second.r2 = iiter->getModule().center().Rho();
 		  it->second.z2 = iiter->getModule().center().Z();
+	          it->second.rmax = modcomplex.getRmax();
+	          it->second.zmax = modcomplex.getZmax();
 		}
 		it = rinfominus.find(modRing);
 		if (it != rinfominus.end()) {
 		  it->second.r2 = iiter->getModule().center().Rho();
 		  it->second.z2 = - iiter->getModule().center().Z();
+	          it->second.rmax = modcomplex.getRmax();
+	          it->second.zmax = modcomplex.getZmax();
 		}
 	      }
 	    }
@@ -1087,11 +1097,16 @@ namespace insur {
 	    for (auto const &ringinfo : rinfoside.second) {
 	      auto const& rinfo = ringinfo.second;
 	      if (rinfo.modules > 0) {
-	      
 		shape.name_tag = rinfo.name;
+#ifndef __USE_MODULECOMPLEX__ 
 		shape.rmin = rinfo.r1 - sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
 		shape.rmax = rinfo.r2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
 		shape.dz = abs(rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
+#else
+                shape.rmin = rinfo.rmin;
+                shape.rmax = rinfo.rmax;
+                shape.dz = (rinfo.zmax-rinfo.zmin)/2.;
+#endif
 		s.push_back(shape);
 
 		logic.name_tag = rinfo.name;
@@ -1320,7 +1335,7 @@ namespace insur {
             ridx.insert(modRing);
             std::ostringstream matname, rname, mname, specname;
 
-#ifndef __ADDVOLUMES__
+#ifndef __USE_MODULECOMPLEX__
             // module composite material
             matname << xml_base_actcomp << "D" << layer << "R" << modRing;
             c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
@@ -1328,6 +1343,33 @@ namespace insur {
 
             rname << xml_ring << modRing << dname.str();
             mname << xml_endcap_module << modRing << dname.str();
+
+#ifdef __USE_MODULECOMPLEX__
+            if (iiter->getModule().flipped()) { // flip case
+              // We will add an additional hierarchy to rotate this module.
+              // Here we will take a naming scheme e.g.:
+              // "EModule1Disc6Flipped" for the outer shell,
+              // "EModule1Disc6" to be added contents.
+              shape.name_tag = mname.str(); 
+
+              // Define the outer shell
+              logic.name_tag = mname.str();
+              logic.shape_tag = nspace + ":" + mname.str() + xml_flipped;
+              logic.material_tag = xml_material_air;
+              pos.parent_tag = nspace + ":" + mname.str() + xml_flipped;
+              pos.child_tag = nspace + ":" + shape.name_tag;
+              pos.rotref = nspace + ":" + xml_flip_mod_rot;
+              l.push_back(logic);
+              p.push_back(pos);
+              pos.rotref.clear();
+            } else {
+              shape.name_tag = mname.str();
+            }
+            std::string parentName = shape.name_tag; // e.g. EModule1Disc6 / EModule1Disc6Flipped
+            ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+            modcomplex.buildSubVolumes();
+
+#endif
 
             // collect ring info
             ERingInfo rinf;
@@ -1338,8 +1380,13 @@ namespace insur {
             //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing).numModules();
             rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
 
+#ifndef __USE_MODULECOMPLEX__
             rinf.rin = iiter->getModule().minR();
             rinf.rout = iiter->getModule().maxR();
+#else
+            rinf.rin  = modcomplex.getRmin();
+            rinf.rout = modcomplex.getRmax();
+#endif
             rinf.rmid = iiter->getModule().center().Rho();
             rinf.mthk = iiter->getModule().thickness();
             rinf.phi = iiter->getModule().center().Phi();
@@ -1350,24 +1397,27 @@ namespace insur {
             shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
 
             shape.name_tag = mname.str();
-#ifndef __ADDVOLUMES__
+#ifndef __USE_MODULECOMPLEX__
             shape.dx = iiter->getModule().minWidth() / 2.0;
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
-#else       // Expand module size for hybrids
-            shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
+#else       
+            if (shape.type==bx) {
+              shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+              shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+              shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+            } else { // obsolete?
+              shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+              shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+              shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+              shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+              shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
+            }
 #endif
-            //shape.dx = iiter->getModule().length() / 2.0;
-            //shape.dy = iiter->getModule().minWidth() / 2.0;
-            //shape.dyy = iiter->getModule().maxWidth() / 2.0;
             s.push_back(shape);
-#ifdef __ADDVOLUMES__ 
+#ifdef __USE_MODULECOMPLEX__ 
             // Get it back for sensors
             shape.dx = iiter->getModule().minWidth() / 2.0;
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
@@ -1384,12 +1434,6 @@ namespace insur {
             logic.material_tag = xml_material_air;
 #endif
             l.push_back(logic);
-
-#ifdef __ADDVOLUMES__ 
-            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            ModuleComplex modcomplex(moduleName,*iiter);
-            modcomplex.buildSubVolumes();
-#endif
 
 
 
@@ -1523,8 +1567,7 @@ namespace insur {
 
               mspec.moduletypes.push_back(minfo);
               //mspec.moduletypes.push_back(iiter->getModule().getType());
-
-#ifdef __ADDVOLUMES__ 
+#ifdef __USE_MODULECOMPLEX__ 
               modcomplex.addMaterialInfo(c);
               modcomplex.addShapeInfo(s);
               modcomplex.addLogicInfo(l);
@@ -2194,7 +2237,7 @@ namespace insur {
     else return -1;
   }
 
-#ifdef __ADDVOLUMES__ 
+#ifdef __USE_MODULECOMPLEX__ 
   // These value should be consistent with 
   // the configuration file
   const int ModuleComplex::HybridFBLR_0  = 0; // Front + Back + Right + Left
@@ -2215,7 +2258,9 @@ namespace insur {
   const double ModuleComplex::kmm3Tocm3 = 1e-3; 
 
   ModuleComplex::ModuleComplex(std::string moduleName,
+                               std::string parentName,
                                ModuleCap&  modcap        ) : moduleId(moduleName),
+                                                             parentId(parentName),
                                                              modulecap(modcap),
                                                              module(modcap.getModule()),
                                                              modWidth(module.area()/module.length()),
@@ -2232,6 +2277,11 @@ namespace insur {
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
+                                                             expandedModWidth(modWidth+2*serviceHybridWidth),
+                                                             expandedModLength(modLength+2*frontEndHybridWidth),
+                                                             expandedModThickness(sensorDistance+2*(supportPlateThickness+sensorThickness)),
+                                                             center(module.center()),
+                                                             normal(module.normal()),
                                                              prefix_xmlfile("tracker:"),
                                                              prefix_material("hybridcomposite") {
   }
@@ -2277,13 +2327,13 @@ namespace insur {
     double posy = 0.;
     double posz = 0.;
     // Hybrid FrontSide Volume
-    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
     posx = -(modWidth+serviceHybridWidth)/2.;
     posy = 0.;
     posz = 0.;
     // Hybrid BackSide Volume
-    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth+2*serviceHybridWidth;  
     dy = frontEndHybridWidth;
@@ -2291,13 +2341,13 @@ namespace insur {
     posy = (modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // Hybrid LeftSide Volume
-    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
 
     posx = 0.;
     posy = -(modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // Hybrid RightSide Volume
-    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth; 
     dy = modLength; 
@@ -2305,16 +2355,103 @@ namespace insur {
     posy = 0.;
     posz = 0.;
     // Hybrid Between Volume
-    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
 
-    dx = modWidth+2*serviceHybridWidth;  
-    dy = modLength+2*frontEndHybridWidth; 
+    dx = expandedModWidth;  
+    dy = expandedModLength; 
     dz = supportPlateThickness; 
     posx = 0.;
     posy = 0.;
-    posz = - ( sensorDistance + sensorThickness + supportPlateThickness )/2.; 
+    posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
     // SupportPlate
-    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+
+    // ===========================================================
+    // Finding Rmin/Rmax/Zmin/Zmax with considering hybrid volumes
+    // ===========================================================
+    //
+    // Module polygon
+    //   top view
+    //   v1                v2
+    //    *---------------*
+    //    |       ^ my    |
+    //    |       |   mx  |
+    //    |       *------>|
+    //    |     center    |
+    //    |               |
+    //    *---------------*
+    //   v0                v3
+    //  (v4)
+    //
+    //   side view
+    //    ----------------- top
+    //    ----------------- bottom
+    //
+    vector<double> rv; // radius list from which we will find min/max.
+    vector<double> zv; // z list from which we will find min/max.
+
+    // mx: (v2+v3)/2, my: (v1+v2)/2
+    XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
+    XYZVector my = 0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center ;
+
+    // new vertexes after expasion due to hybrid volumes
+    const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
+    XYZVector v[npoints-1]; 
+    v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my; 
+    v[1] = module.center() - (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my; 
+    v[2] = module.center() + (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my; 
+    v[3] = module.center() + (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my; 
+
+    // Fill all the vertex candidates (8 points)
+    XYZVector v_top[npoints];    // module top surface
+    XYZVector v_bottom[npoints]; // module bottom surface
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_top[ip]    = v[ip] + 0.5*modThickness*normal;
+      v_bottom[ip] = v[ip] - 0.5*modThickness*normal;
+
+        // for debuging
+        vertex.push_back(v_top[ip]);
+        vertex.push_back(v_bottom[ip]);
+
+      zv.push_back(v_top[ip].Z());
+      zv.push_back(v_bottom[ip].Z());
+      v_top[ip].SetZ(0.);    // projection to xy plain.
+      v_bottom[ip].SetZ(0.); // projection to xy plain.
+      rv.push_back(v_top[ip].R());
+      rv.push_back(v_bottom[ip].R());
+    }
+    // copy v0 as v4 for convenience
+    v_top[npoints-1] = v_top[0];
+    v_bottom[npoints-1] = v_bottom[0];
+
+    // Fill possible side point candidates (8 sides)
+    // No need to consider the 4 sides connecting top-bottom e.g. the side made from v0_top and v0_bottom.
+    for (int ip = 0; ip < npoints-1; ip++) {
+      // top surface
+      XYZVector sp_top; // midpoint of each side
+      sp_top = v_top[ip]-v_top[ip+1];
+      if ( sp_top.Dot(v_top[ip]) * sp_top.Dot(v_top[ip+1]) < 0 ) { // minimum is a point divided internally 
+        rv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).R());
+      }
+      // bottom surface
+      XYZVector sp_bottom; // midpoint of each side
+      sp_bottom = v_bottom[ip]-v_bottom[ip+1];
+      if ( sp_bottom.Dot(v_bottom[ip]) * sp_bottom.Dot(v_bottom[ip+1]) < 0 ) { // minimum is a point divided internally 
+        rv.push_back((v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit()).R());
+      }
+    }
+    
+    // Find min and max
+    sort(rv.begin(),rv.end());
+    sort(zv.begin(),zv.end());
+    rmin = rv.at(0);
+    rmax = rv.back();
+    zmin = zv.at(0);
+    zmax = zv.back();
+
+
+
+    // Material assignment
 
     ElementsVector matElements = module.getLocalElements();
     ElementsVector::const_iterator meit;
@@ -2467,7 +2604,24 @@ namespace insur {
 
   void ModuleComplex::print() const {
     std::cout << "ModuleComplex::print():" << std::endl;
-    std::cout << "  Parent Module Name:" << moduleId << std::endl;
+    std::cout << "  Module Name:" << moduleId << std::endl;
+    std::cout << "  Geometry Information:" << std::endl;
+    std::cout << "    center postion : (" << center.X() << ","
+                                          << center.Y() << "," 
+                                          << center.Z() << ")" << std::endl;
+    std::cout << "    normal vector  : (" << normal.X() << ","
+                                          << normal.Y() << "," 
+                                          << normal.Z() << ")" << std::endl;
+    std::cout << "    module width     : " << expandedModWidth     << std::endl; 
+    std::cout << "    module length    : " << expandedModLength    << std::endl; 
+    std::cout << "    module thickness : " << expandedModThickness << std::endl; 
+    std::cout << "    vertex points    : ";
+    for (unsigned int i = 0; i < vertex.size(); i++) {
+      if (i!=vertex.size()-1) 
+        std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << "), ";
+      else 
+        std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << ")" << std::endl;
+    }
     std::vector<Volume*>::const_iterator vit;
     double moduleTotalMass = 0.;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
