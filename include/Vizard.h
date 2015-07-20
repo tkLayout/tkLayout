@@ -65,21 +65,25 @@ namespace insur {
    * Assorted messages that may pop up
    */
   static const std::string msg_uninitialised = "Vizard::buildVisualization(am, is) needs to be called first to build the visual geometry objects.";
-  static const std::string root_wrong = "Something went wrong creating output file. Existing geometry was not written to file.";
-  static const std::string graph_wrong = "File stream reported error state: neighbour graph not written to file.";
-  static const std::string exc_badalloc_graph = "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
-  static const std::string graph_nowrite = "Neighbour graph was not written to file.";
+  static const std::string root_wrong        = "Something went wrong creating output file. Existing geometry was not written to file.";
+  static const std::string graph_wrong       = "File stream reported error state: neighbour graph not written to file.";
+  static const std::string exc_badalloc_graph= "Error: caught bad_alloc exception in Vizard::writeNeighbourGraph(). ";
+  static const std::string graph_nowrite     = "Neighbour graph was not written to file.";
 
   // Some strings for the html formatting
-  static const std::string subStart = "<sub>";      // These only should be needed
-  static const std::string subEnd = "</sub>";
+  static const std::string subStart   = "<sub>";      // These only should be needed
+  static const std::string subEnd     = "</sub>";
   static const std::string superStart = "<sup>";
-  static const std::string superEnd = "</sup>";
+  static const std::string superEnd   = "</sup>";
   static const std::string smallStart = "<small>";
-  static const std::string smallEnd = "</small>";
-  static const std::string emphStart="<b>";
-  static const std::string emphEnd="</b>";
-  static const std::string muLetter = "&mu;";
+  static const std::string smallEnd   = "</small>";
+  static const std::string emphStart  = "<b>";
+  static const std::string emphEnd    = "</b>";
+  static const std::string muLetter   = "&mu;";
+  static const std::string etaLetter  = "&eta;";
+  static const std::string phiLetter  = "&phi;";
+  static const std::string thetaLetter= "&theta;";
+  static const std::string deltaLetter= "&delta;";
   //clearStart="<tt>";
   //clearEnd="</tt>";
 
@@ -89,32 +93,32 @@ namespace insur {
 
   // Colors for plot background and such
   static const int color_plot_background = kWhite;
-  static const int color_pad_background = kGray;
-  static const int color_grid = kGreen-10;
-  static const int color_hard_grid = kGray;
+  static const int color_pad_background  = kGray;
+  static const int color_grid            = kGreen-10;
+  static const int color_hard_grid       = kGray;
 
   // Pads to plot the tracker ortho views
-  static const unsigned int padYZ = 1;
-  static const unsigned int padXY = 2;
+  static const unsigned int padYZ      = 1;
+  static const unsigned int padXY      = 2;
   static const unsigned int padProfile = 3;
-  static const unsigned int padEC = 4;
+  static const unsigned int padEC      = 4;
 
   // Formatting parameters
-  static const int coordPrecision = 3;
-  static const int areaPrecision = 1;
-  static const int occupancyPrecision = 1;
+  static const int coordPrecision          = 1;
+  static const int areaPrecision           = 1;
+  static const int occupancyPrecision      = 1;
   static const int rphiResolutionPrecision = 0;
-  static const int pitchPrecision = 0;
-  static const int stripLengthPrecision = 1;
+  static const int pitchPrecision          = 0;
+  static const int stripLengthPrecision    = 1;
   static const int millionChannelPrecision = 2;
-  static const int totalPowerPrecision = 2;
-  static const int modulePowerPrecision = 0;
-  static const int powerPrecision = 1;
-  static const int costPrecision  = 1;
-  static const int powerPerUnitPrecision = 2;
-  static const int costPerUnitPrecision  = 1;
-  static const int minimumBiasPrecision = 0;
-  static const int weightPrecision = 0;
+  static const int totalPowerPrecision     = 2;
+  static const int modulePowerPrecision    = 0;
+  static const int powerPrecision          = 1;
+  static const int costPrecision           = 1;
+  static const int powerPerUnitPrecision   = 2;
+  static const int costPerUnitPrecision    = 1;
+  static const int minimumBiasPrecision    = 0;
+  static const int weightPrecision         = 0;
 
   class graphIndex {
   public:
@@ -162,16 +166,16 @@ namespace insur {
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
-    void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
-    void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
+    void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
+    void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void weigthSummart(Analyzer& analyzer, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
+    bool geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
-    bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool taggedErrorSummary(Analyzer& a, RootWSite& site);
-    bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
+    bool irradiatedPowerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
+    bool errorSummary(Analyzer& analyzer, RootWSite& site, std::string additionalTag, bool isTrigger);
+    bool taggedErrorSummary(Analyzer& analyzer, RootWSite& site);
+    bool triggerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
@@ -268,7 +272,7 @@ namespace insur {
     void createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
-    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();

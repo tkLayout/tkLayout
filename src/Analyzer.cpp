@@ -61,41 +61,13 @@ namespace insur {
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
-    geomLite   = NULL; geomLiteCreated=false;
-    geomLiteXY = NULL; geomLiteXYCreated=false;
-    geomLiteYZ = NULL; geomLiteYZCreated=false;
-    geomLiteEC = NULL; geomLiteECCreated=false;
+    geomLite           = nullptr; geomLiteCreated=false;
+    geomLiteXY         = nullptr; geomLiteXYCreated=false;
+    geomLiteYZ         = nullptr; geomLiteYZCreated=false;
+    geomLiteEC         = nullptr; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
-
-    // Start with epsilon instead of eta=0
-    trackingCuts.push_back(insur::step_eta_epsilon);
-    triggerCuts.push_back(insur::step_eta_epsilon);
-    
-    // Calculate dEtaTrack (eta region cuts)
-    double dEtaTrack = insur::max_eta_coverage/insur::n_eta_regions;
-    
-    // Add eta regions and name them accordingly
-    for (unsigned int iEta=1; iEta<=insur::n_eta_regions; iEta++) {
-
-      addCut(name_eta_regions[iEta-1], dEtaTrack*iEta, dEtaTrack*iEta);
-    }
-  }
-
-  // public
-  // TODO: add documentation for this function
-  void Analyzer::addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut) {
-    cutNames.push_back(cutName);
-    trackingCuts.push_back(trackingCut);
-    triggerCuts.push_back(triggerCut);
-  }
-
-  double Analyzer::getEtaMaxTracking() {
-    return trackingCuts[trackingCuts.size()-1];
-  }
-
-  double Analyzer::getEtaMaxTrigger() {
-    return triggerCuts[triggerCuts.size()-1];
+    simParms_          = nullptr;
   }
 
 
@@ -168,8 +140,8 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
   double efficiency  = simParms().efficiency();
 
   // Prepare etaStep
-  if (nTracks > 1) etaStep = getEtaMaxTrigger() / (double)(nTracks); // / (double)(nTracks - 1);
-  else             etaStep = getEtaMaxTrigger();
+  if (nTracks > 1) etaStep = getEtaMaxTracker() / (double)(nTracks); // / (double)(nTracks - 1);
+  else             etaStep = getEtaMaxTracker();
   
   // Tracks with pt const at given eta or p const at given eta
   std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMap;
@@ -246,7 +218,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
             TrackCollection &myCollection = myMap[parameter];
             myCollection.push_back(trackPt);
 
-            // Active material only
+            // Ideal (no material)
             Track idealTrackPt(trackPt);
             idealTrackPt.removeMaterial();
             idealTrackPt.computeErrors();
@@ -265,7 +237,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
             TrackCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(trackP);
 
-            // Active material only
+            // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
             idealTrackP.computeErrors();
@@ -341,22 +313,20 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
   void Analyzer::analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
-                                          int etaSteps) {
+                                          int nTracks) {
 
     double efficiency = simParms().efficiency();
 
-    materialTracksUsed = etaSteps;
+    materialTracksUsed = nTracks;
 
-    int nTracks;
     double etaStep, z0, eta, theta, phi;
     double zError = simParms().zErrorCollider();
 
     // prepare etaStep, phiStep, nTracks, nScans
-    if (etaSteps > 1) etaStep = getEtaMaxTrigger() / (double)(etaSteps - 1);
-    else etaStep = getEtaMaxTrigger();
-    nTracks = etaSteps;
+    if (nTracks > 1) etaStep = getEtaMaxTracker() / (double)(nTracks);
+    else             etaStep = getEtaMaxTracker();
 
-    prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTrigger(), triggerMomenta, thresholdProbabilities);
+    prepareTriggerPerformanceHistograms(nTracks, getEtaMaxTracker(), triggerMomenta, thresholdProbabilities);
 
     // reset the list of tracks
     std::vector<Track> tv;
@@ -457,7 +427,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
 
   std::map<std::string, std::map<std::string, TH1I*>>& stubEfficiencyCoverageProfiles = getStubEfficiencyCoverageProfiles();
 
-  double maxEta = 4.0; //getEtaMaxTrigger();
+  double maxEta = getEtaMaxTracker(); //getEtaMaxTrigger();
 
   for (std::vector<Track>::const_iterator itTrack = trackVector.begin();
        itTrack != trackVector.end(); ++itTrack) {
@@ -1689,11 +1659,11 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph_Pt.SetTitle("Track azimuthal angle error - const P_{T} across #eta;#eta;#delta #phi [rad]");
+  thisPhiGraph_Pt.SetTitle("Track azimuthal angle error - const P_{T} across #eta;#eta;#delta #phi [deg]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph_Pt.SetTitle("Transverse impact parameter error - const P_{T} across #eta;#eta;#delta d_{0} [cm]");
+  thisDGraph_Pt.SetTitle("Transverse impact parameter error - const P_{T} across #eta;#eta;#delta d_{0} [#mum]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
@@ -1701,7 +1671,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph_Pt.SetTitle("Longitudinal impact parameter error - const P_{T} across #eta;#eta;#delta z_{0} [cm]");
+  thisZ0Graph_Pt.SetTitle("Longitudinal impact parameter error - const P_{T} across #eta;#eta;#delta z_{0} [#mum]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph_Pt.SetName(aName.str().c_str());
   // Prepare plots: p
@@ -1727,12 +1697,12 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     }
 
     if (dphi>0) {
-      graphValue = dphi; // radians is ok
+      graphValue = dphi/PI*180.; // in degrees
       thisPhiGraph_Pt.SetPoint(thisPhiGraph_Pt.GetN(), eta, graphValue);
     }
 
     if (dd>0) {
-      graphValue = dd / 10.; // in cm
+      graphValue = dd * 1000.; // in um
       thisDGraph_Pt.SetPoint(thisDGraph_Pt.GetN(), eta, graphValue );
     }
 
@@ -1742,7 +1712,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     }
 
     if (dz0>0) {
-      graphValue =  (dz0) / 10.; // in cm
+      graphValue =  (dz0) * 1000.; // in um
       thisZ0Graph_Pt.SetPoint(thisZ0Graph_Pt.GetN(), eta, graphValue);
     }
 
@@ -1784,11 +1754,11 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph_P.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph_P.SetTitle("Track azimuthal angle error - const P across #eta;#eta;#delta #phi [rad]");
+  thisPhiGraph_P.SetTitle("Track azimuthal angle error - const P across #eta;#eta;#delta #phi [deg]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph_P.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph_P.SetTitle("Transverse impact parameter error - const P across #eta;#eta;#delta d_{0} [cm]");
+  thisDGraph_P.SetTitle("Transverse impact parameter error - const P across #eta;#eta;#delta d_{0} [#mum]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph_P.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
@@ -1796,7 +1766,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph_P.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph_P.SetTitle("Longitudinal impact parameter error - const P across #eta;#eta;#delta z_{0} [cm]");
+  thisZ0Graph_P.SetTitle("Longitudinal impact parameter error - const P across #eta;#eta;#delta z_{0} [#mum]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph_P.SetName(aName.str().c_str());
   // Prepare plots: p
@@ -1822,12 +1792,12 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
     }
 
     if (dphi>0) {
-      graphValue = dphi; // radians is ok
+      graphValue = dphi/PI*180; // in degrees
       thisPhiGraph_P.SetPoint(thisPhiGraph_P.GetN(), eta, graphValue);
     }
 
     if (dd>0) {
-      graphValue = dd / 10.; // in cm
+      graphValue = dd * 1000.; // in um
       thisDGraph_P.SetPoint(thisDGraph_P.GetN(), eta, graphValue );
     }
 
@@ -1837,7 +1807,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
     }
 
     if (dz0>0) {
-      graphValue =  (dz0) / 10.; // in cm
+      graphValue =  (dz0) * 1000.; // in um
       thisZ0Graph_P.SetPoint(thisZ0Graph_P.GetN(), eta, graphValue);
     }
 
@@ -2599,6 +2569,11 @@ std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) con
   std::pair <double, double> etaMinMax = t.computeMinMaxEta();
   if (simParms().maxTracksEta.state()) etaMinMax.second = simParms().maxTracksEta();
   if (simParms().minTracksEta.state()) etaMinMax.first  = simParms().minTracksEta();
+
+  // TODO: DIRTY HACK TO SET ETA
+  etaMinMax.first  = -1*max_eta_coverage;
+  etaMinMax.second = +1*max_eta_coverage;
+
   return etaMinMax;
 }
 
@@ -3048,38 +3023,39 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       tracker.accept(bv);
     }
 
+// Calculate average value in the given cut regions
+std::vector<double> Analyzer::average(TGraph& myGraph, std::vector<double> cuts) {
 
-    std::vector<double> Analyzer::average(TGraph& myGraph, std::vector<double> cuts) {
-      std::vector<double> averages;
-      if (cuts.size()<2) return averages;
-      std::sort(cuts.begin(), cuts.end());
-      int iBorder;
-      int nBoarders=cuts.size();
-      double valuesCount, valuesSum;
-      double vx, vy;
-      for (iBorder=0; iBorder<nBoarders-1; ++iBorder) {
-        // Here we have a cut between
-        // cuts[iBorder] and cuts[iBorder+1]
+  std::vector<double> averages;
+  if (cuts.size()<2) return averages;
 
-        //std::cerr << cuts[iBorder] << "< x <= "
-        //<< cuts[iBorder+1] << std::endl;
+  std::sort(cuts.begin(), cuts.end());
+  int iBorder;
+  int nBoarders=cuts.size();
+  double valuesCount, valuesSum;
+  double vx, vy;
 
-        // Average on points within the cut
-        valuesSum=0;
-        valuesCount=0;
-        for (int iPoint=0; iPoint<myGraph.GetN(); ++iPoint) {
-          myGraph.GetPoint(iPoint, vx, vy);
-          if ((vx>=cuts[iBorder])
-              && (vx<cuts[iBorder+1])) {
-            valuesCount++;
-            valuesSum+=vy;
-          }
-        }
-        averages.push_back(valuesSum/valuesCount);
+  for (iBorder=0; iBorder<nBoarders-1; ++iBorder) {
+
+    // Here we have a cut between
+    // cuts[iBorder] and cuts[iBorder+1]
+    //std::cerr << myGraph.GetTitle() << std::endl;
+    //std::cerr << cuts[iBorder] << "< x <= "<< cuts[iBorder+1] << std::endl;
+
+    // Average on points within the cut
+    valuesSum=0;
+    valuesCount=0;
+    for (int iPoint=0; iPoint<myGraph.GetN(); ++iPoint) {
+      myGraph.GetPoint(iPoint, vx, vy);
+      if ((vx>=cuts[iBorder]) && (vx<cuts[iBorder+1])) {
+        valuesCount++;
+        valuesSum+=vy;
       }
-
-      return averages;
     }
+    averages.push_back(valuesSum/valuesCount);
+  }
+  return averages;
+}
 
 
 

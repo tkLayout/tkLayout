@@ -232,17 +232,9 @@ namespace insur {
 
     const TriggerSectorMap& getTriggerSectorMap() const { return triggerSectorMap_; }
 
-    // double getEtaMaxMaterial() { return etaMaxMaterial; } 
-    double getEtaMaxMaterial() { return getEtaMaxTracking(); }
-    double getEtaMaxGeometry() { return etaMaxGeometry; } 
-    double getEtaMaxTracking();
-    double getEtaMaxTrigger();
-    // void setEtaMaxMaterial(const double& newValue) { etaMaxMaterial = newValue; } 
-    void setEtaMaxGeometry(const double& newValue) { etaMaxGeometry = newValue; } 
-    void addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut);
-    const std::vector<double>& getTrackingCuts() { return trackingCuts; }
-    const std::vector<double>& getTriggerCuts() { return triggerCuts; }
-    const std::vector<std::string>& getCutNames() { return cutNames; }
+    inline double getEtaMaxMaterial() const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
+    inline double getEtaMaxGeometry() const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
+    inline double getEtaMaxTracker()  const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
 
     void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }

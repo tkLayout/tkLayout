@@ -11,6 +11,7 @@
 #include <TCanvas.h>
 
 #include "global_funcs.h"
+#include "global_constants.h"
 #include "Property.h"
 #include "Barrel.h"
 #include "Endcap.h"
@@ -21,7 +22,14 @@
 using std::set;
 using material::SupportStructure;
 
+/*
+ * Tracker class - holding information about individual detection systems: pixel tracker, strip tracker, forward tracker, etc...
+ *                 information read in from an xml tree (boost property tree), important methods: build() -> build recursively
+ *                 individual subdetectors
+ */
+
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
+
   class ModuleSetVisitor : public GeometryVisitor {
   public:
     typedef set<Module*> Modules;
@@ -73,7 +81,7 @@ private:
   
 public:
 
-  Tracker() :
+  Tracker(const PropertyTree& treeProperty) :
       barrelNode("Barrel", parsedOnly()),
       endcapNode("Endcap", parsedOnly()),
       supportNode("Support", parsedOnly()),
@@ -86,7 +94,11 @@ public:
       stripTypeTracker_(false),
       combinedTracker_(false),
       fwdTypeTracker_(false)
-  {}
+  {
+    this->setup();
+    this->myid(treeProperty.data());
+    this->store(treeProperty);
+  }
 
   // Set & get tracker type: pixel or strip
   inline void setIsPixelType(bool pixelType) { pixelTypeTracker_ = pixelType;}

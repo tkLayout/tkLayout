@@ -359,8 +359,8 @@ namespace insur {
 
 
 
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    histogramSummary(a, materialBudget, debugServices, site, "outer");
+  void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
+    materialSummary(analyzer, materialBudget, debugServices, site, "outer");
   }
 
   /**
@@ -370,7 +370,7 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */  
-  void Vizard::weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
+  void Vizard::weigthSummart(Analyzer& analyzer, WeightDistributionGrid& weightGrid, RootWSite& site, std::string name) {
     RootWContent* myContent;
 
     // Initialize the page with the material budget
@@ -388,8 +388,8 @@ namespace insur {
 
     // Write the summary for barrel first and endcap second
     for (int i=0; i<2; ++i) {
-      if (i==0) summaryTables = &a.getBarrelWeightSummary();
-      else summaryTables = &a.getEndcapWeightSummary();
+      if (i==0) summaryTables = &analyzer.getBarrelWeightSummary();
+      else summaryTables = &analyzer.getEndcapWeightSummary();
 
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
@@ -402,8 +402,8 @@ namespace insur {
 
     // Write the category summary for barrel first and endcap second
     for (int i=0; i<2; ++i) {
-      if (i==0) summaryTables = &a.getBarrelWeightComponentSummary();
-      else summaryTables = &a.getEndcapWeightComponentSummary();
+      if (i==0) summaryTables = &analyzer.getBarrelWeightComponentSummary();
+      else summaryTables = &analyzer.getEndcapWeightComponentSummary();
 
       std::map<std::string, SummaryTable>::iterator it;
       for (it=summaryTables->begin(); it!=summaryTables->end(); ++it) {
@@ -424,16 +424,20 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+  void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+
     // Initialize the page with the material budget
-    RootWPage* myPage;
+    RootWPage*    myPage;
     RootWContent* myContent;
-    RootWTable* myTable;
-    RootWImage* myImage;
-    TCanvas* myCanvas;
-    TVirtualPad* myPad;
+    RootWTable*   myTable;
+    RootWImage*   myImage;
+
+    TCanvas*      myCanvas;
+    TVirtualPad*  myPad;
+
     std::string pageTitle="Material";
     if (name!="") pageTitle+=" (" +name+")";
+
     myPage = new RootWPage(pageTitle);
     std::string pageAddress="material"+name+".html";
     myPage->setAddress(pageAddress);
@@ -443,137 +447,109 @@ namespace insur {
     else if (name=="STD") site.addPage(myPage,69);
     else                  site.addPage(myPage,68);
 
-    std::string name_overviewMaterial = std::string("overviewMaterial") + name ;
-    std::string name_materialInTrackingVolume = std::string("materialInTrackingVolume") + name ;
-    std::string name_detailedMaterial = std::string("detailedMaterial") + name ;
-    std::string name_countourMaterial = std::string("countourMaterial") + name ;
-    std::string name_mapMaterialRadiation = std::string("mapMaterialRadiation") + name ;
-    std::string name_mapMaterialInteraction = std::string("mapMaterialInteraction") + name ;
-    std::string name_hadronsHitsNumber = std::string("hadronsHitsNumber") + name ;
-    std::string name_hadronsTracksFraction = std::string("hadronsTracksFraction") + name ;
-    std::string name_hadTrackRanger = std::string("hadTrackRanger") + name ;
+    std::string name_overviewMaterial         = std::string("OverviewMaterial") + name ;
+    std::string name_materialInTrackingVolume = std::string("MaterialInTrackingVolume") + name ;
+    std::string name_detailedMaterial         = std::string("DetailedMaterial") + name ;
+    std::string name_countourMaterial         = std::string("CountourMaterial") + name ;
+    std::string name_mapMaterialRadiation     = std::string("MapMaterialRadiation") + name ;
+    std::string name_mapMaterialInteraction   = std::string("MapMaterialInteraction") + name ;
+    std::string name_hadronsHitsNumber        = std::string("HadronsHitsNumber") + name ;
+    std::string name_hadronsTracksFraction    = std::string("HadronsTracksFraction") + name ;
+    std::string name_hadTrackRanger           = std::string("HadTrackRanger") + name ;
 
+//    //
+//    // Material Overview
+//    myContent = new RootWContent("Full material overview");
+//    myPage->addContent(myContent);
+//
+//    // Set variables and book histograms
+//    ostringstream label;
+//    std::map<int, std::vector<double> > averages;
+//
+//    // Book histograms
+//    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
+//    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
+//    TH1D *cr  = nullptr, *ci = nullptr, *fr1 = nullptr, *fi1 = nullptr, *fr2 = nullptr, *fi2 = nullptr;
+//    TProfile *ciProf = nullptr, *crProf = nullptr;
+//#ifdef MATERIAL_SHADOW
+//    TH2D *ir = NULL, *ii = NULL;
+//#endif
+//    //TH2D *mapRad = NULL, *mapInt = NULL;
+//
+//    // Prepare canvas
+//    myCanvas = new TCanvas(name_overviewMaterial.c_str());
+//    myCanvas->SetFillColor(color_plot_background);
+//    myCanvas->Divide(2, 1);
+//    myPad = myCanvas->GetPad(0);
+//    myPad->SetFillColor(color_pad_background);
+//    myPad = myCanvas->GetPad(1);
+//    myPad->cd();
+//
+//    // Total material radiation length
+//    cr  = (TH1D*)a.getHistoGlobalR().Clone();
+//    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+//    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+//    //fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
+//    //fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
+//    cr->Add(fr1);
+//    cr->Add(fr2);
+//    cr->SetFillColor(kGray + 2);
+//    crProf = newProfile(cr);
+//    crProf->SetNameTitle("rfullvolume", "Radiation Length Over Full Volume");
+//    crProf->SetXTitle("#eta");
+//    crProf->Rebin(materialRebin);
+//    crProf->Draw("hist");
+//    myPad = myCanvas->GetPad(2);
+//    myPad->cd();
+//
+//    // Total material interaction length
+//    ci  = (TH1D*)a.getHistoGlobalI().Clone();
+//    fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+//    fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+//    //fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
+//    //fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
+//    ci->Add(fi1);
+//    ci->Add(fi2);
+//    ci->SetFillColor(kGray + 1);
+//    ciProf = newProfile(ci);
+//    ciProf->SetNameTitle("ifullvolume", "Interaction Length Over Full Volume");
+//    ciProf->SetXTitle("#eta");
+//    ciProf->Rebin(materialRebin);
+//    ciProf->Draw("hist");
+//
+//    // Write total plots to the web site
+//    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+//    myImage->setComment("Material overview in full volume");
+//    myImage->setName("matOverviewFull");
+//    myTable = new RootWTable();
+//    std::ostringstream aStringStream;
+//    aStringStream.str("");
+//    aStringStream << "Average radiation length in full volume (eta = [0, ";
+//    aStringStream << std::dec << std::fixed
+//                << std::setprecision(1) << a.getEtaMaxMaterial();
+//    aStringStream << "])";
+//    myTable->setContent(1, 1, aStringStream.str().c_str());
+//    aStringStream.str("");
+//    aStringStream << "Average interaction length in full volume (eta = [0, ";
+//    aStringStream << std::dec << std::fixed
+//      << std::setprecision(1) << a.getEtaMaxMaterial();
+//    aStringStream << "])";
+//    myTable->setContent(2, 1, aStringStream.str().c_str());
+//    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
+//    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
+//    myContent->addItem(myTable);
+//    myContent->addItem(myImage);
 
-    // 1D Overview
-    myContent = new RootWContent("1D Overview");
+    //
+    // Tracker material overview
+    myContent = new RootWContent("Material overview");
     myPage->addContent(myContent);
-
-    // Prepare the cuts for the averages
-    // Three slices of 0.8 each
-    const std::vector<std::string>& cutNames = a.getCutNames();
-    const std::vector<double>& cuts = a.getTrackingCuts();
-    ostringstream label;
-    std::map<int, std::vector<double> > averages;
 
     // Book histograms
-    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
-    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
-    TH1D *cr = NULL, *ci = NULL, *fr1 = NULL, *fi1 = NULL, *fr2 = NULL, *fi2 = NULL;
-    TH1D *acr = NULL, *aci = NULL, *ser = NULL, *sei = NULL, *sur = NULL, *sui = NULL;
-#ifdef MATERIAL_SHADOW
-    TH2D *ir = NULL, *ii = NULL;
-#endif
-    TH2D *mapRad = NULL, *mapInt = NULL;
-    TProfile *ciProf, *crProf;
+    TH1D     *cr     = nullptr, *ci     = nullptr, *fr1 = nullptr, *fi1 = nullptr, *fr2 = nullptr, *fi2 = nullptr;
+    TProfile *ciProf = nullptr, *crProf = nullptr;
 
-    // Output initialisation and headers
-    myCanvas = new TCanvas(name_overviewMaterial.c_str());
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = myCanvas->GetPad(0);
-    myPad->SetFillColor(color_pad_background);
-    myPad = myCanvas->GetPad(1);
-    myPad->cd();
-    // Total tracking volume rlength
-    cr = (TH1D*)a.getHistoGlobalR().Clone();
-    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-    fr1 = (TH1D*)a.getHistoExtraServicesR().Clone();
-    fr2 = (TH1D*)a.getHistoExtraSupportsR().Clone();
-    cr->Add(fr1);
-    cr->Add(fr2);
-    cr->SetFillColor(kGray + 2);
-    crProf = newProfile(cr);
-    crProf->SetNameTitle("rfullvolume", "Radiation Length Over Full Tracker Volume");
-    crProf->SetXTitle("#eta");
-    crProf->Rebin(materialRebin);
-    crProf->Draw("hist");
-    myPad = myCanvas->GetPad(2);
-    myPad->cd();
-    // Total Tracking volume ilength
-    ci = (TH1D*)a.getHistoGlobalI().Clone();
-    fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-    fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-    fi1 = (TH1D*)a.getHistoExtraServicesI().Clone();
-    fi2 = (TH1D*)a.getHistoExtraSupportsI().Clone();
-    ci->Add(fi1);
-    ci->Add(fi2);
-    ci->SetFillColor(kGray + 1);
-    ciProf = newProfile(ci);
-    ciProf->SetNameTitle("ifullvolume", "Interaction Length Over Full Tracker Volume");
-    ciProf->SetXTitle("#eta");
-    ciProf->Rebin(materialRebin);
-    ciProf->Draw("hist");
-    // Put the total plots to the site
-    myImage = new RootWImage(myCanvas, 900, 400);
-    myImage->setComment("Material in full volume");
-    myImage->setName("matFull");
-    myTable = new RootWTable();
-    std::ostringstream aStringStream;
-    aStringStream.str("");
-    aStringStream << "Average radiation length in full volume (eta = [0, ";
-    aStringStream << std::dec << std::fixed
-                << std::setprecision(1) << a.getEtaMaxMaterial();
-    aStringStream << "])";
-    myTable->setContent(1, 1, aStringStream.str().c_str());
-    aStringStream.str("");
-    aStringStream << "Average interaction length in full volume (eta = [0, ";
-    aStringStream << std::dec << std::fixed
-      << std::setprecision(1) << a.getEtaMaxMaterial();
-    aStringStream << "])";
-    myTable->setContent(2, 1, aStringStream.str().c_str());
-    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
-    myContent->addItem(myTable);
-    myContent->addItem(myImage);
-
-    // Material summary table
-    RootWTable* materialSummaryTable = new RootWTable();
-      {
-        double averageValue;
-        materialSummaryTable->setContent(0,0,"Material");
-        materialSummaryTable->setContent(1,0,"Rad. length");
-        materialSummaryTable->setContent(2,0,"Int. length");
-        materialSummaryTable->setContent(3,0,"Photon conversion");
-        for (unsigned int j=0; j< cutNames.size(); ++j) {
-          // Column: the cut name
-          materialSummaryTable->setContent(0,j+1, cutNames[j]);
-
-          // First row: the radiation length
-          averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(1,j+1, averageValue ,4);
-          addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
-          addSummaryElement(averageValue);
-
-          // Third row: the photon conversion probability
-          averageValue *= -7./9.;
-          averageValue = 1 - exp(averageValue);
-          materialSummaryTable->setContent(3,j+1, averageValue ,4);
-          addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
-          addSummaryElement(averageValue);
-
-          // Second row: the interaction length
-          averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(2,j+1, averageValue ,4);
-          addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
-          addSummaryElement(averageValue);
-        }
-      }
-
-    // Detailed plots
-    myContent = new RootWContent("Tracking volume", false);
-    myPage->addContent(myContent);
-    // Work area re-init
+    // Prepare canvas
     myCanvas = new TCanvas(name_materialInTrackingVolume.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
@@ -581,43 +557,86 @@ namespace insur {
     myPad->SetFillColor(color_pad_background);
     myPad = myCanvas->GetPad(1);
     myPad->cd();
-    // global plots in tracking volume: radiation length
-    cr = (TH1D*)a.getHistoGlobalR().Clone();
+
+    // Tracking volume: radiation length
+    cr = (TH1D*)analyzer.getHistoGlobalR().Clone();
     cr->SetFillColor(kGray + 2);
     crProf = newProfile(cr);
-    crProf->SetNameTitle("rglobal", "Overall Radiation Length");
+    crProf->SetNameTitle("rglobal", "Radiation Length Over Full Volume");
     crProf->SetXTitle("#eta");
     crProf->Rebin(materialRebin);
     crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
-    // global plots in tracking volume: interaction length
-    ci = (TH1D*)a.getHistoGlobalI().Clone();
+
+    // Tracking volume: interaction length
+    ci = (TH1D*)analyzer.getHistoGlobalI().Clone();
     ci->SetFillColor(kGray + 1);
     ciProf = newProfile(ci);
-    ciProf->SetNameTitle("iglobal", "Overall Interaction Length");
+    ciProf->SetNameTitle("iglobal", "Interaction Length Over Full Volume");
     ciProf->SetXTitle("#eta");
     ciProf->Rebin(materialRebin);
     ciProf->Draw("hist");
-    // Write global tracking volume plots to web pag
-    myImage = new RootWImage(myCanvas, 900, 400);
-    myImage->setComment("Material in tracking volume");
+
+    // Write tracking volume plots to the web site
+    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Material overview in tracking volume");
     myImage->setName("matTrack");
     myTable = new RootWTable();
     char titleString[256];
-    sprintf(titleString, "Average radiation length in tracking volume (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    sprintf(titleString, std::string("Average radiation length in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
     myTable->setContent(1, 1, titleString);
-    sprintf(titleString, "Average interaction length in tracking volume (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    sprintf(titleString, std::string("Average interaction length in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
     myTable->setContent(2, 1, titleString);
-    myTable->setContent(1, 2, averageHistogramValues(*cr, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*ci, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
-    // Detailed plots
-    myContent = new RootWContent("Detailed", false);
+    // Calculate summary table
+    RootWTable* materialSummaryTable = new RootWTable();
+
+    double averageValue;
+    materialSummaryTable->setContent(0,0,"Material    ");
+    materialSummaryTable->setContent(1,0,"Rad. length ");
+    materialSummaryTable->setContent(2,0,"Int. length ");
+    materialSummaryTable->setContent(3,0,"Photon conv.");
+
+    for (unsigned int j=1; j< name_eta_regions.size(); ++j) {
+      // First row: the cut name
+      materialSummaryTable->setContent(0,j, name_eta_regions[j]);
+
+      // Second row: the radiation length
+      averageValue = averageHistogramValues(*cr, range_eta_regions[j-1], range_eta_regions[j]);
+      materialSummaryTable->setContent(1,j, averageValue ,4);
+      addSummaryLabelElement("Radiation length ("+name_eta_regions[j]+") for "+name);
+      addSummaryElement(averageValue);
+
+      // Third row: the interaction length
+      averageValue = averageHistogramValues(*ci, range_eta_regions[j-1], range_eta_regions[j]);
+      materialSummaryTable->setContent(2,j, averageValue ,4);
+      addSummaryLabelElement("Interaction length ("+name_eta_regions[j]+") for "+name);
+      addSummaryElement(averageValue);
+
+      // Third row: the photon conversion probability
+      averageValue *= -7./9.;
+      averageValue = 1 - exp(averageValue);
+      materialSummaryTable->setContent(3,j, averageValue ,4);
+      addSummaryLabelElement("Photon conversion probability ("+name_eta_regions[j]+") for "+name);
+      addSummaryElement(averageValue);
+    }
+
+    //
+    // Detailed tracker material overview
+    myContent = new RootWContent("Material overview by category", false);
     myPage->addContent(myContent);
-    // Work area re-init
+
+    // Set variables and book histograms
+    THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
+    THStack* icontainer = new THStack("istack", "Interaction Length by Category");
+    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr;
+
+    // Prepare canvas
     myCanvas = new TCanvas(name_detailedMaterial.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
@@ -625,73 +644,77 @@ namespace insur {
     myPad->SetFillColor(color_pad_background);
     myPad = myCanvas->GetPad(1);
     myPad->cd();
-    // radiation length in tracking volume by active, serving or passive
-    sur = (TH1D*)a.getHistoSupportsAllR().Clone();
+
+    // Radiation length in tracking volume by active, serving or passive
+    sur = (TH1D*)analyzer.getHistoSupportsAllR().Clone();
     sur->SetFillColor(kOrange + 4);
     sur->SetXTitle("#eta");
     rcontainer->Add(sur);
-    ser = (TH1D*)a.getHistoServicesAllR().Clone();
+    ser = (TH1D*)analyzer.getHistoServicesAllR().Clone();
     ser->SetFillColor(kBlue);
     ser->SetXTitle("#eta");
     rcontainer->Add(ser);
-    acr = (TH1D*)a.getHistoModulesAllR().Clone();
+    acr = (TH1D*)analyzer.getHistoModulesAllR().Clone();
     acr->SetFillColor(kRed);
     acr->SetXTitle("#eta");
     rcontainer->Add(acr);
     rcontainer->Draw();
-    // interaction length in tracking volume by active, serving or passive
+
+    // Interaction length in tracking volume by active, serving or passive
     myPad = myCanvas->GetPad(2);
     myPad->cd();
-    sui = (TH1D*)a.getHistoSupportsAllI().Clone();
+    sui = (TH1D*)analyzer.getHistoSupportsAllI().Clone();
     sui->SetFillColor(kOrange + 2);
     sui->SetXTitle("#eta");
     icontainer->Add(sui);
-    sei = (TH1D*)a.getHistoServicesAllI().Clone();
+    sei = (TH1D*)analyzer.getHistoServicesAllI().Clone();
     sei->SetFillColor(kAzure - 2);
     sei->SetXTitle("#eta");
     icontainer->Add(sei);
-    aci = (TH1D*)a.getHistoModulesAllI().Clone();
+    aci = (TH1D*)analyzer.getHistoModulesAllI().Clone();
     aci->SetFillColor(kRed - 3);
     aci->SetXTitle("#eta");
     icontainer->Add(aci);
     icontainer->Draw();
 
     // Write asl category plots to web page
-    myImage = new RootWImage(myCanvas, 900, 400);
+    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
     myImage->setComment("Detailed");
     myImage->setName("matTrackDet");
     myTable = new RootWTable();
+
     // Average values by active, service and passive
-    sprintf(titleString, "Average (eta = [0, %.1f])", a.getEtaMaxMaterial());
+    sprintf(titleString, std::string("Average ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
-    myTable->setContent(1, 0, "modules");
-    myTable->setContent(2, 0, "services");
-    myTable->setContent(3, 0, "supports");
+    myTable->setContent(1, 0, "Modules");
+    myTable->setContent(2, 0, "Services");
+    myTable->setContent(3, 0, "Supports");
+    myTable->setContent(4, 0, "Total");
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
-    myTable->setContent(1, 1, averageHistogramValues(*acr, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 1, averageHistogramValues(*ser, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 1, averageHistogramValues(*sur, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(1, 2, averageHistogramValues(*aci, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*sei, a.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 2, averageHistogramValues(*sui, a.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 1, averageHistogramValues(*ser, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 1, averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(4, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*sei, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 2, averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(4, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
-
-
-
-
-    myContent = new RootWContent("Module components detail", false);
+    //
+    // Detailed modules material overview
+    myContent = new RootWContent("Material overview by component", false);
     myPage->addContent(myContent);
 
     myTable = new RootWTable();
-    sprintf(titleString, "Average (eta = [0, %.1f", a.getEtaMaxMaterial());
+    sprintf(titleString, std::string("Average ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
 
-
+    // Set variables & book histograms
     THStack* rCompStack = new THStack("rcompstack", "Radiation Length by Component");
     THStack* iCompStack = new THStack("icompstack", "Interaction Length by Component");
 
@@ -705,8 +728,9 @@ namespace insur {
 
     myPad = myCanvas->GetPad(1);
     myPad->cd();
-    std::map<std::string, TH1D*>& rActiveComps = a.getHistoActiveComponentsR();
-    int compIndex = 1;
+    std::map<std::string, TH1D*>& rActiveComps = analyzer.getHistoActiveComponentsR();
+    int    compIndex = 1;
+    double totalRadLength = 0;
     for (std::map<std::string, TH1D*>::iterator it = rActiveComps.begin(); it != rActiveComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(compIndex));
       it->second->SetFillColor(Palette::color(compIndex));
@@ -715,36 +739,41 @@ namespace insur {
       compLegend->AddEntry(it->second, it->first.c_str());
       rCompStack->Add(it->second);
       myTable->setContent(compIndex, 0, it->first);
-      myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial()), 5);
+      totalRadLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
     }
+    myTable->setContent(compIndex, 0, "Total");
+    myTable->setContent(compIndex, 1, totalRadLength, 5);
     rCompStack->Draw();
     compLegend->Draw();
 
     myPad = myCanvas->GetPad(2);
     myPad->cd();
-    std::map<std::string, TH1D*>& iActiveComps = a.getHistoActiveComponentsI();
+    std::map<std::string, TH1D*>& iActiveComps = analyzer.getHistoActiveComponentsI();
     compIndex = 1;
+    double totalInterLength = 0;
     for (std::map<std::string, TH1D*>::iterator it = iActiveComps.begin(); it != iActiveComps.end(); ++it) {
       it->second->SetLineColor(Palette::color(compIndex));
       it->second->SetFillColor(Palette::color(compIndex));
       it->second->SetXTitle("#eta");
       it->second->SetTitle(it->first.c_str());
       iCompStack->Add(it->second);
-      myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, a.getEtaMaxMaterial()), 5);
+      myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial()), 5);
+      totalInterLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
     }
+    myTable->setContent(compIndex, 2, totalInterLength, 5);
     iCompStack->Draw();
     compLegend->Draw();
 
     myContent->addItem(myTable);
 
-    myImage = new RootWImage(myCanvas, 900, 400);
-    myImage->setComment("Radiation and interaction length distribution in eta by component type in modules");
+    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Radiation and interaction length distribution in "+etaLetter+" by component type in modules");
     myImage->setName("riDistrComp");
     myContent->addItem(myImage);
 
-
-
-    // Work area re-init
+    //
+    // Material map
     myCanvas = new TCanvas(name_countourMaterial.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->Divide(2, 1);
@@ -752,13 +781,14 @@ namespace insur {
     myPad->SetFillColor(color_pad_background);
     myPad = myCanvas->GetPad(1);
     myPad->cd();
+
     // Countour plots
-    myContent = new RootWContent("Material distribution", true);
+    myContent = new RootWContent("Material map", true);
     myPage->addContent(myContent);
 
 #ifdef MATERIAL_SHADOW        
     // radiation length in isolines
-    ir = (TH2D*)a.getHistoIsoR().Clone();
+    ir = (TH2D*)analyzer.getHistoIsoR().Clone();
     ir->SetNameTitle("isor", "Radiation Length Contours");
     ir->SetContour(temperature_levels, NULL);
     ir->SetXTitle("z");
@@ -767,7 +797,7 @@ namespace insur {
     myPad = myCanvas->GetPad(2);
     myPad->cd();
     // interaction length in isolines
-    ii = (TH2D*)a.getHistoIsoI().Clone();
+    ii = (TH2D*)analyzer.getHistoIsoI().Clone();
     ii->SetNameTitle("isoi", "Interaction Length Contours");
     ii->SetContour(temperature_levels, NULL);
     ii->SetXTitle("z");
@@ -780,15 +810,18 @@ namespace insur {
     myContent->addItem(myImage);
 #endif // MATERIAL_SHADOW
 
+    // Set variables & book histograms
+    TH2D *mapRad = nullptr, *mapInt = nullptr;
+
     // Radiation length plot
     myCanvas = new TCanvas(name_mapMaterialRadiation.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
-    mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
-    mapRad->SetContour(temperature_levels, NULL);
-    //myCanvas->SetLogz();
+    mapRad = (TH2D*)analyzer.getHistoMapRadiation().Clone();
+    mapRad->SetContour(temperature_levels, nullptr);
+    mapRad->GetYaxis()->SetTitleOffset(1.1);
     mapRad->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, 900, 400);
+    myImage = new RootWImage(myCanvas, std_canvas_sizeX, min_canvas_sizeY);
     myImage->setComment("Radiation length material map");
     myImage->setName("matMapR");
     myContent->addItem(myImage);
@@ -797,53 +830,59 @@ namespace insur {
     myCanvas = new TCanvas(name_mapMaterialInteraction.c_str());
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
-    mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
+    mapInt = (TH2D*)analyzer.getHistoMapInteraction().Clone();
     mapInt->SetContour(temperature_levels, NULL);
+    mapInt->GetYaxis()->SetTitleOffset(1.1);
     mapInt->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, 900, 400);
+    myImage = new RootWImage(myCanvas, std_canvas_sizeX, min_canvas_sizeY);
     myImage->setComment("Interaction length material map");
     myImage->setName("matMapI");
     myContent->addItem(myImage);
 
-    // Nuclear interactions
-    myContent = new RootWContent("Nuclear interactions", true);
+    //
+    // Hits occupancy
+    myContent = new RootWContent("Hits occupancy & track efficiency", true);
     myPage->addContent(myContent);
+
+    // Set variables
+    std::map<int, std::vector<double> > averages;
 
     // Number of hits
     myCanvas = new TCanvas(name_hadronsHitsNumber.c_str());
     myCanvas->SetFillColor(color_plot_background);
-    myCanvas->cd();
-    TGraph* hadronTotalHitsGraph = new TGraph(a.getHadronTotalHitsGraph());
-    TGraph* hadronAverageHitsGraph = new TGraph(a.getHadronAverageHitsGraph());
+    myCanvas->Divide(2, 1);
+    myPad = myCanvas->GetPad(0);
+    myPad->SetFillColor(color_pad_background);
+    myPad = myCanvas->GetPad(1);
+    myPad->cd();
+
+    TGraph* hadronTotalHitsGraph   = new TGraph(analyzer.getHadronTotalHitsGraph()  );
+    TGraph* hadronAverageHitsGraph = new TGraph(analyzer.getHadronAverageHitsGraph());
+    hadronTotalHitsGraph->SetTitle("Maximum (black) & average (red) number of hits");
+    hadronAverageHitsGraph->SetTitle("Maximum (black) & average (red) number of hits");
     hadronTotalHitsGraph->SetMarkerStyle(8);
     hadronTotalHitsGraph->SetMarkerColor(kBlack);
     hadronTotalHitsGraph->SetMinimum(0);
+    hadronTotalHitsGraph->GetXaxis()->SetTitle("#eta");
     hadronTotalHitsGraph->Draw("alp");
     hadronAverageHitsGraph->SetMarkerStyle(8);
     hadronAverageHitsGraph->SetMarkerColor(kRed);
     hadronAverageHitsGraph->Draw("same lp");
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Maximum and average number of points (hadrons)");
-    myImage->setName("hadHits");
-    myContent->addItem(myImage);    
 
-    // Number of hits
-    std::vector<TGraph> hadronGoodTracksFraction=a.getHadronGoodTracksFraction();
-    std::vector<double> hadronNeededHitsFraction=a.getHadronNeededHitsFraction();
-    myCanvas = new TCanvas(name_hadronsTracksFraction.c_str());
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->cd();
-    TLegend* myLegend = new TLegend(0.75, 0.16, .95, .40);
+    // Track fraction
+    std::vector<TGraph> hadronGoodTracksFraction=analyzer.getHadronGoodTracksFraction();
+    std::vector<double> hadronNeededHitsFraction=analyzer.getHadronNeededHitsFraction();
+    myPad = myCanvas->GetPad(2);
+    myPad->cd();
+    TLegend* myLegend = new TLegend(0.65, 0.16, .85, .40);
     // Old-style palette by Stefano, with custom-generated colors
     // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
     // Replaced by the libreOffice-like palette
-    TH1D* ranger = new TH1D(name_hadTrackRanger.c_str(),"", 100, 0, a.getEtaMaxMaterial());
+    TH1D* ranger = new TH1D(name_hadTrackRanger.c_str(),"Track efficiency with given fraction of hits ", 100, 0, analyzer.getEtaMaxMaterial());
     ranger->SetMaximum(1.);
-    TAxis* myAxis;
-    myAxis = ranger->GetXaxis();
-    myAxis->SetTitle("#eta");
-    myAxis = ranger->GetYaxis();
-    myAxis->SetTitle("Tracks fraction");
+    ranger->GetXaxis()->SetTitle("#eta");
+    //myAxis = ranger->GetYaxis();
+    //myAxis->SetTitle("Tracks fraction");
     ranger->Draw();
     ostringstream tempSS;
     std::map<int, std::string> fractionTitles;
@@ -855,7 +894,7 @@ namespace insur {
       //double xx, yy;
       //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
       //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = Analyzer::average(myGraph, cuts);
+      averages[i] = Analyzer::average(myGraph, range_eta_regions);
       closeGraph(myGraph);
       myGraph.SetFillColor(Palette::color(i+1));
       myGraph.Draw("same F");
@@ -865,63 +904,65 @@ namespace insur {
           tempSS << "1 hit required";
         else
           tempSS << int(hadronNeededHitsFraction.at(i)*100)
-            << "%% hits required";
+            << "% hits required";
         fractionTitles[i]=tempSS.str();
         myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
       }
     }
     ranger->Draw("sameaxis");
     myLegend->Draw();
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Fraction of tracks with a given fraction of good hits (hadrons)");
-    myImage->setName("hadTracks");
+    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Hits occupancy & track efficiency for hadrons");
+    myImage->setName("hadHitsTracks");
     myContent->addItem(myImage);
 
-    //if (name=="outer") {    
+    //
     // Summary table
     RootWContent& summaryContent = myPage->addContent("Summary", false);
-    RootWTable& cutsTable = summaryContent.addTable();
-    RootWTable& summaryTable = summaryContent.addTable();
-    summaryTable.setContent(0,0,"Clean pions");
 
-    // Table explaining the cuts
-    cutsTable.setContent(0,0,"Region");
-    cutsTable.setContent(1,0,"etaMin");
-    cutsTable.setContent(2,0,"etaMax");
+    // Define variables
+    ostringstream label;
 
-    myTable = &cutsTable;
-    for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-      label.str(""); label << cuts[iBorder];
+    // Cuts summary table
+    RootWTable&   cutsSummaryTable = summaryContent.addTable();
+    cutsSummaryTable.setContent(0,0,"Region: ");
+    cutsSummaryTable.setContent(1,0,"Min "+etaLetter+":");
+    cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
+
+    myTable = &cutsSummaryTable;
+    for (unsigned int iBorder=0; iBorder<name_eta_regions.size()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,name_eta_regions[iBorder+1]);
+      label.str(""); label << std::fixed << std::setprecision(1) << range_eta_regions[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << cuts[iBorder+1];
+      label.str(""); label << std::fixed << std::setprecision(1) << range_eta_regions[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
-    int delta=1;
-    for (unsigned int i=0;
-         i<hadronGoodTracksFraction.size();
-         ++i) {
-      if (fractionTitles[i]!="") {
-        summaryTable.setContent(i+delta,0,fractionTitles[i]);
-        int j=0;
-        double myValue;
-        for ( std::vector<double>::iterator it = averages[i].begin();
-              it != averages[i].end(); ++it ) {
-          //std::cout << "average: " << (*it) << std::endl;
-          myValue = 100 * (1 - (*it));
-          summaryTable.setContent(i+delta,j+1, myValue,4);
-          summaryTable.setContent(0,j+1, cutNames[j]);
-          addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
-          addSummaryElement(myValue);
-          j++;
-        }
-      } else delta--;
-    }
+//    // Whatever table ?
+//    //RootWTable&   hitsTable = summaryContent.addTable();
+//    //hitsTable.setContent(0,0,"Clean pions");
+//
+//    int delta=1;
+//    for (unsigned int i=0; i<hadronGoodTracksFraction.size(); ++i) {
+//      if (fractionTitles[i]!="") {
+//        summaryTable.setContent(i+delta,0,fractionTitles[i]);
+//        int j=0;
+//        double myValue;
+//        for ( std::vector<double>::iterator it = averages[i].begin();
+//              it != averages[i].end(); ++it ) {
+//          //std::cout << "average: " << (*it) << std::endl;
+//          myValue = 100 * (1 - (*it));
+//          summaryTable.setContent(i+delta,j+1, myValue,4);
+//          summaryTable.setContent(0,j+1, cutNames[j]);
+//          addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
+//          addSummaryElement(myValue);
+//          j++;
+//        }
+//      } else delta--;
+//    }
+
+    // Material summary table
     summaryContent.addItem(materialSummaryTable);
-    //} else {
-    //  delete materialSummaryTable;
-    //}
 
     if (debugServices) {
         drawInactiveSurfacesSummary(materialBudget, *myPage);
@@ -1122,12 +1163,10 @@ namespace insur {
    * @param site the RootWSite object for the output
    */
   bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
+
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
-   
-    //if (name == "" && tracker.isPixelType()) name = "pixel"; 
-
     std::string pageTitle = "Geometry";
 
     if (name!="") pageTitle+=" (" + name + ")";
@@ -1145,42 +1184,36 @@ namespace insur {
     else                   site.addPage(myPage);
     RootWContent* myContent;
 
-
+    //
     // Inactive surfaces
     double inactiveSurfacesTotalMass;
     if (inactive) {
       std::vector<InactiveElement>& inactiveBarrelServices = inactive->getBarrelServices();
       std::vector<InactiveElement>& inactiveEndcapServices = inactive->getEndcapServices();
-      std::vector<InactiveElement>& inactiveSupports = inactive->getSupports();
+      std::vector<InactiveElement>& inactiveSupports       = inactive->getSupports();
       std::vector<InactiveElement> allInactives;
+
       allInactives.reserve( inactiveBarrelServices.size() + inactiveEndcapServices.size() + inactiveSupports.size() );
       allInactives.insert(allInactives.end(), inactiveBarrelServices.begin(), inactiveBarrelServices.end() );
       allInactives.insert(allInactives.end(), inactiveEndcapServices.begin(), inactiveEndcapServices.end() );
       allInactives.insert(allInactives.end(), inactiveSupports.begin(), inactiveSupports.end() );
+
       inactiveSurfacesTotalMass = 0;
       for (const auto elem : allInactives ) {
         if (elem.getTotalMass()>0) inactiveSurfacesTotalMass += elem.getTotalMass();
       }
     }
 
-    //********************************//
-    //*                              *//
-    //*       Layers and disks       *//
-    //*                              *//
-    //********************************//
-    myContent = new RootWContent("Layers and disks");
+    //
+    // Layer & disk layout
+    myContent = new RootWContent("Layer & disk layout");
     myPage->addContent(myContent);
-
-
-    // Build the module type maps
-    // with a pointer to a sample module
-    // Build the layer summary BTW
 
     class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
     public:
       RootWTable* layerTable = new RootWTable();
-      RootWTable* diskTable = new RootWTable();
-      RootWTable* ringTable = new RootWTable();
+      RootWTable* diskTable  = new RootWTable();
+      //RootWTable* ringTable  = new RootWTable();
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
       std::map<std::string, long> tagMapCountChan;
@@ -1202,26 +1235,33 @@ namespace insur {
       int totalBarrelModules = 0;
       int totalEndcapModules = 0;
 
-      double totArea = 0;
-      int totCountMod = 0;
-      int totCountSens = 0;
-      long totChannel = 0;
+      double totArea          = 0;
+      int    totCountMod      = 0;
+      int    totCountSens     = 0;
+      long   totChannel       = 0;
       double totalSensorPower = 0;
 
       double nMB;
 
       void preVisit() {
-        layerTable->setContent(0, 0, "Layer");
-        layerTable->setContent(1, 0, "r");
-        layerTable->setContent(2, 0, "z_max");
-        layerTable->setContent(3, 0, "# mod");
-        layerTable->setContent(4, 0, "# rods");
-        diskTable->setContent(0, 0, "Disk");
-        diskTable->setContent(1, 0, "z");
-        diskTable->setContent(2, 0, "# mod");
-        ringTable->setContent(0, 0, "Ring");
-        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
+        layerTable->setContent(0, 0, "Layer no:                     ");
+        layerTable->setContent(1, 0, "Radius [mm]:                  ");
+        layerTable->setContent(2, 0, "Z-min [mm]:                   ");
+        layerTable->setContent(3, 0, "Z-max [mm]:                   ");
+        layerTable->setContent(4, 0, "Number of ladders:            ");
+        layerTable->setContent(5, 0, "Number of modules per ladder: ");
+        layerTable->setContent(6, 0, "Number of modules per layer:  ");
+
+        diskTable->setContent(0, 0, "Disk no:            ");
+        diskTable->setContent(1, 0, "Radius-min [mm]:    ");
+        diskTable->setContent(2, 0, "Radius-max [mm]:    ");
+        diskTable->setContent(3, 0, "Average Z pos. [mm]:");
+        diskTable->setContent(4, 0, "Number of rings:    ");
+        diskTable->setContent(5, 0, "Number of modules:  ");
+        
+        //ringTable->setContent(0, 0, "Ring");
+        //ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        //ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
@@ -1233,9 +1273,11 @@ namespace insur {
         totalBarrelModules += nModules;
         layerTable->setContent(0, nBarrelLayers, l.myid());
         layerTable->setContent(1, nBarrelLayers, l.placeRadius(), coordPrecision);
-        layerTable->setContent(2, nBarrelLayers, l.maxZ(), coordPrecision);
-        layerTable->setContent(3, nBarrelLayers, nModules);
+        layerTable->setContent(2, nBarrelLayers, l.minZ(), coordPrecision);
+        layerTable->setContent(3, nBarrelLayers, l.maxZ(), coordPrecision);
         layerTable->setContent(4, nBarrelLayers, l.numRods());
+        layerTable->setContent(5, nBarrelLayers, l.numModulesPerRod());
+        layerTable->setContent(6, nBarrelLayers, l.totalModules());
       }
 
       void visit(const Disk& d) override {
@@ -1244,8 +1286,11 @@ namespace insur {
         int nModules = d.totalModules();
         totalEndcapModules += nModules;
         diskTable->setContent(0, nDisks, d.myid());
-        diskTable->setContent(1, nDisks, d.averageZ(), coordPrecision);
-        diskTable->setContent(2, nDisks, nModules);
+        diskTable->setContent(1, nDisks, d.minR(),     coordPrecision);
+        diskTable->setContent(2, nDisks, d.maxR(),     coordPrecision);
+        diskTable->setContent(3, nDisks, d.averageZ(), coordPrecision);
+        diskTable->setContent(4, nDisks, d.numRings());
+        diskTable->setContent(5, nDisks, nModules);
       }
 
       void visit(const Module& m) override {
@@ -1287,35 +1332,33 @@ namespace insur {
 
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
-        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
+        layerTable->setContent(6, nBarrelLayers+1, totalBarrelModules);
         diskTable->setContent(0, nDisks+1, "Total");
-        diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
+        diskTable->setContent(5, nDisks+1, totalEndcapModules*2);
 
         std::ostringstream myName;
         for (auto typeIt = ringTypeMap.begin();
              typeIt!=ringTypeMap.end(); typeIt++) {
           auto* anEC = (*typeIt).second;
           int aRing=(*typeIt).first;
-          ringTable->setContent(0, aRing, aRing);
-          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          //ringTable->setContent(0, aRing, aRing);
+          //ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
+          //ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
         }
       }
     };
 
-    LayerDiskSummaryVisitor v;
-    v.preVisit();
-    simparms.accept(v);
-    tracker.accept(v);
-    v.postVisit();
+    // Fill in all information directly from Tracker geometry object
+    LayerDiskSummaryVisitor geometryVisitor;
+    geometryVisitor.preVisit();
+    simparms.accept(geometryVisitor);
+    tracker.accept(geometryVisitor);
+    geometryVisitor.postVisit();
 
-    myContent->addItem(v.layerTable);
-    myContent->addItem(v.diskTable);
-    myContent->addItem(v.ringTable);
-
-
-
-
+    // Print out layer & disk table
+    myContent->addItem(geometryVisitor.layerTable);
+    myContent->addItem(geometryVisitor.diskTable);
+    //myContent->addItem(geometryVisitor.ringTable);
 
     double totalPower=0; 
     double totalCost=0;
@@ -1433,7 +1476,7 @@ namespace insur {
     // Summary cycle: prepares the rows cell by cell
     int iType=0;
 
-    for (auto tagMapIt=v.tagMap.begin(); tagMapIt!=v.tagMap.end(); tagMapIt++) {
+    for (auto tagMapIt=geometryVisitor.tagMap.begin(); tagMapIt!=geometryVisitor.tagMap.end(); tagMapIt++) {
       ++iType;
       // Name
       aName.str("");
@@ -1448,8 +1491,8 @@ namespace insur {
       aTag.str("");
       //aTag << smallStart << aModule->getTag() << smallEnd;
       aTag << smallStart;
-      for (std::set<std::string>::iterator strIt = v.tagMapPositions[(*tagMapIt).first].begin();
-           strIt!=v.tagMapPositions[(*tagMapIt).first].end(); ++strIt) 
+      for (std::set<std::string>::iterator strIt = geometryVisitor.tagMapPositions[(*tagMapIt).first].begin();
+           strIt!=geometryVisitor.tagMapPositions[(*tagMapIt).first].end(); ++strIt)
         aTag << (*strIt) << "<br/> ";
       aTag << smallEnd;
       // Type
@@ -1463,34 +1506,34 @@ namespace insur {
       aModuleArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*tagMapIt).second->area();
       aTotalArea.str("");
       aTotalArea << std::dec << std::fixed << std::setprecision(areaPrecision) << (*tagMapIt).second->area() *
-        (*tagMapIt).second->numSensors() * v.tagMapCount[(*tagMapIt).first] * 1e-6;
+        (*tagMapIt).second->numSensors() * geometryVisitor.tagMapCount[(*tagMapIt).first] * 1e-6;
       // if ((*tagMapIt).second->getArea()<0) { anArea << "XXX"; } // TODO: what's this?
       // Occupancy
       aStripOccupancy.str("");
       aHitOccupancy.str("");
-      aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  v.tagMapMaxStripOccupancy[(*tagMapIt).first]*100<< "/" <<v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first] ; // Percentage
-      aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  v.tagMapMaxHitOccupancy[(*tagMapIt).first]*100<< "/" <<v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first] ; // Percentage
+      aStripOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  geometryVisitor.tagMapMaxStripOccupancy[(*tagMapIt).first]*100<< "/" <<geometryVisitor.tagMapAveStripOccupancy[(*tagMapIt).first]*100/geometryVisitor.tagMapCount[(*tagMapIt).first] ; // Percentage
+      aHitOccupancy << std::dec << std::fixed << std::setprecision(occupancyPrecision) <<  geometryVisitor.tagMapMaxHitOccupancy[(*tagMapIt).first]*100<< "/" <<geometryVisitor.tagMapAveHitOccupancy[(*tagMapIt).first]*100/geometryVisitor.tagMapCount[(*tagMapIt).first] ; // Percentage
 
       addOccupancyEOL();
       addOccupancyElement((aModule->minR() + aModule->maxR())/2);
-      addOccupancyElement(v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
-      addOccupancyElement(v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
+      addOccupancyElement(geometryVisitor.tagMapAveStripOccupancy[(*tagMapIt).first]*100/geometryVisitor.tagMapCount[(*tagMapIt).first]);
+      addOccupancyElement(geometryVisitor.tagMapAveHitOccupancy[(*tagMapIt).first]*100/geometryVisitor.tagMapCount[(*tagMapIt).first]);
 
       // RphiResolution
       anRphiResolution.str("");
-      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << geometryVisitor.tagMapAveRphiResolution[(*tagMapIt).first] / geometryVisitor.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
       // YResolution
       aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << geometryVisitor.tagMapAveYResolution[(*tagMapIt).first] / geometryVisitor.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
 
       // RphiResolution (trigger)
       anRphiResolutionTrigger.str("");
-      if ( v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] != v.tagMapAveRphiResolution[(*tagMapIt).first] )
-        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      if ( geometryVisitor.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] != geometryVisitor.tagMapAveRphiResolution[(*tagMapIt).first] )
+        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << geometryVisitor.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / geometryVisitor.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
       // YResolution (trigger)
       aYResolutionTrigger.str("");
-      if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
-        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      if ( geometryVisitor.tagMapAveYResolutionTrigger[(*tagMapIt).first] != geometryVisitor.tagMapAveYResolution[(*tagMapIt).first] )
+        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << geometryVisitor.tagMapAveYResolutionTrigger [(*tagMapIt).first] / geometryVisitor.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
 
 
       // Pitches
@@ -1546,36 +1589,36 @@ namespace insur {
 
       // Number Mod
       aNumberMod.str("");
-      aNumberMod << std::dec << v.tagMapCount[(*tagMapIt).first];
+      aNumberMod << std::dec << geometryVisitor.tagMapCount[(*tagMapIt).first];
       // Number Sensor
       aNumberSens.str("");
-      aNumberSens << std::dec << v.tagMapCount[(*tagMapIt).first]*((*tagMapIt).second->numSensors());
+      aNumberSens << std::dec << geometryVisitor.tagMapCount[(*tagMapIt).first]*((*tagMapIt).second->numSensors());
       // Channels
       aChannel.str("");
       aChannel << std::fixed << std::setprecision(millionChannelPrecision)
-        << v.tagMapCountChan[(*tagMapIt).first] / 1e6 ;
+        << geometryVisitor.tagMapCountChan[(*tagMapIt).first] / 1e6 ;
 
       // Power (per module and total)
       aPower.str("");
       double powerPerModule =  tagMapIt->second->totalPower(); // power [mW] of a module with this # strips // CUIDADO needs to take into account numChannels
-      aPower << std::fixed << std::setprecision(totalPowerPrecision) << powerPerModule * v.tagMapCount[tagMapIt->first] * 1e-6; // converted from mW to kW 
+      aPower << std::fixed << std::setprecision(totalPowerPrecision) << powerPerModule * geometryVisitor.tagMapCount[tagMapIt->first] * 1e-6; // converted from mW to kW
       // number of modules of this type
 
       aPowerPerModule.str("");
       aPowerPerModule << std::fixed << std::setprecision(modulePowerPrecision) << powerPerModule;
-      totalPower += powerPerModule * v.tagMapCount[tagMapIt->first];
+      totalPower += powerPerModule * geometryVisitor.tagMapCount[tagMapIt->first];
       // Power in sensors (per module and total)
       aSensorPower.str("");
       aSensorPowerPerModuleAvg.str("");
       aSensorPowerPerModuleMax.str("");
-      double totalSensorPowerTag = v.tagMapSensorPowerAvg[tagMapIt->first];
+      double totalSensorPowerTag = geometryVisitor.tagMapSensorPowerAvg[tagMapIt->first];
       if (totalSensorPowerTag > 1e-6) { // non-zero checking with double
         aSensorPower << std::fixed << std::setprecision(totalPowerPrecision)
           << totalSensorPowerTag * 1e-3; // converted from W to kW
         aSensorPowerPerModuleAvg << std::fixed << std::setprecision(modulePowerPrecision)
-          << totalSensorPowerTag / v.tagMapCount[tagMapIt->first] * 1e3; // converted from W to mW
+          << totalSensorPowerTag / geometryVisitor.tagMapCount[tagMapIt->first] * 1e3; // converted from W to mW
         aSensorPowerPerModuleMax << std::fixed << std::setprecision(modulePowerPrecision)
-          << v.tagMapSensorPowerMax[tagMapIt->first] * 1e3; // converted from W to mW
+          << geometryVisitor.tagMapSensorPowerMax[tagMapIt->first] * 1e3; // converted from W to mW
       } else { // if sensor power is 0, it means we haven't run the power analysis (-p)
         aSensorPower << "n/a";
         aSensorPowerPerModuleAvg << "n/a";
@@ -1589,15 +1632,15 @@ namespace insur {
         (*tagMapIt).second->numSensors() *               // number of faces
         simparms.calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
         1e-6 *                                           // conversion CHF-> MCHF
-        v.tagMapCount[(*tagMapIt).first];                // Number of modules
-      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * simparms.calcCost((*tagMapIt).second->readoutType()) * 1e-6 * v.tagMapCount[(*tagMapIt).first];
+        geometryVisitor.tagMapCount[(*tagMapIt).first];                // Number of modules
+      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * simparms.calcCost((*tagMapIt).second->readoutType()) * 1e-6 * geometryVisitor.tagMapCount[(*tagMapIt).first];
 
       // Weight
       aWeight.str("");
       TagMaker tmak(*aModule);
       if (tagMapWeight[tmak.sensorGeoTag] > 1e-6) { // non-zero check for double
         aWeight << std::fixed << std::setprecision(weightPrecision) <<
-          tagMapWeight[tmak.sensorGeoTag] / v.tagMapCount[(*tagMapIt).first];
+          tagMapWeight[tmak.sensorGeoTag] / geometryVisitor.tagMapCount[(*tagMapIt).first];
       } else {
         aWeight << "n/a";
       }
@@ -1637,10 +1680,10 @@ namespace insur {
     // Summary in short
     setSummaryString(tracker.myid());
     setSummaryLabelString("Name");
-    addSummaryElement(v.totArea/1e6);
-    addSummaryElement(v.totCountMod);
-    addSummaryElement(v.totCountSens);
-    addSummaryElement(v.totChannel / 1e6);
+    addSummaryElement(geometryVisitor.totArea/1e6);
+    addSummaryElement(geometryVisitor.totCountMod);
+    addSummaryElement(geometryVisitor.totCountSens);
+    addSummaryElement(geometryVisitor.totChannel / 1e6);
     addSummaryElement(totalPower);
     addSummaryElement(totalCost);
     addSummaryElement(moduleTotalWeight/1.e3);
@@ -1664,7 +1707,7 @@ namespace insur {
     moduleTable->setContent(tagRow, iType, "");
     moduleTable->setContent(typeRow, iType, "");
     aTotalArea.str("");
-    aTotalArea << emphStart << std::fixed << std::setprecision(areaPrecision) << v.totArea/1e6 << emphEnd;
+    aTotalArea << emphStart << std::fixed << std::setprecision(areaPrecision) << geometryVisitor.totArea/1e6 << emphEnd;
     //moduleTable->setContent(areaRow, iType, anArea.str());
     //anArea.str("");
     //anArea << emphStart << std::fixed << std::setprecision(areaPrecision) << totArea/1e6
@@ -1680,15 +1723,15 @@ namespace insur {
     moduleTable->setContent(segmentsRow, iType, "");
     moduleTable->setContent(nstripsRow, iType, "");
     aNumberMod.str("");
-    aNumberMod << emphStart << v.totCountMod << emphEnd;
+    aNumberMod << emphStart << geometryVisitor.totCountMod << emphEnd;
     aNumberSens.str("");
-    aNumberSens << emphStart << v.totCountSens << emphEnd;
+    aNumberSens << emphStart << geometryVisitor.totCountSens << emphEnd;
     moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
     moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
     aChannel.str("");
     aChannel << emphStart << std::fixed
       << std::setprecision(millionChannelPrecision)
-      << v.totChannel / 1e6 << emphEnd;
+      << geometryVisitor.totChannel / 1e6 << emphEnd;
     moduleTable->setContent(channelRow, iType, aChannel.str());
     // aChannel.str("");
     // aChannel << emphStart << std::fixed
@@ -1702,8 +1745,8 @@ namespace insur {
     aSensorPowerPerModuleMax.str("");
     aCost.str("");
     aPower << std::fixed << std::setprecision(totalPowerPrecision) << totalPower * 1e-6;
-    if (v.totalSensorPower > 1e-6) { // non-zero check for double
-      aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << v.totalSensorPower * 1e-3;
+    if (geometryVisitor.totalSensorPower > 1e-6) { // non-zero check for double
+      aSensorPower << std::fixed << std::setprecision(totalPowerPrecision) << geometryVisitor.totalSensorPower * 1e-3;
     } else {
       aSensorPower << "n/a";
     }
@@ -1775,73 +1818,51 @@ namespace insur {
     myContent = new RootWContent("Plots");
     myPage->addContent(myContent);
 
-    if (summaryCanvas) {
-      myImage = new RootWImage(summaryCanvas, 600, 600);
-      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
-      myContent->addItem(myImage);
-    }
+    //if (summaryCanvas) {
+    //  myImage = new RootWImage(summaryCanvas, 600, 600);
+    //  myImage->setComment("Tracker summary: modules position in XY (endcap and barrels), YZ and number of hits vs. "+etaLetter);
+    //  myContent->addItem(myImage);
+    //}
 
     if (RZCanvas) {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ position of the modules");
+      myImage->setComment("RZ plot of the tracker");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
-      myImage = new RootWImage(XYCanvas, 600, 600);
-      myImage->setComment("XY Section of the tracker barrel");
+      myImage = new RootWImage(XYCanvas, min_canvas_sizeX, min_canvas_sizeY);
+      myImage->setComment("XY cross section of barrel modules");
       myContent->addItem(myImage);
     }
     if (XYCanvasEC) {
-      myImage = new RootWImage(XYCanvasEC, 600, 600);
-      myImage->setComment("XY Projection of the tracker endcap(s)");
+      myImage = new RootWImage(XYCanvasEC, min_canvas_sizeX, min_canvas_sizeY);
+      myImage->setComment("XY projection of endcap(s) modules");
       myContent->addItem(myImage);
     }
 
-    /*
-     * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", 600, 600);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padXY);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, 600, 600);
-     * myImage->setComment("XY Section of the tracker barrel");
-     * myContent->addItem(myImage);
-     * }
-     *
-     * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", 600, 600);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padEC);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, 600, 600);
-     * myImage->setComment("XY View of the tracker endcap");
-     * myContent->addItem(myImage);
-     * }
-     */
-
     // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileHits", "#eta profile (hit modules)");//, min_canvas_sizeX, min_canvas_sizeY);
     drawEtaProfiles(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Hit modules across eta");
+    myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Hit modules across "+etaLetter);
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", 600, 600);
+    myCanvas = new TCanvas("EtaProfileSensors", "#eta profile (hits)");//, min_canvas_sizeX, min_canvas_sizeY);
     drawEtaProfilesSensors(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Hit coverage across eta");
+    myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Hit coverage across "+etaLetter);
     myContent->addItem(myImage);
 
-    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", 600, 600);
-    drawEtaProfilesStubs(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, 600, 600);
-    myImage->setComment("Stub coverage across eta");
-    myContent->addItem(myImage);
+    //myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", min_canvas_sizeX, min_canvas_sizeY);
+    //drawEtaProfilesStubs(*myCanvas, analyzer);
+    //myImage = new RootWImage(myCanvas, 600, 600);
+    //myImage->setComment("Stub coverage across eta");
+    //myContent->addItem(myImage);
 
     if (tracker.isPixelType()) totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
     else                       totalEtaProfileSensors_      = &analyzer.getTotalEtaProfileSensors();
 
-    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", 600, 600);
+    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit map - #eta versus #phi");//, min_canvas_sizeX, min_canvas_sizeY);
     int prevStat = gStyle->GetOptStat();
     gStyle->SetOptStat(0);
     hitMapCanvas->cd();
@@ -1852,12 +1873,12 @@ namespace insur {
     analyzer.getMapPhiEta().Draw("colz");
     hitMapCanvas->Modified();
     gStyle->SetOptStat(prevStat);
-    myImage = new RootWImage(hitMapCanvas, 600, 600);
-    myImage->setComment("Hit coverage in eta, phi");
+    myImage = new RootWImage(hitMapCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage->setComment("Hit coverage in "+etaLetter+", "+phiLetter);
     myContent->addItem(myImage);
 
     drawEtaCoverage(*myPage, analyzer);
-    drawEtaCoverageStubs(*myPage, analyzer);
+    //drawEtaCoverageStubs(*myPage, analyzer);
 
     // // Power density
     // myCanvas = new TCanvas("PowerDensity", "PowerDensity", 600, 600);
@@ -1961,7 +1982,7 @@ namespace insur {
     for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
       TProfile& aProfile = it->second;
       layerCount++;
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), 1200, 600);
+      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), min_canvas_sizeX, min_canvas_sizeY);
       myCanvas->cd();
 
 
@@ -1985,8 +2006,8 @@ namespace insur {
       lowerPad->cd();
       zoomedProfile->Draw();
 
-      RootWImage* myImage = new RootWImage(myCanvas, 1200, 600);
-      myImage->setComment("Layer coverage in eta for " + type + " (multiple occurrences in the same layer are counted once here)");
+      RootWImage* myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+      myImage->setComment("Layer coverage in "+etaLetter+" for " + type + " (multiple occurrence in a layer counted just once)");
       myContent->addItem(myImage);
     }
     return true;
@@ -2064,7 +2085,7 @@ namespace insur {
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
     totalEtaStack->GetStack()->Last()->Draw("same");
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, 600, 600);
-    myImage->setComment("Full hit coverage across eta");
+    myImage->setComment("Full hit coverage across"+etaLetter);
     fullLayoutContent->addItem(myImage);
 
 
@@ -2590,7 +2611,7 @@ namespace insur {
         gStyle->SetGridColor(color_hard_grid);
         for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& momentumGraph = g_iter->second;
-          TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracker(), nRebin);
 
           if (idealMaterial) {
             momentumProfile.SetMinimum(1E-5*100);
@@ -2623,7 +2644,7 @@ namespace insur {
         g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& distanceGraph = g_iter->second;
-          TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             distanceProfile.SetMinimum(4*1e-4);
             distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
@@ -2651,7 +2672,7 @@ namespace insur {
         g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& angleGraph = g_iter->second;
-          TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             angleProfile.SetMinimum(1E-5);
             angleProfile.SetMaximum(0.01*verticalScale);
@@ -2679,7 +2700,7 @@ namespace insur {
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
-          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
           ctgThetaProfile.SetMinimum(1E-5);
           ctgThetaProfile.SetMaximum(0.1*verticalScale);
           ctgThetaCanvas.SetLogy();
@@ -2701,7 +2722,7 @@ namespace insur {
         g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& z0Graph = g_iter->second;
-          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
           z0Profile.SetMinimum(1E-5);
           z0Profile.SetMaximum(1*verticalScale);
           z0Canvas.SetLogy();
@@ -2723,7 +2744,7 @@ namespace insur {
         g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& pGraph = g_iter->second;
-          TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             pProfile.SetMinimum(1E-5*100);
             pProfile.SetMaximum(.11*100*verticalScale);       
@@ -2788,24 +2809,23 @@ namespace insur {
       }
 
       // Prepare the cuts for the averages
-      const std::vector<std::string>& cutNames = a.getCutNames();
-      const std::vector<double>& cuts = (additionalTag=="trigger") ? a.getTriggerCuts() : a.getTrackingCuts();
+      //const std::vector<double>& cuts = (additionalTag=="trigger") ? a.getTriggerCuts() : a.getTrackingCuts();
       ostringstream label;
       std::string name;      
       RootWTable* myTable;
 
-      unsigned int nCuts = cutNames.size();
+      unsigned int nCuts = name_eta_regions.size();
 
       // Table explaining the cuts
       cutsTable.setContent(0,0,"Region");
       cutsTable.setContent(1,0,"etaMin");
       cutsTable.setContent(2,0,"etaMax");
       myTable = &cutsTable;
-      for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-        myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-        label.str(""); label << cuts[iBorder];
+      for (unsigned int iBorder=0; iBorder<range_eta_regions.size()-1; ++iBorder) {
+        myTable->setContent(0,iBorder+1,name_eta_regions[iBorder]);
+        label.str(""); label << range_eta_regions[iBorder];
         myTable->setContent(1,iBorder+1,label.str());
-        label.str(""); label << cuts[iBorder+1];
+        label.str(""); label << range_eta_regions[iBorder+1];
         myTable->setContent(2,iBorder+1,label.str());
       }
 
@@ -2864,15 +2884,15 @@ namespace insur {
           myTable->setContent(3, 0, "Ideal");
           myTable->setContent(4, 0, "Loss");
           if (myGraph) {
-            averagesReal=Analyzer::average(*myGraph, cuts);
+            averagesReal=Analyzer::average(*myGraph, range_eta_regions);
             myColor = myGraph->GetMarkerColor();
             myTable->setColor(0, baseColumn, myColor);
           }
           myIndex.ideal = true;
           myGraph = myPlotMap[myIndex];
-          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
+          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
           for (unsigned int j=0; j<nCuts; ++j) {
-            myTable->setContent(1, baseColumn+j, cutNames[j]);
+            myTable->setContent(1, baseColumn+j, name_eta_regions[j]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
               myTable->setContent(2, baseColumn+j,averagesReal[j],5);
@@ -2889,7 +2909,7 @@ namespace insur {
             myLabel.str("");
             myLabel << myIndex.name
               << std::dec << std::fixed << std::setprecision(0) 
-              << myIndex.p << "(" << cutNames[j] << ")";
+              << myIndex.p << "(" << name_eta_regions[j] << ")";
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
             addSummaryElement(averagesReal[j]);
@@ -2905,9 +2925,9 @@ namespace insur {
 /*
  * Print out web pages with pt, p and impact parameter resolutions for different subdetectors
  */
-bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
+bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
-  GraphBag& gb = a.getGraphBag();
+  GraphBag& gb = analyzer.getGraphBag();
 
   for (auto tag : gb.getTagSet()) {
 
@@ -2917,11 +2937,11 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
     // Correct this naming...
     std::string wName = "";
-    if (tag=="beampipe")wName = "BP";
-    if (tag=="pixel")   wName = "PXD";
-    if (tag=="trigger") wName = "STD";
-    if (tag=="forward") wName = "FWD";
-    if (tag=="tracker") wName = "TRK";
+    if (tag=="beampipe")                wName = "BP";
+    if (tag=="pixel")                   wName = "PXD";
+    if (tag=="trigger" || tag=="strip") wName = "STD";
+    if (tag=="forward")                 wName = "FWD";
+    if (tag=="tracker")                 wName = "TRK";
 
     pageTitle += " ("+wName+")";
     additionalSummaryTag = "_"+wName+"_";
@@ -2937,10 +2957,10 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     else                    site.addPage(myPage);
 
     // Create the contents
-    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across eta (active+pasive material)");
-    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across eta (active material only)");
-    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P  across eta (active+pasive material)");
-    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across eta (active material only)");
+    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across "+etaLetter+" (active+pasive material)");
+    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "+etaLetter+" (ideal - no material)", false);
+    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P  across "+etaLetter+" (active+pasive material)");
+    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across " +etaLetter+" (ideal - no material)", false);
 
     // Create a page for the errors - 2 scenarios with/without multiple scattering (active+pasive or just active material)
     std::string scenarioStr="";
@@ -2995,7 +3015,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& momentumGraph = mapel.second;
-          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3017,9 +3037,9 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
           momentumProfile.SetMarkerSize(markerSize);
 
           if (momentumGraph.GetN()>0) {
-            logMomCanvas_Pt.cd();
-            momentumProfile.Draw(plotOption.c_str());
             linMomCanvas_Pt.cd();
+            momentumProfile.Draw(plotOption.c_str());
+            logMomCanvas_Pt.cd();
             momentumProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -3030,7 +3050,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& pGraph = mapel.second;
-          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3044,6 +3064,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineWidth(lineWidth);
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
@@ -3060,14 +3081,14 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& distanceGraph = mapel.second;
-          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            distanceProfile.SetMinimum(4*1e-4);
-            distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
+            distanceProfile.SetMinimum(min_dD0);
+            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
           } else {
-            distanceProfile.SetMinimum(4*1e-4);
-            distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
+            distanceProfile.SetMinimum(min_dD0);
+            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
           }
           d0Canvas_Pt.SetLogy();
           d0Canvas_Pt.SetFillColor(color_plot_background);
@@ -3091,14 +3112,14 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& angleGraph = mapel.second;
-          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            angleProfile.SetMinimum(1E-5);
-            angleProfile.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(min_dPhi);
+            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
           } else {
-            angleProfile.SetMinimum(1E-5);
-            angleProfile.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(min_dPhi);
+            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
           }
           phiCanvas_Pt.SetLogy();
           phiCanvas_Pt.SetFillColor(color_plot_background);
@@ -3122,15 +3143,16 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_Pt | idealMaterial, tag)) {
 
           const TGraph& ctgThetaGraph = mapel.second;
-          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          ctgThetaProfile.SetMinimum(1E-5);
-          ctgThetaProfile.SetMaximum(0.1*verticalScale);
+          ctgThetaProfile.SetMinimum(min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(max_dCtgTheta);//*verticalScale);
           ctgThetaCanvas_Pt.SetLogy();
           ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
 
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineWidth(lineWidth);
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
@@ -3147,15 +3169,16 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_Pt | idealMaterial, tag)) {
 
           const TGraph& z0Graph = mapel.second;
-          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          z0Profile.SetMinimum(1E-5);
-          z0Profile.SetMaximum(1*verticalScale);
+          z0Profile.SetMinimum(min_dZ0);
+          z0Profile.SetMaximum(max_dZ0);//*verticalScale);
           z0Canvas_Pt.SetLogy();
           z0Canvas_Pt.SetFillColor(color_plot_background);
 
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineWidth(lineWidth);
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
@@ -3171,32 +3194,32 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         myColor=0;
 
         RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        linMomImage_Pt.setComment("Transverse momentum resolution vs. eta (linear scale) - const P_{T} across #eta");
+        linMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const Pt across "+etaLetter);
         linMomImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& logMomImage_Pt = myContent->addImage(logMomCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        logMomImage_Pt.setComment("Transverse momentum resolution vs. eta (log scale) - const P_{T} across #eta");
+        logMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
         logMomImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& pImage_Pt = myContent->addImage(pCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        pImage_Pt.setComment("Momentum resolution vs. eta - const P_{T} across #eta");
+        pImage_Pt.setComment("Momentum resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         pImage_Pt.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& d0Image_Pt = myContent->addImage(d0Canvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        d0Image_Pt.setComment("d0 resolution vs. eta - const P_{T} across #eta");
+        d0Image_Pt.setComment("d0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         d0Image_Pt.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
+        RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        z0Image_Pt.setComment("z0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
+        z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
         RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        phiImage_Pt.setComment("Angle resolution vs. eta - const P_{T} across #eta");
+        phiImage_Pt.setComment("Angle resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         phiImage_Pt.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        ctgThetaImage_Pt.setComment("CtgTheta resolution vs. eta - const P_{T} across #eta");
+        ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
-
-        RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
-        z0Image_Pt.setComment("z0 resolution vs. eta - const P_{T} across #eta");
-        z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
 
       // Draw case II with const P across eta
@@ -3246,7 +3269,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_P | idealMaterial, tag)) {
 
           const TGraph& momentumGraph = mapel.second;
-          TProfile& momentumProfile   = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3268,9 +3291,9 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
           momentumProfile.SetMarkerSize(markerSize);
 
           if (momentumGraph.GetN()>0) {
-            logMomCanvas_P.cd();
-            momentumProfile.Draw(plotOption.c_str());
             linMomCanvas_P.cd();
+            momentumProfile.Draw(plotOption.c_str());
+            logMomCanvas_P.cd();
             momentumProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
@@ -3281,7 +3304,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph_P | idealMaterial, tag)) {
 
           const TGraph& pGraph = mapel.second;
-          TProfile& pProfile   = newProfile(pGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
             pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
@@ -3295,6 +3318,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
           pProfile.SetLineColor(momentumColor(myColor));
           pProfile.SetMarkerColor(momentumColor(myColor));
+          pProfile.SetLineWidth(lineWidth);
           myColor++;
           pProfile.SetMarkerStyle(markerStyle);
           pProfile.SetMarkerSize(markerSize);
@@ -3311,14 +3335,14 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph_P | idealMaterial, tag)) {
 
           const TGraph& distanceGraph = mapel.second;
-          TProfile& distanceProfile   = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            distanceProfile.SetMinimum(4*1e-4);
-            distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
+            distanceProfile.SetMinimum(min_dD0);
+            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
           } else {
-              distanceProfile.SetMinimum(4*1e-4);
-              distanceProfile.SetMaximum(4E2*1e-4*verticalScale);
+              distanceProfile.SetMinimum(min_dD0);
+              distanceProfile.SetMaximum(max_dD0);//*verticalScale);
           }
           d0Canvas_P.SetLogy();
           d0Canvas_P.SetFillColor(color_plot_background);
@@ -3342,14 +3366,14 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph_P | idealMaterial, tag)) {
 
           const TGraph& angleGraph = mapel.second;
-          TProfile& angleProfile   = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            angleProfile.SetMinimum(1E-5);
-            angleProfile.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(min_dPhi);
+            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
           } else {
-            angleProfile.SetMinimum(1E-5);
-            angleProfile.SetMaximum(0.01*verticalScale);
+            angleProfile.SetMinimum(min_dPhi);
+            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
           }
           phiCanvas_P.SetLogy();
           phiCanvas_P.SetFillColor(color_plot_background);
@@ -3373,15 +3397,16 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_P | idealMaterial, tag)) {
 
           const TGraph& ctgThetaGraph = mapel.second;
-          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          ctgThetaProfile.SetMinimum(1E-5);
-          ctgThetaProfile.SetMaximum(0.1*verticalScale);
+          ctgThetaProfile.SetMinimum(min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(max_dCtgTheta);//*verticalScale);
           ctgThetaCanvas_P.SetLogy();
           ctgThetaCanvas_P.SetFillColor(color_plot_background);
 
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          ctgThetaProfile.SetLineWidth(lineWidth);
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
@@ -3398,15 +3423,16 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph_P | idealMaterial, tag)) {
 
           const TGraph& z0Graph = mapel.second;
-          TProfile& z0Profile   = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nBins);
+          TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          z0Profile.SetMinimum(1E-5);
-          z0Profile.SetMaximum(1*verticalScale);
+          z0Profile.SetMinimum(min_dZ0);
+          z0Profile.SetMaximum(max_dZ0);//*verticalScale);
           z0Canvas_P.SetLogy();
           z0Canvas_P.SetFillColor(color_plot_background);
 
           z0Profile.SetLineColor(momentumColor(myColor));
           z0Profile.SetMarkerColor(momentumColor(myColor));
+          z0Profile.SetLineWidth(lineWidth);
           myColor++;
           z0Profile.SetMarkerStyle(markerStyle);
           z0Profile.SetMarkerSize(markerSize);
@@ -3422,32 +3448,32 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
         myColor=0;
           
         RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        linMomImage_P.setComment("Transverse momentum resolution vs. eta (linear scale) - const P across #eta");
+        linMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const P across "+etaLetter);
         linMomImage_P.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& logMomImage_P = myContent->addImage(logMomCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        logMomImage_P.setComment("Transverse momentum resolution vs. eta (log scale) - const P across #eta");
+        logMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const P across "+etaLetter);
         logMomImage_P.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& pImage_P = myContent->addImage(pCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        pImage_P.setComment("Momentum resolution vs. eta - const P across #eta");
+        pImage_P.setComment("Momentum resolution vs. "+etaLetter+" - const P across "+etaLetter);
         pImage_P.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& d0Image_P = myContent->addImage(d0Canvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        d0Image_P.setComment("d0 resolution vs. eta - const P across #eta");
+        d0Image_P.setComment("d0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
         d0Image_P.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
+        RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        z0Image_P.setComment("z0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
+        z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
         RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        phiImage_P.setComment("Angle resolution vs. eta - const P across #eta");
+        phiImage_P.setComment("Angle resolution vs. "+etaLetter+" - const P across "+etaLetter);
         phiImage_P.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
         RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        ctgThetaImage_P.setComment("CtgTheta resolution vs. eta - const P across #eta");
+        ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
         ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
-
-        RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, std_canvas_sizeX, min_canvas_sizeY);
-        z0Image_P.setComment("z0 resolution vs. eta - const P across #eta");
-        z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
     } // Scenarios
 
@@ -3455,20 +3481,21 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     // Set Summary content - case I
     //  check that the ideal and real have the same pts
     //  otherwise the table cannot be prepared
-    RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across eta", false);
-    RootWTable&   cutsTable         = summaryContent_Pt.addTable();
-    RootWTable&   momTable          = summaryContent_Pt.addTable();
+    RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+etaLetter, false);
+    RootWTable&   cutsSummaryTable  = summaryContent_Pt.addTable();
+    RootWTable&   momSummaryTable   = summaryContent_Pt.addTable();
 
-    std::map<std::string, RootWTable*> tableMap_Pt;
+    std::map<std::string, RootWTable*>           tableMap_Pt;
     std::map<std::string, RootWTable*>::iterator tableMapIt;
 
     std::vector<std::string> plotNames;
-    plotNames.push_back("pt");
-    plotNames.push_back("p");
-    plotNames.push_back("d");
-    plotNames.push_back("phi");
-    plotNames.push_back("ctg(theta)");
-    plotNames.push_back("z0");
+    plotNames.push_back(deltaLetter+"pt/pt [%]:           ");
+    plotNames.push_back(deltaLetter+"p/p [%]:             ");
+    plotNames.push_back(deltaLetter+"d0 ["+muLetter+"m]:  ");
+    plotNames.push_back(deltaLetter+"z0 ["+muLetter+"m]:  ");
+    plotNames.push_back(deltaLetter+phiLetter+":          ");
+    plotNames.push_back(deltaLetter+"ctg("+thetaLetter+"):");
+
     for (std::vector<std::string>::iterator it=plotNames.begin();
          it!=plotNames.end(); ++it) {
       tableMap_Pt[(*it)] = &(summaryContent_Pt.addTable());
@@ -3476,25 +3503,21 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     }
 
     // Prepare the cuts for the averages
-    const std::vector<std::string>& cutNames = a.getCutNames();
-    const std::vector<double>& cuts          = a.getTriggerCuts();
     ostringstream label;
     std::string name;
     RootWTable* myTable;
 
-    unsigned int nCuts = cutNames.size();
-
     // Table explaining the cuts
-    cutsTable.setContent(0,0,"Region");
-    cutsTable.setContent(1,0,"etaMin");
-    cutsTable.setContent(2,0,"etaMax");
+    cutsSummaryTable.setContent(0,0,"Region: ");
+    cutsSummaryTable.setContent(1,0,"Min "+etaLetter+":");
+    cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
 
-    myTable = &cutsTable;
-    for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-      label.str(""); label << cuts[iBorder];
+    myTable = &cutsSummaryTable;
+    for (unsigned int iBorder=0; iBorder<name_eta_regions.size()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,name_eta_regions[iBorder+1]);
+      label.str(""); label << range_eta_regions[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << cuts[iBorder+1];
+      label.str(""); label << range_eta_regions[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -3505,9 +3528,9 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph_Pt     , tag, myPlotMap_Pt);
     fillTaggedPlotMap(gb, plotNames[1], GraphBag::PGraph_Pt       , tag, myPlotMap_Pt);
     fillTaggedPlotMap(gb, plotNames[2], GraphBag::DGraph_Pt       , tag, myPlotMap_Pt);
-    fillTaggedPlotMap(gb, plotNames[3], GraphBag::PhiGraph_Pt     , tag, myPlotMap_Pt);
-    fillTaggedPlotMap(gb, plotNames[4], GraphBag::CtgthetaGraph_Pt, tag, myPlotMap_Pt);
-    fillTaggedPlotMap(gb, plotNames[5], GraphBag::Z0Graph_Pt      , tag, myPlotMap_Pt);
+    fillTaggedPlotMap(gb, plotNames[3], GraphBag::Z0Graph_Pt      , tag, myPlotMap_Pt);
+    fillTaggedPlotMap(gb, plotNames[4], GraphBag::PhiGraph_Pt     , tag, myPlotMap_Pt);
+    fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_Pt, tag, myPlotMap_Pt);
         
     std::vector<std::string>::iterator plotNameIt = plotNames.begin();
     std::vector<double>::iterator      momentumIt;
@@ -3523,8 +3546,8 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     }
 
     std::sort(momentum.begin(), momentum.end());
-    momTable.setContent(0,0,"Particle momenta in GeV:  " );
-    myTable = &momTable;
+    momSummaryTable.setContent(0,0,"Particle momenta in GeV:  " );
+    myTable = &momSummaryTable;
     for (unsigned int iMom=0; iMom<momentum.size(); ++iMom) {
       label.str("");
       if (iMom!=momentum.size()-1) label << momentum[iMom]/1000 << ",";
@@ -3550,49 +3573,49 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
       // Put units & better formatting
       for (unsigned int i=0; i<momentum.size(); ++i) {
-        baseColumn = nCuts*i+1;
+        baseColumn = (name_eta_regions.size()-1)*i + 1;
         myTable->setContent(0, baseColumn, momentum[i]/1000,0);
         myIndex.p=momentum[i];
         myIndex.ideal = false;
         myGraph = myPlotMap_Pt[myIndex];
-        myTable->setContent(2, 0, "Real");
-        myTable->setContent(3, 0, "Ideal");
-        myTable->setContent(4, 0, "Real/Ideal");
+        myTable->setContent(2, 0, "Real:      ");
+        myTable->setContent(3, 0, "Ideal:     ");
+        myTable->setContent(4, 0, "Real/Ideal:");
         if (myGraph) {
-          averagesReal=Analyzer::average(*myGraph, cuts);
+          averagesReal=Analyzer::average(*myGraph, range_eta_regions);
           myColor = myGraph->GetMarkerColor();
           myTable->setColor(0, baseColumn, myColor);
         }
         myIndex.ideal = true;
         myGraph = myPlotMap_Pt[myIndex];
-        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
-        for (unsigned int j=0; j<nCuts; ++j) {
-          myTable->setContent(1, baseColumn+j, cutNames[j]);
+        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
+        for (unsigned int j=0; j<(name_eta_regions.size()-1); ++j) {
+          myTable->setContent(1, baseColumn+j, name_eta_regions[j+1]);
           myTable->setColor(1, baseColumn+j, myColor);
           if (averagesReal.size() > j) {
 
             // Check item iterated and set precision
             int iItem = plotNameIt - plotNames.begin();
-            if (iItem==0 || iItem==1) myTable->setContent(2, baseColumn+j,averagesReal[j],2);
-            else                      myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+            if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],1);
+            else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],5);
             myTable->setColor(2, baseColumn+j, myColor);
           }
           if (averagesIdeal.size() > j) {
 
             // Check item iterated and set precision
             int iItem = plotNameIt - plotNames.begin();
-            if (iItem==0 || iItem==1) myTable->setContent(3, baseColumn+j,averagesIdeal[j],2);
-            else                      myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+            if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],1);
+            else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
             myTable->setColor(3, baseColumn+j, myColor);
           }
           if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
-            myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
+            myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],2);
             myTable->setColor(4, baseColumn+j, myColor);
           }
           myLabel.str("");
           myLabel << myIndex.name
                   << std::dec << std::fixed << std::setprecision(0)
-                  << myIndex.p << "(" << cutNames[j] << ")";
+                  << myIndex.p << "(" << name_eta_regions[j+1] << ")";
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
           addSummaryElement(averagesReal[j]);
@@ -3603,7 +3626,7 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
     //
     // Set Summary content - case II
-    RootWContent& summaryContent_P = myPage->addContent("Summary - const P across eta", false);
+    RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+etaLetter, false);
 
     std::map<std::string, RootWTable*> tableMap_P;
 
@@ -3613,9 +3636,10 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     fillTaggedPlotMap(gb, plotNames[0], GraphBag::RhoGraph_P     , tag, myPlotMap_P);
     fillTaggedPlotMap(gb, plotNames[1], GraphBag::PGraph_P       , tag, myPlotMap_P);
     fillTaggedPlotMap(gb, plotNames[2], GraphBag::DGraph_P       , tag, myPlotMap_P);
-    fillTaggedPlotMap(gb, plotNames[3], GraphBag::PhiGraph_P     , tag, myPlotMap_P);
-    fillTaggedPlotMap(gb, plotNames[4], GraphBag::CtgthetaGraph_P, tag, myPlotMap_P);
-    fillTaggedPlotMap(gb, plotNames[5], GraphBag::Z0Graph_P      , tag, myPlotMap_P);
+    fillTaggedPlotMap(gb, plotNames[3], GraphBag::Z0Graph_P      , tag, myPlotMap_P);
+    fillTaggedPlotMap(gb, plotNames[4], GraphBag::PhiGraph_P     , tag, myPlotMap_P);
+    fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_P, tag, myPlotMap_P);
+
 
     for (std::vector<std::string>::iterator it=plotNames.begin();
          it!=plotNames.end(); ++it) {
@@ -3641,49 +3665,49 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
 
       // Put units & better formatting
       for (unsigned int i=0; i<momentum.size(); ++i) {
-        baseColumn = nCuts*i+1;
+        baseColumn = (name_eta_regions.size()-1)*i + 1;
         myTable->setContent(0, baseColumn, momentum[i]/1000,0);
         myIndex.p=momentum[i];
         myIndex.ideal = false;
         myGraph = myPlotMap_P[myIndex];
-        myTable->setContent(2, 0, "Real");
-        myTable->setContent(3, 0, "Ideal");
-        myTable->setContent(4, 0, "Real/Ideal");
+        myTable->setContent(2, 0, "Real:      ");
+        myTable->setContent(3, 0, "Ideal:     ");
+        myTable->setContent(4, 0, "Real/Ideal:");
         if (myGraph) {
-          averagesReal=Analyzer::average(*myGraph, cuts);
+          averagesReal=Analyzer::average(*myGraph, range_eta_regions);
           myColor = myGraph->GetMarkerColor();
           myTable->setColor(0, baseColumn, myColor);
         }
         myIndex.ideal = true;
         myGraph = myPlotMap_P[myIndex];
-        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
-        for (unsigned int j=0; j<nCuts; ++j) {
-          myTable->setContent(1, baseColumn+j, cutNames[j]);
+        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
+        for (unsigned int j=0; j<(name_eta_regions.size()-1); ++j) {
+          myTable->setContent(1, baseColumn+j, name_eta_regions[j+1]);
           myTable->setColor(1, baseColumn+j, myColor);
           if (averagesReal.size() > j) {
 
             // Check item iterated and set precision
             int iItem = plotNameIt - plotNames.begin();
-            if (iItem==0 || iItem==1) myTable->setContent(2, baseColumn+j,averagesReal[j],2);
-            else                      myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+            if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],1);
+            else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],5);
             myTable->setColor(2, baseColumn+j, myColor);
           }
           if (averagesIdeal.size() > j) {
 
             // Check item iterated and set precision
             int iItem = plotNameIt - plotNames.begin();
-            if (iItem==0 || iItem==1) myTable->setContent(3, baseColumn+j,averagesIdeal[j],2);
-            else                      myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+            if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],1);
+            else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
             myTable->setColor(3, baseColumn+j, myColor);
           }
           if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
-            myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],1);
+            myTable->setContent(4, baseColumn+j,averagesReal[j]/averagesIdeal[j],2);
             myTable->setColor(4, baseColumn+j, myColor);
           }
           myLabel.str("");
           myLabel << myIndex.name
                   << std::dec << std::fixed << std::setprecision(0)
-                  << myIndex.p << "(" << cutNames[j] << ")";
+                  << myIndex.p << "(" << name_eta_regions[j+1] << ")";
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
           addSummaryElement(averagesReal[j]);
@@ -4845,10 +4869,13 @@ bool Vizard::taggedErrorSummary(Analyzer& a, RootWSite& site) {
     return resultProfile;
   }
 
-  TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int nBins) {
+  TProfile& Vizard::newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */, int nBins) {
     TProfile* resultProfile;
-    int nPoints = nBins;//sourceGraph.GetN()/rebin;
-
+    int nPoints = sourceGraph.GetN();
+    // Rebin by factor 1 or user defined factor
+    if (nBins==0) nPoints /= rebin;
+    // Or set new number of bins
+    else if (nBins <= nPoints) nPoints = nBins;
     resultProfile = new TProfile(Form("%s_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
     double x, y;
 

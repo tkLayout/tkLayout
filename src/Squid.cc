@@ -156,14 +156,11 @@ namespace insur {
       auto childRange = getChildRange(pTree, "Tracker");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
 
-        Tracker* trk = new Tracker();
-        trk->setup();
-        trk->myid(kv.second.data());
-        trk->store(kv.second);
+        Tracker* trk = new Tracker(kv.second);
         trk->build();
 
         // Distinguish between individual trackers
-        if      (trk->myid()=="Pixels"         || trk->myid()=="BRLPXD" || trk->myid()=="BarrelPixel"  ) {
+        if      (trk->myid()=="Inner"          || trk->myid()=="BRL_Inner" || trk->myid()=="BarrelPixel"  ) {
           pxd_    = trk;
           pxd_->setIsPixelType(true);
         }
@@ -172,7 +169,7 @@ namespace insur {
           fwdpxd_->setIsPixelType(true);
           fwdpxd_->setIsForwardType(true);
         }
-        else if (trk->myid()=="Outer"          || trk->myid()=="BRLSTD" || trk->myid()=="BarrelStrip"  ) {
+        else if (trk->myid()=="Outer"          || trk->myid()=="BRL_Outer" || trk->myid()=="BarrelStrip"  ) {
           std_    = trk;
           std_->setIsStripType(true);
         }
@@ -272,13 +269,14 @@ namespace insur {
     startTaskClock("Building inactive surfaces");
     if (getGeometryFile()!="") {
       if (std_) {
-        if (is) delete is;
+        if (stdPasive_) delete stdPasive_;
         is = new InactiveSurfaces();
-        u.arrange(*std_, *is, supports_, verbose);
-        if (pxd_) {
-          if (pi) delete pi;
-          pi = new InactiveSurfaces();
-          u.arrangePixels(*pxd_, *pi, verbose);
+        u.arrange(*std_, *stdPasive_, supports_, verbose);
+    }
+    if (pxd_) {
+        if (pxdPasive_) delete pxdPasive_;
+          pxdPasive_ = new InactiveSurfaces();
+          u.arrangePixels(*pxd_, *pxdPasive_, verbose);
         }
         stopTaskClock();
         return true;
@@ -325,7 +323,6 @@ bool Squid::buildMaterials(bool verbose) {
   stopTaskClock();
   return true;
 }
-
 
 /**
  * Calculate a material budget for the previously created tracker object and collection of inactive
@@ -504,7 +501,6 @@ bool Squid::prepareWebSite() {
   return true;
 }
 
-
 /**
  * Actually creates the website where it was supposed to be
  * @return a boolean with the operation success
@@ -680,9 +676,12 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
     if (stdMb_ || pxdMb_) {
 
       startTaskClock("Creating material budget report");
-      if (pxdMb_) vizard_.histogramSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "PXD");
-      if (stdMb_) vizard_.histogramSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "STD");
-      //v.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "STD");
+      if (pxdMb_) vizard_.materialSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "PXD");
+      if (stdMb_) vizard_.materialSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "STD");
+      //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "PXD");
+      //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "STD");
+      
+      
       stopTaskClock();
       return true;
     }
