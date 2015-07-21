@@ -65,6 +65,9 @@ public:
 
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
+  Property<int, Computable> flatPartRingsNumber;
+  Property<double, Computable> flatPartMinR, flatPartMaxR, flatPartMaxZ;
+
   Layer() :
             materialObject_(MaterialObject::LAYER),
             flangeConversionStation_(nullptr),
@@ -91,14 +94,20 @@ public:
     minZ.setup([this]() { return rods_.front().minZ(); });
     maxR.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
     minR.setup([this]() { double min = 99999; for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
+    flatPartRingsNumber.setup([this]() { return rods_.front().flatPartRingsNumber(); });
+    flatPartMinR.setup([this]() { return rods_.front().flatPartMinR(); });
+    flatPartMaxR.setup([this]() { return rods_.front().flatPartMaxR(); });
+    flatPartMaxZ.setup([this]() { return rods_.front().flatPartMaxZ(); });
   }
 
   double placeRadius() const { return placeRadius_; }
   int numRods() const { return rods_.size(); }
-  int numModulesPerRod() const { return rods_.front().numModules(); };
+  int numModulesPerRod() const { return rods_.front().numModules(); }
   int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
-  int totalModules() const { return numModulesPerRod()*numRods(); };
+  int totalModules() const { return numModulesPerRod()*numRods(); }
   double rodThickness() const { return rods_.front().thickness(); }
+  double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
+  bool isTilted() const { return rods_.front().isTilted(); }
   
   double tilt() const { return 0.0; }
   double startAngle() const { return 0.0; }

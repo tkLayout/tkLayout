@@ -502,21 +502,55 @@ namespace insur {
       
       double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
       //rmin = rmin - v.max / 2.0; // no need to manually add/subtract the thickness, it is already taken into account by the new volumetric minR/maxR functions
+      double flatrmin = lagg.getBarrelLayers()->at(layer - 1)->flatPartMinR();
       double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
       //rmax = rmax + v.max / 2.0;
+      double flatrmax = lagg.getBarrelLayers()->at(layer - 1)->flatPartMaxR();
       double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
-      double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
-      double flatzmax;
-      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
-      double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
-      // lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+      double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();    
+      double flatzmax = lagg.getBarrelLayers()->at(layer - 1)->flatPartMaxZ();
+      
+      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness(); //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(), lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
+      double flatPartRodThickness = lagg.getBarrelLayers()->at(layer - 1)->flatPartRodThickness();
+      double deltar = flatPartRodThickness; 
+      bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
+
+
+      
+      /*double flatPartMinR = 99999;
+      double flatPartMaxR = 0;
+      double flatPartMaxZ = 0;
+      if (isTilted) {
+#ifdef __USE_MODULECOMPLEX__ 
+	iguard = oiter->end();
+	for (iiter = oiter->begin(); iiter != iguard; iiter++) {        
+	  if (iiter->getModule().tiltAngle() == 0 && iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	    int modRing = iiter->getModule().uniRef().ring;
+	    std::ostringstream lname;
+	    lname << xml_layer << layer;
+	    std::ostringstream mname;
+	    mname << xml_barrel_module << modRing << lname.str();
+	    std::string parentName = mname.str(); 
+	    ModuleComplex modcomplexg(mname.str(),parentName,*iiter);
+	    modcomplexg.buildSubVolumes();
+	    flatPartMinR = MIN(flatPartMinR, modcomplexg.getRmin());
+	    flatPartMaxR = MAX(flatPartMaxR, modcomplexg.getRmax());	    
+	    flatPartMaxZ = MAX(flatPartMaxZ, modcomplexg.getZmax());	
+#endif
+	  }
+	}
+      }
+      std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
+      std::cout << "flatPartMaxR = " << flatPartMaxR << std::endl;
+      std::cout << "flatPartMaxZ = " << flatPartMaxZ << std::endl;
+      */
 
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
 
       int count = 0;
 
-      if (deltar == 0.0) continue;
+      if (rodThickness == 0.0) continue;
 
       bool is_short = (zmax < 0.0) || (zmin > 0.0);
       bool is_relevant = !is_short || (zmin > 0.0);
@@ -549,7 +583,7 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 	    // Tilt angle of the module
 	    double tiltAngle = 0;
-	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
+	    if (isTilted) {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
 	    
@@ -557,12 +591,13 @@ namespace insur {
 
             std::ostringstream mname;
             mname << xml_barrel_module << modRing << lname.str();
+
 #ifdef __USE_MODULECOMPLEX__ 
             std::string parentName = mname.str(); 
-            //if (iiter->getModule().flipped()) parentName = mname.str() + xml_flipped; 
             ModuleComplex modcomplex(mname.str(),parentName,*iiter);
             modcomplex.buildSubVolumes();
 #endif
+
 	    if (iiter->getModule().uniRef().phi == 1) {
 	      
 	      ridx.insert(modRing);
@@ -593,7 +628,7 @@ namespace insur {
 #endif
 	    
 
-	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	    if (isTilted && (tiltAngle != 0)) {
 	      // collect ring info
 	      BTiltedRingInfo rinf;
 	      rinf.name = ringname.str() + xml_plus;
@@ -631,7 +666,7 @@ namespace insur {
 	      shape.name_tag = mname.str() + xml_tilted + xml_minus;
 	      s.push_back(shape);
 	    }
-	    if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
+	    if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
 	      shape.name_tag = mname.str() + xml_flipped;
 	      s.push_back(shape);
 	    }
@@ -651,7 +686,7 @@ namespace insur {
 #else
             logic.material_tag = xml_material_air;
 #endif
-	    if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	    if (isTilted && (tiltAngle != 0)) {
 	      logic.name_tag = mname.str() + xml_tilted + xml_plus + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag ;
 	      l.push_back(logic);
@@ -665,7 +700,7 @@ namespace insur {
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
 	    }
-	    if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
+	    if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
 	      logic.name_tag = mname.str() + xml_flipped;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
 	      l.push_back(logic);
@@ -713,9 +748,9 @@ namespace insur {
 	    //if (logic.shape_tag == "tracker:BModule5Layer1") { pos.rotref = nspace + ":" + xml_barrel_tilt_47; }
 
 	    // TODO: comment this lime
-            if ((iiter->getModule().center().Rho() > (rmax - deltar / 2.0))
-                || ((iiter->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-                    && (iiter->getModule().center().Rho() > (rmin + deltar / 2.0)))) {
+            if ((iiter->getModule().center().Rho() > (flatrmax - deltar / 2.0))
+                || ((iiter->getModule().center().Rho() < ((flatrmin + flatrmax) / 2.0))
+                    && (iiter->getModule().center().Rho() > (flatrmin + deltar / 2.0)))) {
 	      pos.trans.dx = deltar / 2.0 - shape.dz; 
 	    }
 	    else pos.trans.dx = shape.dz - deltar / 2.0;
@@ -723,8 +758,8 @@ namespace insur {
 
             if (is_short) {
               pos.parent_tag = nspace + ":" + rodname.str() + xml_plus;
-              pos.trans.dz = iiter->getModule().minZ() - ((zmax + zmin) / 2.0) + shape.dy;
-	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+              pos.trans.dz = iiter->getModule().minZ() - ((flatzmax + zmin) / 2.0) + shape.dy;
+	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_plus;
@@ -738,7 +773,7 @@ namespace insur {
               pos.parent_tag = nspace + ":" + rodname.str() + xml_minus;
               pos.trans.dz = -pos.trans.dz;
 	      pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_minus;
@@ -750,7 +785,7 @@ namespace insur {
 	      }
 	      p.push_back(pos);
 	      pos.copy = 1;
-	      if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
+	      if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
@@ -764,7 +799,7 @@ namespace insur {
               pos.parent_tag = nspace + ":" + rodname.str();
               partner = findPartnerModule(iiter, iguard, modRing);
 	      pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
-	      if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_plus;
@@ -777,13 +812,13 @@ namespace insur {
 	      p.push_back(pos);
  
 	      if (partner != iguard) {
-		if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
-		    || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-			&& (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
+		if ((partner->getModule().center().Rho() > (flatrmax - deltar / 2.0))
+		    || ((partner->getModule().center().Rho() < ((flatrmin + flatrmax) / 2.0))
+			&& (partner->getModule().center().Rho() > (flatrmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
 		else pos.trans.dx = shape.dz - deltar / 2.0;
 		pos.trans.dz = partner->getModule().maxZ() - shape.dy;
 		pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-		if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0)) {
+		if (isTilted && (tiltAngle != 0)) {
 		  pos.trans.dx = 0;
 		  pos.trans.dz = 0;
 		  pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_minus;
@@ -797,7 +832,7 @@ namespace insur {
 		pos.copy = 1;
 	      }
 
-	      if (iiter->getModule().flipped() || (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty() && (tiltAngle != 0))) {
+	      if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
 		pos.rotref = nspace + ":" + xml_flip_mod_rot;
@@ -947,27 +982,34 @@ namespace insur {
             dt = iiter->getModule().thickness();
           }
 
-	    if (iiter->getModule().uniRef().phi == 2 && !lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) {
-	      if (tiltAngle == 0) { 
+	    if (iiter->getModule().uniRef().phi == 2 && isTilted) {
+	      /*if (tiltAngle == 0) { 
 		flatzmax = iiter->getModule().center().Z() + iiter->getModule().thickness() / 2.0;
-	      }
-	      else {
+#ifdef __USE_MODULECOMPLEX__
+		flatzmax = modcomplex.getZmax();
+#endif
+}
+else {*/
 		std::map<int,BTiltedRingInfo>::iterator it;
 		it = rinfoplus.find(modRing);
 		if (it != rinfoplus.end()) {
 		  it->second.r2 = iiter->getModule().center().Rho();
 		  it->second.z2 = iiter->getModule().center().Z();
+#ifdef __USE_MODULECOMPLEX__ 
 	          it->second.rmax = modcomplex.getRmax();
 	          it->second.zmax = modcomplex.getZmax();
+#endif
 		}
 		it = rinfominus.find(modRing);
 		if (it != rinfominus.end()) {
 		  it->second.r2 = iiter->getModule().center().Rho();
 		  it->second.z2 = - iiter->getModule().center().Z();
+#ifdef __USE_MODULECOMPLEX__
 	          it->second.rmax = modcomplex.getRmax();
 	          it->second.zmax = modcomplex.getZmax();
+#endif
 		}
-	      }
+		//}
 	    }
 
 	  }
@@ -978,16 +1020,15 @@ namespace insur {
           ri.push_back(ril);
         }
 
-	ds = fromRim(rmax, shape.dx);
+	ds = fromRim(flatrmax, shape.dx);
 
         // rod(s)
         shape.name_tag = rodname.str();
         if (is_short) shape.name_tag = shape.name_tag + xml_plus;
         shape.dy = shape.dx;
-        shape.dx = rodThickness / 2.0;
-        if (is_short) shape.dz = (zmax - zmin) / 2.0;
-        else shape.dz = zmax;
-	if (!lagg.getBarrelLayers()->at(layer - 1)->tiltedLayerSpecFile().empty()) { shape.dz = flatzmax; }
+        shape.dx = flatPartRodThickness / 2.0;
+        if (is_short) shape.dz = (flatzmax - zmin) / 2.0;
+        else shape.dz = flatzmax;
         s.push_back(shape);
         logic.name_tag = rodname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1019,7 +1060,7 @@ namespace insur {
           logic.shape_tag = nspace + ":" + logic.name_tag;
           l.push_back(logic);
           pos.trans.dx = 0.0;
-          pos.trans.dz = zmin + (zmax - zmin) / 2.0;
+          pos.trans.dz = zmin + (flatzmax - zmin) / 2.0;
           pos.parent_tag = nspace + ":" + lname.str();
           pos.child_tag = nspace + ":" + lname.str() + xml_plus;
           p.push_back(pos);
@@ -1046,14 +1087,14 @@ namespace insur {
         alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
         pconverter.str("");
         alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-        pconverter << (rmin + deltar / 2.0) << "*mm";
+        pconverter << (flatrmin + deltar / 2.0) << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
         pconverter.str("");
-        pconverter << (rmax - ds - deltar / 2.0 - 2.0 * dt) << "*mm";
+        pconverter << (flatrmax - ds - deltar / 2.0 - 2.0 * dt) << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
         pconverter.str("");
         if (!wt && is_short) {
-          pconverter << (zmin + (zmax - zmin) / 2.0) << "*mm";
+          pconverter << (zmin + (flatzmax - zmin) / 2.0) << "*mm";
           alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
           pconverter.str("");
         }
@@ -1071,7 +1112,7 @@ namespace insur {
           alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
           pconverter.str("");
           if (wt) pconverter << "0.0*mm";
-          else pconverter << -(zmin + (zmax - zmin) / 2.0) << "*mm";
+          else pconverter << -(zmin + (flatzmax - zmin) / 2.0) << "*mm";
           alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
 	  pconverter.str("");
           a.push_back(alg);
@@ -2359,7 +2400,7 @@ namespace insur {
 
     dx = expandedModWidth;  
     dy = expandedModLength; 
-    dz = supportPlateThickness; 
+    dz = supportPlateThickness;
     posx = 0.;
     posy = 0.;
     posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
@@ -2390,11 +2431,11 @@ namespace insur {
     vector<double> rv; // radius list from which we will find min/max.
     vector<double> zv; // z list from which we will find min/max.
 
-    // mx: (v2+v3)/2, my: (v1+v2)/2
+    // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
     XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
     XYZVector my = 0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center ;
 
-    // new vertexes after expasion due to hybrid volumes
+    // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
     XYZVector v[npoints-1]; 
     v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my; 
@@ -2415,8 +2456,8 @@ namespace insur {
 
       zv.push_back(v_top[ip].Z());
       zv.push_back(v_bottom[ip].Z());
-      v_top[ip].SetZ(0.);    // projection to xy plain.
-      v_bottom[ip].SetZ(0.); // projection to xy plain.
+      v_top[ip].SetZ(0.);    // projection to xy plan.
+      v_bottom[ip].SetZ(0.); // projection to xy plan.
       rv.push_back(v_top[ip].R());
       rv.push_back(v_bottom[ip].R());
     }
