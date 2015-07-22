@@ -526,7 +526,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget* mb, int etaSteps) {
     Material tmp;
     Track track;
     eta = i_eta * etaStep;
-    theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
+    theta = 2 * atan(exp(-eta));
     track.setTheta(theta);
     track.setPhi(phi);
     track.setMagField(simParms_->magneticField());
@@ -2608,7 +2608,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
   double maxEta = etaMinMax.second *= (1 + randomPercentMargin);
 
-
   // Initialize random number generator, counters and histograms
   myDice.SetSeed(MY_RANDOM_SEED);
   createResetCounters(tracker, moduleTypeCount);
@@ -2951,7 +2950,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       // phi is random [0, 2pi)
       phi = myDice.Rndm() * 2 * M_PI; // debug
 
-      // eta is random (-4, 4]
+      // eta is random (-range, range]
       eta = myDice.Rndm() * spanEta + minEta;
       theta=2*atan(exp(-1*eta));
 
@@ -2978,6 +2977,8 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       for (auto& m : moduleV) {
         // A module can be hit if it fits the phi (precise) contraints
         // and the eta constaints (taken assuming origin within 5 sigma)
+
+        // ATENTION: BUG - couldHit uses minPhi & maxPhi, which are wrongly calculated!!!!
         if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
           auto h = m->checkTrackHits(origin, direction); 
           if (h.second != HitType::NONE) {

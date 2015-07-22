@@ -565,6 +565,8 @@ namespace insur {
     crProf->SetNameTitle("rglobal", "Radiation Length Over Full Volume");
     crProf->SetXTitle("#eta");
     crProf->Rebin(materialRebin);
+    double maxCRProf = crProf->GetMaximum();
+    crProf->GetYaxis()->SetRangeUser(0, 1.1*maxCRProf);
     crProf->Draw("hist");
     myPad = myCanvas->GetPad(2);
     myPad->cd();
@@ -576,6 +578,8 @@ namespace insur {
     ciProf->SetNameTitle("iglobal", "Interaction Length Over Full Volume");
     ciProf->SetXTitle("#eta");
     ciProf->Rebin(materialRebin);
+    double maxCIProf = ciProf->GetMaximum();
+    ciProf->GetYaxis()->SetRangeUser(0, 1.1*maxCIProf);
     ciProf->Draw("hist");
 
     // Write tracking volume plots to the web site
@@ -1334,7 +1338,7 @@ namespace insur {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
         layerTable->setContent(6, nBarrelLayers+1, totalBarrelModules);
         diskTable->setContent(0, nDisks+1, "Total");
-        diskTable->setContent(5, nDisks+1, totalEndcapModules*2);
+        diskTable->setContent(5, nDisks+1, totalEndcapModules);//*2);
 
         std::ostringstream myName;
         for (auto typeIt = ringTypeMap.begin();

@@ -28,9 +28,9 @@ namespace insur {
 
   static const double epsilon                    = 0.1;
   static const double volume_width               = 10.0;   // mm
-  static const double inner_radius               = 114.0;  // mm
-  static const double outer_radius               = 1190.0; // mm
-  static const double max_length                 = 2910.0; // mm
+  static const double inner_radius               = 800.0;  // mm
+  static const double outer_radius               = 2500.0; // mm
+  static const double max_length                 = 8000.0; // mm
   static const double pixel_radius               = 25.0;   // mm
   static const double z_threshold_service_zigzag = 100.0;
   static const double max_eta_coverage           = range_eta_regions[range_eta_regions.size()-1];   // Tracking performed from step_eta_epsilon to max_eta_coverage in steps

@@ -680,8 +680,8 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
       if (stdMb_) vizard_.materialSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "STD");
       //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "PXD");
       //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "STD");
-      
-      
+
+
       stopTaskClock();
       return true;
     }

@@ -92,13 +92,18 @@ std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) cons
 bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
   double eta = direction.Eta(), phi = direction.Phi();
   bool withinEta = eta > minEtaWithError(zError) && eta < maxEtaWithError(zError);
-  bool withinPhi;
-  if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
-    withinPhi = phi < minPhi() || phi > maxPhi();
-  else 
-    withinPhi = phi > minPhi() && phi < maxPhi();
-  //bool withinPhiSub = phi-2*M_PI > minPhi() && phi-2*M_PI < maxPhi();
-  //bool withinPhiAdd = phi+2*M_PI > minPhi() && phi+2*M_PI < maxPhi();
+  bool withinPhi = false;
+  // ATENTION: BUG - couldHit uses minPhi & maxPhi, which are wrongly calculated!!!!
+  //if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
+  //  withinPhi = phi < minPhi() || phi > maxPhi(); // --> doesn't work correctly
+  //else
+  //  withinPhi = phi > minPhi() && phi < maxPhi();
+
+  // TODO: DIRTY FIX!!!
+  if (minPhi() < 0. && maxPhi() > 0.) withinPhi = true; // --> doesn't work correctly
+  else withinPhi = phi > minPhi() && phi < maxPhi();
+  ////bool withinPhiSub = phi-2*M_PI > minPhi() && phi-2*M_PI < maxPhi();
+  ////bool withinPhiAdd = phi+2*M_PI > minPhi() && phi+2*M_PI < maxPhi();
   return withinEta && (withinPhi /*|| withinPhiSub || withinPhiAdd*/);
 }
 
