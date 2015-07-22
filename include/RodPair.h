@@ -60,7 +60,7 @@ public:
     minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
-    flatPartRingsNumber.setup([&]() { int n = 0; for (auto const& m : zPlusModules_) { if (m.tiltAngle() == 0) n = n + 1; } return n; });
+    flatPartRingsNumber.setup([&]() { return std::count_if (zPlusModules_.begin(), zPlusModules_.end(), [] (BarrelModule const& m) { return m.tiltAngle() == 0; }); });
     flatPartMinR.setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::minR); });
     flatPartMaxR.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::maxR); });
     flatPartMaxZ.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::maxZ); });
@@ -137,7 +137,6 @@ public:
 
 
   double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
-  // double flatPartThickness() const override { return smallDelta()*2. + maxModuleThickness(); }
   bool isTilted() const override { return false; }
 
   
@@ -164,7 +163,6 @@ class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
  public :
 
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
-  //double flatPartThickness() const override { return smallDelta()*2. + maxModuleThickness(); }
   bool isTilted() const override { return true; }
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
