@@ -1,2 +1,8 @@
 bin
 lib
+build
+old
+run
+.project
+.cproject
+.settings
