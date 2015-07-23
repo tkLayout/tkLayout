@@ -501,11 +501,15 @@ namespace insur {
       lagg.getBarrelLayers()->at(layer-1)->accept(v);
       
       double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
+      std::cout << "rmin = " << rmin << std::endl;
       //rmin = rmin - v.max / 2.0; // no need to manually add/subtract the thickness, it is already taken into account by the new volumetric minR/maxR functions
       double flatrmin = lagg.getBarrelLayers()->at(layer - 1)->flatPartMinR();
+      std::cout << "flatrmin = " << flatrmin << std::endl;
       double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
+      std::cout << "rmax = " << rmax << std::endl;
       //rmax = rmax + v.max / 2.0;
       double flatrmax = lagg.getBarrelLayers()->at(layer - 1)->flatPartMaxR();
+      std::cout << "flatrmax = " << flatrmax << std::endl;
       double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
       double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();    
       double flatzmax = lagg.getBarrelLayers()->at(layer - 1)->flatPartMaxZ();
