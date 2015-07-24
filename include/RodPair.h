@@ -44,9 +44,6 @@ public:
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<bool, Default> beamSpotCover;
 
-  Property<int, Computable> flatPartRingsNumber;
-  Property<double, Computable> flatPartMinR, flatPartMaxR, flatPartMaxZ;
-
   RodPair() :
       materialObject_(MaterialObject::ROD),
       startZMode("startZMode", parsedAndChecked(), StartZMode::MODULECENTER),
@@ -60,14 +57,9 @@ public:
     minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
-    flatPartRingsNumber.setup([&]() { return std::count_if (zPlusModules_.begin(), zPlusModules_.end(), [] (BarrelModule const& m) { return m.tiltAngle() == 0; }); });
-    flatPartMinR.setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::minR); });
-    flatPartMaxR.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::maxR); });
-    flatPartMaxZ.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.begin() + flatPartRingsNumber(), &Module::maxZ); });
   }
   
   virtual double thickness() const = 0;
-  //virtual double flatPartThickness() const = 0;
   virtual bool isTilted() const = 0;
 
   int numModules() const { return zPlusModules_.size() + zMinusModules_.size(); }
