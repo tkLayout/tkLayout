@@ -431,6 +431,7 @@ namespace insur {
       v.makeLogPage(site);
     }
 
+    // site.setSummaryFile(false); // If you want to disable the summary.root file, uncomment this line
     bool result = site.makeSite(false);
     stopTaskClock();
     return result;

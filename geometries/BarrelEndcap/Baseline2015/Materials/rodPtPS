@@ -62,8 +62,13 @@ Materials rodPtPS {
     scaleOnSensor 0
     Element {
       elementName CFRP
-      quantity 1
-      unit mm
+      quantity 627
+      unit g
+    }
+    Element {
+      elementName Airex
+      quantity 83
+      unit g
     }
   }
 
