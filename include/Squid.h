@@ -156,6 +156,7 @@ namespace insur {
     void resetVizard();
     std::string baseName_;
     std::string htmlDir_;
+    std::string layoutName_;
     std::string getGeometryFile();
     std::string getSettingsFile();
     std::string getMaterialFile();

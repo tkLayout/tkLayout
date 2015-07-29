@@ -125,6 +125,9 @@ int main(int argc, char* argv[]) {
   // Set configuration & other options
   squid.setCommandLine(argc, argv);
 
+  // Set html directory
+  if (htmlDir != "") squid.setHtmlDir(htmlDir);
+
   // Set geometry/configuration file
   squid.setGeometryFile(geomFile);
 
@@ -137,9 +140,6 @@ int main(int argc, char* argv[]) {
     if (verboseWatch==0) verboseWatch = 1;
   }
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
-
-  // Set html directory
-  if (htmlDir != "") squid.setHtmlDir(htmlDir);
 
   //
   // Build tracker: pixel & strip in barrel & forward region

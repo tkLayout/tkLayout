@@ -118,29 +118,30 @@ namespace insur {
    */
   // TODO: make sure the following constants are only used in
   // mainConfigHandler
-  static const std::string default_mattabdir = "config";
-  static const std::string default_mattabfile = "mattab.list";
-  static const std::string default_irradiationdir = "config";
+  static const std::string default_mattabdir                     = "config";
+  static const std::string default_mattabfile                    = "mattab.list";
+  static const std::string default_irradiationdir                = "config";
   static const std::vector<std::string> default_irradiationfiles = {"irradiation.map", "irradiationPixel.map"};
   //static const std::string default_irradiationfile = "irradiation.map";
-  static const std::string default_materialsdir = "config";
-  static const std::string default_tracker_materials_file = "Materials.cfg";
-  static const std::string default_pixel_materials_file = "PixelMaterials.cfg";
-  static const std::string suffix_tracker_material_file = "_Materials.cfg";
-  static const std::string suffix_pixel_material_file = "_Materials.cfg.pix";
-  static const std::string suffix_geometry_file = ".cfg";
-  static const std::string suffix_types_file = "_Types.cfg";
-  static const std::string default_rootfiledir = "rootfiles";
-  static const std::string default_rootfile = "trackergeometry.root";
-  static const std::string default_graphdir = "graphs";
-  static const std::string default_graphfile = "neighbours.graph";
-  static const std::string default_summary = "profiles.html";
-  static const std::string default_xmlpath = "xml";
-  static const std::string default_xml = "tk2CMSSWxml";
-  static const std::string default_styledir = "style";
-  static const std::string default_configdir = "config";
-  static const std::string default_stdincludedir = "stdinclude";
-  static const std::string default_geometriesdir = "geometries";
+  static const std::string default_materialsdir                  = "config";
+  static const std::string default_tracker_materials_file        = "Materials.cfg";
+  static const std::string default_pixel_materials_file          = "PixelMaterials.cfg";
+  static const std::string suffix_tracker_material_file          = "_Materials.cfg";
+  static const std::string suffix_pixel_material_file            = "_Materials.cfg.pix";
+  static const std::string suffix_geometry_file                  = ".cfg";
+  static const std::string suffix_types_file                     = "_Types.cfg";
+  static const std::string default_rootfiledir                   = "rootfiles";
+  static const std::string default_rootfile                      = "trackergeometry.root";
+  static const std::string default_graphdir                      = "graphs";
+  static const std::string default_graphfile                     = "neighbours.graph";
+  static const std::string default_summary                       = "profiles.html";
+  static const std::string default_xmlpath                       = "xml";
+  static const std::string default_xml                           = "tk2CMSSWxml";
+  static const std::string default_styledir                      = "style";
+  static const std::string default_configdir                     = "config";
+  static const std::string default_stdincludedir                 = "stdinclude";
+  static const std::string default_geometriesdir                 = "geometries";
+  static const std::string default_htmldir                       = "results";
 
   static const std::string csv_separator = ",";
   static const std::string csv_eol = "\n";

@@ -7,6 +7,7 @@
 #include <SvnRevision.h>
 #include "Squid.h"
 #include "StopWatch.h"
+#include <boost/algorithm/string/split.hpp>
 
 namespace insur {
   // public
@@ -42,6 +43,8 @@ namespace insur {
     myPixelMaterialFile_     = "";
     defaultMaterialFile      = false;
     defaultPixelMaterialFile = false;
+
+    htmlDir_ = "";
   }
 
   /**
@@ -475,22 +478,32 @@ bool Squid::prepareWebSite() {
 
   if (sitePrepared_) return true;
 
-  string trackerName;
-  if (htmlDir_ != "") trackerName = htmlDir_;
-  else {
-
-    if (std_) trackerName = baseName_;
-    else trackerName = default_trackername;
-  }
-
-  string layoutDirectory;
+  // Set html results output directory
+  //string trackerName;
+  //if (htmlDir_ != "") trackerName = htmlDir_;
+  //else {
+  //
+  //  if (std_) {
+  //
+  //    trackerName = baseName_;
+  //  }
+  //  else trackerName = default_trackername;
+  //}
+  //string layoutDirectory;
   //styleDirectory=mainConfiguration.getStyleDirectory();
-  layoutDirectory=mainConfig_.getLayoutDirectory();
-  layoutDirectory+="/"+trackerName;
-  if (layoutDirectory!="") webSite_.setTargetDirectory(layoutDirectory);
+  //layoutDirectory=mainConfig_.getLayoutDirectory();
+  //layoutDirectory+="/"+trackerName;
+
+  //if (layoutDirectory!="") webSite_.setTargetDirectory(layoutDirectory);
+  //else return false;
+
+  if (htmlDir_!="") webSite_.setTargetDirectory(htmlDir_);
   else return false;
 
-  webSite_.setTitle(trackerName);
+  // Set layout title
+  if (layoutName_!="") webSite_.setTitle(layoutName_);
+  else return false;
+
   webSite_.setComment("Layouts");
   webSite_.setCommentLink("../");
   webSite_.addAuthor("Giovanni Bianchi");
@@ -507,7 +520,9 @@ bool Squid::prepareWebSite() {
  */
 bool Squid::makeWebSite(bool addLogPage /* = true */) {
 
-  startTaskClock("Creating website");
+  ostringstream message;
+  message << "Creating website in: " << htmlDir_;
+  startTaskClock(message.str());
   if (!prepareWebSite()) {
 
     logERROR("Problem in preparing website");
@@ -759,12 +774,28 @@ bool Squid::reportInfoSite() {
     baseName_ = newBasename;
   }    
 
-  void Squid::setGeometryFile(std::string geomFile) {
-    myGeometryFile_ = geomFile;
-    size_t pos = geomFile.find_last_of('.');
-    if (pos != string::npos) { geomFile.erase(pos); }
-    baseName_ = geomFile;
+void Squid::setGeometryFile(std::string geomFile) {
+
+  myGeometryFile_ = geomFile;
+  size_t pos = geomFile.find_last_of('.');
+  if (pos != string::npos) { geomFile.erase(pos); }
+  baseName_ = geomFile;
+
+  // Set layout output htmlDir if not set explicite
+  if (htmlDir_=="") {
+
+    htmlDir_ = baseName_;
+    pos = htmlDir_.find_last_of('/');
+    if (pos != string::npos) { htmlDir_.erase(pos); }
+    htmlDir_+="/"+insur::default_htmldir;
   }
+
+  // Set layout name
+  std::vector<std::string> info;
+  boost::algorithm::split(info, geomFile, boost::algorithm::is_any_of("/"));
+  if (info.size()!=0) layoutName_ = info[info.size()-1];
+  else                layoutName_ = "";
+}
 
   void Squid::setHtmlDir(std::string htmlDir) {
     htmlDir_ = htmlDir;
