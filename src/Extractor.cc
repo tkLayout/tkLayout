@@ -910,7 +910,7 @@ namespace insur {
 
             // wafer
             string xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_lower;
 
             shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
@@ -933,7 +933,7 @@ namespace insur {
 
             if (iiter->getModule().numSensors() == 2) {
 
-              xml_base_inout = xml_base_outer;
+              xml_base_inout = xml_base_upper;
 
               shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
               s.push_back(shape);
@@ -971,9 +971,11 @@ namespace insur {
 
             // active surface
             xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_lower;
 
-            shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_pixel + xml_base_act;
+	    if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	    else { std::cerr << "Unknown module type !" << std::endl; }
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
@@ -982,12 +984,12 @@ namespace insur {
             //pos.parent_tag = logic.shape_tag;
             pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
 
-            logic.name_tag = mname.str() + xml_base_inout + xml_base_act;
+            logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = nspace + ":" + xml_sensor_silicon;
             l.push_back(logic);
 
-            pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_act;
+            pos.child_tag = nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
             pos.rotref = nspace + ":" + rot_sensor_tag;
@@ -995,10 +997,9 @@ namespace insur {
             p.push_back(pos);
 
             // topology
-            mspec.partselectors.push_back(mname.str() + xml_base_inout + xml_base_act);
+            mspec.partselectors.push_back(shape.name_tag);
 
             minfo.name		= iiter->getModule().moduleType();
-	    //std::cout << "iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
             minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
             minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
             minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
@@ -1009,25 +1010,27 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) { 
 
               // active surface
-              xml_base_inout = xml_base_outer;
+              xml_base_inout = xml_base_upper;
 
-              shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_strip + xml_base_act;
+	      if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	      else { std::cerr << "Unknown module type !" << std::endl; }
               s.push_back(shape);
 
               pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
 
-              logic.name_tag = mname.str() + xml_base_inout + xml_base_act;
+              logic.name_tag = shape.name_tag;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_act;
+              pos.child_tag = nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
               pos.rotref = nspace + ":" + rot_sensor_tag;
 #endif
               p.push_back(pos);
 
               // topology
-              mspec.partselectors.push_back(mname.str() + xml_base_inout + xml_base_act);
+              mspec.partselectors.push_back(shape.name_tag);
 
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
               minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
