@@ -202,7 +202,7 @@ namespace insur {
    */
   void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                          std::vector<std::pair<double, double> >& down) {
-    bool is_short, previous_short = false;
+    //bool is_short, previous_short = false;
     std::pair<double, double> rz;
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
@@ -213,8 +213,8 @@ namespace insur {
     auto bl = lagg.getBarrelLayers();
     int n_of_layers = bl->size();
     for (int layer = 0; layer < n_of_layers; layer++) {
-      is_short = (bl->at(layer)->minZ() > 0) || (bl->at(layer)->maxZ() < 0);
-      if (is_short) {
+      //is_short = (bl->at(layer)->minZ() > 0) || (bl->at(layer)->maxZ() < 0);
+      /*if (is_short) {
         //short layer on z- side
         if (bl->at(layer)->maxZ() < 0) {
           //indices 0, 1
@@ -273,7 +273,7 @@ namespace insur {
         }
       }
       //regular layer across z=0
-      else {
+      else {*/
         //index 0
         if (layer == 0) {
           rz.first = bl->at(layer)->minR();
@@ -307,11 +307,11 @@ namespace insur {
           rz.second = bl->at(layer)->maxZ();
           down.push_back(rz);
         }
-      }
+	//}
       rmax = bl->at(layer)->maxR();
       if (bl->at(layer)->minZ() < 0) zmin = bl->at(layer)->minZ();
       if (bl->at(layer)->maxZ() > 0) zmax = bl->at(layer)->maxZ();
-      previous_short = is_short;
+      //previous_short = is_short;
     }
   }
 
@@ -510,8 +510,7 @@ namespace insur {
       //std::cout << "zmin1 = " << zmin1 << std::endl;
       //double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();   
       //std::cout << "zmax = " << zmax << std::endl; 
-      double flatzmax;
-      
+    
       //double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness(); //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(), lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
       //double deltar = rodThickness; 
       bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
@@ -529,20 +528,7 @@ namespace insur {
       double r2 = 0;
 #ifdef __USE_MODULECOMPLEX__ 
 	iguard = oiter->end();
-	for (iiter = oiter->begin(); iiter != iguard; iiter++) { 
-	  /*if (iiter->getModule().tiltAngle() == 0 && iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
-	    int modRing = iiter->getModule().uniRef().ring;
-	    std::ostringstream lname;
-	    lname << xml_layer << layer;
-	    std::ostringstream mname;
-	    mname << xml_barrel_module << modRing << lname.str();
-	    std::string parentName = mname.str(); 
-	    ModuleComplex modcomplexg(mname.str(),parentName,*iiter);
-	    modcomplexg.buildSubVolumes();
-	    flatPartMinR = MIN(flatPartMinR, modcomplexg.getRmin());
-	    flatPartMaxR = MAX(flatPartMaxR, modcomplexg.getRmax());	    
-	    flatPartMaxZ = MAX(flatPartMaxZ, modcomplexg.getZmax());
-	    }*/
+	for (iiter = oiter->begin(); iiter != iguard; iiter++) {
 	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
 	    int modRing = iiter->getModule().uniRef().ring;
 	    std::ostringstream lname;
@@ -569,11 +555,8 @@ namespace insur {
 	}
 #endif
 	double rodThickness = rmax - rmin;
-	double deltar = rodThickness;
-	if (isTilted) {
-	  double flatPartRodThickness = flatPartMaxR - flatPartMinR; 
-	  deltar = flatPartRodThickness;
-	}
+	double flatPartRodThickness;
+	if (isTilted) flatPartRodThickness = flatPartMaxR - flatPartMinR;
 	std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
 	std::cout << "flatPartMaxR = " << flatPartMaxR << std::endl;
 	std::cout << "flatPartMaxZ = " << flatPartMaxZ << std::endl;
@@ -581,6 +564,8 @@ namespace insur {
 	std::cout << "rmax = " << rmax << std::endl;
 	std::cout << "zmax = " << zmax << std::endl;
 	std::cout << "zmin = " << zmin << std::endl;
+	std::cout << "r1 = " << r1 << std::endl;
+	std::cout << "r2 = " << r2 << std::endl;
       
 
 	double ds, dt = 0.0;
@@ -590,10 +575,10 @@ namespace insur {
 
       if (rodThickness == 0.0) continue;
 
-      bool is_short = (flatPartMaxZ < 0.0) || (zmin > 0.0);
-      bool is_relevant = !is_short || (zmin > 0.0);
+      //bool is_short = (flatPartMaxZ < 0.0) || (zmin > 0.0);
+      //bool is_relevant = !is_short || (zmin > 0.0);
 
-      if (is_relevant) {
+      //if (is_relevant) {
 
         shape.type = bx; // box
         shape.rmin = 0.0;
@@ -714,11 +699,15 @@ namespace insur {
 	    shape.name_tag = mname.str();
 	    s.push_back(shape);
 
-#ifdef __USE_MODULECOMPLEX__ 
-            // Get it back for sensors
+	    //Get it back from sensors
+#ifndef __USE_MODULECOMPLEX__
             shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
+#else
+            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
 #endif
 
 
@@ -799,7 +788,7 @@ namespace insur {
 
 	    // debug cout << the values here for a known rod
 
-            if (is_short) {
+            /*if (is_short) {
               pos.parent_tag = nspace + ":" + rodname.str() + xml_plus;
 	      pos.trans.dx = iiter->getModule().center().Rho() - r1;
               pos.trans.dz = iiter->getModule().minZ() - ((flatPartMaxZ + zmin) / 2.0) + shape.dy;
@@ -838,13 +827,13 @@ namespace insur {
 		pos.child_tag = nspace + ":" + mname.str();
 		p.push_back(pos);
 	      }
-            }
+	      }
 	    
-	    else {
+	      else {*/
               pos.parent_tag = nspace + ":" + rodname.str();
               partner = findPartnerModule(iiter, iguard, modRing);
 	      pos.trans.dx = iiter->getModule().center().Rho() - r1;
-	      pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
+	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
 		pos.trans.dz = 0;
@@ -863,7 +852,7 @@ namespace insur {
 			&& (partner->getModule().center().Rho() > (flatPartMinR + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
 			else pos.trans.dx = shape.dz - deltar / 2.0;*/
 		pos.trans.dx = -pos.trans.dx;
-		pos.trans.dz = partner->getModule().maxZ() - shape.dy;
+		pos.trans.dz = partner->getModule().center().Z();
 		pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
 		if (isTilted && (tiltAngle != 0)) {
 		  pos.trans.dx = 0;
@@ -887,7 +876,7 @@ namespace insur {
 		pos.child_tag = nspace + ":" + mname.str();
 		p.push_back(pos);
 	      }
-            }
+	      //}
             pos.rotref = "";
 
             // wafer
@@ -1030,38 +1019,29 @@ namespace insur {
 #ifdef __USE_MODULECOMPLEX__ 
 	    dt = modcomplex.getExpandedModuleThickness();
 #endif
-          }
-
-	    if (iiter->getModule().uniRef().phi == 2 && isTilted) {
-	      if (tiltAngle == 0) { 
-		flatzmax = iiter->getModule().center().Z() + iiter->getModule().thickness() / 2.0;
-#ifdef __USE_MODULECOMPLEX__
-		flatzmax = modcomplex.getZmax();
-#endif
-	      }
-	      else {
-		std::map<int,BTiltedRingInfo>::iterator it;
-		it = rinfoplus.find(modRing);
-		if (it != rinfoplus.end()) {
-		  it->second.r2 = iiter->getModule().center().Rho();
-		  it->second.z2 = iiter->getModule().center().Z();
-#ifdef __USE_MODULECOMPLEX__ 
-	          it->second.rmax = modcomplex.getRmax();
-	          it->second.zmax = modcomplex.getZmax();
-#endif
-		}
-		it = rinfominus.find(modRing);
-		if (it != rinfominus.end()) {
-		  it->second.r2 = iiter->getModule().center().Rho();
-		  it->second.z2 = - iiter->getModule().center().Z();
-#ifdef __USE_MODULECOMPLEX__
-	          it->second.rmax = modcomplex.getRmax();
-	          it->second.zmax = modcomplex.getZmax();
-#endif
-		}
-	      }
 	    }
 
+	    if (iiter->getModule().uniRef().phi == 2 && isTilted) {
+	      std::map<int,BTiltedRingInfo>::iterator it;
+	      it = rinfoplus.find(modRing);
+	      if (it != rinfoplus.end()) {
+		it->second.r2 = iiter->getModule().center().Rho();
+		it->second.z2 = iiter->getModule().center().Z();
+#ifdef __USE_MODULECOMPLEX__ 
+		it->second.rmax = modcomplex.getRmax();
+		it->second.zmax = modcomplex.getZmax();
+#endif
+	      }
+	      it = rinfominus.find(modRing);
+	      if (it != rinfominus.end()) {
+		it->second.r2 = iiter->getModule().center().Rho();
+		it->second.z2 = - iiter->getModule().center().Z();
+#ifdef __USE_MODULECOMPLEX__
+		it->second.rmax = modcomplex.getRmax();
+		it->second.zmax = modcomplex.getZmax();
+#endif
+	      }
+	    }
 	  }
 	}
         if (count > 0) {
@@ -1070,15 +1050,19 @@ namespace insur {
           ri.push_back(ril);
         }
 
-	ds = fromRim(rmax, shape.dx);
+	//ds = fromRim(rmax, shape.dx);
 
         // rod(s)
         shape.name_tag = rodname.str();
-        if (is_short) shape.name_tag = shape.name_tag + xml_plus;
-        shape.dy = shape.dx;
-        shape.dx = flatPartRodThickness / 2.0;
-        if (is_short) shape.dz = (flatPartMaxZ - zmin) / 2.0;
-        else shape.dz = flatPartMaxZ;
+        //if (is_short) shape.name_tag = shape.name_tag + xml_plus;
+	shape.dy = shape.dx;
+	shape.dx = rodThickness / 2.0;
+	if (isTilted) shape.dx = flatPartRodThickness / 2.0;
+        /*if (is_short) shape.dz = (zmax - zmin) / 2.0;
+	  else { */
+	  shape.dz = zmax;
+	  if (isTilted) shape.dz = flatPartMaxZ;
+	  //}
         s.push_back(shape);
         logic.name_tag = rodname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1087,7 +1071,7 @@ namespace insur {
         rspec.partselectors.push_back(rodname.str());
         rspec.moduletypes.push_back(minfo_zero);
         //rspec.moduletypes.push_back("");
-        if (is_short) {
+        /*if (is_short) {
           shape.name_tag = rodname.str() + xml_minus;
           s.push_back(shape);
           logic.name_tag = rodname.str() + xml_minus;
@@ -1096,9 +1080,9 @@ namespace insur {
           rspec.partselectors.push_back(rodname.str() + xml_minus);
           //rspec.moduletypes.push_back("");
           rspec.moduletypes.push_back(minfo_zero);
-        }
+	  }*/
         // extra containers for short layers
-        if (wt && is_short) {
+        /*if (wt && is_short) {
           shape.type = tb;
           shape.dx = 0.0;
           shape.dy = 0.0;
@@ -1122,11 +1106,11 @@ namespace insur {
           pos.trans.dz = - pos.trans.dz;
           pos.child_tag =  nspace + ":" + lname.str() + xml_minus;
           p.push_back(pos);
-        }
+	  }*/
         // rods in layer algorithm(s)
 	alg.name = xml_tobalgo;
         alg.parent = nspace + ":" + lname.str();
-        if (wt && is_short) alg.parent = alg.parent + xml_plus;
+        //if (wt && is_short) alg.parent = alg.parent + xml_plus;
 	pconverter <<  nspace + ":" + rodname.str();
         alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
         pconverter.str("");
@@ -1137,20 +1121,19 @@ namespace insur {
         alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
         pconverter.str("");
         alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-        //pconverter << (flatPartMinR + deltar / 2.0) << "*mm";
 	pconverter << r1 << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
         pconverter.str("");
-        //pconverter << (flatPartMaxR - ds - deltar / 2.0 - 2.0 * dt) << "*mm";
 	pconverter << r2 << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
         pconverter.str("");
-        if (!wt && is_short) {
+        /*if (!wt && is_short) {
           pconverter << (zmin + (flatPartMaxZ - zmin) / 2.0) << "*mm";
           alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
           pconverter.str("");
-        }
-        else alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	  }
+	  else*/ 
+	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
         pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
         alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
 	pconverter.str("");
@@ -1158,7 +1141,7 @@ namespace insur {
         alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
         a.push_back(alg);
         // extras for short layers
-        if (is_short) {
+        /*if (is_short) {
           if (wt) alg.parent = nspace + ":" + lname.str() + xml_minus;
           pconverter << nspace << ":" << rodname.str() << xml_minus;
           alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
@@ -1168,7 +1151,7 @@ namespace insur {
           alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
 	  pconverter.str("");
           a.push_back(alg);
-        }
+	  }*/
         alg.parameters.clear();
 
         // tilted rings
@@ -1288,7 +1271,7 @@ namespace insur {
         lspec.partselectors.push_back(lname.str());
         //lspec.moduletypes.push_back("");
         lspec.moduletypes.push_back(minfo_zero);
-      }
+	//}
       layer++;
     }
     if (!lspec.partselectors.empty()) t.push_back(lspec);
