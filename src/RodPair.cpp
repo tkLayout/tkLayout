@@ -2,8 +2,6 @@
 #include "messageLogger.h"
 
 void RodPair::clearComputables() { 
-  minAperture.clear(); 
-  maxAperture.clear(); 
 }
 
 void RodPair::translate(const XYZVector& translation) {
