@@ -517,15 +517,24 @@ namespace insur {
 
 
       
-      double flatPartMinR = 99999;
-      double flatPartMaxR = 0;
-      double flatPartMaxZ = 0;
-      double rmin = 99999;
-      double rmax = 0;
+      double xmin = 99999;
+      double xmax = 0;
+      double ymin = 99999;
+      double ymax = 0;
       double zmin = 99999;
       double zmax = 0;
-      double r1 = 0;
-      double r2 = 0;
+      double rmin = 99999;
+      double rmax = 0;
+      double RadiusIn = 0;
+      double RadiusOut = 0;
+      double flatPartMinX = 99999;
+      double flatPartMaxX = 0;
+      double flatPartMinY = 99999;
+      double flatPartMaxY = 0;
+      double flatPartMaxZ = 0;
+      double flatPartMinR = 99999;
+      double flatPartMaxR = 0;
+
 #ifdef __USE_MODULECOMPLEX__ 
 	iguard = oiter->end();
 	for (iiter = oiter->begin(); iiter != iguard; iiter++) {
@@ -538,16 +547,30 @@ namespace insur {
 	    std::string parentName = mname.str(); 
 	    ModuleComplex modcomplexg(mname.str(),parentName,*iiter);
 	    modcomplexg.buildSubVolumes();
+	    if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1)){
+	      xmin = MIN(xmin, modcomplexg.getXmin());
+	      xmax = MAX(xmax, modcomplexg.getXmax());
+	      ymin = MIN(ymin, modcomplexg.getYmin());
+	      ymax = MAX(ymax, modcomplexg.getYmax());
+	      if (isTilted) {
+		if (iiter->getModule().tiltAngle() == 0) {
+		  flatPartMinX = MIN(flatPartMinX, modcomplexg.getXmin());
+		  flatPartMaxX = MAX(flatPartMaxX, modcomplexg.getXmax());
+		  flatPartMinY = MIN(flatPartMinY, modcomplexg.getYmin());
+		  flatPartMaxY = MAX(flatPartMaxY, modcomplexg.getYmax());	    
+		}
+	      }
+	    }
 	    rmin = MIN(rmin, modcomplexg.getRmin());
-	    rmax = MAX(rmax, modcomplexg.getRmax());
+	    rmax = MAX(rmax, modcomplexg.getRmax());	    
 	    zmax = MAX(zmax, modcomplexg.getZmax());
 	    zmin = -zmax;
-	    if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { r1 = r1 + iiter->getModule().center().Rho() / 2; }
-	    if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { r2 = r2 + iiter->getModule().center().Rho() / 2; }
+	    if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
+	    if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
 	    if (isTilted) {
 	      if (iiter->getModule().tiltAngle() == 0) {
 		flatPartMinR = MIN(flatPartMinR, modcomplexg.getRmin());
-		flatPartMaxR = MAX(flatPartMaxR, modcomplexg.getRmax());	    
+		flatPartMaxR = MAX(flatPartMaxR, modcomplexg.getRmax());    
 		flatPartMaxZ = MAX(flatPartMaxZ, modcomplexg.getZmax());
 	      }
 	    }
@@ -557,15 +580,32 @@ namespace insur {
 	double rodThickness = rmax - rmin;
 	double flatPartRodThickness;
 	if (isTilted) flatPartRodThickness = flatPartMaxR - flatPartMinR;
+	double roddx = (ymax - ymin) / 2;
+	double flatPartRoddx;
+	if (isTilted) flatPartRoddx = (flatPartMaxY - flatPartMinY) / 2;
+	double roddy = (xmax - xmin) / 2;
+	double flatPartRoddy;
+	if (isTilted) flatPartRoddy = (flatPartMaxX - flatPartMinX) / 2;
 	std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
 	std::cout << "flatPartMaxR = " << flatPartMaxR << std::endl;
 	std::cout << "flatPartMaxZ = " << flatPartMaxZ << std::endl;
 	std::cout << "rmin = " << rmin << std::endl;
 	std::cout << "rmax = " << rmax << std::endl;
-	std::cout << "zmax = " << zmax << std::endl;
+	std::cout << "xmin = " << xmin << std::endl;
+	std::cout << "xmax = " << xmax << std::endl;
+	std::cout << "ymin = " << ymin << std::endl;
+	std::cout << "ymax = " << ymax << std::endl;
 	std::cout << "zmin = " << zmin << std::endl;
-	std::cout << "r1 = " << r1 << std::endl;
-	std::cout << "r2 = " << r2 << std::endl;
+	std::cout << "zmax = " << zmax << std::endl;
+
+	if (isTilted) {
+	  std::cout << "flatPartRodThickness = " << flatPartRodThickness << std::endl;
+	  std::cout << "flatPartRoddx = " << flatPartRoddx << std::endl;
+	  std::cout << "flatPartRoddy = " << flatPartRoddy << std::endl;
+	}
+
+	std::cout << "RadiusIn = " << RadiusIn << std::endl;
+	std::cout << "RadiusOut = " << RadiusOut << std::endl;
       
 
 	double ds, dt = 0.0;
@@ -573,7 +613,7 @@ namespace insur {
 
       int count = 0;
 
-      if (rodThickness == 0.0) continue;
+      if ((rmax - rmin) == 0.0) continue;
 
       //bool is_short = (flatPartMaxZ < 0.0) || (zmin > 0.0);
       //bool is_relevant = !is_short || (zmin > 0.0);
@@ -610,7 +650,7 @@ namespace insur {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
 	    
-	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
 
             std::ostringstream mname;
             mname << xml_barrel_module << modRing << lname.str();
@@ -699,17 +739,6 @@ namespace insur {
 	    shape.name_tag = mname.str();
 	    s.push_back(shape);
 
-	    //Get it back from sensors
-#ifndef __USE_MODULECOMPLEX__
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-            shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().thickness() / 2.0;
-#else
-            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
-            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
-            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
-#endif
-
 
 #if 0
             logic.material_tag = nspace + ":" + matname.str();
@@ -790,7 +819,7 @@ namespace insur {
 
             /*if (is_short) {
               pos.parent_tag = nspace + ":" + rodname.str() + xml_plus;
-	      pos.trans.dx = iiter->getModule().center().Rho() - r1;
+	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
               pos.trans.dz = iiter->getModule().minZ() - ((flatPartMaxZ + zmin) / 2.0) + shape.dy;
 	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
@@ -832,7 +861,7 @@ namespace insur {
 	      else {*/
               pos.parent_tag = nspace + ":" + rodname.str();
               partner = findPartnerModule(iiter, iguard, modRing);
-	      pos.trans.dx = iiter->getModule().center().Rho() - r1;
+	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
 	      if (isTilted && (tiltAngle != 0)) {
 		pos.trans.dx = 0;
@@ -884,6 +913,8 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
             shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
+	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
             //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
             s.push_back(shape);
@@ -943,6 +974,9 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
 
             shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	    shape.dy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().sensorThickness() / 2.0;
             s.push_back(shape);
 
             //pos.parent_tag = logic.shape_tag;
@@ -964,6 +998,7 @@ namespace insur {
             mspec.partselectors.push_back(mname.str() + xml_base_inout + xml_base_act);
 
             minfo.name		= iiter->getModule().moduleType();
+	    //std::cout << "iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
             minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
             minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
             minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
@@ -1055,14 +1090,15 @@ namespace insur {
         // rod(s)
         shape.name_tag = rodname.str();
         //if (is_short) shape.name_tag = shape.name_tag + xml_plus;
-	shape.dy = shape.dx;
-	shape.dx = rodThickness / 2.0;
-	if (isTilted) shape.dx = flatPartRodThickness / 2.0;
+	shape.dx = (ymax - ymin) / 2;
+	if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2;
+	shape.dy = (xmax - xmin) / 2;
+	if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2;
         /*if (is_short) shape.dz = (zmax - zmin) / 2.0;
 	  else { */
-	  shape.dz = zmax;
-	  if (isTilted) shape.dz = flatPartMaxZ;
-	  //}
+	shape.dz = zmax;
+	if (isTilted) shape.dz = flatPartMaxZ;
+	//}
         s.push_back(shape);
         logic.name_tag = rodname.str();
         logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1121,10 +1157,10 @@ namespace insur {
         alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
         pconverter.str("");
         alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	pconverter << r1 << "*mm";
+	pconverter << RadiusIn << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
         pconverter.str("");
-	pconverter << r2 << "*mm";
+	pconverter << RadiusOut << "*mm";
         alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
         pconverter.str("");
         /*if (!wt && is_short) {
@@ -2443,7 +2479,7 @@ namespace insur {
     vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
 
     // ===========================================================
-    // Finding Rmin/Rmax/Zmin/Zmax with considering hybrid volumes
+    // Finding Rmin/Rmax/Xmin/Xmax/Ymin/Ymax/Zmin/Zmax with considering hybrid volumes
     // ===========================================================
     //
     // Module polygon
@@ -2464,6 +2500,8 @@ namespace insur {
     //    ----------------- bottom
     //
     vector<double> rv; // radius list from which we will find min/max.
+    vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
+    vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
     vector<double> zv; // z list from which we will find min/max.
 
     // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
@@ -2489,6 +2527,10 @@ namespace insur {
         vertex.push_back(v_top[ip]);
         vertex.push_back(v_bottom[ip]);
 
+      xv.push_back(v_top[ip].X());
+      xv.push_back(v_bottom[ip].X());
+      yv.push_back(v_top[ip].Y());
+      yv.push_back(v_bottom[ip].Y());
       zv.push_back(v_top[ip].Z());
       zv.push_back(v_bottom[ip].Z());
       v_top[ip].SetZ(0.);    // projection to xy plan.
@@ -2508,20 +2550,31 @@ namespace insur {
       sp_top = v_top[ip]-v_top[ip+1];
       if ( sp_top.Dot(v_top[ip]) * sp_top.Dot(v_top[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).R());
+	//xv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).X());
+	//yv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).Y());
       }
       // bottom surface
       XYZVector sp_bottom; // midpoint of each side
       sp_bottom = v_bottom[ip]-v_bottom[ip+1];
       if ( sp_bottom.Dot(v_bottom[ip]) * sp_bottom.Dot(v_bottom[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit()).R());
+	//xv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).X());
+	//yv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).Y());
       }
     }
+
     
     // Find min and max
     sort(rv.begin(),rv.end());
+    sort(xv.begin(),xv.end());
+    sort(yv.begin(),yv.end());
     sort(zv.begin(),zv.end());
     rmin = rv.at(0);
     rmax = rv.back();
+    xmin = xv.at(0);
+    xmax = xv.back();
+    ymin = yv.at(0);
+    ymax = yv.back();
     zmin = zv.at(0);
     zmax = zv.back();
 

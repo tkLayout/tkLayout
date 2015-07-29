@@ -135,6 +135,10 @@ namespace insur {
      const double getExpandedModuleThickness() const { return expandedModThickness; }
      double getRmin() const { return rmin; }
      double getRmax() const { return rmax; }
+     double getXmin() const { return xmin; }
+     double getXmax() const { return xmax; }
+     double getYmin() const { return ymin; }
+     double getYmax() const { return ymax; }
      double getZmin() const { return zmin; }
      double getZmax() const { return zmax; }
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
@@ -230,13 +234,17 @@ namespace insur {
             double         moduleMassWithoutSensors_expected;
             double         rmin;
             double         rmax;
+	    double         xmin;
+            double         xmax;
+	    double         ymin;
+            double         ymax;
             double         zmin;
             double         zmax;
-      const double         expandedModWidth;
-      const double         expandedModLength;
-      const double         expandedModThickness; 
-      const XYZVector      center; 
-      const XYZVector      normal; 
+	    const double         expandedModWidth;
+	    const double         expandedModLength;
+	    const double         expandedModThickness; 
+	    const XYZVector      center; 
+	    const XYZVector      normal; 
       std::vector<XYZVector> vertex; 
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;
