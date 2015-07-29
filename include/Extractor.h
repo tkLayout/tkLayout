@@ -17,6 +17,7 @@
 #include <tk2CMSSW_strings.h>
 #include <set>
 #include <cmath>
+#include <limits.h>
 #include <sstream>
 #include <Tracker.h>
 #include <MaterialTable.h>

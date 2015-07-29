@@ -517,22 +517,22 @@ namespace insur {
 
 
       
-      double xmin = 99999;
+      double xmin = INT_MAX;
       double xmax = 0;
-      double ymin = 99999;
+      double ymin = INT_MAX;
       double ymax = 0;
-      double zmin = 99999;
+      double zmin = INT_MAX;
       double zmax = 0;
-      double rmin = 99999;
+      double rmin = INT_MAX;
       double rmax = 0;
       double RadiusIn = 0;
       double RadiusOut = 0;
-      double flatPartMinX = 99999;
+      double flatPartMinX = INT_MAX;
       double flatPartMaxX = 0;
-      double flatPartMinY = 99999;
+      double flatPartMinY = INT_MAX;
       double flatPartMaxY = 0;
       double flatPartMaxZ = 0;
-      double flatPartMinR = 99999;
+      double flatPartMinR = INT_MAX;
       double flatPartMaxR = 0;
 
 #ifdef __USE_MODULECOMPLEX__ 
@@ -650,7 +650,7 @@ namespace insur {
 	      tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	    }
 	    
-	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << std::endl;
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
             std::ostringstream mname;
             mname << xml_barrel_module << modRing << lname.str();
@@ -974,8 +974,8 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_lower;
 
 	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_pixel + xml_base_act;
-	    if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
-	    else { std::cerr << "Unknown module type !" << std::endl; }
+	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
@@ -1013,8 +1013,8 @@ namespace insur {
               xml_base_inout = xml_base_upper;
 
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_strip + xml_base_act;
-	      if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
-	      else { std::cerr << "Unknown module type !" << std::endl; }
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
               s.push_back(shape);
 
               pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
