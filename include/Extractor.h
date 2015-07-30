@@ -117,7 +117,6 @@ namespace insur {
   // This should be moved to tk2CMSSW_strings.h at some point.
   static const std::string rot_sensor_tag = "SensorFlip";
 #endif
-#ifdef __USE_MODULECOMPLEX__
   class ModuleComplex {
     public :
      ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
@@ -250,7 +249,6 @@ namespace insur {
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
-#endif
 }
 #endif	/* _EXTRACTOR_H */
 
