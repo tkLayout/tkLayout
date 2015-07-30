@@ -1147,7 +1147,7 @@ namespace insur {
           p.push_back(pos);
 	  }*/
         // rods in layer algorithm(s)
-	alg.name = xml_tobalgo;
+	alg.name = xml_phialt_algo;
         alg.parent = nspace + ":" + lname.str();
         //if (wt && is_short) alg.parent = alg.parent + xml_plus;
 	pconverter <<  nspace + ":" + rodname.str();
@@ -1240,7 +1240,7 @@ namespace insur {
 		rspec.partselectors.push_back(rinfo.name);
 		//rspec.moduletypes.push_back(minfo_zero);
 	      
-		alg.name = xml_tilted_rings_algo;
+		alg.name = xml_angularv1_algo;
 		alg.parent = nspace + ":" + rinfo.name;
 		if (rinfo.inner_flipped) {
 		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
@@ -1263,7 +1263,7 @@ namespace insur {
 		a.push_back(alg);
 		alg.parameters.clear();
 	      
-		alg.name = xml_tilted_rings_algo;
+		alg.name = xml_angularv1_algo;
 		alg.parent = logic.shape_tag;
 		if (rinfo.inner_flipped) {
 		  alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
@@ -1398,7 +1398,7 @@ namespace insur {
     // p: one entry for every disc, one for every ring, one module, wafer and active per ring
     // a: two per ring with modules inside ring
     layer = 1;
-    alg.name = xml_ecalgo;
+    alg.name = xml_angularv1_algo;
     oguard = ec.end();
 
     LayerAggregator lagg;
@@ -1532,6 +1532,7 @@ namespace insur {
             }
 #endif
             s.push_back(shape);
+
 #ifdef __USE_MODULECOMPLEX__ 
             // Get it back for sensors
             shape.dx = iiter->getModule().minWidth() / 2.0;
@@ -2553,16 +2554,12 @@ namespace insur {
       sp_top = v_top[ip]-v_top[ip+1];
       if ( sp_top.Dot(v_top[ip]) * sp_top.Dot(v_top[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).R());
-	//xv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).X());
-	//yv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).Y());
       }
       // bottom surface
       XYZVector sp_bottom; // midpoint of each side
       sp_bottom = v_bottom[ip]-v_bottom[ip+1];
       if ( sp_bottom.Dot(v_bottom[ip]) * sp_bottom.Dot(v_bottom[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit()).R());
-	//xv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).X());
-	//yv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).Y());
       }
     }
 

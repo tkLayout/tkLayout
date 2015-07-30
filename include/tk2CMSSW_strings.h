@@ -174,9 +174,8 @@ namespace insur {
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
-    static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
-    static const std::string xml_tilted_rings_algo = "track:DDTrackerAngular";
-    static const std::string xml_ecalgo = "track:DDTrackerAngularV1";
+    static const std::string xml_phialt_algo = "track:DDTrackerPhiAltAlgo";
+    static const std::string xml_angularv1_algo = "track:DDTrackerAngularV1";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
     static const std::string xml_childparam = "ChildName";
