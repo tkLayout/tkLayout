@@ -750,10 +750,10 @@ namespace insur {
             pos.rotref = "";
 
             // wafer
-            string xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_lower;
+            string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
-            shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
+            shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
@@ -761,28 +761,28 @@ namespace insur {
 
             pos.parent_tag = nspace + ":" + mname.str();
 
-            logic.name_tag = mname.str() + xml_base_inout + xml_base_waf;
+            logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
-            pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+            pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
 
             if (iiter->getModule().numSensors() == 2) {
 
-              xml_base_inout = xml_base_upper;
+              xml_base_lowerupper = xml_base_upper;
 
-              shape.name_tag = mname.str() + xml_base_inout + xml_base_waf;
+              shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
               s.push_back(shape);
 
-              logic.name_tag = mname.str() + xml_base_inout + xml_base_waf;
+              logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+              pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
@@ -810,18 +810,18 @@ namespace insur {
 
 
             // active surface
-            xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_lower;
+            xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
-	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_pixel + xml_base_act;
-	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
             s.push_back(shape);
 
-            pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+            pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
             logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -849,14 +849,14 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) { 
 
               // active surface
-              xml_base_inout = xml_base_upper;
+              xml_base_lowerupper = xml_base_upper;
 
-	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_inout + xml_base_ps + xml_base_strip + xml_base_act;
-	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_inout + xml_base_2s+ xml_base_act;
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
               s.push_back(shape);
 
-              pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+              pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
               logic.name_tag = shape.name_tag;
               logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1307,13 +1307,13 @@ namespace insur {
 
 
             // wafer -- same x and y size of parent shape, but different thickness
-            string xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+            string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
 
             pos.parent_tag = logic.shape_tag;
 
-            shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
+            shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
             shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
             //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
             s.push_back(shape);
@@ -1330,11 +1330,11 @@ namespace insur {
             p.push_back(pos);
             if (iiter->getModule().numSensors() == 2) {
 
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
               //pos.parent_tag = logic.shape_tag;
 
-              shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
+              shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
               s.push_back(shape);
 
               logic.name_tag = shape.name_tag;
@@ -1371,13 +1371,15 @@ namespace insur {
 
 
             // active surface
-            xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+            xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
             //pos.parent_tag = logic.shape_tag;
-            pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+            pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
-            shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
@@ -1406,12 +1408,14 @@ namespace insur {
             if (iiter->getModule().numSensors() == 2) {
 
               // active surface
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
               //pos.parent_tag = logic.shape_tag;
-              pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+              pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
-              shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
               s.push_back(shape);
 
               logic.name_tag = shape.name_tag;
