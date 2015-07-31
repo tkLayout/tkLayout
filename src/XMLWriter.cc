@@ -724,7 +724,7 @@ namespace insur {
 			stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
 		
 			//TO DO get rid of this if loop iif possible
-			//if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptPS"){
+			//if(partsel.at(i).find(xml_base_lower) != std::string::npos && minfo.at(i).name=="ptPS"){
 			//	minfo.at(i).roccols = "16";
 			//}
 			stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
@@ -780,10 +780,10 @@ namespace insur {
                     mnumber = mnumber.substr(0, mnumber.size() - xml_base_act.size());
 
                     // This is to take care of the Inner/Outer distinction
-                    if (mnumber.find(xml_base_inner) != std::string::npos)
-                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_inner.size());
-                    else if (mnumber.find(xml_base_outer) != std::string::npos)
-                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_outer.size());
+                    if (mnumber.find(xml_base_lower) != std::string::npos)
+                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_lower.size());
+                    else if (mnumber.find(xml_base_upper) != std::string::npos)
+                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_upper.size());
 
                     mnumber = mnumber.substr(findNumericPrefixSize(mnumber) + xml_layer.size());
 
@@ -793,13 +793,13 @@ namespace insur {
                         postfix = postfix.substr(0, postfix.size() - xml_base_act.size());
 
                         // This is to take care of the Inner/Outer distinction
-                        if (postfix.find(xml_base_inner) != std::string::npos) {
-                          postfix = postfix.substr(0, postfix.size() - xml_base_inner.size());
-                          postfix = postfix + "/" + postfix + xml_base_inner + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
+                        if (postfix.find(xml_base_lower) != std::string::npos) {
+                          postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
+                          postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
                         }
-                        else if (postfix.find(xml_base_outer) != std::string::npos) {
-                          postfix = postfix.substr(0, postfix.size() - xml_base_outer.size());
-                          postfix = postfix + "/" + postfix + xml_base_outer + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
+                        else if (postfix.find(xml_base_upper) != std::string::npos) {
+                          postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
+                          postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
                         }
 
                         else
@@ -867,13 +867,13 @@ namespace insur {
                            if (refstring.find(postfix) != std::string::npos) {
 
                                 // This is to take care of the Inner/Outer distinction
-                                if (refstring.find(xml_base_inner) != std::string::npos) {
-                                  //postfix = postfix.substr(0, postfix.size() - xml_base_inner.size());
-                                  postfix = postfix + "/" + postfix + xml_base_inner + xml_base_waf + "/" + postfix + xml_base_inner + xml_base_act;
+                                if (refstring.find(xml_base_lower) != std::string::npos) {
+                                  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
+                                  postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + postfix + xml_base_lower + xml_base_act;
                                 }
-                                else if (refstring.find(xml_base_outer) != std::string::npos) {
-                                  //postfix = postfix.substr(0, postfix.size() - xml_base_outer.size());
-                                  postfix = postfix + "/" + postfix + xml_base_outer + xml_base_waf + "/" + postfix + xml_base_outer+ xml_base_act;
+                                else if (refstring.find(xml_base_upper) != std::string::npos) {
+                                  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
+                                  postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + postfix + xml_base_upper+ xml_base_act;
                                 }
         
                                 else
