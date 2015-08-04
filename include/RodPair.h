@@ -39,8 +39,6 @@ private:
 public:
   Property<double, NoDefault> maxZ;
   Property<double, Computable> minZ, maxR, minR;
-  ReadonlyProperty<double, Computable> minAperture;
-  ReadonlyProperty<double, Computable> maxAperture;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<bool, Default> beamSpotCover;
 
@@ -51,8 +49,6 @@ public:
   {}
 
   void setup() {
-    minAperture.setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::phiAperture); }); // CUIDADO not checking the zMinus modules, check if this could cause problems down the road
-    maxAperture.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::phiAperture); });
     minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
     minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
@@ -147,10 +143,10 @@ struct TiltedModuleSpecs {
 };
 
 class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 public:
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
-  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
+  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
 }; 
 
