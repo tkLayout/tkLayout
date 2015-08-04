@@ -722,7 +722,7 @@ namespace insur {
 	    p.push_back(pos);
  
 	    if (partner != iguard) {
-	      pos.trans.dx = -pos.trans.dx;
+	      pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = partner->getModule().center().Z();
 	      pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
 	      if (isTilted && (tiltAngle != 0)) {
