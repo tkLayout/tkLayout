@@ -143,10 +143,10 @@ struct TiltedModuleSpecs {
 };
 
 class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction);
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip);
 public:
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
-  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs);
+  void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
 }; 
 

@@ -314,6 +314,7 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
     //mod->build();
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
+    mod->flipped(parity != 1); // Attaching the correct flipped() value to the module
     mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules.push_back(mod);
@@ -368,7 +369,7 @@ void StraightRodPair::build(const RodTemplate& rodTemplate) {
   builtok(true);
 }
 
-void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction) {
+void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<TiltedModuleSpecs>& tmspecs, BuildDir direction, bool flip) {
   auto it = rodTemplate.begin();
   int side = (direction == BuildDir::RIGHT ? 1 : -1);
   if (tmspecs.empty()) return;
@@ -379,21 +380,23 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->side(side);
     mod->tilt(side * tmspecs[i].gamma);
     mod->translateR(tmspecs[i].r);
+    if (tmspecs[i].gamma == 0) { mod->flipped(i%2); } // flat part of the tilted rod, i is the ring number
+    else { mod->flipped(flip); } // tilted part of the tilted rod
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);
   }
 }
 
 
-void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs) {
+void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
   materialObject_.store(propertyTree());
   materialObject_.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT);
-    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT);
+    buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
+    buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();
