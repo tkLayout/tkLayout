@@ -1007,7 +1007,7 @@ namespace insur {
 	      rspec.partselectors.push_back(rinfo.name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
-	      alg.name = xml_angularv1_algo;
+	      alg.name = xml_angular_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
 	      if (rinfo.inner_flipped) {
 		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
@@ -1030,7 +1030,7 @@ namespace insur {
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
-	      alg.name = xml_angularv1_algo;
+	      alg.name = xml_angular_algo;
 	      alg.parent = logic.shape_tag;
 	      if (rinfo.inner_flipped) {
 		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
