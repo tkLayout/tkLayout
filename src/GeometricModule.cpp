@@ -194,16 +194,13 @@ void WedgeModule::build() {
 
     // Add a check: if the module overcomes the max rho
     // it must be cut.
-
-    // Doesn't work as expected -> creates loop to exactly catch the 
-    // edge (problem when shifting new layer by overlap ...)
-    //if (buildCropDistance.state() && dfar > buildCropDistance()) {
-    //  amountCropped_ = dfar - buildCropDistance();
-    //  b1 = 0;
-    //  b2 = buildCropDistance() - d;
-    //  h2 = h1/d * buildCropDistance();
-    //  cropped_ = true;
-    //}
+    if (buildCropDistance.state() && dfar > buildCropDistance()) {
+      amountCropped_ = dfar - buildCropDistance();
+      b1 = 0;
+      b2 = buildCropDistance() - d;
+      h2 = h1/d * buildCropDistance();
+      cropped_ = true;
+    }
 
     // Some member variable computing:
     area_     = fabs((b1+b2) * (h2+h1));
