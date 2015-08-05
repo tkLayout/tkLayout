@@ -48,7 +48,6 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
       // Remember that disc put always in to the centre of endcap
       double shiftZ        = parity > 0 ? -zHalfLength() : +zHalfLength();
 
-      zError(10);
       // Calculate shift in Z due to beam spot
       double errorShiftZ   = parity > 0 ? -zError() : +zError();
 
