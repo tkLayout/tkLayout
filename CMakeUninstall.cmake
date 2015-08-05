@@ -43,3 +43,17 @@ IF( IS_SYMLINK "$ENV{HOME}/bin/tklayout")
 ELSE()
 MESSAGE(STATUS "Symlink $ENV{HOME}/bin/tklayout does not exist.")
 ENDIF()
+
+MESSAGE( STATUS "Uninstalling symlink $ENV{HOME}/bin/delphize" )
+IF( IS_SYMLINK "$ENV{HOME}/bin/delphize")
+  EXEC_PROGRAM(
+         "@CMAKE_COMMAND@" ARGS "-E remove \"$ENV{HOME}/bin/delphize\""
+         OUTPUT_VARIABLE rm_out
+         RETURN_VALUE rm_retval
+         )
+  IF( NOT "${rm_retval}" STREQUAL 0)
+      MESSAGE( FATAL_ERROR "Problem when removing symlink $ENV{HOME}/bin/delphize" )
+  ENDIF(NOT "${rm_retval}" STREQUAL 0)
+ELSE()
+MESSAGE(STATUS "Symlink $ENV{HOME}/bin/delphize does not exist.")
+ENDIF()

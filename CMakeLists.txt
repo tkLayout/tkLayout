@@ -175,12 +175,15 @@ FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/inclu
 # Exlude files with main function defined
 SET ( sources "" )
 FOREACH( file ${all_sources} )
- IF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" )
+ IF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
    IF ( ${file} MATCHES "tklayout.cpp" ) 
      SET( source_tklayout ${file} )
    ENDIF()
    IF ( ${file} MATCHES "setup.cpp" ) 
      SET( source_setup ${file} )
+   ENDIF()
+   IF ( ${file} MATCHES "delphize.cpp" )
+     SET( source_delphize ${file} )
    ENDIF()
  ELSE()
    IF( ${file} MATCHES "mainConfigHandler.cpp" )
@@ -211,18 +214,21 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynami
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
 ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${headers} )
+ADD_EXECUTABLE(delphize ${source_delphize} )
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
 TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS})
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
+TARGET_LINK_LIBRARIES(delphize ${ROOT_LIBS})
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
+INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
@@ -233,6 +239,9 @@ IF(CMAKE_HOST_UNIX)
     # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
                    EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/tklayout $ENV{HOME}/bin/tklayout)" )
+
+    INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/delphize to ${PROJECT_SOURCE_DIR}/bin/delphize... \" )
+                   EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/delphize $ENV{HOME}/bin/delphize)" )
 
     # Configure tkLayout
     INSTALL( CODE "MESSAGE(STATUS \"Configuring tkLayout software...\" )
