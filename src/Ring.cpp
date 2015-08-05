@@ -32,7 +32,7 @@ double Ring::computeTentativePhiAperture(double moduleWaferDiameter, double minR
   double y = pow(r/l, 2);
   double x = solvex(y);
 
-
+  bool   calculated = false;
   double tempd;
 
   int i = 0;
@@ -42,15 +42,22 @@ double Ring::computeTentativePhiAperture(double moduleWaferDiameter, double minR
     x = solvex(y);
 
     tempd = compute_d(x, y, l);
+    if (fabs(minRadius - tempd)<1e-03) { //1e-15 {
 
-    if (fabs(minRadius - tempd)<1e-15) break;
+      calculated = true;
+      break;
+    }
   }
 
-  if (i >= MAX_WEDGE_CALC_LOOPS) {
-    //logWarning("Maximum number of iterations hit while computing wedge geometry");
-  }
+  // TODO: Just fix, needs to be done properly
+  // Starting value if algorithm fails
+  double alpha = 2*M_PI/10.;
 
-  double alpha = asin(sqrt(x)) * 2;
+  if (!calculated) {
+    logWARNING("Maximum number of iterations hit while computing wedge geometry, uses default: 10 number of modules in a ring ");
+    //std::cout << ">>> " << "Maximum number of iterations hit while computing wedge geometry" << std::endl;
+  }
+  else alpha = asin(sqrt(x)) * 2;
 
   return alpha;
 }
@@ -59,10 +66,11 @@ std::pair<double, int> Ring::computeOptimalRingParametersWedge(double moduleWafe
   double delta = phiOverlap()/minRadius;// SM: The needed overlap becomes an angle delta by
   //     checking the unsafest point (r=r_min)
 
-  double tentativeAlpha = computeTentativePhiAperture(moduleWaferDiameter, minRadius) - delta;
-  float tentativeNumMods = 2*M_PI / tentativeAlpha; 
-  int optimalNumMods = (!requireOddModsPerSlice()? round(tentativeNumMods/phiSegments()) : roundToOdd(tentativeNumMods/phiSegments()) + additionalModules()) * phiSegments();
-  float optimalAlpha = 2*M_PI/optimalNumMods + delta;
+  double tentativeAlpha   = computeTentativePhiAperture(moduleWaferDiameter, minRadius) - delta;
+
+  float  tentativeNumMods = 2*M_PI / tentativeAlpha;
+  int    optimalNumMods   = (!requireOddModsPerSlice()? round(tentativeNumMods/phiSegments() + additionalModules()) : roundToOdd(tentativeNumMods/phiSegments()) + additionalModules()) * phiSegments();
+  float  optimalAlpha     = 2*M_PI/optimalNumMods + delta;
 
   return std::make_pair(optimalAlpha, optimalNumMods);
 }
@@ -77,7 +85,6 @@ std::pair<double, int> Ring::computeOptimalRingParametersRectangle(double module
 
   return std::make_pair(optimalAlpha, optimalNumMods);
 }
-
 
 void Ring::buildModules(EndcapModule* templ, int numMods, double smallDelta) {
   double alignmentRotation = alignEdges() ? 0.5 : 0.;
