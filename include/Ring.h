@@ -51,12 +51,14 @@ public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
 
   ReadonlyProperty<double, NoDefault> smallDelta;
+  ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<BuildDirection, NoDefault> buildDirection;
+  Property<int   , AutoDefault> disk;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
-  Property<int, NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
-  ReadonlyProperty<double, Computable> maxModuleThickness;
+  Property<int   , NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
+
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
