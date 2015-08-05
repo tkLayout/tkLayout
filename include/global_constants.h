@@ -75,8 +75,8 @@ namespace insur {
   static const double trk_eta_coverage   = range_eta_regions[2];
   static const double long_eta_coverage  = range_eta_regions[3];
 
-  static const double max_dPtOverPt      = 200;  // [%]
-  static const double min_dPtOverPt      = 0.01; // [%]
+  static const double max_dPtOverPt      = 500;  // [%]
+  static const double min_dPtOverPt      = 0.001; // [%]
   static const double max_dZ0            = 5000.;
   static const double min_dZ0            = 1.;
   static const double max_dD0            = 5000.;
@@ -94,7 +94,7 @@ namespace insur {
   static const int    std_canvas_sizeY   = 900;
   static const int    max_canvas_sizeY   =1800;
 
-  static const int    default_n_bins     = max_eta_coverage/0.2;  // Default number of bins in histogram from eta=0  to max_eta_coverage
+  static const int    default_n_bins     = max_eta_coverage/0.1;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types

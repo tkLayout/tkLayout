@@ -37,36 +37,37 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
 
   Property<ModuleShape, NoDefault> moduleShape;
   Property<double, Default> phiOverlap;
-  Property<bool, Default> requireOddModsPerSlice;
-  Property<int, Default> phiSegments;
-  Property<int, Default> additionalModules;
-  Property<bool, Default> alignEdges;
+  Property<bool  , Default> requireOddModsPerSlice;
+  Property<int   , Default> phiSegments;
+  Property<int   , Default> additionalModules;
+  Property<bool  , Default> alignEdges;
   Property<double, Default> ringGap;
-  Property<int, Default> smallParity;
+  Property<int   , Default> smallParity;
 
   double minRadius_, maxRadius_;
+  double averageZ_ = 0;
 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
-  Property<int, AutoDefault> disk;
+
   ReadonlyProperty<double, NoDefault> smallDelta;
+  ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<BuildDirection, NoDefault> buildDirection;
+  Property<int   , AutoDefault> disk;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
-  Property<int, NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
-  ReadonlyProperty<double, Computable> maxModuleThickness;
+  Property<int   , NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
+
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
 
-
-  double minR() const { return minRadius_; }
-  double maxR() const { return maxRadius_; }
+  double minR()      const { return minRadius_; }
+  double maxR()      const { return maxRadius_; }
   double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
 
   const Container& modules() const { return modules_; }
-
 
   Ring() :
       materialObject_(MaterialObject::ROD),
@@ -102,6 +103,7 @@ public:
 
   void translateZ(double z);
   void mirrorZ();
+  double averageZ() const { return averageZ_; }
   void cutAtEta(double eta);
 
   void accept(GeometryVisitor& v) { 

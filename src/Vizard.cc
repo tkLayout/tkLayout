@@ -443,9 +443,9 @@ namespace insur {
     myPage->setAddress(pageAddress);
 
     // Add page with relevance, the lower, the less relevant
-    if      (name=="PXD") site.addPage(myPage,70);
-    else if (name=="STD") site.addPage(myPage,69);
-    else                  site.addPage(myPage,68);
+    if      (name=="INNER") site.addPage(myPage,70);
+    else if (name=="OUTER") site.addPage(myPage,69);
+    else                    site.addPage(myPage,68);
 
     std::string name_overviewMaterial         = std::string("OverviewMaterial") + name ;
     std::string name_materialInTrackingVolume = std::string("MaterialInTrackingVolume") + name ;
@@ -1179,13 +1179,13 @@ namespace insur {
     
     // TODO: the web site should decide which page to call index.html
     std::string pageAddress = "";
-    if (name=="STD") pageAddress = "index.html";
-    else             pageAddress = "index"+name+".html";
+    if (name=="OUTER") pageAddress = "index.html";
+    else               pageAddress = "index"+name+".html";
     myPage->setAddress(pageAddress);
 
-    if      (name=="PXD" ) site.addPage(myPage,100);
-    else if (name=="STD")  site.addPage(myPage, 99);
-    else                   site.addPage(myPage);
+    if      (name=="INNER" ) site.addPage(myPage,100);
+    else if (name=="OUTER")  site.addPage(myPage, 99);
+    else                     site.addPage(myPage);
     RootWContent* myContent;
 
     //
@@ -1217,7 +1217,7 @@ namespace insur {
     public:
       RootWTable* layerTable = new RootWTable();
       RootWTable* diskTable  = new RootWTable();
-      //RootWTable* ringTable  = new RootWTable();
+      RootWTable* ringTable  = new RootWTable();
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
       std::map<std::string, long> tagMapCountChan;
@@ -1233,9 +1233,10 @@ namespace insur {
       std::map<std::string, double> tagMapSensorPowerMax;
       std::map<std::string, const DetectorModule*> tagMap;
       std::map<int, const EndcapModule*> ringTypeMap;
+      std::vector<int>              ringNModules;
 
-      int nBarrelLayers=0;
-      int nDisks=0;
+      int nBarrelLayers      = 0;
+      int nDisks             = 0;
       int totalBarrelModules = 0;
       int totalEndcapModules = 0;
 
@@ -1248,24 +1249,25 @@ namespace insur {
       double nMB;
 
       void preVisit() {
-        layerTable->setContent(0, 0, "Layer no:                     ");
-        layerTable->setContent(1, 0, "Radius [mm]:                  ");
-        layerTable->setContent(2, 0, "Z-min [mm]:                   ");
-        layerTable->setContent(3, 0, "Z-max [mm]:                   ");
-        layerTable->setContent(4, 0, "Number of ladders:            ");
-        layerTable->setContent(5, 0, "Number of modules per ladder: ");
-        layerTable->setContent(6, 0, "Number of modules per layer:  ");
+        layerTable->setContent(0, 0, "Layer no                    : ");
+        layerTable->setContent(1, 0, "Radius [mm]                 : ");
+        layerTable->setContent(2, 0, "Z-min [mm]                  : ");
+        layerTable->setContent(3, 0, "Z-max [mm]                  : ");
+        layerTable->setContent(4, 0, "Number of rods              : ");
+        layerTable->setContent(5, 0, "Number of modules per rod   : ");
+        layerTable->setContent(6, 0, "Number of modules           : ");
 
-        diskTable->setContent(0, 0, "Disk no:            ");
-        diskTable->setContent(1, 0, "Radius-min [mm]:    ");
-        diskTable->setContent(2, 0, "Radius-max [mm]:    ");
-        diskTable->setContent(3, 0, "Average Z pos. [mm]:");
-        diskTable->setContent(4, 0, "Number of rings:    ");
-        diskTable->setContent(5, 0, "Number of modules:  ");
+        diskTable->setContent(0, 0, "Disk no                      : ");
+        diskTable->setContent(1, 0, "Radius-min [mm]              : ");
+        diskTable->setContent(2, 0, "Radius-max [mm]              : ");
+        diskTable->setContent(3, 0, "Average Z pos. [mm]          : ");
+        diskTable->setContent(4, 0, "Number of rings              : ");
+        diskTable->setContent(5, 0, "Number of modules per disk   : ");
         
-        //ringTable->setContent(0, 0, "Ring");
-        //ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        //ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
+        ringTable->setContent(0, 0, "Ring no                      : ");
+        ringTable->setContent(1, 0, "R-min [mm]                   : ");
+        ringTable->setContent(2, 0, "R-max [mm]                   : ");
+        ringTable->setContent(3, 0, "Number of modules per ring   : ");
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
@@ -1275,7 +1277,7 @@ namespace insur {
         ++nBarrelLayers;
         int nModules = l.totalModules();
         totalBarrelModules += nModules;
-        layerTable->setContent(0, nBarrelLayers, l.myid());
+        layerTable->setContent(0, nBarrelLayers, nBarrelLayers);
         layerTable->setContent(1, nBarrelLayers, l.placeRadius(), coordPrecision);
         layerTable->setContent(2, nBarrelLayers, l.minZ(), coordPrecision);
         layerTable->setContent(3, nBarrelLayers, l.maxZ(), coordPrecision);
@@ -1286,6 +1288,7 @@ namespace insur {
 
       void visit(const Disk& d) override {
         if (d.averageZ() < 0.) return;
+        if (nDisks==0) ringNModules.resize(d.numRings());
         ++nDisks;
         int nModules = d.totalModules();
         totalEndcapModules += nModules;
@@ -1295,6 +1298,11 @@ namespace insur {
         diskTable->setContent(3, nDisks, d.averageZ(), coordPrecision);
         diskTable->setContent(4, nDisks, d.numRings());
         diskTable->setContent(5, nDisks, nModules);
+      }
+
+      void visit(const Ring& r) override {
+        if (r.averageZ() < 0.) return;
+        ringNModules[r.myid()-1] = r.numModules();
       }
 
       void visit(const Module& m) override {
@@ -1337,17 +1345,18 @@ namespace insur {
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
         layerTable->setContent(6, nBarrelLayers+1, totalBarrelModules);
-        diskTable->setContent(0, nDisks+1, "Total");
-        diskTable->setContent(5, nDisks+1, totalEndcapModules);//*2);
+        diskTable->setContent( 0, nDisks+1       , "Total");
+        diskTable->setContent( 5, nDisks+1       , totalEndcapModules);//*2);
 
         std::ostringstream myName;
         for (auto typeIt = ringTypeMap.begin();
              typeIt!=ringTypeMap.end(); typeIt++) {
           auto* anEC = (*typeIt).second;
           int aRing=(*typeIt).first;
-          //ringTable->setContent(0, aRing, aRing);
-          //ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          //ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(0, aRing, aRing);
+          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
+          ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(3, aRing, ringNModules[aRing-1]);
         }
       }
     };
@@ -1362,7 +1371,7 @@ namespace insur {
     // Print out layer & disk table
     myContent->addItem(geometryVisitor.layerTable);
     myContent->addItem(geometryVisitor.diskTable);
-    //myContent->addItem(geometryVisitor.ringTable);
+    myContent->addItem(geometryVisitor.ringTable);
 
     double totalPower=0; 
     double totalCost=0;
@@ -2942,8 +2951,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     // Correct this naming...
     std::string wName = "";
     if (tag=="beampipe")                wName = "BP";
-    if (tag=="pixel")                   wName = "PXD";
-    if (tag=="trigger" || tag=="strip") wName = "STD";
+    if (tag=="pixel")                   wName = "PIXEL";
+    if (tag=="trigger" || tag=="strip") wName = "STRIP";
     if (tag=="forward")                 wName = "FWD";
     if (tag=="tracker")                 wName = "TRK";
 
@@ -2954,11 +2963,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
     RootWPage* myPage = new RootWPage(pageTitle);
     myPage->setAddress(pageAddress);
-    if      (wName=="PXD")  site.addPage(myPage,90);
-    else if (wName=="STD")  site.addPage(myPage,89);
-    else if (wName=="FWD")  site.addPage(myPage,88);
-    else if (wName=="TRK")  site.addPage(myPage,87);
-    else                    site.addPage(myPage);
+    if      (wName=="PIXEL")  site.addPage(myPage,90);
+    else if (wName=="STRIP")  site.addPage(myPage,89);
+    else if (wName=="FWD")    site.addPage(myPage,88);
+    else if (wName=="TRK")    site.addPage(myPage,87);
+    else                      site.addPage(myPage);
 
     // Create the contents
     RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across "+etaLetter+" (active+pasive material)");

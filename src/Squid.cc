@@ -163,7 +163,7 @@ namespace insur {
         trk->build();
 
         // Distinguish between individual trackers
-        if      (trk->myid()=="Inner"          || trk->myid()=="BRL_Inner" || trk->myid()=="BarrelPixel"  ) {
+        if      (trk->myid()=="Inner"          || trk->myid()=="BRL_Inner" ) {
           pxd_    = trk;
           pxd_->setIsPixelType(true);
         }
@@ -172,7 +172,7 @@ namespace insur {
           fwdpxd_->setIsPixelType(true);
           fwdpxd_->setIsForwardType(true);
         }
-        else if (trk->myid()=="Outer"          || trk->myid()=="BRL_Outer" || trk->myid()=="BarrelStrip"  ) {
+        else if (trk->myid()=="Outer"          || trk->myid()=="BRL_Outer" ) {
           std_    = trk;
           std_->setIsStripType(true);
         }
@@ -625,8 +625,8 @@ bool Squid::reportGeometrySite() {
   if (pxd_ || std_) {
 
     startTaskClock("Creating geometry report");
-    if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"STD");
-    if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"PXD");
+    if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"INNER");
+    if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"OUTER");
     stopTaskClock();
     return true;
   } else {
@@ -691,10 +691,10 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
     if (stdMb_ || pxdMb_) {
 
       startTaskClock("Creating material budget report");
-      if (pxdMb_) vizard_.materialSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "PXD");
-      if (stdMb_) vizard_.materialSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "STD");
-      //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "PXD");
-      //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "STD");
+      if (pxdMb_) vizard_.materialSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "INNER");
+      if (stdMb_) vizard_.materialSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "OUTER");
+      //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "INNER");
+      //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "OUTER");
 
 
       stopTaskClock();
