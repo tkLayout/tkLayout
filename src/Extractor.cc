@@ -1639,8 +1639,12 @@ namespace insur {
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
-        
-        } else {
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  p.push_back(pos);
+	  pos.copy = 1;
+        } 
+	else {
           std::stringstream msg;
           msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
           logWARNING( msg.str() ); 
@@ -1710,6 +1714,10 @@ namespace insur {
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  p.push_back(pos);
+	  pos.copy = 1;
         }
         else {
           std::stringstream msg;
@@ -1795,13 +1803,17 @@ namespace insur {
           pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
           break;
       default:
-          pos.parent_tag = nspace + ":" + xml_tracker;
+	pos.parent_tag = nspace + ":" + xml_tracker;
       }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
           (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
       else pos.trans.dz = iter->getZOffset() + shape.dz;
       p.push_back(pos);
+      pos.copy = 2;
+      pos.trans.dz = -pos.trans.dz;
+      p.push_back(pos);
+      pos.copy = 1;
 #else
       if (fres == found.end() && iter->getLocalMasses().size() ) { 
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -1823,19 +1835,23 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-            pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
-            break;
+	  pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
+	  break;
         case MaterialProperties::e_sup:
-            pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
-            break;
+	  pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
+	  break;
         default:
-            pos.parent_tag = nspace + ":" + xml_tracker;
+	  pos.parent_tag = nspace + ":" + xml_tracker;
         }
         pos.child_tag = logic.shape_tag;
         if ((iter->getCategory() == MaterialProperties::o_sup) ||
             (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
         else pos.trans.dz = iter->getZOffset() + shape.dz;
         p.push_back(pos);
+	pos.copy = 2;
+	pos.trans.dz = -pos.trans.dz;
+	p.push_back(pos);
+	pos.copy = 1;
       }
 #endif
     }
