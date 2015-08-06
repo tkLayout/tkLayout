@@ -1641,8 +1641,10 @@ namespace insur {
           p.push_back(pos);
 	  pos.copy = 2;
 	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
 	  p.push_back(pos);
 	  pos.copy = 1;
+	  pos.rotref.clear();
         } 
 	else {
           std::stringstream msg;
@@ -1716,8 +1718,10 @@ namespace insur {
           p.push_back(pos);
 	  pos.copy = 2;
 	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
 	  p.push_back(pos);
 	  pos.copy = 1;
+	  pos.rotref.clear();
         }
         else {
           std::stringstream msg;
@@ -1812,8 +1816,10 @@ namespace insur {
       p.push_back(pos);
       pos.copy = 2;
       pos.trans.dz = -pos.trans.dz;
+      pos.rotref = nspace + ":" + xml_flip_mod_rot;
       p.push_back(pos);
       pos.copy = 1;
+      pos.rotref.clear();
 #else
       if (fres == found.end() && iter->getLocalMasses().size() ) { 
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -1850,8 +1856,10 @@ namespace insur {
         p.push_back(pos);
 	pos.copy = 2;
 	pos.trans.dz = -pos.trans.dz;
+	pos.rotref = nspace + ":" + xml_flip_mod_rot;
 	p.push_back(pos);
 	pos.copy = 1;
+	pos.rotref.clear();
       }
 #endif
     }
