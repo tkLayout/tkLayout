@@ -12,6 +12,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <time.h>
+#include <iomanip>
+#include <boost/program_options.hpp>
 
 std::ostream* osp = &std::cout;
 
@@ -62,29 +65,92 @@ void printResolutionStandardWorsen(double myResolution, double myPt) {
   (*osp) << Form("(%f*pt/%f)", myResolution, myPt);
 }
 
+// Get current date/time, format is YYYY-MM-DD.HH:mm:ss
+const std::string currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
+    // for more information about date/time format
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+
+    return buf;
+}
 
 int main(int argc, char* argv[]) {
 
-  std::string rootFileName = argv[1];
-  std::string layoutName   = argv[2];
-  std::string delphesName  = layoutName+"_Delphes.conf";
+  //
+  // Define variables
+  std::string usage("Usage: ");
+  usage += argv[0];
+  usage += " [options]";
 
-  double etaSlice=.2;
- 
-  // Root file
-  TFile* inputFile = TFile::Open(rootFileName.c_str());
-  if (!inputFile) {
-    std::cerr << "File '" << rootFileName << "' does not exist" << std::endl;
-    return 0;
-  }
+  std::string rootFileName;
+  std::string layoutName;
+  TFile* inputFile       = nullptr;
+  std::ofstream* outFile = nullptr;
 
-  // Delphes file
-  std::ofstream* outFile = new std::ofstream();
-  outFile->open(delphesName);
-  if (outFile->is_open()) {
-    osp = outFile;
-  } else {
-    std::cerr << "ERROR: could not open " << outFile << " -> writing config to the screen" << std::endl;
+  double      etaSlice = 0.0;
+  std::string author   = "";
+
+  //
+  // Program options
+  boost::program_options::options_description help("Program options");
+  help.add_options()
+    ("help,h"        , "Display help")
+    ("input-file,i"  , boost::program_options::value<std::string>()                                        , "Specify name of input root file (from tkLayout), containing canvas with pT profiles")
+    ("layout-name,n" , boost::program_options::value<std::string>()                                        , "Specify given layout name")
+    ("author,a"      , boost::program_options::value<std::string>(&author)->default_value("Unknown author"), "Specify author of DELPHES file (optional: default = Unknown author)")
+    ("eta-slicing,s" , boost::program_options::value<double>(&etaSlice)->default_value(0.2)                , "Specify eta slicing <0.0?; 1.0>, e.g. 0.1, 0.2, ... (optional: default = 0.2)")
+    ;
+
+  // Read user input
+  boost::program_options::variables_map varMap;
+  try {
+
+    // Parse user defined options
+    boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(help).run(), varMap);
+    boost::program_options::notify(varMap);
+
+    // Check
+    if      (etaSlice <= 0.0 || etaSlice > 1.0)                     throw boost::program_options::invalid_option_value("eta-slicing");
+    else if (!varMap.count("input-file")  && !varMap.count("help")) throw boost::program_options::error("Forgot to define input root file???");
+    else if (!varMap.count("layout-name") && !varMap.count("help")) throw boost::program_options::error("Forgot to define layout name???");
+    else {
+
+      // Write help
+      if (varMap.count("help")) {
+        std::cout << usage << std::endl << help << std::endl;
+        return -1;
+      }
+
+      // Check that the provided ROOT input file corresponds to an existing file.
+      rootFileName = varMap["input-file"].as<std::string>();
+      inputFile = new TFile(rootFileName.c_str(),"READ");
+      if (!inputFile) {
+        std::cerr << "File '" << rootFileName << "' does not exist" << std::endl;
+        return 0;
+      }
+
+      // Delphes output file
+      outFile = new std::ofstream();
+      layoutName = varMap["layout-name"].as<std::string>();
+      std::string delphesName  = layoutName+"_Delphes.conf";
+      outFile->open(delphesName);
+      if (outFile->is_open()) {
+        osp = outFile;
+      } else {
+        std::cerr << "ERROR: could not open " << outFile << " -> writing config to the screen" << std::endl;
+        return -1;
+      }
+    }
+  }catch(boost::program_options::error& e) {
+
+    // Display error type
+    std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
+    std::cout << usage                   << std::endl << help << std::endl;
+    return -1;
   }
 
   std::map<double, TProfile*> ptProfiles;
@@ -110,10 +176,10 @@ int main(int argc, char* argv[]) {
           if (aClassName=="TProfile") {
 
             TProfile* myProfile = (TProfile*)aList->At(i);
-            std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
+            //std::cerr << "TProfile: " << myProfile->GetName() << std::endl;
             double aMomentum;
             if (sscanf(myProfile->GetName(), "pt_vs_eta%lftracker_profile", &aMomentum)==1) {
-              std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
+              //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
           }
@@ -153,7 +219,11 @@ int main(int argc, char* argv[]) {
   double lowEta, highEta;
   double myResolution, nextResolution;
   double myPt, nextPt;
-  (*osp) << "# set ResolutionFormula for layout " << layoutName << std::endl;
+  (*osp) << "#" << std::endl;
+  (*osp) << "# Automatically generated tracker resolution formula for layout: " << layoutName << std::endl;
+  (*osp) << "#" << std::endl;
+  (*osp) << "#  By " << author << " on: " << currentDateTime() << std::endl;
+  (*osp) << "#" << std::endl;
   (*osp) << "set ResolutionFormula { ";
 
   for (int iBin=1; iBin<=newBins; ++iBin) {
@@ -166,6 +236,9 @@ int main(int argc, char* argv[]) {
     for (auto it = ptProfiles.begin(); it!=ptProfiles.end(); ++it) {
 
       auto nextItem = (++it)--;
+
+      double aMomentum = it->first;
+      if (iBin==1) std::cout << "Using momentum [GeV]: " << std::setw(6) << aMomentum << std::endl;
 
       TProfile* myProfile = it->second;
       myPt         = it->first;
@@ -197,27 +270,9 @@ int main(int argc, char* argv[]) {
 
   // Close file
   inputFile->Close();
+  delete inputFile;
+  outFile->close();
+  delete outFile;
 
   return true;
 }
-
-//int main(int argc, char* argv[]) {
-//  if (argc<2) {
-//    std::cerr << Form("Syntax: %s filename.root [delphesConfig.txt]", argv[0]) << std::endl;
-//    return -1;
-//  }
-//  if (argc==3) {
-//    std::ofstream* fout = new std::ofstream();
-//    fout->open(argv[2]);
-//    if (fout->is_open()) {
-//      osp = fout;
-//    } else {
-//      std::cerr << "ERROR: could not open " << argv[2] << " writing config to the screen" << std::endl;
-//    }
-//  }
-//  std::string rootFileName=argv[1];
-//  double etaSlice=.5;
-//  if (delphize(rootFileName, etaSlice))  {
-//    return 0;
-//  } else return -1;
-//}

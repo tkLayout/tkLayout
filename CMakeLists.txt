@@ -221,7 +221,7 @@ ADD_DEPENDENCIES(tklayout revisiontag)
 
 TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS})
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
-TARGET_LINK_LIBRARIES(delphize ${ROOT_LIBS})
+TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS})
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
