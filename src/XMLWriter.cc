@@ -724,7 +724,7 @@ namespace insur {
 			stream<< xml_spec_par_parameter_first << xml_roc_rows_name   << xml_spec_par_parameter_second  << minfo.at(i).rocrows  << xml_general_endline;
 		
 			//TO DO get rid of this if loop iif possible
-			//if(partsel.at(i).find(xml_base_inner) != std::string::npos && minfo.at(i).name=="ptPS"){
+			//if(partsel.at(i).find(xml_base_lower) != std::string::npos && minfo.at(i).name=="ptPS"){
 			//	minfo.at(i).roccols = "16";
 			//}
 			stream<< xml_spec_par_parameter_first << xml_roc_cols_name   << xml_spec_par_parameter_second  << minfo.at(i).roccols  << xml_general_endline;
@@ -753,73 +753,68 @@ namespace insur {
         rindex = findEntry(specs, xml_subdet_rod + xml_par_tail);
         mindex = findEntry(specs, xml_subdet_tobdet + xml_par_tail);
         if ((rindex >= 0) && (mindex >= 0)) {
-            // rod loop
-            for (unsigned int i = 0; i < specs.at(rindex).partselectors.size(); i++) {
-                std::string rnumber, mnumber, plusminus;
-                std::string& rcurrent = specs.at(rindex).partselectors.at(i);
-                if ((rcurrent.size() > xml_plus.size())
-                        && (rcurrent.substr(rcurrent.size() - xml_plus.size()).compare(xml_plus) == 0))
-                    plusminus = rcurrent.substr(rcurrent.size() - xml_plus.size());
-                if ((rcurrent.size() > xml_minus.size())
-                        && (rcurrent.substr(rcurrent.size() - xml_minus.size()).compare(xml_minus) == 0))
-                    plusminus = rcurrent.substr(rcurrent.size() - xml_minus.size());
+	  // rod and (if any) tilted ring loop
+	  for (unsigned int i = 0; i < specs.at(rindex).partselectors.size(); i++) {
+	    std::string rnumber, mnumber;
+	    std::string& rcurrent = specs.at(rindex).partselectors.at(i);
+	    std::cout << 'rcurrent = ' << rcurrent << std::endl;
+	    /*if ((rcurrent.size() > xml_plus.size())
+		&& (rcurrent.substr(rcurrent.size() - xml_plus.size()).compare(xml_plus) == 0))
+	      plusminus = rcurrent.substr(rcurrent.size() - xml_plus.size());
+	    if ((rcurrent.size() > xml_minus.size())
+	    && (rcurrent.substr(rcurrent.size() - xml_minus.size()).compare(xml_minus) == 0))
+	    plusminus = rcurrent.substr(rcurrent.size() - xml_minus.size());*/
 
-                rnumber = rcurrent.substr(xml_rod.size());
-                rnumber = rnumber.substr(0, rnumber.size() - plusminus.size());
-                spname = xml_tob_prefix + xml_pixbar + xml_layer + rnumber;
-                layer = atoi(rnumber.c_str());
-                prefix = xml_pixbar + "/" + xml_layer + rnumber + "/";
-                if (wt && (plusminus.length() > 0)) {
-                    if ((plusminus.compare(xml_plus) == 0) || (plusminus.compare(xml_minus) == 0))
-                        prefix = prefix + xml_layer + rnumber + plusminus + "/";
-                }
-                prefix = prefix + rcurrent;
-                // module loop
-                for (unsigned int j = 0; j < specs.at(mindex).partselectors.size(); j++) {
-                    mnumber = specs.at(mindex).partselectors.at(j).substr(xml_barrel_module.size());
-                    mnumber = mnumber.substr(0, mnumber.size() - xml_base_act.size());
+	    rnumber = rcurrent.substr(xml_rod.size());
+	    //rnumber = rnumber.substr(0, rnumber.size() - plusminus.size());
+	    spname = xml_tob_prefix + xml_pixbar + xml_layer + rnumber;
+	    layer = atoi(rnumber.c_str());
+	    prefix = xml_pixbar + "/" + xml_layer + rnumber + "/";
+	    /*if (wt && (plusminus.length() > 0)) {
+	      if ((plusminus.compare(xml_plus) == 0) || (plusminus.compare(xml_minus) == 0))
+		prefix = prefix + xml_layer + rnumber + plusminus + "/";
+		}*/
+	    prefix = prefix + rcurrent;
 
-                    // This is to take care of the Inner/Outer distinction
-                    if (mnumber.find(xml_base_inner) != std::string::npos)
-                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_inner.size());
-                    else if (mnumber.find(xml_base_outer) != std::string::npos)
-                      mnumber = mnumber.substr(0, mnumber.size() - xml_base_outer.size());
+	    // module loop
+	    for (unsigned int j = 0; j < specs.at(mindex).partselectors.size(); j++) {
+	      std::string refstring = specs.at(mindex).partselectors.at(j);
 
-                    mnumber = mnumber.substr(findNumericPrefixSize(mnumber) + xml_layer.size());
+	      if (refstring.find(xml_barrel_module) != std::string::npos) {
+		mnumber = refstring.substr(xml_barrel_module.size());
+		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
 
-                    // matching layers
-                    if (mnumber.compare(rnumber) == 0) {
-                        postfix = specs.at(mindex).partselectors.at(j);
-                        postfix = postfix.substr(0, postfix.size() - xml_base_act.size());
+		postfix = xml_barrel_module + mnumber + xml_layer + rnumber;
+		  
+		if (refstring.find(postfix) != std::string::npos) {
+		      
+		  // This is to take care of the Inner/Outer distinction
+		  if (refstring.find(xml_base_lower) != std::string::npos) {
+		    postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		  }
+		  else if (refstring.find(xml_base_upper) != std::string::npos) {
+		    postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		  }
 
-                        // This is to take care of the Inner/Outer distinction
-                        if (postfix.find(xml_base_inner) != std::string::npos) {
-                          postfix = postfix.substr(0, postfix.size() - xml_base_inner.size());
-                          postfix = postfix + "/" + postfix + xml_base_inner + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
-                        }
-                        else if (postfix.find(xml_base_outer) != std::string::npos) {
-                          postfix = postfix.substr(0, postfix.size() - xml_base_outer.size());
-                          postfix = postfix + "/" + postfix + xml_base_outer + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
-                        }
+		  else
+		    postfix = postfix + "/" + postfix + xml_base_waf + "/" + refstring;
 
-                        else
-                          postfix = postfix + "/" + postfix + xml_base_waf + "/" + specs.at(mindex).partselectors.at(j);
-
-                        paths.push_back(prefix + "/" + postfix);
-                    }
-                }
-                existing = findEntry(spname, blocks);
-                if (existing != blocks.end()) existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
-                else {
-                    PathInfo pi;
-                    pi.block_name = spname;
-                    pi.layer = layer;
-                    pi.barrel = true;
-                    pi.paths = paths;
-                    blocks.push_back(pi);
-                }
-                paths.clear();
-            }
+		  paths.push_back(prefix + "/" + postfix);
+		}
+	      }
+	    }
+	    existing = findEntry(spname, blocks);
+	    if (existing != blocks.end()) existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
+	    else {
+	      PathInfo pi;
+	      pi.block_name = spname;
+	      pi.layer = layer;
+	      pi.barrel = true;
+	      pi.paths = paths;
+	      blocks.push_back(pi);
+	    }
+	    paths.clear();
+	  }
         }
         //TID
         dindex = findEntry(specs, xml_subdet_wheel + xml_par_tail);
@@ -850,50 +845,50 @@ namespace insur {
 
                 // ring loop
                 for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
-                    std::string compstr = specs.at(rindex).partselectors.at(j);
-                    compstr = compstr.substr(compstr.size() - dnumber.size());
+		  std::string compstr = specs.at(rindex).partselectors.at(j);
+		  compstr = compstr.substr(compstr.size() - dnumber.size());
 
-                    // matching discs
-                   if (dnumber.compare(compstr) == 0) {
-                        rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
-                        rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
+		  // matching discs
+		  if (dnumber.compare(compstr) == 0) {
+		    rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
+		    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 
-                        postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+		    postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
-                        // module loop
-                        for (unsigned int jj=0; jj<specs.at(windex).partselectors.size(); jj++ ) {
-                           std::string refstring = specs.at(windex).partselectors.at(jj);
+		    // module loop
+		    for (unsigned int jj=0; jj<specs.at(windex).partselectors.size(); jj++ ) {
+		      std::string refstring = specs.at(windex).partselectors.at(jj);
                         
-                           if (refstring.find(postfix) != std::string::npos) {
+		      if (refstring.find(postfix) != std::string::npos) {
 
-                                // This is to take care of the Inner/Outer distinction
-                                if (refstring.find(xml_base_inner) != std::string::npos) {
-                                  //postfix = postfix.substr(0, postfix.size() - xml_base_inner.size());
-                                  postfix = postfix + "/" + postfix + xml_base_inner + xml_base_waf + "/" + postfix + xml_base_inner + xml_base_act;
-                                }
-                                else if (refstring.find(xml_base_outer) != std::string::npos) {
-                                  //postfix = postfix.substr(0, postfix.size() - xml_base_outer.size());
-                                  postfix = postfix + "/" + postfix + xml_base_outer + xml_base_waf + "/" + postfix + xml_base_outer+ xml_base_act;
-                                }
+			// This is to take care of the Inner/Outer distinction
+			if (refstring.find(xml_base_lower) != std::string::npos) {
+			  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
+			  postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+			}
+			else if (refstring.find(xml_base_upper) != std::string::npos) {
+			  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
+			  postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+			}
         
-                                else
-                                  postfix = postfix + "/" + postfix + xml_base_waf + "/" + postfix + xml_base_act;
+			else
+			  postfix = postfix + "/" + postfix + xml_base_waf + "/" + refstring;
         
-                                postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
+			postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-                                if (plus) paths.push_back(prefix + "/" + postfix);
-                                else tpaths.push_back(prefix + "/" + postfix);
+			if (plus) paths.push_back(prefix + "/" + postfix);
+			else tpaths.push_back(prefix + "/" + postfix);
         
-                                postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+			postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
-                           }
-                        } // Added to allow Inner/Outer distinction
+		      }
+		    } // Added to allow Inner/Outer distinction
 
 
-                    }
+		  }
                 }
                 if (plus) {
-                    existing = findEntry(spname, blocks);
+		  existing = findEntry(spname, blocks);
                 }
                 else {
                     existing = findEntry(spname, tblocks);

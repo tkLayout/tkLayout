@@ -504,7 +504,7 @@ namespace insur {
       double roddy = (xmax - xmin) / 2;
       double flatPartRoddy;
       if (isTilted) flatPartRoddy = (flatPartMaxX - flatPartMinX) / 2;
-      std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
+      /*std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
       std::cout << "flatPartMaxR = " << flatPartMaxR << std::endl;
       std::cout << "flatPartMaxZ = " << flatPartMaxZ << std::endl;
       std::cout << "rmin = " << rmin << std::endl;
@@ -523,7 +523,7 @@ namespace insur {
       }
 
       std::cout << "RadiusIn = " << RadiusIn << std::endl;
-      std::cout << "RadiusOut = " << RadiusOut << std::endl;
+      std::cout << "RadiusOut = " << RadiusOut << std::endl;*/
       
 
       double ds, dt = 0.0;
@@ -563,7 +563,7 @@ namespace insur {
 	    tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	  }
 	    
-	  std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  std::ostringstream mname;
 	  mname << xml_barrel_module << modRing << lname.str();
