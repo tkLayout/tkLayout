@@ -204,48 +204,93 @@ namespace insur {
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
     down.clear();
+    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
+    std::vector<ModuleCap>::iterator iiter, iguard;
 
     LayerAggregator lagg;
     t.accept(lagg);
     auto bl = lagg.getBarrelLayers();
+    
+    int layer = 1;
     int n_of_layers = bl->size();
-    for (int layer = 0; layer < n_of_layers; layer++) {
-        if (layer == 0) {
-          rz.first = bl->at(layer)->minR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
-        else {
-          //new barrel reached
-          if (bl->at(layer)->maxZ() != zmax) {
-            //new layer sticks out compared to old layer
-            if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
-            //old layer sticks out compared to new layer
-            else rz.first = rmax;
-            rz.second = zmin;
-            up.push_back(rz);
-            rz.second = zmax;
-            down.push_back(rz);
-            rz.second = bl->at(layer)->minZ();
-            up.push_back(rz);
-            rz.second = bl->at(layer)->maxZ();
-            down.push_back(rz);
-          }
-        }
-        //index size - 1
-        if (layer == n_of_layers - 1) {
-          rz.first = bl->at(layer)->maxR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
-      rmax = bl->at(layer)->maxR();
-      if (bl->at(layer)->minZ() < 0) zmin = bl->at(layer)->minZ();
-      if (bl->at(layer)->maxZ() > 0) zmax = bl->at(layer)->maxZ();
+
+    lagg.postVisit();
+    std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
+    //oguard = bc.end();
+    
+
+    for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
+      double lrmin = INT_MAX;
+      double lrmax = 0;
+      double lzmin = 0;
+      double lzmax = 0; 
+ 
+      //iguard = oiter->end();
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	  int modRing = iiter->getModule().uniRef().ring;
+	  std::ostringstream lname;
+	  lname << xml_layer << layer;
+	  std::ostringstream mname;
+	  mname << xml_barrel_module << modRing << lname.str();
+	  std::string parentName = mname.str(); 
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	    
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	  lzmin = -lzmax;
+	}
+      }
+
+      if (layer == 1) {
+	rz.first = lrmin;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
+      else {
+	//new barrel reached
+	if (lzmax != zmax) {
+	  //new layer sticks out compared to old layer
+	  if (lzmax > zmax) rz.first = lrmin;
+	  //old layer sticks out compared to new layer
+	  else rz.first = rmax;
+	  rz.second = zmin;
+	  up.push_back(rz);
+	  rz.second = zmax;
+	  down.push_back(rz);
+	  rz.second = lzmin;
+	  up.push_back(rz);
+	  rz.second = lzmax;
+	  down.push_back(rz);
+	}
+      }
+      //index size - 1
+      if (layer == n_of_layers) {
+	rz.first = lrmax;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
+      rmax = lrmax;
+      if (lzmin < 0) zmin = lzmin;
+      if (lzmax > 0) zmax = lzmax;
+
+      layer++;
     }
+
+    for (int i = 0; i < up.size();  i++) {
+      std::cout << "up.at(i).first = " << up.at(i).first << std::endl;
+      std::cout << "up.at(i).second = " << up.at(i).second << std::endl;
+    }
+    for (int i = 0; i < down.size(); i++) {
+      std::cout << "down.at(i).first = " << down.at(i).first << std::endl;
+      std::cout << "down.at(i).second = " << down.at(i).second << std::endl;
+    }
+
   }
 
   /**
