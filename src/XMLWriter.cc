@@ -761,6 +761,7 @@ namespace insur {
 	std::string lnumber;
 	lnumber = lcurrent.substr(xml_layer.size()); 
 
+	// Looks whether a layer is tilted. If so, finds the number of its first tilted ring.
 	bool isTilted = false;
 	std::string firstTiltedRing;
 	int j = 0;
@@ -777,56 +778,46 @@ namespace insur {
 	}
 
 	// rod and (if any) tilted ring loop
-	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {	     
+	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
 	  std::string& rcurrent = specs.at(rindex).partselectors.at(j);
-	  //std::cout << 'rcurrent = ' << rcurrent << std::endl;
 	  std::string rnumber;
 	  std::string compstr;
+	  // rod case
 	  if (rcurrent.find(xml_rod) != std::string::npos) {
 	    compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size());
 	  }
+	  // (if any) tilted ring case
 	  else if ((rcurrent.find(xml_ring) != std::string::npos) && (rcurrent.find(xml_layer) != std::string::npos)) {
 	    rnumber = rcurrent.substr(xml_ring.size());
 	    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 	    compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
 	  }
+	  else { 
+	    std::cerr << "While building paths for trackerRecoMaterial.xml, neither " << xml_rod << " nor " << xml_ring << " can be found in " << rcurrent << "." << std::endl; 
+	  }
 	  compstr = compstr.substr(0, findNumericPrefixSize(compstr));
-	  //std::cout << 'comsptr = ' << compstr << std::endl;
+
+	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-
-
 	    spname = xml_tob_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    //std::cout << 'layer = ' << layer << std::endl;
 	    prefix = xml_pixbar + "/" + xml_layer + lnumber + "/";
-
-
-	    /*if ((rcurrent.size() > xml_plus.size())
-	      && (rcurrent.substr(rcurrent.size() - xml_plus.size()).compare(xml_plus) == 0))
-	      plusminus = rcurrent.substr(rcurrent.size() - xml_plus.size());
-	      if ((rcurrent.size() > xml_minus.size())
-	      && (rcurrent.substr(rcurrent.size() - xml_minus.size()).compare(xml_minus) == 0))
-	      plusminus = rcurrent.substr(rcurrent.size() - xml_minus.size());*/
-
-	    //rnumber = rnumber.substr(0, rnumber.size() - plusminus.size());
-	    
-	    /*if (wt && (plusminus.length() > 0)) {
-	      if ((plusminus.compare(xml_plus) == 0) || (plusminus.compare(xml_minus) == 0))
-	      prefix = prefix + xml_layer + rnumber + plusminus + "/";
-	      }*/
 	    prefix = prefix + rcurrent;
 
 	    // module loop
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
-	      std::string refstring = specs.at(mindex).partselectors.at(k);
+	      std::string& refstring = specs.at(mindex).partselectors.at(k);
 	      std::string mnumber;
 
 	      if (refstring.find(xml_barrel_module) != std::string::npos) {
 		mnumber = refstring.substr(xml_barrel_module.size());
 		mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
-
-
-		if ((!isTilted) || ((isTilted) && (rcurrent.find(xml_rod) != std::string::npos) && (atoi(mnumber.c_str()) < atoi(firstTiltedRing.c_str()))) || ((isTilted) && (rcurrent.find(xml_ring) != std::string::npos) && (atoi(mnumber.c_str()) == atoi(rnumber.c_str())))) {
+		
+		if ((!isTilted) // For untilted layer, takes all modules. e.g. BModule1 to BModule15 for Layer1.
+		    // For tilted layer, in case of rod, takes modules until first tilted ring. e.g. BModule1 to BModule4 for Layer1.
+		    || ((isTilted) && (rcurrent.find(xml_rod) != std::string::npos) && (atoi(mnumber.c_str()) < atoi(firstTiltedRing.c_str()))) 
+		    // For tilted layer, in case of tilted ring, takes the corresponding module. e.g. BModule5 for Ring5 of Layer1.
+		    || ((isTilted) && (rcurrent.find(xml_ring) != std::string::npos) && (atoi(mnumber.c_str()) == atoi(rnumber.c_str())))) { 
 		  postfix = xml_barrel_module + mnumber + xml_layer + lnumber;
 		  
 		  if (refstring.find(postfix) != std::string::npos) {
@@ -862,112 +853,110 @@ namespace insur {
 	}
       }
     }
-        //TID
-        dindex = findEntry(specs, xml_subdet_wheel + xml_par_tail);
-        rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
-        windex = findEntry(specs, xml_subdet_tiddet + xml_par_tail);
-        if ((dindex >= 0) && (rindex >= 0)) {
-            // disc loop
-            for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
-                std::string& dcurrent = specs.at(dindex).partselectors.at(i);
-		//std::cout << 'dcurrent = ' << dcurrent << std::endl;
+    else { std::cerr << xml_subdet_layer << " or " << xml_subdet_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    //TID
+    dindex = findEntry(specs, xml_subdet_wheel + xml_par_tail);
+    rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
+    windex = findEntry(specs, xml_subdet_tiddet + xml_par_tail);
+    if ((dindex >= 0) && (rindex >= 0) && (windex >= 0)) {
+      // disc loop
+      for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
+	std::string& dcurrent = specs.at(dindex).partselectors.at(i);
 
-                bool plus = specs.at(dindex).partextras.at(i) == xml_plus; // CUIDADO was : (dcurrent.size() >= xml_plus.size() && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
-                std::string dnumber, rnumber;
-                dnumber = dcurrent.substr(xml_disc.size()); 
-                //CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
-                //else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
-                std::ostringstream index;
-                index << (xml_reco_material_disc_offset + i / 2);
-                layer = atoi(dnumber.c_str());
-		//std::cout << 'layer = ' << layer << std::endl;
-                spname = xml_tid_prefix + index.str();
+	bool plus = specs.at(dindex).partextras.at(i) == xml_plus; // CUIDADO was : (dcurrent.size() >= xml_plus.size() && (dcurrent.substr(dcurrent.size() - xml_plus.size()).compare(xml_plus) == 0);
+	std::string dnumber, rnumber;
+	dnumber = dcurrent.substr(xml_disc.size()); 
+	//CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
+	//else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
+	std::ostringstream index;
+	index << (xml_reco_material_disc_offset + i / 2);
+	layer = atoi(dnumber.c_str());
+	spname = xml_tid_prefix + index.str();
 
-                //if (plus) spname = spname + xml_forward;
-                //else spname = spname + xml_backward;
+	//if (plus) spname = spname + xml_forward;
+	//else spname = spname + xml_backward;
 
-                prefix = xml_pixfwd;
-                //if (plus) prefix = xml_pixfwd_plus;
-                //else prefix = xml_pixfwd_minus;
-                prefix = prefix + "/" + dcurrent; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
+	prefix = xml_pixfwd;
+	//if (plus) prefix = xml_pixfwd_plus;
+	//else prefix = xml_pixfwd_minus;
+	prefix = prefix + "/" + dcurrent; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
-                // ring loop
-                for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
-		  std::string compstr = specs.at(rindex).partselectors.at(j);
-		  compstr = compstr.substr(compstr.size() - dnumber.size());
+	// ring loop
+	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
+	  std::string compstr = specs.at(rindex).partselectors.at(j);
+	  compstr = compstr.substr(compstr.size() - dnumber.size());
 
-		  // matching discs
-		  if (dnumber.compare(compstr) == 0) {
-		    rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
-		    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
+	  // matching discs
+	  if (dnumber.compare(compstr) == 0) {
+	    rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
+	    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 
-		    postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+	    postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
-		    // module loop
-		    for (unsigned int jj=0; jj<specs.at(windex).partselectors.size(); jj++ ) {
-		      std::string refstring = specs.at(windex).partselectors.at(jj);
+	    // module loop
+	    for (unsigned int k=0; k<specs.at(windex).partselectors.size(); k++ ) {
+	      std::string refstring = specs.at(windex).partselectors.at(k);
                         
-		      if (refstring.find(postfix) != std::string::npos) {
+	      if (refstring.find(postfix) != std::string::npos) {
 
-			// This is to take care of the Inner/Outer distinction
-			if (refstring.find(xml_base_lower) != std::string::npos) {
-			  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
-			  postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
-			}
-			else if (refstring.find(xml_base_upper) != std::string::npos) {
-			  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
-			  postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
-			}
+		// This is to take care of the Inner/Outer distinction
+		if (refstring.find(xml_base_lower) != std::string::npos) {
+		  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
+		  postfix = postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		}
+		else if (refstring.find(xml_base_upper) != std::string::npos) {
+		  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
+		  postfix = postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		}
         
-			else
-			  postfix = postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		else
+		  postfix = postfix + "/" + postfix + xml_base_waf + "/" + refstring;
         
-			postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
+		postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-			if (plus) paths.push_back(prefix + "/" + postfix);
-			else tpaths.push_back(prefix + "/" + postfix);
+		if (plus) paths.push_back(prefix + "/" + postfix);
+		else tpaths.push_back(prefix + "/" + postfix);
         
-			postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+		postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
-		      }
-		    } // Added to allow Inner/Outer distinction
-
-
-		  }
-                }
-                if (plus) {
-		  existing = findEntry(spname, blocks);
-                }
-                else {
-                    existing = findEntry(spname, tblocks);
-                }
-                if (plus && (existing != blocks.end())) {
-                    existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
-                }
-                else if (!plus && (existing != tblocks.end())) {
-                    existing->paths.insert(existing->paths.end(), tpaths.begin(), tpaths.end());
-                }
-                else {
-                    PathInfo pi;
-                    pi.block_name = spname;
-                    pi.layer = layer;
-                    pi.barrel = false;
-                    if (plus) {
-                        pi.paths = paths;
-                        blocks.push_back(pi);
-                    }
-                    else {
-                        pi.paths = tpaths;
-                        tblocks.push_back(pi);
-                    }
-                }
-                paths.clear();
-                tpaths.clear();
-            }
-        }
-        blocks.insert(blocks.end(), tblocks.begin(), tblocks.end());
-        return blocks;
+	      }
+	    } // Added to allow Inner/Outer distinction
+	  }
+	}
+	if (plus) {
+	  existing = findEntry(spname, blocks);
+	}
+	else {
+	  existing = findEntry(spname, tblocks);
+	}
+	if (plus && (existing != blocks.end())) {
+	  existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
+	}
+	else if (!plus && (existing != tblocks.end())) {
+	  existing->paths.insert(existing->paths.end(), tpaths.begin(), tpaths.end());
+	}
+	else {
+	  PathInfo pi;
+	  pi.block_name = spname;
+	  pi.layer = layer;
+	  pi.barrel = false;
+	  if (plus) {
+	    pi.paths = paths;
+	    blocks.push_back(pi);
+	  }
+	  else {
+	    pi.paths = tpaths;
+	    tblocks.push_back(pi);
+	  }
+	}
+	paths.clear();
+	tpaths.clear();
+      }
     }
+    else { std::cerr << xml_subdet_wheel << " or " << xml_subdet_ring << " or " << xml_subdet_tiddet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    blocks.insert(blocks.end(), tblocks.begin(), tblocks.end());
+    return blocks;
+  }
     
     /**
      * This function looks for the presence of endcaps in a topology.
