@@ -166,14 +166,14 @@ namespace insur {
 
 
         // Add Rods
-        out << xml_spec_par_open << "OuterTracker" << xml_subdet_rod << xml_par_tail << xml_general_inter;
-        pos = findEntry(t, xml_subdet_rod + xml_par_tail);
+        out << xml_spec_par_open << "OuterTracker" << xml_subdet_straight_or_tilted_rod << xml_par_tail << xml_general_inter;
+        pos = findEntry(t, xml_subdet_straight_or_tilted_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_rod;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_or_tilted_rod;
         out << xml_spec_par_close;
 
         // Add Phase2OTForward
@@ -751,7 +751,7 @@ namespace insur {
     blocks.clear();
     //TOB
     lindex = findEntry(specs, xml_subdet_layer + xml_par_tail);
-    rindex = findEntry(specs, xml_subdet_rod + xml_par_tail);
+    rindex = findEntry(specs, xml_subdet_straight_or_tilted_rod + xml_par_tail);
     mindex = findEntry(specs, xml_subdet_tobdet + xml_par_tail);
     if ((lindex >= 0) && (rindex >= 0) && (mindex >= 0)) {
       // layer loop
@@ -853,7 +853,7 @@ namespace insur {
 	}
       }
     }
-    else { std::cerr << xml_subdet_layer << " or " << xml_subdet_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    else { std::cerr << xml_subdet_layer << " or " << xml_subdet_straight_or_tilted_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
     //TID
     dindex = findEntry(specs, xml_subdet_wheel + xml_par_tail);
     rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);

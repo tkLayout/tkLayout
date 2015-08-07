@@ -193,12 +193,12 @@ namespace insur {
     static const std::string xml_nmods = "N";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
     static const std::string xml_det_layer = "TOBLayer";
-    static const std::string xml_det_rod = "TOBRod";
+    static const std::string xml_det_straight_or_tilted_rod = "TOBRod";
     static const std::string xml_det_tobdet = "TOBDet";
     static const std::string xml_tob_subdet = "TOBSubDet";
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
     static const std::string xml_subdet_2OT_layer = "Phase2OTBarrelLayer";
-    static const std::string xml_subdet_rod = "PixelBarrelLadder";
+    static const std::string xml_subdet_straight_or_tilted_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_tobdet = "PixelBarrelModule";
     static const std::string xml_subdet_tobdet_1 = "PixelBarrelDet";
     static const std::string xml_det_wheel = "TIDWheel";

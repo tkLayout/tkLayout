@@ -394,9 +394,9 @@ namespace insur {
     lspec.parameter.first = xml_tkddd_structure;
     lspec.parameter.second = xml_det_layer;
     // Rod
-    rspec.name = xml_subdet_rod + xml_par_tail;
+    rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
-    rspec.parameter.second = xml_det_rod;
+    rspec.parameter.second = xml_det_straight_or_tilted_rod;
     // Module
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
