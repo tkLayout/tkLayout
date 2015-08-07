@@ -220,6 +220,7 @@ namespace insur {
     
 
     for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
+std::cout << "layer = " << layer << std::endl;
       double lrmin = INT_MAX;
       double lrmax = 0;
       double lzmin = 0;
@@ -283,8 +284,8 @@ namespace insur {
     }
 
     for (int i = 0; i < up.size();  i++) {
-      std::cout << "up.at(i).first = " << up.at(i).first << std::endl;
-      std::cout << "up.at(i).second = " << up.at(i).second << std::endl;
+      std::cout << "up.at(" << i << ").first = " << up.at(i).first << std::endl;
+      std::cout << "up.at(" << i << ").second = " << up.at(i).second << std::endl;
     }
     for (int i = 0; i < down.size(); i++) {
       std::cout << "down.at(i).first = " << down.at(i).first << std::endl;
