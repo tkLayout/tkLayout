@@ -182,6 +182,11 @@ int main(int argc, char* argv[]) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
+            else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
+              //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
+              ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
+
+            }
           }
         }
       }

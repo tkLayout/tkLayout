@@ -92,10 +92,11 @@ namespace insur {
   static const int materialRebin = 2;
 
   // Colors for plot background and such
-  static const int color_plot_background = kWhite;
-  static const int color_pad_background  = kGray;
-  static const int color_grid            = kGreen-10;
-  static const int color_hard_grid       = kGray;
+  static const int color_plot_background       = kWhite;
+  static const int color_pad_background        = kGray;
+  static const int color_grid                  = kGreen-10;
+  static const int color_hard_grid             = kGray;
+  static const std::vector<string> color_names = {"Black","Red","BrightGreen","BrightBlue","Yellow","Pink","Aqua","Green","Blue"};
 
   // Pads to plot the tracker ortho views
   static const unsigned int padYZ      = 1;

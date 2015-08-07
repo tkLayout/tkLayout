@@ -43,6 +43,11 @@ public:
 
   ReadonlyProperty<double, Default>   magneticField;
 
+  // To include dipole region in a quick way
+  ReadonlyProperty<double, Default>   dipoleMagneticField;// Integral magnetic field in [Tm]
+  ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;// deltaPl/Pl resolution of dipole tracker at 10 TeV
+  ReadonlyProperty<double, Default>   dipoleXToX0;        // [%]
+
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
@@ -71,6 +76,9 @@ public:
       alphaParm(             "alphaParm"             , parsedOnly(), 4e-17),
       referenceTemp(         "referenceTemp"         , parsedOnly(), 20),
       magneticField(         "magneticField"         , parsedOnly(), insur::magnetic_field),
+      dipoleMagneticField(   "dipoleMagneticField"   , parsedOnly(), 0.0),
+      dipoleDPlResAt10TeV(   "dipoleDPlResAt10TeV"   , parsedOnly(), 0.1),
+      dipoleXToX0(           "dipoleXToX0"           , parsedOnly(), 0.1),
       irradiationMapFiles(   "irradiationMapFiles"   , parsedAndChecked()),
       //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
       minTracksEta(          "minTracksEta"          , parsedOnly()),

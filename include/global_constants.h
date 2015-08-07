@@ -94,7 +94,8 @@ namespace insur {
   static const int    std_canvas_sizeY   = 900;
   static const int    max_canvas_sizeY   =1800;
 
-  static const int    default_n_bins     = max_eta_coverage/0.1;  // Default number of bins in histogram from eta=0  to max_eta_coverage
+  static const double default_eta_step   = 0.1;
+  static const int    default_n_bins     = max_eta_coverage/default_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types

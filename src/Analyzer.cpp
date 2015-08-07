@@ -1600,6 +1600,8 @@ void Analyzer::clearGraphs_Pt(int graphAttributes, const std::string& graphTag) 
   std::map<int, TGraph>& thisCtgThetaGraphs_Pt = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt, graphTag);
   std::map<int, TGraph>& thisZ0Graphs_Pt       = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph_Pt       ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph_Pt      , graphTag);
   std::map<int, TGraph>& thisPGraphs_Pt        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph_Pt        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph_Pt       , graphTag);
+  std::map<int, TGraph>& thisPGraphsDipole_Pt  = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraphDipole_Pt  ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraphDipole_Pt , graphTag);
+
 
   thisRhoGraphs_Pt.clear();
   thisPhiGraphs_Pt.clear();
@@ -1607,7 +1609,7 @@ void Analyzer::clearGraphs_Pt(int graphAttributes, const std::string& graphTag) 
   thisCtgThetaGraphs_Pt.clear();
   thisZ0Graphs_Pt.clear();
   thisPGraphs_Pt.clear();
-
+  thisPGraphsDipole_Pt.clear();
 }
 
 void Analyzer::clearGraphs_P(int graphAttributes, const std::string& graphTag) {
@@ -1679,6 +1681,23 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph_Pt.SetName(aName.str().c_str());
  
+  // Add analytical resolution in dipole region
+  TGraph* thisPGraphDipole_Pt = nullptr;
+  TGraph* thisPGraphTotal_Pt  = nullptr;
+  if (simParms_->dipoleMagneticField()!=0.0 && graphAttributes==GraphBag::RealGraph) {
+
+    thisPGraphDipole_Pt = &(graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraphDipole_Pt, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraphDipole_Pt, graphTag, parameter));
+    thisPGraphTotal_Pt  = &(graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraphTotal_Pt, parameter )  : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraphTotal_Pt, graphTag, parameter));
+
+    thisPGraphDipole_Pt->SetTitle("Dipole p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
+    aName.str(""); aName << "Dipole_pt_vs_eta" << momentum << graphTag;
+    thisPGraphDipole_Pt->SetName(aName.str().c_str());
+
+    thisPGraphTotal_Pt->SetTitle("Total (Dipole+Central) p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
+    aName.str(""); aName << "Total_pt_vs_eta" << momentum << graphTag;
+    thisPGraphTotal_Pt->SetName(aName.str().c_str());
+  }
+
   // track loop
   double graphValue;
   for ( const auto& myTrack : aTrackCollection ) {
@@ -1717,8 +1736,42 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     }
 
     if ((dp>0)||true) {
-      graphValue = dp * 100.; // in percent 
+
+      // Central region value
+      double centralValue = dp * 100.; // in percent
       thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
+
+      if (thisPGraphDipole_Pt) {
+
+        // Dipole region value
+        double momentum   = parameter/1000.; // internally in MeV -> convert
+
+        // At 10TeV, let's require deltaPl/Pl resolution at 10TeV -> calculate dTheta deltaPl/Pl = Pl/0.3/(B.l) * dTheta
+        double deltaTheta = simParms_->dipoleDPlResAt10TeV()/10000*0.3*simParms_->dipoleMagneticField();
+
+        // DeltaPt/Pt for multiple scattering
+        double deltaMS = 0.0136/0.3/simParms_->dipoleMagneticField()*sqrt(simParms_->dipoleXToX0());
+
+        // DeltaPt/Pt for tracking
+        double deltaTrack = deltaTheta/0.3/simParms_->dipoleMagneticField()*momentum*sinh(eta);
+
+        // Dipole value
+        double dipoleValue = sqrt(deltaMS*deltaMS + deltaTrack*deltaTrack) * 100.;
+
+        // Final
+        graphValue = dipoleValue;
+        thisPGraphDipole_Pt->SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
+
+        // Beyond eta>=2.5 take advantage of both
+        if (eta>=insur::range_eta_regions[2]) graphValue = dipoleValue < centralValue ? dipoleValue : centralValue;
+        // Just central works
+        else graphValue = centralValue;
+
+        // For debugging purposes
+        //std::cout << ">>>> " << momentum << " " << eta << " " << deltaTheta << " " << deltaTrack << " " << deltaMS << " " << dipoleValue << " " << centralValue << " > " << graphValue << std::endl;
+
+        thisPGraphTotal_Pt->SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
+      }
     }
   }
 }

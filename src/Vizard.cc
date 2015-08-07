@@ -2970,19 +2970,25 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     else                      site.addPage(myPage);
 
     // Create the contents
-    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across "+etaLetter+" (active+pasive material)");
-    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "+etaLetter+" (ideal - no material)", false);
-    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P  across "+etaLetter+" (active+pasive material)");
-    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across " +etaLetter+" (ideal - no material)", false);
+    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution (central only) for const Pt across "+etaLetter+" (active+pasive material)");
+    RootWContent& resolutionDipoleContent_Pt= myPage->addContent("Track resolution (central+dipole) for const Pt across "+etaLetter+" (active+pasive material)");
+    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution (central only) for const Pt across "+etaLetter+" (ideal - no material)", false);
+    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution (central only) for const P  across "+etaLetter+" (active+pasive material)", false);
+    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution (central only) for const P across " +etaLetter+" (ideal - no material)", false);
 
-    // Create a page for the errors - 2 scenarios with/without multiple scattering (active+pasive or just active material)
+    // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
     std::string scenarioStr="";
     for (int scenario=0; scenario<2; ++scenario) {
       int idealMaterial;
       RootWContent* myContent;
 
       // Draw case I with const Pt across eta
-      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_Pt, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph_Pt, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_Pt, tag).empty()) {
+      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_Pt     , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph_Pt       , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::Z0Graph_Pt      , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_Pt     , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::CtgthetaGraph_Pt, tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_Pt       , tag).empty()) {
 
         // Set link to myContent
         if (scenario==0) {
@@ -3128,8 +3134,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            angleProfile.SetMinimum(min_dPhi);
-            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
+          angleProfile.SetMinimum(min_dPhi);
+          angleProfile.SetMaximum(max_dPhi);//*verticalScale);
           } else {
             angleProfile.SetMinimum(min_dPhi);
             angleProfile.SetMaximum(max_dPhi);//*verticalScale);
@@ -3235,8 +3241,118 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
 
+      // Draw extra case with const Pt across eta and dipole in the forward region
+      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraphDipole_Pt , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraphTotal_Pt  , tag).empty() && (scenario==0)) {
+
+        // Set link to myContent
+        idealMaterial=GraphBag::RealGraph;
+        myContent = &resolutionDipoleContent_Pt;
+        scenarioStr = "TotMS_Pt";
+
+        TCanvas logMomCanvasDip_Pt;
+        TCanvas linMomCanvasTot_Pt;
+        TCanvas logMomCanvasTot_Pt;
+
+        // Default attributes
+        int myColor            = 0;
+        int nBins              = insur::default_n_bins;
+        int markerStyle        = 21;
+        double markerSize      = 1.;
+        double lineWidth       = 2.;
+        std::string plotOption = "";
+
+
+        logMomCanvasDip_Pt.SetGrid(1,1);
+        linMomCanvasTot_Pt.SetGrid(1,1);
+        logMomCanvasTot_Pt.SetGrid(1,1);
+
+        gStyle->SetGridStyle(style_grid);
+        gStyle->SetGridColor(color_hard_grid);
+
+        // Draw dipole only pt
+        plotOption = "";
+        myColor    = 0;
+        for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraphDipole_Pt | idealMaterial, tag)) {
+
+          const TGraph& momentumGraph = mapel.second;
+          TProfile& momentumProfile   = newProfile(momentumGraph, insur::range_eta_regions[2], analyzer.getEtaMaxTracker(), 1, int((analyzer.getEtaMaxTracker()-insur::range_eta_regions[2])/insur::default_eta_step));
+
+          momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
+          momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+
+          logMomCanvasDip_Pt.SetLogy(1);
+          logMomCanvasDip_Pt.SetFillColor(color_plot_background);
+
+          momentumProfile.SetLineColor(momentumColor(myColor));
+          momentumProfile.SetMarkerColor(momentumColor(myColor));
+          momentumProfile.SetLineWidth(lineWidth);
+          myColor++;
+          momentumProfile.SetMarkerStyle(markerStyle);
+          momentumProfile.SetMarkerSize(markerSize);
+
+          if (momentumGraph.GetN()>0) {
+
+            logMomCanvasDip_Pt.cd();
+            momentumProfile.Draw(plotOption.c_str());
+            plotOption = "same";
+          }
+        }
+        // Draw total (central+dipole) pt
+        plotOption = "";
+        myColor    = 0;
+        for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraphTotal_Pt | idealMaterial, tag)) {
+
+          const TGraph& momentumGraph = mapel.second;
+          TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+
+          momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
+          momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+
+          linMomCanvasTot_Pt.SetLogy(0);
+          logMomCanvasTot_Pt.SetLogy(1);
+          linMomCanvasTot_Pt.SetFillColor(color_plot_background);
+          logMomCanvasTot_Pt.SetFillColor(color_plot_background);
+
+          momentumProfile.SetLineColor(momentumColor(myColor));
+          momentumProfile.SetMarkerColor(momentumColor(myColor));
+          momentumProfile.SetLineWidth(lineWidth);
+          myColor++;
+          momentumProfile.SetMarkerStyle(markerStyle);
+          momentumProfile.SetMarkerSize(markerSize);
+
+          if (momentumGraph.GetN()>0) {
+
+            linMomCanvasTot_Pt.cd();
+            momentumProfile.Draw(plotOption.c_str());
+            logMomCanvasTot_Pt.cd();
+            momentumProfile.Draw(plotOption.c_str());
+            plotOption = "same";
+          }
+        }
+        plotOption = "";
+        myColor=0;
+
+        RootWImage& logMomDipImage_Pt = myContent->addImage(logMomCanvasDip_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        logMomDipImage_Pt.setComment("Transverse momentum resolution (in dipole region) vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
+        logMomDipImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+        RootWImage& linMomTotImage_Pt = myContent->addImage(linMomCanvasTot_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        linMomTotImage_Pt.setComment("Transverse momentum resolution (in central+dipole region) vs. "+etaLetter+" (lin scale) - const Pt across "+etaLetter);
+        linMomTotImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+        RootWImage& logMomTotImage_Pt = myContent->addImage(logMomCanvasTot_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        logMomTotImage_Pt.setComment("Transverse momentum resolution (in central+dipole region) vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
+        logMomTotImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+      }
+
       // Draw case II with const P across eta
-      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_P, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph_P, tag).empty() && !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_P, tag).empty()) {
+      if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_P     , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::DGraph_P       , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::Z0Graph_P      , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_P     , tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::CtgthetaGraph_P, tag).empty() &&
+          !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_P       , tag).empty()) {
 
         // Set link to myContent
         if (scenario==0) {
@@ -3494,7 +3610,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     // Set Summary content - case I
     //  check that the ideal and real have the same pts
     //  otherwise the table cannot be prepared
-    RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+etaLetter, false);
+    RootWContent& summaryContent_Pt = myPage->addContent("Summary (central only) - const Pt across "+etaLetter);
     RootWTable&   cutsSummaryTable  = summaryContent_Pt.addTable();
     RootWTable&   momSummaryTable   = summaryContent_Pt.addTable();
 
@@ -3563,8 +3679,12 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     myTable = &momSummaryTable;
     for (unsigned int iMom=0; iMom<momentum.size(); ++iMom) {
       label.str("");
-      if (iMom!=momentum.size()-1) label << momentum[iMom]/1000 << ",";
-      else                         label << momentum[iMom]/1000 << ".";
+
+      std::string color = "Unknow";
+      if (iMom<insur::color_names.size()) color = color_names[iMom];
+
+      if (iMom!=momentum.size()-1) label << momentum[iMom]/1000 << " (" << color << "),";
+      else                         label << momentum[iMom]/1000 << " (" << color << ").";
       myTable->setContent(0,iMom+1,label.str());
     }
 
@@ -3639,7 +3759,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
     //
     // Set Summary content - case II
-    RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+etaLetter, false);
+    RootWContent& summaryContent_P = myPage->addContent("Summary (central only) - const P across "+etaLetter, false);
 
     std::map<std::string, RootWTable*> tableMap_P;
 

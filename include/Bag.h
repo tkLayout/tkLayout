@@ -24,6 +24,8 @@ using std::string;
     static const int CtgthetaGraph_Pt;
     static const int Z0Graph_Pt;
     static const int PGraph_Pt;
+    static const int PGraphDipole_Pt;
+    static const int PGraphTotal_Pt;
     static const int RhoGraph_P;
     static const int PhiGraph_P;
     static const int DGraph_P;
