@@ -946,7 +946,7 @@ namespace insur {
       pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
       alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
       pconverter.str("");
-      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle();
+      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
       alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
       pconverter.str("");
       alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -1020,7 +1020,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi - 1);
+	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r1;
@@ -1043,7 +1043,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi);
+	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r2;
