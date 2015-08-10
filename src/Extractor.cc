@@ -579,7 +579,7 @@ namespace insur {
       double roddy = (xmax - xmin) / 2;
       double flatPartRoddy;
       if (isTilted) flatPartRoddy = (flatPartMaxX - flatPartMinX) / 2;
-      std::cout << "rmin = " << rmin << std::endl;
+      /*std::cout << "rmin = " << rmin << std::endl;
       std::cout << "rmax = " << rmax << std::endl;
       std::cout << "xmin = " << xmin << std::endl;
       std::cout << "xmax = " << xmax << std::endl;
@@ -601,7 +601,7 @@ namespace insur {
       }
 
       std::cout << "RadiusIn = " << RadiusIn << std::endl;
-      std::cout << "RadiusOut = " << RadiusOut << std::endl;
+      std::cout << "RadiusOut = " << RadiusOut << std::endl;*/
       
 
       double ds, dt = 0.0;
@@ -641,7 +641,7 @@ namespace insur {
 	    tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	  }
 	    
-	  std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  std::ostringstream mname;
 	  mname << xml_barrel_module << modRing << lname.str();
@@ -1264,14 +1264,56 @@ namespace insur {
         ThicknessVisitor v;
         lagg.getEndcapLayers()->at(layer-1)->accept(v);
 		// CUIDADO refactor using Disk methods for min/max Z,R
-        double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
-        double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();
+
+        /*double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
+	  double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();*/
         double zmax = lagg.getEndcapLayers()->at(layer - 1)->maxZ();
         //zmax = zmax + v.max / 2.0; 
         double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
         //zmin = zmin - v.max / 2.0;
-        double ringThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
+        double maxRingThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
         double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();
+
+
+	std::set<int> ridx2;
+	double rmin = INT_MAX;
+	double rmax = 0;
+	/*double zmin = INT_MAX;
+	double zmax = 0;
+	double maxRingThickness = 0;*/
+	
+	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  int modRing = iiter->getModule().uniRef().ring;
+	  /*double ringzmin = INT_MAX;
+	    double ringzmax = 0;*/
+	  if (ridx2.find(modRing) == ridx2.end()) {
+	    ridx2.insert(modRing);
+	    std::ostringstream dname;
+	    dname << xml_disc << layer;
+	    std::ostringstream mname;
+	    mname << xml_endcap_module << modRing << dname.str();	  
+	    std::string parentName = mname.str(); 
+	    ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	    modcomplex.buildSubVolumes();
+	    rmin = MIN(rmin, modcomplex.getRmin());
+	    rmax = MAX(rmax, modcomplex.getRmax());	  
+	    /*zmin = MIN(zmin, modcomplex.getZmin());  
+	    zmax = MAX(zmax, modcomplex.getZmax());
+	    ringzmin = MIN(ringzmin, modcomplex.getZmin());  
+	    ringzmax = MAX(ringzmax, modcomplex.getZmax());*/
+	  }
+	  //maxRingThickness = MAX(maxRingThickness, ringzmax - ringzmin);
+	}
+	//double diskThickness = zmax - zmin;
+
+	std::cout << "rmin = " << rmin << std::endl;
+	std::cout << "rmax = " << rmax << std::endl;
+	std::cout << "zmin = " << zmin << std::endl;
+	std::cout << "zmax = " << zmax << std::endl;
+	std::cout << "maxRingThickness = " << maxRingThickness << std::endl;
+	std::cout << "diskThickness = " << diskThickness << std::endl;
+
+
 
         std::ostringstream dname, pconverter;
 
@@ -1545,7 +1587,7 @@ namespace insur {
         shape.dx = 0.0;
         shape.dy = 0.0;
         shape.dyy = 0.0;
-        shape.dz = ringThickness / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
+        shape.dz = maxRingThickness / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
         //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
         std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1614,7 +1656,7 @@ namespace insur {
         shape.name_tag = dname.str();
         shape.rmin = rmin;
         shape.rmax = rmax;
-        shape.dz = diskThickness/2.0; //(zmax - zmin) / 2.0;
+        shape.dz = diskThickness / 2.0; //(zmax - zmin) / 2.0;
         s.push_back(shape);
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
