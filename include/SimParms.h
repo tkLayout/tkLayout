@@ -48,6 +48,12 @@ public:
   ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;// deltaPl/Pl resolution of dipole tracker at 10 TeV
   ReadonlyProperty<double, Default>   dipoleXToX0;        // [%]
 
+  // Beam pipe radius, thickness, thickness in rad. length, in int. length
+  ReadonlyProperty<double, Default>   bpRadius;
+  ReadonlyProperty<double, Default>   bpThickness;
+  ReadonlyProperty<double, Default>   bpRadLength; // [%]
+  ReadonlyProperty<double, Default>   bpIntLength; // [%]
+
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
@@ -79,6 +85,10 @@ public:
       dipoleMagneticField(   "dipoleMagneticField"   , parsedOnly(), 0.0),
       dipoleDPlResAt10TeV(   "dipoleDPlResAt10TeV"   , parsedOnly(), 0.1),
       dipoleXToX0(           "dipoleXToX0"           , parsedOnly(), 0.1),
+      bpRadius(              "beamPipeRadius"        , parsedOnly(), 0.0),
+      bpThickness(           "beamPipeThickness"     , parsedOnly(), 0.0),
+      bpRadLength(           "beamPipeRadLength"     , parsedOnly(), 0.0),
+      bpIntLength(           "beamPipeIntLength"     , parsedOnly(), 0.0),
       irradiationMapFiles(   "irradiationMapFiles"   , parsedAndChecked()),
       //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
       minTracksEta(          "minTracksEta"          , parsedOnly()),

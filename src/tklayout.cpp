@@ -155,17 +155,18 @@ int main(int argc, char* argv[]) {
     //if ((vm.count("all") || vm.count("bandwidth-cpu"))                          && !squid.reportTriggerProcessorsSite()) return EXIT_FAILURE;
     //if ((vm.count("all") || vm.count("power"))                                  && !squid.reportPowerSite())             return EXIT_FAILURE;
 
-    // If needed build material model
+    // If needed build material model & perform resolution simulation
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
 
-          // Perform material budget analysis
-          if (!squid.pureAnalyzeMaterialBudget(matTracks, vm.count("all") || vm.count("resolution")))                   return EXIT_FAILURE;
-          if (!squid.reportMaterialBudgetSite(vm.count("debug-services")) && (vm.count("all") || vm.count("material"))) return EXIT_FAILURE;
+          // Perform material budget analysis & report it
+          if (!squid.pureAnalyzeMaterialBudget(matTracks, vm.count("all") || vm.count("resolution") || vm.count("material"))) return EXIT_FAILURE;
+          if (!squid.reportMaterialBudgetSite(vm.count("debug-services")) && (vm.count("all") || vm.count("material")))       return EXIT_FAILURE;
 
-          // Perform resolution analysis
-          if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;
+          // Perform resolution analysis & report it
+          if (!squid.pureAnalyzeResolution(matTracks, vm.count("all") || vm.count("resolution")))   return EXIT_FAILURE;
+          if (!squid.reportResolutionSite() && (vm.count("all") || vm.count("resolution")))         return EXIT_FAILURE;
         }
 //        if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
 //        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return (EXIT_FAILURE);

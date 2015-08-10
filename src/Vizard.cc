@@ -417,17 +417,17 @@ namespace insur {
 
 
 
-  /**
-   * This function draws some of the histograms that were filled during material budget analysis
-   * with the rootweb library
-   * @param a A reference to the analysing class that examined the material budget and filled the histograms
-   * @param site the RootWSite object for the output
-   * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
-   */
-  void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+/**
+ * This function draws some of the histograms that were filled during material budget analysis
+ * with the rootweb library
+ * @param a A reference to the analysing class that examined the material budget and filled the histograms
+ * @param site the RootWSite object for the output
+ * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
+ */
+void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
 
     // Initialize the page with the material budget
-    RootWPage*    myPage;
+    RootWPage*    myPage = nullptr;
     RootWContent* myContent;
     RootWTable*   myTable;
     RootWImage*   myImage;
@@ -445,17 +445,18 @@ namespace insur {
     // Add page with relevance, the lower, the less relevant
     if      (name=="INNER") site.addPage(myPage,70);
     else if (name=="OUTER") site.addPage(myPage,69);
-    else                    site.addPage(myPage,68);
+    else if (name=="TRK")   site.addPage(myPage,68);
+    else                    site.addPage(myPage,67);
 
-    std::string name_overviewMaterial         = std::string("OverviewMaterial") + name ;
+    std::string name_overviewMaterial         = std::string("OverviewMaterial")         + name ;
     std::string name_materialInTrackingVolume = std::string("MaterialInTrackingVolume") + name ;
-    std::string name_detailedMaterial         = std::string("DetailedMaterial") + name ;
-    std::string name_countourMaterial         = std::string("CountourMaterial") + name ;
-    std::string name_mapMaterialRadiation     = std::string("MapMaterialRadiation") + name ;
-    std::string name_mapMaterialInteraction   = std::string("MapMaterialInteraction") + name ;
-    std::string name_hadronsHitsNumber        = std::string("HadronsHitsNumber") + name ;
-    std::string name_hadronsTracksFraction    = std::string("HadronsTracksFraction") + name ;
-    std::string name_hadTrackRanger           = std::string("HadTrackRanger") + name ;
+    std::string name_detailedMaterial         = std::string("DetailedMaterial")         + name ;
+    std::string name_countourMaterial         = std::string("CountourMaterial")         + name ;
+    std::string name_mapMaterialRadiation     = std::string("MapMaterialRadiation")     + name ;
+    std::string name_mapMaterialInteraction   = std::string("MapMaterialInteraction")   + name ;
+    std::string name_hadronsHitsNumber        = std::string("HadronsHitsNumber")        + name ;
+    std::string name_hadronsTracksFraction    = std::string("HadronsTracksFraction")    + name ;
+    std::string name_hadTrackRanger           = std::string("HadTrackRanger")           + name ;
 
 //    //
 //    // Material Overview
@@ -638,7 +639,7 @@ namespace insur {
     // Set variables and book histograms
     THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
     THStack* icontainer = new THStack("istack", "Interaction Length by Category");
-    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr;
+    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr, *bpr = nullptr, *bpi = nullptr;
 
     // Prepare canvas
     myCanvas = new TCanvas(name_detailedMaterial.c_str());
@@ -658,6 +659,10 @@ namespace insur {
     ser->SetFillColor(kBlue);
     ser->SetXTitle("#eta");
     rcontainer->Add(ser);
+    bpr = (TH1D*)analyzer.getHistoBeamPipeR().Clone();
+    bpr->SetFillColor(kGreen);
+    bpr->SetXTitle("#eta");
+    rcontainer->Add(bpr);
     acr = (TH1D*)analyzer.getHistoModulesAllR().Clone();
     acr->SetFillColor(kRed);
     acr->SetXTitle("#eta");
@@ -675,6 +680,10 @@ namespace insur {
     sei->SetFillColor(kAzure - 2);
     sei->SetXTitle("#eta");
     icontainer->Add(sei);
+    bpi = (TH1D*)analyzer.getHistoBeamPipeI().Clone();
+    bpi->SetFillColor(kGreen);
+    bpi->SetXTitle("#eta");
+    icontainer->Add(bpi);
     aci = (TH1D*)analyzer.getHistoModulesAllI().Clone();
     aci->SetFillColor(kRed - 3);
     aci->SetXTitle("#eta");
@@ -690,20 +699,23 @@ namespace insur {
     // Average values by active, service and passive
     sprintf(titleString, std::string("Average ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
     myTable->setContent(0, 0, titleString);
-    myTable->setContent(1, 0, "Modules");
-    myTable->setContent(2, 0, "Services");
-    myTable->setContent(3, 0, "Supports");
-    myTable->setContent(4, 0, "Total");
+    myTable->setContent(1, 0, "Beam pipe");
+    myTable->setContent(2, 0, "Modules");
+    myTable->setContent(3, 0, "Services");
+    myTable->setContent(4, 0, "Supports");
+    myTable->setContent(5, 0, "Total");
     myTable->setContent(0, 1, "Radiation length");
     myTable->setContent(0, 2, "Interaction length");
-    myTable->setContent(1, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 1, averageHistogramValues(*ser, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 1, averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(4, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(1, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(2, 2, averageHistogramValues(*sei, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(3, 2, averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
-    myTable->setContent(4, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 1, averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 1, averageHistogramValues(*ser, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(4, 1, averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(5, 1, averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(1, 2, averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(2, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(3, 2, averageHistogramValues(*sei, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(4, 2, averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
+    myTable->setContent(5, 2, averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial())+averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
     myContent->addItem(myTable);
     myContent->addItem(myImage);
 
@@ -968,12 +980,10 @@ namespace insur {
     // Material summary table
     summaryContent.addItem(materialSummaryTable);
 
-    if (debugServices) {
-        drawInactiveSurfacesSummary(materialBudget, *myPage);
-    }
-
+  if (debugServices) {
+      drawInactiveSurfacesSummary(materialBudget, *myPage);
   }
-
+}
   // private
   /**
    * This function bundles the placement of a collection of individual modules in a ROOT geometry tree for
@@ -1805,25 +1815,21 @@ namespace insur {
     TCanvas *myCanvas = NULL;
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
-    //if (name=="pixel") {
-    //  logINFO("PIXEL HACK for beam pipe");
-    //  TPolyLine* beampipe  = new TPolyLine();
-    //  beampipe->SetPoint(0, 0, 45/2.);
-    //  beampipe->SetPoint(1, 2915/2., 45/2.);
-    //  beampipe->SetPoint(2, 3804/2., 56.6/2.);
-    //  beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
-    //  XYCanvasEC->cd();
-    //  drawCircle(22.5, true, 18); // "grey18"
-    //  XYCanvas->cd();
-    //  drawCircle(22.5, true, 18); // "grey18"
-    //  RZCanvas->cd();
-    //  beampipe->Draw("same");
 
-    //  TPolyLine* etafour  = new TPolyLine();
-    //  etafour->SetPoint(0, 0, 0);
-    //  etafour->SetPoint(1, 2700, 98.9376398798);
-    //  etafour->Draw("same");
-    //}
+    if (name=="INNER") {
+      logINFO("Drawing beam pipe");
+      TPolyLine* beampipe  = new TPolyLine();
+      beampipe->SetPoint(0, 0                 , (simparms.bpRadius()+simparms.bpThickness())/2.);
+      beampipe->SetPoint(1, tracker.maxZ()*1.1, (simparms.bpRadius()+simparms.bpThickness())/2.);
+      beampipe->SetLineColor(14);
+      beampipe->SetLineWidth(2);
+      XYCanvasEC->cd();
+      drawCircle(simparms.bpRadius()+simparms.bpThickness(), true, 18); // "grey18"
+      XYCanvas->cd();
+      drawCircle(simparms.bpRadius(), true, 18); // "grey18"
+      RZCanvas->cd();
+      beampipe->Draw("same");
+    }
     // createColorPlotCanvas(tracker, 1, RZCanvas);
 
 
@@ -2970,11 +2976,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     else                      site.addPage(myPage);
 
     // Create the contents
-    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution (central only) for const Pt across "+etaLetter+" (active+pasive material)");
+    RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution (central only) for const Pt across "  +etaLetter+" (active+pasive material)");
     RootWContent& resolutionDipoleContent_Pt= myPage->addContent("Track resolution (central+dipole) for const Pt across "+etaLetter+" (active+pasive material)");
-    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution (central only) for const Pt across "+etaLetter+" (ideal - no material)", false);
-    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution (central only) for const P  across "+etaLetter+" (active+pasive material)", false);
-    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution (central only) for const P across " +etaLetter+" (ideal - no material)", false);
+    RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution (central only) for const Pt across "  +etaLetter+" (ideal - no material)"   , false);
+    RootWContent& resolutionContent_P       = myPage->addContent("Track resolution (central only) for const P  across "  +etaLetter+" (active+pasive material)", false);
+    RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution (central only) for const P across "   +etaLetter+" (ideal - no material)"   , false);
 
     // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
     std::string scenarioStr="";

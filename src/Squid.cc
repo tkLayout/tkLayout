@@ -304,16 +304,18 @@ bool Squid::buildMaterials(bool verbose) {
 
   if (std_ || pxd_) {
 
-    startTaskClock("Building database of material distribution in tracker");
-    if (std_) {
-      if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
-      Materialway materialwayStrip;
-      materialwayStrip.build(*std_, *stdPasive_, weightDistributionTracker);
-    }
+    startTaskClock("Building inactive materials of defined trackers + beam pipe");
+
+    // Building pxd & strip inactive materials
     if (pxd_) {
       if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
       Materialway materialwayPixel;
       materialwayPixel.build(*pxd_, *pxdPasive_, weightDistributionPixel);
+    }
+    if (std_) {
+      if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
+      Materialway materialwayStrip;
+      materialwayStrip.build(*std_, *stdPasive_, weightDistributionTracker);
     }
   } else {
 
@@ -348,7 +350,7 @@ bool Squid::createMaterialBudget(bool verbose) {
       if (stdMb_) delete stdMb_;
       stdMb_  = new MaterialBudget(*std_, *stdPasive_);
 
-      // Reste & calculate new
+      // Reset & calculate new
       if (stripMaterialCalc_.initDone()) stripMaterialCalc_.reset();
       if (matParser_.initMatCalc(stripMaterialCalc_, mainConfig_.getMattabDirectory())) {
         //stdMb_->materialsAll(stripMaterialCalc_);
@@ -583,34 +585,66 @@ bool Squid::pureAnalyzeGeometry(int tracks) {
  * @param tracks The number of tracks that should be fanned out across the analysed region
  * @return True if there were no errors during processing, false otherwise
  */
-bool Squid::pureAnalyzeMaterialBudget(int nTracks, bool trkResolution) {
+bool Squid::pureAnalyzeMaterialBudget(int nTracks, bool analyzerMaterialBudget) {
 
-  if (stdMb_ || pxdMb_) {
+  if (analyzerMaterialBudget && (stdMb_ || pxdMb_)) {
     // TODO: insert the creation of sample tracks here, to compute intersections only once
 
     startTaskClock("Analyzing material budget" );
-    if (stdMb_) stripAnalyzer_.analyzeMaterialBudget(stdMb_, nTracks);
-    if (pxdMb_) pixelAnalyzer_.analyzeMaterialBudget(pxdMb_, nTracks);
+    std::vector<MaterialBudget*> trkMb;
+    if (pxdMb_) {
+      trkMb.clear();
+      trkMb.push_back(pxdMb_);
+      pixelAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+    }
+    if (stdMb_) {
+      trkMb.clear();
+      trkMb.push_back(stdMb_);
+      stripAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+    }
+    if (pxdMb_ && stdMb_) {
+      trkMb.clear();
+      trkMb.push_back(pxdMb_);
+      trkMb.push_back(stdMb_);
+      trackerAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+    }
     stopTaskClock();
 
     //startTaskClock("Computing the weight summary");
     //stripAnalyzer_.computeWeightSummary(*stdMb_);
     //stopTaskClock();
 
-    if (trkResolution) {
-
-      startTaskClock("Analyzing tracking resolutions");
-      trackerAnalyzer_.analyzeTaggedTracking(stdMb_, pxdMb_,
-                                             mainConfig_.getMomenta(),
-                                             mainConfig_.getTriggerMomenta(),
-                                             mainConfig_.getThresholdProbabilities(),
-                                             nTracks);
-      stopTaskClock();
-    }
     return true;
   } else {
 
     std::string message = std::string("Squid::pureAnalyzeMaterialBudget() :")+err_no_matbudget;
+    logERROR(message);
+    return false;
+  }
+}
+
+/**
+ * Analyze the tracker resolution with no output.
+ * @param tracks The number of tracks that should be fanned out across the analysed region
+ * @return True if there were no errors during processing, false otherwise
+ */
+bool Squid::pureAnalyzeResolution(int nTracks, bool analyzeResolution) {
+
+  if (analyzeResolution && (stdMb_ || pxdMb_)) {
+    // TODO: insert the creation of sample tracks here, to compute intersections only once
+
+    startTaskClock("Analyzing tracking resolutions");
+    std::vector<MaterialBudget*> trkMb;
+    trkMb.clear();
+    if (pxdMb_) trkMb.push_back(pxdMb_);
+    if (stdMb_) trkMb.push_back(stdMb_);
+    trackerAnalyzer_.analyzeTaggedTracking(trkMb, mainConfig_.getMomenta(), nTracks);
+
+    stopTaskClock();
+    return true;
+  } else {
+
+    std::string message = std::string("Squid::pureAnalyzeResolution() :")+err_no_matbudget;
     logERROR(message);
     return false;
   }
@@ -691,8 +725,9 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
     if (stdMb_ || pxdMb_) {
 
       startTaskClock("Creating material budget report");
-      if (pxdMb_) vizard_.materialSummary(pixelAnalyzer_, *pxdMb_, debugServices, webSite_, "INNER");
-      if (stdMb_) vizard_.materialSummary(stripAnalyzer_, *stdMb_, debugServices, webSite_, "OUTER");
+      if (pxdMb_)           vizard_.materialSummary(pixelAnalyzer_  , *pxdMb_, debugServices, webSite_, "INNER");
+      if (stdMb_)           vizard_.materialSummary(stripAnalyzer_  , *stdMb_, debugServices, webSite_, "OUTER");
+      if (pxdMb_ && stdMb_) vizard_.materialSummary(trackerAnalyzer_, *stdMb_, debugServices, webSite_, "TRK");
       //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "INNER");
       //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "OUTER");
 

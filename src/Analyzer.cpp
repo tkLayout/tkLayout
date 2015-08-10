@@ -80,27 +80,24 @@ namespace insur {
    * @param pm A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
    * @return the total crossed material amount
    */
-  Material Analyzer::findAllHits(MaterialBudget* mb, MaterialBudget* pm,
-                                 double& eta, double& theta, double& phi, Track& track) {
+  Material Analyzer::findAllHits(MaterialBudget* mb, const double& eta, const double& theta, const double& phi, Track& track) {
+
+    // Get tracker
+    const Tracker & tracker = mb->getTracker();
+    bool isPixelType  = tracker.isPixelType();
+
     Material totalMaterial;
     //      active volumes, barrel
-    totalMaterial  = findHitsModules(mb->getBarrelModuleCaps(), eta, theta, phi, track);
+    totalMaterial  = findHitsModules(mb->getBarrelModuleCaps(), eta, theta, phi, track, isPixelType);
     //      active volumes, endcap
-    totalMaterial += findHitsModules(mb->getEndcapModuleCaps(), eta, theta, phi, track);
+    totalMaterial += findHitsModules(mb->getEndcapModuleCaps(), eta, theta, phi, track, isPixelType);
     //      services, barrel
-    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getBarrelServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getBarrelServices(), eta, theta, track, isPixelType);
     //      services, endcap
-    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getEndcapServices(), eta, theta, track);
+    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getEndcapServices(), eta, theta, track, isPixelType);
     //      supports
-    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track);
-    //      pixels, if they exist
-    if (pm != nullptr) {
-      totalMaterial += findHitsModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, true);
-      totalMaterial += findHitsInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, true);
-    }
+    totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, isPixelType);
+
     return totalMaterial;
   }
 
@@ -127,11 +124,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     
   */                                
 
-void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
-                                     const std::vector<double>& momenta,
-                                     const std::vector<double>& triggerMomenta,
-                                     const std::vector<double>& thresholdProbabilities,
-                                     int nTracks) {
+void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, const std::vector<double>& momenta, int nTracks) {
+
   // Local variables
   double etaStep, eta, theta, phi;
   
@@ -162,26 +156,53 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
     track.setPhi(phi);
     track.setMagField(simParms_->magneticField());
 
-    // Assign hits to track
-    Material tmpMat = findAllHits(mb, pm, eta, theta, phi, track);
-    
-   // Debug: material amount
+    // Go through all material budget contributors (pixel tracker, strip tracker, ...)
+    Material tmpMat;
+    for (auto & mb : mbVector) {
+
+      // Assign hits to track
+      tmpMat += findAllHits(mb, eta, theta, phi, track);
+
+      // TODO: BeamPipe --> needs to be finished,  Add the hit on the beam pipe - CURRENT WORKAROUND
+      if (mb==*(mbVector.begin())) {
+
+        double outerRadius = simParms_->bpRadius()+simParms_->bpThickness();
+        double position    = (simParms_->bpRadius()+simParms_->bpThickness())/2.;
+        double radLength   = simParms_->bpRadLength()/100.;
+        double intLength   = simParms_->bpIntLength()/100.;
+        //double minRTracker = mb->getTracker().minR();
+
+        //if (outerRadius>=minRTracker) {
+
+        //  std::stringstream message("");
+        //  message << "Beam pipe not built -> outer radius: " << outerRadius << " bigger than tracker inner radius: " << minRTracker << "!!!";
+        //  logERROR(message.str());
+        //}
+        //else
+        if (radLength<=0 && intLength<=0) {
+
+          std::stringstream message("");
+          message << "Beam pipe not built, radiation length: " << radLength << " or interaction length: " << intLength << " zero or negative!!!";
+          logERROR(message.str());
+        }
+        else {
+
+          Hit* hit = new Hit(position/sin(theta));
+          hit->setOrientation(Hit::Horizontal);
+          hit->setObjectKind(Hit::Inactive);
+          Material tmp;
+          tmp.radiation   = radLength/sin(theta);
+          tmp.interaction = intLength/sin(theta);
+          hit->setCorrectedMaterial(tmp);
+          track.addHit(hit);
+        }
+      }
+    }
+    // Debug: material amount
     // std::cerr << "eta = " << eta
     //           << ", material.radiation = " << tmp.radiation
     //           << ", material.interaction = " << tmp.interaction
     //           << std::endl;
-
-    // TODO: add the beam pipe as a user material eveywhere!
-    // in a coherent way
-    // Add the hit on the beam pipe
-    //Hit* hit = new Hit(23./sin(theta));
-    //hit->setOrientation(Hit::Horizontal);
-    //hit->setObjectKind(Hit::Inactive);
-    //Material beamPipeMat;
-    //beamPipeMat.radiation = 0.0023 / sin(theta);
-    //beamPipeMat.interaction = 0.0019 / sin(theta);
-    //hit->setCorrectedMaterial(beamPipeMat);
-    //track.addHit(hit);
 
     // Go through tracks with non-zero number of hits
     if (!track.noHits()) {
@@ -495,247 +516,285 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
  * The main analysis function provides a frame for the scan in eta, defers summing up the radiation
  * and interaction lengths for each volume category to subfunctions, and sorts those results into the
  * correct histograms.
- * @param mb A reference to the instance of <i>MaterialBudget</i> that is to be analysed
- * @param momenta A list of momentum values for the tracks that are shot through the layout
- * @param etaSteps The number of wedges in the fan of tracks covered by the eta scan
- * @param A pointer to a second material budget associated to a pixel detector; may be <i>NULL</i>
+ * @param mbVector A vector to the pointer to a <i>MaterialBudget</i> that is to be analysed
+ * @param nTracks  A number of tracks to shoot for each momentum
  */
-void Analyzer::analyzeMaterialBudget(MaterialBudget* mb, int etaSteps) {
+void Analyzer::analyzeMaterialBudget(std::vector<MaterialBudget*> mbVector, int nTracks) {
 
-  Tracker& tracker = mb->getTracker();
-  double efficiency = simParms().efficiency();
-  double pixelEfficiency = simParms().pixelEfficiency();
-  materialTracksUsed = etaSteps;
-  int nTracks;
+  // Define track parameters
   double etaStep, eta, theta, phi;
+
+  // Prepare etaStep, phiStep, nTracks, nScans
+  if (nTracks > 1) etaStep = getEtaMaxMaterial() / (double)(nTracks); //(double)(nTracks - 1);
+  else             etaStep = getEtaMaxMaterial();
+
+  // Reset histograms ...
   clearMaterialBudgetHistograms();
   clearCells();
-  // prepare etaStep, phiStep, nTracks, nScans
-  if (etaSteps > 1) etaStep = getEtaMaxMaterial() / (double)(etaSteps - 1);
-  else etaStep = getEtaMaxMaterial();
-  nTracks = etaSteps;
-  // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
+
+  // Reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
   setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
 
-  // reset the list of tracks
-  // std::vector<Track> tv;
-  // std::vector<Track> tvIdeal;
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
+
     phi = myDice.Rndm() * PI * 2.0;
     Material tmp;
+
+    // Track parameters
     Track track;
-    eta = i_eta * etaStep;
+    eta   = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
     track.setTheta(theta);
     track.setPhi(phi);
     track.setMagField(simParms_->magneticField());
-    //      active volumes, barrel
-    std::map<std::string, Material> sumComponentsRI;
-    tmp = analyzeModules(mb->getBarrelModuleCaps(), eta, theta, phi, track, sumComponentsRI);
-    ractivebarrel.Fill(eta, tmp.radiation);
-    iactivebarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
 
-    //      active volumes, endcap
-    tmp = analyzeModules(mb->getEndcapModuleCaps(), eta, theta, phi, track, sumComponentsRI);
-    ractiveendcap.Fill(eta, tmp.radiation);
-    iactiveendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    ractiveall.Fill(eta, tmp.radiation);
-    iactiveall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
+    // Go through all material budget contributors (pixel tracker, strip tracker, ...)
+    for (auto & mb : mbVector) {
 
-    for (std::map<std::string, Material>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
-      if (rComponents[it->first]==NULL) { 
-        rComponents[it->first] = new TH1D();
-        rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+      Tracker& tracker       = mb->getTracker();
+      double stripEfficiency = simParms().efficiency();
+      double pixelEfficiency = simParms().pixelEfficiency();
+      bool   isPixelType     = tracker.isPixelType();
+
+      //
+      // Calculate materials & add hits contributing to the track
+      //
+      // Active volumes, barrel
+      std::map<std::string, Material> sumComponentsRI;
+      tmp = analyzeModules(mb->getBarrelModuleCaps(), eta, theta, phi, track, sumComponentsRI, isPixelType);
+      ractivebarrel.Fill(eta, tmp.radiation);
+      iactivebarrel.Fill(eta, tmp.interaction);
+      rbarrelall.Fill(   eta, tmp.radiation);
+      ibarrelall.Fill(   eta, tmp.interaction);
+      ractiveall.Fill(   eta, tmp.radiation);
+      iactiveall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(      eta, tmp.radiation);
+      iglobal.Fill(      eta, tmp.interaction);
+  
+      // Active volumes, endcap
+      tmp = analyzeModules(mb->getEndcapModuleCaps(), eta, theta, phi, track, sumComponentsRI, isPixelType);
+      ractiveendcap.Fill(eta, tmp.radiation);
+      iactiveendcap.Fill(eta, tmp.interaction);
+      rendcapall.Fill(   eta, tmp.radiation);
+      iendcapall.Fill(   eta, tmp.interaction);
+      ractiveall.Fill(   eta, tmp.radiation);
+      iactiveall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(      eta, tmp.radiation);
+      iglobal.Fill(      eta, tmp.interaction);
+  
+      // Create component histograms
+      for (std::map<std::string, Material>::iterator it = sumComponentsRI.begin(); it != sumComponentsRI.end(); ++it) {
+        if (rComponents[it->first]==nullptr) {
+          rComponents[it->first] = new TH1D();
+          rComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+        }
+        rComponents[it->first]->Fill(eta, it->second.radiation);
+        if (iComponents[it->first]==nullptr) {
+          iComponents[it->first] = new TH1D();
+          iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+        }
+        iComponents[it->first]->Fill(eta, it->second.interaction);
       }
-      rComponents[it->first]->Fill(eta, it->second.radiation);
-      if (iComponents[it->first]==NULL) {
-        iComponents[it->first] = new TH1D();
-        iComponents[it->first]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
+  
+      if (rComponents["Services"]==nullptr) {
+        rComponents["Services"] = new TH1D();
+        rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
       }
-      iComponents[it->first]->Fill(eta, it->second.interaction);
-    }
+      if (iComponents["Services"]==nullptr) {
+        iComponents["Services"] = new TH1D();
+        iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+      }
+      if (rComponents["Supports"]==nullptr) {
+        rComponents["Supports"] = new TH1D();
+        rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+      }
+      if (iComponents["Supports"]==nullptr) {
+        iComponents["Supports"] = new TH1D();
+        iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+      }
+      if (rComponents["Beam pipe"]==nullptr) {
+        rComponents["Beam pipe"] = new TH1D();
+        rComponents["Beam pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+      }
+      if (iComponents["Beam pipe"]==nullptr) {
+        iComponents["Beam pipe"] = new TH1D();
+        iComponents["Beam pipe"]->SetBins(nTracks, 0.0, getEtaMaxMaterial());
+      }
+  
+      // Services, barrel
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, isPixelType);
+      rserfbarrel.Fill(eta, tmp.radiation);
+      iserfbarrel.Fill(eta, tmp.interaction);
+      rbarrelall.Fill( eta, tmp.radiation);
+      ibarrelall.Fill( eta, tmp.interaction);
+      rserfall.Fill(   eta, tmp.radiation);
+      iserfall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(    eta, tmp.radiation);
+      iglobal.Fill(    eta, tmp.interaction);
+      rComponents["Services"]->Fill(eta, tmp.radiation);
+      iComponents["Services"]->Fill(eta, tmp.interaction);
+  
+      // Services, endcap
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, isPixelType);
+      rserfendcap.Fill(eta, tmp.radiation);
+      iserfendcap.Fill(eta, tmp.interaction);
+      rendcapall.Fill( eta, tmp.radiation);
+      iendcapall.Fill( eta, tmp.interaction);
+      rserfall.Fill(   eta, tmp.radiation);
+      iserfall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(    eta, tmp.radiation);
+      iglobal.Fill(    eta, tmp.interaction);
+      rComponents["Services"]->Fill(eta, tmp.radiation);
+      iComponents["Services"]->Fill(eta, tmp.interaction);
+  
+      // Supports, barrel
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup, isPixelType);
+      rlazybarrel.Fill(eta, tmp.radiation);
+      ilazybarrel.Fill(eta, tmp.interaction);
+      rbarrelall.Fill( eta, tmp.radiation);
+      ibarrelall.Fill( eta, tmp.interaction);
+      rlazyall.Fill(   eta, tmp.radiation);
+      ilazyall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(    eta, tmp.radiation);
+      iglobal.Fill(    eta, tmp.interaction);
+      rComponents["Supports"]->Fill(eta, tmp.radiation);
+      iComponents["Supports"]->Fill(eta, tmp.interaction);
+  
+      // Supports, endcap
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup, isPixelType);
+      rlazyendcap.Fill(eta, tmp.radiation);
+      ilazyendcap.Fill(eta, tmp.interaction);
+      rendcapall.Fill( eta, tmp.radiation);
+      iendcapall.Fill( eta, tmp.interaction);
+      rlazyall.Fill(   eta, tmp.radiation);
+      ilazyall.Fill(   eta, tmp.interaction);
+      rglobal.Fill(    eta, tmp.radiation);
+      iglobal.Fill(    eta, tmp.interaction);
+      rComponents["Supports"]->Fill(eta, tmp.radiation);
+      iComponents["Supports"]->Fill(eta, tmp.interaction);
+  
+      // Supports, tubes
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup, isPixelType);
+      rlazytube.Fill(eta, tmp.radiation);
+      ilazytube.Fill(eta, tmp.interaction);
+      rlazyall.Fill( eta, tmp.radiation);
+      ilazyall.Fill( eta, tmp.interaction);
+      rglobal.Fill(  eta, tmp.radiation);
+      iglobal.Fill(  eta, tmp.interaction);
+      rComponents["Supports"]->Fill(eta, tmp.radiation);
+      iComponents["Supports"]->Fill(eta, tmp.interaction);
+  
+      // Supports, barrel tubes
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup, isPixelType);
+      rlazybtube.Fill(eta, tmp.radiation);
+      ilazybtube.Fill(eta, tmp.interaction);
+      rlazyall.Fill(  eta, tmp.radiation);
+      ilazyall.Fill(  eta, tmp.interaction);
+      rglobal.Fill(   eta, tmp.radiation);
+      iglobal.Fill(   eta, tmp.interaction);
+      rComponents["Supports"]->Fill(eta, tmp.radiation);
+      iComponents["Supports"]->Fill(eta, tmp.interaction);
+  
+      // Supports, user defined
+      tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup, isPixelType);
+      rlazyuserdef.Fill(eta, tmp.radiation);
+      ilazyuserdef.Fill(eta, tmp.interaction);
+      rlazyall.Fill(    eta, tmp.radiation);
+      ilazyall.Fill(    eta, tmp.interaction);
+      rglobal.Fill(     eta, tmp.radiation);
+      iglobal.Fill(     eta, tmp.interaction);
+      rComponents["Supports"]->Fill(eta, tmp.radiation);
+      iComponents["Supports"]->Fill(eta, tmp.interaction);
+  
+      // TODO: BeamPipe --> needs to be finished,  Add the hit on the beam pipe - CURRENT WORKAROUND
+      //tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::beam_pipe);
+      if (mb==*(mbVector.begin())) {
 
+        double outerRadius = simParms_->bpRadius()+simParms_->bpThickness();
+        double position    = (simParms_->bpRadius()+simParms_->bpThickness())/2.;
+        double radLength   = simParms_->bpRadLength()/100.;
+        double intLength   = simParms_->bpIntLength()/100.;
+        //double minRTracker = mb->getTracker().minR();
 
-    if (rComponents["Services"]==NULL) { 
-      rComponents["Services"] = new TH1D();
-      rComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Services"]==NULL) { 
-      iComponents["Services"] = new TH1D();
-      iComponents["Services"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (rComponents["Supports"]==NULL) { 
-      rComponents["Supports"] = new TH1D();
-      rComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    if (iComponents["Supports"]==NULL) { 
-      iComponents["Supports"] = new TH1D();
-      iComponents["Supports"]->SetBins(nTracks, 0.0, getEtaMaxMaterial()); 
-    }
-    //      services, barrel
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat);
-    rserfbarrel.Fill(eta, tmp.radiation);
-    iserfbarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    /*
-    if (eta<0.03) {
-      std::cout << "eta = " << eta << std::endl;
-      track.sort();
-      track.print();
-    }
-    */
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
-    //      services, endcap
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat);
-    rserfendcap.Fill(eta, tmp.radiation);
-    iserfendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rserfall.Fill(eta, tmp.radiation);
-    iserfall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Services"]->Fill(eta, tmp.radiation);
-    iComponents["Services"]->Fill(eta, tmp.interaction);
-    //      supports, barrel
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::b_sup);
-    rlazybarrel.Fill(eta, tmp.radiation);
-    ilazybarrel.Fill(eta, tmp.interaction);
-    rbarrelall.Fill(eta, tmp.radiation);
-    ibarrelall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
-    //      supports, endcap
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::e_sup);
-    rlazyendcap.Fill(eta, tmp.radiation);
-    ilazyendcap.Fill(eta, tmp.interaction);
-    rendcapall.Fill(eta, tmp.radiation);
-    iendcapall.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
-    //      supports, tubes
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::o_sup);
-    rlazytube.Fill(eta, tmp.radiation);
-    ilazytube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
-    //      supports, barrel tubes
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::t_sup);
-    rlazybtube.Fill(eta, tmp.radiation);
-    ilazybtube.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
-    //      supports, user defined
-    tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::u_sup);
-    rlazyuserdef.Fill(eta, tmp.radiation);
-    ilazyuserdef.Fill(eta, tmp.interaction);
-    rlazyall.Fill(eta, tmp.radiation);
-    ilazyall.Fill(eta, tmp.interaction);
-    rglobal.Fill(eta, tmp.radiation);
-    iglobal.Fill(eta, tmp.interaction);
-    rComponents["Supports"]->Fill(eta, tmp.radiation);
-    iComponents["Supports"]->Fill(eta, tmp.interaction);
-    //      pixels, if they exist
-//    if (pm != NULL) {
-//      std::map<std::string, Material> ignoredPixelSumComponentsRI;
-//      analyzeModules(pm->getBarrelModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
-//      analyzeModules(pm->getEndcapModuleCaps(), eta, theta, phi, track, ignoredPixelSumComponentsRI, true);
-//      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getBarrelServices(), eta, theta, track, MaterialProperties::no_cat, true);
-//      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getEndcapServices(), eta, theta, track, MaterialProperties::no_cat, true);
-//      analyzeInactiveSurfaces(pm->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::no_cat, true);
-//    }
+        //if (outerRadius>=minRTracker) {
+        //
+        //  std::stringstream message("");
+        //  message << "Beam pipe not built -> outer radius: " << outerRadius << " bigger than tracker inner radius: " << minRTracker << "!!!" << std::endl;
+        //  logERROR(message.str());
+        //}
+        //else
+        if (radLength<=0 && intLength<=0) {
 
-    // Add the hit on the beam pipe
-    Hit* hit = new Hit(23./sin(theta));
-    hit->setOrientation(Hit::Horizontal);
-    hit->setObjectKind(Hit::Inactive);
-    Material beamPipeMat;
-    beamPipeMat.radiation = 0.0023 / sin(theta);
-    beamPipeMat.interaction = 0.0019 / sin(theta);
-    hit->setCorrectedMaterial(beamPipeMat);
-    track.addHit(hit);
+          std::stringstream message("");
+          message << "Beam pipe not built, radiation length: " << radLength << " or interaction length: " << intLength << " zero or negative!!!" << std::endl;
+          logERROR(message.str());
+        }
+        else {
+
+          Hit* hit = new Hit(position/sin(theta));
+          hit->setOrientation(Hit::Horizontal);
+          hit->setObjectKind(Hit::Inactive);
+          tmp.radiation   = radLength/sin(theta);
+          tmp.interaction = intLength/sin(theta);
+          hit->setCorrectedMaterial(tmp);
+          track.addHit(hit);
+  
+          rbeampipe.Fill(eta, tmp.radiation);
+          ibeampipe.Fill(eta, tmp.interaction);
+          rglobal.Fill(  eta, tmp.radiation);
+          iglobal.Fill(  eta, tmp.interaction);
+          rComponents["Beam pipe"]->Fill(eta, tmp.radiation);
+          iComponents["Beam pipe"]->Fill(eta, tmp.interaction);
+        }
+      }
+      // Strip efficiency
+      if (stripEfficiency!=1) track.addEfficiency(stripEfficiency, false);
+      // Pixel efficiency
+      if (pixelEfficiency!=1) track.addEfficiency(pixelEfficiency, true);
+
+    } // Material budgets
+
+    // Calculate efficiency plots
     if (!track.noHits()) {
+
       track.sort();
-      if (efficiency!=1) track.addEfficiency(efficiency, false);
-      if (pixelEfficiency!=1) track.addEfficiency(efficiency, true);
 
-      // @@ Hadrons
-      int nActive = track.nActiveHits();
+      // Get hits
+      int nActive = track.nActiveHits(true);
       if (nActive>0) {
-        hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(),
-                                      eta,
-                                      nActive);
-        double probability;
-        std::vector<double> probabilities = track.hadronActiveHitsProbability();
 
-        double averageHits=0;
-        //double averageSquaredHits=0;
-        double exactProb=0;
+        hadronTotalHitsGraph.SetPoint(hadronTotalHitsGraph.GetN(), eta, nActive);
+  
+        double probability;
+        std::vector<double> probabilities = track.hadronActiveHitsProbability(true);
+  
+        double averageHits  = 0;
+        double exactProb    = 0;
         double moreThanProb = 0;
-        for (int i=probabilities.size()-1;
-             i>=0;
-             --i) {
+        for (int i=probabilities.size()-1; i>=0; --i) {
+
           //if (nActive==10) { // debug
-          //  std::cerr << "probabilities.at(" 
+          //  std::cerr << "probabilities.at("
           //  << i << ")=" << probabilities.at(i)
           //  << endl;
           //}
-          exactProb=probabilities.at(i)-moreThanProb;
-          averageHits+=(i+1)*exactProb;
-          //averageSquaredHits+=((i+1)*(i+1))*exactProb;
-          moreThanProb+=exactProb;
+          exactProb     = probabilities.at(i)-moreThanProb;
+          averageHits  += (i+1)*exactProb;
+          moreThanProb += exactProb;
         }
-        hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(),
-                                        eta,
-                                        averageHits);
-        //hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1,
-        //                       0,
-        //                       sqrt( averageSquaredHits - averageHits*averageHits) );
 
+        hadronAverageHitsGraph.SetPoint(hadronAverageHitsGraph.GetN(), eta, averageHits);
+        //hadronAverageHitsGraph.SetPointError(hadronAverageHitsGraph.GetN()-1, 0, sqrt( averageSquaredHits - averageHits*averageHits) );
+  
         unsigned int requiredHits;
-        for (unsigned int i = 0;
-             i<hadronNeededHitsFraction.size();
-             ++i) {
+        for (unsigned int i = 0; i<hadronNeededHitsFraction.size(); ++i) {
+
           requiredHits = int(ceil(double(nActive) * hadronNeededHitsFraction.at(i)));
-          if (requiredHits==0)
-            probability=1;
-          else if (requiredHits>probabilities.size())
-            probability = 0;
-          else
-            probability = probabilities.at(requiredHits-1);
+          if      (requiredHits==0)                   probability = 1;
+          else if (requiredHits>probabilities.size()) probability = 0;
+          else                                        probability = probabilities.at(requiredHits-1);
+
           //if (probabilities.size()==10) { // debug
           //  std::cerr << "required " << requiredHits
           //              << " out of " << probabilities.size()
@@ -743,13 +802,12 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget* mb, int etaSteps) {
           //              << endl;
           // std::cerr << "      PROBABILITY = " << probability << endl << endl;
           //}
-          hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(),
-                                                  eta,
-                                                  probability);
+          hadronGoodTracksFraction.at(i).SetPoint(hadronGoodTracksFraction.at(i).GetN(), eta, probability);
         }
       }
-    }
-  }
+    } // Calculate efficiency plots
+
+  } // nTracks
 
 #ifdef MATERIAL_SHADOW       
   // integration over eta
@@ -1893,6 +1951,8 @@ void Analyzer::clearMaterialBudgetHistograms() {
   rlazytube.SetNameTitle("rlazytube", "Support Tubes Radiation Length");
   rlazyuserdef.Reset();
   rlazyuserdef.SetNameTitle("rlazyuserdef", "Userdefined Supports Radiation Length");
+  rbeampipe.Reset();
+  rbeampipe.SetNameTitle("rbeampipe", "Beam pipe Radiation Length");
   iactivebarrel.Reset();
   iactivebarrel.SetNameTitle("iactivebarrel", "Barrel Modules Interaction Length");
   iactiveendcap.Reset();
@@ -1909,6 +1969,8 @@ void Analyzer::clearMaterialBudgetHistograms() {
   ilazytube.SetNameTitle("ilazytube", "Support Tubes Interaction Length");
   ilazyuserdef.Reset();
   ilazyuserdef.SetNameTitle("ilazyuserdef", "Userdefined Supports Interaction Length");
+  ibeampipe.Reset();
+  ibeampipe.SetNameTitle("ibeampipe", "Beam pipe Ineraction Length");
   // composite
   rbarrelall.Reset();
   rbarrelall.SetNameTitle("rbarrelall", "Barrel Radiation Length");
@@ -2334,6 +2396,7 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   rlazyendcap.SetBins(bins, min, max);
   rlazytube.SetBins(bins, min, max);
   rlazyuserdef.SetBins(bins, min, max);
+  rbeampipe.SetBins(bins, min, max);
   iactivebarrel.SetBins(bins, min, max);
   iactiveendcap.SetBins(bins, min, max);
   iserfbarrel.SetBins(bins, min, max);
@@ -2342,6 +2405,7 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   ilazyendcap.SetBins(bins, min, max);
   ilazytube.SetBins(bins, min, max);
   ilazyuserdef.SetBins(bins, min, max);
+  ibeampipe.SetBins(bins, min, max);
   // composite
   rbarrelall.SetBins(bins, min, max);
   rendcapall.SetBins(bins, min, max);

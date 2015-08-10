@@ -96,7 +96,7 @@ namespace insur {
   static const int color_pad_background        = kGray;
   static const int color_grid                  = kGreen-10;
   static const int color_hard_grid             = kGray;
-  static const std::vector<string> color_names = {"Black","Red","BrightGreen","BrightBlue","Yellow","Pink","Aqua","Green","Blue"};
+  static const std::vector<string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
 
   // Pads to plot the tracker ortho views
   static const unsigned int padYZ      = 1;
@@ -169,6 +169,7 @@ namespace insur {
     // and return true or false, depending if they created the output or not
     void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+
     void weigthSummart(Analyzer& analyzer, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
     bool geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);

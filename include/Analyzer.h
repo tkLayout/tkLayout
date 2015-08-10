@@ -84,48 +84,55 @@ namespace insur {
   public:
     Analyzer();
     virtual ~Analyzer() {}
+
+    // Getter methods for material budget
     std::map<std::string, TH1D*>& getHistoActiveComponentsR() { return rComponents; }
     std::map<std::string, TH1D*>& getHistoActiveComponentsI() { return iComponents; }
-    TH1D& getHistoModulesBarrelsR() { return ractivebarrel; }
-    TH1D& getHistoModulesBarrelsI() { return iactivebarrel; }
-    TH1D& getHistoModulesEndcapsR() {return ractiveendcap; }
-    TH1D& getHistoModulesEndcapsI() { return iactiveendcap; }
-    TH1D& getHistoServicesBarrelsR() { return rserfbarrel; }
-    TH1D& getHistoServicesBarrelsI() { return iserfbarrel; }
-    TH1D& getHistoServicesEndcapsR() { return rserfendcap; }
-    TH1D& getHistoServicesEndcapsI() { return iserfendcap; }
-    TH1D& getHistoSupportsBarrelsR() { return rlazybarrel; }
-    TH1D& getHistoSupportsBarrelsI() { return ilazybarrel; }
-    TH1D& getHistoSupportsEndcapsR() { return rlazyendcap; }
-    TH1D& getHistoSupportsEndcapsI() { return ilazyendcap; }
-    TH1D& getHistoSupportsBarrelTubesR() { return rlazybtube; }
-    TH1D& getHistoSupportsBarrelTubesI() { return ilazybtube; }
-    TH1D& getHistoSupportsTubesR() { return rlazytube; }
-    TH1D& getHistoSupportsTubesI() { return ilazytube; }
-    TH1D& getHistoSupportsUserDefinedR() { return rlazyuserdef; }
-    TH1D& getHistoSupportsUserDefinedI() { return ilazyuserdef; }
-    TH1D& getHistoBarrelsAllR() { return rbarrelall; }
-    TH1D& getHistoBarrelsAllI() { return ibarrelall; }
-    TH1D& getHistoEndcapsAllR() { return rendcapall; }
-    TH1D& getHistoEndcapsAllI() { return iendcapall; }
-    TH1D& getHistoModulesAllR() { return ractiveall; }
-    TH1D& getHistoModulesAllI() { return iactiveall; }
-    TH1D& getHistoServicesAllR() { return rserfall; }
-    TH1D& getHistoServicesAllI() { return iserfall; }
-    TH1D& getHistoSupportsAllR() { return rlazyall; }
-    TH1D& getHistoSupportsAllI() { return ilazyall; }
-    TH1D& getHistoExtraServicesR() { return rextraservices; }
-    TH1D& getHistoExtraServicesI() { return iextraservices; }
-    TH1D& getHistoExtraSupportsR() { return rextrasupports; }
-    TH1D& getHistoExtraSupportsI() { return iextrasupports; }
-    TH1D& getHistoGlobalR() { return rglobal; }
-    TH1D& getHistoGlobalI() { return iglobal; }
-    TH2D& getHistoIsoR() { return isor; }
-    TH2D& getHistoIsoI() { return isoi; }
+    TH1D& getHistoModulesBarrelsR()      { return ractivebarrel;  }
+    TH1D& getHistoModulesBarrelsI()      { return iactivebarrel;  }
+    TH1D& getHistoModulesEndcapsR()      { return ractiveendcap;  }
+    TH1D& getHistoModulesEndcapsI()      { return iactiveendcap;  }
+    TH1D& getHistoServicesBarrelsR()     { return rserfbarrel;    }
+    TH1D& getHistoServicesBarrelsI()     { return iserfbarrel;    }
+    TH1D& getHistoServicesEndcapsR()     { return rserfendcap;    }
+    TH1D& getHistoServicesEndcapsI()     { return iserfendcap;    }
+    TH1D& getHistoSupportsBarrelsR()     { return rlazybarrel;    }
+    TH1D& getHistoSupportsBarrelsI()     { return ilazybarrel;    }
+    TH1D& getHistoSupportsEndcapsR()     { return rlazyendcap;    }
+    TH1D& getHistoSupportsEndcapsI()     { return ilazyendcap;    }
+    TH1D& getHistoSupportsBarrelTubesR() { return rlazybtube;     }
+    TH1D& getHistoSupportsBarrelTubesI() { return ilazybtube;     }
+    TH1D& getHistoSupportsTubesR()       { return rlazytube;      }
+    TH1D& getHistoSupportsTubesI()       { return ilazytube;      }
+    TH1D& getHistoSupportsUserDefinedR() { return rlazyuserdef;   }
+    TH1D& getHistoSupportsUserDefinedI() { return ilazyuserdef;   }
+    TH1D& getHistoBeamPipeR()            { return rbeampipe;      }
+    TH1D& getHistoBeamPipeI()            { return ibeampipe;      }
+    TH1D& getHistoBarrelsAllR()          { return rbarrelall;     }
+    TH1D& getHistoBarrelsAllI()          { return ibarrelall;     }
+    TH1D& getHistoEndcapsAllR()          { return rendcapall;     }
+    TH1D& getHistoEndcapsAllI()          { return iendcapall;     }
+    TH1D& getHistoModulesAllR()          { return ractiveall;     }
+    TH1D& getHistoModulesAllI()          { return iactiveall;     }
+    TH1D& getHistoServicesAllR()         { return rserfall;       }
+    TH1D& getHistoServicesAllI()         { return iserfall;       }
+    TH1D& getHistoSupportsAllR()         { return rlazyall;       }
+    TH1D& getHistoSupportsAllI()         { return ilazyall;       }
+    TH1D& getHistoExtraServicesR()       { return rextraservices; }
+    TH1D& getHistoExtraServicesI()       { return iextraservices; }
+    TH1D& getHistoExtraSupportsR()       { return rextrasupports; }
+    TH1D& getHistoExtraSupportsI()       { return iextrasupports; }
+    TH1D& getHistoGlobalR()              { return rglobal;        }
+    TH1D& getHistoGlobalI()              { return iglobal;        }
+    TH2D& getHistoIsoR()                 { return isor;           }
+    TH2D& getHistoIsoI()                 { return isoi;           }
+
     TH2D& getHistoMapRadiation();
     TH2D& getHistoMapInteraction();
     TH1D& getHistoOptimalSpacing(bool actualWindow);
     //std::vector<Track>& getTracks() { return tv; } // useless ?! remove !
+
+    // Getter methods for resolution plots
     std::map<int, TGraph>& getRhoGraphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getPhiGraphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getDGraphs(bool ideal, bool isTrigger);
@@ -140,13 +147,9 @@ namespace insur {
     TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
     const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
     const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
-    /*virtual*/ void analyzeMaterialBudget(MaterialBudget* mb, int etaSteps = 50);
+    /*virtual*/ void analyzeMaterialBudget(std::vector<MaterialBudget*> mbVector, int etaSteps = insur::default_n_tracks);
     void computeTriggerProcessorsBandwidth(Tracker& tracker);
-    void analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
-                               const std::vector<double>& momenta,
-                               const std::vector<double>& triggerMomenta,
-                               const std::vector<double>& thresholdProbabilities,
-                               int nTracks = 50);
+    void analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, const std::vector<double>& momenta, int nTracks = insur::default_n_tracks);
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -252,8 +255,10 @@ namespace insur {
      */
     struct Cell { double rlength; double ilength; double rmin; double rmax; double etamin; double etamax; };
     std::vector<std::vector<Cell> > cells;
-    TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazybtube, rlazytube, rlazyuserdef;
-    TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef;
+
+    // Material budget histograms
+    TH1D ractivebarrel, ractiveendcap, rserfbarrel, rserfendcap, rlazybarrel, rlazyendcap, rlazybtube, rlazytube, rlazyuserdef, rbeampipe;
+    TH1D iactivebarrel, iactiveendcap, iserfbarrel, iserfendcap, ilazybarrel, ilazyendcap, ilazybtube, ilazytube, ilazyuserdef, ibeampipe;
     TH1D rbarrelall, rendcapall, ractiveall, rserfall, rlazyall;
     TH1D ibarrelall, iendcapall, iactiveall, iserfall, ilazyall;
     TH1D rextraservices, rextrasupports;
@@ -342,9 +347,7 @@ namespace insur {
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-    Material findAllHits(MaterialBudget* mb, MaterialBudget* pm,
-                         double& eta, double& theta, double& phi, Track& track);
-
+    Material findAllHits(MaterialBudget* mb, const double& eta, const double& theta, const double& phi, Track& track);
 
     void computeDetailedWeights(std::vector<std::vector<ModuleCap> >& tracker, std::map<std::string, SummaryTable>& weightTables, bool byMaterial);
     virtual Material analyzeModules(std::vector<std::vector<ModuleCap> >& tr, double eta, double theta, double phi, Track& t, 

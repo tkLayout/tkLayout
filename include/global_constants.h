@@ -36,7 +36,7 @@ namespace insur {
   static const double max_eta_coverage           = range_eta_regions[range_eta_regions.size()-1];   // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
   static const int    n_eta_regions              = range_eta_regions.size();                        // Tracking performed in the following Number of eta regions
 
-  static const int    default_n_tracks           = 120;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
+  static const int    default_n_tracks           = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.

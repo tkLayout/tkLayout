@@ -92,7 +92,8 @@ namespace insur {
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool pureAnalyzeMaterialBudget(int tracks, bool trackingResolution);
+    bool pureAnalyzeMaterialBudget(int tracks, bool analyzeMatBudget);
+    bool pureAnalyzeResolution(int tracks, bool analyzeResolution);
     bool reportGeometrySite();
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
