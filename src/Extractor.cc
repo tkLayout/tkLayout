@@ -136,7 +136,7 @@ namespace insur {
       std::cout << "Barrel container done." << std::endl;
 
       // Endcap
-      analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
+      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown);
       if (!(shape.rzup.empty() || shape.rzdown.empty())) {
         shape.name_tag = xml_tid;
         s.push_back(shape);
@@ -204,47 +204,79 @@ namespace insur {
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
     down.clear();
+    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
+    std::vector<ModuleCap>::iterator iiter, iguard;
 
     LayerAggregator lagg;
     t.accept(lagg);
     auto bl = lagg.getBarrelLayers();
+    
+    int layer = 1;
     int n_of_layers = bl->size();
-    for (int layer = 0; layer < n_of_layers; layer++) {
-        if (layer == 0) {
-          rz.first = bl->at(layer)->minR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
-        else {
-          //new barrel reached
-          if (bl->at(layer)->maxZ() != zmax) {
-            //new layer sticks out compared to old layer
-            if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
-            //old layer sticks out compared to new layer
-            else rz.first = rmax;
-            rz.second = zmin;
-            up.push_back(rz);
-            rz.second = zmax;
-            down.push_back(rz);
-            rz.second = bl->at(layer)->minZ();
-            up.push_back(rz);
-            rz.second = bl->at(layer)->maxZ();
-            down.push_back(rz);
-          }
-        }
-        //index size - 1
-        if (layer == n_of_layers - 1) {
-          rz.first = bl->at(layer)->maxR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
-      rmax = bl->at(layer)->maxR();
-      if (bl->at(layer)->minZ() < 0) zmin = bl->at(layer)->minZ();
-      if (bl->at(layer)->maxZ() > 0) zmax = bl->at(layer)->maxZ();
+
+    lagg.postVisit();
+    std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
+    
+    for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
+      double lrmin = INT_MAX;
+      double lrmax = 0;
+      double lzmin = 0;
+      double lzmax = 0; 
+ 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	  int modRing = iiter->getModule().uniRef().ring;
+	  std::ostringstream lname;
+	  lname << xml_layer << layer;
+	  std::ostringstream mname;
+	  mname << xml_barrel_module << modRing << lname.str();
+	  std::string parentName = mname.str(); 
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	    
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	  lzmin = -lzmax;
+	}
+      }
+
+      if (layer == 1) {
+	rz.first = lrmin;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
+      else {
+	//new barrel reached
+	if (lzmax != zmax) {
+	  //new layer sticks out compared to old layer
+	  if (lzmax > zmax) rz.first = lrmin;
+	  //old layer sticks out compared to new layer
+	  else rz.first = rmax;
+	  rz.second = zmin;
+	  up.push_back(rz);
+	  rz.second = zmax;
+	  down.push_back(rz);
+	  rz.second = lzmin;
+	  up.push_back(rz);
+	  rz.second = lzmax;
+	  down.push_back(rz);
+	}
+      }
+      //index size - 1
+      if (layer == n_of_layers) {
+	rz.first = lrmax;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
+      rmax = lrmax;
+      if (lzmin < 0) zmin = lzmin;
+      if (lzmax > 0) zmax = lzmax;
+
+      layer++;
     }
   }
 
@@ -261,72 +293,115 @@ namespace insur {
    * @param up A reference to a vector listing polygon points by increasing radius
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
-  void Extractor::analyseEndcapContainer(Tracker& t,
+  void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t,
                                          std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
     int first, last;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
-    LayerAggregator lagg; t.accept(lagg);
-    auto el = lagg.getEndcapLayers();
-    first = 0;
-    last = el->size();
-    while (first < last) {
-      if (el->at(first)->maxZ() > 0) break;
-      first++;
-    }
     up.clear();
     down.clear();
-    for (int i = first; i < last; i++) {
-      // special treatment for first disc
-      if (i == first) {
-        rmin = el->at(i)->minR();
-        rmax = el->at(i)->maxR();
-        rz.first = rmax;
-        rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
+    std::vector<ModuleCap>::iterator iiter, iguard;  
+
+    LayerAggregator lagg; 
+    t.accept(lagg);
+
+    auto el = lagg.getEndcapLayers();
+    int layer = 1;
+    int n_of_layers = el->size();
+    bool hasfirst = false;
+
+    //lagg.postVisit();   
+    //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
+
+    //while (first < last) {
+    //if (el->at(first - 1)->maxZ() > 0) break;
+    //first++;
+    //}   
+    //if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {}
+    
+    for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      std::set<int> ridx;
+      double lrmin = INT_MAX;
+      double lrmax = 0;
+      double lzmin = INT_MAX;
+      double lzmax = 0; 
+ 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	int modRing = iiter->getModule().uniRef().ring;
+	if (ridx.find(modRing) == ridx.end()) {
+	  ridx.insert(modRing);
+	  std::ostringstream dname;
+	  dname << xml_disc << layer;
+	  std::ostringstream mname;
+	  mname << xml_endcap_module << modRing << dname.str();	  
+	  std::string parentName = mname.str(); 
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	  
+	  lzmin = MIN(lzmin, modcomplex.getZmin());  
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	}
       }
-      // disc beyond the first
-      else {
-        // endcap change larger->smaller
-        if (rmax > el->at(i)->maxR()) {
-          rz.second = zmax - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
-        // endcap change smaller->larger
-        if (rmax < el->at(i)->maxR()) {
-          rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
+
+      if ((lzmax > 0) && (!hasfirst)) {
+	first = layer;
+	hasfirst = true;
       }
-      zmax = el->at(i)->maxZ();
-      // special treatment for last disc
-      if (i == last - 1) {
-        rz.first = rmax;
-        rz.second = zmax - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+
+      if (layer >= first) {
+	if (layer == first) {
+	  rmin = lrmin;
+	  rmax = lrmax;
+	  rz.first = rmax;
+	  rz.second = lzmin - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
+	// disc beyond the first
+	else {
+	  // endcap change larger->smaller
+	  if (rmax > lrmax) {
+	    rz.second = zmax - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	  // endcap change smaller->larger
+	  if (rmax < lrmax) {
+	    rz.second = lzmin - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	}
+	zmax = lzmax;
+	// special treatment for last disc
+	if (layer == n_of_layers) {
+	  rz.first = rmax;
+	  rz.second = zmax - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
       }
+      layer++;
     }
   }
 
@@ -394,9 +469,9 @@ namespace insur {
     lspec.parameter.first = xml_tkddd_structure;
     lspec.parameter.second = xml_det_layer;
     // Rod
-    rspec.name = xml_subdet_rod + xml_par_tail;
+    rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
-    rspec.parameter.second = xml_det_rod;
+    rspec.parameter.second = xml_det_straight_or_tilted_rod;
     // Module
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
@@ -504,7 +579,7 @@ namespace insur {
       double roddy = (xmax - xmin) / 2;
       double flatPartRoddy;
       if (isTilted) flatPartRoddy = (flatPartMaxX - flatPartMinX) / 2;
-      std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
+      /*std::cout << "flatPartMinR = " << flatPartMinR << std::endl;
       std::cout << "flatPartMaxR = " << flatPartMaxR << std::endl;
       std::cout << "flatPartMaxZ = " << flatPartMaxZ << std::endl;
       std::cout << "rmin = " << rmin << std::endl;
@@ -523,7 +598,7 @@ namespace insur {
       }
 
       std::cout << "RadiusIn = " << RadiusIn << std::endl;
-      std::cout << "RadiusOut = " << RadiusOut << std::endl;
+      std::cout << "RadiusOut = " << RadiusOut << std::endl;*/
       
 
       double ds, dt = 0.0;
@@ -563,7 +638,7 @@ namespace insur {
 	    tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	  }
 	    
-	  std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  std::ostringstream mname;
 	  mname << xml_barrel_module << modRing << lname.str();
@@ -946,7 +1021,7 @@ namespace insur {
       pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
       alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
       pconverter.str("");
-      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle();
+      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
       alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
       pconverter.str("");
       alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -1020,7 +1095,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi - 1);
+	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r1;
@@ -1043,7 +1118,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 2 * M_PI / (double)(rinfo.modules) * (rinfo.phi);
+	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r2;
@@ -1639,8 +1714,14 @@ namespace insur {
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
-        
-        } else {
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	  p.push_back(pos);
+	  pos.copy = 1;
+	  pos.rotref.clear();
+        } 
+	else {
           std::stringstream msg;
           msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
           logWARNING( msg.str() ); 
@@ -1710,6 +1791,12 @@ namespace insur {
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	  p.push_back(pos);
+	  pos.copy = 1;
+	  pos.rotref.clear();
         }
         else {
           std::stringstream msg;
@@ -1795,13 +1882,19 @@ namespace insur {
           pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
           break;
       default:
-          pos.parent_tag = nspace + ":" + xml_tracker;
+	pos.parent_tag = nspace + ":" + xml_tracker;
       }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
           (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
       else pos.trans.dz = iter->getZOffset() + shape.dz;
       p.push_back(pos);
+      pos.copy = 2;
+      pos.trans.dz = -pos.trans.dz;
+      pos.rotref = nspace + ":" + xml_flip_mod_rot;
+      p.push_back(pos);
+      pos.copy = 1;
+      pos.rotref.clear();
 #else
       if (fres == found.end() && iter->getLocalMasses().size() ) { 
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -1823,19 +1916,25 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-            pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
-            break;
+	  pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
+	  break;
         case MaterialProperties::e_sup:
-            pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
-            break;
+	  pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
+	  break;
         default:
-            pos.parent_tag = nspace + ":" + xml_tracker;
+	  pos.parent_tag = nspace + ":" + xml_tracker;
         }
         pos.child_tag = logic.shape_tag;
         if ((iter->getCategory() == MaterialProperties::o_sup) ||
             (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
         else pos.trans.dz = iter->getZOffset() + shape.dz;
         p.push_back(pos);
+	pos.copy = 2;
+	pos.trans.dz = -pos.trans.dz;
+	pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	p.push_back(pos);
+	pos.copy = 1;
+	pos.rotref.clear();
       }
 #endif
     }

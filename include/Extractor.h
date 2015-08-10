@@ -81,7 +81,7 @@ namespace insur {
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
     void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
-    void analyseEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
     void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
