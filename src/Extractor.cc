@@ -314,13 +314,11 @@ namespace insur {
     //lagg.postVisit();   
     //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
 
-    
     //while (first < last) {
     //if (el->at(first - 1)->maxZ() > 0) break;
     //first++;
     //}   
     //if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {}
-
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
       std::set<int> ridx;
@@ -347,10 +345,6 @@ namespace insur {
 	}
       }
 
-      std::cout << "lzmax = " << lzmax << std::endl;
-      std::cout << "lzmin = " << lzmin << std::endl;
-      std::cout << "lrmax = " << lrmax << std::endl;
-      std::cout << "lrmin = " << lrmin << std::endl;
       if ((lzmax > 0) && (!hasfirst)) {
 	first = layer;
 	hasfirst = true;
@@ -409,18 +403,6 @@ namespace insur {
       }
       layer++;
     }
-
-    
-    for (int i = 0; i < up.size();  i++) {
-      std::cout << "up.at(i).first = " << up.at(i).first << std::endl;
-      std::cout << "up.at(i).second = " << up.at(i).second << std::endl;
-    }
-    for (int i = 0; i < down.size(); i++) {
-      std::cout << "down.at(i).first = " << down.at(i).first << std::endl;
-      std::cout << "down.at(i).second = " << down.at(i).second << std::endl;
-    }
-
-
   }
 
   /**
