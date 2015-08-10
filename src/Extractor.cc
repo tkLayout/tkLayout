@@ -1266,28 +1266,29 @@ namespace insur {
 		// CUIDADO refactor using Disk methods for min/max Z,R
 
         /*double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
-	  double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();*/
+	double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();
         double zmax = lagg.getEndcapLayers()->at(layer - 1)->maxZ();
         //zmax = zmax + v.max / 2.0; 
         double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
         //zmin = zmin - v.max / 2.0;
         double maxRingThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
-        double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();
+        double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();*/
 
 
-	std::set<int> ridx2;
+	//std::set<int> ridx2;
 	double rmin = INT_MAX;
 	double rmax = 0;
-	/*double zmin = INT_MAX;
+	double zmin = INT_MAX;
 	double zmax = 0;
-	double maxRingThickness = 0;*/
+	double maxRingThickness = 0;
 	
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 	  int modRing = iiter->getModule().uniRef().ring;
-	  /*double ringzmin = INT_MAX;
-	    double ringzmax = 0;*/
-	  if (ridx2.find(modRing) == ridx2.end()) {
-	    ridx2.insert(modRing);
+	  double ringzmin = INT_MAX;
+	  double ringzmax = 0;
+	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	    //if (ridx2.find(modRing) == ridx2.end()) {
+	    //ridx2.insert(modRing);
 	    std::ostringstream dname;
 	    dname << xml_disc << layer;
 	    std::ostringstream mname;
@@ -1297,14 +1298,14 @@ namespace insur {
 	    modcomplex.buildSubVolumes();
 	    rmin = MIN(rmin, modcomplex.getRmin());
 	    rmax = MAX(rmax, modcomplex.getRmax());	  
-	    /*zmin = MIN(zmin, modcomplex.getZmin());  
+	    zmin = MIN(zmin, modcomplex.getZmin());  
 	    zmax = MAX(zmax, modcomplex.getZmax());
 	    ringzmin = MIN(ringzmin, modcomplex.getZmin());  
-	    ringzmax = MAX(ringzmax, modcomplex.getZmax());*/
+	    ringzmax = MAX(ringzmax, modcomplex.getZmax());
 	  }
-	  //maxRingThickness = MAX(maxRingThickness, ringzmax - ringzmin);
+	  maxRingThickness = MAX(maxRingThickness, ringzmax - ringzmin);
 	}
-	//double diskThickness = zmax - zmin;
+	double diskThickness = zmax - zmin;
 
 	std::cout << "rmin = " << rmin << std::endl;
 	std::cout << "rmax = " << rmax << std::endl;
@@ -1330,9 +1331,12 @@ namespace insur {
         // endcap module caps loop
         for (iiter = oiter->begin(); iiter != iguard; iiter++) {
           int modRing = iiter->getModule().uniRef().ring;
+	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  }
           // new ring
           if (ridx.find(modRing) == ridx.end()) {
-
+std::cout << "cacaiiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " cacaiiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " cacaiiter->getModule().center().X() = " << iiter->getModule().center().X() << " cacaiiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " cacaiiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " cacaiiter->getModule().flipped() = " << iiter->getModule().flipped() << " cacaiiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
             // This is the Barrel Case
             ridx.insert(modRing);
             std::ostringstream matname, rname, mname, specname;
