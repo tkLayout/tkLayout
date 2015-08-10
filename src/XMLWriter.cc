@@ -421,22 +421,22 @@ namespace insur {
           trackerLogicalVolume(stream, trackerVolumeTemplate);
         }
         for (unsigned int i = 0; i < s.size(); i++) {
-            if ((notobtid) &&
-                    ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;
-            else {
-                switch (s.at(i).type) {
-                    case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
-                    break;
-                    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dxx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
-                    break;
-                    case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
-                    break;
-                    case pc : polycone(s.at(i).name_tag, s.at(i).rzup, s.at(i).rzdown, stream);
-                    break;
-                    default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
-                    box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
-                }
-            }
+	  if ((notobtid) &&
+	      ((s.at(i).name_tag.compare(xml_tob) == 0) || (s.at(i).name_tag.compare(xml_tid) == 0))) continue;
+	  else {
+	    switch (s.at(i).type) {
+	    case bx : box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
+	      break;
+	    case tp : trapezoid(s.at(i).name_tag, s.at(i).dx, s.at(i).dxx, s.at(i).dy, s.at(i).dyy, s.at(i).dz, stream); 
+	      break;
+	    case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
+	      break;
+	    case pc : polycone(s.at(i).name_tag, s.at(i).rzup, s.at(i).rzdown, stream);
+	      break;
+	    default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
+	      box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
+	    }
+	  }
         }
         stream << xml_solid_section_close;
     }

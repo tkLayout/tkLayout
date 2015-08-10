@@ -136,7 +136,7 @@ namespace insur {
       std::cout << "Barrel container done." << std::endl;
 
       // Endcap
-      analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
+      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown);
       if (!(shape.rzup.empty() || shape.rzdown.empty())) {
         shape.name_tag = xml_tid;
         s.push_back(shape);
@@ -216,17 +216,13 @@ namespace insur {
 
     lagg.postVisit();
     std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
-    //oguard = bc.end();
     
-
     for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
-std::cout << "layer = " << layer << std::endl;
       double lrmin = INT_MAX;
       double lrmax = 0;
       double lzmin = 0;
       double lzmax = 0; 
  
-      //iguard = oiter->end();
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
 	  int modRing = iiter->getModule().uniRef().ring;
@@ -282,16 +278,6 @@ std::cout << "layer = " << layer << std::endl;
 
       layer++;
     }
-
-    for (int i = 0; i < up.size();  i++) {
-      std::cout << "up.at(" << i << ").first = " << up.at(i).first << std::endl;
-      std::cout << "up.at(" << i << ").second = " << up.at(i).second << std::endl;
-    }
-    for (int i = 0; i < down.size(); i++) {
-      std::cout << "down.at(i).first = " << down.at(i).first << std::endl;
-      std::cout << "down.at(i).second = " << down.at(i).second << std::endl;
-    }
-
   }
 
   /**
@@ -307,73 +293,134 @@ std::cout << "layer = " << layer << std::endl;
    * @param up A reference to a vector listing polygon points by increasing radius
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
-  void Extractor::analyseEndcapContainer(Tracker& t,
+  void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t,
                                          std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
     int first, last;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
-    LayerAggregator lagg; t.accept(lagg);
-    auto el = lagg.getEndcapLayers();
-    first = 0;
-    last = el->size();
-    while (first < last) {
-      if (el->at(first)->maxZ() > 0) break;
-      first++;
-    }
     up.clear();
     down.clear();
-    for (int i = first; i < last; i++) {
-      // special treatment for first disc
-      if (i == first) {
-        rmin = el->at(i)->minR();
-        rmax = el->at(i)->maxR();
-        rz.first = rmax;
-        rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
+    std::vector<ModuleCap>::iterator iiter, iguard;  
+
+    LayerAggregator lagg; 
+    t.accept(lagg);
+
+    auto el = lagg.getEndcapLayers();
+    int layer = 1;
+    int n_of_layers = el->size();
+    bool hasfirst = false;
+
+    //lagg.postVisit();   
+    //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
+
+    
+    //while (first < last) {
+    //if (el->at(first - 1)->maxZ() > 0) break;
+    //first++;
+    //}   
+    //if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {}
+
+    
+    for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      std::set<int> ridx;
+      double lrmin = INT_MAX;
+      double lrmax = 0;
+      double lzmin = INT_MAX;
+      double lzmax = 0; 
+ 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	int modRing = iiter->getModule().uniRef().ring;
+	if (ridx.find(modRing) == ridx.end()) {
+	  ridx.insert(modRing);
+	  std::ostringstream dname;
+	  dname << xml_disc << layer;
+	  std::ostringstream mname;
+	  mname << xml_endcap_module << modRing << dname.str();	  
+	  std::string parentName = mname.str(); 
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	  
+	  lzmin = MIN(lzmin, modcomplex.getZmin());  
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	}
       }
-      // disc beyond the first
-      else {
-        // endcap change larger->smaller
-        if (rmax > el->at(i)->maxR()) {
-          rz.second = zmax - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
-        // endcap change smaller->larger
-        if (rmax < el->at(i)->maxR()) {
-          rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
+
+      std::cout << "lzmax = " << lzmax << std::endl;
+      std::cout << "lzmin = " << lzmin << std::endl;
+      std::cout << "lrmax = " << lrmax << std::endl;
+      std::cout << "lrmin = " << lrmin << std::endl;
+      if ((lzmax > 0) && (!hasfirst)) {
+	first = layer;
+	hasfirst = true;
       }
-      zmax = el->at(i)->maxZ();
-      // special treatment for last disc
-      if (i == last - 1) {
-        rz.first = rmax;
-        rz.second = zmax - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+
+      if (layer >= first) {
+	if (layer == first) {
+	  rmin = lrmin;
+	  rmax = lrmax;
+	  rz.first = rmax;
+	  rz.second = lzmin - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
+	// disc beyond the first
+	else {
+	  // endcap change larger->smaller
+	  if (rmax > lrmax) {
+	    rz.second = zmax - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	  // endcap change smaller->larger
+	  if (rmax < lrmax) {
+	    rz.second = lzmin - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	}
+	zmax = lzmax;
+	// special treatment for last disc
+	if (layer == n_of_layers) {
+	  rz.first = rmax;
+	  rz.second = zmax - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
       }
+      layer++;
     }
+
+    
+    for (int i = 0; i < up.size();  i++) {
+      std::cout << "up.at(i).first = " << up.at(i).first << std::endl;
+      std::cout << "up.at(i).second = " << up.at(i).second << std::endl;
+    }
+    for (int i = 0; i < down.size(); i++) {
+      std::cout << "down.at(i).first = " << down.at(i).first << std::endl;
+      std::cout << "down.at(i).second = " << down.at(i).second << std::endl;
+    }
+
+
   }
 
   /**
