@@ -16,6 +16,7 @@
 #include <TError.h>
 #include <time.h>
 #include <TView.h>
+#include <TFile.h>
 #include <vector>
 #include <TColor.h>
 #include <TROOT.h>
@@ -29,6 +30,10 @@ using namespace std;
 // The following is a list of allowed file etensions for TCanvas::SaveAs
 // It should be separated, start and end with '|'
 #define DEFAULTALLOWEDEXTENSIONS "|C|png|gif|svg|root|eps|pdf|ps|"
+
+namespace RootWeb {
+  std::string cleanUpObjectName(const std::string&);
+};
 
 class RootWItem {
 public:
@@ -118,6 +123,7 @@ public:
   ostream& dump(ostream& output);
   bool isImage() {return true;};
   bool addExtension(string newExt);
+  void saveSummary(std::string baseName, TFile* myTargetFile);
 private:
   TCanvas* myCanvas_;
   int zoomedWidth_;
@@ -131,6 +137,7 @@ private:
   string name_;
   RootWImageSize makeSizeCode(int sw, int sh, int lw, int lh);
   vector<string> fileTypeV_;
+  void saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myTargetFile);
 
   static constexpr double thumb_compression_ = 2.;
   string allowedExtensions_; // Will be initialized in the constructor
@@ -218,6 +225,7 @@ public:
   ostream& dump(ostream& output);
 };
 
+class RootWPage;
 
 class RootWContent {
 public:
@@ -247,9 +255,12 @@ public:
   RootWBinaryFile& addBinaryFile(string newFileName);
   RootWBinaryFile& addBinaryFile(string newFileName, string newDescription);
   RootWBinaryFile& addBinaryFile(string newFileName, string newDescription, string newOriginalFile);
+  void setPage(RootWPage*);
+  TFile* getSummaryFile();
 private:
   bool visible_;
   string title_;
+  RootWPage* page_;
   //void setDefaultParameters();
   vector<RootWItem*> itemList_;
   string targetDirectory_;
@@ -269,8 +280,10 @@ private:
   string programSite_;
   string revision_;
   string targetDirectory_;
-  //string styleDirectory_;
+  TFile* summaryFile_;
   static const int least_relevant = -1000;
+  bool createSummaryFile_;
+  string summaryFileName_;
 public:
   ~RootWSite();
   RootWSite();
@@ -292,6 +305,9 @@ public:
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   //void setStyleDirectory(string newStyleDirectory) {styleDirectory_ = newStyleDirectory; } ;
   bool makeSite(bool verbose);
+  void setSummaryFile(bool);
+  TFile* getSummaryFile();
+  void setSummaryFileName(std::string);
 };
 
 class RootWPage {
@@ -320,6 +336,7 @@ public:
   double getAlert();
   void setRelevance(int newRelevance);
   int getRelevance();
+  TFile* getSummaryFile();
 };
 
 class RootWItemCollection {

@@ -51,18 +51,22 @@
 
 
 
-
- // Support Mechanics
-  //Mechanics
+  // Support Mechanics
+  // Mechanics
   Component {
     componentName Mechanics
     service false
     scaleOnSensor 0
-    targetVolume 0
+    targetVolume 8
     Element {
       elementName CFRP
-      quantity 0.5
-      unit mm
+      quantity 4.0
+      unit g
+    }
+     Element {
+      elementName Airex
+      quantity 0.94
+      unit g
     }
   }
  

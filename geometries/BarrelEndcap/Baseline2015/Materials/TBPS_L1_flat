@@ -4,8 +4,8 @@
 Materials module-TBPS_L1_flat {
   type module
 
- 
   @include ../Materials/ptPS_320_26_notypedef
   @include ../Materials/TBPS_moduleservices
+  @include ../Materials/TBPS_supportprofiles_L1
  
 }
