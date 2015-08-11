@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include<map>
 
 namespace insur {
     /**
@@ -18,6 +19,8 @@ namespace insur {
      * @enum ShapeType A list of possible shape types: box, tubs, tdr1 (trapezoid) and polycone
      */
     enum ShapeType { bx, tb, tp, pc };
+
+    enum AlgoPartype { st,num,vec};
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -135,6 +138,14 @@ namespace insur {
         std::string rotref;
         Translation trans;
     };
+
+    struct VecInfo {
+      std::string name;
+      std::string type;
+      std::string nEntries;
+      std::vector<double> values;
+    };
+
     /**
      * @struct AlgoInfo
      * @brief This struct collects the parameters that go into an <i>Algorithm</i> block in CMSSW XML.
@@ -146,6 +157,8 @@ namespace insur {
         std::string name;
         std::string parent;
         std::vector<std::string> parameters;
+        std::map<std::string,std::pair<std::string,AlgoPartype> > parameter_map;
+        VecInfo vecpar;
     };
     /**
      * @struct RingInfo

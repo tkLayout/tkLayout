@@ -213,5 +213,17 @@ namespace insur {
     static const std::string xml_zv3 = "[Zv3]";
     static const std::string xml_root_radius = "[RootRadius]";
     static const std::string xml_track_beam_r2 = "[cms:TrackBeamR2]";
+    /**
+    *Constants required by Pixel Extractor
+    */
+    static const std::string xml_phaseII_pixbar = "PhaseIPixelBarrel";
+    static const std::string xml_phaseII_pixecap = "PhaseIIPixelEndcap";
+    static const std::string xml_phaseII_pixbardet = "PhaseIPixelBarrelDet";
+    static const std::string xml_phaseII_pixecapdet = "PhaseIIPixelEndcapDet";
+    static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
+    static const std::string xml_bmodbox = "BModuleBox";
+    static const std::string xml_emodbox = "EModuleBox";
+    static const std::string xml_phaseII_pixelHybridTag = "TopInactive";
+    static const std::string xml_phaseII_pixelChipTag = "BottomInactive";
 }
 #endif /* _TK2CMSSW_STRINGS_H */
