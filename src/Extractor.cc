@@ -1211,6 +1211,7 @@ namespace insur {
 
     // endcap caps layer loop
     for (oiter = ec.begin(); oiter != oguard; oiter++) {
+
       if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
 
         ril.index = layer;
@@ -1255,6 +1256,7 @@ namespace insur {
 	double diskThickness = zmax - zmin;
 
 	
+	//if (zmin > 0) {	
         std::ostringstream dname, pconverter;
 
         double rtotal = 0.0, itotal = 0.0;
@@ -1386,7 +1388,7 @@ namespace insur {
 
             pos.child_tag = logic.shape_tag;
 
-            if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
+            if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
             else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
             p.push_back(pos);
             if (iiter->getModule().numSensors() == 2) {
@@ -1404,7 +1406,7 @@ namespace insur {
 
               pos.child_tag = logic.shape_tag;
 
-              if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
+              if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
               else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().dsDistance() / 2.0;
               //pos.copy = 2;
               if (iiter->getModule().stereoRotation() != 0) {
