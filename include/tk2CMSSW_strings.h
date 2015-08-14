@@ -175,7 +175,7 @@ namespace insur {
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
     static const std::string xml_phialt_algo = "track:DDTrackerPhiAltAlgo";
-    static const std::string xml_angular_algo = "track:DDTrackerAngular";
+    static const std::string xml_tobtiltedring_algo = "track:DDTOBTiltedRingAlgo";
     static const std::string xml_angularv1_algo = "track:DDTrackerAngularV1";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
@@ -189,8 +189,11 @@ namespace insur {
     static const std::string xml_number = "Number";
     static const std::string xml_startcopyno = "StartCopyNo";
     static const std::string xml_incrcopyno = "IncrCopyNo";
-    static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
+    static const std::string xml_radius = "Radius";
+    static const std::string xml_iszplus = "isZPlus";
+    static const std::string xml_tiltangle = "TiltAngle";
+    static const std::string xml_isflipped = "IsFlipped";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
     static const std::string xml_det_layer = "TOBLayer";
     static const std::string xml_det_straight_or_tilted_rod = "TOBRod";
@@ -219,7 +222,8 @@ namespace insur {
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
-    static const std::string xml_default_mod_rot = "HCZ2YX";
+    static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
+    static const std::string xml_places_flipped_mod_in_rod = "FlippedHCZ2YX";
     static const std::string xml_flip_mod_rot = "FLIP";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**

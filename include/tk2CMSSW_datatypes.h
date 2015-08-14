@@ -188,7 +188,7 @@ namespace insur {
     struct BTiltedRingInfo {
         std::string name;
         std::string childname;
-        std::string flippedchildname;
+        bool isZPlus;
         bool inner_flipped;
       //bool fw;
         double r1;

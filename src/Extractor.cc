@@ -67,14 +67,25 @@ namespace insur {
     pos.rotref = "";
 
     // Initialise rotation list with Harry's tilt mod
+    // This rotation places an unflipped module within a rod
     Rotation rot;
-    rot.name = xml_default_mod_rot;
+    rot.name = xml_places_unflipped_mod_in_rod;
     rot.thetax = 90.0;
     rot.phix = 90.0;
     rot.thetay = 0.0;
     rot.phiy = 0.0;
     rot.thetaz = 90.0;
     rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+    // This rotation places a flipped module within a rod
+    rot.name = xml_places_flipped_mod_in_rod;
+    rot.thetax = 90.0;
+    rot.phix = 270.0;
+    rot.thetay = 0.0;
+    rot.phiy = 0.0;
+    rot.thetaz = 90.0;
+    rot.phiz = 180.0;
     r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 
     // Flip module (Fix Y axis)
@@ -635,14 +646,15 @@ namespace insur {
             shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
             shape.dy = modcomplex.getExpandedModuleLength()/2.0;
             shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+	    s.push_back(shape);
 	    
 
 	    if (isTilted && (tiltAngle != 0)) {
 	      // collect ring info
 	      BTiltedRingInfo rinf;
-	      rinf.name = ringname.str() + xml_plus;
-	      rinf.childname = mname.str() + xml_tilted + xml_plus;
-	      rinf.flippedchildname = mname.str() + xml_tilted + xml_plus + xml_flipped;
+	      rinf.name = ringname.str() + xml_plus;	      
+	      rinf.childname = mname.str();
+	      rinf.isZPlus = 1;
 	      rinf.inner_flipped = iiter->getModule().flipped();
 	      rinf.r1 = iiter->getModule().center().Rho();
 	      rinf.z1 = iiter->getModule().center().Z();
@@ -657,135 +669,42 @@ namespace insur {
 	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
 
 	      rinf.name = ringname.str() + xml_minus;
-	      rinf.childname = mname.str() + xml_tilted + xml_minus;
-	      rinf.flippedchildname = mname.str() + xml_tilted + xml_minus + xml_flipped;
+	      rinf.isZPlus = 0;
 	      rinf.z1 = - iiter->getModule().center().Z();
 	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
-
-	      // module boxes
-	      shape.name_tag = mname.str() + xml_tilted + xml_plus + xml_flipped;
-	      s.push_back(shape);
-	      shape.name_tag = mname.str() + xml_tilted + xml_plus;
-	      s.push_back(shape);
-	      shape.name_tag = mname.str() + xml_tilted + xml_minus + xml_flipped;
-	      s.push_back(shape);
-	      shape.name_tag = mname.str() + xml_tilted + xml_minus;
-	      s.push_back(shape);
 	    }
-	    if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
-	      shape.name_tag = mname.str() + xml_flipped;
-	      s.push_back(shape);
-	    }
-	    shape.name_tag = mname.str();
-	    s.push_back(shape);
-
+	    
 
             //logic.material_tag = nspace + ":" + matname.str();
             logic.material_tag = xml_material_air;
-
-	    if (isTilted && (tiltAngle != 0)) {
-	      logic.name_tag = mname.str() + xml_tilted + xml_plus + xml_flipped;
-	      logic.shape_tag = nspace + ":" + logic.name_tag ;
-	      l.push_back(logic);
-	      logic.name_tag = mname.str() + xml_tilted + xml_plus;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      l.push_back(logic);
-	      logic.name_tag = mname.str() + xml_tilted + xml_minus + xml_flipped;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      l.push_back(logic);
-	      logic.name_tag = mname.str() + xml_tilted + xml_minus;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      l.push_back(logic);
-	    }
-	    if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
-	      logic.name_tag = mname.str() + xml_flipped;
-	      logic.shape_tag = nspace + ":" + logic.name_tag;
-	      l.push_back(logic);
-	    }
             logic.name_tag = mname.str();
             logic.shape_tag = nspace + ":" + logic.name_tag;
 	    l.push_back(logic);
+            
 
-            // name_tag is BModule1Layer1 and it goes into all files
-	    if (!iiter->getModule().flipped()) pos.child_tag = nspace + ":" + mname.str();
-            else pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
-	    
-	    std::string xml_tilted_mod_rot;
-            if (!lagg.getBarrelLayers()->at(layer - 1)->isTilted()) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
-	    else {
-	      if (tiltAngle == 0) {pos.rotref = nspace + ":" + xml_default_mod_rot;}
-	      else {
-		pconverter << xml_default_mod_rot << "_tilt_" << tiltAngle;
-		xml_tilted_mod_rot = pconverter.str();
-		pconverter.str("");
-	      
-		rot.name = xml_tilted_mod_rot + "_" + xml_plus;
-		if (r.count(rot.name) == 0 ) {
-		  rot.thetax = 90.0;
-		  rot.phix = 90.0;
-		  rot.thetay = tiltAngle;
-		  rot.phiy = 180.0;
-		  rot.thetaz = 90.0 - tiltAngle;
-		  rot.phiz = 0.0;
-		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-		}
-		  
-		rot.name = xml_tilted_mod_rot + "_" + xml_minus;
-		if (r.count(rot.name) == 0 ) {
-		  rot.thetax = 90.0;
-		  rot.phix = 90.0;
-		  rot.thetay = tiltAngle;
-		  rot.phiy = 0.0;
-		  rot.thetaz = 90.0 + tiltAngle;
-		  rot.phiz = 0.0;
-		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-		}
-	      }
-	    }
-	    
-	    pos.parent_tag = nspace + ":" + rodname.str();
-	    partner = findPartnerModule(iiter, iguard, modRing);
-	    pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
-	    pos.trans.dz = iiter->getModule().center().Z();
-	    if (isTilted && (tiltAngle != 0)) {
-	      pos.trans.dx = 0;
-	      pos.trans.dz = 0;
-	      pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_plus;
-	      pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus + xml_flipped;
-	      pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
-	      p.push_back(pos);
-	      pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_plus;
+            if (!isTilted || (isTilted && (tiltAngle == 0))) {
+	      pos.parent_tag = nspace + ":" + rodname.str();
+	      // name_tag is BModule1Layer1 and it goes into all files
 	      pos.child_tag = nspace + ":" + mname.str();
-	    }
-	    p.push_back(pos);
+	      partner = findPartnerModule(iiter, iguard, modRing);
+
+	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
+	      pos.trans.dz = iiter->getModule().center().Z();
+	      if (!iiter->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      p.push_back(pos);
  
-	    if (partner != iguard) {
-	      pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
-	      pos.trans.dz = partner->getModule().center().Z();
-	      pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-	      if (isTilted && (tiltAngle != 0)) {
-		pos.trans.dx = 0;
-		pos.trans.dz = 0;
-		pos.rotref = nspace + ":" + xml_tilted_mod_rot + "_" + xml_minus;
-		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus + xml_flipped;
-		pos.child_tag = nspace + ":" + mname.str() + xml_flipped;
+	      if (partner != iguard) {
+		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
+		pos.trans.dz = partner->getModule().center().Z();
+		if (!partner->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+		pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
 		p.push_back(pos);
-		pos.parent_tag = nspace + ":" + mname.str() + xml_tilted + xml_minus;
-		pos.child_tag = nspace + ":" + mname.str();
+		pos.copy = 1;
 	      }
-	      p.push_back(pos);
-	      pos.copy = 1;
+	      pos.rotref = "";
 	    }
-
-	    if (iiter->getModule().flipped() || (isTilted && (tiltAngle != 0))) {
-	      pos.trans.dx = 0;
-	      pos.trans.dz = 0;
-	      pos.rotref = nspace + ":" + xml_flip_mod_rot;
-	      pos.parent_tag = nspace + ":" + mname.str() + xml_flipped;
-	      pos.child_tag = nspace + ":" + mname.str();
-	      p.push_back(pos);
-	    }
-            pos.rotref = "";
 
             // wafer
             string xml_base_lowerupper = "";
@@ -1045,17 +964,16 @@ namespace insur {
 	      rspec.partselectors.push_back(rinfo.name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
-	      alg.name = xml_angular_algo;
+	      alg.name = xml_tobtiltedring_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
-	      if (rinfo.inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
-	      }
+	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	      if (rinfo.isZPlus) { pconverter << 1; }
+	      else { pconverter << rinfo.modules + 1; }
+	      alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	      pconverter.str("");
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
 	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
@@ -1064,21 +982,29 @@ namespace insur {
 	      pconverter << rinfo.r1;
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
-	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));
+	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));	      
+	      pconverter << rinfo.isZPlus;
+	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.tiltAngle << "*deg";
+	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.inner_flipped;
+	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	      pconverter.str("");
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
-	      alg.name = xml_angular_algo;
-	      alg.parent = logic.shape_tag;
-	      if (rinfo.inner_flipped) {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
-	      } else {
-		alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.flippedchildname));
-	      }
+	      alg.name =  xml_tobtiltedring_algo;
+	      alg.parent = nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
-	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+	      if (rinfo.isZPlus) { pconverter << 2; }
+	      else { pconverter << rinfo.modules + 2; }
+	      alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
+	      pconverter.str("");
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
 	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
@@ -1088,6 +1014,15 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
 	      pconverter.str("");
 	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
+	      pconverter << rinfo.isZPlus;
+	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.tiltAngle << "*deg";
+	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << !rinfo.inner_flipped;
+	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	      pconverter.str("");
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	    }
