@@ -165,7 +165,8 @@ namespace insur {
         std::string name;
         std::string childname;
         bool fw;
-        bool inner_flipped;
+        bool isZPlus;
+        bool outer_flipped;
         int modules;
         double rin;
         double rout;
@@ -191,6 +192,7 @@ namespace insur {
         std::string childname;
         bool isZPlus;
         bool inner_flipped;
+        bool outer_flipped;
         double r1;
         double z1;
         double r2;

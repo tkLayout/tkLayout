@@ -855,6 +855,7 @@ namespace insur {
 	    std::map<int,BTiltedRingInfo>::iterator it;
 	    it = rinfoplus.find(modRing);
 	    if (it != rinfoplus.end()) {
+	      it->second.outer_flipped = iiter->getModule().flipped();
 	      it->second.r2 = iiter->getModule().center().Rho();
 	      it->second.z2 = iiter->getModule().center().Z();
 	      it->second.rmax = modcomplex.getRmax();
@@ -862,6 +863,7 @@ namespace insur {
 	    }
 	    it = rinfominus.find(modRing);
 	    if (it != rinfominus.end()) {
+	      it->second.outer_flipped = iiter->getModule().flipped();
 	      it->second.r2 = iiter->getModule().center().Rho();
 	      it->second.z2 = - iiter->getModule().center().Z();
 	      it->second.rmax = modcomplex.getRmax();
@@ -1020,7 +1022,7 @@ namespace insur {
 	      pconverter << rinfo.tiltAngle << "*deg";
 	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
 	      pconverter.str("");
-	      pconverter << !rinfo.inner_flipped;
+	      pconverter << rinfo.outer_flipped;
 	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	      pconverter.str("");
 	      a.push_back(alg);
@@ -1207,7 +1209,7 @@ namespace insur {
         // endcap module caps loop
         for (iiter = oiter->begin(); iiter != iguard; iiter++) {
           int modRing = iiter->getModule().uniRef().ring;
-	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
+	  //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
 
           // new ring
           if (ridx.find(modRing) == ridx.end()) {
@@ -1233,7 +1235,8 @@ namespace insur {
             ERingInfo rinf;
             rinf.name = rname.str();
             rinf.childname = mname.str();
-	    rinf.inner_flipped = iiter->getModule().flipped();
+	    rinf.isZPlus = iiter->getModule().uniRef().side;
+	    rinf.outer_flipped = iiter->getModule().flipped();
             rinf.fw = (iiter->getModule().center().Z() > (zmin + zmax) / 2.0);
             //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing-1).numModules();
             //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing).numModules();
@@ -1490,9 +1493,11 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(vectorParam(0, 0, shape.dz - rinfo[*siter].mthk / 2.0));
-	    alg.parameters.push_back(numericParam(xml_iszplus, "1"));
+	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	    pconverter.str("");
 	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << !rinfo[*siter].inner_flipped;
+	    pconverter << rinfo[*siter].outer_flipped;
 	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	    pconverter.str("");
             a.push_back(alg);
@@ -1511,9 +1516,11 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - shape.dz));
-	    alg.parameters.push_back(numericParam(xml_iszplus, "1"));
+	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	    pconverter.str("");
 	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
-	    pconverter << rinfo[*siter].inner_flipped;
+	    pconverter << !rinfo[*siter].outer_flipped;
 	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
 	    pconverter.str("");
             a.push_back(alg);
