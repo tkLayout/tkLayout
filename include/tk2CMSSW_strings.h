@@ -151,8 +151,6 @@ namespace insur {
     static const std::string xml_ring = "Ring";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
-    static const std::string xml_tilted = "Tilted";
-    static const std::string xml_flipped = "Flipped";
     static const std::string xml_barrel_module = "BModule";
     static const std::string xml_endcap_module = "EModule";
     static const std::string xml_base_actcomp = "modulecomposite";
@@ -175,7 +173,7 @@ namespace insur {
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
     static const std::string xml_phialt_algo = "track:DDTrackerPhiAltAlgo";
-    static const std::string xml_tobtiltedring_algo = "track:DDTOBTiltedRingAlgo";
+    static const std::string xml_ring_algo = "track:DDRingAlgo";
     static const std::string xml_angularv1_algo = "track:DDTrackerAngularV1";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
@@ -191,7 +189,7 @@ namespace insur {
     static const std::string xml_incrcopyno = "IncrCopyNo";
     static const std::string xml_nmods = "N";
     static const std::string xml_radius = "Radius";
-    static const std::string xml_iszplus = "isZPlus";
+    static const std::string xml_iszplus = "IsZPlus";
     static const std::string xml_tiltangle = "TiltAngle";
     static const std::string xml_isflipped = "IsFlipped";
     static const std::string xml_tkddd_structure = "TkDDDStructure";

@@ -964,7 +964,7 @@ namespace insur {
 	      rspec.partselectors.push_back(rinfo.name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
-	      alg.name = xml_tobtiltedring_algo;
+	      alg.name = xml_ring_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
@@ -995,7 +995,7 @@ namespace insur {
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
-	      alg.name =  xml_tobtiltedring_algo;
+	      alg.name =  xml_ring_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
@@ -1138,7 +1138,7 @@ namespace insur {
     // p: one entry for every disc, one for every ring, one module, wafer and active per ring
     // a: two per ring with modules inside ring
     layer = 1;
-    alg.name = xml_angularv1_algo;
+    alg.name = xml_ring_algo;
     oguard = ec.end();
 
     LayerAggregator lagg;
@@ -1207,7 +1207,7 @@ namespace insur {
         // endcap module caps loop
         for (iiter = oiter->begin(); iiter != iguard; iiter++) {
           int modRing = iiter->getModule().uniRef().ring;
-	  //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
+	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
 
           // new ring
           if (ridx.find(modRing) == ridx.end()) {
@@ -1222,28 +1222,9 @@ namespace insur {
             //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
             rname << xml_ring << modRing << dname.str();
             mname << xml_endcap_module << modRing << dname.str();
-
-            if (iiter->getModule().flipped()) { // flip case
-              // We will add an additional hierarchy to rotate this module.
-              // Here we will take a naming scheme e.g.:
-              // "EModule1Disc6Flipped" for the outer shell,
-              // "EModule1Disc6" to be added contents.
-              shape.name_tag = mname.str(); 
-
-              // Define the outer shell
-              logic.name_tag = mname.str();
-              logic.shape_tag = nspace + ":" + mname.str() + xml_flipped;
-              logic.material_tag = xml_material_air;
-              pos.parent_tag = nspace + ":" + mname.str() + xml_flipped;
-              pos.child_tag = nspace + ":" + shape.name_tag;
-              pos.rotref = nspace + ":" + xml_flip_mod_rot;
-              l.push_back(logic);
-              p.push_back(pos);
-              pos.rotref.clear();
-            } else {
-              shape.name_tag = mname.str();
-            }
-            std::string parentName = shape.name_tag; // e.g. EModule1Disc6 / EModule1Disc6Flipped
+ 
+            
+            std::string parentName = mname.str(); // e.g. EModule1Disc6
             ModuleComplex modcomplex(mname.str(),parentName,*iiter);
             modcomplex.buildSubVolumes();
 
@@ -1252,7 +1233,8 @@ namespace insur {
             ERingInfo rinf;
             rinf.name = rname.str();
             rinf.childname = mname.str();
-            rinf.fw = (iiter->getModule().center().Z() < (zmin + zmax) / 2.0);
+	    rinf.inner_flipped = iiter->getModule().flipped();
+            rinf.fw = (iiter->getModule().center().Z() > (zmin + zmax) / 2.0);
             //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing-1).numModules();
             //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing).numModules();
             rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
@@ -1265,11 +1247,10 @@ namespace insur {
             rinf.phi = iiter->getModule().center().Phi();
             rinfo.insert(std::pair<int, ERingInfo>(modRing, rinf));
 
+
             // module trapezoid
-
+	    shape.name_tag = mname.str();
             shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
-
-            shape.name_tag = mname.str();
             //shape.dx = iiter->getModule().minWidth() / 2.0;
             //shape.dxx = iiter->getModule().maxWidth() / 2.0;
             //shape.dy = iiter->getModule().length() / 2.0;
@@ -1295,7 +1276,7 @@ namespace insur {
             shape.dyy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
 
-            logic.name_tag = shape.name_tag;
+            logic.name_tag = mname.str();
             logic.shape_tag = nspace + ":" + logic.name_tag;
 
             //logic.material_tag = nspace + ":" + matname.str();
@@ -1485,8 +1466,8 @@ namespace insur {
             pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
-            if (rinfo[*siter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
-            else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
+            if (rinfo[*siter].fw) pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
+            else pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
             p.push_back(pos);
             //pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
@@ -1509,6 +1490,11 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(vectorParam(0, 0, shape.dz - rinfo[*siter].mthk / 2.0));
+	    alg.parameters.push_back(numericParam(xml_iszplus, "1"));
+	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	    pconverter << !rinfo[*siter].inner_flipped;
+	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	    pconverter.str("");
             a.push_back(alg);
             alg.parameters.clear();
             alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
@@ -1525,6 +1511,11 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
             alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - shape.dz));
+	    alg.parameters.push_back(numericParam(xml_iszplus, "1"));
+	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	    pconverter << rinfo[*siter].inner_flipped;
+	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	    pconverter.str("");
             a.push_back(alg);
             alg.parameters.clear();
           }
