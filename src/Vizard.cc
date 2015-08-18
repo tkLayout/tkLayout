@@ -1213,7 +1213,9 @@ namespace insur {
         diskTable->setContent(2, 0, "# mod");
         ringTable->setContent(0, 0, "Ring");
         ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
+        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
+        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
@@ -1290,7 +1292,9 @@ namespace insur {
           int aRing=(*typeIt).first;
           ringTable->setContent(0, aRing, aRing);
           ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+          ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
         }
       }
     };
