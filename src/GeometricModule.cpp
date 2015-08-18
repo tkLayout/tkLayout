@@ -211,14 +211,16 @@ void WedgeModule::build() {
   //dist_     = d;
   //aspectRatio_ = length_/(h1+h2);
 
+    // Right-handed drawing, (not left-handed as previously)
     basePoly_ << (XYZVector( length_/2., maxWidth_/2., 0))
-              << (XYZVector( length_/2.,-maxWidth_/2., 0))
+              << (XYZVector(-length_/2., minWidth_/2., 0))
               << (XYZVector(-length_/2.,-minWidth_/2., 0))
-              << (XYZVector(-length_/2., minWidth_/2., 0));
+              << (XYZVector( length_/2.,-maxWidth_/2., 0));
+
+    cleanup();
+    builtok(true);
   }
   catch (PathfulException& pe) { pe.pushPath(*this, myid()); throw; }
-  cleanup();
-  builtok(true);
 }
 
 define_enum_strings(ModuleShape) = { "rectangular", "wedge" };

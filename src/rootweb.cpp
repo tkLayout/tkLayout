@@ -396,8 +396,13 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
     } else if (
 	       (myClass=="TProfile") ||
 	       (myClass=="TGraph") ||
+	       (myClass=="TGraphErrors") ||
+	       (myClass=="TH1I") ||
+	       (myClass=="TH1F") ||
 	       (myClass=="TH1D") ||
 	       (myClass=="TH2C") ||
+	       (myClass=="TH2I") ||
+	       (myClass=="TH2F") ||
 	       (myClass=="TH2D") ||
 	       (myClass=="THStack") 
 	       ) {
@@ -415,7 +420,9 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TLine") ||
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
-	       (myClass=="TText") 
+	       (myClass=="TText") ||
+	       (myClass=="TArc") || 
+	       (myClass=="TBox") 
 	       ) {
     } else {
       std::cerr << Form("Unhandled class %s", myClass.c_str()) << std::endl;
