@@ -61,7 +61,7 @@ ostream& RootWTable::dump(ostream& output) {
       }
       output << ">";
       output << myTableContent[make_pair(iRow, iCol)];
-      output << "</" << myColorCode << ">" << " ";
+      output << "</" << myCellCode << ">" << " ";
     }
     output << "</tr>";
   }
