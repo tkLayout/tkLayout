@@ -435,6 +435,7 @@ namespace insur {
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
                                 std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
     int layer;
+    //double epsilon = 0.01;
 
     std::string nspace;
     if (wt) nspace = xml_newfileident;
@@ -574,6 +575,7 @@ namespace insur {
 	  }
 	}
       }
+     
 
       double ds, dt = 0.0;
       double rtotal = 0.0, itotal = 0.0;
@@ -887,6 +889,12 @@ namespace insur {
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2;
       shape.dz = zmax;
       if (isTilted) shape.dz = flatPartMaxZ;
+      /*shape.dx = (ymax - ymin) / 2 + epsilon;
+      if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + epsilon;
+      shape.dy = (xmax - xmin) / 2 + epsilon;
+      if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + epsilon;
+      shape.dz = zmax + epsilon;
+      if (isTilted) shape.dz = flatPartMaxZ + epsilon;*/
       s.push_back(shape);
       logic.name_tag = rodname.str();
       logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -950,7 +958,10 @@ namespace insur {
 	      //shape.dz = abs(rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
 	      shape.rmin = rinfo.rmin;
 	      shape.rmax = rinfo.rmax;
-	      shape.dz = (rinfo.zmax-rinfo.zmin)/2.;
+	      shape.dz = (rinfo.zmax-rinfo.zmin) / 2.0;
+	      /*shape.rmin = rinfo.rmin - epsilon;
+	      shape.rmax = rinfo.rmax + epsilon;
+	      shape.dz = (rinfo.zmax-rinfo.zmin)/2. + epsilon;*/
 	      s.push_back(shape);
 
 	      logic.name_tag = rinfo.name;
@@ -960,22 +971,19 @@ namespace insur {
 	      
 	      pos.parent_tag = nspace + ":" + lname.str();
 	      pos.child_tag = nspace + ":" + rinfo.name;
-	      pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2; 
+	      pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2.0; 
 	      p.push_back(pos);
 	      
 	      rspec.partselectors.push_back(rinfo.name);
 	      //rspec.moduletypes.push_back(minfo_zero);
 	      
-	      alg.name = xml_ring_algo;
+	      alg.name = xml_trackerring_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
-	      if (rinfo.isZPlus) { pconverter << 1; }
-	      else { pconverter << rinfo.modules + 1; }
-	      alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
-	      pconverter.str("");
+	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
 	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
@@ -997,16 +1005,13 @@ namespace insur {
 	      a.push_back(alg);
 	      alg.parameters.clear();
 	      
-	      alg.name =  xml_ring_algo;
+	      alg.name =  xml_trackerring_algo;
 	      alg.parent = nspace + ":" + rinfo.name;
 	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
-	      if (rinfo.isZPlus) { pconverter << 2; }
-	      else { pconverter << rinfo.modules + 2; }
-	      alg.parameters.push_back(numericParam(xml_startcopyno, pconverter.str()));
-	      pconverter.str("");
+	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
 	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
@@ -1042,6 +1047,9 @@ namespace insur {
       shape.rmin = rmin;
       shape.rmax = rmax;
       shape.dz = zmax;
+      /*shape.rmin = rmin - 2 * epsilon;
+      shape.rmax = rmax + 2 * epsilon;
+      shape.dz = zmax + 2 * epsilon;*/
       s.push_back(shape);
       logic.name_tag = lname.str();
       logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1140,7 +1148,7 @@ namespace insur {
     // p: one entry for every disc, one for every ring, one module, wafer and active per ring
     // a: two per ring with modules inside ring
     layer = 1;
-    alg.name = xml_ring_algo;
+    alg.name = xml_trackerring_algo;
     oguard = ec.end();
 
     LayerAggregator lagg;
