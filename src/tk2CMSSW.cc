@@ -188,8 +188,12 @@ namespace insur {
                 std::cout << data.shapes.at(i).dz;
                 break;
                 case tb: std::cout << "tube, rmin = " << data.shapes.at(i).rmin << ", rmax = " << data.shapes.at(i).rmax;
-                std::cout << ", dz = " << data.shapes.at(i).dz;
-                break;
+		std::cout << ", dz = " << data.shapes.at(i).dz;
+		break;
+	        case co: std::cout << "cone, rmin1 = " << data.shapes.at(i).rmin1 << ", rmax1 = " << data.shapes.at(i).rmax1;
+	        std::cout << ", rmin2 = " << data.shapes.at(i).rmin2 << ", rmax2 = " << data.shapes.at(i).rmax2;
+	        std::cout << ", dz = " << data.shapes.at(i).dz;
+	        break;
                 case tp: std::cout << "trapezoid, dx = " << data.shapes.at(i).dx << ", dy = " << data.shapes.at(i).dy;
                 std::cout << ", dyy = " << data.shapes.at(i).dyy << ", dz = " << data.shapes.at(i).dz;
                 break;

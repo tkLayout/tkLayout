@@ -16,9 +16,9 @@ namespace insur {
      */
     enum CompType { wt, vl, ap };
     /**
-     * @enum ShapeType A list of possible shape types: box, tubs, tdr1 (trapezoid) and polycone
+     * @enum ShapeType A list of possible shape types: box, tubs, cones, tdr1 (trapezoid) and polycone
      */
-    enum ShapeType { bx, tb, tp, pc };
+    enum ShapeType { bx, tb, co, tp, pc };
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -95,15 +95,19 @@ namespace insur {
     /**
      * @struct ShapeInfo
      * @brief This struct corresponds to a geometrical shape in a <i>SolidSection</i> block in CMSSW XML (all measurements in mm).
-     * @param type The shape type: one of box, tube section, trapezoid or polycone
+     * @param type The shape type: one of box, tube section, cone section, trapezoid or polycone
      * @param name_tag The name of the shape volume
      * @param dx Half the width along the x-axis of the bottom side (boxes and trapezoids)
      * @param dxx Half the width along the x-axis at the top side (trapezoids only)
      * @param dy Half the height along the y-axis of the left side (boxes and trapezoids)
      * @param dyy Half the height along the y-axis of the right side (trapezoids only)
-     * @param dz Half the depth along the z-axis (boxes, trapezoids and tube sections)
+     * @param dz Half the depth along the z-axis (boxes, trapezoids, tub and cone sections)
      * @param rmin The minimal radius as measured from the z-axis (tube sections only) 
      * @param rmax The maximum radius as measured from the z-axis (tube sections only)
+     * @param rmin1 The minimal radius as measured from the z-axis, for the smallest-z section (cone sections only) 
+     * @param rmax1 The maximum radius as measured from the z-axis, for the smallest-z section (cone sections only)
+     * @param rmin2 The minimal radius as measured from the z-axis, for the biggest-z section (cone sections only) 
+     * @param rmax2 The maximum radius as measured from the z-axis, for the biggest-z section (cone sections only)
      * @param rzup A vector of pairs collecting the first half of an ordered sequence of points in <i>(r, z)</i> (polycone only)
      * @param rzdown A vector of pairs collecting the second half of an ordered sequence of points in <i>(r, z)</i> (polycone only)
      */
@@ -117,6 +121,10 @@ namespace insur {
         double dz;
         double rmin;
         double rmax;
+        double rmin1;
+        double rmax1;
+        double rmin2;
+        double rmax2;
         std::vector<std::pair<double, double> > rzup;
         std::vector<std::pair<double, double> > rzdown;
     };
@@ -201,10 +209,14 @@ namespace insur {
         double rmax;
         double zmin;
         double zmax;
+        double rminatzmin;
+        double rmaxatzmax;
         int modules;
         double mdx;
         double mdy;
         double mdz;
+      //double mwidth;
+      //double mthk;
         double tiltAngle;
         double phi;
     };

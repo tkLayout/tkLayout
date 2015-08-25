@@ -435,7 +435,6 @@ namespace insur {
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
                                 std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
     int layer;
-    //double epsilon = 0.01;
 
     std::string nspace;
     if (wt) nspace = xml_newfileident;
@@ -659,13 +658,17 @@ namespace insur {
 	      rinf.isZPlus = 1;
 	      rinf.inner_flipped = iiter->getModule().flipped();
 	      rinf.r1 = iiter->getModule().center().Rho();
-	      rinf.z1 = iiter->getModule().center().Z();
+	      rinf.z1 = iiter->getModule().center().Z();      
+	      rinf.rmin = modcomplex.getRmin();
+	      rinf.zmin = modcomplex.getZmin();
+	      rinf.rminatzmin = modcomplex.getRminatZmin();
+	      //std::cout << "phi=1, modcomplex.getRminatZmin()=" << modcomplex.getRminatZmin() << ", modcomplex.getRmaxatZmax()=" << modcomplex.getRmaxatZmax() << std::endl;
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
 	      //rinf.mdx = shape.dx;
 	      //rinf.mdy = shape.dy;
 	      //rinf.mdz = shape.dz;
-	      rinf.rmin = modcomplex.getRmin();
-	      rinf.zmin = modcomplex.getZmin();
+	      //rinf.mwidth = modcomplex.getExpandedModuleWidth();
+	      //rinf.mthk = modcomplex.getExpandedModuleThickness();
 	      rinf.tiltAngle = tiltAngle;
 	      rinf.phi = iiter->getModule().uniRef().phi;
 	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
@@ -674,6 +677,8 @@ namespace insur {
 	      rinf.isZPlus = 0;
 	      rinf.z1 = - iiter->getModule().center().Z();
 	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+
+	      if (rinf.childname == "BModule5Layer1") { std::cout << rinf.childname << "rminatzmin=" << rinf.rminatzmin << std::endl;}
 	    }
 	    
 
@@ -862,6 +867,7 @@ namespace insur {
 	      it->second.z2 = iiter->getModule().center().Z();
 	      it->second.rmax = modcomplex.getRmax();
 	      it->second.zmax = modcomplex.getZmax();
+	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
 	    }
 	    it = rinfominus.find(modRing);
 	    if (it != rinfominus.end()) {
@@ -870,6 +876,8 @@ namespace insur {
 	      it->second.z2 = - iiter->getModule().center().Z();
 	      it->second.rmax = modcomplex.getRmax();
 	      it->second.zmax = modcomplex.getZmax();
+	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
+	      //std::cout << "phi=2, modcomplex.getRminatZmin()=" << modcomplex.getRminatZmin() << ", modcomplex.getRmaxatZmax()=" << modcomplex.getRmaxatZmax() << std::endl;
 	    }
 	  }
 	}
@@ -883,18 +891,18 @@ namespace insur {
 
       // rod(s)
       shape.name_tag = rodname.str();
-      shape.dx = (ymax - ymin) / 2;
+      /*shape.dx = (ymax - ymin) / 2;
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2;
       shape.dy = (xmax - xmin) / 2;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2;
       shape.dz = zmax;
-      if (isTilted) shape.dz = flatPartMaxZ;
-      /*shape.dx = (ymax - ymin) / 2 + epsilon;
-      if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + epsilon;
-      shape.dy = (xmax - xmin) / 2 + epsilon;
-      if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + epsilon;
-      shape.dz = zmax + epsilon;
-      if (isTilted) shape.dz = flatPartMaxZ + epsilon;*/
+      if (isTilted) shape.dz = flatPartMaxZ;*/
+      shape.dx = (ymax - ymin) / 2 + xml_epsilon;
+      if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
+      shape.dy = (xmax - xmin) / 2 + xml_epsilon;
+      if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
+      shape.dz = zmax + xml_epsilon;
+      if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
       logic.name_tag = rodname.str();
       logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -932,6 +940,9 @@ namespace insur {
       a.push_back(alg);
       alg.parameters.clear();
 
+      double lrmin = INT_MAX;
+      double lrmax = 0;
+
       // tilted rings
       if ( !rinfoplus.empty() || !rinfominus.empty() ) {
 
@@ -940,10 +951,11 @@ namespace insur {
 	if ( !rinfominus.empty() ) { rinfototal.insert({"rinfominus", rinfominus}); }
 
 	for (auto const &rinfoside : rinfototal) {
-	  shape.type = tb;
+	  //shape.type = tb;
+	  shape.type = co;
 	  shape.dx = 0.0;
 	  shape.dy = 0.0;
-	  shape.dyy = 0.0;
+	  shape.dyy = 0.0;	  
 	  pos.trans.dx = 0;
 	  pos.trans.dy = 0;
 	  pos.trans.dz = 0;
@@ -956,12 +968,34 @@ namespace insur {
 	      //shape.rmin = rinfo.r1 - sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
 	      //shape.rmax = rinfo.r2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * sin(rinfo.tiltAngle * M_PI / 180 + atan(rinfo.mdz / rinfo.mdy));
 	      //shape.dz = abs(rinfo.z2 - rinfo.z1) / 2 + sqrt( pow(rinfo.mdy , 2) + pow(rinfo.mdz , 2)) * cos(rinfo.tiltAngle * M_PI / 180 - atan(rinfo.mdz / rinfo.mdy));
-	      shape.rmin = rinfo.rmin;
+	      /*shape.rmin = rinfo.rmin;
 	      shape.rmax = rinfo.rmax;
-	      shape.dz = (rinfo.zmax-rinfo.zmin) / 2.0;
-	      /*shape.rmin = rinfo.rmin - epsilon;
-	      shape.rmax = rinfo.rmax + epsilon;
-	      shape.dz = (rinfo.zmax-rinfo.zmin)/2. + epsilon;*/
+	      shape.dz = (rinfo.zmax-rinfo.zmin) / 2.0;*/
+	      /*shape.rmin1 = rinfo.rmax - (rinfo.r2 - rinfo.r1 + rinfo.mthk * cos(rinfo.tiltAngle * M_PI / 180.0)) * sqrt( 1 + pow( rinfo.mwidth / (2*rinfo.rmax) , 2)) - xml_epsilon;
+	      shape.rmax1 = rinfo.rmax + xml_epsilon;
+	      shape.rmin2 = rinfo.rmin - xml_epsilon;
+	      shape.rmax2 = sqrt( pow ( rinfo.rmin + (rinfo.r2 - rinfo.r1 + rinfo.mthk * cos(rinfo.tiltAngle * M_PI / 180.0)) , 2) + pow( rinfo.mwidth , 2)) + xml_epsilon;*/
+	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2. + xml_epsilon;
+	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2.;
+	      if (rinfo.isZPlus) {
+		/*shape.rmin1 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax2 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);*/
+		shape.rmin1 = rinfo.rminatzmin - xml_epsilon;
+		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + 0.5;
+		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon;
+		shape.rmax2 = rinfo.rmaxatzmax + 0.5;
+		std::cout << "rinfo.name=" << rinfo.name << " shape.rmin1=" << shape.rmin1 << " shape.rmax1=" << shape.rmax1 << " shape.rmin2=" << shape.rmin2 << " shape.rmax2=" << shape.rmax2 << std::endl;
+	      }
+	      else {
+		shape.rmin1 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax1 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmin2 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax2 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+	      }
+	      lrmin = MIN( lrmin, rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0));
+	      lrmax = MAX( lrmax, rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0));    
 	      s.push_back(shape);
 
 	      logic.name_tag = rinfo.name;
@@ -1044,12 +1078,16 @@ namespace insur {
       pos.trans.dx = 0.0;
       pos.trans.dz = 0.0;
       shape.name_tag = lname.str();
-      shape.rmin = rmin;
-      shape.rmax = rmax;
-      shape.dz = zmax;
-      /*shape.rmin = rmin - 2 * epsilon;
-      shape.rmax = rmax + 2 * epsilon;
-      shape.dz = zmax + 2 * epsilon;*/
+      /*shape.rmin = rmin;
+	shape.rmax = rmax;
+	shape.dz = zmax;*/
+      shape.rmin = rmin - 2 * xml_epsilon;
+      shape.rmax = rmax + 2 * xml_epsilon;
+      if (isTilted) {
+	shape.rmin = lrmin - xml_epsilon;
+	shape.rmax = lrmax + xml_epsilon;
+      }
+      shape.dz = zmax + 2 * xml_epsilon;
       s.push_back(shape);
       logic.name_tag = lname.str();
       logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1457,7 +1495,7 @@ namespace insur {
         shape.dx = 0.0;
         shape.dy = 0.0;
         shape.dyy = 0.0;
-        shape.dz = maxRingThickness / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
+        shape.dz = maxRingThickness / 2.0 + xml_epsilon; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
         //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
         std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1465,8 +1503,8 @@ namespace insur {
           if (rinfo[*siter].modules > 0) {
 
             shape.name_tag = rinfo[*siter].name;
-            shape.rmin = rinfo[*siter].rin;
-            shape.rmax = rinfo[*siter].rout;
+            shape.rmin = rinfo[*siter].rin - xml_epsilon;
+            shape.rmax = rinfo[*siter].rout + xml_epsilon;
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
@@ -1477,8 +1515,8 @@ namespace insur {
             pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
-            if (rinfo[*siter].fw) pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
-            else pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
+            if (rinfo[*siter].fw) pos.trans.dz = (zmax - zmin) / 2.0 - maxRingThickness / 2.0;
+            else pos.trans.dz = (zmin - zmax) / 2.0 + maxRingThickness / 2.0;
             p.push_back(pos);
             //pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
@@ -1500,7 +1538,7 @@ namespace insur {
             pconverter << rinfo[*siter].rmid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            alg.parameters.push_back(vectorParam(0, 0, shape.dz - rinfo[*siter].mthk / 2.0));
+            alg.parameters.push_back(vectorParam(0, 0, maxRingThickness / 2.0 - rinfo[*siter].mthk / 2.0));
 	    pconverter << rinfo[*siter].isZPlus;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
 	    pconverter.str("");
@@ -1523,7 +1561,7 @@ namespace insur {
             pconverter << rinfo[*siter].rmid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - shape.dz));
+            alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - maxRingThickness / 2.0));
 	    pconverter << rinfo[*siter].isZPlus;
 	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
 	    pconverter.str("");
@@ -1538,9 +1576,9 @@ namespace insur {
 
         //disc
         shape.name_tag = dname.str();
-        shape.rmin = rmin;
-        shape.rmax = rmax;
-        shape.dz = diskThickness / 2.0; //(zmax - zmin) / 2.0;
+        shape.rmin = rmin - 2 * xml_epsilon;
+        shape.rmax = rmax + 2 * xml_epsilon;
+        shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
         s.push_back(shape);
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
@@ -2268,7 +2306,7 @@ namespace insur {
     vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
 
     // ===========================================================
-    // Finding Rmin/Rmax/Xmin/Xmax/Ymin/Ymax/Zmin/Zmax with considering hybrid volumes
+    // Finding Rmin/Rmax/Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/RminatZmin/RmaxatZmax with considering hybrid volumes
     // ===========================================================
     //
     // Module polygon
@@ -2307,10 +2345,16 @@ namespace insur {
 
     // Fill all the vertex candidates (8 points)
     XYZVector v_top[npoints];    // module top surface
+    XYZVector v_top_copy[npoints];
     XYZVector v_bottom[npoints]; // module bottom surface
+    XYZVector v_bottom_copy[npoints];
+    XYZVector v_mid_top[npoints];
+    XYZVector v_mid_bottom[npoints];
     for (int ip = 0; ip < npoints-1; ip++) {
       v_top[ip]    = v[ip] + 0.5*expandedModThickness*normal;
+      v_top_copy[ip] = v_top[ip];
       v_bottom[ip] = v[ip] - 0.5*expandedModThickness*normal;
+      v_bottom_copy[ip] = v_bottom[ip];
 
         // for debuging
         vertex.push_back(v_top[ip]);
@@ -2330,6 +2374,8 @@ namespace insur {
     // copy v0 as v4 for convenience
     v_top[npoints-1] = v_top[0];
     v_bottom[npoints-1] = v_bottom[0];
+    v_top_copy[npoints-1] = v_top_copy[0];
+    v_bottom_copy[npoints-1] = v_bottom_copy[0];
 
     // Fill possible side point candidates (8 sides)
     // No need to consider the 4 sides connecting top-bottom e.g. the side made from v0_top and v0_bottom.
@@ -2339,12 +2385,14 @@ namespace insur {
       sp_top = v_top[ip]-v_top[ip+1];
       if ( sp_top.Dot(v_top[ip]) * sp_top.Dot(v_top[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).R());
+	//v_mid_top[ip] = v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit();
       }
       // bottom surface
       XYZVector sp_bottom; // midpoint of each side
       sp_bottom = v_bottom[ip]-v_bottom[ip+1];
       if ( sp_bottom.Dot(v_bottom[ip]) * sp_bottom.Dot(v_bottom[ip+1]) < 0 ) { // minimum is a point divided internally 
         rv.push_back((v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit()).R());
+	//v_mid_bottom[ip] = v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit();
       }
     }
 
@@ -2363,6 +2411,84 @@ namespace insur {
     zmin = zv.at(0);
     zmax = zv.back();
 
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_mid_top[ip] = (v_top_copy[ip] + v_top_copy[ip+1]) / 2.0;
+      v_mid_bottom[ip] = (v_bottom_copy[ip] + v_bottom_copy[ip+1]) / 2.0;
+    }
+
+if (moduleId == "BModule5Layer1") {
+for (int ip = 0; ip < npoints-1; ip++) {
+  std::cout << " zmin=" << zmin << std::endl;
+  std::cout << "v_bottom_copy[" << 0 << "].Z()=" << v_bottom_copy[0].Z() << std::endl;
+ std::cout << "v_bottom_copy[" << 1 << "].Z()=" << v_bottom_copy[1].Z() << std::endl;
+std::cout << "v_bottom_copy[" << 2 << "].Z()=" << v_bottom_copy[2].Z() << std::endl;
+std::cout << "v_bottom_copy[" << 3 << "].Z()=" << v_bottom_copy[3].Z() << std::endl;
+std::cout << "v_mid_bottom[" << 0 << "].Z()=" << v_mid_bottom[0].Z() << std::endl;
+ std::cout << "v_mid_bottom[" << 1 << "].Z()=" << v_mid_bottom[1].Z() << std::endl;
+std::cout << "v_mid_bottom[" << 2 << "].Z()=" << v_mid_bottom[2].Z() << std::endl;
+ std::cout << "v_mid_bottom[" << 3 << "].Z()=" << v_mid_bottom[3].Z() << std::endl;
+ }
+ }
+
+    rminatzmin = INT_MAX;
+    rmaxatzmax = 0;
+    for (int ip = 0; ip < npoints-1; ip++) {
+      if (fabs(v_bottom_copy[ip].Z() - zmin) < 0.001) {
+	if (moduleId == "BModule5Layer1") {
+	  std::cout << "v_bottom_copy[" << ip << "].Z()=" << v_bottom_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
+	  std::cout << "AVANT set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;}
+	v_bottom_copy[ip].SetZ(0.); 
+	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;
+std::cout << "v_bottom_copy[" << ip+1 << "].Z()=" << v_bottom_copy[ip+1].Z() <<  std::endl;
+	  std::cout << "v_mid_bottom[" << ip << "].Z()=" << v_mid_bottom[ip].Z() << "v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;
+
+}
+	rminatzmin = MIN(rminatzmin, v_bottom_copy[ip].R());
+      }
+      if (v_bottom_copy[ip].Z() == zmax) {
+	v_bottom_copy[ip].SetZ(0.); 
+	rmaxatzmax = MAX(rmaxatzmax, v_bottom_copy[ip].R());
+      }
+    }
+    for (int ip = 0; ip < npoints-1; ip++) {
+      if (fabs(v_top_copy[ip].Z() - zmin) < 0.001) {
+	if (moduleId == "BModule5Layer1") {std::cout << "v_top_copy[ip].Z()=" << v_top_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
+	  std::cout << "AVANT set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
+	v_top_copy[ip].SetZ(0.); 
+	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
+	rminatzmin = MIN(rminatzmin, v_top_copy[ip].R());
+      }
+      if (v_top_copy[ip].Z() == zmax) {
+	v_top_copy[ip].SetZ(0.); 
+	rmaxatzmax = MAX(rmaxatzmax, v_top_copy[ip].R());
+      }
+    }
+    for (int ip = 0; ip < npoints-1; ip++) {
+      if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
+	if (moduleId == "BModule5Layer1") {std::cout << "v_mid_bottom[ip].Z()=" << v_mid_bottom[ip].Z() << " zmin=" << zmin <<  std::endl;
+	  std::cout << "AVANT set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
+	v_mid_bottom[ip].SetZ(0.);
+	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
+	rminatzmin = MIN(rminatzmin, v_mid_bottom[ip].R());
+      }
+      if (v_mid_bottom[ip].Z() == zmax) {
+	v_mid_bottom[ip].SetZ(0.);
+	rmaxatzmax = MAX(rmaxatzmax, v_mid_bottom[ip].R());
+      }
+    }
+    for (int ip = 0; ip < npoints-1; ip++) {
+      if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
+	if (moduleId == "BModule5Layer1") {std::cout << "v_mid_top[ip].Z()=" << v_mid_top[ip].Z() << " zmin=" << zmin <<  std::endl;
+	  std::cout << "AVANT set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
+	v_mid_top[ip].SetZ(0.);
+	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
+	rminatzmin = MIN(rminatzmin, v_mid_top[ip].R());
+      }
+      if (v_mid_top[ip].Z() == zmax) {
+	v_mid_top[ip].SetZ(0.);
+	rmaxatzmax = MAX(rmaxatzmax, v_mid_top[ip].R());
+      }
+    }
 
 
     // Material assignment

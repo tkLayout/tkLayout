@@ -17,6 +17,7 @@ namespace insur {
     static const int xml_roc_cols = 1;
     static const int xml_reco_material_disc_offset = 3;
     static const double xml_z_pixfwd = 325.0;
+    static const double xml_epsilon = 0.01;
     /**
      * XML tags and attributes
      */
@@ -85,6 +86,13 @@ namespace insur {
     static const std::string xml_tubs_second_inter = "*mm\" rMax=\"";
     static const std::string xml_tubs_third_inter = "*mm\" dz=\"";
     static const std::string xml_tubs_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
+    static const std::string xml_cone_open = "<Cone name=\"";
+    static const std::string xml_cone_first_inter = "\" rMax1=\"";
+    static const std::string xml_cone_second_inter = "*mm\" rMax2=\"";
+    static const std::string xml_cone_third_inter = "*mm\" rMin1=\"";
+    static const std::string xml_cone_fourth_inter = "*mm\" rMin2=\"";
+    static const std::string xml_cone_fifth_inter = "*mm\" dz=\"";
+    static const std::string xml_cone_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
     static const std::string xml_polycone_open = "<Polycone name=\"";
     static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n";
     static const std::string xml_polycone_close = "</Polycone>\n";

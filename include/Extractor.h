@@ -141,6 +141,8 @@ namespace insur {
      double getYmax() const { return ymax; }
      double getZmin() const { return zmin; }
      double getZmax() const { return zmax; }
+     double getRminatZmin() const { return rminatzmin; }
+     double getRmaxatZmax() const { return rmaxatzmax; }
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
@@ -240,6 +242,8 @@ namespace insur {
             double         ymax;
             double         zmin;
             double         zmax;
+	    double         rminatzmin;
+	    double         rmaxatzmax;
 	    const double         expandedModWidth;
 	    const double         expandedModLength;
 	    const double         expandedModThickness; 

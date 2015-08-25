@@ -431,6 +431,8 @@ namespace insur {
 	      break;
 	    case tb : tubs(s.at(i).name_tag, s.at(i).rmin, s.at(i).rmax, s.at(i).dz, stream);
 	      break;
+	    case co : cone(s.at(i).name_tag, s.at(i).rmin1, s.at(i).rmax1, s.at(i).rmin2, s.at(i).rmax2, s.at(i).dz, stream);
+	      break;
 	    case pc : polycone(s.at(i).name_tag, s.at(i).rzup, s.at(i).rzdown, stream);
 	      break;
 	    default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
@@ -595,6 +597,23 @@ namespace insur {
     void XMLWriter::tubs(std::string name, double rmin, double rmax, double dz, std::ostringstream& stream) {
         stream << xml_tubs_open << name << xml_tubs_first_inter << rmin << xml_tubs_second_inter << rmax;
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
+    }
+
+/**
+     * This formatter writes an XML entry describing a cone shape to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the cone shape; must be unique
+     * @param rmin1 The inner radius of the cone for the smallest-z section
+     * @param rmax1 The outer radius of the cone for the smallest-z section
+     * @param rmin2 The inner radius of the cone for the biggest-z section
+     * @param rmax2 The outer radius of the cone for the biggest-z section
+     * @param dz Half the length of the cone
+     * @param stream A reference to the output buffer
+     */
+    void XMLWriter::cone(std::string name, double rmin1, double rmax1, double rmin2, double rmax2, double dz, std::ostringstream& stream) {
+        stream << xml_cone_open << name << xml_cone_first_inter << rmax1 << xml_cone_second_inter << rmax2;
+        stream << xml_cone_third_inter << rmin1 << xml_cone_fourth_inter << rmin2;
+        stream << xml_cone_fifth_inter << dz << xml_cone_close;
     }
     
     /**
