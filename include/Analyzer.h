@@ -20,7 +20,8 @@
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <hit.hh>
+#include <Hit.hh>
+#include <Track.hh>
 #include <ModuleCap.h>
 #include <InactiveElement.h>
 #include <InactiveSurfaces.h>
@@ -139,14 +140,13 @@ namespace insur {
     TH1D& getSpacingTuningFrame() { return spacingTuningFrame; }
     const double& getTriggerRangeLowLimit(const std::string& typeName ) { return triggerRangeLowLimit[typeName] ; }
     const double& getTriggerRangeHighLimit(const std::string& typeName ) { return triggerRangeHighLimit[typeName] ; }
-    /*virtual*/ void analyzeMaterialBudget(MaterialBudget& mb, const std::vector<double>& momenta, int etaSteps = 50, MaterialBudget* pm = NULL);
+    /*virtual*/ void analyzeMaterialBudget(MaterialBudget* mb, int etaSteps = 50);
     void computeTriggerProcessorsBandwidth(Tracker& tracker);
-    void analyzeTaggedTracking(MaterialBudget& mb,
+    void analyzeTaggedTracking(MaterialBudget* mb, MaterialBudget* pm,
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
-                               int etaSteps = 50,
-                               MaterialBudget* pm = NULL);
+                               int nTracks = 50);
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
                                           const std::vector<double>& triggerMomenta,
                                           const std::vector<double>& thresholdProbabilities,
@@ -350,7 +350,7 @@ namespace insur {
     std::vector<TObject> savingGeometryV; // Vector of ROOT objects to be saved
     std::vector<TObject> savingMaterialV; // Vector of ROOT objects to be saved
 
-    Material findAllHits(MaterialBudget& mb, MaterialBudget* pm, 
+    Material findAllHits(MaterialBudget* mb, MaterialBudget* pm,
                          double& eta, double& theta, double& phi, Track& track);
 
 
@@ -371,11 +371,16 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
-    void clearGraphs(int graphAttributes, const std::string& aTag);
-    void calculateGraphs(const int& aMomentum,
-                         const TrackCollection& aTrackCollection,
-                         int graphAttributes,
-                         const string& graphTag);
+    void clearGraphs_Pt(int graphAttributes, const std::string& aTag);
+    void clearGraphs_P(int graphAttributes, const std::string& aTag);
+    void calculateGraphsConstPt(const int& aMomentum,
+                                const TrackCollection& aTrackCollection,
+                                int graphAttributes,
+                                const string& graphTag);
+    void calculateGraphsConstP(const int& aMomentum,
+                               const TrackCollection& aTrackCollection,
+                               int graphAttributes,
+                               const string& graphTag);
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);

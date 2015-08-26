@@ -13,6 +13,7 @@ namespace insur {
   static const double PI = 3.14159265358979323846;
   static const double E = 2.71828182845904523536;
   static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
+
   /**
    * Geometry constants; all length measurements are in mm
    * @param epsilon The standard distance between one solid object and the next
@@ -21,14 +22,19 @@ namespace insur {
    * @param outer_radius The outer radius of the tracker; the outer support tube starts immediately outside, everything above is part of ECAL
    * @param max_length The maximum length, in +z, available to place the tracker components
    */
-  static const double epsilon = 0.1;
-  static const double volume_width = 10.0;
-  static const double inner_radius = 214.0;
-  static const double outer_radius = 1190.0;
-  static const double max_length = 2910.0;
-  static const double pixel_radius = 25.0;
+  static const double epsilon                    = 0.1;
+  static const double volume_width               = 10.0;   // mm
+  static const double inner_radius               = 214.0;  // mm
+  static const double outer_radius               = 1190.0; // mm
+  static const double max_length                 = 2910.0; // mm
+  static const double pixel_radius               = 25.0;   // mm
   static const double z_threshold_service_zigzag = 100.0;
+  static const double max_eta_coverage           = 4.0;    // Tracking performed from step_eta_epsilon to max_eta_coverage in steps
+  static const int    n_eta_regions              = 5;      // Tracking performed in the following Number of eta regions
 
+  static const std::string name_eta_regions[n_eta_regions] = {"TRK-C","TRK-I","TRK-F","TRK-VF","TRK-WF"}; // Name eta regions
+
+  static const int    default_n_tracks           = 120;                   // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.
@@ -44,17 +50,40 @@ namespace insur {
    * @param top_volume_pad The extra space that is added to the dimensions of the top volume on each side of the cube
    * @param temperature_levels The number of different colour levels in 2D histogram plots
    */
-  static const double a_silicon = 28.0855;
-  static const double z_silicon = 14;
-  static const double d_silicon = 2.329;
-  static const double a_copper = 63.546;
-  static const double z_copper = 29;
-  static const double d_copper = 8.96;
-  static const double a_carbon = 12.0107;
-  static const double z_carbon = 6;
-  static const double d_carbon = 1.9;
-  static const double top_volume_pad = 200;
+  static const double a_silicon       = 28.0855;
+  static const double z_silicon       = 14;
+  static const double d_silicon       = 2.329;
+  static const double a_copper        = 63.546;
+  static const double z_copper        = 29;
+  static const double d_copper        = 8.96;
+  static const double a_carbon        = 12.0107;
+  static const double z_carbon        = 6;
+  static const double d_carbon        = 1.9;
+  static const double top_volume_pad  = 200;
   static const int temperature_levels = 512;
+
+  /**
+   * Display formatting parameters - eta ticks displayed with short step in range 0 - short_eta_coverage, with long step in range
+   * short_eta_coverage - long_eta_coverage
+   */
+  static const double step_eta_short     = 0.20;
+  static const double step_eta_long      = 0.50;
+  static const double step_eta_epsilon   = 0.001;
+  static const double short_eta_coverage = 2.0;
+  static const double trk_eta_coverage   = 2.5;   // Tracker eta coverage
+  static const double long_eta_coverage  = 4.0;   // Tracker + forward tracker eta coverage
+
+  static const double max_dPtOverPt      = 105; // [%]
+  static const double min_dPtOverPt      = 0.1; // [%]
+
+  static const int    min_canvas_sizeX   = 600;
+  static const int    std_canvas_sizeX   = 900;
+  static const int    max_canvas_sizeX   =1800;
+  static const int    min_canvas_sizeY   = 600;
+  static const int    std_canvas_sizeY   = 900;
+  static const int    max_canvas_sizeY   =1800;
+
+  static const int    default_n_bins     = max_eta_coverage/0.1;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**
    * Internal string constants for standard one-sided and specialised double-sided, rotated types
