@@ -604,7 +604,7 @@ namespace insur {
       // module caps loop
       for (iiter = oiter->begin(); iiter != iguard; iiter++) {
           
-	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2 || iiter->getModule().uniRef().phi == 26)){
 
 	  int modRing = iiter->getModule().uniRef().ring;
 	  // Tilt angle of the module
@@ -613,7 +613,7 @@ namespace insur {
 	    tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	  }
 	    
-	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  if ((layer == 3) & (modRing == 9)) {std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;}
 
 	  std::ostringstream mname;
 	  mname << xml_barrel_module << modRing << lname.str();
@@ -677,8 +677,6 @@ namespace insur {
 	      rinf.isZPlus = 0;
 	      rinf.z1 = - iiter->getModule().center().Z();
 	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
-
-	      if (rinf.childname == "BModule5Layer1") { std::cout << rinf.childname << "rminatzmin=" << rinf.rminatzmin << std::endl;}
 	    }
 	    
 
@@ -859,6 +857,9 @@ namespace insur {
 	  }
 
 	  if (iiter->getModule().uniRef().phi == 2 && isTilted) {
+	    if ((layer == 3) & (modRing == 9)) {modcomplex.print();
+std::cout << "modcomplex.getExpandedModuleWidth()/2.0=" << modcomplex.getExpandedModuleWidth()/2.0 << " modcomplex.getExpandedModuleLength()/2.0=" << modcomplex.getExpandedModuleLength()/2.0 << " modcomplex.getExpandedModuleThickness()/2.0=" << modcomplex.getExpandedModuleThickness()/2.0 << std::endl;}
+
 	    std::map<int,BTiltedRingInfo>::iterator it;
 	    it = rinfoplus.find(modRing);
 	    if (it != rinfoplus.end()) {
@@ -880,6 +881,13 @@ namespace insur {
 	      //std::cout << "phi=2, modcomplex.getRminatZmin()=" << modcomplex.getRminatZmin() << ", modcomplex.getRmaxatZmax()=" << modcomplex.getRmaxatZmax() << std::endl;
 	    }
 	  }
+
+	  if (iiter->getModule().uniRef().phi == 26 && isTilted) {
+	    if ((layer == 3) & (modRing == 9)) {modcomplex.print();
+	      std::cout << "modcomplex.getExpandedModuleWidth()/2.0=" << modcomplex.getExpandedModuleWidth()/2.0 << " modcomplex.getExpandedModuleLength()/2.0=" << modcomplex.getExpandedModuleLength()/2.0 << " modcomplex.getExpandedModuleThickness()/2.0=" << modcomplex.getExpandedModuleThickness()/2.0 << std::endl;}}
+
+
+
 	}
       }
       if (count > 0) {
@@ -983,9 +991,9 @@ namespace insur {
 		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmax2 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);*/
 		shape.rmin1 = rinfo.rminatzmin - xml_epsilon;
-		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + 0.5;
+		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon;
-		shape.rmax2 = rinfo.rmaxatzmax + 0.5;
+		shape.rmax2 = rinfo.rmaxatzmax;
 		std::cout << "rinfo.name=" << rinfo.name << " shape.rmin1=" << shape.rmin1 << " shape.rmax1=" << shape.rmax1 << " shape.rmin2=" << shape.rmin2 << " shape.rmax2=" << shape.rmax2 << std::endl;
 	      }
 	      else {
@@ -995,7 +1003,8 @@ namespace insur {
 		shape.rmax2 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 	      }
 	      lrmin = MIN( lrmin, rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0));
-	      lrmax = MAX( lrmax, rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0));    
+	      //lrmax = MAX( lrmax, rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0));    
+	      lrmax = MAX( lrmax, rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0));    
 	      s.push_back(shape);
 
 	      logic.name_tag = rinfo.name;
@@ -1020,7 +1029,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
+	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r1;
@@ -1048,7 +1057,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 90 + 360 / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
+	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r2;
@@ -2329,7 +2338,7 @@ namespace insur {
     vector<double> rv; // radius list from which we will find min/max.
     vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
     vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
-    vector<double> zv; // z list from which we will find min/max.
+    vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
 
     // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
     XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
@@ -2355,6 +2364,22 @@ namespace insur {
       v_top_copy[ip] = v_top[ip];
       v_bottom[ip] = v[ip] - 0.5*expandedModThickness*normal;
       v_bottom_copy[ip] = v_bottom[ip];
+
+
+      if (moduleId == "BModule9Layer3") { std::cout << "module.center().X()=" << module.center().X()  << " module.center().Y()=" << module.center().Y() << " module.center().Z()=" << module.center().Z() << std::endl; 
+std::cout << "((expandedModWidth/modWidth)*mx).X()=" << ((expandedModWidth/modWidth)*mx).X() << "((expandedModWidth/modWidth)*mx).Y()=" << ((expandedModWidth/modWidth)*mx).Y() << " ((expandedModWidth/modWidth)*mx).Z()=" << ((expandedModWidth/modWidth)*mx).Z() << std::endl;
+std::cout << "((expandedModLength/modLength)*my).X()=" << ((expandedModLength/modLength)*my).X() << "((expandedModLength/modLength)*my).Y()=" << ((expandedModLength/modLength)*my).Y() << " ((expandedModLength/modLength)*my).Z()=" << ((expandedModLength/modLength)*my).Z() << std::endl;
+ std::cout << " (0.5*expandedModThickness*normal).X()=" << (0.5*expandedModThickness*normal).X() <<  " (0.5*expandedModThickness*normal).Y()=" << (0.5*expandedModThickness*normal).Y() << " (0.5*expandedModThickness*normal).Z()=" << (0.5*expandedModThickness*normal).Z() << std::endl;
+
+
+ std::cout << "expandedModWidth=" << expandedModWidth << " expandedModLength=" << expandedModLength << " expandedModThickness=" << expandedModThickness << std::endl;
+ std::cout << "v_top[0].X()=" << v_top[0].X() << " v_top[0].Y()=" << v_top[0].Y() << "v_top[0].Z()=" << v_top[0].Z() << std::endl;
+ std::cout << "v_top[1].X()=" << v_top[1].X() << " v_top[1].Y()=" << v_top[1].Y() << "v_top[1].Z()=" << v_top[1].Z() << std::endl;
+std::cout << "mx.X()=" << mx.X() << " mx.Y()=" << mx.Y() << " mx.Z()=" << mx.Z() << std::endl;
+std::cout << "my.X()=" << my.X() << " my.Y()=" << my.Y() << " my.Z()=" << my.Z() << std::endl; 
+
+ //std::cout << my.X()*normal.X()+my.Y()*normal.Y()+my.Z()*normal.Z() << std::endl;
+}
 
         // for debuging
         vertex.push_back(v_top[ip]);
@@ -2416,17 +2441,18 @@ namespace insur {
       v_mid_bottom[ip] = (v_bottom_copy[ip] + v_bottom_copy[ip+1]) / 2.0;
     }
 
-if (moduleId == "BModule5Layer1") {
+    
+    if (moduleId == "BModule9Layer3") {
 for (int ip = 0; ip < npoints-1; ip++) {
-  std::cout << " zmin=" << zmin << std::endl;
+  std::cout << " zmax=" << zmax << std::endl;
   std::cout << "v_bottom_copy[" << 0 << "].Z()=" << v_bottom_copy[0].Z() << std::endl;
  std::cout << "v_bottom_copy[" << 1 << "].Z()=" << v_bottom_copy[1].Z() << std::endl;
 std::cout << "v_bottom_copy[" << 2 << "].Z()=" << v_bottom_copy[2].Z() << std::endl;
 std::cout << "v_bottom_copy[" << 3 << "].Z()=" << v_bottom_copy[3].Z() << std::endl;
-std::cout << "v_mid_bottom[" << 0 << "].Z()=" << v_mid_bottom[0].Z() << std::endl;
- std::cout << "v_mid_bottom[" << 1 << "].Z()=" << v_mid_bottom[1].Z() << std::endl;
-std::cout << "v_mid_bottom[" << 2 << "].Z()=" << v_mid_bottom[2].Z() << std::endl;
- std::cout << "v_mid_bottom[" << 3 << "].Z()=" << v_mid_bottom[3].Z() << std::endl;
+ std::cout << "v_top_copy[" << 0 << "].Z()=" << v_top_copy[0].Z() << "v_top_copy[" << 0 << "].R()=" << v_top_copy[0].R() << std::endl;
+ std::cout << "v_top_copy[" << 1 << "].Z()=" << v_top_copy[1].Z() << "v_top_copy[" << 1 << "].R()=" << v_top_copy[1].R() << std::endl;
+std::cout << "v_top_copy[" << 2 << "].Z()=" << v_top_copy[2].Z() << "v_top_copy[" << 2 << "].R()=" << v_top_copy[2].R() << std::endl;
+ std::cout << "v_top_copy[" << 3 << "].Z()=" << v_top_copy[3].Z() << "v_top_copy[" << 3 << "].R()=" << v_top_copy[3].R() << std::endl;
  }
  }
 
@@ -2434,61 +2460,68 @@ std::cout << "v_mid_bottom[" << 2 << "].Z()=" << v_mid_bottom[2].Z() << std::end
     rmaxatzmax = 0;
     for (int ip = 0; ip < npoints-1; ip++) {
       if (fabs(v_bottom_copy[ip].Z() - zmin) < 0.001) {
-	if (moduleId == "BModule5Layer1") {
-	  std::cout << "v_bottom_copy[" << ip << "].Z()=" << v_bottom_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
-	  std::cout << "AVANT set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {
+	// std::cout << "v_bottom_copy[" << ip << "].Z()=" << v_bottom_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
+	// std::cout << "AVANT set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;}
 	v_bottom_copy[ip].SetZ(0.); 
-	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;
-std::cout << "v_bottom_copy[" << ip+1 << "].Z()=" << v_bottom_copy[ip+1].Z() <<  std::endl;
-	  std::cout << "v_mid_bottom[" << ip << "].Z()=" << v_mid_bottom[ip].Z() << "v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;
-
-}
+	//if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_bottom_copy[" << ip << "].R()=" << v_bottom_copy[ip].R() << std::endl;
+	//std::cout << "v_bottom_copy[" << ip+1 << "].Z()=" << v_bottom_copy[ip+1].Z() <<  std::endl;
+	// std::cout << "v_mid_bottom[" << ip << "].Z()=" << v_mid_bottom[ip].Z() << "v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
 	rminatzmin = MIN(rminatzmin, v_bottom_copy[ip].R());
       }
-      if (v_bottom_copy[ip].Z() == zmax) {
+      if (fabs(v_bottom_copy[ip].Z() - zmax) < 0.001) {
 	v_bottom_copy[ip].SetZ(0.); 
 	rmaxatzmax = MAX(rmaxatzmax, v_bottom_copy[ip].R());
+if (moduleId == "BModule9Layer3") { std::cout << "1rmaxatzmax=" << rmaxatzmax << std::endl;}
       }
     }
     for (int ip = 0; ip < npoints-1; ip++) {
       if (fabs(v_top_copy[ip].Z() - zmin) < 0.001) {
-	if (moduleId == "BModule5Layer1") {std::cout << "v_top_copy[ip].Z()=" << v_top_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
-	  std::cout << "AVANT set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "v_top_copy[ip].Z()=" << v_top_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
+	//std::cout << "AVANT set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
 	v_top_copy[ip].SetZ(0.); 
-	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_top_copy[ip].R()=" << v_top_copy[ip].R() << std::endl;}
 	rminatzmin = MIN(rminatzmin, v_top_copy[ip].R());
       }
-      if (v_top_copy[ip].Z() == zmax) {
+      if (fabs(v_top_copy[ip].Z() - zmax) < 0.001) {
+	if (moduleId == "BModule9Layer3") {std::cout << "v_top_copy[ip].Z()=" << v_top_copy[ip].Z() << " zmin=" << zmin <<  std::endl;
+	  std::cout << "AVANT set z=0, v_top_copy[" << ip << "].R()=" << v_top_copy[ip].R() << std::endl;}
 	v_top_copy[ip].SetZ(0.); 
+	if (moduleId == "BModule9Layer3") {std::cout << "APRES set z=0, v_top_copy[" << ip << "].R()=" << v_top_copy[ip].R() << std::endl;}
 	rmaxatzmax = MAX(rmaxatzmax, v_top_copy[ip].R());
+if (moduleId == "BModule9Layer3") { std::cout << "2rmaxatzmax=" << rmaxatzmax << std::endl;}
       }
     }
     for (int ip = 0; ip < npoints-1; ip++) {
       if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
-	if (moduleId == "BModule5Layer1") {std::cout << "v_mid_bottom[ip].Z()=" << v_mid_bottom[ip].Z() << " zmin=" << zmin <<  std::endl;
-	  std::cout << "AVANT set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "v_mid_bottom[ip].Z()=" << v_mid_bottom[ip].Z() << " zmin=" << zmin <<  std::endl;
+	//std::cout << "AVANT set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
 	v_mid_bottom[ip].SetZ(0.);
-	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_bottom[ip].R()=" << v_mid_bottom[ip].R() << std::endl;}
 	rminatzmin = MIN(rminatzmin, v_mid_bottom[ip].R());
       }
-      if (v_mid_bottom[ip].Z() == zmax) {
+      if (fabs(v_mid_bottom[ip].Z() - zmax) < 0.001) {
 	v_mid_bottom[ip].SetZ(0.);
 	rmaxatzmax = MAX(rmaxatzmax, v_mid_bottom[ip].R());
+if (moduleId == "BModule9Layer3") { std::cout << "3rmaxatzmax=" << rmaxatzmax << std::endl;}
       }
     }
     for (int ip = 0; ip < npoints-1; ip++) {
       if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
-	if (moduleId == "BModule5Layer1") {std::cout << "v_mid_top[ip].Z()=" << v_mid_top[ip].Z() << " zmin=" << zmin <<  std::endl;
-	  std::cout << "AVANT set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "v_mid_top[ip].Z()=" << v_mid_top[ip].Z() << " zmin=" << zmin <<  std::endl;
+	//std::cout << "AVANT set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
 	v_mid_top[ip].SetZ(0.);
-	if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
+	//if (moduleId == "BModule5Layer1") {std::cout << "APRES set z=0, v_mid_top[ip].R()=" << v_mid_top[ip].R() << std::endl;}
 	rminatzmin = MIN(rminatzmin, v_mid_top[ip].R());
       }
-      if (v_mid_top[ip].Z() == zmax) {
+      if (fabs(v_mid_top[ip].Z() - zmax) < 0.001) {
 	v_mid_top[ip].SetZ(0.);
 	rmaxatzmax = MAX(rmaxatzmax, v_mid_top[ip].R());
+if (moduleId == "BModule9Layer3") { std::cout << "4rmaxatzmax=" << rmaxatzmax << std::endl;}
       }
     }
+
+if (moduleId == "BModule9Layer3") { std::cout << "5rmaxatzmax=" << rmaxatzmax << std::endl;}
 
 
     // Material assignment
