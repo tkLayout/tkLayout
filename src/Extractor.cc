@@ -613,7 +613,7 @@ namespace insur {
 	    tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI;
 	  }
 	    
-	  if ((layer == 3) & (modRing == 9)) {std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;}
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  std::ostringstream mname;
 	  mname << xml_barrel_module << modRing << lname.str();
@@ -857,9 +857,6 @@ namespace insur {
 	  }
 
 	  if (iiter->getModule().uniRef().phi == 2 && isTilted) {
-	    if ((layer == 3) & (modRing == 9)) {modcomplex.print();
-std::cout << "modcomplex.getExpandedModuleWidth()/2.0=" << modcomplex.getExpandedModuleWidth()/2.0 << " modcomplex.getExpandedModuleLength()/2.0=" << modcomplex.getExpandedModuleLength()/2.0 << " modcomplex.getExpandedModuleThickness()/2.0=" << modcomplex.getExpandedModuleThickness()/2.0 << std::endl;}
-
 	    std::map<int,BTiltedRingInfo>::iterator it;
 	    it = rinfoplus.find(modRing);
 	    if (it != rinfoplus.end()) {
@@ -881,13 +878,6 @@ std::cout << "modcomplex.getExpandedModuleWidth()/2.0=" << modcomplex.getExpande
 	      //std::cout << "phi=2, modcomplex.getRminatZmin()=" << modcomplex.getRminatZmin() << ", modcomplex.getRmaxatZmax()=" << modcomplex.getRmaxatZmax() << std::endl;
 	    }
 	  }
-
-	  if (iiter->getModule().uniRef().phi == 26 && isTilted) {
-	    if ((layer == 3) & (modRing == 9)) {modcomplex.print();
-	      std::cout << "modcomplex.getExpandedModuleWidth()/2.0=" << modcomplex.getExpandedModuleWidth()/2.0 << " modcomplex.getExpandedModuleLength()/2.0=" << modcomplex.getExpandedModuleLength()/2.0 << " modcomplex.getExpandedModuleThickness()/2.0=" << modcomplex.getExpandedModuleThickness()/2.0 << std::endl;}}
-
-
-
 	}
       }
       if (count > 0) {
