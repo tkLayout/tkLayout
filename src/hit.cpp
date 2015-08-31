@@ -1027,4 +1027,21 @@ std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
   return result;
 }
 
+void Track::setTransverseMomentum(const double newPt) {
+  transverseMomentum_ = newPt;
+}
 
+void Track::pruneHits() {
+  double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
+  Hit* myHit;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end();) {
+    myHit=(*hitIt);
+    if (myHit->getRadius()>2*R) {
+      auto nextHitIt = hitIt+1;
+      hitV_.erase(hitIt);
+      hitIt = nextHitIt;
+    } else {
+      hitIt++;
+    }
+  }
+}

@@ -193,7 +193,9 @@ public:
   RILength getCorrectedMaterial();
   std::vector<std::pair<Module*, HitType>> getHitModules() const;
 
-  void setTransverseMomentum(const double newPt) { transverseMomentum_ = newPt; }
+  void setTransverseMomentum(const double newPt);
   double getTransverseMomentum() const { return transverseMomentum_; }
+
+  void pruneHits();
 };
 #endif
