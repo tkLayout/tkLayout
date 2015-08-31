@@ -875,7 +875,6 @@ namespace insur {
 	      it->second.rmax = modcomplex.getRmax();
 	      it->second.zmax = modcomplex.getZmax();
 	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
-	      //std::cout << "phi=2, modcomplex.getRminatZmin()=" << modcomplex.getRminatZmin() << ", modcomplex.getRmaxatZmax()=" << modcomplex.getRmaxatZmax() << std::endl;
 	    }
 	  }
 	}
@@ -889,12 +888,6 @@ namespace insur {
 
       // rod(s)
       shape.name_tag = rodname.str();
-      /*shape.dx = (ymax - ymin) / 2;
-      if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2;
-      shape.dy = (xmax - xmin) / 2;
-      if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2;
-      shape.dz = zmax;
-      if (isTilted) shape.dz = flatPartMaxZ;*/
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
@@ -949,7 +942,6 @@ namespace insur {
 	if ( !rinfominus.empty() ) { rinfototal.insert({"rinfominus", rinfominus}); }
 
 	for (auto const &rinfoside : rinfototal) {
-	  //shape.type = tb;
 	  shape.type = co;
 	  shape.dx = 0.0;
 	  shape.dy = 0.0;
@@ -1062,9 +1054,6 @@ namespace insur {
       pos.trans.dx = 0.0;
       pos.trans.dz = 0.0;
       shape.name_tag = lname.str();
-      /*shape.rmin = rmin;
-	shape.rmax = rmax;
-	shape.dz = zmax;*/
       shape.rmin = rmin - 2 * xml_epsilon;
       shape.rmax = rmax + 2 * xml_epsilon;
       if (isTilted) {
@@ -1082,7 +1071,7 @@ namespace insur {
       lspec.partselectors.push_back(lname.str());
       //lspec.moduletypes.push_back("");
       lspec.moduletypes.push_back(minfo_zero);
-      //}
+
       layer++;
     }
     if (!lspec.partselectors.empty()) t.push_back(lspec);
@@ -1216,13 +1205,13 @@ namespace insur {
 	    zmax = MAX(zmax, modcomplex.getZmax());
 	    ringzmin.at(modRing - 1) = MIN(ringzmin.at(modRing - 1), modcomplex.getZmin());  
 	    ringzmax.at(modRing - 1) = MAX(ringzmax.at(modRing - 1), modcomplex.getZmax());
-	  }	 
+	  }
 	}
 	double maxRingThickness = 0;
 	for (int i = 0; i < numRings; i++) { maxRingThickness = MAX(maxRingThickness, (ringzmax.at(i) - ringzmin.at(i))); }
 	double diskThickness = zmax - zmin;
 
-	
+
 	//if (zmin > 0) {	
         std::ostringstream dname, pconverter;
 
@@ -1516,7 +1505,7 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << rinfo[*siter].phi;
+            pconverter << 360. / (double)(rinfo[*siter].modules) * rinfo[*siter].phi << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
@@ -1539,7 +1528,7 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << (rinfo[*siter].phi + 2 * M_PI / (double)(rinfo[*siter].modules));
+            pconverter << 360. / (double)(rinfo[*siter].modules) * (rinfo[*siter].phi + 1) << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
@@ -2289,9 +2278,9 @@ namespace insur {
     // SupportPlate
     vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
 
-    // ===========================================================
-    // Finding Rmin/Rmax/Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/RminatZmin/RmaxatZmax with considering hybrid volumes
-    // ===========================================================
+    // =========================================================================================================
+    // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
+    // =========================================================================================================
     //
     // Module polygon
     //   top view
@@ -2309,11 +2298,13 @@ namespace insur {
     //   side view
     //    ----------------- top
     //    ----------------- bottom
-    //
-    vector<double> rv; // radius list from which we will find min/max.
+    // 
     vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
     vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
     vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
+    vector<double> rv; // radius list (in global frame of reference) from which we will find min/max.
+    vector<double> ratzminv; // radius list (in global frame of reference) at zmin from which we will find min/max.
+    vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
 
     // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
     XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
@@ -2321,128 +2312,101 @@ namespace insur {
 
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
-    XYZVector v[npoints-1]; 
-    v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my; 
-    v[1] = module.center() - (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my; 
-    v[2] = module.center() + (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my; 
-    v[3] = module.center() + (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my; 
+    XYZVector v[npoints-1];
+    v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
+    v[1] = module.center() - (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
+    v[2] = module.center() + (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
+    v[3] = module.center() + (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
 
-    // Fill all the vertex candidates (8 points)
-    XYZVector v_top[npoints];    // module top surface
-    XYZVector v_top_copy[npoints];
-    XYZVector v_bottom[npoints]; // module bottom surface
-    XYZVector v_bottom_copy[npoints];
-    XYZVector v_mid_top[npoints];
-    XYZVector v_mid_bottom[npoints];
+    // Calculate all vertex candidates (8 points)
+    XYZVector v_top[npoints];    // module's top surface
+    XYZVector v_bottom[npoints]; // module's bottom surface
+
     for (int ip = 0; ip < npoints-1; ip++) {
       v_top[ip]    = v[ip] + 0.5*expandedModThickness*normal;
-      v_top_copy[ip] = v_top[ip];
       v_bottom[ip] = v[ip] - 0.5*expandedModThickness*normal;
-      v_bottom_copy[ip] = v_bottom[ip];
 
       // for debuging
-        vertex.push_back(v_top[ip]);
-        vertex.push_back(v_bottom[ip]);
+      vertex.push_back(v_top[ip]);
+      vertex.push_back(v_bottom[ip]);
 
+      // Calculate xmin, xmax, ymin, ymax, zmin, zmax
       xv.push_back(v_top[ip].X());
       xv.push_back(v_bottom[ip].X());
       yv.push_back(v_top[ip].Y());
       yv.push_back(v_bottom[ip].Y());
       zv.push_back(v_top[ip].Z());
       zv.push_back(v_bottom[ip].Z());
-      v_top[ip].SetZ(0.);    // projection to xy plan.
-      v_bottom[ip].SetZ(0.); // projection to xy plan.
-      rv.push_back(v_top[ip].R());
-      rv.push_back(v_bottom[ip].R());
     }
-    // copy v0 as v4 for convenience
-    v_top[npoints-1] = v_top[0];
-    v_bottom[npoints-1] = v_bottom[0];
-    v_top_copy[npoints-1] = v_top_copy[0];
-    v_bottom_copy[npoints-1] = v_bottom_copy[0];
-
-    // Fill possible side point candidates (8 sides)
-    // No need to consider the 4 sides connecting top-bottom e.g. the side made from v0_top and v0_bottom.
-    for (int ip = 0; ip < npoints-1; ip++) {
-      // top surface
-      XYZVector sp_top; // midpoint of each side
-      sp_top = v_top[ip]-v_top[ip+1];
-      if ( sp_top.Dot(v_top[ip]) * sp_top.Dot(v_top[ip+1]) < 0 ) { // minimum is a point divided internally 
-        rv.push_back((v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit()).R());
-	//v_mid_top[ip] = v_top[ip]-sp_top.Unit().Dot(v_top[ip])*sp_top.Unit();
-      }
-      // bottom surface
-      XYZVector sp_bottom; // midpoint of each side
-      sp_bottom = v_bottom[ip]-v_bottom[ip+1];
-      if ( sp_bottom.Dot(v_bottom[ip]) * sp_bottom.Dot(v_bottom[ip+1]) < 0 ) { // minimum is a point divided internally 
-        rv.push_back((v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit()).R());
-	//v_mid_bottom[ip] = v_bottom[ip]-sp_bottom.Unit().Dot(v_bottom[ip])*sp_bottom.Unit();
-      }
-    }
-
-    
     // Find min and max
-    sort(rv.begin(),rv.end());
-    sort(xv.begin(),xv.end());
-    sort(yv.begin(),yv.end());
-    sort(zv.begin(),zv.end());
-    rmin = rv.at(0);
-    rmax = rv.back();
-    xmin = xv.at(0);
-    xmax = xv.back();
-    ymin = yv.at(0);
-    ymax = yv.back();
-    zmin = zv.at(0);
-    zmax = zv.back();
-
-    for (int ip = 0; ip < npoints-1; ip++) {
-      v_mid_top[ip] = (v_top_copy[ip] + v_top_copy[ip+1]) / 2.0;
-      v_mid_bottom[ip] = (v_bottom_copy[ip] + v_bottom_copy[ip+1]) / 2.0;
-    }
+    xmin = *std::min_element(xv.begin(), xv.end());
+    xmax = *std::max_element(xv.begin(), xv.end());
+    ymin = *std::min_element(yv.begin(), yv.end());
+    ymax = *std::max_element(yv.begin(), yv.end());
+    zmin = *std::min_element(zv.begin(), zv.end());
+    zmax = *std::max_element(zv.begin(), zv.end());
 
 
-    rminatzmin = INT_MAX;
-    rmaxatzmax = 0;
+    // Calculate module's mid-points (8 points)
+    XYZVector v_mid_top[npoints]; // module's top surface mid-points
+    XYZVector v_mid_bottom[npoints]; // module's bottom surface mid-points
+
+    v_top[npoints-1] = v_top[0]; // copy v0 as v4 for convenience
+    v_bottom[npoints-1] = v_bottom[0]; // copy v0 as v4 for convenience
+
     for (int ip = 0; ip < npoints-1; ip++) {
-      if (fabs(v_bottom_copy[ip].Z() - zmin) < 0.001) {
-	v_bottom_copy[ip].SetZ(0.); 
-	rminatzmin = MIN(rminatzmin, v_bottom_copy[ip].R());
-      }
-      if (fabs(v_bottom_copy[ip].Z() - zmax) < 0.001) {
-	v_bottom_copy[ip].SetZ(0.); 
-	rmaxatzmax = MAX(rmaxatzmax, v_bottom_copy[ip].R());
-      }
+      v_mid_top[ip] = (v_top[ip] + v_top[ip+1]) / 2.0;
+      v_mid_bottom[ip] = (v_bottom[ip] + v_bottom[ip+1]) / 2.0;
     }
+
+    // Calculate rmin, rmax, rminatzmin, rmaxatzmax...
     for (int ip = 0; ip < npoints-1; ip++) {
-      if (fabs(v_top_copy[ip].Z() - zmin) < 0.001) {
-	v_top_copy[ip].SetZ(0.); 
-	rminatzmin = MIN(rminatzmin, v_top_copy[ip].R());
+
+      // module's bottom surface
+      if (fabs(v_bottom[ip].Z() - zmin) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_bottom[ip].R());
       }
-      if (fabs(v_top_copy[ip].Z() - zmax) < 0.001) {
-	v_top_copy[ip].SetZ(0.); 
-	rmaxatzmax = MAX(rmaxatzmax, v_top_copy[ip].R());
+      if (fabs(v_bottom[ip].Z() - zmax) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_bottom[ip].R());
       }
-    }
-    for (int ip = 0; ip < npoints-1; ip++) {
+      v_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_bottom[ip].R());
+
+      // module's top surface
+      if (fabs(v_top[ip].Z() - zmin) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_top[ip].R());
+      }
+      if (fabs(v_top[ip].Z() - zmax) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_top[ip].R());
+      }
+      v_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_top[ip].R());
+    
+      // module's bottom surface mid-points
       if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
-	v_mid_bottom[ip].SetZ(0.);
-	rminatzmin = MIN(rminatzmin, v_mid_bottom[ip].R());
+	v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_bottom[ip].R());
       }
-      if (fabs(v_mid_bottom[ip].Z() - zmax) < 0.001) {
-	v_mid_bottom[ip].SetZ(0.);
-	rmaxatzmax = MAX(rmaxatzmax, v_mid_bottom[ip].R());
-      }
-    }
-    for (int ip = 0; ip < npoints-1; ip++) {
+      v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_bottom[ip].R());
+    
+      // module's top surface mid-points
       if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
-	v_mid_top[ip].SetZ(0.);
-	rminatzmin = MIN(rminatzmin, v_mid_top[ip].R());
+	v_mid_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_top[ip].R());
       }
-      if (fabs(v_mid_top[ip].Z() - zmax) < 0.001) {
-	v_mid_top[ip].SetZ(0.);
-	rmaxatzmax = MAX(rmaxatzmax, v_mid_top[ip].R());
-      }
+      v_mid_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_top[ip].R());
     }
+    // Find min and max
+    rmin = *std::min_element(rv.begin(), rv.end());
+    rmax = *std::max_element(rv.begin(), rv.end());
+    rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
+    rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
 
 
     // Material assignment
@@ -2604,11 +2568,11 @@ namespace insur {
                                           << center.Y() << "," 
                                           << center.Z() << ")" << std::endl;
     std::cout << "    normal vector  : (" << normal.X() << ","
-                                          << normal.Y() << "," 
+                                          << normal.Y() << ","
                                           << normal.Z() << ")" << std::endl;
     std::cout << "    module width     : " << expandedModWidth     << std::endl; 
     std::cout << "    module length    : " << expandedModLength    << std::endl; 
-    std::cout << "    module thickness : " << expandedModThickness << std::endl; 
+    std::cout << "    module thickness : " << expandedModThickness << std::endl;
     std::cout << "    vertex points    : ";
     for (unsigned int i = 0; i < vertex.size(); i++) {
       if (i!=vertex.size()-1) 
