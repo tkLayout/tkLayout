@@ -94,6 +94,7 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
   bool withinEta = eta > minEtaWithError(zError) && eta < maxEtaWithError(zError);
   bool withinPhi = false;
   // ATENTION: BUG - couldHit uses minPhi & maxPhi, which are wrongly calculated!!!!
+  //std::cout << "MinPhi: " << minPhi()/Pi()*180. << " MaxPhi: " << maxPhi()/Pi()*180. << " " << (maxPhi()-minPhi())/Pi()*180. << " " << (minPhi()-maxPhi())/Pi()*180. << std::endl;
   //if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
   //  withinPhi = phi < minPhi() || phi > maxPhi(); // --> doesn't work correctly
   //else
@@ -109,15 +110,29 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 
 
 double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) const {
-  double A = hitRho/(2*trackR); 
+
+  // Parameters
+  double A = hitRho/(2*trackR); // r_i / 2R
   double B = A/sqrt(1-A*A);
-  return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
+
+  // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+  double resolution = sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
+
+  // Return calculated resolution (resolutionLocalX is intrinsic resolution along R-Phi for barrel module)
+  return resolution; //resolutionLocalX();
 }
 
 double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta) const {
+
+  // Parameters
   double A = hitRho/(2*trackR); 
   double D = trackCotgTheta/sqrt(1-A*A);
-  return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
+
+  // All modules & its resolution propagated to the resolution of a virtual barrel module (endcap is a tilted module by 90 degrees, barrel is tilted by 0 degrees)
+  double resolution = sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
+
+  // Return calculated resolution (resolutionLocalY is intrinsic resolution along Z for barrel module)
+  return resolution; //resolutionLocalY();
 }
 
 
