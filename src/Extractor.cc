@@ -1259,6 +1259,7 @@ namespace insur {
 
 	  // ring number
           int modRing = iiter->getModule().uniRef().ring;
+
 	  //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
 
           // new ring
@@ -1277,6 +1278,9 @@ namespace insur {
 	    // build module volumes, with hybrids taken into account
             ModuleComplex modcomplex(mname.str(),parentName,*iiter);
             modcomplex.buildSubVolumes();          
+#ifdef __DEBUGPRINT__
+	    modcomplex.print();
+#endif
 
 
 	    // MODULE
