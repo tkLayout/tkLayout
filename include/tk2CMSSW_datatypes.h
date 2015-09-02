@@ -161,46 +161,60 @@ namespace insur {
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw A flag indicating where in z the ring is: true if it is in z+, false if it is in z-
-     * @param modules The number of modules within the ring
-     * @param rin The minimum radius of the ring as measured from the z-axis
-     * @param rout The maximum radius of the ring as measured from the z-axis
-     * @param rmid The radius of the module mean point as measured from the z-axis
-     * @param mthk The total thickness of one of the ring modules
+     * @param fw Is it the forward ring of the disk ?
+     * @param isZPlus Is the ring (and disk) in the positive-z side ?
+     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
      * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     * @param modules The number of modules within the ring
+     * @param mthk Thickness of one of the ring's modules (hybrids included)
+     * @param rmin The minimum radius of the ring, as measured from the z-axis 
+     * @param rmid The radius of the module mean point, as measured from the z-axis
+     * @param rmax The maximum radius of the ring, as measured from the z-axis
      */
     struct ERingInfo {
         std::string name;
         std::string childname;
         bool fw;
         bool isZPlus;
-        bool outer_flipped;
-        int modules;
-        double rin;
-        double rout;
-        double rmid;
-        double mthk;
+        bool fw_flipped;
         double phi;
+        int modules;
+        double mthk;
+        double rmin;
+        double rmid;
+        double rmax;
     };
     /**
      * @struct BTiltedRingInfo
      * @brief This is a struct to collect temporary information about a barrel tilted ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw A flag indicating where in z the ring is: true if it is in z+, false if it is in z-
-     * @param modules The number of modules within the ring
-     * @param rin The minimum radius of the ring as measured from the z-axis
-     * @param rout The maximum radius of the ring as measured from the z-axis
-     * @param rmid The radius of the module mean point as measured from the z-axis
-     * @param mthk The total thickness of one of the ring modules
+     * @param isZPlus Is the ring in the positive-z side ?
+     * @param tiltAngle Module's tilt angle
+     * @param bw_flipped Are modules in the backward part (small |z|) of the ring flipped ?
+     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
      * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     * @param modules The number of modules within the ring
+     * @param r1 The radius of the module mean point, as measured from the z-axis, for the inner part (small |z|) of the ring
+     * @param r2 The radius of the module mean point, as measured from the z-axis, for the outer part (big |z|) of the ring
+     * @param z1 z of the module's mean point, for the inner part (small |z|) of the ring
+     * @param z2 z of the module's mean point, for the outer part (big |z|) of the ring
+     * @param rmin The global minimum radius of the ring, as measured from the z-axis
+     * @param rmax The global maximum radius of the ring, as measured from the z-axis
+     * @param zmin The minimum z of the ring
+     * @param zmax The maximum z of the ring
+     * @param rminatzmin The minimum radius of the ring at z=zmin, as measured from the z-axis
+     * @param rmaxatzmax The maximum radius of the ring at z=zmax, as measured from the z-axis
      */
     struct BTiltedRingInfo {
         std::string name;
         std::string childname;
         bool isZPlus;
-        bool inner_flipped;
-        bool outer_flipped;
+        double tiltAngle;
+        bool bw_flipped;
+        bool fw_flipped;
+        double phi;
+        int modules;
         double r1;
         double z1;
         double r2;
@@ -210,15 +224,7 @@ namespace insur {
         double zmin;
         double zmax;
         double rminatzmin;
-        double rmaxatzmax;
-        int modules;
-        double mdx;
-        double mdy;
-        double mdz;
-      //double mwidth;
-      //double mthk;
-        double tiltAngle;
-        double phi;
+        double rmaxatzmax;     
     };
      /*
       * * @struct ModuleROCInfo
