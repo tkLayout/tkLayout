@@ -17,6 +17,7 @@ namespace insur {
     static const int xml_roc_cols = 1;
     static const int xml_reco_material_disc_offset = 3;
     static const double xml_z_pixfwd = 325.0;
+    static const double xml_epsilon = 0.01;
     /**
      * XML tags and attributes
      */
@@ -85,6 +86,13 @@ namespace insur {
     static const std::string xml_tubs_second_inter = "*mm\" rMax=\"";
     static const std::string xml_tubs_third_inter = "*mm\" dz=\"";
     static const std::string xml_tubs_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
+    static const std::string xml_cone_open = "<Cone name=\"";
+    static const std::string xml_cone_first_inter = "\" rMax1=\"";
+    static const std::string xml_cone_second_inter = "*mm\" rMax2=\"";
+    static const std::string xml_cone_third_inter = "*mm\" rMin1=\"";
+    static const std::string xml_cone_fourth_inter = "*mm\" rMin2=\"";
+    static const std::string xml_cone_fifth_inter = "*mm\" dz=\"";
+    static const std::string xml_cone_close = "*mm\" startPhi=\"0*deg\" deltaPhi=\"360*deg\"/>\n";
     static const std::string xml_polycone_open = "<Polycone name=\"";
     static const std::string xml_polycone_inter = "\" startPhi=\"0*deg\" deltaPhi=\"360*deg\">\n";
     static const std::string xml_polycone_close = "</Polycone>\n";
@@ -137,6 +145,12 @@ namespace insur {
     static const std::string xml_base_waf = "wafer";
     static const std::string xml_base_inner = "INNER"; // This is for distinguishing inner/outer sensor!
     static const std::string xml_base_outer = "OUTER";
+    static const std::string xml_base_lower = "Lower"; // This is for distinguishing inner/outer sensor!
+    static const std::string xml_base_upper = "Upper";
+    static const std::string xml_base_pixel = "MacroPixel";
+    static const std::string xml_base_strip = "Strip";
+    static const std::string xml_base_ps = "PS";
+    static const std::string xml_base_2s = "2S";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
@@ -157,14 +171,18 @@ namespace insur {
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
     static const std::string xml_pixbar = "PixelBarrel";
+    static const std::string xml_2OTbar = "Phase2OTBarrel";
     static const std::string xml_pixfwd = "PixelForward"; 
+    static const std::string xml_2OTfwd = "Phase2OTForward";
+    static const std::string xml_2OTendcap = "Phase2OTEndcap";
     static const std::string xml_pixfwd_plus = "PixelForward[1]"; // CUIDADO was: "PixelForwardZPlus";
     static const std::string xml_pixfwd_minus = "PixelForward[2]"; // CUIDADO was: "PixelForwardZMinus";
     static const std::string xml_tracker = "Tracker";
     static const std::string xml_tob = "TOB";
     static const std::string xml_tid = "TID";
-    static const std::string xml_tobalgo = "track:DDTrackerPhiAltAlgo";
-    static const std::string xml_ecalgo = "track:DDTrackerAngularV1";
+    static const std::string xml_phialt_algo = "track:DDTrackerPhiAltAlgo";
+    static const std::string xml_trackerring_algo = "track:DDTrackerRingAlgo";
+    static const std::string xml_angularv1_algo = "track:DDTrackerAngularV1";
     static const std::string xml_param_string = "String";
     static const std::string xml_param_numeric = "Numeric";
     static const std::string xml_childparam = "ChildName";
@@ -177,15 +195,19 @@ namespace insur {
     static const std::string xml_number = "Number";
     static const std::string xml_startcopyno = "StartCopyNo";
     static const std::string xml_incrcopyno = "IncrCopyNo";
-    static const std::string xml_radius = "Radius";
     static const std::string xml_nmods = "N";
+    static const std::string xml_radius = "Radius";
+    static const std::string xml_iszplus = "IsZPlus";
+    static const std::string xml_tiltangle = "TiltAngle";
+    static const std::string xml_isflipped = "IsFlipped";
     static const std::string xml_tkddd_structure = "TkDDDStructure";
     static const std::string xml_det_layer = "TOBLayer";
-    static const std::string xml_det_rod = "TOBRod";
+    static const std::string xml_det_straight_or_tilted_rod = "TOBRod";
     static const std::string xml_det_tobdet = "TOBDet";
     static const std::string xml_tob_subdet = "TOBSubDet";
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
-    static const std::string xml_subdet_rod = "PixelBarrelLadder";
+    static const std::string xml_subdet_2OT_layer = "Phase2OTBarrelLayer";
+    static const std::string xml_subdet_straight_or_tilted_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_tobdet = "PixelBarrelModule";
     static const std::string xml_subdet_tobdet_1 = "PixelBarrelDet";
     static const std::string xml_det_wheel = "TIDWheel";
@@ -193,6 +215,7 @@ namespace insur {
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
     static const std::string xml_subdet_wheel = "PixelEndcapDisk";
+    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
     static const std::string xml_subdet_ring = "PixelEndcapPanel";
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
@@ -205,7 +228,9 @@ namespace insur {
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
-    static const std::string xml_barrel_tilt = "HCZ2YX";
+    static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
+    static const std::string xml_places_flipped_mod_in_rod = "FlippedHCZ2YX";
+    static const std::string xml_flip_mod_rot = "FLIP";
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants

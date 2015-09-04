@@ -17,6 +17,7 @@
 #include <tk2CMSSW_strings.h>
 #include <set>
 #include <cmath>
+#include <limits.h>
 #include <sstream>
 #include <Tracker.h>
 #include <MaterialTable.h>
@@ -80,14 +81,14 @@ namespace insur {
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
     void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
-    void analyseEndcapContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
+    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, std::vector<std::pair<double, double> >& up,
                                 std::vector<std::pair<double, double> >& down);
     void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                       std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
+                       std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
     void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                      std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
+                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
     void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                                std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
     void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
@@ -116,10 +117,9 @@ namespace insur {
   // This should be moved to tk2CMSSW_strings.h at some point.
   static const std::string rot_sensor_tag = "SensorFlip";
 #endif
-#ifdef __ADDVOLUMES__
   class ModuleComplex {
     public :
-     ModuleComplex(std::string moduleName, ModuleCap& modcap);
+     ModuleComplex(std::string moduleName, std::string parentName, ModuleCap& modcap);
      ~ModuleComplex();
      void buildSubVolumes();
      void addShapeInfo   (std::vector<ShapeInfo>&   vec);
@@ -130,6 +130,19 @@ namespace insur {
 
      const double getServiceHybridWidth() const { return serviceHybridWidth; }
      const double getFrontEndHybridWidth() const { return frontEndHybridWidth; }
+     const double getExpandedModuleWidth() const { return expandedModWidth; }
+     const double getExpandedModuleLength() const { return expandedModLength; }
+     const double getExpandedModuleThickness() const { return expandedModThickness; }
+     double getRmin() const { return rmin; }
+     double getRmax() const { return rmax; }
+     double getXmin() const { return xmin; }
+     double getXmax() const { return xmax; }
+     double getYmin() const { return ymin; }
+     double getYmax() const { return ymax; }
+     double getZmin() const { return zmin; }
+     double getZmax() const { return zmax; }
+     double getRminatZmin() const { return rminatzmin; }
+     double getRmaxatZmax() const { return rmaxatzmax; }
      double getHybridTotalVolume_mm3() const { return hybridTotalVolume_mm3; }
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
@@ -206,6 +219,7 @@ namespace insur {
       Module&              module;
       std::vector<Volume*> volumes;
       std::string          moduleId;
+      std::string          parentId;
       const double         modThickness;
       const double         sensorThickness;
       const double         sensorDistance;
@@ -220,10 +234,25 @@ namespace insur {
             double         hybridFrontAndBackVolume_mm3;
             double         hybridLeftAndRightVolume_mm3;
             double         moduleMassWithoutSensors_expected;
+            double         rmin;
+            double         rmax;
+	    double         xmin;
+            double         xmax;
+	    double         ymin;
+            double         ymax;
+            double         zmin;
+            double         zmax;
+	    double         rminatzmin;
+	    double         rmaxatzmax;
+	    const double         expandedModWidth;
+	    const double         expandedModLength;
+	    const double         expandedModThickness; 
+	    const XYZVector      center; 
+	    const XYZVector      normal; 
+      std::vector<XYZVector> vertex; 
       const std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
-#endif
 }
 #endif	/* _EXTRACTOR_H */
 
