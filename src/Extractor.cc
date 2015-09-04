@@ -4,15 +4,13 @@
  */
 
 
-#define __ADDVOLUMES__
 //#define __DEBUGPRINT__
 //#define __FLIPSENSORS_OUT__
 //#define __FLIPSENSORS_IN__
 
 #include <Extractor.h>
-#ifdef __ADDVOLUMES__
 #include <cstdlib>
-#endif
+
 namespace insur {
   //public
   /**
@@ -41,7 +39,7 @@ namespace insur {
     std::vector<ShapeInfo>& s = d.shapes;
     std::vector<PosInfo>& p = d.positions;
     std::vector<AlgoInfo>& a = d.algos;
-    std::vector<Rotation>& r = d.rots;
+    std::map<std::string,Rotation>& r = d.rots;
     std::vector<SpecParInfo>& t = d.specs;
     std::vector<RILengthInfo>& ri = d.lrilength;
 
@@ -69,15 +67,37 @@ namespace insur {
     pos.rotref = "";
 
     // Initialise rotation list with Harry's tilt mod
+    // This rotation places an unflipped module within a rod
     Rotation rot;
-    rot.name = xml_barrel_tilt;
+    rot.name = xml_places_unflipped_mod_in_rod;
     rot.thetax = 90.0;
-    rot.phix = 270.0;
-    rot.thetay = 180.0;
+    rot.phix = 90.0;
+    rot.thetay = 0.0;
     rot.phiy = 0.0;
     rot.thetaz = 90.0;
     rot.phiz = 0.0;
-    r.push_back(rot);
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+    // This rotation places a flipped module within a rod
+    rot.name = xml_places_flipped_mod_in_rod;
+    rot.thetax = 90.0;
+    rot.phix = 270.0;
+    rot.thetay = 0.0;
+    rot.phiy = 0.0;
+    rot.thetaz = 90.0;
+    rot.phiz = 180.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
+    // Flip module (Fix Y axis)
+    rot.name = xml_flip_mod_rot;
+    rot.thetax = 90.0;
+    rot.phix = 180.0;
+    rot.thetay = 90.0;
+    rot.phiy = 90.0;
+    rot.thetaz = 180.0;
+    rot.phiz = 0.0;
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
+
 
 #if defined(__FLIPSENSORS_IN__) || defined(__FLIPSENSORS_OUT__)
     rot.name = rot_sensor_tag;
@@ -94,7 +114,7 @@ namespace insur {
 #endif
     rot.thetaz = 180.0;
     rot.phiz   = 0.0;
-    r.push_back(rot);
+    r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 #endif
 
     // EndcapRot is not needed any more
@@ -127,7 +147,7 @@ namespace insur {
       std::cout << "Barrel container done." << std::endl;
 
       // Endcap
-      analyseEndcapContainer(tr, shape.rzup, shape.rzdown);
+      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown);
       if (!(shape.rzup.empty() || shape.rzdown.empty())) {
         shape.name_tag = xml_tid;
         s.push_back(shape);
@@ -191,116 +211,87 @@ namespace insur {
    */
   void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
                                          std::vector<std::pair<double, double> >& down) {
-    bool is_short, previous_short = false;
     std::pair<double, double> rz;
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
     down.clear();
+    std::vector<std::vector<ModuleCap> >::iterator oiter;
+    std::vector<ModuleCap>::iterator iiter;
 
     LayerAggregator lagg;
     t.accept(lagg);
     auto bl = lagg.getBarrelLayers();
+    
+    int layer = 1;
     int n_of_layers = bl->size();
-    for (int layer = 0; layer < n_of_layers; layer++) {
-      is_short = (bl->at(layer)->minZ() > 0) || (bl->at(layer)->maxZ() < 0);
-      if (is_short) {
-        //short layer on z- side
-        if (bl->at(layer)->maxZ() < 0) {
-          //indices 0, 1
-          if ((layer == 0) || ((layer == 1) && (previous_short))) {
-            rz.first = bl->at(layer)->minR();
-            rz.second = bl->at(layer)->minZ();
-            up.push_back(rz);
-          }
-          else {
-            //new barrel reached
-            if (bl->at(layer)->minZ() != zmin) {
-              //new layer sticks out compared to old layer
-              if (bl->at(layer)->minZ() > zmin) rz.first = bl->at(layer)->minR();
-              //old layer sticks out compared to new layer
-              else rz.first = rmax;
-              rz.second = zmin;
-              up.push_back(rz);
-              rz.second = bl->at(layer)->minZ();
-              up.push_back(rz);
-            }
-          }
-          //indices size - 2, size - 1
-          if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
-            rz.first = bl->at(layer)->maxR();
-            rz.second = bl->at(layer)->minZ();
-            up.push_back(rz);
-          }
-        }
-        //short layer on z+ side
-        else {
-          //indices 0, 1
-          if ((layer == 0) || ((layer == 1) && (previous_short))) {
-            rz.first = bl->at(layer)->minR();
-            rz.second = bl->at(layer)->maxZ();
-            down.push_back(rz);
-          }
-          else {
-            //new barrel reached
-            if (bl->at(layer)->maxZ() != zmax) {
-              //new layer sticks out compared to old layer
-              if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
-              //old layer sticks out compared to new layer
-              else rz.first = rmax;
-              rz.second = zmax;
-              down.push_back(rz);
-              rz.second = bl->at(layer)->maxZ();
-              down.push_back(rz);
-            }
-          }
-          //indices size - 2, size - 1
-          if ((layer == n_of_layers - 1) || ((layer == n_of_layers - 2) && (previous_short))) {
-            rz.first = bl->at(layer)->maxR();
-            rz.second = bl->at(layer)->minZ();
-            down.push_back(rz);
-          }
-        }
+
+    lagg.postVisit();
+    std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
+    
+    for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
+      double lrmin = std::numeric_limits<double>::max();
+      double lrmax = 0;
+      double lzmin = 0;
+      double lzmax = 0; 
+ 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){
+	  int modRing = iiter->getModule().uniRef().ring;
+	  // layer name
+	  std::ostringstream lname;
+	  lname << xml_layer << layer; // e.g. Layer1
+	  // module name
+	  std::ostringstream mname;
+	  mname << xml_barrel_module << modRing << lname.str(); // .e.g. BModule1Layer1
+	  // parent module name
+	  std::string parentName = mname.str();
+	  // build module volumes, with hybrids taken into account
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	    
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	  lzmin = -lzmax;
+	}
       }
-      //regular layer across z=0
+
+      if (layer == 1) {
+	rz.first = lrmin;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
       else {
-        //index 0
-        if (layer == 0) {
-          rz.first = bl->at(layer)->minR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
-        else {
-          //new barrel reached
-          if (bl->at(layer)->maxZ() != zmax) {
-            //new layer sticks out compared to old layer
-            if (bl->at(layer)->maxZ() > zmax) rz.first = bl->at(layer)->minR();
-            //old layer sticks out compared to new layer
-            else rz.first = rmax;
-            rz.second = zmin;
-            up.push_back(rz);
-            rz.second = zmax;
-            down.push_back(rz);
-            rz.second = bl->at(layer)->minZ();
-            up.push_back(rz);
-            rz.second = bl->at(layer)->maxZ();
-            down.push_back(rz);
-          }
-        }
-        //index size - 1
-        if (layer == n_of_layers - 1) {
-          rz.first = bl->at(layer)->maxR();
-          rz.second = bl->at(layer)->minZ();
-          up.push_back(rz);
-          rz.second = bl->at(layer)->maxZ();
-          down.push_back(rz);
-        }
+	//new barrel reached
+	if (lzmax != zmax) {
+	  //new layer sticks out compared to old layer
+	  if (lzmax > zmax) rz.first = lrmin;
+	  //old layer sticks out compared to new layer
+	  else rz.first = rmax;
+	  rz.second = zmin;
+	  up.push_back(rz);
+	  rz.second = zmax;
+	  down.push_back(rz);
+	  rz.second = lzmin;
+	  up.push_back(rz);
+	  rz.second = lzmax;
+	  down.push_back(rz);
+	}
       }
-      rmax = bl->at(layer)->maxR();
-      if (bl->at(layer)->minZ() < 0) zmin = bl->at(layer)->minZ();
-      if (bl->at(layer)->maxZ() > 0) zmax = bl->at(layer)->maxZ();
-      previous_short = is_short;
+      //index size - 1
+      if (layer == n_of_layers) {
+	rz.first = lrmax;
+	rz.second = lzmin;
+	up.push_back(rz);
+	rz.second = lzmax;
+	down.push_back(rz);
+      }
+      rmax = lrmax;
+      if (lzmin < 0) zmin = lzmin;
+      if (lzmax > 0) zmax = lzmax;
+
+      layer++;
     }
   }
 
@@ -317,84 +308,125 @@ namespace insur {
    * @param up A reference to a vector listing polygon points by increasing radius
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
-  void Extractor::analyseEndcapContainer(Tracker& t,
+  void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t,
                                          std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
     int first, last;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
-    LayerAggregator lagg; t.accept(lagg);
-    auto el = lagg.getEndcapLayers();
-    first = 0;
-    last = el->size();
-    while (first < last) {
-      if (el->at(first)->maxZ() > 0) break;
-      first++;
-    }
     up.clear();
     down.clear();
-    for (int i = first; i < last; i++) {
-      // special treatment for first disc
-      if (i == first) {
-        rmin = el->at(i)->minR();
-        rmax = el->at(i)->maxR();
-        rz.first = rmax;
-        rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+    std::vector<std::vector<ModuleCap> >::iterator oiter;
+    std::vector<ModuleCap>::iterator iiter;  
+
+    LayerAggregator lagg; 
+    t.accept(lagg);
+
+    auto el = lagg.getEndcapLayers();
+    int layer = 1;
+    int n_of_layers = el->size();
+    bool hasfirst = false;
+
+    //lagg.postVisit();   
+    //std::vector<std::vector<ModuleCap> >& ec = lagg.getEndcapCap();
+    
+    for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+      std::set<int> ridx;
+      double lrmin = std::numeric_limits<double>::max();
+      double lrmax = 0;
+      double lzmin = std::numeric_limits<double>::max();
+      double lzmax = 0; 
+ 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	int modRing = iiter->getModule().uniRef().ring;
+	if (ridx.find(modRing) == ridx.end()) {
+	  ridx.insert(modRing);
+	  // disk name
+	  std::ostringstream dname;
+	  dname << xml_disc << layer; // e.g. Disc6
+	  // module name
+	  std::ostringstream mname;
+	  mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	  // parent module name  
+	  std::string parentName = mname.str();
+	  // build module volumes, with hybrids taken into account
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  lrmin = MIN(lrmin, modcomplex.getRmin());
+	  lrmax = MAX(lrmax, modcomplex.getRmax());	  
+	  lzmin = MIN(lzmin, modcomplex.getZmin());  
+	  lzmax = MAX(lzmax, modcomplex.getZmax());
+	}
       }
-      // disc beyond the first
-      else {
-        // endcap change larger->smaller
-        if (rmax > el->at(i)->maxR()) {
-          rz.second = zmax - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
-        // endcap change smaller->larger
-        if (rmax < el->at(i)->maxR()) {
-          rz.second = el->at(i)->minZ() - xml_z_pixfwd;
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-          rmax = el->at(i)->maxR();
-          rmin = el->at(i)->minR();
-          rz.first = rmax;
-          up.push_back(rz);
-          rz.first = rmin;
-          down.push_back(rz);
-        }
+
+      if ((lzmax > 0) && (!hasfirst)) {
+	first = layer;
+	hasfirst = true;
       }
-      zmax = el->at(i)->maxZ();
-      // special treatment for last disc
-      if (i == last - 1) {
-        rz.first = rmax;
-        rz.second = zmax - xml_z_pixfwd;
-        up.push_back(rz);
-        rz.first = rmin;
-        down.push_back(rz);
+
+      if (layer >= first) {
+	if (layer == first) {
+	  rmin = lrmin;
+	  rmax = lrmax;
+	  rz.first = rmax;
+	  rz.second = lzmin - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
+	// disc beyond the first
+	else {
+	  // endcap change larger->smaller
+	  if (rmax > lrmax) {
+	    rz.second = zmax - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	  // endcap change smaller->larger
+	  if (rmax < lrmax) {
+	    rz.second = lzmin - xml_z_pixfwd;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	    rmax = lrmax;
+	    rmin = lrmin;
+	    rz.first = rmax;
+	    up.push_back(rz);
+	    rz.first = rmin;
+	    down.push_back(rz);
+	  }
+	}
+	zmax = lzmax;
+	// special treatment for last disc
+	if (layer == n_of_layers) {
+	  rz.first = rmax;
+	  rz.second = zmax - xml_z_pixfwd;
+	  up.push_back(rz);
+	  rz.first = rmin;
+	  down.push_back(rz);
+	}
       }
+      layer++;
     }
   }
 
   /**
-   * This is one of the two main analysis functions that provide the core functionality of this class. It examines the barrel layers
-   * and the modules within, extracting a great range of different pieces of information from the geometry layout. These are shapes
-   * for individual modules, but also for their enclosing volumes, divided into rods and the layers themselves. They form hierarchies
-   * of volumes, one inside the other, and are placed within their parent volumes according to individual placement rules or algorithms,
-   *  sometimes using globally defined rotations. They also include some topology, such as which volumes contain the active surfaces,
-   * and how those active surfaces are subdivided and connected to the readout electronics. Last but not least, overall radiation and
-   * interaction lengths for each layer are calculated and stored; those are used as approximative values for certain CMSSW functions
-   * later on. Short layers are treated according to some specialised rules, but also processed in here.
+   * This is one of the two main analysis functions that provide the core functionality of this class. 
+   * It examines the barrel layers and the modules within, extracting a great range of different pieces of information 
+   * from the geometry layout. The volumes considered are layers, rods, potentially tilted rings, modules (with wafer, 
+   * active surfaces, hybrids, support plate). They form hierarchies of volumes, one inside the other. 
+   * Output information are volume hierarchy, material, shapes, positioning (potential use of algorithm and rotations). 
+   * They is also some topology, such as which volumes contain the active surfaces, and how those active surfaces are subdivided
+   * and connected to the readout electronics. Last but not least, overall radiation and interaction lengths for each layer are 
+   * calculated and stored; those are used as approximative values for certain CMSSW functions later on.
    * @param mt A reference to the global material table; used as input
    * @param bc A reference to the collection of material properties of the barrel modules; used as input
    * @param tr A reference to the tracker object; used as input
@@ -409,15 +441,12 @@ namespace insur {
    */
   void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr,
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                                std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
-    int layer;
+                                std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
 
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
 
-    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
-    std::vector<ModuleCap>::iterator iiter, iguard;
 
     // Container inits
     ShapeInfo shape;
@@ -442,237 +471,279 @@ namespace insur {
     rot.thetaz = 0.0;
 
     ModuleROCInfo minfo;
-    ModuleROCInfo minfo_zero={}; 
+    ModuleROCInfo minfo_zero={};
     SpecParInfo rocdims, lspec, rspec, mspec;
     // Layer
     lspec.name = xml_subdet_layer + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
     lspec.parameter.second = xml_det_layer;
     // Rod
-    rspec.name = xml_subdet_rod + xml_par_tail;
+    rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
-    rspec.parameter.second = xml_det_rod;
+    rspec.parameter.second = xml_det_straight_or_tilted_rod;
     // Module
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tobdet;
 
-    // name goes into trackerStructureTopology
-    // parameter.first goes into trackerStructureTopology
-    // parameter.second goes into trackerStructureTopology?
-    //   >> well, as long as the values are TOBLayer, TOBRod, TOBDet
-    //   >> they do not go into any file!
 
+    // material properties
     RILengthInfo ril;
     ril.barrel = true;
     ril.index = 0;
 
-    // b_mod: one composite for every module position on rod
-    // s and l: one entry for every module position on rod (box), one for every layer (tube), rods TBD
-    // p: one entry for every layer (two for short layers), two modules, one wafer and active for each ring on rod
-    // a: rods within layer (twice in case of a short layer)
-    layer = 1;
-    alg.name = xml_tobalgo;
 
+    // aggregate information about the modules
     LayerAggregator lagg;
     tr.accept(lagg);
     lagg.postVisit();
     std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
-    oguard = bc.end();
 
-    // barrel caps layer loop
-    for (oiter = bc.begin(); oiter != oguard; oiter++) {
-      struct ThicknessVisitor : public ConstGeometryVisitor {
-        double max = 0;
-        void visit(const Module& m) { max = MAX(max, m.thickness()); }
-      };
-      ThicknessVisitor v;
-      lagg.getBarrelLayers()->at(layer-1)->accept(v);
+    std::vector<std::vector<ModuleCap> >::iterator oiter;
+    std::vector<ModuleCap>::iterator iiter;
+    
+    int layer = 1;
 
-      double rmin = lagg.getBarrelLayers()->at(layer - 1)->minR();
-      //rmin = rmin - v.max / 2.0; // no need to manually add/subtract the thickness, it is already taken into account by the new volumetric minR/maxR functions
-      double rmax = lagg.getBarrelLayers()->at(layer - 1)->maxR();
-      //rmax = rmax + v.max / 2.0;
-      double zmin = lagg.getBarrelLayers()->at(layer - 1)->minZ();
-      double zmax = lagg.getBarrelLayers()->at(layer - 1)->maxZ();
-      double rodThickness = lagg.getBarrelLayers()->at(layer - 1)->rodThickness();
-      double deltar = rodThickness; //rmax - rmin; //findDeltaR(lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->begin(),
-      //           lagg.getBarrelLayers()->at(layer - 1)->getModuleVector()->end(), (rmin + rmax) / 2.0);
 
-      double ds, dt = 0.0;
-      double rtotal = 0.0, itotal = 0.0;
+    // LOOP ON LAYERS
+    for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
+      
+      // is the layer tilted ?
+      bool isTilted = lagg.getBarrelLayers()->at(layer - 1)->isTilted();
+     
+      // Calculate geometrical extrema of rod (straight layer), or of rod part + tilted ring (tilted layer)
+      // straight layer : x and y extrema of rod
+      double xmin = std::numeric_limits<double>::max();
+      double xmax = 0;
+      double ymin = std::numeric_limits<double>::max();
+      double ymax = 0;
+      // straight or tilted layer : z and r extrema of rod (straight layer), or of {rod part + tilted ring} (tilted layer)
+      //double zmin = std::numeric_limits<double>::max();
+      double zmax = 0;
+      double rmin = std::numeric_limits<double>::max();
+      double rmax = 0;
+      // tilted layer : x, y, z, and r extrema of rod part
+      double flatPartMinX = std::numeric_limits<double>::max();
+      double flatPartMaxX = 0;
+      double flatPartMinY = std::numeric_limits<double>::max();
+      double flatPartMaxY = 0;
+      double flatPartMaxZ = 0;
+      double flatPartMinR = std::numeric_limits<double>::max();
+      double flatPartMaxR = 0;
+      // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
+      double RadiusIn = 0;
+      double RadiusOut = 0;
+      // loop on module caps
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	// only positive side, and modules with uniref phi == 1 or 2
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	  int modRing = iiter->getModule().uniRef().ring;
+	  // layer name
+	  std::ostringstream lname;
+	  lname << xml_layer << layer; // e.g. Layer1
+	  // module name
+	  std::ostringstream mname;
+	  mname << xml_barrel_module << modRing << lname.str(); //.e.g. BModule1Layer1
+	  // parent module name
+	  std::string parentName = mname.str();
+	  // build module volumes, with hybrids taken into account
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+	  if (iiter->getModule().uniRef().phi == 1) {
+	    xmin = MIN(xmin, modcomplex.getXmin());
+	    xmax = MAX(xmax, modcomplex.getXmax());
+	    ymin = MIN(ymin, modcomplex.getYmin());
+	    ymax = MAX(ymax, modcomplex.getYmax());
+	    // tilted layer : rod part
+	    if (isTilted && iiter->getModule().tiltAngle() == 0) {
+	      flatPartMinX = MIN(flatPartMinX, modcomplex.getXmin());
+	      flatPartMaxX = MAX(flatPartMaxX, modcomplex.getXmax());
+	      flatPartMinY = MIN(flatPartMinY, modcomplex.getYmin());
+	      flatPartMaxY = MAX(flatPartMaxY, modcomplex.getYmax());
+	    }
+	  }
+	  // for z and r, uniref phi == 2 has to be taken into account too
+	  // (because different from uniref phi == 1 in case of tilted layer)
+	  zmax = MAX(zmax, modcomplex.getZmax());
+	  //zmin = -zmax;
+	  rmin = MIN(rmin, modcomplex.getRmin());
+	  rmax = MAX(rmax, modcomplex.getRmax());
+	  // tilted layer : rod part
+	  if (isTilted && (iiter->getModule().tiltAngle() == 0)) {
+	    flatPartMaxZ = MAX(flatPartMaxZ, modcomplex.getZmax());
+	    flatPartMinR = MIN(flatPartMinR, modcomplex.getRmin());
+	    flatPartMaxR = MAX(flatPartMaxR, modcomplex.getRmax());
+	  }
+	  // both modRings 1 and 2 have to be taken into account because of small delta
+	  if (iiter->getModule().uniRef().phi == 1 && (modRing == 1 || modRing == 2)) { RadiusIn = RadiusIn + iiter->getModule().center().Rho() / 2; }
+	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
+	}
+      }
+      // tilted layer : r extrema of the layer
+      double lrmin = rmin;
+      double lrmax = rmax;
 
+
+      if ((rmax - rmin) == 0.0) continue;
+
+
+      shape.type = bx; // box
+      shape.rmin = 0.0;
+      shape.rmax = 0.0;
+
+
+      // for material properties
+      double rtotal = 0.0, itotal = 0.0;     
       int count = 0;
+      ril.index = layer;
+      
 
-      if (deltar == 0.0) continue;
+      std::ostringstream lname, rodname, pconverter;
+      lname << xml_layer << layer; // e.g. Layer1
+      rodname << xml_rod << layer; // e.g.Rod1
 
-      bool is_short = (zmax < 0.0) || (zmin > 0.0);
-      bool is_relevant = !is_short || (zmin > 0.0);
+      // information on tilted rings, indexed by ring number
+      std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
+      std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
 
-      if (is_relevant) {
 
-        shape.type = bx; // box
-        shape.rmin = 0.0;
-        shape.rmax = 0.0;
+      // LOOP ON MODULE CAPS 
+      for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+        
+	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
+	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
-        ril.index = layer;
+	  // ring number (position on rod, or tilted ring number)
+	  int modRing = iiter->getModule().uniRef().ring; 
+    
+	  // tilt angle of the module
+	  double tiltAngle = 0;
+	  if (isTilted) { tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI; }
+	    
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
-        std::set<int> rings;
-        std::ostringstream lname, rname, pconverter;
+	  // module name
+	  std::ostringstream mname;
+	  mname << xml_barrel_module << modRing << lname.str(); // e.g. BModule1Layer1
 
-        lname << xml_layer << layer;
-        rname << xml_rod << layer;
+	  // parent module name
+	  std::string parentName = mname.str();
 
-        // lname and rname are Layer1 and Rod1 and go into all files
+	  // build module volumes, with hybrids taken into account
+	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	  modcomplex.buildSubVolumes();
+#ifdef __DEBUGPRINT__
+	  modcomplex.print();
+#endif
 
-        iguard = oiter->end();
+	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
+	  if (iiter->getModule().uniRef().phi == 1) {
 
-        // module caps loop
-        for (iiter = oiter->begin(); iiter != iguard; iiter++) {
-          int modRing = iiter->getModule().uniRef().ring;
-          if (rings.find(modRing) == rings.end()) {
-
-            // This is the Barrel Case
             std::vector<ModuleCap>::iterator partner;
-            std::ostringstream matname, shapename, specname;
 
-#ifndef __ADDVOLUMES__ 
-            // module composite material
-            matname << xml_base_actcomp << "L" << layer << "P" << modRing; 
-            c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
-#endif
+            std::ostringstream ringname, matname, specname;
+	    ringname << xml_ring << modRing << lname.str();
 
-            // module box
-            shapename << modRing << lname.str();
-            shape.name_tag = xml_barrel_module + shapename.str();
-#ifndef __ADDVOLUMES__
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-            shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().thickness() / 2.0;
-#else
-            // Expand volumes for hybrids
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dz = iiter->getModule().thickness() / 2.0; // + iiter->getModule().supportPlateThickness(); This is only needed PS module on endcaps
-#endif
-            s.push_back(shape);
-#ifdef __ADDVOLUMES__ 
-            // Get it back for sensors
-            shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
-            shape.dy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().thickness() / 2.0;
-#endif
 
-            logic.name_tag = shape.name_tag;
-            logic.shape_tag = nspace + ":" + logic.name_tag;
-#if 0
-            logic.material_tag = nspace + ":" + matname.str();
-#else
+	    // MODULE
+
+	    // For SolidSection in tracker.xml : module's box shape
+            shape.name_tag = mname.str();
+            //shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+            //shape.dy = iiter->getModule().length() / 2.0;
+            //shape.dz = iiter->getModule().thickness() / 2.0;
+            shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+            shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+            shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+	    s.push_back(shape);
+	    
+
+	    // For LogicalPartSection in tracker.xml : module's material
+            //logic.material_tag = nspace + ":" + matname.str();
             logic.material_tag = xml_material_air;
-#endif
-            l.push_back(logic);
+            logic.name_tag = mname.str();
+            logic.shape_tag = nspace + ":" + logic.name_tag;
+	    l.push_back(logic);	    
+	    // module composite material
+            //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
+            //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+            
 
-            // name_tag is BModule1Layer1 and it goes into all files
+	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
+            if (!isTilted || (isTilted && (tiltAngle == 0))) {
+	      pos.parent_tag = nspace + ":" + rodname.str();
+	      pos.child_tag = nspace + ":" + mname.str();
+	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
-            pos.child_tag = logic.shape_tag;
-            pos.rotref = nspace + ":" + xml_barrel_tilt;
+	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
+	      pos.trans.dz = iiter->getModule().center().Z();
+	      if (!iiter->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      p.push_back(pos);
+	      
+	      // This is a copy of the BModule (FW/BW barrel half)
+	      if (partner != oiter->end()) {
+		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
+		pos.trans.dz = partner->getModule().center().Z();
+		if (!partner->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+		pos.copy = 2; 
+		p.push_back(pos);
+		pos.copy = 1;
+	      }
+	      pos.rotref = "";
+	    }
 
-            if ((iiter->getModule().center().Rho() > (rmax - deltar / 2.0))
-                || ((iiter->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-                    && (iiter->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
-            else pos.trans.dx = shape.dz - deltar / 2.0;
 
-            if (is_short) {
-              pos.parent_tag = nspace + ":" + rname.str() + xml_plus;
-              pos.trans.dz = iiter->getModule().minZ() - ((zmax + zmin) / 2.0) + shape.dy;
-              p.push_back(pos);
-              pos.parent_tag = nspace + ":" + rname.str() + xml_minus;
-              pos.trans.dz = -pos.trans.dz;
-              pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-              p.push_back(pos);
-              pos.copy = 1;
-            } else {
-              pos.parent_tag = nspace + ":" + rname.str();
-              partner = findPartnerModule(iiter, iguard, modRing);
-              if (iiter->getModule().uniRef().side > 0) { 
-                pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
-                p.push_back(pos);
-                if (partner != iguard) {
-                  if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
-                      || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-                          && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
-                  else pos.trans.dx = shape.dz - deltar / 2.0;
-                  pos.trans.dz = partner->getModule().maxZ() - shape.dy;
-                  pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-                  p.push_back(pos);
-                  pos.copy = 1;
-                }
-              } else {
-                pos.trans.dz = iiter->getModule().maxZ() - shape.dy;
-                pos.copy = 2; // This is a copy of the BModule (FW/BW barrel half)
-                p.push_back(pos);
-                pos.copy = 1;
-                if (partner != iguard) {
-                  if ((partner->getModule().center().Rho() > (rmax - deltar / 2.0))
-                      || ((partner->getModule().center().Rho() < ((rmin + rmax) / 2.0))
-                          && (partner->getModule().center().Rho() > (rmin + deltar / 2.0)))) pos.trans.dx = deltar / 2.0 - shape.dz;
-                  else pos.trans.dx = shape.dz - deltar / 2.0;
-                  pos.trans.dz = partner->getModule().maxZ() - shape.dy;
-                  p.push_back(pos);
-                }
-              }
-            }
-            pos.rotref = "";
+            // WAFER
+            string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
-#ifdef __ADDVOLUMES__ 
-            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            ModuleComplex modcomplex(moduleName,*iiter);
-            modcomplex.buildSubVolumes();
-#endif
-
-            // wafer
-            string xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
-
-            shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+	    // SolidSection
+            shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
-            //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
-            s.push_back(shape);
+            s.push_back(shape);   
 
-            pos.parent_tag = logic.shape_tag;
-
-            logic.name_tag = shape.name_tag;
+	    // LogicalPartSection
+            logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
-            pos.child_tag = logic.shape_tag;
+	    // PosPart section
+            pos.parent_tag = nspace + ":" + mname.str();
+            pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
 
             if (iiter->getModule().numSensors() == 2) {
 
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
-              shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
+	      // SolidSection
+              shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
               s.push_back(shape);
 
-              logic.name_tag = shape.name_tag;
+	      // LogicalPartSection
+              logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = logic.shape_tag;
+	      // PosPart section
+              pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
               if (iiter->getModule().stereoRotation() != 0) {
-                rot.name = type_stereo + xml_barrel_module + shapename.str();
+                rot.name = type_stereo + mname.str();
                 rot.thetax = 90.0;
                 rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
-                r.push_back(rot);
+                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
                 pos.rotref = nspace + ":" + rot.name;
               }
               p.push_back(pos);
@@ -688,31 +759,37 @@ namespace insur {
             }
 
 
+            // ACTIVE SURFACE
+            xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
-            // active surface
-            xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
 
-            shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
-            s.push_back(shape);
+	    // SolidSection
+	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
+	    shape.dy = iiter->getModule().length() / 2.0;
+            shape.dz = iiter->getModule().sensorThickness() / 2.0;
+            s.push_back(shape);   
 
-            //pos.parent_tag = logic.shape_tag;
-            pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
-
+	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = nspace + ":" + xml_sensor_silicon;
             l.push_back(logic);
 
-            pos.child_tag = logic.shape_tag;
+	    // PosPart section
+            pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+            pos.child_tag = nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
             pos.rotref = nspace + ":" + rot_sensor_tag;
 #endif
             p.push_back(pos);
 
-            // topology
-            mspec.partselectors.push_back(logic.name_tag);
+            // Topology
+            mspec.partselectors.push_back(shape.name_tag);
 
             minfo.name		= iiter->getModule().moduleType();
             minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
@@ -724,34 +801,36 @@ namespace insur {
 
             if (iiter->getModule().numSensors() == 2) { 
 
-              // active surface
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
-              shape.name_tag = xml_barrel_module + shapename.str() + xml_base_inout + xml_base_act;
+	      // SolidSection
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
               s.push_back(shape);
 
-              pos.parent_tag = nspace + ":" + xml_barrel_module + shapename.str() + xml_base_inout + xml_base_waf;
-
+	      // LogicalPartSection
               logic.name_tag = shape.name_tag;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
-              pos.child_tag = logic.shape_tag;
+	      // PosPart section
+	      pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+              pos.child_tag = nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
               pos.rotref = nspace + ":" + rot_sensor_tag;
 #endif
               p.push_back(pos);
 
-              // topology
-              mspec.partselectors.push_back(logic.name_tag);
+              // Topology
+              mspec.partselectors.push_back(shape.name_tag);
 
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
               minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
-              minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
-              minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
+              minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
+              minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
 
               mspec.moduletypes.push_back(minfo);
-#ifdef __ADDVOLUMES__
               modcomplex.addMaterialInfo(c);
               modcomplex.addShapeInfo(s);
               modcomplex.addLogicInfo(l);
@@ -759,154 +838,281 @@ namespace insur {
 #ifdef __DEBUGPRINT__
               modcomplex.print();
 #endif
-#endif
             } // End of replica for Pt-modules
+
+
+	    // collect tilted ring info
+	    if (isTilted && (tiltAngle != 0)) {
+	      BTiltedRingInfo rinf;
+	      // ring on positive-z side
+	      rinf.name = ringname.str() + xml_plus;	      
+	      rinf.childname = mname.str();
+	      rinf.isZPlus = 1;
+	      rinf.tiltAngle = tiltAngle;
+	      rinf.bw_flipped = iiter->getModule().flipped();
+	      rinf.phi = iiter->getModule().uniRef().phi;
+	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	      rinf.r1 = iiter->getModule().center().Rho();
+	      rinf.z1 = iiter->getModule().center().Z();      
+	      rinf.rmin = modcomplex.getRmin();
+	      rinf.zmin = modcomplex.getZmin();
+	      rinf.rminatzmin = modcomplex.getRminatZmin();      
+	      rinfoplus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+
+	      // same ring on negative-z side
+	      rinf.name = ringname.str() + xml_minus;
+	      rinf.isZPlus = 0;
+	      rinf.z1 = - iiter->getModule().center().Z();
+	      rinfominus.insert(std::pair<int, BTiltedRingInfo>(modRing, rinf));
+	    }
+
 
             // material properties
             rtotal = rtotal + iiter->getRadiationLength();
             itotal = itotal + iiter->getInteractionLength();
             count++;
-            rings.insert(modRing);
-            dt = iiter->getModule().thickness();
-          }
-        }
-        if (count > 0) {
-          ril.rlength = rtotal / (double)count;
-          ril.ilength = itotal / (double)count;
-          ri.push_back(ril);
-        }
-        // rod(s)
-        shape.name_tag = rname.str();
-        if (is_short) shape.name_tag = shape.name_tag + xml_plus;
-        shape.dy = shape.dx;
-        shape.dx = rodThickness / 2.0;
-        if (is_short) shape.dz = (zmax - zmin) / 2.0;
-        else shape.dz = zmax;
-        s.push_back(shape);
-        logic.name_tag = shape.name_tag;
-        logic.shape_tag = nspace + ":" + logic.name_tag;
-        logic.material_tag = xml_material_air;
-        l.push_back(logic);
-        rspec.partselectors.push_back(logic.name_tag);
-        rspec.moduletypes.push_back(minfo_zero);
-        //rspec.moduletypes.push_back("");
-        pconverter << logic.shape_tag;
-        if (is_short) {
-          shape.name_tag = rname.str() + xml_minus;
-          s.push_back(shape);
-          logic.name_tag = shape.name_tag;
-          logic.shape_tag = nspace + ":" + logic.name_tag;
-          l.push_back(logic);
-          rspec.partselectors.push_back(logic.name_tag);
-          //rspec.moduletypes.push_back("");
-          rspec.moduletypes.push_back(minfo_zero);
-        }
-        ds = fromRim(rmax, shape.dy);
-        // extra containers for short layers
-        if (wt && is_short) {
-          shape.type = tb;
-          shape.dx = 0.0;
-          shape.dy = 0.0;
-          shape.rmin = rmin;
-          shape.rmax = rmax;
-          shape.name_tag = lname.str() + xml_plus;
-          s.push_back(shape);
-          logic.name_tag = shape.name_tag;
-          logic.shape_tag = nspace + ":" + logic.name_tag;
-          l.push_back(logic);
-          pos.trans.dx = 0.0;
-          pos.trans.dz = zmin + (zmax - zmin) / 2.0;
-          pos.parent_tag = nspace + ":" + lname.str();
-          pos.child_tag = logic.shape_tag;
-          p.push_back(pos);
-          shape.name_tag = lname.str() + xml_minus;
-          s.push_back(shape);
-          logic.name_tag = shape.name_tag;
-          logic.shape_tag = nspace + ":" + logic.name_tag;
-          l.push_back(logic);
-          pos.trans.dz = -pos.trans.dz;
-          pos.child_tag = logic.shape_tag;
-          p.push_back(pos);
-        }
-        // layer
-        shape.type = tb;
-        shape.dx = 0.0;
-        shape.dy = 0.0;
-        pos.trans.dx = 0.0;
-        pos.trans.dz = 0.0;
-        shape.name_tag = lname.str();
-        shape.rmin = rmin;
-        shape.rmax = rmax;
-        shape.dz = zmax;
-        s.push_back(shape);
-        logic.name_tag = shape.name_tag;
-        logic.shape_tag = nspace + ":" + logic.name_tag;
-        l.push_back(logic);
-        pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
-        pos.child_tag = logic.shape_tag;
-        p.push_back(pos);
-        lspec.partselectors.push_back(logic.name_tag);
-        //lspec.moduletypes.push_back("");
-        lspec.moduletypes.push_back(minfo_zero);
-        // rods in layer algorithm(s)
-        alg.parent = logic.shape_tag;
-        if (wt && is_short) alg.parent = alg.parent + xml_plus;
-        alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-        pconverter.str("");
-        pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
-        alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
-        pconverter.str("");
-        pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle();
-        alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-        pconverter.str("");
-        alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-        pconverter << (rmin + deltar / 2.0) << "*mm";
-        alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-        pconverter.str("");
-        pconverter << (rmax - ds - deltar / 2.0 - 2.0 * dt) << "*mm";
-        alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-        pconverter.str("");
-        if (!wt && is_short) {
-          pconverter << (zmin + (zmax - zmin) / 2.0) << "*mm";
-          alg.parameters.push_back(numericParam(xml_zposition, pconverter.str()));
-          pconverter.str("");
-        }
-        else alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-        pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-        alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-        alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-        alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-        a.push_back(alg);
-        // extras for short layers
-        if (is_short) {
-          pconverter.str("");
-          if (wt) alg.parent = logic.shape_tag + xml_minus;
-          pconverter << nspace << ":" << rname.str() << xml_minus;
-          alg.parameters.front() = stringParam(xml_childparam, pconverter.str());
-          pconverter.str("");
-          if (wt) pconverter << "0.0*mm";
-          else pconverter << -(zmin + (zmax - zmin) / 2.0) << "*mm";
-          alg.parameters.at(6) = numericParam(xml_zposition, pconverter.str());
-          a.push_back(alg);
-        }
-        alg.parameters.clear();
+	    //double dt = modcomplex.getExpandedModuleThickness();
+	  }
+
+
+	  // ONLY MODULES WITH UNIREF PHI == 2 OF THE TILTED RINGS (TILTED LAYER)
+	  if (isTilted && (iiter->getModule().uniRef().phi == 2)) {
+	    std::map<int,BTiltedRingInfo>::iterator it;
+	    // fill the info of the z-positive ring with matching ring number
+	    it = rinfoplus.find(modRing);
+	    if (it != rinfoplus.end()) {
+	      it->second.fw_flipped = iiter->getModule().flipped();
+	      it->second.r2 = iiter->getModule().center().Rho();
+	      it->second.z2 = iiter->getModule().center().Z();
+	      it->second.rmax = modcomplex.getRmax();
+	      it->second.zmax = modcomplex.getZmax();
+	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
+	    }
+	    // fill the info of the z-negative ring with matching ring number
+	    it = rinfominus.find(modRing);
+	    if (it != rinfominus.end()) {
+	      it->second.fw_flipped = iiter->getModule().flipped();
+	      it->second.r2 = iiter->getModule().center().Rho();
+	      it->second.z2 = - iiter->getModule().center().Z();
+	      it->second.rmax = modcomplex.getRmax();
+	      it->second.zmax = modcomplex.getZmax();
+	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
+	    }
+	  }
+	}
       }
+      // material properties
+      if (count > 0) {
+	ril.rlength = rtotal / (double)count;
+	ril.ilength = itotal / (double)count;
+	ri.push_back(ril);
+      }
+
+
+      // rod(s)
+      shape.name_tag = rodname.str();
+      shape.dx = (ymax - ymin) / 2 + xml_epsilon;
+      if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
+      shape.dy = (xmax - xmin) / 2 + xml_epsilon;
+      if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
+      shape.dz = zmax + xml_epsilon;
+      if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
+      s.push_back(shape);
+      logic.name_tag = rodname.str();
+      logic.shape_tag = nspace + ":" + logic.name_tag;
+      logic.material_tag = xml_material_air;
+      l.push_back(logic);
+      rspec.partselectors.push_back(rodname.str());
+      rspec.moduletypes.push_back(minfo_zero);
+        
+
+      // rods in layer algorithm(s)
+      alg.name = xml_phialt_algo;
+      alg.parent = nspace + ":" + lname.str();
+      pconverter <<  nspace + ":" + rodname.str();
+      alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+      pconverter.str("");
+      pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+      alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+      pconverter.str("");
+      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
+      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+      pconverter.str("");
+      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+      pconverter << RadiusIn << "*mm";
+      alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+      pconverter.str("");
+      pconverter << RadiusOut << "*mm";
+      alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+      pconverter.str("");
+      alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+      pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
+      alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+      pconverter.str("");
+      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+      alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+      a.push_back(alg);
+      alg.parameters.clear();
+
+      
+      // tilted rings
+      if ( !rinfoplus.empty() || !rinfominus.empty() ) {
+
+	std::map<std::string, std::map<int,BTiltedRingInfo>> rinfototal;
+	if ( !rinfoplus.empty() ) { rinfototal.insert({"rinfoplus", rinfoplus}); }
+	if ( !rinfominus.empty() ) { rinfototal.insert({"rinfominus", rinfominus}); }
+
+	for (auto const &rinfoside : rinfototal) {
+	  shape.type = co; //section of cone
+	  shape.dx = 0.0;
+	  shape.dy = 0.0;
+	  shape.dyy = 0.0;	  
+	  pos.trans.dx = 0;
+	  pos.trans.dy = 0;
+	  pos.trans.dz = 0;
+
+	  for (auto const &ringinfo : rinfoside.second) {
+	    auto const& rinfo = ringinfo.second;
+	    if (rinfo.modules > 0) {
+
+	      shape.name_tag = rinfo.name;
+	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2. + xml_epsilon;
+	      if (rinfo.isZPlus) {
+		shape.rmin1 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax2 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		// update r extrema of the layer with cones extrema
+		lrmin = MIN( lrmin, shape.rmin2);
+		lrmax = MAX( lrmax, shape.rmax1);		
+	      }	        
+	      else {
+		shape.rmin1 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax1 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmin2 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		shape.rmax2 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
+		// update r extrema of the layer with cones extrema		
+		lrmin = MIN( lrmin, shape.rmin1);
+		lrmax = MAX( lrmax, shape.rmax2);
+	      }
+	      s.push_back(shape);
+
+	      logic.name_tag = rinfo.name;
+	      logic.shape_tag = nspace + ":" + logic.name_tag;
+	      logic.material_tag = xml_material_air;
+	      l.push_back(logic);
+	      
+	      pos.parent_tag = nspace + ":" + lname.str();
+	      pos.child_tag = nspace + ":" + rinfo.name;
+	      pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2.0; 
+	      p.push_back(pos);
+	      
+	      rspec.partselectors.push_back(rinfo.name);
+	      //rspec.moduletypes.push_back(minfo_zero);
+	      
+	      // backward part of the ring
+	      alg.name = xml_trackerring_algo;
+	      alg.parent = nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
+	      pconverter << (rinfo.modules / 2);
+	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	      pconverter.str("");
+	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
+	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.r1;
+	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	      pconverter.str("");
+	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z1 - rinfo.z2) / 2.0));	      
+	      pconverter << rinfo.isZPlus;
+	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.tiltAngle << "*deg";
+	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.bw_flipped;
+	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	      pconverter.str("");
+	      a.push_back(alg);
+	      alg.parameters.clear();
+	      
+	      // forward part of the ring
+	      alg.name =  xml_trackerring_algo;
+	      alg.parent = nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo.childname));
+	      pconverter << (rinfo.modules / 2);
+	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
+	      pconverter.str("");
+	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
+	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.r2;
+	      alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
+	      pconverter.str("");
+	      alg.parameters.push_back(vectorParam(0, 0, (rinfo.z2 - rinfo.z1) / 2.0));
+	      pconverter << rinfo.isZPlus;
+	      alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.tiltAngle << "*deg";
+	      alg.parameters.push_back(numericParam(xml_tiltangle, pconverter.str()));
+	      pconverter.str("");
+	      pconverter << rinfo.fw_flipped;
+	      alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	      pconverter.str("");
+	      a.push_back(alg);
+	      alg.parameters.clear();
+	    }
+	  }
+	}
+      }
+
+      // layer
+      shape.type = tb;
+      shape.dx = 0.0;
+      shape.dy = 0.0;
+      pos.trans.dx = 0.0;
+      pos.trans.dz = 0.0;
+      shape.name_tag = lname.str();
+      shape.rmin = rmin - 2 * xml_epsilon;
+      shape.rmax = rmax + 2 * xml_epsilon;
+      if (isTilted) {
+	shape.rmin = lrmin - xml_epsilon;
+	shape.rmax = lrmax + xml_epsilon;
+      }
+      shape.dz = zmax + 2 * xml_epsilon;
+      s.push_back(shape);
+      logic.name_tag = lname.str();
+      logic.shape_tag = nspace + ":" + logic.name_tag;
+      l.push_back(logic);
+      pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
+      pos.child_tag = nspace + ":" + lname.str();
+      p.push_back(pos);
+      lspec.partselectors.push_back(lname.str());
+      //lspec.moduletypes.push_back("");
+      lspec.moduletypes.push_back(minfo_zero);
+
       layer++;
     }
     if (!lspec.partselectors.empty()) t.push_back(lspec);
     if (!rspec.partselectors.empty()) t.push_back(rspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
-
+  
   /**
    * This is one of the two main analysis functions that provide the core functionality of this class. It examines the endcap discs in z+
    * and the rings and modules within, extracting a great range of different pieces of information from the geometry layout. These
    * are shapes for individual modules, but also for their enclosing volumes, divided into rings and then discs. They form hierarchies
-   * of volumes, one inside the other, and are placed within their parent volumes according to individual placement rules or algorithms,
-   *  sometimes using globally defined rotations. They also include some topology, such as which volumes contain the active surfaces,
-   * and how those active surfaces are subdivided and connected to the readout electronics. Last but not least, overall radiation and
-   * interaction lengths for each disc are calculated and stored; those are used as approximative values for certain CMSSW functions
-   * later on.
+   * of volumes, one inside the other.
+   * Output information are volume hierarchy, material, shapes, positioning (potential use of algorithm and rotations). 
+   * They is also some topology, such as which volumes contain the active surfaces, and how those active surfaces are subdivided
+   * and connected to the readout electronics. Last but not least, overall radiation and interaction lengths for each layer are 
+   * calculated and stored; those are used as approximative values for certain CMSSW functions later on.
    * @param mt A reference to the global material table; used as input
    * @param ec A reference to the collection of material properties of the endcap modules; used as input
    * @param tr A reference to the tracker object; used as input
@@ -921,15 +1127,12 @@ namespace insur {
    */
   void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                               std::vector<AlgoInfo>& a, std::vector<Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
-    int layer;
+                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
 
     std::string nspace;
     if (wt) nspace = xml_newfileident;
     else nspace = xml_fileident;
 
-    std::vector<std::vector<ModuleCap> >::iterator oiter, oguard;
-    std::vector<ModuleCap>::iterator iiter, iguard;
 
     // Container inits
     ShapeInfo shape;
@@ -969,148 +1172,166 @@ namespace insur {
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tiddet;
 
+
+    // material properties
     RILengthInfo ril;
     ril.barrel = false;
-    ril.index = 0;
+    ril.index = 0;  
 
-    // e_mod: one composite for every ring
-    // s and l: one entry for every ring module, one for every ring, one for every disc
-    // p: one entry for every disc, one for every ring, one module, wafer and active per ring
-    // a: two per ring with modules inside ring
-    layer = 1;
-    alg.name = xml_ecalgo;
-    oguard = ec.end();
 
     LayerAggregator lagg;
     tr.accept(lagg);
 
-    // endcap caps layer loop
-    for (oiter = ec.begin(); oiter != oguard; oiter++) {
+    std::vector<std::vector<ModuleCap> >::iterator oiter;
+    std::vector<ModuleCap>::iterator iiter;
+
+    int layer = 1;
+
+
+    // LOOP ON DISKS
+    for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
+
       if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
+   
+	int numRings = lagg.getEndcapLayers()->at(layer - 1)->numRings();
 
-        ril.index = layer;
-        std::set<int> ridx;
-        std::map<int, RingInfo> rinfo;
+	// Calculate z extrema of the disk, maxRingThickness, and diskThickness
+	// r extrema of disk and ring
+	double rmin = std::numeric_limits<double>::max();
+	double rmax = 0;
+	// z extrema of disk
+	double zmin = std::numeric_limits<double>::max();
+	double zmax = 0;
+	// z extrema of ring
+	std::vector<double> ringzmin (numRings, std::numeric_limits<double>::max());
+	std::vector<double> ringzmax (numRings, 0);
 
-        struct ThicknessVisitor : public ConstGeometryVisitor {
-          double max = 0;
-          void visit(const Module& m) { max = MAX(max, m.thickness()); }
-        };
-        ThicknessVisitor v;
-        lagg.getEndcapLayers()->at(layer-1)->accept(v);
-		// CUIDADO refactor using Disk methods for min/max Z,R
-        double rmin = lagg.getEndcapLayers()->at(layer - 1)->minR();
-        double rmax = lagg.getEndcapLayers()->at(layer - 1)->maxR();
-        double zmax = lagg.getEndcapLayers()->at(layer - 1)->maxZ();
-        //zmax = zmax + v.max / 2.0; 
-        double zmin = lagg.getEndcapLayers()->at(layer - 1)->minZ();
-        //zmin = zmin - v.max / 2.0;
-        double ringThickness = lagg.getEndcapLayers()->at(layer - 1)->maxRingThickness(); // all the ring volumes will have the same thickness (equal to the thickest ring in the disk)  
-        double diskThickness = lagg.getEndcapLayers()->at(layer - 1)->thickness();
+	// loop on module caps
+	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+	    int modRing = iiter->getModule().uniRef().ring;
+	    //disk name
+	    std::ostringstream dname;
+	    dname << xml_disc << layer; // e.g. Disc6
+	    // module name
+	    std::ostringstream mname;
+	    mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+	    // parent module name	  
+	    std::string parentName = mname.str();
+	    // build module volumes, with hybrids taken into account
+	    ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+	    modcomplex.buildSubVolumes();
+	    rmin = MIN(rmin, modcomplex.getRmin());
+	    rmax = MAX(rmax, modcomplex.getRmax());	  
+	    zmin = MIN(zmin, modcomplex.getZmin());  
+	    zmax = MAX(zmax, modcomplex.getZmax());
+	    ringzmin.at(modRing - 1) = MIN(ringzmin.at(modRing - 1), modcomplex.getZmin());  
+	    ringzmax.at(modRing - 1) = MAX(ringzmax.at(modRing - 1), modcomplex.getZmax());
+	  }
+	}
+	double maxRingThickness = 0;
+	for (int i = 0; i < numRings; i++) { maxRingThickness = MAX(maxRingThickness, (ringzmax.at(i) - ringzmin.at(i))); }
+	double diskThickness = zmax - zmin;
 
-        std::ostringstream dname, pconverter;
-
-        double rtotal = 0.0, itotal = 0.0;
-        int count = 0;
-        dname << xml_disc << layer;
-
-        //shape.type = tp;
+	//shape.type = tp;
         shape.rmin = 0.0;
         shape.rmax = 0.0;
         pos.trans.dz = 0.0;
-        iguard = oiter->end();
 
-        // endcap module caps loop
-        for (iiter = oiter->begin(); iiter != iguard; iiter++) {
+
+	// for material properties
+        double rtotal = 0.0, itotal = 0.0;
+        int count = 0;
+	ril.index = layer;
+
+
+	//if (zmin > 0) {	
+        std::ostringstream dname, pconverter;
+	//disk name
+        dname << xml_disc << layer; // e.g. Disc6
+
+        std::map<int, ERingInfo> rinfo;
+	std::set<int> ridx;
+
+
+        // LOOP ON MODULE CAPS
+        for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+
+	  // ring number
           int modRing = iiter->getModule().uniRef().ring;
+
+	  //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
+
           // new ring
           if (ridx.find(modRing) == ridx.end()) {
-
-            // This is the Barrel Case
             ridx.insert(modRing);
+
             std::ostringstream matname, rname, mname, specname;
+	    // ring name
+            rname << xml_ring << modRing << dname.str(); // e.g. Ring1Disc6
+	    // module name
+            mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
+ 
+            // parent module name
+            std::string parentName = mname.str();
 
-#ifndef __ADDVOLUMES__
-            // module composite material
-            matname << xml_base_actcomp << "D" << layer << "R" << modRing;
-            c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+	    // build module volumes, with hybrids taken into account
+            ModuleComplex modcomplex(mname.str(),parentName,*iiter);
+            modcomplex.buildSubVolumes();          
+#ifdef __DEBUGPRINT__
+	    modcomplex.print();
 #endif
 
-            rname << xml_ring << modRing << dname.str();
-            mname << xml_endcap_module << modRing << dname.str();
 
-            // collect ring info
-            RingInfo rinf;
-            rinf.name = rname.str();
-            rinf.childname = mname.str();
-            rinf.fw = (iiter->getModule().center().Z() < (zmin + zmax) / 2.0);
-            //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing-1).numModules();
-            //rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->rings().at(modRing).numModules();
-            rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
+	    // MODULE
 
-            rinf.rin = iiter->getModule().minR();
-            rinf.rout = iiter->getModule().maxR();
-            rinf.rmid = iiter->getModule().center().Rho();
-            rinf.mthk = iiter->getModule().thickness();
-            rinf.phi = iiter->getModule().center().Phi();
-            rinfo.insert(std::pair<int, RingInfo>(modRing, rinf));
-
-            // module trapezoid
-
+            // module box
+	    shape.name_tag = mname.str();
             shape.type = iiter->getModule().shape() == RECTANGULAR ? bx : tp;
-
-            shape.name_tag = mname.str();
-#ifndef __ADDVOLUMES__
-            shape.dx = iiter->getModule().minWidth() / 2.0;
-            shape.dxx = iiter->getModule().maxWidth() / 2.0;
-            shape.dy = iiter->getModule().length() / 2.0;
-            shape.dyy = iiter->getModule().length() / 2.0;
-            shape.dz = iiter->getModule().thickness() / 2.0;
-#else       // Expand module size for hybrids
-            shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
-            shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
-            shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
-#endif
-            //shape.dx = iiter->getModule().length() / 2.0;
-            //shape.dy = iiter->getModule().minWidth() / 2.0;
-            //shape.dyy = iiter->getModule().maxWidth() / 2.0;
+            //shape.dx = iiter->getModule().minWidth() / 2.0;
+            //shape.dxx = iiter->getModule().maxWidth() / 2.0;
+            //shape.dy = iiter->getModule().length() / 2.0;
+            //shape.dyy = iiter->getModule().length() / 2.0;
+            //shape.dz = iiter->getModule().thickness() / 2.0;    
+            if (shape.type==bx) {
+              shape.dx = modcomplex.getExpandedModuleWidth()/2.0;
+              shape.dy = modcomplex.getExpandedModuleLength()/2.0;
+              shape.dz = modcomplex.getExpandedModuleThickness()/2.0;
+            } else { // obsolete !
+              shape.dx = iiter->getModule().minWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+              shape.dxx = iiter->getModule().maxWidth() / 2.0 + iiter->getModule().serviceHybridWidth();
+              shape.dy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+              shape.dyy = iiter->getModule().length() / 2.0 + iiter->getModule().frontEndHybridWidth();
+              shape.dz = iiter->getModule().thickness() / 2.0 + iiter->getModule().supportPlateThickness();
+            }
             s.push_back(shape);
-#ifdef __ADDVOLUMES__ 
+
             // Get it back for sensors
             shape.dx = iiter->getModule().minWidth() / 2.0;
             shape.dxx = iiter->getModule().maxWidth() / 2.0;
             shape.dy = iiter->getModule().length() / 2.0;
             shape.dyy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().thickness() / 2.0;
-#endif
 
-            logic.name_tag = shape.name_tag;
+            logic.name_tag = mname.str();
             logic.shape_tag = nspace + ":" + logic.name_tag;
-#if 0
-            logic.material_tag = nspace + ":" + matname.str();
-#else
+
+            //logic.material_tag = nspace + ":" + matname.str();
             logic.material_tag = xml_material_air;
-#endif
             l.push_back(logic);
-
-#ifdef __ADDVOLUMES__ 
-            std::string moduleName = shape.name_tag; // e.g. BModule1Layer1
-            ModuleComplex modcomplex(moduleName,*iiter);
-            modcomplex.buildSubVolumes();
-#endif
+	    // module composite material
+            //matname << xml_base_actcomp << "D" << layer << "R" << modRing;
+            //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 
 
-            // wafer -- same x and y size of parent shape, but different thickness
-            string xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
-
+            // WAFER -- same x and y size of parent shape, but different thickness
+            string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
             pos.parent_tag = logic.shape_tag;
 
-            shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
+            shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
             shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
             //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
             s.push_back(shape);
@@ -1122,16 +1343,16 @@ namespace insur {
 
             pos.child_tag = logic.shape_tag;
 
-            if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
+            if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
             else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
             p.push_back(pos);
             if (iiter->getModule().numSensors() == 2) {
 
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
               //pos.parent_tag = logic.shape_tag;
 
-              shape.name_tag = mname.str() + xml_base_inout+ xml_base_waf;
+              shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
               s.push_back(shape);
 
               logic.name_tag = shape.name_tag;
@@ -1140,7 +1361,7 @@ namespace insur {
 
               pos.child_tag = logic.shape_tag;
 
-              if (iiter->getModule().maxZ() > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
+              if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*pos.trans.dz + 2 * shape.dz +*/  iiter->getModule().dsDistance() / 2.0; // CUIDADO removed pos.trans.dz + 2*shape.dz, added / 2.0
               else pos.trans.dz = /* pos.trans.dz - 2 * shape.dz -*/ - iiter->getModule().dsDistance() / 2.0;
               //pos.copy = 2;
               if (iiter->getModule().stereoRotation() != 0) {
@@ -1149,7 +1370,7 @@ namespace insur {
                 rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
-                r.push_back(rot);
+                r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
                 pos.rotref = nspace + ":" + rot.name;
               }
 
@@ -1166,15 +1387,16 @@ namespace insur {
             }
 
 
-
-            // active surface
-            xml_base_inout = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_inout = xml_base_inner;
+            // ACTIVE SURFACE
+            xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
 
             //pos.parent_tag = logic.shape_tag;
-            pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+            pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
-            shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
+	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
@@ -1189,7 +1411,7 @@ namespace insur {
 #endif
             p.push_back(pos);
 
-            // topology
+            // Topology
             mspec.partselectors.push_back(logic.name_tag);
 
             minfo.name		= iiter->getModule().moduleType();
@@ -1202,13 +1424,14 @@ namespace insur {
 
             if (iiter->getModule().numSensors() == 2) {
 
-              // active surface
-              xml_base_inout = xml_base_outer;
+              xml_base_lowerupper = xml_base_upper;
 
               //pos.parent_tag = logic.shape_tag;
-              pos.parent_tag = nspace + ":" + mname.str() + xml_base_inout + xml_base_waf;
+              pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 
-              shape.name_tag = mname.str() + xml_base_inout + xml_base_act;
+	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
+	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
               s.push_back(shape);
 
               logic.name_tag = shape.name_tag;
@@ -1223,7 +1446,7 @@ namespace insur {
 #endif
               p.push_back(pos);
 
-              // topology
+              // Topology
               mspec.partselectors.push_back(logic.name_tag);
 
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
@@ -1233,8 +1456,6 @@ namespace insur {
 
               mspec.moduletypes.push_back(minfo);
               //mspec.moduletypes.push_back(iiter->getModule().getType());
-
-#ifdef __ADDVOLUMES__ 
               modcomplex.addMaterialInfo(c);
               modcomplex.addShapeInfo(s);
               modcomplex.addLogicInfo(l);
@@ -1242,8 +1463,24 @@ namespace insur {
 #ifdef __DEBUGPRINT__
               modcomplex.print();
 #endif
-#endif
             }
+
+
+	    // collect ring info
+            ERingInfo rinf;
+            rinf.name = rname.str();
+            rinf.childname = mname.str();
+	    rinf.fw = (iiter->getModule().center().Z() > (zmin + zmax) / 2.0);
+	    rinf.isZPlus = iiter->getModule().uniRef().side;
+	    rinf.fw_flipped = iiter->getModule().flipped();
+	    rinf.phi = iiter->getModule().center().Phi();
+	    rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
+	    rinf.mthk = modcomplex.getExpandedModuleThickness();  
+            rinf.rmin  = modcomplex.getRmin();
+	    rinf.rmid = iiter->getModule().center().Rho();
+            rinf.rmax = modcomplex.getRmax();
+            rinfo.insert(std::pair<int, ERingInfo>(modRing, rinf));
+
 
             // material properties
             rtotal = rtotal + iiter->getRadiationLength();
@@ -1263,7 +1500,7 @@ namespace insur {
         shape.dx = 0.0;
         shape.dy = 0.0;
         shape.dyy = 0.0;
-        shape.dz = ringThickness / 2.0; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
+        shape.dz = maxRingThickness / 2.0 + xml_epsilon; //findDeltaZ(lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->begin(), // CUIDADO what the hell is this??
         //lagg.getEndcapLayers()->at(layer - 1)->getModuleVector()->end(), (zmin + zmax) / 2.0) / 2.0;
 
         std::set<int>::const_iterator siter, sguard = ridx.end();
@@ -1271,8 +1508,8 @@ namespace insur {
           if (rinfo[*siter].modules > 0) {
 
             shape.name_tag = rinfo[*siter].name;
-            shape.rmin = rinfo[*siter].rin;
-            shape.rmax = rinfo[*siter].rout;
+            shape.rmin = rinfo[*siter].rmin - xml_epsilon;
+            shape.rmax = rinfo[*siter].rmax + xml_epsilon;
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
@@ -1283,8 +1520,8 @@ namespace insur {
             pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
-            if (rinfo[*siter].fw) pos.trans.dz = (zmin - zmax) / 2.0 + shape.dz;
-            else pos.trans.dz = (zmax - zmin) / 2.0 - shape.dz;
+            if (rinfo[*siter].fw) pos.trans.dz = (zmax - zmin) / 2.0 - maxRingThickness / 2.0;
+            else pos.trans.dz = (zmin - zmax) / 2.0 + maxRingThickness / 2.0;
             p.push_back(pos);
             //pos.parent_tag = nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
@@ -1292,6 +1529,8 @@ namespace insur {
             rspec.partselectors.push_back(logic.name_tag);
             rspec.moduletypes.push_back(minfo_zero);
 
+	    // forward part of the ring
+	    alg.name = xml_trackerring_algo;
             alg.parent = logic.shape_tag;
             alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
@@ -1300,15 +1539,25 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << rinfo[*siter].phi;
+            pconverter << 360. / (double)(rinfo[*siter].modules) * rinfo[*siter].phi << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            alg.parameters.push_back(vectorParam(0, 0, shape.dz - rinfo[*siter].mthk / 2.0));
+            alg.parameters.push_back(vectorParam(0, 0, maxRingThickness / 2.0 - rinfo[*siter].mthk / 2.0));
+	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	    pconverter.str("");
+	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	    pconverter << rinfo[*siter].fw_flipped;
+	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	    pconverter.str("");
             a.push_back(alg);
             alg.parameters.clear();
+
+	    // backward part of the ring
+	    alg.name = xml_trackerring_algo;
             alg.parameters.push_back(stringParam(xml_childparam, nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
@@ -1316,13 +1565,20 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << (rinfo[*siter].phi + 2 * PI / (double)(rinfo[*siter].modules));
+            pconverter << 360. / (double)(rinfo[*siter].modules) * (rinfo[*siter].phi + 1) << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
             alg.parameters.push_back(numericParam(xml_radius, pconverter.str()));
             pconverter.str("");
-            alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - shape.dz));
+            alg.parameters.push_back(vectorParam(0, 0, rinfo[*siter].mthk / 2.0 - maxRingThickness / 2.0));
+	    pconverter << rinfo[*siter].isZPlus;
+	    alg.parameters.push_back(numericParam(xml_iszplus, pconverter.str()));
+	    pconverter.str("");
+	    alg.parameters.push_back(numericParam(xml_tiltangle, "90*deg"));
+	    pconverter << !rinfo[*siter].fw_flipped;
+	    alg.parameters.push_back(numericParam(xml_isflipped, pconverter.str()));
+	    pconverter.str("");
             a.push_back(alg);
             alg.parameters.clear();
           }
@@ -1330,9 +1586,9 @@ namespace insur {
 
         //disc
         shape.name_tag = dname.str();
-        shape.rmin = rmin;
-        shape.rmax = rmax;
-        shape.dz = diskThickness/2.0; //(zmax - zmin) / 2.0;
+        shape.rmin = rmin - 2 * xml_epsilon;
+        shape.rmax = rmax + 2 * xml_epsilon;
+        shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
         s.push_back(shape);
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
@@ -1341,7 +1597,7 @@ namespace insur {
         logic.material_tag = xml_material_air;
         l.push_back(logic);
 
-        pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+        pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
         pos.child_tag = nspace + ":" + logic.name_tag;
         pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
         p.push_back(pos);
@@ -1352,7 +1608,7 @@ namespace insur {
         //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
         //   logic.extra = xml_minus;
         //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+        //   pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
         //   pos.child_tag = nspace + ":" + logic.name_tag;
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
@@ -1431,12 +1687,18 @@ namespace insur {
           logic.material_tag = nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixbarident + ":" + xml_pixbar; //xml_tracker;
+          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
-        
-        } else {
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	  p.push_back(pos);
+	  pos.copy = 1;
+	  pos.rotref.clear();
+        } 
+	else {
           std::stringstream msg;
           msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
           logWARNING( msg.str() ); 
@@ -1502,10 +1764,16 @@ namespace insur {
           logic.material_tag = nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd; // xml_tracker;
+          pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz;
           p.push_back(pos);
+	  pos.copy = 2;
+	  pos.trans.dz = -pos.trans.dz;
+	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	  p.push_back(pos);
+	  pos.copy = 1;
+	  pos.rotref.clear();
         }
         else {
           std::stringstream msg;
@@ -1585,19 +1853,25 @@ namespace insur {
       case MaterialProperties::t_sup:
       case MaterialProperties::u_sup:
       case MaterialProperties::o_sup:
-          pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
+          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
           break;
       case MaterialProperties::e_sup:
-          pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
+          pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
           break;
       default:
-          pos.parent_tag = nspace + ":" + xml_tracker;
+	pos.parent_tag = nspace + ":" + xml_tracker;
       }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
           (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
       else pos.trans.dz = iter->getZOffset() + shape.dz;
       p.push_back(pos);
+      pos.copy = 2;
+      pos.trans.dz = -pos.trans.dz;
+      pos.rotref = nspace + ":" + xml_flip_mod_rot;
+      p.push_back(pos);
+      pos.copy = 1;
+      pos.rotref.clear();
 #else
       if (fres == found.end() && iter->getLocalMasses().size() ) { 
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -1619,19 +1893,25 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-            pos.parent_tag = xml_pixbarident + ":" + xml_pixbar;
-            break;
+	  pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar;
+	  break;
         case MaterialProperties::e_sup:
-            pos.parent_tag = xml_pixfwdident + ":" + xml_pixfwd;
-            break;
+	  pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd;
+	  break;
         default:
-            pos.parent_tag = nspace + ":" + xml_tracker;
+	  pos.parent_tag = nspace + ":" + xml_tracker;
         }
         pos.child_tag = logic.shape_tag;
         if ((iter->getCategory() == MaterialProperties::o_sup) ||
             (iter->getCategory() == MaterialProperties::t_sup)) pos.trans.dz = 0.0;
         else pos.trans.dz = iter->getZOffset() + shape.dz;
         p.push_back(pos);
+	pos.copy = 2;
+	pos.trans.dz = -pos.trans.dz;
+	pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	p.push_back(pos);
+	pos.copy = 1;
+	pos.rotref.clear();
       }
 #endif
     }
@@ -1656,7 +1936,7 @@ namespace insur {
     comp.density = density;
     comp.method = wt;
     double m = 0.0;
-    for (std::map<std::string, double>::const_iterator it = mp.getLocalMasses().begin(); it != mp.getLocalMasses().end(); ++it) {
+   for (std::map<std::string, double>::const_iterator it = mp.getLocalMasses().begin(); it != mp.getLocalMasses().end(); ++it) {
       if (!nosensors || (it->first.compare(xml_sensor_silicon) != 0)) {
         //    std::pair<std::string, double> p;
         //    p.first = mp.getLocalTag(i);
@@ -1706,6 +1986,7 @@ namespace insur {
    * @param middle The midpoint of the layer radius range
    * @return The thickness of the layer, or zero if the layer is degenerate
    */
+  // Obsolete and not used.
   double Extractor::findDeltaR(std::vector<Module*>::iterator start,
                                std::vector<Module*>::iterator stop, double middle) {
     std::vector<Module*>::iterator iter, mod1, mod2;
@@ -1744,6 +2025,7 @@ namespace insur {
    * @param middle The midpoint in z of the disc that the ring in question belongs to
    * @return Half the thickness of the ring volume, or zero if the module collection is degenerate
    */
+  // Obsolete and not used.
   double Extractor::findDeltaZ(std::vector<Module*>::iterator start,
                                std::vector<Module*>::iterator stop, double middle) {
     std::vector<Module*>::iterator iter, mod1, mod2;
@@ -1873,7 +2155,7 @@ namespace insur {
   double Extractor::compositeDensity(InactiveElement& ie) {
     double d = ie.getRWidth() + ie.getInnerRadius();
     d = d * d - ie.getInnerRadius() * ie.getInnerRadius();
-    d = 1000 * ie.getTotalMass() / (PI * ie.getZLength() * d);
+    d = 1000 * ie.getTotalMass() / (M_PI * ie.getZLength() * d);
     return d;
   }
 
@@ -1904,7 +2186,7 @@ namespace insur {
     else return -1;
   }
 
-#ifdef __ADDVOLUMES__ 
+
   // These value should be consistent with 
   // the configuration file
   const int ModuleComplex::HybridFBLR_0  = 0; // Front + Back + Right + Left
@@ -1925,7 +2207,9 @@ namespace insur {
   const double ModuleComplex::kmm3Tocm3 = 1e-3; 
 
   ModuleComplex::ModuleComplex(std::string moduleName,
+                               std::string parentName,
                                ModuleCap&  modcap        ) : moduleId(moduleName),
+                                                             parentId(parentName),
                                                              modulecap(modcap),
                                                              module(modcap.getModule()),
                                                              modWidth(module.area()/module.length()),
@@ -1942,6 +2226,11 @@ namespace insur {
                                                              hybridFrontAndBackVolume_mm3(-1.),
                                                              hybridLeftAndRightVolume_mm3(-1.),
                                                              moduleMassWithoutSensors_expected(0.),
+                                                             expandedModWidth(modWidth+2*serviceHybridWidth),
+                                                             expandedModLength(modLength+2*frontEndHybridWidth),
+                                                             expandedModThickness(sensorDistance+2*(supportPlateThickness+sensorThickness)),
+                                                             center(module.center()),
+                                                             normal(module.normal()),
                                                              prefix_xmlfile("tracker:"),
                                                              prefix_material("hybridcomposite") {
   }
@@ -1987,13 +2276,13 @@ namespace insur {
     double posy = 0.;
     double posz = 0.;
     // Hybrid FrontSide Volume
-    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
     posx = -(modWidth+serviceHybridWidth)/2.;
     posy = 0.;
     posz = 0.;
     // Hybrid BackSide Volume
-    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth+2*serviceHybridWidth;  
     dy = frontEndHybridWidth;
@@ -2001,13 +2290,13 @@ namespace insur {
     posy = (modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // Hybrid LeftSide Volume
-    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
 
     posx = 0.;
     posy = -(modLength+frontEndHybridWidth)/2.;
     posz = 0.;
     // Hybrid RightSide Volume
-    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
     dx = modWidth; 
     dy = modLength; 
@@ -2015,16 +2304,149 @@ namespace insur {
     posy = 0.;
     posz = 0.;
     // Hybrid Between Volume
-    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
 
-    dx = modWidth+2*serviceHybridWidth;  
-    dy = modLength+2*frontEndHybridWidth; 
-    dz = supportPlateThickness; 
+    dx = expandedModWidth;  
+    dy = expandedModLength; 
+    dz = supportPlateThickness;
     posx = 0.;
     posy = 0.;
-    posz = - ( sensorDistance + sensorThickness + supportPlateThickness )/2.; 
+    posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
     // SupportPlate
-    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,moduleId,dx,dy,dz,posx,posy,posz);
+    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+
+    // =========================================================================================================
+    // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
+    // =========================================================================================================
+    //
+    // Module polygon
+    //   top view
+    //   v1                v2
+    //    *---------------*
+    //    |       ^ my    |
+    //    |       |   mx  |
+    //    |       *------>|
+    //    |     center    |
+    //    |               |
+    //    *---------------*
+    //   v0                v3
+    //  (v4)
+    //
+    //   side view
+    //    ----------------- top
+    //    ----------------- bottom
+    // 
+    vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
+    vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
+    vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
+    vector<double> rv; // radius list (in global frame of reference) from which we will find min/max.
+    vector<double> ratzminv; // radius list (in global frame of reference) at zmin from which we will find min/max.
+    vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
+
+    // mx: (v2+v3)/2 - center, my: (v1+v2)/2 - center
+    XYZVector mx = 0.5*( module.basePoly().getVertex(2) + module.basePoly().getVertex(3) ) - center ;
+    XYZVector my = 0.5*( module.basePoly().getVertex(1) + module.basePoly().getVertex(2) ) - center ;
+
+    // new vertexes after expansion due to hybrid volumes
+    const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
+    XYZVector v[npoints-1];
+    v[0] = module.center() - (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
+    v[1] = module.center() - (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
+    v[2] = module.center() + (expandedModWidth/modWidth)*mx + (expandedModLength/modLength)*my;
+    v[3] = module.center() + (expandedModWidth/modWidth)*mx - (expandedModLength/modLength)*my;
+
+    // Calculate all vertex candidates (8 points)
+    XYZVector v_top[npoints];    // module's top surface
+    XYZVector v_bottom[npoints]; // module's bottom surface
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_top[ip]    = v[ip] + 0.5*expandedModThickness*normal;
+      v_bottom[ip] = v[ip] - 0.5*expandedModThickness*normal;
+
+      // for debuging
+      vertex.push_back(v_top[ip]);
+      vertex.push_back(v_bottom[ip]);
+
+      // Calculate xmin, xmax, ymin, ymax, zmin, zmax
+      xv.push_back(v_top[ip].X());
+      xv.push_back(v_bottom[ip].X());
+      yv.push_back(v_top[ip].Y());
+      yv.push_back(v_bottom[ip].Y());
+      zv.push_back(v_top[ip].Z());
+      zv.push_back(v_bottom[ip].Z());
+    }
+    // Find min and max
+    xmin = *std::min_element(xv.begin(), xv.end());
+    xmax = *std::max_element(xv.begin(), xv.end());
+    ymin = *std::min_element(yv.begin(), yv.end());
+    ymax = *std::max_element(yv.begin(), yv.end());
+    zmin = *std::min_element(zv.begin(), zv.end());
+    zmax = *std::max_element(zv.begin(), zv.end());
+
+
+    // Calculate module's mid-points (8 points)
+    XYZVector v_mid_top[npoints]; // module's top surface mid-points
+    XYZVector v_mid_bottom[npoints]; // module's bottom surface mid-points
+
+    v_top[npoints-1] = v_top[0]; // copy v0 as v4 for convenience
+    v_bottom[npoints-1] = v_bottom[0]; // copy v0 as v4 for convenience
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_mid_top[ip] = (v_top[ip] + v_top[ip+1]) / 2.0;
+      v_mid_bottom[ip] = (v_bottom[ip] + v_bottom[ip+1]) / 2.0;
+    }
+
+    // Calculate rmin, rmax, rminatzmin, rmaxatzmax...
+    for (int ip = 0; ip < npoints-1; ip++) {
+
+      // module's bottom surface
+      if (fabs(v_bottom[ip].Z() - zmin) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_bottom[ip].R());
+      }
+      if (fabs(v_bottom[ip].Z() - zmax) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_bottom[ip].R());
+      }
+      v_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_bottom[ip].R());
+
+      // module's top surface
+      if (fabs(v_top[ip].Z() - zmin) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_top[ip].R());
+      }
+      if (fabs(v_top[ip].Z() - zmax) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_top[ip].R());
+      }
+      v_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_top[ip].R());
+    
+      // module's bottom surface mid-points
+      if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
+	v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_bottom[ip].R());
+      }
+      v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_bottom[ip].R());
+    
+      // module's top surface mid-points
+      if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
+	v_mid_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_top[ip].R());
+      }
+      v_mid_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_top[ip].R());
+    }
+    // Find min and max
+    rmin = *std::min_element(rv.begin(), rv.end());
+    rmax = *std::max_element(rv.begin(), rv.end());
+    rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
+    rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
+
+
+    // Material assignment
 
     ElementsVector matElements = module.getLocalElements();
     ElementsVector::const_iterator meit;
@@ -2037,16 +2459,16 @@ namespace insur {
        if ( el->componentName() == "Sensor"     ||
             el->componentName() == "PS Sensors" ||
             el->componentName() == "2S Sensors"    ) {
-          continue; // We will not handle sensors in this class 
+          continue; // We will not handle sensors in this class
        } else if ( el->targetVolume() == InnerSensor ||
                    el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
          std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
          std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
          std::exit(1);
        } else if ( el->targetVolume() >= nTypes   &&
-                   el->targetVolume() != HybridFB &&     
-                   el->targetVolume() != HybridLR &&     
-                   el->targetVolume() != HybridFBLR_3456  ) {  
+                   el->targetVolume() != HybridFB &&
+                   el->targetVolume() != HybridLR &&
+                   el->targetVolume() != HybridFBLR_3456  ) {
          std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
          std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
          std::exit(1);
@@ -2071,7 +2493,7 @@ namespace insur {
           vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
           vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
-       } else if ( el->targetVolume() == HybridLR ) { 
+       } else if ( el->targetVolume() == HybridLR ) {
           if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
             hybridLeftAndRightVolume_mm3 = vol[HybridLeft]->getVolume()
                                          + vol[HybridRight]->getVolume();
@@ -2177,7 +2599,24 @@ namespace insur {
 
   void ModuleComplex::print() const {
     std::cout << "ModuleComplex::print():" << std::endl;
-    std::cout << "  Parent Module Name:" << moduleId << std::endl;
+    std::cout << "  Module Name:" << moduleId << std::endl;
+    std::cout << "  Geometry Information:" << std::endl;
+    std::cout << "    center postion : (" << center.X() << ","
+                                          << center.Y() << "," 
+                                          << center.Z() << ")" << std::endl;
+    std::cout << "    normal vector  : (" << normal.X() << ","
+                                          << normal.Y() << ","
+                                          << normal.Z() << ")" << std::endl;
+    std::cout << "    module width     : " << expandedModWidth     << std::endl; 
+    std::cout << "    module length    : " << expandedModLength    << std::endl; 
+    std::cout << "    module thickness : " << expandedModThickness << std::endl;
+    std::cout << "    vertex points    : ";
+    for (unsigned int i = 0; i < vertex.size(); i++) {
+      if (i!=vertex.size()-1) 
+        std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << "), ";
+      else 
+        std::cout << "(" << vertex[i].X() << "," << vertex[i].Y() << "," << vertex[i].Z() << ")" << std::endl;
+    }
     std::vector<Volume*>::const_iterator vit;
     double moduleTotalMass = 0.;
     for ( vit = volumes.begin(); vit != volumes.end(); vit++ ) {
@@ -2187,5 +2626,4 @@ namespace insur {
     std::cerr << "  Module Total Mass = " << moduleTotalMass 
               << " (" << moduleMassWithoutSensors_expected << " is expected.)" << std::endl; 
   }
-#endif
 }
