@@ -229,7 +229,7 @@ namespace insur {
     std::vector<std::vector<ModuleCap> >& bc = lagg.getBarrelCap();
     
     for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
-      double lrmin = DBL_MAX;
+      double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
       double lzmin = 0;
       double lzmax = 0; 
@@ -331,9 +331,9 @@ namespace insur {
     
     for (oiter = ec.begin(); oiter != ec.end(); oiter++) {
       std::set<int> ridx;
-      double lrmin = DBL_MAX;
+      double lrmin = std::numeric_limits<double>::max();
       double lrmax = 0;
-      double lzmin = DBL_MAX;
+      double lzmin = std::numeric_limits<double>::max();
       double lzmax = 0; 
  
       for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -513,22 +513,22 @@ namespace insur {
      
       // Calculate geometrical extrema of rod (straight layer), or of rod part + tilted ring (tilted layer)
       // straight layer : x and y extrema of rod
-      double xmin = DBL_MAX;
+      double xmin = std::numeric_limits<double>::max();
       double xmax = 0;
-      double ymin = DBL_MAX;
+      double ymin = std::numeric_limits<double>::max();
       double ymax = 0;
       // straight or tilted layer : z and r extrema of rod (straight layer), or of {rod part + tilted ring} (tilted layer)
-      //double zmin = DBL_MAX;
+      //double zmin = std::numeric_limits<double>::max();
       double zmax = 0;
-      double rmin = DBL_MAX;
+      double rmin = std::numeric_limits<double>::max();
       double rmax = 0;
       // tilted layer : x, y, z, and r extrema of rod part
-      double flatPartMinX = DBL_MAX;
+      double flatPartMinX = std::numeric_limits<double>::max();
       double flatPartMaxX = 0;
-      double flatPartMinY = DBL_MAX;
+      double flatPartMinY = std::numeric_limits<double>::max();
       double flatPartMaxY = 0;
       double flatPartMaxZ = 0;
-      double flatPartMinR = DBL_MAX;
+      double flatPartMinR = std::numeric_limits<double>::max();
       double flatPartMaxR = 0;
       // straight or tilted layer : radii of rods (straight layer) or of rod parts (tilted layer)
       double RadiusIn = 0;
@@ -1197,13 +1197,13 @@ namespace insur {
 
 	// Calculate z extrema of the disk, maxRingThickness, and diskThickness
 	// r extrema of disk and ring
-	double rmin = DBL_MAX;
+	double rmin = std::numeric_limits<double>::max();
 	double rmax = 0;
 	// z extrema of disk
-	double zmin = DBL_MAX;
+	double zmin = std::numeric_limits<double>::max();
 	double zmax = 0;
 	// z extrema of ring
-	std::vector<double> ringzmin (numRings, DBL_MAX);
+	std::vector<double> ringzmin (numRings, std::numeric_limits<double>::max());
 	std::vector<double> ringzmax (numRings, 0);
 
 	// loop on module caps

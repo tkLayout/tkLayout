@@ -228,10 +228,10 @@ public:
   const Sensor& outerSensor() const { return sensors_.back(); }
   ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
-  int minSegments() const { int segm = INT_MAX; for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
+  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
   int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
-  int minChannels() const { int min = INT_MAX; for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
+  int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
 
   double totalPowerModule() const { return powerModuleOptical() + powerModuleChip(); }

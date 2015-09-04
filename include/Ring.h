@@ -89,7 +89,7 @@ public:
   {}
 
   void setup() {
-    minZ.setup([this]() { double min = DBL_MAX; for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
+    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
     maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
     maxModuleThickness.setup([this]() { 
       double max = 0; 
