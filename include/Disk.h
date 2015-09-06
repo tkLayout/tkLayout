@@ -36,8 +36,8 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default> rOverlap;
-  Property<int, Default> bigParity;
+  Property<double, Default>   rOverlap;
+  Property<int   , Default>   bigParity;
 
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
@@ -48,8 +48,9 @@ private:
 
   double averageZ_ = 0;
 public:
-  Property<int, NoDefault> numRings;
+  Property<int, NoDefault>    numRings;
   Property<double, NoDefault> zError;
+  Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;
   Property<double, NoDefault> placeZ;
 
@@ -60,17 +61,18 @@ public:
   Disk() :
     materialObject_(MaterialObject::LAYER),
     flangeConversionStation_(nullptr),
-    numRings("numRings", parsedAndChecked()),
-    innerRadius("innerRadius", parsedAndChecked()),
-    outerRadius("outerRadius", parsedAndChecked()),
-    bigDelta("bigDelta", parsedAndChecked()),
-    zError("zError", parsedAndChecked()),
-    rOverlap("rOverlap", parsedOnly(), 1.),
-    bigParity("bigParity", parsedOnly(), 1),
-    buildZ("buildZ", parsedOnly()),
-    placeZ("placeZ", parsedOnly()),
-    ringNode("Ring", parsedOnly()),
-    stationsNode("Station", parsedOnly())
+    numRings(    "numRings"   , parsedAndChecked()),
+    innerRadius( "innerRadius", parsedAndChecked()),
+    outerRadius( "outerRadius", parsedAndChecked()),
+    bigDelta(    "bigDelta"   , parsedAndChecked()),
+    zError(      "zError"     , parsedAndChecked()),
+    zHalfLength( "zHalfLength", parsedAndChecked()),
+    rOverlap(    "rOverlap"   , parsedOnly(), 1.),
+    bigParity(   "bigParity"  , parsedOnly(), 1),
+    buildZ(      "buildZ"     , parsedOnly()),
+    placeZ(      "placeZ"     , parsedOnly()),
+    ringNode(    "Ring"       , parsedOnly()),
+    stationsNode("Station"    , parsedOnly())
   {}
 
   void setup() {
