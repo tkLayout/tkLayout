@@ -140,7 +140,7 @@ namespace insur {
       //Rods will be placed with algorithm
       AlgoInfo rod_alg;
 
-      rod_alg.name = "track:DDTrackerPhiAltAlgo";
+      rod_alg.name = xml_phialt_algo;
       rod_alg.parent = layer_shape.name_tag;
       std::stringstream par,parmap;
 
@@ -318,7 +318,7 @@ namespace insur {
       modbox_pos.trans.dx = 0.;
       modbox_pos.trans.dy = 0.;
       modbox_pos.trans.dz = module.maxZ() - mod_shape.dy;
-      modbox_pos.rotref = xml_barrel_tilt;
+      modbox_pos.rotref = xml_places_unflipped_mod_in_rod;
       modbox_pos.child_tag = modbox_logic.shape_tag;
 
 //Volume positioning inside modulebox
@@ -353,11 +353,7 @@ namespace insur {
       hybrid_pos.child_tag = hybrid_logic.shape_tag;
       hybrid_pos.parent_tag = modbox_shape.name_tag;
 
-      if( module.flipped() ) {
-        chip_pos.trans.dz *= -1.;
-        mod_pos.trans.dz *= -1.;
-        hybrid_pos.trans.dz *= -1.;
-      } 
+      if( module.flipped() ) modbox_pos.rotref = xml_places_flipped_mod_in_rod;
 
       cmsswXmlInfo.shapes.push_back(modbox_shape);
       cmsswXmlInfo.logic.push_back(modbox_logic);
@@ -611,7 +607,7 @@ namespace insur {
         getPixelEndcapModuleInfo( emodules.at(0) ,ri+1, i+1,ring_shape.name_tag, ring_shape.dz, 0.,ecapRmatpathCommon.str());
 
         AlgoInfo ring_algo;
-        ring_algo.name = "track:DDTrackerAngularV1";
+        ring_algo.name = xml_trackerring_algo;//track:DDTrackerRingAlgo
         ring_algo.parent = ring_logic.shape_tag;
         std::stringstream emodname,algopar;
         emodname << xml_emodbox << ri+1 << "Disc" << i+1;
@@ -644,7 +640,10 @@ namespace insur {
         ring_algo.vecpar.values.push_back(0);
         ring_algo.vecpar.values.push_back(0);
         ring_algo.vecpar.values.push_back(ring_shape.dz - emodules.at(0).thickness() / 2.0); 
-        
+
+        ring_algo.parameter_map[xml_iszplus]={"1",AlgoPartype::num};
+        ring_algo.parameter_map[xml_tiltangle]={"90*deg",AlgoPartype::num};
+        ring_algo.parameter_map[xml_isflipped]={"0",AlgoPartype::num};
         //push the first child module into algorithm
         //this module is not flipped
         //the copy numbers for these modules will be odd
@@ -652,7 +651,7 @@ namespace insur {
 
         ring_algo.parameters.clear();
 
-        algopar<< xml_phaseII_pixecap + ":" + emodname.str() + "FLIPPED";    
+        algopar<< xml_phaseII_pixecap + ":" + emodname.str();
         ring_algo.parameter_map[xml_childparam] = {algopar.str(),AlgoPartype::st};     
 
         algopar.str(""); 
@@ -682,6 +681,10 @@ namespace insur {
         ring_algo.vecpar.values.push_back(emodules.at(0).thickness() / 2.0 - ring_shape.dz); 
         //push the flipped child module
         //copy numbers are even
+        ring_algo.parameter_map[xml_iszplus]={"1",AlgoPartype::num};
+        ring_algo.parameter_map[xml_tiltangle]={"90*deg",AlgoPartype::num};
+        ring_algo.parameter_map[xml_isflipped]={"1",AlgoPartype::num};
+  
         cmsswXmlInfo.algos.push_back(ring_algo);
       }
       
@@ -697,15 +700,15 @@ namespace insur {
                                                   std::string ringName, double ring_thickness, double rod_dR,
                                                   std::string ecapRmatpathCommon) {
 
-    ShapeInfo emodbox_shape,emod_shape,emodwafer_shape,emodactive_shape,ehybrid_shape,chip_shape, flip_shape;
+    ShapeInfo emodbox_shape,emod_shape,emodwafer_shape,emodactive_shape,ehybrid_shape,chip_shape;// , flip_shape;
 
-    LogicalInfo emodbox_logic,emod_logic,emodwafer_logic,emodactive_logic,ehybrid_logic,chip_logic,flip_logic;
+    LogicalInfo emodbox_logic,emod_logic,emodwafer_logic,emodactive_logic,ehybrid_logic,chip_logic; //,flip_logic;
 
-    PosInfo emodbox_pos,emod_pos,emodwafer_pos,emodactive_pos,ehybrid_pos,chip_pos,flip_pos;
+    PosInfo emodbox_pos,emod_pos,emodwafer_pos,emodactive_pos,ehybrid_pos,chip_pos; //,flip_pos;
 
     ModuleROCInfo minfo;
     //Module
-    SpecParInfo module_spec, flip_spec;
+    SpecParInfo module_spec;//, flip_spec;
     module_spec.parameter.first = xml_tkddd_structure;
     module_spec.parameter.second = xml_phaseII_pixecapdet;
 
@@ -722,9 +725,9 @@ namespace insur {
     emodbox_shape.rmin = 0.;
     emodbox_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(emodbox_shape);//no flip module
-    flip_shape  = emodbox_shape;
-    flip_shape.name_tag = emodbox_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module    
+    //flip_shape  = emodbox_shape;
+    //flip_shape.name_tag = emodbox_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
     
 
     std::stringstream e_name;
@@ -739,9 +742,9 @@ namespace insur {
     emod_shape.rmin = 0.;
     emod_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(emod_shape);
-    flip_shape  = emod_shape;
-    flip_shape.name_tag = emod_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module        
+    //flip_shape  = emod_shape;
+    //flip_shape.name_tag = emod_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
     
 
     ehybrid_shape.name_tag = emod_shape.name_tag + xml_phaseII_pixelHybridTag;
@@ -752,9 +755,9 @@ namespace insur {
     ehybrid_shape.dyy = emod_shape.dyy;
     ehybrid_shape.dz = emodule.hybridThickness()/2.;
     cmsswXmlInfo.shapes.push_back(ehybrid_shape);
-    flip_shape  = ehybrid_shape;
-    flip_shape.name_tag = ehybrid_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module     
+    //flip_shape  = ehybrid_shape;
+    //flip_shape.name_tag = ehybrid_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
 
     chip_shape.name_tag = emod_shape.name_tag + xml_phaseII_pixelChipTag;
     chip_shape.type = emodbox_shape.type;
@@ -766,9 +769,9 @@ namespace insur {
     chip_shape.rmin = 0.;
     chip_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(chip_shape);
-    flip_shape  = chip_shape;
-    flip_shape.name_tag = chip_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module     
+    //flip_shape  = chip_shape;
+    //flip_shape.name_tag = chip_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
 
 
     //*************Logical Volumes**********//
@@ -776,19 +779,19 @@ namespace insur {
     emodbox_logic.shape_tag = xml_phaseII_pixecap + ":" + emodbox_shape.name_tag;
     emodbox_logic.material_tag = "materials:Air";
     cmsswXmlInfo.logic.push_back(emodbox_logic);
-    flip_logic = emodbox_logic;
-    flip_logic.name_tag = emodbox_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = emodbox_logic.shape_tag + "FLIPPED";
-    cmsswXmlInfo.logic.push_back(flip_logic);    
+    //flip_logic = emodbox_logic;
+    //flip_logic.name_tag = emodbox_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = emodbox_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
      
     emod_logic.name_tag = emod_shape.name_tag;
     emod_logic.shape_tag =  xml_phaseII_pixecap + ":" + emod_shape.name_tag;
     emod_logic.material_tag = "materials:Air";
     cmsswXmlInfo.logic.push_back(emod_logic);
-    flip_logic = emod_logic;
-    flip_logic.name_tag = emod_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = emod_logic.shape_tag + "FLIPPED";
-    cmsswXmlInfo.logic.push_back(flip_logic);    
+    //flip_logic = emod_logic;
+    //flip_logic.name_tag = emod_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = emod_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
 
     ehybrid_logic.name_tag = ehybrid_shape.name_tag;
     ehybrid_logic.shape_tag =  xml_phaseII_pixecap + ":" + ehybrid_shape.name_tag;
@@ -796,10 +799,10 @@ namespace insur {
     ehybrid_logic_mat << "pixel:topInactiveCompositeEModule" << ringNo << "Disc" << discno;
     ehybrid_logic.material_tag = ehybrid_logic_mat.str();
     cmsswXmlInfo.logic.push_back(ehybrid_logic);
-    flip_logic = ehybrid_logic;
-    flip_logic.name_tag = ehybrid_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = ehybrid_logic.shape_tag + "FLIPPED";     
-    cmsswXmlInfo.logic.push_back(flip_logic);    
+    //flip_logic = ehybrid_logic;
+    //flip_logic.name_tag = ehybrid_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = ehybrid_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
 
     chip_logic.name_tag = chip_shape.name_tag;
     chip_logic.shape_tag =  xml_phaseII_pixecap + ":" + chip_shape.name_tag;
@@ -807,10 +810,10 @@ namespace insur {
     chip_logic_mat << "pixe:bottomInactiveCompositeEModule" << ringNo << "Disc" << discno;
     chip_logic.material_tag = chip_logic_mat.str();
     cmsswXmlInfo.logic.push_back(chip_logic);
-    flip_logic = chip_logic;
-    flip_logic.name_tag = chip_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = chip_logic.shape_tag + "FLIPPED";
-    cmsswXmlInfo.logic.push_back(flip_logic);    
+    //flip_logic = chip_logic;
+    //flip_logic.name_tag = chip_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = chip_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
 
 
     chip_pos.copy = 1;
@@ -820,11 +823,11 @@ namespace insur {
     chip_pos.trans.dz = -emodbox_shape.dz + chip_shape.dz;
     chip_pos.child_tag = chip_logic.shape_tag;
     cmsswXmlInfo.positions.push_back(chip_pos);
-    flip_pos = chip_pos;
-    flip_pos.parent_tag += "FLIPPED";
-    flip_pos.child_tag += "FLIPPED";
-    flip_pos.trans.dz *= -1.;
-    cmsswXmlInfo.positions.push_back(flip_pos);    
+    //flip_pos = chip_pos;
+    //flip_pos.parent_tag += "FLIPPED";
+    //flip_pos.child_tag += "FLIPPED";
+    //flip_pos.trans.dz *= -1.;
+    //cmsswXmlInfo.positions.push_back(flip_pos);
 
     emod_pos.copy = 1;
     emod_pos.parent_tag = emodbox_shape.name_tag;
@@ -833,11 +836,11 @@ namespace insur {
     emod_pos.trans.dz = chip_pos.trans.dz + chip_shape.dz + emod_shape.dz;
     emod_pos.child_tag = emod_logic.shape_tag;
     cmsswXmlInfo.positions.push_back(emod_pos);
-    flip_pos = emod_pos;
-    flip_pos.parent_tag += "FLIPPED";
-    flip_pos.child_tag += "FLIPPED";
-    flip_pos.trans.dz *= -1.;
-    cmsswXmlInfo.positions.push_back(flip_pos);   
+    //flip_pos = emod_pos;
+    //flip_pos.parent_tag += "FLIPPED";
+    //flip_pos.child_tag += "FLIPPED";
+    //flip_pos.trans.dz *= -1.;
+    //cmsswXmlInfo.positions.push_back(flip_pos);
 
     ehybrid_pos.copy = 1;
     ehybrid_pos.parent_tag = emodbox_shape.name_tag;
@@ -846,11 +849,11 @@ namespace insur {
     ehybrid_pos.trans.dz = emod_pos.trans.dz + emod_shape.dz + ehybrid_shape.dz;
     ehybrid_pos.child_tag = ehybrid_logic.shape_tag;
     cmsswXmlInfo.positions.push_back(ehybrid_pos);
-    flip_pos = ehybrid_pos;
-    flip_pos.parent_tag += "FLIPPED";
-    flip_pos.child_tag += "FLIPPED";
-    flip_pos.trans.dz *= -1.;
-    cmsswXmlInfo.positions.push_back(flip_pos);   
+    //flip_pos = ehybrid_pos;
+    //flip_pos.parent_tag += "FLIPPED";
+    //flip_pos.child_tag += "FLIPPED";
+    //flip_pos.trans.dz *= -1.;
+    //cmsswXmlInfo.positions.push_back(flip_pos);
 
 
     //////////////////active part//////////////////////////
@@ -867,9 +870,9 @@ namespace insur {
     emodwafer_shape.dyy = emod_shape.dyy;
     emodwafer_shape.dz = emodule.sensors().front().sensorThickness()/2.;
     cmsswXmlInfo.shapes.push_back(emodwafer_shape);
-    flip_shape  = emodwafer_shape;
-    flip_shape.name_tag = emodwafer_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module     
+    //flip_shape  = emodwafer_shape;
+    //flip_shape.name_tag = emodwafer_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
 
     emodactive_shape.type = emod_shape.type;
     emodactive_shape.rmin = 0.;
@@ -879,28 +882,28 @@ namespace insur {
     emodactive_shape.dy = emodwafer_shape.dy - cut_dy;
     emodactive_shape.dz = emodwafer_shape.dz - cut_dz;
     cmsswXmlInfo.shapes.push_back(emodwafer_shape);
-    flip_shape  = emodactive_shape;
-    flip_shape.name_tag = emodactive_shape.name_tag + "FLIPPED";
-    cmsswXmlInfo.shapes.push_back(flip_shape);//flip module  
+    //flip_shape  = emodactive_shape;
+    //flip_shape.name_tag = emodactive_shape.name_tag + "FLIPPED";
+    //cmsswXmlInfo.shapes.push_back(flip_shape);//flip module
 
     emodwafer_logic.name_tag = emodwafer_shape.name_tag;
     emodwafer_logic.shape_tag =  xml_phaseII_pixecap + ":" + emodwafer_shape.name_tag;
     emodwafer_logic.material_tag = "pixel:SenSi";//??or air
     cmsswXmlInfo.logic.push_back(emodwafer_logic);
-    flip_logic = emodwafer_logic;
-    flip_logic.name_tag = emodwafer_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = emodwafer_logic.shape_tag + "FLIPPED";
-    cmsswXmlInfo.logic.push_back(flip_logic);    
+    //flip_logic = emodwafer_logic;
+    //flip_logic.name_tag = emodwafer_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = emodwafer_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
 
 
     emodactive_logic.name_tag = emodactive_shape.name_tag;
     emodactive_logic.shape_tag =  xml_phaseII_pixecap + ":" + emodactive_shape.name_tag;
     emodactive_logic.material_tag = "pixel:SenSi";
     cmsswXmlInfo.logic.push_back(emodactive_logic);
-    flip_logic = emodactive_logic;
-    flip_logic.name_tag = emodactive_logic.name_tag + "FLIPPED";
-    flip_logic.shape_tag = emodactive_logic.shape_tag + "FLIPPED";
-    cmsswXmlInfo.logic.push_back(flip_logic); 
+    //flip_logic = emodactive_logic;
+    //flip_logic.name_tag = emodactive_logic.name_tag + "FLIPPED";
+    //flip_logic.shape_tag = emodactive_logic.shape_tag + "FLIPPED";
+    //cmsswXmlInfo.logic.push_back(flip_logic);
 
     emodwafer_pos.copy = 1;
     emodwafer_pos.trans.dx = 0.;
@@ -909,11 +912,11 @@ namespace insur {
     emodwafer_pos.parent_tag = emod_pos.child_tag;
     emodwafer_pos.child_tag = emodwafer_logic.shape_tag;
     cmsswXmlInfo.positions.push_back(emod_pos);
-    flip_pos = emodwafer_pos;
-    flip_pos.parent_tag += "FLIPPED";
-    flip_pos.child_tag += "FLIPPED";
-    flip_pos.trans.dz *= -1.;
-    cmsswXmlInfo.positions.push_back(flip_pos);   
+    //flip_pos = emodwafer_pos;
+    //flip_pos.parent_tag += "FLIPPED";
+    //flip_pos.child_tag += "FLIPPED";
+    //flip_pos.trans.dz *= -1.;
+    //cmsswXmlInfo.positions.push_back(flip_pos);
 
 
     emodactive_pos.copy = 1;
@@ -923,11 +926,11 @@ namespace insur {
     emodactive_pos.parent_tag = emodwafer_pos.child_tag;
     emodactive_pos.child_tag = emodactive_logic.shape_tag;
     cmsswXmlInfo.positions.push_back(emodactive_pos);
-    flip_pos = emodactive_pos;
-    flip_pos.parent_tag += "FLIPPED";
-    flip_pos.child_tag += "FLIPPED";
-    flip_pos.trans.dz *= -1.;
-    cmsswXmlInfo.positions.push_back(flip_pos);   
+    //flip_pos = emodactive_pos;
+    //flip_pos.parent_tag += "FLIPPED";
+    //flip_pos.child_tag += "FLIPPED";
+    //flip_pos.trans.dz *= -1.;
+    //cmsswXmlInfo.positions.push_back(flip_pos);
 
     module_spec.name = emodactive_logic.name_tag + "Par";
     module_spec.partselectors.push_back(emodactive_logic.name_tag);
@@ -937,13 +940,13 @@ namespace insur {
     minfo.rocx		= any2str<int>(emodule.innerSensor().numROCX());
     minfo.rocy		= any2str<int>(emodule.innerSensor().numROCY());
     module_spec.moduletypes.push_back(minfo);
-    flip_spec = module_spec;
-    flip_spec.partselectors.clear();
-    flip_spec.name = emodactive_logic.name_tag + "FLIPPEDPar";
-    flip_spec.partselectors.push_back( emodactive_logic.name_tag + "FLIPPED" );
+    //flip_spec = module_spec;
+    //flip_spec.partselectors.clear();
+    //flip_spec.name = emodactive_logic.name_tag + "FLIPPEDPar";
+    //flip_spec.partselectors.push_back( emodactive_logic.name_tag + "FLIPPED" );
    
     cmsswXmlInfo.specs.push_back(module_spec);
-    cmsswXmlInfo.specs.push_back(flip_spec);
+    //cmsswXmlInfo.specs.push_back(flip_spec);
 
     ecapRmatpath.push_back( ecapRmatpathCommon + "/" +
                             emodbox_shape.name_tag + "/" +
@@ -951,11 +954,12 @@ namespace insur {
                             emodwafer_shape.name_tag + "/" +
                             emodactive_shape.name_tag );
 
-    ecapRmatpath.push_back( ecapRmatpathCommon + "/" +
+    /*ecapRmatpath.push_back( ecapRmatpathCommon + "/" +
                             emodbox_shape.name_tag + "FLIPPED/" +
                             emod_shape.name_tag + "FLIPPED/" +
                             emodwafer_shape.name_tag + "FLIPPED/" +
                             emodactive_shape.name_tag + "FLIPPED" );
+     */
         
     //analyseCompositeElements( ehybrid_logic.material_tag, compositeDensity(*emodule.getModuleCap(), true),
     //    *emodule.getModuleCap(), true);
@@ -1209,15 +1213,33 @@ namespace insur {
     ptree& rotSec = tree.add("DDDefinition.RotationSection", "");
     rotSec.add("<xmlattr>.label", "pixel.xml");
     
-    ptree& rotation = rotSec.add("Rotation","");
-    rotation.add("<xmlattr>.name","");
-    rotation.add("<xmlattr>.thetaX","90*deg");
-    rotation.add("<xmlattr>.phiX","270*deg");
-    rotation.add("<xmlattr>.thetaY","180*deg");
-    rotation.add("<xmlattr>.phiY","0*deg");
-    rotation.add("<xmlattr>.thetaZ","90*deg");
-    rotation.add("<xmlattr>.phiZ","0*deg");      
+    ptree& rotation1 = rotSec.add("Rotation","");
+    rotation1.add("<xmlattr>.name","HCZ2YX");
+    rotation1.add("<xmlattr>.thetaX","90*deg");
+    rotation1.add("<xmlattr>.phiX","270*deg");
+    rotation1.add("<xmlattr>.thetaY","180*deg");
+    rotation1.add("<xmlattr>.phiY","0*deg");
+    rotation1.add("<xmlattr>.thetaZ","90*deg");
+    rotation1.add("<xmlattr>.phiZ","0*deg");
+ 
+    ptree& rotation2 = rotSec.add("Rotation","");
+    rotation2.add("<xmlattr>.name","FlippedHCZ2YX");
+    rotation2.add("<xmlattr>.thetaX","90*deg");
+    rotation2.add("<xmlattr>.phiX","270*deg");
+    rotation2.add("<xmlattr>.thetaY","0*deg");
+    rotation2.add("<xmlattr>.phiY","0*deg");
+    rotation2.add("<xmlattr>.thetaZ","90*deg");
+    rotation2.add("<xmlattr>.phiZ","180*deg");
 
+    ptree& rotation3 = rotSec.add("Rotation","");
+    rotation3.add("<xmlattr>.name","FLIP");
+    rotation3.add("<xmlattr>.thetaX","90*deg");
+    rotation3.add("<xmlattr>.phiX","180*deg");
+    rotation3.add("<xmlattr>.thetaY","90*deg");
+    rotation3.add("<xmlattr>.phiY","90*deg");
+    rotation3.add("<xmlattr>.thetaZ","`180*deg");
+    rotation3.add("<xmlattr>.phiZ","0*deg");
+      
     ptree& logicSec = tree.add("DDDefinition.LogicalPartSection", "");
     logicSec.add("<xmlattr>.label", "pixel.xml");
 
@@ -1298,6 +1320,9 @@ namespace insur {
 
       }
     }
+    //xml_writer_settings<std::string> settings(' ', 1);//for new boost version
+    xml_writer_settings<char> settings(' ', 1);
+    write_xml(xmlpath+"pixel_test.xml", tree, std::locale(), settings);
  
     ///////////////writing pixel structure Topology////////////////////
     std::vector<SpecParInfo>& specs = cmsswXmlInfo.specs;
@@ -1307,7 +1332,7 @@ namespace insur {
     tree_topo.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
         "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
     ptree& specParSec = tree_topo.add("DDDefinition.SpecParSection", "");
-    specParSec.add("<xmlattr>.label", xml_specpars_label);//xml_specpars_label=spec-pars2.xml
+    specParSec.add("<xmlattr>.label", xml_specpars_label);//xml_specpars_label=spec-p```ars2.xml
 
     ptree& spec = specParSec.add("SpecPar","");
     spec.add("<xmlattr>.name","FullTrackerPar");
@@ -1360,7 +1385,7 @@ namespace insur {
         param4.add("<xmlattr>.PixelROC_Y", m.rocy);
       } 
     }
-    write_xml(xmlpath+"pixelStructureTopology_test.xml", tree_topo);
+    write_xml(xmlpath+"pixelStructureTopology_test.xml", tree_topo, std::locale(), settings);
 
     //sensor portion
     ptree tree_sense;
@@ -1402,7 +1427,7 @@ namespace insur {
     endcap_param2.add("<xmlattr>.name","ReadOutName");
     endcap_param2.add("<xmlattr>.value","TrackerHits" +xml_phaseII_pixecap);
 
-    write_xml(xmlpath+"pixelsens_test.xml", tree_sense);
+    write_xml(xmlpath+"pixelsens_test.xml", tree_sense, std::locale(), settings);
     
     //Prodcut portion
     ptree tree_prodCut;
@@ -1468,7 +1493,7 @@ namespace insur {
     sens_param4.add("<xmlattr>.name","ProdCutsForGamma");
     sens_param4.add("<xmlattr>.value","0.01*mm");
 
-    write_xml(xmlpath+"pixelProdCuts_test.xml", tree_prodCut);
+    write_xml(xmlpath+"pixelProdCuts_test.xml", tree_prodCut, std::locale(), settings);
  
    //Reco Material
     ptree tree_recoMat;
@@ -1514,6 +1539,6 @@ namespace insur {
             }
          }
       }
-      write_xml(xmlpath+"pixelRecoMaterial_test.xml", tree_recoMat);
+      write_xml(xmlpath+"pixelRecoMaterial_test.xml", tree_recoMat, std::locale(), settings);
   }
 }//for namespace
