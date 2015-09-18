@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -43,7 +44,7 @@ public:
     maxR.setup([&]() { double max = 0; for (const auto& d : disks_) { max = MAX(max, d.maxR()); } return max; });
     minR.setup([&]() { double min = 0; for (const auto& d : disks_) { min = MIN(min, d.minR()); } return min; });
     maxZ.setup([&]() { double max = 0; for (const auto& d : disks_) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
-    minZ.setup([&]() { double min = 9999999999; for (const auto& d : disks_) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
+    minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : disks_) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
   }
 
   void build();
