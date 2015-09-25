@@ -1,0 +1,58 @@
+
+Tracker Pixels {
+
+  phiSegments 4
+  etaCut 4.1
+  zError 70
+
+  smallDelta 0
+  bigDelta 3
+
+  servicesForcedUp true
+
+  barrelRotation 1.57079632679
+ 
+  @includestd ModuleTypes/Pixel_no_mat
+  //@includestd Conversions/flangePixel
+
+  trackingTags pixel,tracker
+
+  Barrel PXB {
+    bigDelta 1.5
+    phiOverlap 0.60
+    zOverlap -0.2 // 200 um gap along the stave
+    beamSpotCover false
+    smallDelta 0 
+    numLayers 1
+    startZMode modulecenter
+    numModules 5  // 4 on the right and 3 on the left
+    compressed false
+    innerRadius 30 
+    outerRadius 146
+    width 17
+    length 57
+    smallParity 1
+    bigParity -1
+    Layer 1 {
+      @includestd ModuleTypes/pixel_L1
+      plotColor 7
+      Ring 2,4 { plotColor 8 }
+      layerRotation 0.262
+    }
+     
+    Layer 1 {
+      resolutionLocalX 0.010 // 10 um
+      resolutionLocalY 0.010 // 10 um
+    }
+    
+  }
+
+
+
+
+
+
+
+
+
+}
