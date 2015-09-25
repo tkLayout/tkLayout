@@ -75,12 +75,14 @@ Materials BPX_L2 {
       elementName Cu
       quantity 0.884
       unit g/m
+destination BPX2
     }
     // Two insulations
     Element {
       elementName Kapton
       quantity 0.077
       unit g/m
+destination BPX2
     }
   }
 
