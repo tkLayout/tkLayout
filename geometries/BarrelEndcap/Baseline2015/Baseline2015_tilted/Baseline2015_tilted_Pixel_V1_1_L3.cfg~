@@ -336,6 +336,6 @@ Support {
   midZ 290
 }
 
-@include ../../Pixel/Pixel_V1_1.cfg
+@include ../../Pixel/Pixel_V1_1_L3.cfg
 
 

@@ -8,7 +8,7 @@ Tracker Pixels {
   smallDelta 0
   bigDelta 3
 
-  servicesForcedUp true
+  servicesForcedUp false
 
   barrelRotation 1.57079632679
  

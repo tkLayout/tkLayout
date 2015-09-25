@@ -18,7 +18,6 @@ Tracker Pixels {
   trackingTags pixel,tracker
 
   Barrel PXB {
-    @include Baseline2015_tilted_Pixel_V1_1_SupportsBarrel.cfg
     bigDelta 1.5
     phiOverlap 0.60
     zOverlap -0.2 // 200 um gap along the stave
