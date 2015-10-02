@@ -10,8 +10,8 @@ std::pair<double, double> Tracker::computeMinMaxEta() const {
 
   //return std::make_pair(-1*log(tan(min/2.)), -1*log(tan(max/2.)));
   //return std::make_pair(min, max);
-  min = -1*insur::max_eta_coverage;
-  max = +1*insur::max_eta_coverage;
+  min = -1*insur::geom_max_eta_coverage;
+  max = +1*insur::geom_max_eta_coverage;
   return std::make_pair(min, max); // CUIDADO to make it equal to the extended pixel - make it better ASAP!!
 }
 
@@ -21,6 +21,7 @@ void Tracker::build() {
 
     double barrelMaxZ = 0;
 
+    // Build barrel tracker
     for (auto& mapel : barrelNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Barrel* b = GeometryFactory::make<Barrel>();
@@ -33,6 +34,7 @@ void Tracker::build() {
       barrels_.push_back(b);
     }
 
+    // Build end-cap tracker
     for (auto& mapel : endcapNode) {
       if (!containsOnly.empty() && containsOnly.count(mapel.first) == 0) continue;
       Endcap* e = GeometryFactory::make<Endcap>();
@@ -45,6 +47,7 @@ void Tracker::build() {
       endcaps_.push_back(e);
     }
 
+    // Build support structures
     for (auto& mapel : supportNode) {
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());

@@ -20,9 +20,9 @@ namespace insur {
     gm = new TGeoManager("display", "Tracker");
     // dummy material definitions for each category
     matvac = new TGeoMaterial("Vacuum", 0, 0, 0);
-    matact = new TGeoMaterial("Si", a_silicon, z_silicon, d_silicon);
-    matserf = new TGeoMaterial("C ", a_carbon, z_carbon, d_carbon);
-    matlazy = new TGeoMaterial("Cu", a_copper, z_copper, d_copper);
+    matact = new TGeoMaterial("Si", mat_a_silicon, mat_z_silicon, mat_d_silicon);
+    matserf = new TGeoMaterial("C ", mat_a_carbon, mat_z_carbon, mat_d_carbon);
+    matlazy = new TGeoMaterial("Cu", mat_a_copper, mat_z_copper, mat_d_copper);
     // dummy medium definitions for each category
     medvac = new TGeoMedium("Vacuum", 0, matvac);
     medact = new TGeoMedium("Silicon", 1, matact);
@@ -36,7 +36,7 @@ namespace insur {
     active = new TGeoVolumeAssembly("Active Modules");
     inactive = new TGeoVolumeAssembly("Inactive Surfaces");
     // top-level volume definition
-    top = gm->MakeBox("WORLD", medvac, outer_radius + top_volume_pad, outer_radius + top_volume_pad, max_length + top_volume_pad);
+    top = gm->MakeBox("WORLD", medvac, geom_max_radius + geom_top_volume_pad, geom_max_radius + geom_top_volume_pad, geom_max_length + geom_top_volume_pad);
     // definition of tree hierarchy for visualisation
     active->AddNode(barrels, 0);
     active->AddNode(endcaps, 0);
@@ -53,12 +53,12 @@ namespace insur {
     Double_t red[numberOfSteps]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
     Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
     Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-    Int_t myPalette[temperature_levels];
-    gStyle->SetNumberContours(temperature_levels);
+    Int_t myPalette[vis_temperature_levels];
+    gStyle->SetNumberContours(vis_temperature_levels);
 
-    Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
-    for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
-    gStyle->SetPalette(temperature_levels, myPalette);
+    Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, vis_temperature_levels);
+    for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
+    gStyle->SetPalette(vis_temperature_levels, myPalette);
   }
 
   /**
@@ -584,7 +584,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     ciProf->Draw("hist");
 
     // Write tracking volume plots to the web site
-    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material overview in tracking volume");
     myImage->setName("matTrack");
     myTable = new RootWTable();
@@ -607,27 +607,27 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     materialSummaryTable->setContent(2,0,"Int. length ");
     materialSummaryTable->setContent(3,0,"Photon conv.");
 
-    for (unsigned int j=1; j< name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
       // First row: the cut name
-      materialSummaryTable->setContent(0,j, name_eta_regions[j]);
+      materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
 
       // Second row: the radiation length
-      averageValue = averageHistogramValues(*cr, range_eta_regions[j-1], range_eta_regions[j]);
+      averageValue = averageHistogramValues(*cr, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       materialSummaryTable->setContent(1,j, averageValue ,4);
-      addSummaryLabelElement("Radiation length ("+name_eta_regions[j]+") for "+name);
+      addSummaryLabelElement("Radiation length ("+geom_name_eta_regions[j]+") for "+name);
       addSummaryElement(averageValue);
 
       // Third row: the interaction length
-      averageValue = averageHistogramValues(*ci, range_eta_regions[j-1], range_eta_regions[j]);
+      averageValue = averageHistogramValues(*ci, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       materialSummaryTable->setContent(2,j, averageValue ,4);
-      addSummaryLabelElement("Interaction length ("+name_eta_regions[j]+") for "+name);
+      addSummaryLabelElement("Interaction length ("+geom_name_eta_regions[j]+") for "+name);
       addSummaryElement(averageValue);
 
       // Third row: the photon conversion probability
       averageValue *= -7./9.;
       averageValue = 1 - exp(averageValue);
       materialSummaryTable->setContent(3,j, averageValue ,4);
-      addSummaryLabelElement("Photon conversion probability ("+name_eta_regions[j]+") for "+name);
+      addSummaryLabelElement("Photon conversion probability ("+geom_name_eta_regions[j]+") for "+name);
       addSummaryElement(averageValue);
     }
 
@@ -691,7 +691,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     icontainer->Draw();
 
     // Write asl category plots to web page
-    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Detailed");
     myImage->setName("matTrackDet");
     myTable = new RootWTable();
@@ -783,7 +783,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
 
     myContent->addItem(myTable);
 
-    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation and interaction length distribution in "+etaLetter+" by component type in modules");
     myImage->setName("riDistrComp");
     myContent->addItem(myImage);
@@ -806,7 +806,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     // radiation length in isolines
     ir = (TH2D*)analyzer.getHistoIsoR().Clone();
     ir->SetNameTitle("isor", "Radiation Length Contours");
-    ir->SetContour(temperature_levels, NULL);
+    ir->SetContour(vis_temperature_levels, NULL);
     ir->SetXTitle("z");
     ir->SetYTitle("r");
     ir->Draw("COLZ");
@@ -815,12 +815,12 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     // interaction length in isolines
     ii = (TH2D*)analyzer.getHistoIsoI().Clone();
     ii->SetNameTitle("isoi", "Interaction Length Contours");
-    ii->SetContour(temperature_levels, NULL);
+    ii->SetContour(vis_temperature_levels, NULL);
     ii->SetXTitle("z");
     ii->SetYTitle("r");
     ii->Draw("COLZ");
     // Write isoline plots to web page
-    myImage = new RootWImage(myCanvas, 900, 400);
+    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Material 2D distributions");
     myImage->setName("matShadow");
     myContent->addItem(myImage);
@@ -834,10 +834,10 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapRad = (TH2D*)analyzer.getHistoMapRadiation().Clone();
-    mapRad->SetContour(temperature_levels, nullptr);
+    mapRad->SetContour(vis_temperature_levels, nullptr);
     mapRad->GetYaxis()->SetTitleOffset(1.1);
     mapRad->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, std_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Radiation length material map");
     myImage->setName("matMapR");
     myContent->addItem(myImage);
@@ -847,10 +847,10 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapInt = (TH2D*)analyzer.getHistoMapInteraction().Clone();
-    mapInt->SetContour(temperature_levels, NULL);
+    mapInt->SetContour(vis_temperature_levels, NULL);
     mapInt->GetYaxis()->SetTitleOffset(1.1);
     mapInt->Draw("COLZ");
-    myImage = new RootWImage(myCanvas, std_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Interaction length material map");
     myImage->setName("matMapI");
     myContent->addItem(myImage);
@@ -910,7 +910,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
       //double xx, yy;
       //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
       //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = Analyzer::average(myGraph, range_eta_regions);
+      averages[i] = Analyzer::average(myGraph, geom_range_eta_regions);
       closeGraph(myGraph);
       myGraph.SetFillColor(Palette::color(i+1));
       myGraph.Draw("same F");
@@ -927,7 +927,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     }
     ranger->Draw("sameaxis");
     myLegend->Draw();
-    myImage = new RootWImage(myCanvas, 2*min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hits occupancy & track efficiency for hadrons");
     myImage->setName("hadHitsTracks");
     myContent->addItem(myImage);
@@ -946,11 +946,11 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
 
     myTable = &cutsSummaryTable;
-    for (unsigned int iBorder=0; iBorder<name_eta_regions.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,name_eta_regions[iBorder+1]);
-      label.str(""); label << std::fixed << std::setprecision(1) << range_eta_regions[iBorder];
+    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
+      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << std::fixed << std::setprecision(1) << range_eta_regions[iBorder+1];
+      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -1849,12 +1849,12 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
-      myImage = new RootWImage(XYCanvas, min_canvas_sizeX, min_canvas_sizeY);
+      myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("XY cross section of barrel modules");
       myContent->addItem(myImage);
     }
     if (XYCanvasEC) {
-      myImage = new RootWImage(XYCanvasEC, min_canvas_sizeX, min_canvas_sizeY);
+      myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("XY projection of endcap(s) modules");
       myContent->addItem(myImage);
     }
@@ -1862,13 +1862,13 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     // Eta profile big plot
     myCanvas = new TCanvas("EtaProfileHits", "#eta profile (hit modules)");//, min_canvas_sizeX, min_canvas_sizeY);
     drawEtaProfiles(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit modules across "+etaLetter);
     myContent->addItem(myImage);
 
     myCanvas = new TCanvas("EtaProfileSensors", "#eta profile (hits)");//, min_canvas_sizeX, min_canvas_sizeY);
     drawEtaProfilesSensors(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage across "+etaLetter);
     myContent->addItem(myImage);
 
@@ -1892,7 +1892,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     analyzer.getMapPhiEta().Draw("colz");
     hitMapCanvas->Modified();
     gStyle->SetOptStat(prevStat);
-    myImage = new RootWImage(hitMapCanvas, min_canvas_sizeX, min_canvas_sizeY);
+    myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage in "+etaLetter+", "+phiLetter);
     myContent->addItem(myImage);
 
@@ -2001,7 +2001,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     for (std::map<std::string, TProfile>::iterator it = layerEtaCoverage.begin(); it!= layerEtaCoverage.end(); ++it) {
       TProfile& aProfile = it->second;
       layerCount++;
-      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), min_canvas_sizeX, min_canvas_sizeY);
+      myCanvas = new TCanvas(Form("LayerCoverage%s%s", it->first.c_str(), type.c_str()), ("Layer eta coverage (" + type + ")").c_str(), vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myCanvas->cd();
 
 
@@ -2025,7 +2025,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
       lowerPad->cd();
       zoomedProfile->Draw();
 
-      RootWImage* myImage = new RootWImage(myCanvas, min_canvas_sizeX, min_canvas_sizeY);
+      RootWImage* myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Layer coverage in "+etaLetter+" for " + type + " (multiple occurrence in a layer counted just once)");
       myContent->addItem(myImage);
     }
@@ -2036,17 +2036,17 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     TCanvas* result = NULL;
     std::string aClass;
     PlotDrawer<YZ, Type> yzDrawer;
-    double maxR = 1100;
-    double maxL = 2800;
-    double scaleFactor = maxR / 600;
+    //double maxR = 1100;
+    //double maxL = 2800;
+    //double scaleFactor = maxR / 600;
     
     for (unsigned int i=0; i< trackers_.size(); ++i) {
       Tracker& tracker = *(trackers_[i]);
       yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     }
 
-    int rzCanvasX = 1800; //int(maxL/scaleFactor);
-    int rzCanvasY =  600; //int(maxR/scaleFactor);
+    int rzCanvasX = vis_max_canvas_sizeX; //int(maxL/scaleFactor);
+    int rzCanvasY = vis_min_canvas_sizeY; //int(maxR/scaleFactor);
     result = new TCanvas("FullRZCanvas", "RZView Canvas (full layout)", rzCanvasX, rzCanvasY );
     result->cd();
     yzDrawer.drawFrame<SummaryFrameStyle>(*result);
@@ -2468,32 +2468,32 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
     moduleConnectionEtaCanvas.cd();
     moduleConnectionEtaMap.Draw("colz");
     */  
-    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, 1800, 400);
+    RootWImage& moduleConnectionEtaImage = myContent.addImage(moduleConnectionEtaCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEtaImage.setComment("Map of the number of connections to trigger processors per module (eta section)");
     moduleConnectionEtaImage.setName("moduleConnectionEtaMap");
     /*
        moduleConnectionPhiCanvas.cd();
        moduleConnectionPhiMap.Draw("colz");
        */  
-    RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, 600, 600);
+    RootWImage& moduleConnectionPhiImage = myContent.addImage(moduleConnectionPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionPhiImage.setComment("Map of the number of connections to trigger processors per barrel module (phi section)");
     moduleConnectionPhiImage.setName("moduleConnectionPhiMap");
 
     // moduleConnectionEndcapPhiCanvas.cd();
     // moduleConnectionEndcapPhiMap.Draw("colz");
 
-    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, 600, 600);
+    RootWImage& moduleConnectionEndcapPhiImage = myContent.addImage(moduleConnectionEndcapPhiCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionEndcapPhiImage.setComment("Map of the number of connections to trigger processors per endcap module (phi section)");
     moduleConnectionEndcapPhiImage.setName("moduleConnectionEndcapPhiMap");
 
     //    myContent = myPage->addContent("Module Connections distribution", true);
 
-    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", 600, 400);
+    TCanvas moduleConnectionsCanvas("ModuleConnectionsC", "Modules connectionsC", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     moduleConnectionsCanvas.cd();
     TH1I& moduleConnectionsDistribution = analyzer.getModuleConnectionsDistribution();
     moduleConnectionsDistribution.SetFillColor(Palette::color(2));
     moduleConnectionsDistribution.Draw();
-    RootWImage& myImage = myContent.addImage(moduleConnectionsCanvas, 600, 400);
+    RootWImage& myImage = myContent.addImage(moduleConnectionsCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage.setComment("Module connections distribution");
 
     return true;
@@ -2833,18 +2833,18 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
       std::string name;      
       RootWTable* myTable;
 
-      unsigned int nCuts = name_eta_regions.size();
+      unsigned int nCuts = geom_name_eta_regions.size();
 
       // Table explaining the cuts
       cutsTable.setContent(0,0,"Region");
       cutsTable.setContent(1,0,"etaMin");
       cutsTable.setContent(2,0,"etaMax");
       myTable = &cutsTable;
-      for (unsigned int iBorder=0; iBorder<range_eta_regions.size()-1; ++iBorder) {
-        myTable->setContent(0,iBorder+1,name_eta_regions[iBorder]);
-        label.str(""); label << range_eta_regions[iBorder];
+      for (unsigned int iBorder=0; iBorder<geom_range_eta_regions.size()-1; ++iBorder) {
+        myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder]);
+        label.str(""); label << geom_range_eta_regions[iBorder];
         myTable->setContent(1,iBorder+1,label.str());
-        label.str(""); label << range_eta_regions[iBorder+1];
+        label.str(""); label << geom_range_eta_regions[iBorder+1];
         myTable->setContent(2,iBorder+1,label.str());
       }
 
@@ -2903,15 +2903,15 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
           myTable->setContent(3, 0, "Ideal");
           myTable->setContent(4, 0, "Loss");
           if (myGraph) {
-            averagesReal=Analyzer::average(*myGraph, range_eta_regions);
+            averagesReal=Analyzer::average(*myGraph, geom_range_eta_regions);
             myColor = myGraph->GetMarkerColor();
             myTable->setColor(0, baseColumn, myColor);
           }
           myIndex.ideal = true;
           myGraph = myPlotMap[myIndex];
-          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
+          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
           for (unsigned int j=0; j<nCuts; ++j) {
-            myTable->setContent(1, baseColumn+j, name_eta_regions[j]);
+            myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
               myTable->setContent(2, baseColumn+j,averagesReal[j],5);
@@ -2928,7 +2928,7 @@ void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget,
             myLabel.str("");
             myLabel << myIndex.name
               << std::dec << std::fixed << std::setprecision(0) 
-              << myIndex.p << "(" << name_eta_regions[j] << ")";
+              << myIndex.p << "(" << geom_name_eta_regions[j] << ")";
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
             addSummaryElement(averagesReal[j]);
@@ -3017,7 +3017,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
         // Default attributes
         int myColor            = 0;
-        int nBins              = insur::default_n_bins;
+        int nBins              = insur::vis_n_bins;
         int markerStyle        = 21;
         double markerSize      = 1.;
         double lineWidth       = 2.;
@@ -3043,11 +3043,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-            momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+            momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           } else {
-            momentumProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
-            momentumProfile.SetMaximum(insur::max_dPtOverPt); //.5*100*verticalScale);
+            momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
+            momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
           }
           linMomCanvas_Pt.SetLogy(0);
           logMomCanvas_Pt.SetLogy(1);
@@ -3078,11 +3078,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-            pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            pProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+            pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           } else {
-            pProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
-            pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
+            pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           }
           pCanvas_Pt.SetLogy();
           pCanvas_Pt.SetFillColor(color_plot_background);
@@ -3109,11 +3109,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            distanceProfile.SetMinimum(min_dD0);
-            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
+            distanceProfile.SetMinimum(vis_min_dD0);
+            distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
           } else {
-            distanceProfile.SetMinimum(min_dD0);
-            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
+            distanceProfile.SetMinimum(vis_min_dD0);
+            distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
           }
           d0Canvas_Pt.SetLogy();
           d0Canvas_Pt.SetFillColor(color_plot_background);
@@ -3140,11 +3140,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-          angleProfile.SetMinimum(min_dPhi);
-          angleProfile.SetMaximum(max_dPhi);//*verticalScale);
+          angleProfile.SetMinimum(vis_min_dPhi);
+          angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
           } else {
-            angleProfile.SetMinimum(min_dPhi);
-            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
+            angleProfile.SetMinimum(vis_min_dPhi);
+            angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
           }
           phiCanvas_Pt.SetLogy();
           phiCanvas_Pt.SetFillColor(color_plot_background);
@@ -3170,8 +3170,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           const TGraph& ctgThetaGraph = mapel.second;
           TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          ctgThetaProfile.SetMinimum(min_dCtgTheta);
-          ctgThetaProfile.SetMaximum(max_dCtgTheta);//*verticalScale);
+          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
           ctgThetaCanvas_Pt.SetLogy();
           ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
 
@@ -3196,8 +3196,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           const TGraph& z0Graph = mapel.second;
           TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          z0Profile.SetMinimum(min_dZ0);
-          z0Profile.SetMaximum(max_dZ0);//*verticalScale);
+          z0Profile.SetMinimum(vis_min_dZ0);
+          z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
           z0Canvas_Pt.SetLogy();
           z0Canvas_Pt.SetFillColor(color_plot_background);
 
@@ -3218,31 +3218,31 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         plotOption = "";
         myColor=0;
 
-        RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         linMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const Pt across "+etaLetter);
         linMomImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& logMomImage_Pt = myContent->addImage(logMomCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& logMomImage_Pt = myContent->addImage(logMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         logMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
         logMomImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& pImage_Pt = myContent->addImage(pCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& pImage_Pt = myContent->addImage(pCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         pImage_Pt.setComment("Momentum resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         pImage_Pt.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& d0Image_Pt = myContent->addImage(d0Canvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& d0Image_Pt = myContent->addImage(d0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         d0Image_Pt.setComment("d0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         d0Image_Pt.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& z0Image_Pt = myContent->addImage(z0Canvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         z0Image_Pt.setComment("z0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         phiImage_Pt.setComment("Angle resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         phiImage_Pt.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
         ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
@@ -3262,7 +3262,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
         // Default attributes
         int myColor            = 0;
-        int nBins              = insur::default_n_bins;
+        int nBins              = insur::vis_n_bins;
         int markerStyle        = 21;
         double markerSize      = 1.;
         double lineWidth       = 2.;
@@ -3282,10 +3282,10 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraphDipole_Pt | idealMaterial, tag)) {
 
           const TGraph& momentumGraph = mapel.second;
-          TProfile& momentumProfile   = newProfile(momentumGraph, insur::range_eta_regions[2], analyzer.getEtaMaxTracker(), 1, int((analyzer.getEtaMaxTracker()-insur::range_eta_regions[2])/insur::default_eta_step));
+          TProfile& momentumProfile   = newProfile(momentumGraph, geom_range_eta_regions[2], analyzer.getEtaMaxTracker(), 1, int((analyzer.getEtaMaxTracker()-geom_range_eta_regions[2])/vis_eta_step));
 
-          momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-          momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+          momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+          momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
 
           logMomCanvasDip_Pt.SetLogy(1);
           logMomCanvasDip_Pt.SetFillColor(color_plot_background);
@@ -3312,8 +3312,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           const TGraph& momentumGraph = mapel.second;
           TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-          momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+          momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+          momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
 
           linMomCanvasTot_Pt.SetLogy(0);
           logMomCanvasTot_Pt.SetLogy(1);
@@ -3339,15 +3339,15 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         plotOption = "";
         myColor=0;
 
-        RootWImage& logMomDipImage_Pt = myContent->addImage(logMomCanvasDip_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& logMomDipImage_Pt = myContent->addImage(logMomCanvasDip_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         logMomDipImage_Pt.setComment("Transverse momentum resolution (in dipole region) vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
         logMomDipImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& linMomTotImage_Pt = myContent->addImage(linMomCanvasTot_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& linMomTotImage_Pt = myContent->addImage(linMomCanvasTot_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         linMomTotImage_Pt.setComment("Transverse momentum resolution (in central+dipole region) vs. "+etaLetter+" (lin scale) - const Pt across "+etaLetter);
         linMomTotImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& logMomTotImage_Pt = myContent->addImage(logMomCanvasTot_Pt, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& logMomTotImage_Pt = myContent->addImage(logMomCanvasTot_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         logMomTotImage_Pt.setComment("Transverse momentum resolution (in central+dipole region) vs. "+etaLetter+" (log scale) - const Pt across "+etaLetter);
         logMomTotImage_Pt.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
@@ -3381,7 +3381,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
         // Default attributes
         int myColor            = 0;
-        int nBins              = insur::default_n_bins;
+        int nBins              = insur::vis_n_bins;
         int markerStyle        = 21;
         double markerSize      = 1.;
         double lineWidth       = 2.;
@@ -3407,11 +3407,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            momentumProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-            momentumProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+            momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           } else {
-            momentumProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
-            momentumProfile.SetMaximum(insur::max_dPtOverPt); //.5*100*verticalScale);
+            momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
+            momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.5*100*verticalScale);
           }
           linMomCanvas_P.SetLogy(0);
           logMomCanvas_P.SetLogy(1);
@@ -3442,11 +3442,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& pProfile   = newProfile(pGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            pProfile.SetMinimum(insur::min_dPtOverPt); //1E-5*100);
-            pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            pProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+            pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           } else {
-            pProfile.SetMinimum(insur::min_dPtOverPt); //4E-3*100);
-            pProfile.SetMaximum(insur::max_dPtOverPt); //.11*100*verticalScale);
+            pProfile.SetMinimum(insur::vis_min_dPtOverPt); //4E-3*100);
+            pProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
           }
           pCanvas_P.SetLogy();
           pCanvas_P.SetFillColor(color_plot_background);
@@ -3473,11 +3473,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& distanceProfile   = newProfile(distanceGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            distanceProfile.SetMinimum(min_dD0);
-            distanceProfile.SetMaximum(max_dD0);//*verticalScale);
+            distanceProfile.SetMinimum(vis_min_dD0);
+            distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
           } else {
-              distanceProfile.SetMinimum(min_dD0);
-              distanceProfile.SetMaximum(max_dD0);//*verticalScale);
+              distanceProfile.SetMinimum(vis_min_dD0);
+              distanceProfile.SetMaximum(vis_max_dD0);//*verticalScale);
           }
           d0Canvas_P.SetLogy();
           d0Canvas_P.SetFillColor(color_plot_background);
@@ -3504,11 +3504,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           TProfile& angleProfile   = newProfile(angleGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
           if (idealMaterial == GraphBag::IdealGraph) {
-            angleProfile.SetMinimum(min_dPhi);
-            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
+            angleProfile.SetMinimum(vis_min_dPhi);
+            angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
           } else {
-            angleProfile.SetMinimum(min_dPhi);
-            angleProfile.SetMaximum(max_dPhi);//*verticalScale);
+            angleProfile.SetMinimum(vis_min_dPhi);
+            angleProfile.SetMaximum(vis_max_dPhi);//*verticalScale);
           }
           phiCanvas_P.SetLogy();
           phiCanvas_P.SetFillColor(color_plot_background);
@@ -3534,8 +3534,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           const TGraph& ctgThetaGraph = mapel.second;
           TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          ctgThetaProfile.SetMinimum(min_dCtgTheta);
-          ctgThetaProfile.SetMaximum(max_dCtgTheta);//*verticalScale);
+          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
           ctgThetaCanvas_P.SetLogy();
           ctgThetaCanvas_P.SetFillColor(color_plot_background);
 
@@ -3560,8 +3560,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           const TGraph& z0Graph = mapel.second;
           TProfile& z0Profile   = newProfile(z0Graph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
 
-          z0Profile.SetMinimum(min_dZ0);
-          z0Profile.SetMaximum(max_dZ0);//*verticalScale);
+          z0Profile.SetMinimum(vis_min_dZ0);
+          z0Profile.SetMaximum(vis_max_dZ0);//*verticalScale);
           z0Canvas_P.SetLogy();
           z0Canvas_P.SetFillColor(color_plot_background);
 
@@ -3582,31 +3582,31 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         plotOption = "";
         myColor=0;
           
-        RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         linMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const P across "+etaLetter);
         linMomImage_P.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& logMomImage_P = myContent->addImage(logMomCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& logMomImage_P = myContent->addImage(logMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         logMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (log scale) - const P across "+etaLetter);
         logMomImage_P.setName(Form("ptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& pImage_P = myContent->addImage(pCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& pImage_P = myContent->addImage(pCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         pImage_P.setComment("Momentum resolution vs. "+etaLetter+" - const P across "+etaLetter);
         pImage_P.setName(Form("pres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& d0Image_P = myContent->addImage(d0Canvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& d0Image_P = myContent->addImage(d0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         d0Image_P.setComment("d0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
         d0Image_P.setName(Form("dxyres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         z0Image_P.setComment("z0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
         z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         phiImage_P.setComment("Angle resolution vs. "+etaLetter+" - const P across "+etaLetter);
         phiImage_P.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
 
-        RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, std_canvas_sizeX, min_canvas_sizeY);
+        RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
         ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
       }
@@ -3648,11 +3648,11 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
 
     myTable = &cutsSummaryTable;
-    for (unsigned int iBorder=0; iBorder<name_eta_regions.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,name_eta_regions[iBorder+1]);
-      label.str(""); label << range_eta_regions[iBorder];
+    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
+      label.str(""); label << geom_range_eta_regions[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << range_eta_regions[iBorder+1];
+      label.str(""); label << geom_range_eta_regions[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -3712,7 +3712,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
       // Put units & better formatting
       for (unsigned int i=0; i<momentum.size(); ++i) {
-        baseColumn = (name_eta_regions.size()-1)*i + 1;
+        baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
         myTable->setContent(0, baseColumn, momentum[i]/1000,0);
         myIndex.p=momentum[i];
         myIndex.ideal = false;
@@ -3721,15 +3721,15 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         myTable->setContent(3, 0, "Ideal:     ");
         myTable->setContent(4, 0, "Real/Ideal:");
         if (myGraph) {
-          averagesReal=Analyzer::average(*myGraph, range_eta_regions);
+          averagesReal=Analyzer::average(*myGraph, geom_range_eta_regions);
           myColor = myGraph->GetMarkerColor();
           myTable->setColor(0, baseColumn, myColor);
         }
         myIndex.ideal = true;
         myGraph = myPlotMap_Pt[myIndex];
-        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
-        for (unsigned int j=0; j<(name_eta_regions.size()-1); ++j) {
-          myTable->setContent(1, baseColumn+j, name_eta_regions[j+1]);
+        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
+        for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
+          myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
           myTable->setColor(1, baseColumn+j, myColor);
           if (averagesReal.size() > j) {
 
@@ -3754,7 +3754,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           myLabel.str("");
           myLabel << myIndex.name
                   << std::dec << std::fixed << std::setprecision(0)
-                  << myIndex.p << "(" << name_eta_regions[j+1] << ")";
+                  << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
           addSummaryElement(averagesReal[j]);
@@ -3804,7 +3804,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
       // Put units & better formatting
       for (unsigned int i=0; i<momentum.size(); ++i) {
-        baseColumn = (name_eta_regions.size()-1)*i + 1;
+        baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
         myTable->setContent(0, baseColumn, momentum[i]/1000,0);
         myIndex.p=momentum[i];
         myIndex.ideal = false;
@@ -3813,15 +3813,15 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
         myTable->setContent(3, 0, "Ideal:     ");
         myTable->setContent(4, 0, "Real/Ideal:");
         if (myGraph) {
-          averagesReal=Analyzer::average(*myGraph, range_eta_regions);
+          averagesReal=Analyzer::average(*myGraph, geom_range_eta_regions);
           myColor = myGraph->GetMarkerColor();
           myTable->setColor(0, baseColumn, myColor);
         }
         myIndex.ideal = true;
         myGraph = myPlotMap_P[myIndex];
-        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, range_eta_regions);
-        for (unsigned int j=0; j<(name_eta_regions.size()-1); ++j) {
-          myTable->setContent(1, baseColumn+j, name_eta_regions[j+1]);
+        if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
+        for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
+          myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
           myTable->setColor(1, baseColumn+j, myColor);
           if (averagesReal.size() > j) {
 
@@ -3846,7 +3846,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
           myLabel.str("");
           myLabel << myIndex.name
                   << std::dec << std::fixed << std::setprecision(0)
-                  << myIndex.p << "(" << name_eta_regions[j+1] << ")";
+                  << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
           addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
           addSummaryElement(averagesReal[j]);
@@ -4933,8 +4933,8 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     double scaleFactor = tracker.maxR()/600;
     bool   isPixelType = tracker.isPixelType();
 
-    int rzCanvasX = insur::max_canvas_sizeX; //int(tracker.maxZ()/scaleFactor);
-    int rzCanvasY = insur::min_canvas_sizeY; //int(tracker.maxR()/scaleFactor);
+    int rzCanvasX = insur::vis_max_canvas_sizeX; //int(tracker.maxZ()/scaleFactor);
+    int rzCanvasY = insur::vis_min_canvas_sizeY; //int(tracker.maxR()/scaleFactor);
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
@@ -4945,14 +4945,14 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
+    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
     XYCanvas->cd();
     PlotDrawer<XY, Type> xyBarrelDrawer;
     xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
     xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
     xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
 
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::min_canvas_sizeX, insur::min_canvas_sizeY );
+    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
     XYCanvasEC->cd();
     PlotDrawer<XY, Type> xyEndcapDrawer; 
     xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
@@ -5272,7 +5272,7 @@ bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
     aServicesFrame->GetXaxis()->SetRangeUser(-maxZ, maxZ);
     aServicesFrame->GetYaxis()->SetRangeUser(0, maxR);
 
-    RootWImage& servicesImage = myContent.addImage(servicesCanvas, 1800, 400);
+    RootWImage& servicesImage = myContent.addImage(servicesCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
     servicesImage.setComment("Display of the rz positions of the service volumes. Ignoring services with no material.");
     servicesImage.setName("InactiveSurfacesPosition");
 

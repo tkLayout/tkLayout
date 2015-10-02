@@ -1,4 +1,5 @@
 #include <rootweb.hh>
+#include <global_constants.h>
 
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
@@ -670,34 +671,36 @@ int RootWPage::getRelevance() {
 //*******************************************//
 
 RootWSite::RootWSite() {
-  title_ = "Untitled";
-  comment_ = "";
-  commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
-  revision_="";
-  targetDirectory_ = ".";
+  title_                = "Untitled";
+  comment_              = "";
+  commentLink_          = "";
+  programName_          = insur::web_program_name;
+  programSite_          = insur::web_program_site;
+  revision_             = "";
+  targetDirectory_      = ".";
+  tkLayoutBranchName_   = insur::web_program_branch_name;
+  tkLayoutBranchAuthor_ = insur::web_program_branch_author;
   //styleDirectory_ = ".";
 }
 
 RootWSite::RootWSite(string title) {
-  title_ = title;
-  comment_ = "";
-  commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
-  revision_="";
+  title_           = title;
+  comment_         = "";
+  commentLink_     = "";
+  programName_     = insur::web_program_name;
+  programSite_     = insur::web_program_site;
+  revision_        = "";
   targetDirectory_ = ".";
   //styleDirectory_ = ".";
 }
 
 RootWSite::RootWSite(string title, string comment) {
-  title_ = title;
-  comment_ = comment;
-  commentLink_ = "";
-  programName_ = DEFAULTPROGRAMNAME;
-  programSite_ = DEFAULTPROGRAMSITE;
-  revision_="";
+  title_           = title;
+  comment_         = comment;
+  commentLink_     = "";
+  programName_     = insur::web_program_name;
+  programSite_     = insur::web_program_site;
+  revision_        = "";
   targetDirectory_ = ".";
   //styleDirectory_ = ".";
 }
@@ -793,9 +796,9 @@ ostream& RootWSite::dumpFooter(ostream& output) {
   time_t rawtime;
   time ( &rawtime );
   output << "        <p>Page created on "<< asctime(gmtime ( &rawtime )) << " GMT</p>" << endl
-	 << "        <p>by <a href=\""<< programSite_ <<"\">"<<programName_<<"</a>";
+	 << "        <p>By <a href=\""<< programSite_ <<"\">"<<programName_<<"</a>" << " (" << tkLayoutBranchName_ << ": " << tkLayoutBranchAuthor_ << ")";
   if (revision_!="")
-    output << " revision " << revision_;
+    output << ", revision " << revision_;
   output << "</p>" << endl
 	 << "      </div>" << endl
 	 << "    </div>" << endl

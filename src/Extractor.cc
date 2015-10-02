@@ -1316,7 +1316,7 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << (rinfo[*siter].phi + 2 * PI / (double)(rinfo[*siter].modules));
+            pconverter << (rinfo[*siter].phi + 2 * M_PI / (double)(rinfo[*siter].modules));
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
@@ -1841,7 +1841,7 @@ namespace insur {
   double Extractor::compositeDensity(InactiveElement& ie) {
     double d = ie.getRWidth() + ie.getInnerRadius();
     d = d * d - ie.getInnerRadius() * ie.getInnerRadius();
-    d = 1000 * ie.getTotalMass() / (PI * ie.getZLength() * d);
+    d = 1000 * ie.getTotalMass() / (M_PI * ie.getZLength() * d);
     return d;
   }
 

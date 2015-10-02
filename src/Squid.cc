@@ -825,7 +825,7 @@ void Squid::setGeometryFile(std::string geomFile) {
     htmlDir_+="/"+insur::default_htmldir;
   }
 
-  // Set layout name
+  // Set layout name according to geometry config file
   std::vector<std::string> info;
   boost::algorithm::split(info, geomFile, boost::algorithm::is_any_of("/"));
   if (info.size()!=0) layoutName_ = info[info.size()-1];

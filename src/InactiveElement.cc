@@ -25,8 +25,8 @@ namespace insur {
      * @return The average cylinder surface for a horizontal tube, the disc surface for a vertical disc
      */
     double InactiveElement::getSurface() const {
-        if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * PI;
-        else return 2 * PI * (i_radius + w_radius / 2.0) * z_length;
+        if (isVertical()) return ((i_radius + w_radius) * (i_radius + w_radius) - i_radius * i_radius) * M_PI;
+        else return 2 * M_PI * (i_radius + w_radius / 2.0) * z_length;
     }
     
     /**
@@ -202,7 +202,7 @@ namespace insur {
         if ((getZOffset() < 0) && (getZOffset() + getZLength() > 0)) {
             // lower left of tube wall above z-axis
             theta0 = atan(getInnerRadius() / (-1 * getZOffset()));
-            theta0 = PI - theta0;
+            theta0 = M_PI - theta0;
             // lower right of tube wall above z-axis
             theta1 = atan(getInnerRadius() / (getZOffset() + getZLength()));
         }

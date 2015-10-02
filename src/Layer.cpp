@@ -212,6 +212,7 @@ void Layer::build() {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
+    // Build either straight or tilted geometry
     if (tiltedLayerSpecFile().empty()) buildStraight();
     else buildTilted();
 

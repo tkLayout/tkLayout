@@ -62,7 +62,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double eta;
   
   // Use epsilon to avoid rounding errors
-  etaMax = etaMax+insur::step_eta_epsilon;
+  etaMax = etaMax+insur::vis_step_eta_epsilon;
 
   double thetaLimit = atan(startR/startL);
   std::vector<double> etaSteps;
@@ -140,7 +140,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   double  eta;
   
   // Use epsilon to avoid rounding errors when drawing eta ticks
-  double etaMaxSafe = etaMax+insur::step_eta_epsilon;
+  double etaMaxSafe = etaMax+insur::vis_step_eta_epsilon;
 
   double thetaLimit = atan(startR/startL);
   std::vector<double> etaSteps;
@@ -226,8 +226,8 @@ template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas& canvas, 
   frame.Draw();
 
   //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::step_eta_normal, insur::trk_eta_coverage, insur::max_eta_coverage);
-  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::step_eta_long, insur::step_eta_long, insur::short_eta_coverage, insur::trk_eta_coverage, insur::max_eta_coverage);
-  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::step_eta_short, insur::step_eta_long, insur::short_eta_coverage, insur::trk_eta_coverage, insur::max_eta_coverage);
+  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::vis_step_eta_long, insur::vis_step_eta_long, insur::vis_short_eta_coverage, insur::vis_trk_eta_coverage, insur::geom_max_eta_coverage);
+  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::vis_step_eta_short, insur::vis_step_eta_long, insur::vis_short_eta_coverage, insur::vis_trk_eta_coverage, insur::geom_max_eta_coverage);
 }
 
 

@@ -57,9 +57,9 @@ namespace material {
     void updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces);
     
   private:
-    const double inactiveElementWidth = insur::volume_width;
+    const double inactiveElementWidth = insur::geom_inactive_volume_width;
     const double autoLayerMarginUpper = 1.; //margins for the auto barrel support
-    const double autoLayerMarginLower = 2. + insur::volume_width; //upper is upper for the support (is lower for the layer) and viceversa
+    const double autoLayerMarginLower = 2. + insur::geom_inactive_volume_width; //upper is upper for the support (is lower for the layer) and viceversa
 
     PropertyNodeUnique<std::string> componentsNode;
 

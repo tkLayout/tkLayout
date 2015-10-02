@@ -150,7 +150,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
 
     eta   = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
-    phi   = myDice.Rndm() * PI * 2.0;
+    phi   = myDice.Rndm() * M_PI * 2.0;
 
     track.setTheta(theta);      
     track.setPhi(phi);
@@ -354,7 +354,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
 
     // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-      phi = myDice.Rndm() * PI * 2.0;
+      phi = myDice.Rndm() * M_PI * 2.0;
       z0 = myDice.Gaus(0, zError);
       int nHits;
       Track track;
@@ -534,11 +534,11 @@ void Analyzer::analyzeMaterialBudget(std::vector<MaterialBudget*> mbVector, int 
 
   // Reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
-  setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
+  setCellBoundaries(nTracks, 0.0, geom_max_radius + geom_inactive_volume_width, 0.0, getEtaMaxMaterial());
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
 
-    phi = myDice.Rndm() * PI * 2.0;
+    phi = myDice.Rndm() * M_PI * 2.0;
     Material tmp;
 
     // Track parameters
@@ -1774,7 +1774,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     }
 
     if (dphi>0) {
-      graphValue = dphi/PI*180.; // in degrees
+      graphValue = dphi/M_PI*180.; // in degrees
       thisPhiGraph_Pt.SetPoint(thisPhiGraph_Pt.GetN(), eta, graphValue);
     }
 
@@ -1821,7 +1821,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
         thisPGraphDipole_Pt->SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
 
         // Beyond eta>=2.5 take advantage of both
-        if (eta>=insur::range_eta_regions[2]) graphValue = dipoleValue < centralValue ? dipoleValue : centralValue;
+        if (eta>=insur::geom_range_eta_regions[2]) graphValue = dipoleValue < centralValue ? dipoleValue : centralValue;
         // Just central works
         else graphValue = centralValue;
 
@@ -1903,7 +1903,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
     }
 
     if (dphi>0) {
-      graphValue = dphi/PI*180; // in degrees
+      graphValue = dphi/M_PI*180; // in degrees
       thisPhiGraph_P.SetPoint(thisPhiGraph_P.GetN(), eta, graphValue);
     }
 
@@ -2157,24 +2157,24 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
 }
 */
 void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * 1.1 / 10.); // every cm
+  int mapBinsX = int( (geom_max_length) * 1.1 / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("z [mm]");
   myMap.SetYTitle("r [mm]");
-  myMap.SetBins(mapBinsX, 0.0, max_length*1.1, mapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  myMap.SetBins(mapBinsX, 0.0, geom_max_length*1.1, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
   myMap.Reset();
 }
 
 void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (2*outer_radius) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (2*outer_radius) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (2*geom_max_radius) * 1.1 / 10.); // every cm
+  int mapBinsX = int( (2*geom_max_radius) * 1.1 / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("x [mm]");
   myMap.SetYTitle("y [mm]");
-  myMap.SetBins(mapBinsX, -outer_radius*1.1, outer_radius*1.1, mapBinsY, -outer_radius*1.1, outer_radius*1.1);
+  myMap.SetBins(mapBinsX, -geom_max_radius*1.1, geom_max_radius*1.1, mapBinsY, -geom_max_radius*1.1, geom_max_radius*1.1);
   myMap.Reset();
 }
 
@@ -2426,17 +2426,17 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   rglobal.SetBins(bins, min, max);
   iglobal.SetBins(bins, min, max);
   // isolines
-  isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
-  isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+  isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
+  isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
-  int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
-  mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * 1.1 / 5.); // every half a cm
+  int materialMapBinsX = int( (geom_max_length) * 1.1 / 5.); // every half a cm
+  mapRadiation.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  mapInteraction.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  mapRadiationCount.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  mapRadiationCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
 }
 
 /**
@@ -2688,8 +2688,8 @@ std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) con
   if (simParms().minTracksEta.state()) etaMinMax.first  = simParms().minTracksEta();
 
   // TODO: DIRTY HACK TO SET ETA
-  etaMinMax.first  = -1*max_eta_coverage;
-  etaMinMax.second = +1*max_eta_coverage;
+  etaMinMax.first  = -1*geom_max_eta_coverage;
+  etaMinMax.second = +1*geom_max_eta_coverage;
 
   return etaMinMax;
 }

@@ -24,8 +24,9 @@
 using namespace std;
 
 #define THUMBSMALLSIZE 120
-#define DEFAULTPROGRAMNAME "tkLayout"
-#define DEFAULTPROGRAMSITE "https://github.com/alkemyst/tkLayout"
+//#define DEFAULTPROGRAMNAME "tkLayout"
+//#define DEFAULTPROGRAMSITE "https://github.com/alkemyst/tkLayout"
+//#define DEFAULTPROGRAMSITE "https://github.com/drasal/tkLayout/tree/fcc"
 // The following is a list of allowed file etensions for TCanvas::SaveAs
 // It should be separated, start and end with '|'
 #define DEFAULTALLOWEDEXTENSIONS "|C|png|gif|svg|root|eps|pdf|ps|"
@@ -270,6 +271,8 @@ private:
   string revision_;
   string targetDirectory_;
   //string styleDirectory_;
+  string tkLayoutBranchName_;
+  string tkLayoutBranchAuthor_;
   static const int least_relevant = -1000;
 public:
   ~RootWSite();

@@ -235,9 +235,9 @@ namespace insur {
 
     const TriggerSectorMap& getTriggerSectorMap() const { return triggerSectorMap_; }
 
-    inline double getEtaMaxMaterial() const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
-    inline double getEtaMaxGeometry() const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
-    inline double getEtaMaxTracker()  const { return insur::range_eta_regions[insur::range_eta_regions.size()-1];}
+    inline double getEtaMaxMaterial() const { return insur::geom_range_eta_regions[insur::geom_range_eta_regions.size()-1];}
+    inline double getEtaMaxGeometry() const { return insur::geom_range_eta_regions[insur::geom_range_eta_regions.size()-1];}
+    inline double getEtaMaxTracker()  const { return insur::geom_range_eta_regions[insur::geom_range_eta_regions.size()-1];}
 
     void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }
