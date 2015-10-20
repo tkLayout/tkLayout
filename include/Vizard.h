@@ -50,6 +50,8 @@
 #include <vector>
 #include <set>
 #include <Palette.h>
+#include <CsvTextBuilder.h>
+#include <AnalyzerVisitors/MaterialBillAnalyzer.h>
 
 #include <PlotDrawer.h>
 
@@ -156,10 +158,10 @@ namespace insur {
   public:
     Vizard();
     virtual ~Vizard();
-    bool needsReset() { return geometry_created; }
-    void buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified);
-    void display(std::string rootfilename = "");
-    void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
+    //bool needsReset() { return geometry_created; }
+    //void buildVisualization(Tracker& am, InactiveSurfaces& is, bool simplified);
+    //void display(std::string rootfilename = "");
+    //void display(Tracker& am, InactiveSurfaces& is, std::string rootfilename = "", bool simplified = true);
     void writeNeighbourGraph(InactiveSurfaces& is);
     void writeNeighbourGraph(InactiveSurfaces& is, std::string outfile);
     void writeNeighbourGraph(InactiveSurfaces& is, std::ostream& outstream);
@@ -175,42 +177,40 @@ namespace insur {
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
-    bool errorSummary(Analyzer& analyzer, RootWSite& site, std::string additionalTag, bool isTrigger);
+    //bool errorSummary(Analyzer& analyzer, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& analyzer, RootWSite& site);
     bool triggerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
-                            Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+                            Analyzer& pixelAnalyzer, Analyzer& stripAnalyzer, std::vector<Tracker*> tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
-    std::string getSummaryString();
-    std::string getSummaryLabelString();
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
 
   protected:
-    TGeoManager* gm;
-    TGeoVolume* top;
-    TGeoVolumeAssembly* active;
-    TGeoVolumeAssembly* inactive;
-    TGeoVolumeAssembly* barrels;
-    TGeoVolumeAssembly* endcaps;
-    TGeoVolumeAssembly* services;
-    TGeoVolumeAssembly* supports;
-    TGeoMedium* medvac;
-    TGeoMedium* medact;
-    TGeoMedium* medserf;
-    TGeoMedium* medlazy;
-    TGeoMaterial* matvac;
-    TGeoMaterial* matact;
-    TGeoMaterial* matserf;
-    TGeoMaterial* matlazy;
+    //TGeoManager* gm;
+    //TGeoVolume* top;
+    //TGeoVolumeAssembly* active;
+    //TGeoVolumeAssembly* inactive;
+    //TGeoVolumeAssembly* barrels;
+    //TGeoVolumeAssembly* endcaps;
+    //TGeoVolumeAssembly* services;
+    //TGeoVolumeAssembly* supports;
+    //TGeoMedium* medvac;
+    //TGeoMedium* medact;
+    //TGeoMedium* medserf;
+    //TGeoMedium* medlazy;
+    //TGeoMaterial* matvac;
+    //TGeoMaterial* matact;
+    //TGeoMaterial* matserf;
+    //TGeoMaterial* matlazy;
+
   private:
     TProfile* totalEtaProfileSensors_ = 0, *totalEtaProfileSensorsPixel_ = 0;
-    bool geometry_created;
+    //bool geometry_created;
     std::string commandLine_;
-    int detailedModules(std::vector<Layer*>* layers,
-                        TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
-    TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
+    //int detailedModules(std::vector<Layer*>* layers, TGeoVolume* v, TGeoCombiTrans* t, TGeoVolumeAssembly* a, int counter);
+    //TGeoCombiTrans* modulePlacement(Module* m, TGeoVolume* v);
     double averageHistogramValues(TH1D& histo, double cutoff);
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
@@ -250,28 +250,22 @@ namespace insur {
                            int graphType,
                            const string& tag,
                            std::map<graphIndex, TGraph*>& myPlotMap);
-    std::string summaryCsv_;
-    std::string summaryCsvLabels_;
-    std::string occupancyCsv_;
-    std::string triggerSectorMapCsv_;
-    std::string moduleConnectionsCsv_;
-    std::string barrelModulesCsv_, endcapModulesCsv_, allModulesCsv_;
-    void setSummaryString(std::string);
-    void addSummaryElement(std::string element, bool first = false);
-    void setSummaryLabelString(std::string);
-    void addSummaryLabelElement(std::string element, bool first = false);
-    void addSummaryElement(double element, bool first = false);
 
-    void setOccupancyString(std::string newString) { occupancyCsv_ = newString; };
-    void addOccupancyElement(double element);
-    void addOccupancyElement(std::string element);
-    void addOccupancyEOL();
+    // Csv Output containers
+    CsvTextBuilder       m_summaryCsv;
+    CsvTextBuilder       m_resolutionPtCsv;
+    CsvTextBuilder       m_resolutionPCsv;
+    CsvTextBuilder       m_materialCsv;
+    MaterialBillAnalyzer m_materialBillCsv;
+    CsvTextBuilder       m_occupancyCsv;
+    std::string          m_triggerSectorMapCsv;
+    std::string          m_moduleConnectionsCsv;
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
-    void createBarrelModulesCsv(const Tracker& t);
-    void createEndcapModulesCsv(const Tracker& t);
-    void createAllModulesCsv(const Tracker& t);
+    std::string createBarrelModulesCsv(const Tracker& t);
+    std::string createEndcapModulesCsv(const Tracker& t);
+    std::string createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
@@ -281,9 +275,6 @@ namespace insur {
 
     void drawCircle(double radius, bool full, int color=kBlack);
   };
-
-
-
 }
 #endif	/* _VIZARD_H */
 

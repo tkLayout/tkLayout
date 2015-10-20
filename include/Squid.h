@@ -119,6 +119,9 @@ namespace insur {
     Tracker  * fwdpxd_;
     Tracker  * fwdstd_;
 
+    std::vector<Tracker*> trackers_;
+
+
     InactiveSurfaces* pxdPasive_;
     InactiveSurfaces* stdPasive_;
 

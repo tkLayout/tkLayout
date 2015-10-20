@@ -37,6 +37,7 @@ public:
 
 class ConstGeometryVisitor {
 public:
+  //virtual ~ConstGeometryVisitor = 0;
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
   virtual void visit(const Endcap&) {}

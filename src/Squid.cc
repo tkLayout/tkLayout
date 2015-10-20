@@ -164,22 +164,26 @@ namespace insur {
 
         // Distinguish between individual trackers
         if      (trk->myid()=="Inner"          || trk->myid()=="BRL_Inner" ) {
+          trk->setIsPixelType(true);
+          trackers_.push_back(trk);
           pxd_    = trk;
-          pxd_->setIsPixelType(true);
         }
         else if (trk->myid()=="ForwardPixels"  || trk->myid()=="FWDPXD" || trk->myid()=="ForwarddPixel") {
+          trk->setIsPixelType(true);
+          trk->setIsForwardType(true);
+          trackers_.push_back(trk);
           fwdpxd_ = trk;
-          fwdpxd_->setIsPixelType(true);
-          fwdpxd_->setIsForwardType(true);
         }
         else if (trk->myid()=="Outer"          || trk->myid()=="BRL_Outer" ) {
+          trk->setIsStripType(true);
+          trackers_.push_back(trk);
           std_    = trk;
-          std_->setIsStripType(true);
         }
         else if (trk->myid()=="ForwardOuter"   || trk->myid()=="FWDSTD" || trk->myid()=="ForwardStrip" ) {
+          trk->setIsStripType(true);
+          trk->setIsForwardType(true);
+          trackers_.push_back(trk);
           fwdstd_ = trk;
-          fwdstd_->setIsStripType(true);
-          fwdstd_->setIsForwardType(true);
         }
         else std_ = trk; // General sollution
       });
@@ -194,6 +198,17 @@ namespace insur {
         }
         logERROR(ss);
       }
+
+      // Look for tag "Support" and build supports
+      childRange = getChildRange(pTree, "Support");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+
+        Support* support = new Support();
+        support->myid(kv.second.get_value(0));
+        support->store(kv.second);
+        support->build();
+        supports_.push_back(support);
+      });
 
       // Read simulation parameters
       simParms_ = new SimParms();
@@ -212,19 +227,17 @@ namespace insur {
       stripAnalyzer_.simParms(simParms_);
       pixelAnalyzer_.simParms(simParms_);
 
-      // Look for tag support and build supports
-      childRange = getChildRange(pTree, "Support");
-      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
-
-        Support* support = new Support();
-        support->myid(kv.second.get_value(0));
-        support->store(kv.second);
-        support->build();
-        supports_.push_back(support);
-      });
     }
     catch (PathfulException& e) { 
       std::cerr << e.path() << " : " << e.what() << std::endl; 
+      stopTaskClock();
+      return false;
+    }
+
+    // Check that some tracker created
+    if (trackers_.size()==0) {
+
+      std::cerr << "ERROR: Detector can't be built!!! No trackers defined ..." << std::endl;
       stopTaskClock();
       return false;
     }
@@ -548,7 +561,7 @@ bool Squid::makeWebSite(bool addLogPage /* = true */) {
  */
 bool Squid::pureAnalyzeGeometry(int tracks) {
 
-  // Strip detector
+  // Analyzing detector
   if (pxd_ || std_) {
 
     startTaskClock("Analyzing geometry");
@@ -791,15 +804,18 @@ bool Squid::reportResolutionSite() {
  */
 bool Squid::reportInfoSite() {
 
-  if (std_ || pxd_) {
+  if (trackers_.size()!=0) {
 
     startTaskClock("Creating additional info report");
+
     vizard_.additionalInfoSite(includeSet_, getSettingsFile(),
-                           stripAnalyzer_, pixelAnalyzer_, *std_, *simParms_, webSite_);
+                           pixelAnalyzer_, stripAnalyzer_, trackers_, *simParms_, webSite_);
     stopTaskClock();
     return true;
   }
   else {
+
+    std::string message = std::string("Squid::reportInfoSite() :")+err_no_tracker;
     logERROR(err_no_tracker);
     return false;
   }

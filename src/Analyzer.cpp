@@ -54,6 +54,7 @@ namespace insur {
    * The constructor sets a number of internal constants.
    */
   Analyzer::Analyzer() {
+
     // Not strictly necessary, but it's useful to keep
     // the color the same for the most used module types
     lastPickedColor = 1;
@@ -1106,10 +1107,6 @@ void Analyzer::computeWeightSummary(MaterialBudget& mb) {
   computeDetailedWeights(mb.getBarrelModuleCaps(), barrelComponentWeights, false);
   endcapComponentWeights.clear();
   computeDetailedWeights(mb.getEndcapModuleCaps(), endcapComponentWeights, false);
-
-  MaterialBillAnalyzer v;
-  v.inspectTracker(mb);
-  billOfMaterials_ = v.outputTable;
 }
 
 // protected

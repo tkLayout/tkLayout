@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
   bool         verboseMaterial  = false;
   unsigned int verboseWatch     = verbosity;
   bool         performanceWatch = false ;
-  if (vm.count("quiet")) verboseWatch=0;
+  if (vm.count("quiet")) verboseWatch = 0;
   if (vm.count("performance")) {
     if (verboseWatch==0) verboseWatch = 1;
   }
