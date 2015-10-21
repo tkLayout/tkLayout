@@ -154,7 +154,19 @@ double Hit::getResolutionRphi(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR);
+      double resolutionLocalX, resolutionLocalY;
+      
+      std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
+      std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
+      
+      if (hitModule_->resolutionLocalX() > -1) resolutionLocalX = hitModule_->resolutionLocalX();
+      else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
+
+      if (hitModule_->resolutionLocalY() > -1) resolutionLocalY = hitModule_->resolutionLocalY();
+      else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+
+
+      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX, resolutionLocalY);
      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
      // else return hitModule_->resolutionRPhi();
     } else {
@@ -178,7 +190,24 @@ double Hit::getResolutionZ(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta());
+
+      double resolutionLocalX, resolutionLocalY;
+      
+      //std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
+      
+      if (hitModule_->resolutionLocalX() > -1) resolutionLocalX = hitModule_->resolutionLocalX();
+      else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
+
+      if (hitModule_->resolutionLocalY() > -1) resolutionLocalY = hitModule_->resolutionLocalY();
+      else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+
+
+
+
+
+
+      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX, resolutionLocalY);
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     } else {
@@ -461,7 +490,7 @@ double Track::setPhi(double& newPhi) {
  */
 // TODO: maybe updateradius is not necessary here. To be checked
 Hit* Track::addHit(Hit* newHit) {
-  hitV_.push_back(newHit); 
+  hitV_.push_back(newHit);
   if (newHit->getHitModule() != NULL) {
     tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
   }
