@@ -156,14 +156,25 @@ double Hit::getResolutionRphi(double trackR) {
     if (hitModule_) {
       double resolutionLocalX, resolutionLocalY;
       
-      std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
-      std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
-      
-      if (hitModule_->resolutionLocalX() > -1) resolutionLocalX = hitModule_->resolutionLocalX();
-      else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
+      //std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
+      //std::cout << "hitModule_->hasAnyResolutionLocalXParam() = " << hitModule_->hasAnyResolutionLocalXParam() << std::endl;
 
-      if (hitModule_->resolutionLocalY() > -1) resolutionLocalY = hitModule_->resolutionLocalY();
-      else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
+      else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
+	//if ( hitModule_->subdet() == BARREL) {
+	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
+	//std::cout << "resolutionLocalX = " << resolutionLocalX << std::endl;
+	//}
+}
+
+      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
+      else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+	//if ( hitModule_->subdet() == ENDCAP) {
+  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
+  //std::cout << "resolutionLocalY = " << resolutionLocalY << std::endl;
+	//}
+      }
 
 
       return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX, resolutionLocalY);
@@ -196,10 +207,10 @@ double Hit::getResolutionZ(double trackR) {
       //std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
       //std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
       
-      if (hitModule_->resolutionLocalX() > -1) resolutionLocalX = hitModule_->resolutionLocalX();
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
       else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
 
-      if (hitModule_->resolutionLocalY() > -1) resolutionLocalY = hitModule_->resolutionLocalY();
+      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
       else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
 
 
@@ -271,6 +282,7 @@ Track::Track() {
  */
 Track::Track(const Track& t) {
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);

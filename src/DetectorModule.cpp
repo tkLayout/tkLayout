@@ -202,9 +202,13 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
 void BarrelModule::check() {
   PropertyObject::check();
 
-  if (resolutionLocalX.state() && (resolutionLocalXBarrelParam0.state() || resolutionLocalXBarrelParam1.state() || resolutionLocalXBarrelParam2.state())) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
+  //std::cout <<  "hasAnyResolutionLocalYParam() = " <<  hasAnyResolutionLocalYParam() << std::endl;
 
-  if (resolutionLocalY.state() && (resolutionLocalYBarrelParam0.state() || resolutionLocalYBarrelParam1.state() || resolutionLocalYBarrelParam2.state() || resolutionLocalYBarrelParam3.state() || resolutionLocalYBarrelParam4.state())) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
+  if (resolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
+
+  if (resolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
+
+
 
   /*if (resolutionLocalX.state()
       && (resolutionLocalXBarrelParam0() < 0 || resolutionLocalXBarrelParam0() > 0 || resolutionLocalXBarrelParam1() < 0 || resolutionLocalXBarrelParam1() > 0 || resolutionLocalXBarrelParam2() < 0 || resolutionLocalXBarrelParam2() > 0) 
@@ -245,9 +249,9 @@ void BarrelModule::build() {
 void EndcapModule::check() {
   PropertyObject::check();
 
- if (resolutionLocalX.state() && (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state())) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
+ if (resolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
 
-  if (resolutionLocalY.state() && (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state())) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified.");
+ if (resolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified.");
 
   /*if (resolutionLocalX.state()
       && (resolutionLocalXEndcapParam0() < 0 || resolutionLocalXEndcapParam0() > 0 || resolutionLocalXEndcapParam1() < 0 || resolutionLocalXEndcapParam1() > 0) 
@@ -283,3 +287,4 @@ define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
 define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
 define_enum_strings(ReadoutType) = { "strip", "pixel", "pt" };
 define_enum_strings(ReadoutMode) = { "binary", "cluster" };
+

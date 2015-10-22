@@ -184,6 +184,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * PI * 2.0;
+    //phi = M_PI/2.;
     Material tmp;
     Track track;
     eta = i_eta * etaStep;

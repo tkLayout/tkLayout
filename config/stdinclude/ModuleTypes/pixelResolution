@@ -10,12 +10,12 @@
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      resolutionLocalXBarrelParam0 10.5
-      resolutionLocalXBarrelParam1 -27
-      resolutionLocalXBarrelParam2 62
+      resolutionLocalXBarrelParam0 0.0105  // um
+      resolutionLocalXBarrelParam1 -0.027  // um
+      resolutionLocalXBarrelParam2 0.062  // um
 
-      resolutionLocalYBarrelParam0 14
-      resolutionLocalYBarrelParam1 26
+      resolutionLocalYBarrelParam0 0.014  // um
+      resolutionLocalYBarrelParam1 0.026  // um
       resolutionLocalYBarrelParam2 2.2
       resolutionLocalYBarrelParam3 -2.4
       resolutionLocalYBarrelParam4 0.8
@@ -24,12 +24,12 @@
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      resolutionLocalXBarrelParam0 10.5
-      resolutionLocalXBarrelParam1 -27
-      resolutionLocalXBarrelParam2 62
+      resolutionLocalXBarrelParam0 0.0105  // um
+      resolutionLocalXBarrelParam1 -0.027  // um
+      resolutionLocalXBarrelParam2 0.062  // um
 
-      resolutionLocalYBarrelParam0 14
-      resolutionLocalYBarrelParam1 26
+      resolutionLocalYBarrelParam0 0.014  // um
+      resolutionLocalYBarrelParam1 0.026  // um
       resolutionLocalYBarrelParam2 2.2
       resolutionLocalYBarrelParam3 -2.4
       resolutionLocalYBarrelParam4 0.8
@@ -45,21 +45,21 @@
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      resolutionLocalXEndcapParam0 5
-      resolutionLocalXEndcapParam1 0
+      resolutionLocalXEndcapParam0 0.005  // um
+      resolutionLocalXEndcapParam1 0      // um
 
-      resolutionLocalYEndcapParam0 7
-      resolutionLocalYEndcapParam1 0
+      resolutionLocalYEndcapParam0 0.007  // um
+      resolutionLocalYEndcapParam1 0      // um
     }
     Ring 3,4 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      resolutionLocalXEndcapParam0 5
-      resolutionLocalXEndcapParam1 0
+      resolutionLocalXEndcapParam0 0.005  // um
+      resolutionLocalXEndcapParam1 0      // um
 
-      resolutionLocalYEndcapParam0 7
-      resolutionLocalYEndcapParam1 0
+      resolutionLocalYEndcapParam0 0.007  // um
+      resolutionLocalYEndcapParam1 0      // um
     }
   }
 
