@@ -92,8 +92,8 @@ namespace insur {
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool pureAnalyzeMaterialBudget(int tracks, bool analyzeMatBudget);
-    bool pureAnalyzeResolution(int tracks, bool analyzeResolution);
+    bool pureAnalyzeMaterialBudget(int tracks);
+    bool pureAnalyzeResolution(int tracks);
     bool reportGeometrySite();
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
@@ -101,7 +101,7 @@ namespace insur {
     bool reportMaterialBudgetSite(bool debugServices);
     bool reportResolutionSite();
     bool reportTriggerPerformanceSite(bool extended);
-    bool reportNeighbourGraphSite();
+    //bool reportNeighbourGraphSite();
     bool reportInfoSite();
     bool makeWebSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);

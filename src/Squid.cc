@@ -598,9 +598,9 @@ bool Squid::pureAnalyzeGeometry(int tracks) {
  * @param tracks The number of tracks that should be fanned out across the analysed region
  * @return True if there were no errors during processing, false otherwise
  */
-bool Squid::pureAnalyzeMaterialBudget(int nTracks, bool analyzerMaterialBudget) {
+bool Squid::pureAnalyzeMaterialBudget(int nTracks) {
 
-  if (analyzerMaterialBudget && (stdMb_ || pxdMb_)) {
+  if (stdMb_ || pxdMb_) {
     // TODO: insert the creation of sample tracks here, to compute intersections only once
 
     startTaskClock("Analyzing material budget" );
@@ -641,10 +641,10 @@ bool Squid::pureAnalyzeMaterialBudget(int nTracks, bool analyzerMaterialBudget) 
  * @param tracks The number of tracks that should be fanned out across the analysed region
  * @return True if there were no errors during processing, false otherwise
  */
-bool Squid::pureAnalyzeResolution(int nTracks, bool analyzeResolution) {
+bool Squid::pureAnalyzeResolution(int nTracks) {
 
-  if (analyzeResolution && (stdMb_ || pxdMb_)) {
-    // TODO: insert the creation of sample tracks here, to compute intersections only once
+  if (stdMb_ || pxdMb_) {
+  // TODO: insert the creation of sample tracks here, to compute intersections only once
 
     startTaskClock("Analyzing tracking resolutions");
     std::vector<MaterialBudget*> trkMb;
@@ -792,7 +792,8 @@ bool Squid::reportResolutionSite() {
   }
 
 //  bool Squid::reportNeighbourGraphSite() {
-//    if (v.neighbourGraphSummary(*is, webSite_)) return true;
+//
+//    if (vizard_.neighbourGraphSummary(*is, webSite_)) return true;
 //    else {
 //      logERROR(err_no_inacsurf);
 //      return false;

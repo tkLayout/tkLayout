@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     ("help,h", "Display this help message.")
     ("opt-file", po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
     ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(insur::default_n_tracks), "N. of tracks for geometry calculations.")
-    ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "N. of tracks for material calculations.")
+    ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "N. of tracks for material & resolution calculations.")
     ("power,p", "Report irradiated power analysis.")
     ("bandwidth,b", "Report base bandwidth analysis.")
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
     ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
-    ("graph,g", "Build and report neighbour graph.")
+    ("graph,g", "Build and report feeder/neighbour relations graph.")
     ("xml", po::value<std::string>(&xmlDir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
     ("html-dir", po::value<std::string>(&htmlDir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
     ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
   // Program options - other
   po::options_description otheropt("Other options");
-  otheropt.add_options()("version,v", "Prints software version (SVN revision) and quits.");
+  otheropt.add_options()("version,v", "Prints software version (GIT revision) and quits.");
 
   po::options_description hidden;
   hidden.add_options()("geom-file", po::value<std::string>(&geomFile));
@@ -158,18 +158,23 @@ int main(int argc, char* argv[]) {
     // If needed build material model & perform resolution simulation
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
 
           // Perform material budget analysis & report it
-          if (!squid.pureAnalyzeMaterialBudget(matTracks, vm.count("all") || vm.count("resolution") || vm.count("material"))) return EXIT_FAILURE;
-          if (!squid.reportMaterialBudgetSite(vm.count("debug-services")) && (vm.count("all") || vm.count("material")))       return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.pureAnalyzeMaterialBudget(matTracks))                 return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
 
           // Perform resolution analysis & report it
-          if (!squid.pureAnalyzeResolution(matTracks, vm.count("all") || vm.count("resolution")))   return EXIT_FAILURE;
-          if (!squid.reportResolutionSite() && (vm.count("all") || vm.count("resolution")))         return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("resolution")) && !squid.pureAnalyzeResolution(matTracks)) return EXIT_FAILURE;
+          if ((vm.count("all") || vm.count("resolution")) && !squid.reportResolutionSite())           return EXIT_FAILURE;
         }
-//        if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
-//        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return (EXIT_FAILURE);
+
+        //TODO: Writes the feeder/neighbour relations in a collection of inactive surfaces to a file
+        //if (vm.count("graph") && !squid.reportNeighbourGraphSite())     return EXIT_FAILURE;
+
+        // Produce XML output files for materials
+        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return (EXIT_FAILURE);
       }
     }
 
