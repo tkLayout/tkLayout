@@ -99,6 +99,7 @@ namespace insur {
   static const int    vis_max_canvas_sizeY   =1800;
 
   static const double vis_eta_step           = 0.1;
+  static const double vis_material_eta_step  = 0.05;
   static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
   /**

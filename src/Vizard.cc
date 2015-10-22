@@ -557,11 +557,17 @@ namespace insur {
   
       // Tracking volume: radiation length
       cr = (TH1D*)analyzer.getHistoGlobalR().Clone();
+
+      // Rebin material histograms to readable values
+      int rebinCoef = vis_material_eta_step/cr->GetXaxis()->GetBinWidth(0);
+      if (rebinCoef==0) rebinCoef = 1;
+
       cr->SetFillColor(kGray + 2);
+      cr->SetLineColor(kGray + 2);
       crProf = newProfile(cr);
       crProf->SetNameTitle("rglobal", "Radiation Length Over Full Volume");
       crProf->SetXTitle("#eta");
-      crProf->Rebin(materialRebin);
+      crProf->Rebin(rebinCoef);
       double maxCRProf = crProf->GetMaximum();
       crProf->GetYaxis()->SetRangeUser(0, 1.1*maxCRProf);
       crProf->Draw("hist");
@@ -571,10 +577,11 @@ namespace insur {
       // Tracking volume: interaction length
       ci = (TH1D*)analyzer.getHistoGlobalI().Clone();
       ci->SetFillColor(kGray + 1);
+      ci->SetLineColor(kGray + 1);
       ciProf = newProfile(ci);
       ciProf->SetNameTitle("iglobal", "Interaction Length Over Full Volume");
       ciProf->SetXTitle("#eta");
-      ciProf->Rebin(materialRebin);
+      ciProf->Rebin(rebinCoef);
       double maxCIProf = ciProf->GetMaximum();
       ciProf->GetYaxis()->SetRangeUser(0, 1.1*maxCIProf);
       ciProf->Draw("hist");
@@ -585,12 +592,12 @@ namespace insur {
       myImage->setName("matTrack");
       myTable = new RootWTable();
       char titleString[256];
-      sprintf(titleString, std::string("Average radiation length in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
+      sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
       myTable->setContent(1, 1, titleString);
-      sprintf(titleString, std::string("Average interaction length in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
+      sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
       myTable->setContent(2, 1, titleString);
-      myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial()), 5);
+      myTable->setContent(1, 2, averageHistogramValues(*cr, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(2, 2, averageHistogramValues(*ci, analyzer.getEtaMaxMaterial())*100, 2);
       myContent->addItem(myTable);
       myContent->addItem(myImage);
   
@@ -599,9 +606,9 @@ namespace insur {
   
       double averageValue;
       materialSummaryTable->setContent(0,0,"Material    ");
-      materialSummaryTable->setContent(1,0,"Rad. length ");
-      materialSummaryTable->setContent(2,0,"Int. length ");
-      materialSummaryTable->setContent(3,0,"Photon conv.");
+      materialSummaryTable->setContent(1,0,"Rad. length [%]");
+      materialSummaryTable->setContent(2,0,"Int. length [%]");
+      materialSummaryTable->setContent(3,0,"Photon conv. prob.");
   
       // Material csv file
       if (!m_materialCsv.existCsvText("Label")) {
@@ -625,8 +632,8 @@ namespace insur {
   
         // Second row: the radiation length
         averageValue = averageHistogramValues(*cr, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
-        materialSummaryTable->setContent(1,j, averageValue ,4);
-        m_materialCsv.addCsvElement(name, averageValue);
+        materialSummaryTable->setContent(1,j, averageValue*100 ,2);
+        m_materialCsv.addCsvElement(name, averageValue*100);
       }
       m_materialCsv.addCsvEOL(name);
       m_materialCsv.addCsvElement(name, "");
@@ -634,8 +641,8 @@ namespace insur {
       for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
         // Third row: the interaction length
         averageValue = averageHistogramValues(*ci, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
-        materialSummaryTable->setContent(2,j, averageValue ,4);
-        m_materialCsv.addCsvElement(name, averageValue);
+        materialSummaryTable->setContent(2,j, averageValue*100 ,2);
+        m_materialCsv.addCsvElement(name, averageValue*100);
       }
       m_materialCsv.addCsvEOL(name);
       m_materialCsv.addCsvElement(name, "");
@@ -658,83 +665,102 @@ namespace insur {
       THStack* rcontainer = new THStack("rstack", "Radiation Length by Category");
       THStack* icontainer = new THStack("istack", "Interaction Length by Category");
       TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr, *bpr = nullptr, *bpi = nullptr;
-  
-      // Prepare canvas
-      myCanvas = new TCanvas(name_detailedMaterial.c_str());
-      myCanvas->SetFillColor(color_plot_background);
-      myCanvas->Divide(2, 1);
-      myPad = myCanvas->GetPad(0);
-      myPad->SetFillColor(color_pad_background);
-      myPad = myCanvas->GetPad(1);
-      myPad->cd();
-  
+
       // Radiation length in tracking volume by active, serving or passive
-      sur = (TH1D*)analyzer.getHistoSupportsAllR().Clone();
-      sur->SetFillColor(kOrange + 4);
-      sur->SetXTitle("#eta");
-      rcontainer->Add(sur);
-      ser = (TH1D*)analyzer.getHistoServicesAllR().Clone();
-      ser->SetFillColor(kBlue);
-      ser->SetXTitle("#eta");
-      rcontainer->Add(ser);
       bpr = (TH1D*)analyzer.getHistoBeamPipeR().Clone();
       bpr->SetFillColor(kGreen);
+      bpr->SetLineColor(kGreen);
       bpr->SetXTitle("#eta");
-      rcontainer->Add(bpr);
       acr = (TH1D*)analyzer.getHistoModulesAllR().Clone();
       acr->SetFillColor(kRed);
+      acr->SetLineColor(kRed);
       acr->SetXTitle("#eta");
-      rcontainer->Add(acr);
-      rcontainer->Draw();
+      sur = (TH1D*)analyzer.getHistoSupportsAllR().Clone();
+      sur->SetFillColor(kOrange + 4);
+      sur->SetLineColor(kOrange + 4);
+      sur->SetXTitle("#eta");
+      ser = (TH1D*)analyzer.getHistoServicesAllR().Clone();
+      ser->SetFillColor(kBlue);
+      ser->SetLineColor(kBlue);
+      ser->SetXTitle("#eta");
   
       // Interaction length in tracking volume by active, serving or passive
-      myPad = myCanvas->GetPad(2);
-      myPad->cd();
+      bpi = (TH1D*)analyzer.getHistoBeamPipeI().Clone();
+      bpi->SetFillColor(kGreen-2);
+      bpi->SetLineColor(kGreen-2);
+      bpi->SetXTitle("#eta");
+      aci = (TH1D*)analyzer.getHistoModulesAllI().Clone();
+      aci->SetFillColor(kRed + 1);
+      aci->SetLineColor(kRed + 1);
+      aci->SetXTitle("#eta");
       sui = (TH1D*)analyzer.getHistoSupportsAllI().Clone();
       sui->SetFillColor(kOrange + 2);
+      sui->SetLineColor(kOrange + 2);
       sui->SetXTitle("#eta");
-      icontainer->Add(sui);
       sei = (TH1D*)analyzer.getHistoServicesAllI().Clone();
       sei->SetFillColor(kAzure - 2);
+      sei->SetLineColor(kAzure - 2);
       sei->SetXTitle("#eta");
-      icontainer->Add(sei);
-      bpi = (TH1D*)analyzer.getHistoBeamPipeI().Clone();
-      bpi->SetFillColor(kGreen);
-      bpi->SetXTitle("#eta");
-      icontainer->Add(bpi);
-      aci = (TH1D*)analyzer.getHistoModulesAllI().Clone();
-      aci->SetFillColor(kRed - 3);
-      aci->SetXTitle("#eta");
-      icontainer->Add(aci);
-      icontainer->Draw();
   
-      // Write asl category plots to web page
-      myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Detailed");
-      myImage->setName("matTrackDet");
+      // Write all material information into web page table
       myTable = new RootWTable();
   
       // Average values by active, service and passive
       sprintf(titleString, std::string("Average ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
       myTable->setContent(0, 0, titleString);
-      myTable->setContent(1, 0, "Beam pipe");
-      myTable->setContent(2, 0, "Modules");
-      myTable->setContent(3, 0, "Services");
-      myTable->setContent(4, 0, "Supports");
+      myTable->setContent(1, 0, "Beam pipe (green)");
+      myTable->setContent(2, 0, "Modules (red)");
+      myTable->setContent(3, 0, "Services (blue)");
+      myTable->setContent(4, 0, "Supports (brown)");
       myTable->setContent(5, 0, "Total");
-      myTable->setContent(0, 1, "Radiation length");
-      myTable->setContent(0, 2, "Interaction length");
-      myTable->setContent(1, 1, averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(2, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(3, 1, averageHistogramValues(*ser, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(4, 1, averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(5, 1, averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(1, 2, averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(2, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(3, 2, averageHistogramValues(*sei, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(4, 2, averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
-      myTable->setContent(5, 2, averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial())+averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()), 5);
+      myTable->setContent(0, 1, "Radiation length [%]");
+      myTable->setContent(0, 2, "Interaction length [%]");
+      myTable->setContent(1, 1, averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(2, 1, averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(3, 1, averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(4, 1, averageHistogramValues(*sur, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(5, 1,(averageHistogramValues(*bpr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*acr, analyzer.getEtaMaxMaterial())+averageHistogramValues(*ser, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sur, analyzer.getEtaMaxMaterial()))*100, 2);
+      myTable->setContent(1, 2, averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(2, 2, averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(3, 2, averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(4, 2, averageHistogramValues(*sui, analyzer.getEtaMaxMaterial())*100, 2);
+      myTable->setContent(5, 2,(averageHistogramValues(*bpi, analyzer.getEtaMaxMaterial())+averageHistogramValues(*aci, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sei, analyzer.getEtaMaxMaterial())+averageHistogramValues(*sui, analyzer.getEtaMaxMaterial()))*100, 2);
       myContent->addItem(myTable);
+
+      // Rebin histograms, draw them to a canvas and write the canvas to the web page
+      myCanvas = new TCanvas(name_detailedMaterial.c_str());
+      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->Divide(2, 1);
+      myPad = myCanvas->GetPad(0);
+      myPad->SetFillColor(color_pad_background);
+
+      myPad = myCanvas->GetPad(1);
+      myPad->cd();
+      bpr->Rebin(rebinCoef);
+      rcontainer->Add(bpr);
+      acr->Rebin(rebinCoef);
+      rcontainer->Add(acr);
+      sur->Rebin(rebinCoef);
+      rcontainer->Add(sur);
+      ser->Rebin(rebinCoef);
+      rcontainer->Add(ser);
+      rcontainer->Draw();
+
+      myPad = myCanvas->GetPad(2);
+      myPad->cd();
+      bpi->Rebin(rebinCoef);
+      icontainer->Add(bpi);
+      aci->Rebin(rebinCoef);
+      icontainer->Add(aci);
+      sui->Rebin(rebinCoef);
+      icontainer->Add(sui);
+      sei->Rebin(rebinCoef);
+      icontainer->Add(sei);
+      icontainer->Draw();
+
+      myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Detailed");
+      myImage->setName("matTrackDet");
       myContent->addItem(myImage);
   
       //
@@ -745,8 +771,8 @@ namespace insur {
       myTable = new RootWTable();
       sprintf(titleString, std::string("Average ("+etaLetter+" = [0, %.1f])").c_str(), analyzer.getEtaMaxMaterial());
       myTable->setContent(0, 0, titleString);
-      myTable->setContent(0, 1, "Radiation length");
-      myTable->setContent(0, 2, "Interaction length");
+      myTable->setContent(0, 1, "Radiation length [%]");
+      myTable->setContent(0, 2, "Interaction length [%]");
   
       // Set variables & book histograms
       THStack* rCompStack = new THStack("rcompstack", "Radiation Length by Component");
@@ -771,13 +797,14 @@ namespace insur {
         it->second->SetXTitle("#eta");
         it->second->SetTitle(it->first.c_str());
         compLegend->AddEntry(it->second, it->first.c_str());
-        rCompStack->Add(it->second);
         myTable->setContent(compIndex, 0, it->first);
-        myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial()), 5);
+        myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial())*100, 2);
         totalRadLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
+        it->second->Rebin(rebinCoef);
+        rCompStack->Add(it->second);
       }
       myTable->setContent(compIndex, 0, "Total");
-      myTable->setContent(compIndex, 1, totalRadLength, 5);
+      myTable->setContent(compIndex, 1, totalRadLength*100, 2);
       rCompStack->Draw();
       compLegend->Draw();
   
@@ -791,11 +818,12 @@ namespace insur {
         it->second->SetFillColor(Palette::color(compIndex));
         it->second->SetXTitle("#eta");
         it->second->SetTitle(it->first.c_str());
-        iCompStack->Add(it->second);
-        myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial()), 5);
+        myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial())*100, 2);
         totalInterLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
+        it->second->Rebin(rebinCoef);
+        iCompStack->Add(it->second);
       }
-      myTable->setContent(compIndex, 2, totalInterLength, 5);
+      myTable->setContent(compIndex, 2, totalInterLength*100, 2);
       iCompStack->Draw();
       compLegend->Draw();
   
@@ -2065,7 +2093,7 @@ namespace insur {
     myPage->addContent(simulationContent);
     filesContent      = new RootWContent("Geometry files");
     myPage->addContent(filesContent);
-    powerContent      = new RootWContent("Power consumption summary");
+    powerContent      = new RootWContent("Power consumption summary", false);
     myPage->addContent(powerContent);
     summaryContent    = new RootWContent("Summary");
     myPage->addContent(summaryContent);
