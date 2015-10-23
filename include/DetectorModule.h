@@ -357,9 +357,9 @@ public:
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * cos(alpha(trackPhi)) + resolutionLocalXBarrelParam2() * pow(cos(alpha(trackPhi)), 2); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2() * pow(1./tan(alpha(trackPhi)), 2); }
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * abs(cos(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * abs(cos(beta(theta))) + resolutionLocalYBarrelParam4()); }
+  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }
@@ -432,7 +432,7 @@ public:
     v.visit(*(DetectorModule*)this);
     decorated().accept(v); 
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
@@ -448,9 +448,9 @@ public:
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * cos(alpha(trackPhi)); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi)); }
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * abs(cos(beta(theta))); }
+  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }

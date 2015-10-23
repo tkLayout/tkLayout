@@ -155,14 +155,43 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     
   */                                
 
-void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
-                                     const std::vector<double>& momenta,
-                                     const std::vector<double>& triggerMomenta,
-                                     const std::vector<double>& thresholdProbabilities,
-                                     int etaSteps,
-                                     MaterialBudget* pm) {
+  void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
+				       const std::vector<double>& momenta,
+				       const std::vector<double>& triggerMomenta,
+				       const std::vector<double>& thresholdProbabilities,
+				       int etaSteps,
+				       MaterialBudget* pm) {
 
-  double efficiency = simParms().efficiency();
+
+    /*TCanvas* cc = new TCanvas();
+      cc->cd();
+      TFile *_file0 = TFile::Open("mm.root");
+      TProfile* mm = (TProfile*)_file0->FindObjectAny("mm");
+      cc->SetLogy();
+      mm->Draw();
+      TAxis* myAxis = mm->GetXaxis();
+      double xmin = myAxis->GetXmin();
+      double xmax = myAxis->GetXmax();
+      TF1* hypSec = new TF1("hypSec", "1/cosh(x)", xmin, xmax);
+      TProfile* newmm = (TProfile*)mm->Clone();
+      newmm->Multiply(hypSec);
+      newmm->GetYaxis()->SetTitle("#Delta#eta");
+      newmm->SetTitle("Pseudorapidity resolution");
+      cc = new TCanvas();
+      cc->cd();
+      cc->SetLogy();
+      newmm->Draw();*/
+
+    TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
+    TProfile* hprof; 
+    hprof  = new TProfile("hprof","resolutionLocalY for barrel modules (50 um * 50 um)",100,0,5,0,20);
+
+
+
+
+
+
+    double efficiency = simParms().efficiency();
 
   materialTracksUsed = etaSteps;
 
@@ -182,6 +211,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   std::map<std::string, TrackCollectionMap> taggedTrackCollectionMap;
   std::map<std::string, TrackCollectionMap> taggedTrackCollectionMapIdeal;
 
+
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * PI * 2.0;
     //phi = M_PI/2.;
@@ -189,6 +219,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     Track track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
+    std::cout << " track's theta = " << theta << std::endl; 
     track.setTheta(theta);      
     track.setPhi(phi);
 
@@ -233,14 +264,14 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
             double transverseMomentum = ptit;  // <SMe> we assign the selected /transverse/ momentum to the track (in GeV) </SMe>
             // parameter is pT in this case
             track.setTransverseMomentum(transverseMomentum);
-            track.computeErrors();
+            track.computeErrors(hprof);
             TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
             myCollection.push_back(track);
 
             Track idealTrack(track);
             idealTrack.removeMaterial();
-            idealTrack.computeErrors();
+            idealTrack.computeErrors(hprof);
             TrackCollectionMap &myMapIdeal = taggedTrackCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(idealTrack);
@@ -272,6 +303,19 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
       calculateGraphs(parameter, myCollection, GraphBag::IdealGraph, myTag);
     }
   }
+
+
+
+
+  
+
+  hprof->Draw();
+  TFile out_file("myroot.root", "RECREATE");
+  hprof->Write();
+  out_file.Close();
+
+
+
 
 }
 

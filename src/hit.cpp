@@ -148,7 +148,7 @@ RILength Hit::getCorrectedMaterial() {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionRphi(double trackR) {
+double Hit::getResolutionRphi(TProfile* hprof, double trackR) {
   if (objectKind_!=Active) {
     std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
     return -1;
@@ -162,18 +162,34 @@ double Hit::getResolutionRphi(double trackR) {
 
       if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
       else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
-	//if ( hitModule_->subdet() == BARREL) {
+	/*if ( hitModule_->subdet() == BARREL) {
+	  hprof->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
+	  std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
+	  std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
+
+
+
 	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-	//std::cout << "resolutionLocalX = " << resolutionLocalX << std::endl;
-	//}
-}
+	  //std::cout << "resolutionLocalX = " << resolutionLocalX << std::endl;
+	  }*/
+      }
 
       if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
       else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
-	//if ( hitModule_->subdet() == ENDCAP) {
-  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-  //std::cout << "resolutionLocalY = " << resolutionLocalY << std::endl;
-	//}
+	if ( hitModule_->subdet() == ENDCAP) {
+	  hprof->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
+	  std::cout << "resolutionLocalY * 1000 = " << resolutionLocalY*1000 << std::endl;
+	  std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
+	  std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;
+	  std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
+
+
+
+	  //if ( hitModule_->subdet() == ENDCAP) {
+	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
+	  //std::cout << "resolutionLocalY = " << resolutionLocalY << std::endl;
+	  //}
+	  }
       }
 
 
@@ -440,7 +456,7 @@ double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false *
       probability /= exp(myMaterial.interaction);
     }
   }
-  // If I did not reach the requested number of active hits
+  // If I did not reach the requestd number of active hits
   // The probability is zero
   return 0;
 }
@@ -522,7 +538,8 @@ void Track::sort() {
  * Compute the correlation matrices of the track hits for a series of different energies.
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
  */
-void Track::computeCorrelationMatrix() {
+void Track::computeCorrelationMatrix(TProfile* hprof) {
+
   // matrix size
   int n = hitV_.size();
   correlations_.ResizeTo(n,n);
@@ -563,7 +580,7 @@ void Track::computeCorrelationMatrix() {
           for (int i = 0; i < r; i++)
             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
           if (r == c) {
-            double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
+            double prec = hitV_.at(r)->getResolutionRphi(hprof, pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
             sum = sum + prec * prec;
           }
           correlations_(r, c) = sum;
@@ -749,7 +766,7 @@ void Track::computeCovarianceMatrixRZ() {
  * distance of closest approach to the origin, all of them for each momentum of the test particle.
  * @param momentaList A reference of the list of energies that the errors should be calculated for
  */
-void Track::computeErrors() {
+void Track::computeErrors(TProfile* hprof) {
   deltarho_ = 0 ;
   deltaphi_ = 0 ;
   deltad_ = 0 ;
@@ -773,7 +790,7 @@ void Track::computeErrors() {
   deltaZ0_ = err;
   
   // rPhi plane
-  computeCorrelationMatrix();
+  computeCorrelationMatrix(hprof);
   computeCovarianceMatrix();
 
   // calculate delta rho, delta phi and delta d maps from covariances_ matrix

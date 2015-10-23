@@ -43,6 +43,14 @@
 #include "TagMaker.h"
 
 
+
+#include <TFile.h>
+#include <TProfile.h>
+#include <TF1.h>
+#include <TAxis.h>
+#include <TCanvas.h>
+
+
 namespace insur {
 
   /**
