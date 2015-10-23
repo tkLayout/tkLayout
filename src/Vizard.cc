@@ -737,24 +737,32 @@ namespace insur {
       myPad = myCanvas->GetPad(1);
       myPad->cd();
       bpr->Rebin(rebinCoef);
+      bpr->Scale(1./rebinCoef);
       rcontainer->Add(bpr);
       acr->Rebin(rebinCoef);
+      acr->Scale(1./rebinCoef);
       rcontainer->Add(acr);
       sur->Rebin(rebinCoef);
+      sur->Scale(1./rebinCoef);
       rcontainer->Add(sur);
       ser->Rebin(rebinCoef);
+      ser->Scale(1./rebinCoef);
       rcontainer->Add(ser);
       rcontainer->Draw();
 
       myPad = myCanvas->GetPad(2);
       myPad->cd();
       bpi->Rebin(rebinCoef);
+      bpi->Scale(1./rebinCoef);
       icontainer->Add(bpi);
       aci->Rebin(rebinCoef);
+      aci->Scale(1./rebinCoef);
       icontainer->Add(aci);
       sui->Rebin(rebinCoef);
+      sui->Scale(1./rebinCoef);
       icontainer->Add(sui);
       sei->Rebin(rebinCoef);
+      sei->Scale(1./rebinCoef);
       icontainer->Add(sei);
       icontainer->Draw();
 
@@ -801,6 +809,7 @@ namespace insur {
         myTable->setContent(compIndex++, 1, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial())*100, 2);
         totalRadLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
         it->second->Rebin(rebinCoef);
+        it->second->Scale(1./rebinCoef);
         rCompStack->Add(it->second);
       }
       myTable->setContent(compIndex, 0, "Total");
@@ -821,6 +830,7 @@ namespace insur {
         myTable->setContent(compIndex++, 2, averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial())*100, 2);
         totalInterLength += averageHistogramValues(*it->second, analyzer.getEtaMaxMaterial());
         it->second->Rebin(rebinCoef);
+        it->second->Scale(1./rebinCoef);
         iCompStack->Add(it->second);
       }
       myTable->setContent(compIndex, 2, totalInterLength*100, 2);
