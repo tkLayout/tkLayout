@@ -169,11 +169,12 @@ public:
   double skewAngle() const { return skewAngle_; }
 
   double alpha (double trackPhi) const {
-    double alpha = center().Phi() + skewAngle() - trackPhi + M_PI / 2.;
-    /*if (fabs(alpha) > M_PI/2.) {
-	if (alpha < 0) alpha = alpha + (floor( fabs(alpha) / (2.*M_PI)) + 1.) * 2*M_PI;
-	if (alpha > 0) alpha = alpha - (floor( fabs(alpha) / (2.*M_PI)) + 1.) * 2*M_PI;
-	}*/
+    double deltaPhi = center().Phi() + skewAngle() - trackPhi;
+    /*if (fabs(deltaPhi) > M_PI/2.) {
+      if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
+      else deltaPhi = deltaPhi - 2.*M_PI;
+      }*/   
+    double alpha = deltaPhi + M_PI / 2.;
     return alpha; 
   }
   double beta (double theta) const { return theta + tiltAngle(); }
@@ -185,7 +186,7 @@ public:
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
   void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); clearSensorPolys(); }
-  void translateR(double radius) { 
+  void translateR(double radius) {
     XYZVector v = rAxis_.Unit()*radius;
     decorated().translate(v);
     clearSensorPolys();

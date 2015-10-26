@@ -184,7 +184,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
     TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
     TProfile* hprof;
-    hprof  = new TProfile("hprof","Resolution on x local coordinate for pixel barrel modules (100 um * 100 um)",100,0,5,0,30);
+    hprof  = new TProfile("hprof","Resolution on x local coordinate for pixel barrel modules (100 um * 100 um)",100,-0.4,0.3,0,30);
     hprof->GetXaxis()->SetTitle("cotg(alpha)");
     hprof->GetYaxis()->SetTitle("resolutionLocalX [um]");
 
@@ -215,8 +215,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-    //phi = myDice.Rndm() * PI * 2.0;
-    phi = 0.;
+    phi = myDice.Rndm() * PI * 2.0;
+    //phi = 0.;
     Material tmp;
     Track track;
     eta = i_eta * etaStep;

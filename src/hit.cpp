@@ -162,15 +162,16 @@ double Hit::getResolutionRphi(TProfile* hprof, double trackR) {
 
       if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
       else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
-	if ( hitModule_->subdet() == ENDCAP) {
+	if ( hitModule_->subdet() == BARREL) {
 	  hprof->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
 	  //std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
 	  //std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
 
-
+	 
 	  std::cout << "hitModule_->alpha(myTrack_->getPhi()) = " << hitModule_->alpha(myTrack_->getPhi()) << std::endl;
 	  std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-	  }
+	    
+	}
       }
 
       if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
@@ -325,6 +326,7 @@ Track& Track::operator= (const Track &t) {
   
   // do the copy
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);
