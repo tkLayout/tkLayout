@@ -175,7 +175,11 @@ FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/inclu
 # Exlude files with main function defined
 SET ( sources "" )
 FOREACH( file ${all_sources} )
- IF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
+ IF ( ${file} MATCHES "MaterialSection.cpp" OR ${file} MATCHES "HoughTrack.cpp" OR ${file} MATCHES "moduleType.cpp" OR
+      ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "tunePtParam.cpp" )
+   SET ( APPEND source_other ${file} )
+   MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
+ ELSEIF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
    IF ( ${file} MATCHES "tklayout.cpp" ) 
      SET( source_tklayout ${file} )
    ENDIF()
