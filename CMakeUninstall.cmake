@@ -43,3 +43,17 @@ IF( IS_SYMLINK "$ENV{HOME}/bin/tklayout")
 ELSE()
 MESSAGE(STATUS "Symlink $ENV{HOME}/bin/tklayout does not exist.")
 ENDIF()
+
+# Remove documentation
+MESSAGE( STATUS "Removing generated doc html directory @CMAKE_CURRENT_SOURCE_DIR@/doc/html" )
+IF( EXISTS "@CMAKE_CURRENT_SOURCE_DIR@/doc/html" )
+  FILE( REMOVE_RECURSE "@CMAKE_CURRENT_SOURCE_DIR@/doc/html" )
+ELSE ()
+  MESSAGE(STATUS "Documentation html directory does not exist.")
+ENDIF()
+IF( EXISTS "@CMAKE_CURRENT_SOURCE_DIR@/doc/README.md")
+  FILE( REMOVE "@CMAKE_CURRENT_SOURCE_DIR@/doc/README.md" )
+ELSE ()
+  MESSAGE(STATUS "Documentation file README.md was not copied here.")
+ENDIF()
+

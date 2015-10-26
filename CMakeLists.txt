@@ -257,6 +257,42 @@ IF(CMAKE_HOST_UNIX)
 ENDIF()
 
 #----------------------------------------------------------------------------
+# Documentation
+#
+# Find Doxygen
+FIND_PACKAGE( Doxygen )
+IF( DOXYGEN_FOUND )
+
+    # Add doc target
+    ADD_CUSTOM_TARGET( doc ) 
+    ADD_CUSTOM_COMMAND( TARGET doc
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${PROJECT_SOURCE_DIR}/README.md" "${PROJECT_SOURCE_DIR}/doc/README.md"    
+        COMMAND "${DOXYGEN_EXECUTABLE}" ARGS "Doxyfile"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
+        COMMENT "Building API Documentation in ${PROJECT_SOURCE_DIR}/doc... "
+        VERBATIM )
+
+ELSE()
+    MESSAGE( STATUS "Doxygen not found in your system!!" )
+    IF( INSTALL_DOC )
+        MESSAGE( STATUS "INSTALL_DOC forced to OFF" )
+        SET( INSTALL_DOC OFF )
+    ENDIF()
+ENDIF()
+
+# Install documentation
+#IF( INSTALL_DOC )
+#    # make sure doxygen is executed (make doc) before make install
+#    INSTALL( CODE "EXEC_PROGRAM(${CMAKE_BUILD_TOOL} ${PROJECT_BINARY_DIR} ARGS doc)" )
+#    # install documentation
+#    INSTALL( DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
+#            DESTINATION .
+#            PATTERN "*CVS*" EXCLUDE )
+#ENDIF()
+
+
+#----------------------------------------------------------------------------
 # Uninstall 
 #
 CONFIGURE_FILE(
