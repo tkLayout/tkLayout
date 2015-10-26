@@ -665,7 +665,7 @@ namespace insur {
         ring_algo.parameter_map[xml_rangeangle]={"360*deg",AlgoPartype::num};
 
         algopar.str("");
-        algopar << (emodules.at(0).center().Phi() + 2 * PI / (double)(ringVec.at(ri).nModules()));
+        algopar << (emodules.at(0).center().Phi() + 2 * M_PI / (double)(ringVec.at(ri).nModules()));
 
         ring_algo.parameter_map[xml_startangle]={algopar.str(),AlgoPartype::num};
 
@@ -1121,7 +1121,7 @@ namespace insur {
   double PixelExtractor::compositeDensity(InactiveElement& ie) {
     double d = ie.getRWidth() + ie.getInnerRadius();
     d = d * d - ie.getInnerRadius() * ie.getInnerRadius();
-    d = 1000 * ie.getTotalMass() / (PI * ie.getZLength() * d);
+    d = 1000 * ie.getTotalMass() / (M_PI * ie.getZLength() * d);
     return d;
   }
 
