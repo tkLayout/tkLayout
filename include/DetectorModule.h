@@ -168,7 +168,14 @@ public:
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
 
-  double alpha (double trackPhi) const { return center().Phi() + skewAngle() - trackPhi + M_PI / 2.; }
+  double alpha (double trackPhi) const {
+    double alpha = center().Phi() + skewAngle() - trackPhi + M_PI / 2.;
+    /*if (fabs(alpha) > M_PI/2.) {
+	if (alpha < 0) alpha = alpha + (floor( fabs(alpha) / (2.*M_PI)) + 1.) * 2*M_PI;
+	if (alpha > 0) alpha = alpha - (floor( fabs(alpha) / (2.*M_PI)) + 1.) * 2*M_PI;
+	}*/
+    return alpha; 
+  }
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
   virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
@@ -180,7 +187,7 @@ public:
   void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); clearSensorPolys(); }
   void translateR(double radius) { 
     XYZVector v = rAxis_.Unit()*radius;
-    decorated().translate(v); 
+    decorated().translate(v);
     clearSensorPolys();
   }
   void mirrorZ() { 
