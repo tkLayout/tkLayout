@@ -30,6 +30,7 @@ Compilation using cmake (NEW):
     cd build
     cmake ..        (generate makefile)
     make install    (or write make all + make install)
+    make doc        (generate Doxygen-based documentation in doc directory)
 
     make uninstall  (if cleaning needed)
     rm *            (clean all content in build directory & restart if needed)
