@@ -162,34 +162,27 @@ double Hit::getResolutionRphi(TProfile* hprof, double trackR) {
 
       if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
       else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
-	/*if ( hitModule_->subdet() == BARREL) {
+	if ( hitModule_->subdet() == ENDCAP) {
 	  hprof->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
-	  std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
-	  std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
+	  //std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
+	  //std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
 
 
-
-	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-	  //std::cout << "resolutionLocalX = " << resolutionLocalX << std::endl;
-	  }*/
+	  std::cout << "hitModule_->alpha(myTrack_->getPhi()) = " << hitModule_->alpha(myTrack_->getPhi()) << std::endl;
+	  std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
+	  }
       }
 
       if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
       else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
-	if ( hitModule_->subdet() == ENDCAP) {
+	/*if ( hitModule_->subdet() == BARREL) {
 	  hprof->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
 	  std::cout << "resolutionLocalY * 1000 = " << resolutionLocalY*1000 << std::endl;
-	  std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-	  std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;
 	  std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
 
-
-
-	  //if ( hitModule_->subdet() == ENDCAP) {
-	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl; 
-	  //std::cout << "resolutionLocalY = " << resolutionLocalY << std::endl;
-	  //}
-	  }
+	  std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;	  
+	  std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;  
+	  }*/
       }
 
 

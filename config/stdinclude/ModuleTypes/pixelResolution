@@ -51,7 +51,7 @@
       resolutionLocalYEndcapParam0 0.007  // um
       resolutionLocalYEndcapParam1 0      // um
     }
-    Ring 3,4 {
+    Ring 3 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
