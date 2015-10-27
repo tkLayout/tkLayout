@@ -17,6 +17,7 @@ namespace Units {
   static const float mm  = 1.0;
   static const float cm  = 1E1;
   static const float m   = 1E3;
+  static const float um  = 1E-3;
 
   static const float g   = 1.0;
   static const float kg  = 1E3;
