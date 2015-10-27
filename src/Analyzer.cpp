@@ -217,19 +217,19 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profYEnd->GetYaxis()->CenterTitle();
 
 
-    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (100 um x 100 um)",100,0,30);
+    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (100 um x 100 um)",500,0,30);
     histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
     histXBar->GetXaxis()->CenterTitle();
 
-    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (100 um x 100 um)",100,0,60);
+    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (100 um x 100 um)",500,0,60);
     histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
     histYBar->GetXaxis()->CenterTitle();
 
-    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (50 um x 50 um)",100,0,30);
+    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (50 um x 50 um)",500,0,30);
     histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
     histXEnd->GetXaxis()->CenterTitle();
 
-    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (50 um x 50 um)",100,0,40);
+    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (50 um x 50 um)",500,0,40);
     histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
     histYEnd->GetXaxis()->CenterTitle();
 
@@ -378,7 +378,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
   profYEnd_out_file.Close();
 
  
-
+  
   histXBar->DrawNormalized();
   c1->Print("histXBar.gif");
   TFile histXBar_out_file("histXBar_out_file.root", "RECREATE");
