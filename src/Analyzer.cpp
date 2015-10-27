@@ -183,13 +183,55 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
       newmm->Draw();*/
 
     TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
-    TProfile* hprof;
-    hprof  = new TProfile("hprof","Resolution on x local coordinate for pixel barrel modules (100 um * 100 um)",100,-0.4,0.3,0,30);
-    hprof->GetXaxis()->SetTitle("cotg(alpha)");
-    hprof->GetYaxis()->SetTitle("resolutionLocalX [um]");
+
+    TProfile* profXBar;
+    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (100 um x 100 um)",100,-0.4,0.3,0,30);
+    profXBar->GetYaxis()->SetRangeUser(0,30);
+    profXBar->GetXaxis()->SetTitle("cotg(alpha)");
+    profXBar->GetYaxis()->SetTitle("resolutionLocalX [um]");
+    profXBar->GetXaxis()->CenterTitle();
+    profXBar->GetYaxis()->CenterTitle();
+
+    TProfile* profYBar;
+    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (100 um x 100 um)",100,0,5,0,60);
+    profYBar->GetYaxis()->SetRangeUser(0,60);
+    profYBar->GetXaxis()->SetTitle("|cotg(beta)|");
+    profYBar->GetYaxis()->SetTitle("resolutionLocalY [um]");
+    profYBar->GetXaxis()->CenterTitle();
+    profYBar->GetYaxis()->CenterTitle();
+
+    TProfile* profXEnd;
+    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (50 um x 50 um)",100,-0.45,-0.25,0,30);
+    profXEnd->GetYaxis()->SetRangeUser(0,30);
+    profXEnd->GetXaxis()->SetTitle("cotg(alpha)");
+    profXEnd->GetYaxis()->SetTitle("resolutionLocalX [um]");
+    profXEnd->GetXaxis()->CenterTitle();
+    profXEnd->GetYaxis()->CenterTitle();
+
+    TProfile* profYEnd;
+    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (50 um x 50 um)",100,0.25,0.5,0,40);
+    profYEnd->GetYaxis()->SetRangeUser(0,40);
+    profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
+    profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
+    profYEnd->GetXaxis()->CenterTitle();
+    profYEnd->GetYaxis()->CenterTitle();
 
 
+    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (100 um x 100 um)",100,0,30);
+    histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
+    histXBar->GetXaxis()->CenterTitle();
 
+    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (100 um x 100 um)",100,0,60);
+    histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
+    histYBar->GetXaxis()->CenterTitle();
+
+    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (50 um x 50 um)",100,0,30);
+    histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
+    histXEnd->GetXaxis()->CenterTitle();
+
+    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (50 um x 50 um)",100,0,40);
+    histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
+    histYEnd->GetXaxis()->CenterTitle();
 
 
 
@@ -221,7 +263,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     Track track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
-    std::cout << " track's phi = " << phi << std::endl; 
+    //std::cout << " track's phi = " << phi << std::endl; 
     track.setTheta(theta);      
     track.setPhi(phi);
 
@@ -266,14 +308,14 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             double transverseMomentum = ptit;  // <SMe> we assign the selected /transverse/ momentum to the track (in GeV) </SMe>
             // parameter is pT in this case
             track.setTransverseMomentum(transverseMomentum);
-            track.computeErrors(hprof);
+            track.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
             TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
             myCollection.push_back(track);
 
             Track idealTrack(track);
             idealTrack.removeMaterial();
-            idealTrack.computeErrors(hprof);
+            idealTrack.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
             TrackCollectionMap &myMapIdeal = taggedTrackCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(idealTrack);
@@ -311,10 +353,55 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
   
 
-  hprof->Draw();
-  TFile out_file("myroot.root", "RECREATE");
-  hprof->Write();
-  out_file.Close();
+  profXBar->Draw();
+  c1->Print("profXBar.gif");
+  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
+  profXBar->Write();
+  profXBar_out_file.Close();
+
+  profYBar->Draw();
+  c1->Print("profYBar.gif");
+  TFile profYBar_out_file("profYBar_out_file.root", "RECREATE");
+  profYBar->Write();
+  profYBar_out_file.Close();
+
+  profXEnd->Draw();
+  c1->Print("profXEnd.gif");
+  TFile profXEnd_out_file("profXEnd_out_file.root", "RECREATE");
+  profXEnd->Write();
+  profXEnd_out_file.Close();
+
+  profYEnd->Draw();
+  c1->Print("profYEnd.gif");
+  TFile profYEnd_out_file("profYEnd_out_file.root", "RECREATE");
+  profYEnd->Write();
+  profYEnd_out_file.Close();
+
+ 
+
+  histXBar->DrawNormalized();
+  c1->Print("histXBar.gif");
+  TFile histXBar_out_file("histXBar_out_file.root", "RECREATE");
+  histXBar->Write();
+  histXBar_out_file.Close();
+
+  histYBar->DrawNormalized();
+  c1->Print("histYBar.gif");
+  TFile histYBar_out_file("histYBar_out_file.root", "RECREATE");
+  histYBar->Write();
+  histYBar_out_file.Close();
+
+  histXEnd->DrawNormalized();
+  c1->Print("histXEnd.gif");
+  TFile histXEnd_out_file("histXEnd_out_file.root", "RECREATE");
+  histXEnd->Write();
+  histXEnd_out_file.Close();
+
+  histYEnd->DrawNormalized();
+  c1->Print("histYEnd.gif");
+  TFile histYEnd_out_file("histYEnd_out_file.root", "RECREATE");
+  histYEnd->Write();
+  histYEnd_out_file.Close();
 
 
 
