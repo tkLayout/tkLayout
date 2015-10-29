@@ -2154,24 +2154,24 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
 }
 */
 void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (geom_max_length) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (geom_max_length) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("z [mm]");
   myMap.SetYTitle("r [mm]");
-  myMap.SetBins(mapBinsX, 0.0, geom_max_length*1.1, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  myMap.SetBins(mapBinsX, 0.0, geom_max_length*geom_safety_factor, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor);
   myMap.Reset();
 }
 
 void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (2*geom_max_radius) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (2*geom_max_radius) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("x [mm]");
   myMap.SetYTitle("y [mm]");
-  myMap.SetBins(mapBinsX, -geom_max_radius*1.1, geom_max_radius*1.1, mapBinsY, -geom_max_radius*1.1, geom_max_radius*1.1);
+  myMap.SetBins(mapBinsX, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor, mapBinsY, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor);
   myMap.Reset();
 }
 
@@ -2426,14 +2426,14 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * 1.1 / 5.); // every half a cm
-  int materialMapBinsX = int( (geom_max_length) * 1.1 / 5.); // every half a cm
-  mapRadiation.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
-  mapInteraction.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
-  mapRadiationCount.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
-  mapRadiationCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*1.1, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * 1.1);
+  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 5.); // every half a cm
+  int materialMapBinsX = int( (geom_max_length) * geom_safety_factor / 5.); // every half a cm
+  mapRadiation.SetBins(       materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteraction.SetBins(     materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCount.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCalib.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
 }
 
 /**

@@ -32,6 +32,8 @@ namespace insur {
   static const double geom_z_threshold_service_zigzag = 100.0;
   static const double geom_top_volume_pad             = 200;    // mm
 
+  static const double geom_safety_factor              = 1.1;
+
   static const double geom_min_radius                 = geom_inner_pixel_radius;
   static const double geom_max_radius                 = geom_outer_strip_radius;
   static const double geom_max_length                 = 8000.0; // mm
@@ -90,6 +92,7 @@ namespace insur {
   static const double vis_max_dCtgTheta      = 1.0;
   static const double vis_min_dCtgTheta      = 1E-6;
 
+  static const double vis_safety_factor      = geom_safety_factor;
 
   static const int    vis_min_canvas_sizeX   = 600;
   static const int    vis_std_canvas_sizeX   = 900;

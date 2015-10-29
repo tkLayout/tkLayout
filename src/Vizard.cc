@@ -569,7 +569,7 @@ namespace insur {
       crProf->SetXTitle("#eta");
       crProf->Rebin(rebinCoef);
       double maxCRProf = crProf->GetMaximum();
-      crProf->GetYaxis()->SetRangeUser(0, 1.1*maxCRProf);
+      crProf->GetYaxis()->SetRangeUser(0, vis_safety_factor*maxCRProf);
       crProf->Draw("hist");
       myPad = myCanvas->GetPad(2);
       myPad->cd();
@@ -583,7 +583,7 @@ namespace insur {
       ciProf->SetXTitle("#eta");
       ciProf->Rebin(rebinCoef);
       double maxCIProf = ciProf->GetMaximum();
-      ciProf->GetYaxis()->SetRangeUser(0, 1.1*maxCIProf);
+      ciProf->GetYaxis()->SetRangeUser(0, vis_safety_factor*maxCIProf);
       ciProf->Draw("hist");
   
       // Write tracking volume plots to the web site
@@ -889,7 +889,13 @@ namespace insur {
       myCanvas = new TCanvas(name_mapMaterialRadiation.c_str());
       myCanvas->SetFillColor(color_plot_background);
       myCanvas->cd();
+
+      // Calculate final plot range, increase by safety factor
+      double maxZ = materialBudget.getTracker().maxZ() * vis_safety_factor;
+      double maxR = materialBudget.getTracker().maxR() * vis_safety_factor;
       mapRad = (TH2D*)analyzer.getHistoMapRadiation().Clone();
+      mapRad->GetXaxis()->SetRangeUser(0, maxZ);
+      mapRad->GetYaxis()->SetRangeUser(0, maxR);
       mapRad->SetContour(vis_temperature_levels, nullptr);
       mapRad->GetYaxis()->SetTitleOffset(1.1);
       mapRad->Draw("COLZ");
@@ -903,6 +909,8 @@ namespace insur {
       myCanvas->SetFillColor(color_plot_background);
       myCanvas->cd();
       mapInt = (TH2D*)analyzer.getHistoMapInteraction().Clone();
+      mapInt->GetXaxis()->SetRangeUser(0, maxZ);
+      mapInt->GetYaxis()->SetRangeUser(0, maxR);
       mapInt->SetContour(vis_temperature_levels, NULL);
       mapInt->GetYaxis()->SetTitleOffset(1.1);
       mapInt->Draw("COLZ");
@@ -1833,8 +1841,8 @@ namespace insur {
     if (name=="INNER") {
       logINFO("Drawing beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
-      beampipe->SetPoint(0, 0                 , (simparms.bpRadius()+simparms.bpThickness())/2.);
-      beampipe->SetPoint(1, tracker.maxZ()*1.1, (simparms.bpRadius()+simparms.bpThickness())/2.);
+      beampipe->SetPoint(0, 0                               , (simparms.bpRadius()+simparms.bpThickness())/2.);
+      beampipe->SetPoint(1, tracker.maxZ()*vis_safety_factor, (simparms.bpRadius()+simparms.bpThickness())/2.);
       beampipe->SetLineColor(14);
       beampipe->SetLineWidth(2);
       XYCanvasEC->cd();
@@ -4805,8 +4813,8 @@ namespace insur {
     double topMax = (maxL > maxR) ? maxL : maxR;
     topMax = ceil(topMax/spacing)*spacing;
 
-    maxL *= 1.1;
-    maxR *= 1.1;
+    maxL *= vis_safety_factor;
+    maxR *= vis_safety_factor;
 
     if (noAxis==1) {
       double etaStep=.2;
@@ -4957,8 +4965,8 @@ namespace insur {
     j=(noAxis+1)%3;
     k=(noAxis+2)%3;
 
-    maxL *= 1.1;
-    maxR *= 1.1;
+    maxL *= vis_safety_factor;
+    maxR *= vis_safety_factor;
 
     if (noAxis==1) {
       minValue[0]=0;
