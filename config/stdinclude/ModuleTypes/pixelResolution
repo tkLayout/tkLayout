@@ -10,12 +10,12 @@
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      resolutionLocalXBarrelParam0 0.0105  // um
-      resolutionLocalXBarrelParam1 -0.027  // um
-      resolutionLocalXBarrelParam2 0.062  // um
+      resolutionLocalXBarrelParam0 0.0105  // mm
+      resolutionLocalXBarrelParam1 -0.027  // mm
+      resolutionLocalXBarrelParam2 0.062  // mm
 
-      resolutionLocalYBarrelParam0 0.014  // um
-      resolutionLocalYBarrelParam1 0.026  // um
+      resolutionLocalYBarrelParam0 0.014  // mm
+      resolutionLocalYBarrelParam1 0.026  // mm
       resolutionLocalYBarrelParam2 2.2
       resolutionLocalYBarrelParam3 -2.4
       resolutionLocalYBarrelParam4 0.8
@@ -24,12 +24,12 @@
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      resolutionLocalXBarrelParam0 0.0105  // um
-      resolutionLocalXBarrelParam1 -0.027  // um
-      resolutionLocalXBarrelParam2 0.062  // um
+      resolutionLocalXBarrelParam0 0.0105  // mm
+      resolutionLocalXBarrelParam1 -0.027  // mm
+      resolutionLocalXBarrelParam2 0.062  // mm
 
-      resolutionLocalYBarrelParam0 0.014  // um
-      resolutionLocalYBarrelParam1 0.026  // um
+      resolutionLocalYBarrelParam0 0.014  // mm
+      resolutionLocalYBarrelParam1 0.026  // mm
       resolutionLocalYBarrelParam2 2.2
       resolutionLocalYBarrelParam3 -2.4
       resolutionLocalYBarrelParam4 0.8
@@ -45,21 +45,21 @@
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      resolutionLocalXEndcapParam0 0.005  // um
-      resolutionLocalXEndcapParam1 0      // um
+      resolutionLocalXEndcapParam0 0.005  // mm
+      resolutionLocalXEndcapParam1 0      // mm
 
-      resolutionLocalYEndcapParam0 0.007  // um
-      resolutionLocalYEndcapParam1 0      // um
+      resolutionLocalYEndcapParam0 0.007  // mm
+      resolutionLocalYEndcapParam1 0      // mm
     }
     Ring 3 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      resolutionLocalXEndcapParam0 0.005  // um
-      resolutionLocalXEndcapParam1 0      // um
+      resolutionLocalXEndcapParam0 0.005  // mm
+      resolutionLocalXEndcapParam1 0      // mm
 
-      resolutionLocalYEndcapParam0 0.007  // um
-      resolutionLocalYEndcapParam1 0      // um
+      resolutionLocalYEndcapParam0 0.007  // mm
+      resolutionLocalYEndcapParam1 0      // mm
     }
   }
 
