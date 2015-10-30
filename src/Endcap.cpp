@@ -59,17 +59,24 @@ void Endcap::build() {
       Disk* diskp = GeometryFactory::make<Disk>();
       diskp->myid(i);
 
+      // Standard is to build & calculate parameters for the central disc (in the middle)
       diskp->buildZ((innerZ() + outerZ())/2);
+
+      // Apply correct offset for each disc versus middle position
       double offset = pow(alpha, i-1) * innerZ();
       diskp->placeZ(offset);
 
+      // Store parameters in a tree
       diskp->store(propertyTree());
       if (diskNode.count(i) > 0) diskp->store(diskNode.at(i));
 
-      diskp->zError(diskp->zError() + (outerZ()-innerZ())/2);
+      // To test the extreme cases -> one needs to test either first or last layer (based on parity)
+      diskp->zHalfLength((outerZ()-innerZ())/2.);
 
+      // Build
       diskp->build(maxDsDistances);
 
+      // Mirror discs
       Disk* diskn = GeometryFactory::clone(*diskp);
       diskn->mirrorZ();
 

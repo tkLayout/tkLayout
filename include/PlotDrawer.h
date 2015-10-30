@@ -186,8 +186,8 @@ struct CheckPhiIndex {
 
 
 struct Rounder {
-  static const int mmFraction = 10;
-  int round(double x) { return floor(x*mmFraction+0.5)/mmFraction; }
+  static const int mmFraction = 1000;  // Drawing with 1 micrometer precision
+  int round(double x) { return floor(x*mmFraction+0.5); }
 };
 
 struct XY : public std::pair<int, int>, private Rounder {
@@ -224,10 +224,10 @@ template<class CoordType> class LineGetter {
   CoordTypeY maxy_, miny_;
 public:
   LineGetter() : maxx_(std::numeric_limits<CoordTypeX>::min()), minx_(std::numeric_limits<CoordTypeX>::max()), maxy_(std::numeric_limits<CoordTypeY>::min()), miny_(std::numeric_limits<CoordTypeY>::max()) {}
-  CoordTypeX maxx() const { return maxx_; }
-  CoordTypeX minx() const { return minx_; }
-  CoordTypeY maxy() const { return maxy_; }
-  CoordTypeY miny() const { return miny_; }
+  CoordTypeX maxx() const { return double(maxx_)/Rounder::mmFraction; }
+  CoordTypeX minx() const { return double(minx_)/Rounder::mmFraction; }
+  CoordTypeY maxy() const { return double(maxy_)/Rounder::mmFraction; }
+  CoordTypeY miny() const { return double(miny_)/Rounder::mmFraction; }
   TPolyLine* operator()(const Module& m) {
     std::set<CoordType> xy; // duplicate detection
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
@@ -235,8 +235,8 @@ public:
     for (int i=0; i<4; i++) {
       CoordType c(m.basePoly().getVertex(i));
       if (xy.insert(c).second == true) {
-        x[j] = c.first;
-        y[j++] = c.second;
+        x[j] = double(c.first)/Rounder::mmFraction;
+        y[j++] = double(c.second)/Rounder::mmFraction;
       } 
       maxx_ = MAX(c.first, maxx_);
       minx_ = MIN(c.first, minx_);

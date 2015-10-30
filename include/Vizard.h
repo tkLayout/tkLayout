@@ -180,6 +180,7 @@ namespace insur {
     std::string getSummaryString();
     std::string getSummaryLabelString();
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
+      bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
   protected:
     TGeoManager* gm;

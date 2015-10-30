@@ -4,3 +4,8 @@ export LD_LIBRARY_PATH=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_6
 export BOOST_LIB=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/lib
 export BOOST_INCLUDE=/afs/cern.ch/sw/lcg/external/Boost/1.55.0_python2.7/x86_64-slc6-gcc47-opt/include/boost-1_55
 export BOOST_SUFFIX=-gcc47-mt-1_55 
+export DOXYGEN_PATH=/afs/cern.ch/sw/lcg/external/doxygen/1.8.2/x86_64-slc6-gcc47-opt/bin
+
+if [ -d $DOXYGEN_PATH ] ; then
+  export PATH=${DOXYGEN_PATH}:${PATH}
+fi
