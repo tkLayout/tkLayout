@@ -286,9 +286,13 @@ public:
   int16_t ring() const { return (int16_t)myid(); }
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1;
-  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2;
+  ReadonlyProperty<double, NoDefault> cotalphaLimit;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Sup;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam1;
   ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam2;
@@ -297,9 +301,13 @@ public:
 
  BarrelModule(Decorated* decorated) :
   DetectorModule(decorated),
-    resolutionLocalXBarrelParam0            ("resolutionLocalXBarrelParam0"            , parsedOnly()),
-    resolutionLocalXBarrelParam1            ("resolutionLocalXBarrelParam1"            , parsedOnly()),
-    resolutionLocalXBarrelParam2            ("resolutionLocalXBarrelParam2"            , parsedOnly()),
+    cotalphaLimit                           ("cotalphaLimit"                           , parsedOnly()),
+    resolutionLocalXBarrelParam0Inf         ("resolutionLocalXBarrelParam0Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam1Inf         ("resolutionLocalXBarrelParam1Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam2Inf         ("resolutionLocalXBarrelParam2Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam0Sup         ("resolutionLocalXBarrelParam0Sup"         , parsedOnly()),
+    resolutionLocalXBarrelParam1Sup         ("resolutionLocalXBarrelParam1Sup"         , parsedOnly()),
+    resolutionLocalXBarrelParam2Sup         ("resolutionLocalXBarrelParam2Sup"         , parsedOnly()),
     resolutionLocalYBarrelParam0            ("resolutionLocalYBarrelParam0"            , parsedOnly()),
     resolutionLocalYBarrelParam1            ("resolutionLocalYBarrelParam1"            , parsedOnly()),
     resolutionLocalYBarrelParam2            ("resolutionLocalYBarrelParam2"            , parsedOnly()),
@@ -307,7 +315,7 @@ public:
     resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly())
       { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXBarrelParam0.state() || resolutionLocalXBarrelParam1.state() || resolutionLocalXBarrelParam2.state()); }
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXBarrelParam0Inf.state() || resolutionLocalXBarrelParam1Inf.state() || resolutionLocalXBarrelParam2Inf.state() || resolutionLocalXBarrelParam0Sup.state() || resolutionLocalXBarrelParam1Sup.state() || resolutionLocalXBarrelParam2Sup.state()); }
 
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYBarrelParam0.state() || resolutionLocalYBarrelParam1.state() || resolutionLocalYBarrelParam2.state() || resolutionLocalYBarrelParam3.state() || resolutionLocalYBarrelParam4.state()); }
 
@@ -365,7 +373,12 @@ public:
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXBarrelParam0() + resolutionLocalXBarrelParam1() * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2() * pow(1./tan(alpha(trackPhi)), 2); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const { 
+    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
+    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
+    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
+    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2); 
+}
 
   double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
 
