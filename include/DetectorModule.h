@@ -170,10 +170,10 @@ public:
 
   double alpha (double trackPhi) const {
     double deltaPhi = center().Phi() + skewAngle() - trackPhi;
-    /*if (fabs(deltaPhi) > M_PI/2.) {
+    if (fabs(deltaPhi) > M_PI/2.) {
       if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
       else deltaPhi = deltaPhi - 2.*M_PI;
-      }*/   
+    }  
     double alpha = deltaPhi + M_PI / 2.;
     return alpha; 
   }
