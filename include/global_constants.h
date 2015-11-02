@@ -32,6 +32,9 @@ namespace insur {
   static const double geom_z_threshold_service_zigzag = 100.0;
   static const double geom_top_volume_pad             = 200;    // mm
 
+  static const double geom_support_margin_bottom      = 1;      // mm
+  static const double geom_support_margin_top         = 2;      // mm
+
   static const double geom_safety_factor              = 1.1;
 
   static const double geom_min_radius                 = geom_inner_pixel_radius;

@@ -199,7 +199,7 @@ namespace insur {
         logERROR(ss);
       }
 
-      // Look for tag "Support" and build supports
+      // Look for tag "Support" not associated with a concrete Tracker and build supports
       childRange = getChildRange(pTree, "Support");
       std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
 
