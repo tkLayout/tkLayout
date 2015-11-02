@@ -749,6 +749,7 @@ namespace insur {
       ser->Scale(1./rebinCoef);
       rcontainer->Add(ser);
       rcontainer->Draw();
+      rcontainer->GetXaxis()->SetTitle("#eta");
 
       myPad = myCanvas->GetPad(2);
       myPad->cd();
@@ -765,6 +766,7 @@ namespace insur {
       sei->Scale(1./rebinCoef);
       icontainer->Add(sei);
       icontainer->Draw();
+      icontainer->GetXaxis()->SetTitle("#eta");
 
       myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
       myImage->setComment("Detailed");
@@ -815,6 +817,7 @@ namespace insur {
       myTable->setContent(compIndex, 0, "Total");
       myTable->setContent(compIndex, 1, totalRadLength*100, 2);
       rCompStack->Draw();
+      rCompStack->GetXaxis()->SetTitle("#eta");
       compLegend->Draw();
   
       myPad = myCanvas->GetPad(2);
@@ -835,6 +838,7 @@ namespace insur {
       }
       myTable->setContent(compIndex, 2, totalInterLength*100, 2);
       iCompStack->Draw();
+      iCompStack->GetXaxis()->SetTitle("#eta");
       compLegend->Draw();
   
       myContent->addItem(myTable);
