@@ -1,5 +1,8 @@
 #include "Barrel.h"
 #include "messageLogger.h"
+#include "SupportStructure.h"
+
+using material::SupportStructure;
 
 void Barrel::cutAtEta(double eta) { 
   for (auto& l : layers_) l.cutAtEta(eta); 
@@ -36,6 +39,7 @@ void Barrel::build() {
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
+  // Supports defined within a Barrel
   for (auto& mapel : supportNode) {
     SupportStructure* s = new SupportStructure();
     s->store(propertyTree());
@@ -43,7 +47,6 @@ void Barrel::build() {
     s->buildInBarrel(*this);
     supportStructures_.push_back(s);
   }
-
 
   cleanup();
   builtok(true);

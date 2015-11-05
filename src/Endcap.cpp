@@ -1,5 +1,8 @@
 #include "Endcap.h"
 #include "messageLogger.h"
+#include "SupportStructure.h"
+
+using material::SupportStructure;
 
 void Endcap::cutAtEta(double eta) { 
   for (auto& d : disks_) d.cutAtEta(eta); 
@@ -88,7 +91,15 @@ void Endcap::build() {
     
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
+  // Supports defined within a Barrel
+  for (auto& mapel : supportNode) {
+    SupportStructure* s = new SupportStructure();
+    s->store(propertyTree());
+    s->store(mapel.second);
+    s->buildInEndcap(*this);
+    supportStructures_.push_back(s);
+  }
+
   cleanup();
   builtok(true);
 }
-
