@@ -137,6 +137,18 @@ namespace insur {
         logERROR(ss);
       }
 
+      // Look for tag "Support" not associated with a concrete Tracker and build supports
+      childRange = getChildRange(pt, "Support");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+
+        Support* support = new Support();
+        support->myid(kv.second.get_value(0));
+        support->store(kv.second);
+        support->build();
+        supports_.push_back(support);
+      });
+
+      // Read simulation parameters
       simParms_ = new SimParms();
 
       //iter between the default irradiation files vector and add each to simParm
