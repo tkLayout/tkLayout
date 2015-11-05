@@ -3069,6 +3069,8 @@ namespace insur {
       if (tag=="beampipe")                wName = "BP";
       if (tag=="pixel")                   wName = "PIXEL";
       if (tag=="trigger" || tag=="strip") wName = "STRIP";
+      if (tag=="barrel")                  wName = "BARREL";
+      if (tag=="endcap")                  wName = "ENDCAP";
       if (tag=="forward")                 wName = "FWD";
       if (tag=="tracker")                 wName = "TRK";
   
@@ -3082,7 +3084,9 @@ namespace insur {
       if      (wName=="PIXEL")  site.addPage(myPage,90);
       else if (wName=="STRIP")  site.addPage(myPage,89);
       else if (wName=="FWD")    site.addPage(myPage,88);
-      else if (wName=="TRK")    site.addPage(myPage,87);
+      else if (wName=="BARREL") site.addPage(myPage,87);
+      else if (wName=="ENDCAP") site.addPage(myPage,86);
+      else if (wName=="TRK")    site.addPage(myPage,85);
       else                      site.addPage(myPage);
   
       // Create the contents
