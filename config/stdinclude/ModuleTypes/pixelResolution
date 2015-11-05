@@ -1,13 +1,18 @@
+// This is to simulate resolution on pixel modules local coordinates X and Y.
+// resolutionLocalX or Y are either static values, or values calculated from parameterized models.
+//
 // Static resolutionLocalX or Y : Please specify values for resolutionLocalX or Y in this file.
+// Example : resolutionLocalX 0.010
+//
 // Parameterized resolutionLocalX or Y : Please specify the set of parameters for resolutionLocalX or Y in this file. Models used are from [1] and mentioned below.
+// Example : @includestd ModuleTypes/XBarrel_SR
 // [1] Parametrization of the spatial resolution of the reconstructed hits in the Inner Pixel for HL-LHC studies, E. Migliore and M. Musich, 2015/09/18
-//
-//
-// The module's type notation is as follows :
+// Sets of parameters are available for the following module types :
 // SR : Small Rectangular (25 um x 100 um) 
 // SS : Small Square      (50 um x 50 um)
 // LR : Large Rectangular (50 um x 200 um)
 // LS : Large Square      (100 um x 100 um)
+
 
 
 
