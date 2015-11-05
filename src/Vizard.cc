@@ -20,9 +20,9 @@ namespace insur {
     gm = new TGeoManager("display", "Tracker");
     // dummy material definitions for each category
     matvac = new TGeoMaterial("Vacuum", 0, 0, 0);
-    matact = new TGeoMaterial("Si", a_silicon, z_silicon, d_silicon);
-    matserf = new TGeoMaterial("C ", a_carbon, z_carbon, d_carbon);
-    matlazy = new TGeoMaterial("Cu", a_copper, z_copper, d_copper);
+    matact = new TGeoMaterial("Si", mat_a_silicon, mat_z_silicon, mat_d_silicon);
+    matserf = new TGeoMaterial("C ", mat_a_carbon, mat_z_carbon, mat_d_carbon);
+    matlazy = new TGeoMaterial("Cu", mat_a_copper, mat_z_copper, mat_d_copper);
     // dummy medium definitions for each category
     medvac = new TGeoMedium("Vacuum", 0, matvac);
     medact = new TGeoMedium("Silicon", 1, matact);
@@ -36,7 +36,7 @@ namespace insur {
     active = new TGeoVolumeAssembly("Active Modules");
     inactive = new TGeoVolumeAssembly("Inactive Surfaces");
     // top-level volume definition
-    top = gm->MakeBox("WORLD", medvac, outer_radius + top_volume_pad, outer_radius + top_volume_pad, max_length + top_volume_pad);
+    top = gm->MakeBox("WORLD", medvac, geom_max_radius + geom_top_volume_pad, geom_max_radius + geom_top_volume_pad, geom_max_length + geom_top_volume_pad);
     // definition of tree hierarchy for visualisation
     active->AddNode(barrels, 0);
     active->AddNode(endcaps, 0);
@@ -53,12 +53,12 @@ namespace insur {
     Double_t red[numberOfSteps]   = { 0.00, 0.00, 0.87, 1.00, 0.51 };
     Double_t green[numberOfSteps] = { 0.00, 0.81, 1.00, 0.20, 0.00 };
     Double_t blue[numberOfSteps]  = { 0.51, 1.00, 0.12, 0.00, 0.00 };
-    Int_t myPalette[temperature_levels];
-    gStyle->SetNumberContours(temperature_levels);
+    Int_t myPalette[vis_temperature_levels];
+    gStyle->SetNumberContours(vis_temperature_levels);
 
-    Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, temperature_levels);
-    for (int i=0;i<temperature_levels;i++) myPalette[i] = colorIndex+i;
-    gStyle->SetPalette(temperature_levels, myPalette);
+    Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, vis_temperature_levels);
+    for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
+    gStyle->SetPalette(vis_temperature_levels, myPalette);
   }
 
   /**
@@ -783,7 +783,7 @@ namespace insur {
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapRad = (TH2D*)a.getHistoMapRadiation().Clone();
-    mapRad->SetContour(temperature_levels, NULL);
+    mapRad->SetContour(vis_temperature_levels, NULL);
     //myCanvas->SetLogz();
     mapRad->Draw("COLZ");
     myImage = new RootWImage(myCanvas, 900, 400);
@@ -796,7 +796,7 @@ namespace insur {
     myCanvas->SetFillColor(color_plot_background);
     myCanvas->cd();
     mapInt = (TH2D*)a.getHistoMapInteraction().Clone();
-    mapInt->SetContour(temperature_levels, NULL);
+    mapInt->SetContour(vis_temperature_levels, NULL);
     mapInt->Draw("COLZ");
     myImage = new RootWImage(myCanvas, 900, 400);
     myImage->setComment("Interaction length material map");

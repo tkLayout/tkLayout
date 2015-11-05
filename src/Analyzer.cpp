@@ -61,10 +61,10 @@ namespace insur {
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
-    geomLite = NULL;   geomLiteCreated=false;
-    geomLiteXY = NULL; geomLiteXYCreated=false;
-    geomLiteYZ = NULL; geomLiteYZCreated=false;
-    geomLiteEC = NULL; geomLiteECCreated=false;
+    geomLite           = nullptr; geomLiteCreated=false;
+    geomLiteXY         = nullptr; geomLiteXYCreated=false;
+    geomLiteYZ         = nullptr; geomLiteYZCreated=false;
+    geomLiteEC         = nullptr; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
 
@@ -622,7 +622,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   nTracks = etaSteps;
   // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
-  setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
+  setCellBoundaries(nTracks, 0.0, geom_max_radius + geom_inactive_volume_width, 0.0, getEtaMaxMaterial());
 
   // reset the list of tracks
   // std::vector<Track> tv;
@@ -2002,24 +2002,24 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
 }
 */
 void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (geom_max_length) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("z [mm]");
   myMap.SetYTitle("r [mm]");
-  myMap.SetBins(mapBinsX, 0.0, max_length*1.1, mapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  myMap.SetBins(mapBinsX, 0.0, geom_max_length*geom_safety_factor, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor);
   myMap.Reset();
 }
 
 void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (2*outer_radius) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (2*outer_radius) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("x [mm]");
   myMap.SetYTitle("y [mm]");
-  myMap.SetBins(mapBinsX, -outer_radius*1.1, outer_radius*1.1, mapBinsY, -outer_radius*1.1, outer_radius*1.1);
+  myMap.SetBins(mapBinsX, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor, mapBinsY, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor);
   myMap.Reset();
 }
 
@@ -2269,17 +2269,17 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   rglobal.SetBins(bins, min, max);
   iglobal.SetBins(bins, min, max);
   // isolines
-  isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
-  isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+  isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
+  isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
-  int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
-  mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 5.); // every half a cm
+  int materialMapBinsX = int( (geom_max_length) * geom_safety_factor / 5.); // every half a cm
+  mapRadiation.SetBins(       materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteraction.SetBins(     materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCount.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCalib.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
 }
 
 /**
