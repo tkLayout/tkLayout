@@ -5,36 +5,34 @@
 // If paraneters to calculate resolutionLocalXBarrel and resolutionLocalYBarrel are specified, the following models are used :
 // Model : resolutionLocalXBarrel = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * cos(alpha) + resolutionLocalXBarrelParam2 * cos(alpha)^2
 // Model : resolutionLocalYBarrel = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * exp(-resolutionLocalYBarrelParam2 * abs(cos(beta))) * sin(resolutionLocalYBarrelParam3 * abs(cos(beta)) + resolutionLocalYBarrelParam4)
-// With alpha and beta the reference notation angles for a track hitting a pixel module.
-
-// The reference notation is as follows :
-// First letter : 
-// S : Small
-// L : Large
-// Second letter :
-// R : Rectangular
-// S : Square
-
+// With alpha and beta the reference notation angles for a track hitting a pixel module
     Layer 1,2 {
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      // Parameters for resolutionLocalX
-      @includestd ModuleTypes/XBarrel_SR
+      resolutionLocalXBarrelParam0 0.0105  // mm
+      resolutionLocalXBarrelParam1 -0.027  // mm
+      resolutionLocalXBarrelParam2 0.062  // mm
 
-      // Parameters for resolutionLocalY    
-      @includestd ModuleTypes/YBarrel_SR    
+      resolutionLocalYBarrelParam0 0.014  // mm
+      resolutionLocalYBarrelParam1 0.026  // mm
+      resolutionLocalYBarrelParam2 2.2
+      resolutionLocalYBarrelParam3 -2.4
+      resolutionLocalYBarrelParam4 0.8
     }
     Layer 3,4 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      // Parameters for resolutionLocalX  
-      @includestd ModuleTypes/XBarrel_LR
+      resolutionLocalXBarrelParam0 0.0105  // mm
+      resolutionLocalXBarrelParam1 -0.027  // mm
+      resolutionLocalXBarrelParam2 0.062  // mm
 
-      // Parameters for resolutionLocalY
-      @includestd ModuleTypes/YBarrel_LR
-      
+      resolutionLocalYBarrelParam0 0.014  // mm
+      resolutionLocalYBarrelParam1 0.026  // mm
+      resolutionLocalYBarrelParam2 2.2
+      resolutionLocalYBarrelParam3 -2.4
+      resolutionLocalYBarrelParam4 0.8
     }
   }
 
@@ -43,35 +41,25 @@
 // Model : resolutionLocalXEndcap = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * cos(alpha)
 // Model : resolutionLocalYEndcap = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * abs(cos(beta))
 // With alpha and beta the reference notation angles for a track hitting a pixel module
-
-// The reference notation is as follows :
-// First letter : 
-// S : Small
-// L : Large
-// Second letter :
-// R : Rectangular
-// S : Square
-
     Ring 1,2 {
       //resolutionLocalX 0.010 // 10 um
       //resolutionLocalY 0.010 // 10 um
 
-      // Parameters for resolutionLocalX  
-      @includestd ModuleTypes/XEndcap_SS 
+      resolutionLocalXEndcapParam0 0.005  // mm
+      resolutionLocalXEndcapParam1 0      // mm
 
-      // Parameters for resolutionLocalY
-      @includestd ModuleTypes/YEndcap_SS 
+      resolutionLocalYEndcapParam0 0.007  // mm
+      resolutionLocalYEndcapParam1 0      // mm
     }
     Ring 3 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
-      // Parameters for resolutionLocalX  
-      @includestd ModuleTypes/XEndcap_LS 
+      resolutionLocalXEndcapParam0 0.005  // mm
+      resolutionLocalXEndcapParam1 0      // mm
 
-      // Parameters for resolutionLocalY
-      @includestd ModuleTypes/YEndcap_LS 
-
+      resolutionLocalYEndcapParam0 0.007  // mm
+      resolutionLocalYEndcapParam1 0      // mm
     }
   }
 
