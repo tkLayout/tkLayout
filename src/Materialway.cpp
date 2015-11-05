@@ -723,7 +723,7 @@ namespace material {
          
             while(section->maxZ() < attachPoint + sectionTolerance) {
               if(!section->hasNextSection()) {
-                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too hight.");
+                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
                 return;
               }
               section = section->nextSection();

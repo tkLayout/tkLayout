@@ -87,8 +87,8 @@ public:
   {}
 
   void setup() {
-    minZ.setup([this]() { double min = 99999; for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
-    maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
+    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
+    maxZ.setup([this]() { double max = 0;                                  for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; }); // ATTENTION shouldn't that be -std::numeric_limits<double>::max()
     maxModuleThickness.setup([this]() { 
       double max = 0; 
       for (const auto& m : modules_) { 

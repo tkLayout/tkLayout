@@ -89,8 +89,8 @@ public:
   void setup() {
     maxZ.setup([this]() { return rods_.front().maxZ(); });
     minZ.setup([this]() { return rods_.front().minZ(); });
-    maxR.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
-    minR.setup([this]() { double min = 99999; for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
+    maxR.setup([this]() { double max = 0;                                  for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
+    minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
   }
 
   double placeRadius() const { return placeRadius_; }
