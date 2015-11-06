@@ -232,17 +232,10 @@ namespace insur {
 
     const TriggerSectorMap& getTriggerSectorMap() const { return triggerSectorMap_; }
 
-    // double getEtaMaxMaterial() { return etaMaxMaterial; } 
-    double getEtaMaxMaterial() { return getEtaMaxTracking(); }
-    double getEtaMaxGeometry() { return etaMaxGeometry; } 
-    double getEtaMaxTracking();
-    double getEtaMaxTrigger();
-    // void setEtaMaxMaterial(const double& newValue) { etaMaxMaterial = newValue; } 
-    void setEtaMaxGeometry(const double& newValue) { etaMaxGeometry = newValue; } 
-    void addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut);
-    const std::vector<double>& getTrackingCuts() { return trackingCuts; }
-    const std::vector<double>& getTriggerCuts() { return triggerCuts; }
-    const std::vector<std::string>& getCutNames() { return cutNames; }
+    inline double getEtaMaxMaterial() const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxGeometry() const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxTracker()  const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxTrigger()  const { return insur::geom_max_eta_coverage;}
 
     void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }
@@ -417,16 +410,6 @@ namespace insur {
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
-
-    /*
-     * Eta values to show results
-     */
-    //double etaMaxMaterial;
-    double etaMaxGeometry;
-
-    std::vector<std::string> cutNames;
-    std::vector<double> trackingCuts;
-    std::vector<double> triggerCuts;
 
     static int bsCounter;
     

@@ -456,10 +456,6 @@ namespace insur {
     myContent = new RootWContent("1D Overview");
     myPage->addContent(myContent);
 
-    // Prepare the cuts for the averages
-    // Three slices of 0.8 each
-    const std::vector<std::string>& cutNames = a.getCutNames();
-    const std::vector<double>& cuts = a.getTrackingCuts();
     ostringstream label;
     std::map<int, std::vector<double> > averages;
 
@@ -543,27 +539,27 @@ namespace insur {
         materialSummaryTable->setContent(1,0,"Rad. length");
         materialSummaryTable->setContent(2,0,"Int. length");
         materialSummaryTable->setContent(3,0,"Photon conversion");
-        for (unsigned int j=0; j< cutNames.size(); ++j) {
+        for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
           // Column: the cut name
-          materialSummaryTable->setContent(0,j+1, cutNames[j]);
+          materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
 
           // First row: the radiation length
-          averageValue = averageHistogramValues(*cr, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(1,j+1, averageValue ,4);
-          addSummaryLabelElement("radiation length ("+cutNames[j]+") for "+name);
+          averageValue = averageHistogramValues(*cr, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+          materialSummaryTable->setContent(1,j, averageValue ,4);
+          addSummaryLabelElement("radiation length ("+geom_name_eta_regions[j]+") for "+name);
           addSummaryElement(averageValue);
 
           // Third row: the photon conversion probability
           averageValue *= -7./9.;
           averageValue = 1 - exp(averageValue);
-          materialSummaryTable->setContent(3,j+1, averageValue ,4);
-          addSummaryLabelElement("photon conversion probability ("+cutNames[j]+") for "+name);
+          materialSummaryTable->setContent(3,j, averageValue ,4);
+          addSummaryLabelElement("photon conversion probability ("+geom_name_eta_regions[j]+") for "+name);
           addSummaryElement(averageValue);
 
           // Second row: the interaction length
-          averageValue = averageHistogramValues(*ci, cuts[j], cuts[j+1]);
-          materialSummaryTable->setContent(2,j+1, averageValue ,4);
-          addSummaryLabelElement("interaction length ("+cutNames[j]+") for "+name);
+          averageValue = averageHistogramValues(*ci, geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+          materialSummaryTable->setContent(2,j, averageValue ,4);
+          addSummaryLabelElement("interaction length ("+geom_name_eta_regions[j]+") for "+name);
           addSummaryElement(averageValue);
         }
       }
@@ -852,7 +848,7 @@ namespace insur {
       //double xx, yy;
       //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
       //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = Analyzer::average(myGraph, cuts);
+      averages[i] = Analyzer::average(myGraph, geom_range_eta_regions);
       closeGraph(myGraph);
       myGraph.SetFillColor(Palette::color(i+1));
       myGraph.Draw("same F");
@@ -887,11 +883,11 @@ namespace insur {
     cutsTable.setContent(2,0,"etaMax");
 
     myTable = &cutsTable;
-    for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-      label.str(""); label << cuts[iBorder];
+    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
+      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << cuts[iBorder+1];
+      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -901,15 +897,15 @@ namespace insur {
          ++i) {
       if (fractionTitles[i]!="") {
         summaryTable.setContent(i+delta,0,fractionTitles[i]);
-        int j=0;
+        int j=1;
         double myValue;
         for ( std::vector<double>::iterator it = averages[i].begin();
               it != averages[i].end(); ++it ) {
           //std::cout << "average: " << (*it) << std::endl;
           myValue = 100 * (1 - (*it));
-          summaryTable.setContent(i+delta,j+1, myValue,4);
-          summaryTable.setContent(0,j+1, cutNames[j]);
-          addSummaryLabelElement(fractionTitles[i]+"("+cutNames[j]+") for "+name);
+          summaryTable.setContent(i+delta,j, myValue,4);
+          summaryTable.setContent(0,j, geom_name_eta_regions[j]);
+          addSummaryLabelElement(fractionTitles[i]+"("+geom_name_eta_regions[j]+") for "+name);
           addSummaryElement(myValue);
           j++;
         }
@@ -2586,7 +2582,7 @@ namespace insur {
         gStyle->SetGridColor(color_hard_grid);
         for (g_iter = a.getRhoGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& momentumGraph = g_iter->second;
-          TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracker(), nRebin);
 
           if (idealMaterial) {
             momentumProfile.SetMinimum(vis_min_dPtOverPt);//1E-5*100);
@@ -2619,7 +2615,7 @@ namespace insur {
         g_guard = a.getDGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getDGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& distanceGraph = g_iter->second;
-          TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             distanceProfile.SetMinimum(vis_min_dD0);//4*1e-4);
             distanceProfile.SetMaximum(vis_max_dD0);//4E2*1e-4*verticalScale);
@@ -2647,7 +2643,7 @@ namespace insur {
         g_guard = a.getPhiGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPhiGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& angleGraph = g_iter->second;
-          TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             angleProfile.SetMinimum(vis_min_dPhi);//1E-5);
             angleProfile.SetMaximum(vis_max_dPhi);//0.01*verticalScale);
@@ -2675,7 +2671,7 @@ namespace insur {
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
-          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
           ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
           ctgThetaCanvas.SetLogy();
@@ -2697,7 +2693,7 @@ namespace insur {
         g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& z0Graph = g_iter->second;
-          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
           z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
           z0Canvas.SetLogy();
@@ -2719,7 +2715,7 @@ namespace insur {
         g_guard = a.getPGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getPGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& pGraph = g_iter->second;
-          TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
+          TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracker(), nRebin);
           if (idealMaterial) {
             pProfile.SetMinimum(vis_min_dPtOverPt);//1E-5*100);
             pProfile.SetMaximum(vis_max_dPtOverPt);//.11*100*verticalScale);
@@ -2784,24 +2780,20 @@ namespace insur {
       }
 
       // Prepare the cuts for the averages
-      const std::vector<std::string>& cutNames = a.getCutNames();
-      const std::vector<double>& cuts = (additionalTag=="trigger") ? a.getTriggerCuts() : a.getTrackingCuts();
       ostringstream label;
       std::string name;      
       RootWTable* myTable;
-
-      unsigned int nCuts = cutNames.size();
 
       // Table explaining the cuts
       cutsTable.setContent(0,0,"Region");
       cutsTable.setContent(1,0,"etaMin");
       cutsTable.setContent(2,0,"etaMax");
       myTable = &cutsTable;
-      for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-        myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-        label.str(""); label << cuts[iBorder];
+      for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+        myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
+        label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
         myTable->setContent(1,iBorder+1,label.str());
-        label.str(""); label << cuts[iBorder+1];
+        label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
         myTable->setContent(2,iBorder+1,label.str());
       }
 
@@ -2851,7 +2843,7 @@ namespace insur {
         myIndex.name=(*plotNameIt);
         std::ostringstream myLabel;
         for (unsigned int i=0; i<momentum.size(); ++i) {
-          baseColumn = nCuts*i+1;
+          baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
           myTable->setContent(0, baseColumn, momentum[i],0);
           myIndex.p=momentum[i];
           myIndex.ideal = false;
@@ -2860,15 +2852,15 @@ namespace insur {
           myTable->setContent(3, 0, "Ideal");
           myTable->setContent(4, 0, "Loss");
           if (myGraph) {
-            averagesReal=Analyzer::average(*myGraph, cuts);
+            averagesReal=Analyzer::average(*myGraph, geom_range_eta_regions);
             myColor = myGraph->GetMarkerColor();
             myTable->setColor(0, baseColumn, myColor);
           }
           myIndex.ideal = true;
           myGraph = myPlotMap[myIndex];
-          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
-          for (unsigned int j=0; j<nCuts; ++j) {
-            myTable->setContent(1, baseColumn+j, cutNames[j]);
+          if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
+          for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
+            myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
               myTable->setContent(2, baseColumn+j,averagesReal[j],5);
@@ -2885,7 +2877,7 @@ namespace insur {
             myLabel.str("");
             myLabel << myIndex.name
               << std::dec << std::fixed << std::setprecision(0) 
-              << myIndex.p << "(" << cutNames[j] << ")";
+              << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
             addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
             addSummaryElement(averagesReal[j]);
@@ -2970,7 +2962,7 @@ namespace insur {
           gStyle->SetGridColor(color_hard_grid);
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph | idealMaterial, tag)) {
             const TGraph& momentumGraph = mapel.second;
-            TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& momentumProfile = newProfile(momentumGraph, 0, a.getEtaMaxTracker(), nRebin);
 
             if (idealMaterial == GraphBag::IdealGraph) {
               momentumProfile.SetMinimum(vis_min_dPtOverPt);//1E-5*100);
@@ -3002,7 +2994,7 @@ namespace insur {
           // distance canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::DGraph | idealMaterial, tag)) {
             const TGraph& distanceGraph = mapel.second;
-            TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& distanceProfile = newProfile(distanceGraph, 0, a.getEtaMaxTracker(), nRebin);
             if (idealMaterial == GraphBag::IdealGraph) {
               distanceProfile.SetMinimum(vis_min_dD0);//4*1e-4);
               distanceProfile.SetMaximum(vis_max_dD0);//4E2*1e-4*verticalScale);
@@ -3029,7 +3021,7 @@ namespace insur {
           // angle canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PhiGraph | idealMaterial, tag)) {
             const TGraph& angleGraph = mapel.second;
-            TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& angleProfile = newProfile(angleGraph, 0, a.getEtaMaxTracker(), nRebin);
             if (idealMaterial == GraphBag::IdealGraph) {
               angleProfile.SetMinimum(vis_min_dPhi);//1E-5);
               angleProfile.SetMaximum(vis_max_dPhi);//0.01*verticalScale);
@@ -3056,7 +3048,7 @@ namespace insur {
           // ctgTheta canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph | idealMaterial, tag)) {
             const TGraph& ctgThetaGraph = mapel.second;
-            TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
             ctgThetaCanvas.SetLogy();
@@ -3077,7 +3069,7 @@ namespace insur {
           // z0 canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph | idealMaterial, tag)) {
             const TGraph& z0Graph = mapel.second;
-            TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
             z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
             z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
             z0Canvas.SetLogy();
@@ -3098,7 +3090,7 @@ namespace insur {
           // p canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraph | idealMaterial, tag)) {
             const TGraph& pGraph = mapel.second;
-            TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracking(), nRebin);
+            TProfile& pProfile = newProfile(pGraph, 0, a.getEtaMaxTracker(), nRebin);
             if (idealMaterial == GraphBag::IdealGraph) {
               pProfile.SetMinimum(vis_min_dPtOverPt);//1E-5*100);
               pProfile.SetMaximum(vis_max_dPtOverPt);//.11*100*verticalScale);
@@ -3163,24 +3155,20 @@ namespace insur {
         }
 
         // Prepare the cuts for the averages
-        const std::vector<std::string>& cutNames = a.getCutNames();
-        const std::vector<double>& cuts = a.getTriggerCuts();
         ostringstream label;
         std::string name;      
         RootWTable* myTable;
-
-        unsigned int nCuts = cutNames.size();
 
         // Table explaining the cuts
         cutsTable.setContent(0,0,"Region");
         cutsTable.setContent(1,0,"etaMin");
         cutsTable.setContent(2,0,"etaMax");
         myTable = &cutsTable;
-        for (unsigned int iBorder=0; iBorder<cuts.size()-1; ++iBorder) {
-          myTable->setContent(0,iBorder+1,cutNames[iBorder]);
-          label.str(""); label << cuts[iBorder];
+        for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+          myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
+          label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
           myTable->setContent(1,iBorder+1,label.str());
-          label.str(""); label << cuts[iBorder+1];
+          label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
           myTable->setContent(2,iBorder+1,label.str());
         }
 
@@ -3230,7 +3218,7 @@ namespace insur {
           myIndex.name=(*plotNameIt);
           std::ostringstream myLabel;
           for (unsigned int i=0; i<momentum.size(); ++i) {
-            baseColumn = nCuts*i+1;
+            baseColumn = (geom_name_eta_regions.size()-1)*i + 1;
             myTable->setContent(0, baseColumn, momentum[i],0);
             myIndex.p=momentum[i];
             myIndex.ideal = false;
@@ -3239,15 +3227,15 @@ namespace insur {
             myTable->setContent(3, 0, "Ideal");
             myTable->setContent(4, 0, "Loss");
             if (myGraph) {
-              averagesReal=Analyzer::average(*myGraph, cuts);
+              averagesReal=Analyzer::average(*myGraph, geom_range_eta_regions);
               myColor = myGraph->GetMarkerColor();
               myTable->setColor(0, baseColumn, myColor);
             }
             myIndex.ideal = true;
             myGraph = myPlotMap[myIndex];
-            if (myGraph) averagesIdeal=Analyzer::average(*myGraph, cuts);
-            for (unsigned int j=0; j<nCuts; ++j) {
-              myTable->setContent(1, baseColumn+j, cutNames[j]);
+            if (myGraph) averagesIdeal=Analyzer::average(*myGraph, geom_range_eta_regions);
+            for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
+              myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
               myTable->setColor(1, baseColumn+j, myColor);
               if (averagesReal.size() > j) {
                 myTable->setContent(2, baseColumn+j,averagesReal[j],5);
@@ -3264,7 +3252,7 @@ namespace insur {
               myLabel.str("");
               myLabel << myIndex.name
                 << std::dec << std::fixed << std::setprecision(0) 
-                << myIndex.p << "(" << cutNames[j] << ")";
+                << myIndex.p << "(" << geom_name_eta_regions[j+1] << ")";
               addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Real");
               addSummaryLabelElement(myLabel.str()+additionalSummaryTag+"_Ideal");
               addSummaryElement(averagesReal[j]);
