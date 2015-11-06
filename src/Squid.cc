@@ -438,7 +438,6 @@ namespace insur {
       stopTaskClock();
       return false;
     }
-
     if (addLogPage) {
       v.makeLogPage(site);
     }
