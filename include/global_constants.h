@@ -31,7 +31,6 @@ namespace insur {
   static const double geom_outer_strip_radius         = 1200.0; // mm
   static const double geom_z_threshold_service_zigzag = 100.0;
   static const double geom_top_volume_pad             = 200;    // mm
-
   static const double geom_support_margin_bottom      = 1;      // mm
   static const double geom_support_margin_top         = 2;      // mm
 
@@ -45,9 +44,6 @@ namespace insur {
   static const int    geom_n_eta_regions              = geom_range_eta_regions.size();                           // Tracking performed in the following Number of eta regions
 
   static const int    default_n_tracks                = 100;                       // Default number of tracks simulated (max_eta_coverage/default_n_tracks = etaStep)
-
-  static const double geom_support_margin_bottom      = 1;      // mm
-  static const double geom_support_margin_top         = 2;      // mm
 
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
