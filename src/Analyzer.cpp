@@ -304,7 +304,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            trackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            idealTrackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(idealTrackP);
@@ -1728,27 +1728,27 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   double magField = magnetic_field;
 
   // Prepare plots: pt
-  thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
+  thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#sigma(p_{T})/p_{T} [%]");
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph_Pt.SetTitle("Track azimuthal angle error - const P_{T} across #eta;#eta;#delta #phi [deg]");
+  thisPhiGraph_Pt.SetTitle("Track azimuthal angle error - const P_{T} across #eta;#eta;#sigma(#phi) [deg]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph_Pt.SetTitle("Transverse impact parameter error - const P_{T} across #eta;#eta;#delta d_{0} [#mum]");
+  thisDGraph_Pt.SetTitle("Transverse impact parameter error - const P_{T} across #eta;#eta;#sigma(d_{0}) [#mum]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
-  thisCtgThetaGraph_Pt.SetTitle("Track polar angle error - const P_{T} across #eta;#eta;#delta ctg(#theta)");
+  thisCtgThetaGraph_Pt.SetTitle("Track polar angle error - const P_{T} across #eta;#eta;#sigma(ctg(#theta))");
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph_Pt.SetTitle("Longitudinal impact parameter error - const P_{T} across #eta;#eta;#delta z_{0} [#mum]");
+  thisZ0Graph_Pt.SetTitle("Longitudinal impact parameter error - const P_{T} across #eta;#eta;#sigma(z_{0}) [#mum]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph_Pt.SetName(aName.str().c_str());
   // Prepare plots: p
-  thisPGraph_Pt.SetTitle("p resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
+  thisPGraph_Pt.SetTitle("p resolution versus #eta - const P_{T} across #eta;#eta;#sigma(p)/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph_Pt.SetName(aName.str().c_str());
 
@@ -1818,27 +1818,27 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   double magField = simParms_->magneticField();
 
   // Prepare plots: pt
-  thisRhoGraph_P.SetTitle("p_{T} resolution versus #eta - const P across #eta;#eta;#delta p_{T}/p_{T} [%]");
+  thisRhoGraph_P.SetTitle("p_{T} resolution versus #eta - const P across #eta;#eta;#sigma(p_{T})/p_{T} [%]");
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
   thisRhoGraph_P.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph_P.SetTitle("Track azimuthal angle error - const P across #eta;#eta;#delta #phi [deg]");
+  thisPhiGraph_P.SetTitle("Track azimuthal angle error - const P across #eta;#eta;#sigma(#phi) [deg]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
   thisPhiGraph_P.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph_P.SetTitle("Transverse impact parameter error - const P across #eta;#eta;#delta d_{0} [#mum]");
+  thisDGraph_P.SetTitle("Transverse impact parameter error - const P across #eta;#eta;#sigma(d_{0}) [#mum]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
   thisDGraph_P.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
-  thisCtgThetaGraph_P.SetTitle("Track polar angle error - const P across #eta;#eta;#delta ctg(#theta)");
+  thisCtgThetaGraph_P.SetTitle("Track polar angle error - const P across #eta;#eta;#sigma(ctg(#theta))");
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
   thisCtgThetaGraph_P.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph_P.SetTitle("Longitudinal impact parameter error - const P across #eta;#eta;#delta z_{0} [#mum]");
+  thisZ0Graph_P.SetTitle("Longitudinal impact parameter error - const P across #eta;#eta;#sigma(z_{0}) [#mum]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
   thisZ0Graph_P.SetName(aName.str().c_str());
   // Prepare plots: p
-  thisPGraph_P.SetTitle("p resolution versus #eta - const P across #eta;#eta;#delta p/p [%]");
+  thisPGraph_P.SetTitle("p resolution versus #eta - const P across #eta;#eta;#sigma(p)/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph_P.SetName(aName.str().c_str());
 
