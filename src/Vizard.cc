@@ -2671,7 +2671,7 @@ namespace insur {
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
-          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
+          TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
           ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
           ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
           ctgThetaCanvas.SetLogy();
@@ -2693,7 +2693,7 @@ namespace insur {
         g_guard = a.getZ0Graphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getZ0Graphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& z0Graph = g_iter->second;
-          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
+          TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
           z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
           z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
           z0Canvas.SetLogy();
@@ -3048,7 +3048,7 @@ namespace insur {
           // ctgTheta canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph | idealMaterial, tag)) {
             const TGraph& ctgThetaGraph = mapel.second;
-            TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
+            TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracking(), nRebin);
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
             ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
             ctgThetaCanvas.SetLogy();
@@ -3069,7 +3069,7 @@ namespace insur {
           // z0 canvas loop
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::Z0Graph | idealMaterial, tag)) {
             const TGraph& z0Graph = mapel.second;
-            TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracker(), nRebin);
+            TProfile& z0Profile = newProfile(z0Graph, 0, a.getEtaMaxTracking(), nRebin);
             z0Profile.SetMinimum(vis_min_dZ0);//1E-5);
             z0Profile.SetMaximum(vis_max_dZ0);//1*verticalScale);
             z0Canvas.SetLogy();
