@@ -163,8 +163,8 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
       if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
       else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
 	if ( hitModule_->subdet() == BARREL) {
-	  profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
-	  histXBar->Fill(resolutionLocalX*1000);
+	  if (profXBar) profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
+	  if (histXBar) histXBar->Fill(resolutionLocalX*1000);
 	  //std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
 	  //std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
 
@@ -174,16 +174,16 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
 	    
 	}
 	if ( hitModule_->subdet() == ENDCAP) {
-	  profXEnd->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
-	  histXEnd->Fill(resolutionLocalX*1000);
+	  if (profXEnd) profXEnd->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
+	  if (histXEnd) histXEnd->Fill(resolutionLocalX*1000);
 	}
       }
 
 	if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
 	else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
 	  if ( hitModule_->subdet() == BARREL) {
-	    profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
-	    histYBar->Fill(resolutionLocalY*1000);
+	    if (profYBar) profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
+	    if (histYBar) histYBar->Fill(resolutionLocalY*1000);
 	    //std::cout << "resolutionLocalY * 1000 = " << resolutionLocalY*1000 << std::endl;
 	    //std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
 
@@ -191,8 +191,8 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
 	    //std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;  
 	  }
 	  if ( hitModule_->subdet() == ENDCAP) {
-	    profYEnd->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
-	    histYEnd->Fill(resolutionLocalY*1000);
+	    if (profYEnd) profYEnd->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
+	    if (histYEnd) histYEnd->Fill(resolutionLocalY*1000);
 	  }
 	}
 

@@ -296,7 +296,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
-            trackP.computeErrors();
+            trackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(trackP);
@@ -304,7 +304,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            idealTrackP.computeErrors();
+            trackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(idealTrackP);
