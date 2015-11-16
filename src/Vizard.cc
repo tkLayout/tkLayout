@@ -4703,11 +4703,11 @@ namespace insur {
     return somethingFound;
   }
 
-  bool Vizard::neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site) {
+  bool Vizard::neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site, std::string name) {
     std::stringstream ss;
     writeNeighbourGraph(is, ss);
 
-    RootWPage& myPage = site.addPage("Neighbours");
+    RootWPage&    myPage     = site.addPage("Neighbours("+name+")");
     RootWContent& newContent = myPage.addContent("Neighbour graph", true);
     newContent.addText("<pre>"+ss.str()+"</pre>");
 

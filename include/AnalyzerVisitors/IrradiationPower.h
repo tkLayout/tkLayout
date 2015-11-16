@@ -11,6 +11,7 @@
 
 #include "Visitor.h"
 #include "SummaryTable.h"
+#include "Units.h"
 
 class IrradiationPowerVisitor : public GeometryVisitor {
   double numInvFemtobarns;
@@ -91,7 +92,7 @@ public:
     //irrPoint22 = irrPoint;
     if(irrPoint > irrxy) irrxy = irrPoint;
 
-    double fluence = irrxy * numInvFemtobarns; // fluence is in 1MeV-equiv-neutrons/cm^2
+    double fluence = irrxy/(1./Units::cm2) * numInvFemtobarns; // fluence is printed in 1MeV-equiv-neutrons/cm^2
     //double fluence = irrxy * numInvFemtobarns * 1e15 * 80 * 1e-3; // fluence is in 1MeV-equiv-neutrons/cm^2
     double leakCurrentScaled = alphaParam * fluence * volume * pow((operatingTemp+273.15) / (referenceTemp+273.15), 2) * exp(-1.21/(2*8.617334e-5)*(1/(operatingTemp+273.15)-1/(referenceTemp+273.15))); 
     double irradiatedPowerConsumption = leakCurrentScaled * chargeDepletionVoltage;         

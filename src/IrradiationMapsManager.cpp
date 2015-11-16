@@ -6,6 +6,7 @@
  */
 
 #include "IrradiationMapsManager.h"
+#include <Units.h>
 
 IrradiationMapsManager::IrradiationMapsManager() {
 }
@@ -29,8 +30,8 @@ double IrradiationMapsManager::calculateIrradiationPower(std::pair<double,double
 
   //Iterate through the ordered map set untill find a proper map
   for(std::set<IrradiationMap>::const_iterator iter = irradiationMaps.cbegin(); iter != irradiationMaps.cend(); ++ iter) {
-    if (iter->isInRegion(coordinates)) {
-      irradiation = iter->calculateIrradiation(coordinates);
+    if (iter->isInRegionRZ(coordinates)) {
+      irradiation = iter->calculateIrradiationRZ(coordinates);
       mapFound = true;
       break;
     }

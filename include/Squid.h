@@ -36,7 +36,6 @@
 #include "Materialway.h"
 #include "WeightDistributionGrid.h"
 
-
 using material::Materialway;
 using material::WeightDistributionGrid;
 
@@ -46,23 +45,6 @@ namespace po = boost::program_options;
  */
 namespace bfs = boost::filesystem;
 namespace insur {
-  /*
-   * Error messages and warnings that may be reported.
-   */
-  static const std::string err_no_geomfile      = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
-  static const std::string err_no_matfile       = "The provided material configuration file does not exist.";
-  static const std::string err_no_matfile_pixel = "The material configuration file for the pixels does not exist.";
-  static const std::string err_init_failed      = "Initialisation of the material calculator failed.";
-  static const std::string err_no_tracker       = "The tracker object does not exist. The tracker must be created before calling this function.";
-  static const std::string err_no_inacsurf      = "The collection of inactive surfaces does not exist. It must be created before calling this function";
-  static const std::string err_no_matbudget     = "The material budget does not exist. It must be created before calling this function.";
-  static const std::string err_no_triggerSummary= "Could not report on the trigger performance.";
-  static const std::string warn_rootonly        = "The collection of inactive surfaces does not exist. Only the .root file will be written.";
-  static const std::string warn_custom_matfile  = "A customized material file was used for the tracker";
-  static const std::string warn_custom_matfile_pixel = "A customized material file was used for the pixel";
-
-  static const std::string default_trackername  = "defaultTrackerName";
-
   /**
    * @class Squid
    * @brief The Squid class integrates the components of the <i>tkmaterial</i> application and provides an
@@ -76,8 +58,26 @@ namespace insur {
    */
   class Squid {
   public:
+
+    //Error messages and warnings that may be reported.
+    static const std::string err_no_geomfile;
+    static const std::string err_no_matfile;
+    static const std::string err_no_matfile_pixel;
+    static const std::string err_init_failed;
+    static const std::string err_no_tracker;
+    static const std::string err_no_inacsurf;
+    static const std::string err_no_matbudget;
+    static const std::string err_no_triggerSummary;
+    static const std::string err_no_flukafile;
+    static const std::string err_no_occupancy_failed;
+    static const std::string warn_rootonly;
+    static const std::string warn_custom_matfile;
+    static const std::string warn_custom_matfile_pixel;
+    static const std::string default_trackername;
+
     Squid();
     virtual ~Squid();
+
     bool buildTracker();
     //bool dressTracker();
     //bool buildTrackerSystem();
@@ -97,11 +97,12 @@ namespace insur {
     bool reportGeometrySite();
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
+    bool reportOccupancySite();
     bool reportPowerSite();
     bool reportMaterialBudgetSite(bool debugServices);
     bool reportResolutionSite();
     bool reportTriggerPerformanceSite(bool extended);
-    //bool reportNeighbourGraphSite();
+    bool reportNeighbourGraphSite();
     bool reportInfoSite();
     bool makeWebSite(bool addLogPage = true);
     void setBasename(std::string newBaseName);

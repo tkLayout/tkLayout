@@ -11,7 +11,9 @@
 #include <Rtypes.h>
 
 namespace insur {
-  static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
+  static const double                  magnetic_field     = 3.8;      // Tesla; CMS magnet field strength
+  static const double                  trk_max_occupancy  = 0.01;     // Maximum required occupancy in the tracker
+  static const std::vector<signed int> trk_pile_up        = {200,900};// Considered pile-up scenarios
 
   /**
    * Geometry constants; all length measurements are in mm

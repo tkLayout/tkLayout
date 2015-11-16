@@ -23,43 +23,44 @@ int main(int argc, char* argv[]) {
   // Program options - analysis
   po::options_description shown("Analysis options");
   shown.add_options()
-    ("help,h", "Display this help message.")
-    ("opt-file", po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
+    ("help,h"           , "Display this help message.")
+    ("opt-file"         , po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
     ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(insur::default_n_tracks), "N. of tracks for geometry calculations.")
     ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "N. of tracks for material & resolution calculations.")
-    ("power,p", "Report irradiated power analysis.")
-    ("bandwidth,b", "Report base bandwidth analysis.")
-    ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
-    ("material,m", "Report materials and weights analyses.")
-    ("resolution,r", "Report resolution analysis.")
-    ("trigger,t", "Report base trigger analysis.")
-    ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
-    ("debug-services,d", "Service additional debug info")
-    ("all,a", "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
-    ("graph,g", "Build and report feeder/neighbour relations graph.")
-    ("xml", po::value<std::string>(&xmlDir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
-    ("html-dir", po::value<std::string>(&htmlDir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
-    ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
-    ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
-    ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
-    ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
+    ("occupancy,o"      , "Report occupancy analysis based on Fluka simulations")
+    ("power,p"          , "Report irradiated power analysis.")
+    ("bandwidth,b"      , "Report base bandwidth analysis.")
+    ("bandwidth-cpu,B"  , "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
+    ("material,m"       , "Report materials and weights analyses.")
+    ("resolution,r"     , "Report resolution analysis.")
+    ("trigger,t"        , "Report base trigger analysis.")
+    ("trigger-ext,T"    , "Report extended trigger analysis.\n\t(implies 't')")
+    ("debug-services,d" , "Service additional debug info")
+    ("all,a"            , "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
+    ("graph,g"          , "Build and report feeder/neighbour relations graph.")
+    ("xml"              , po::value<std::string>(&xmlDir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
+    ("html-dir"         , po::value<std::string>(&htmlDir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
+    ("verbosity"        , po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
+    ("quiet"            , "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
+    ("performance"      , "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
+    ("randseed"         , po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
     ;
 
   // Program options - simulation
   po::options_description trackopt("Track simulation options");
   trackopt.add_options()
-    ("tracksim", "Switch to track sim mode, normal analysis disabled")
-    ("num-events", po::value<std::string>(), "N. of events to simulate")
+    ("tracksim"     , "Switch to track sim mode, normal analysis disabled")
+    ("num-events"   , po::value<std::string>(), "N. of events to simulate")
     ("num-tracks-ev", po::value<std::string>(), "N. of tracks per event")
-    ("event-offset", po::value<std::string>(), "Start the event numbering from an offset value.")
-    ("eta", po::value<std::string>(), "Particle eta")
-    ("phi0", po::value<std::string>(), "Particle phi0")
-    ("z0", po::value<std::string>(), "Particle z0")
-    ("pt", po::value<std::string>(), "Particle transverse momentum, alternative to --invPt")
-    ("invPt", po::value<std::string>(), "Specify pt in terms of its inverse, alternative to --pt")
-    ("charge", po::value<std::string>(), "Particle charge")
-    ("instance-id", po::value<std::string>(), "Id of the program instance, to tag the output file with")
-    ("tracks-dir", po::value<std::string>(), "Override the default tracksim output dir.\nIf not supplied, the files will be saved in\nthe working dir")
+    ("event-offset" , po::value<std::string>(), "Start the event numbering from an offset value.")
+    ("eta"          , po::value<std::string>(), "Particle eta")
+    ("phi0"         , po::value<std::string>(), "Particle phi0")
+    ("z0"           , po::value<std::string>(), "Particle z0")
+    ("pt"           , po::value<std::string>(), "Particle transverse momentum, alternative to --invPt")
+    ("invPt"        , po::value<std::string>(), "Specify pt in terms of its inverse, alternative to --pt")
+    ("charge"       , po::value<std::string>(), "Particle charge")
+    ("instance-id"  , po::value<std::string>(), "Id of the program instance, to tag the output file with")
+    ("tracks-dir"   , po::value<std::string>(), "Override the default tracksim output dir.\nIf not supplied, the files will be saved in\nthe working dir")
     ;
 
   // Program options - other
@@ -151,30 +152,28 @@ int main(int argc, char* argv[]) {
     // Analyze geometry
     if (!squid.pureAnalyzeGeometry(geomTracks)) return EXIT_FAILURE;
 
-    //if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite())         return EXIT_FAILURE;
-    //if ((vm.count("all") || vm.count("bandwidth-cpu"))                          && !squid.reportTriggerProcessorsSite()) return EXIT_FAILURE;
-    //if ((vm.count("all") || vm.count("power"))                                  && !squid.reportPowerSite())             return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite())         return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("bandwidth-cpu"))                          && !squid.reportTriggerProcessorsSite()) return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("power"))                                  && !squid.reportPowerSite())             return EXIT_FAILURE;
+    if ((vm.count("all") || vm.count("occupancy"))                              && !squid.reportOccupancySite())         return EXIT_FAILURE;
 
     // If needed build material model & perform resolution simulation
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
 
-        if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
+        // Perform material budget analysis & report it
+        if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.pureAnalyzeMaterialBudget(matTracks))                 return EXIT_FAILURE;
+        if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
 
-          // Perform material budget analysis & report it
-          if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.pureAnalyzeMaterialBudget(matTracks))                 return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
-
-          // Perform resolution analysis & report it
-          if ((vm.count("all") || vm.count("resolution")) && !squid.pureAnalyzeResolution(matTracks)) return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("resolution")) && !squid.reportResolutionSite())           return EXIT_FAILURE;
-        }
+        // Perform resolution analysis & report it
+        if ((vm.count("all") || vm.count("resolution")) && !squid.pureAnalyzeResolution(matTracks)) return EXIT_FAILURE;
+        if ((vm.count("all") || vm.count("resolution")) && !squid.reportResolutionSite())           return EXIT_FAILURE;
 
         //TODO: Writes the feeder/neighbour relations in a collection of inactive surfaces to a file
-        //if (vm.count("graph") && !squid.reportNeighbourGraphSite())     return EXIT_FAILURE;
+        if (vm.count("graph") && !squid.reportNeighbourGraphSite())     return EXIT_FAILURE;
 
         // Produce XML output files for materials
-        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return (EXIT_FAILURE);
+        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return EXIT_FAILURE;
       }
     }
 

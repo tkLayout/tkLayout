@@ -6,106 +6,144 @@
  */
 
 #include"IrradiationMap.h"
+#include <algorithm>
+#include <Units.h>
 
 IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
-      rhoMin (0),
-      rhoMax (0),
-      rhoBinWidth (0),
-      rhoBinNum (0),
-      zMin (0),
-      zMax (0),
-      zBinWidth (0),
-      zBinNum (0),
-      invFemUnit (1)
+      m_fileName(irradiationMapFile),
+      m_dataUnit("cm^-2"),
+      m_dataFactor(1./Units::cm2),
+      m_rUnit("cm"),
+      m_rMin (0),
+      m_rMax (0),
+      m_rBinWidth (0),
+      m_rBinNum (0),
+      m_zUnit("cm"),
+      m_zMin (0),
+      m_zMax (0),
+      m_zBinWidth (0),
+      m_zBinNum (0),
+      m_norm (1),
+      m_typeMesh(false),
+      m_typeHist(false)
 {
-  if (! irradiationMapFile.empty()) {
-    ingest(irradiationMapFile);
+  if (! m_fileName.empty()) {
+    ingest(m_fileName);
   }
 }
 
 IrradiationMap::IrradiationMap() : IrradiationMap("")
 {}
 
-void IrradiationMap::ingest(std::string irradiationMapFile) {
+void IrradiationMap::ingest(std::string fileName) {
   std::string line;
-  bool found_rhoMin = false;
-  bool found_rhoMax = false;
-  bool found_rhoBinWidth = false;
-  bool found_rhoBinNum = false;
-  bool found_zMin = false;
-  bool found_zMax = false;
-  bool found_zBinWidth = false;
-  bool found_zBinNum = false;
-  bool found_invFemUnit = false;
-  double irradiationValue = 0;
-  std::ifstream filein(irradiationMapFile);
+  bool   found_m_rMin       = false;
+  bool   found_m_rMax       = false;
+  bool   found_m_rBinWidth  = false;
+  bool   found_m_rBinNum    = false;
+  bool   found_m_zMin       = false;
+  bool   found_m_zMax       = false;
+  bool   found_m_zBinWidth  = false;
+  bool   found_m_zBinNum    = false;
+  bool   found_m_norm       = false;
+  double m_irradiationValue = 0;
+
+  std::string m_fileName = fileName;
+  std::ifstream filein(m_fileName);
 
   if (!filein.is_open()) {
-    logERROR("Failed opening irradiation map file!");
+    logERROR("Failed opening m_irradiation map file!");
   }
 
   while(std::getline(filein, line)) {
-    //find rhoMin
-    if (line.find(comp_rhoMin) == 0) {
-      line.erase(0,comp_rhoMin.length());
-      rhoMin = strtod(line.c_str(),NULL);
-      found_rhoMin = true;
+    //find fluxUnit
+    if (line.find(comp_dataUnit) == 0) {
+      line.erase(0,comp_dataUnit.length());
+      m_dataUnit = line;
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\n'), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), ' ' ), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\t'), m_dataUnit.end());
       continue;
     }
-    //find rhoMax
-    if (line.find(comp_rhoMax) == 0) {
-      line.erase(0,comp_rhoMax.length());
-      rhoMax = strtod(line.c_str(),NULL);
-      found_rhoMax = true;
+    //find m_rUnit
+    if (line.find(comp_rUnit) == 0) {
+      line.erase(0,comp_rUnit.length());
+      m_rUnit = line;
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), '\n'), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), ' ' ), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), '\t'), m_rUnit.end());
       continue;
     }
-    //find rhoBinWidth
-    if (line.find(comp_rhoBinWidth) == 0) {
-      line.erase(0,comp_rhoBinWidth.length());
-      rhoBinWidth = strtod(line.c_str(),NULL);
-      found_rhoBinWidth = true;
+    //find m_rMin
+    if (line.find(comp_rMin) == 0) {
+      line.erase(0,comp_rMin.length());
+      m_rMin = strtod(line.c_str(),NULL);
+      found_m_rMin = true;
       continue;
     }
-    //find rhoBinNum
-    if (line.find(comp_rhoBinNum) == 0) {
-      line.erase(0,comp_rhoBinNum.length());
-      rhoBinNum = strtol(line.c_str(),NULL,10);
-      found_rhoBinNum = true;
+    //find m_rMax
+    if (line.find(comp_rMax) == 0) {
+      line.erase(0,comp_rMax.length());
+      m_rMax = strtod(line.c_str(),NULL);
+      found_m_rMax = true;
       continue;
     }
-    //find zMin
+    //find m_rBinWidth
+    if (line.find(comp_rBinWidth) == 0) {
+      line.erase(0,comp_rBinWidth.length());
+      m_rBinWidth = strtod(line.c_str(),NULL);
+      found_m_rBinWidth = true;
+      continue;
+    }
+    //find m_rBinNum
+    if (line.find(comp_rBinNum) == 0) {
+      line.erase(0,comp_rBinNum.length());
+      m_rBinNum = strtol(line.c_str(),NULL,10);
+      found_m_rBinNum = true;
+      continue;
+    }
+    //find m_zUnit
+    if (line.find(comp_zUnit) == 0) {
+      line.erase(0,comp_zUnit.length());
+      m_zUnit = line;
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\n'), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), ' ' ), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\t'), m_zUnit.end());
+      continue;
+    }
+    //find m_zMin
     if (line.find(comp_zMin) == 0) {
       line.erase(0,comp_zMin.length());
-      zMin = strtod(line.c_str(),NULL);
-      found_zMin = true;
+      m_zMin = strtod(line.c_str(),NULL);
+      found_m_zMin = true;
       continue;
     }
-    //find zMax
+    //find m_zMax
     if (line.find(comp_zMax) == 0) {
       line.erase(0,comp_zMax.length());
-      zMax = strtod(line.c_str(),NULL);
-      found_zMax = true;
+      m_zMax = strtod(line.c_str(),NULL);
+      found_m_zMax = true;
       continue;
     }
-    //find zBinWidth
+    //find m_zBinWidth
     if (line.find(comp_zBinWidth) == 0) {
       line.erase(0,comp_zBinWidth.length());
-      zBinWidth = strtod(line.c_str(),NULL);
-      found_zBinWidth = true;
+      m_zBinWidth = strtod(line.c_str(),NULL);
+      found_m_zBinWidth = true;
       continue;
     }
-    //find zBinNum
+    //find m_zBinNum
     if (line.find(comp_zBinNum) == 0) {
       line.erase(0,comp_zBinNum.length());
-      zBinNum = strtol(line.c_str(),NULL,10);
-      found_zBinNum = true;
+      m_zBinNum = strtol(line.c_str(),NULL,10);
+      found_m_zBinNum = true;
       continue;
     }
-    //find invFemUnit
-    if (line.find(comp_invFemUnit) == 0) {
-      line.erase(0,comp_invFemUnit.length());
-      invFemUnit = strtol(line.c_str(),NULL,10);
-      found_invFemUnit = true;
+    //find m_normalization (invFemUnit)
+    if (line.find(comp_norm) == 0) {
+      line.erase(0,comp_norm.length());
+      m_norm = strtol(line.c_str(),NULL,10);
+      found_m_norm = true;
       continue;
     }
 
@@ -115,120 +153,305 @@ void IrradiationMap::ingest(std::string irradiationMapFile) {
     //create a stream for reading values
     std::stringstream ss(line);
     //vector for storing a row
-    std::vector<double> irradiationLine;
+    std::vector<double> m_irradiationLine;
     while(!ss.eof()){
       //read a value
-      ss >> irradiationValue;
-      irradiationValue /= invFemUnit;
+      ss >> m_irradiationValue;
+      m_irradiationValue /= m_norm;
       if(!ss.eof()) {
         //add value to vector
-        irradiationLine.push_back(irradiationValue);
+        m_irradiationLine.push_back(m_irradiationValue);
       }
     }
     //add vector to matrix
-    irradiation.push_back(irradiationLine);
+    m_irradiation.push_back(m_irradiationLine);
   }
 
-  //convert cm to mm
-  zMin *= 10;
-  zMax *= 10;
-  zBinWidth *= 10;
-  rhoMin *= 10;
-  rhoMax *= 10;
-  rhoBinWidth *=10;
+  //conversion (if units not defined in a file, default cm assumed -> conversion to software default mm done)
+  if      (m_dataUnit=="mm^-2") m_dataFactor = 1./Units::mm2;
+  else if (m_dataUnit=="cm^-2") m_dataFactor = 1./Units::cm2;
+  else if (m_dataUnit=="m^-2")  m_dataFactor = 1./Units::m2;
+  else {
+    std::ostringstream message;
+    message << "IrradiationMap: Flux units " << m_dataUnit << " not recognized. Used cm^-2 instead!";
+    logWARNING(message.str());
+  }
+  double rFactor = 1;
+  double zFactor   = 1;
 
-  //change the min and max values because we are interested in the center points of the bins
-  zMin += zBinWidth / 2;
-  zMax -= zBinWidth / 2;
-  rhoMin += rhoBinWidth / 2;
-  rhoMax -= rhoBinWidth / 2;
+  if      (m_rUnit=="mm") rFactor = Units::mm;
+  else if (m_rUnit=="cm") rFactor = Units::cm;
+  else if (m_rUnit=="m" ) rFactor = Units::m;
+  else {
+    std::ostringstream message;
+    message << "IrradiationMap: Radius units " << m_rUnit << " not recognized. Used cm instead!";
+    logWARNING(message.str());
+  }
+  m_rMin      *= rFactor;
+  m_rMax      *= rFactor;
+  m_rBinWidth *= rFactor;
 
-  //control if found all values
-  if (!found_rhoMin || !found_rhoMax || !found_rhoBinWidth ||
-      !found_rhoBinNum || !found_zMin || !found_zMax ||
-      !found_zBinWidth || !found_zBinNum || !found_invFemUnit) {
+  if      (m_zUnit=="mm") zFactor = Units::mm;
+  else if (m_zUnit=="cm") zFactor = Units::cm;
+  else if (m_zUnit=="m" ) zFactor = Units::m;
+  else {
+    std::ostringstream message;
+    message << "IrradiationMap: Z units " << m_zUnit << " not recognized. Used cm instead!";
+    logWARNING(message.str());
+  }
+  m_zMin      *= zFactor;
+  m_zMax      *= zFactor;
+  m_zBinWidth *= zFactor;
+
+  // Check binning
+  m_typeMesh = false;
+  m_typeHist = false;
+  if ((m_zMax-m_zMin)/m_zBinWidth==m_zBinNum    ) m_typeHist = true;
+  if ((m_zMax-m_zMin)/m_zBinWidth==(m_zBinNum-1)) m_typeMesh = true;
+
+  std::ostringstream message;
+  if (m_typeMesh) {
+    message << "Irradiation map of type mesh: " << m_fileName << " read in!";
+    logINFO(message.str());
+  }
+  if (m_typeHist) {
+    message << "Irradiation map of type histogram: " << m_fileName << " read in!";
+    logINFO(message.str());
+  }
+  if (!m_typeMesh && !m_typeHist) {
+    message << "Irradiation map: " << m_fileName << " - binning doesn't correspond to the defined range and the bin size!";
+    logERROR("message.str()");
+  }
+
+  // Check if found all values
+  if (!found_m_rMin      || !found_m_rMax    || !found_m_rBinWidth ||
+      !found_m_rBinNum   || !found_m_zMin    || !found_m_zMax ||
+      !found_m_zBinWidth || !found_m_zBinNum) {
     std::ostringstream tempSS;
-    tempSS << "Error while parsing irradiation map values: found_rMin " << found_rhoMin
-        << "; found_rMax " << found_rhoMax << "; found_rBinWidth " << found_rhoBinWidth
-        << "; found_rBinNum " << found_rhoBinNum << "; found_zMin " << found_zMin
-        << "; found_zMax " << found_zMax << "; found_zBinWidth " << found_zBinWidth
-        << "; found_zBinNum " << found_zBinNum << "; found_invFemUnit " << found_invFemUnit;
+    tempSS << "Error while parsing m_irradiation map values: found_rMin "      << found_m_rMin
+        << "; found_rMax "      << found_m_rMax    << "; found_rBinWidth "   << found_m_rBinWidth
+        << "; found_rBinNum "   << found_m_rBinNum << "; found_m_zMin "      << found_m_zMin
+        << "; found_m_zMax "    << found_m_zMax      << "; found_m_zBinWidth " << found_m_zBinWidth
+        << "; found_m_zBinNum " << found_m_zBinNum;
     logERROR(tempSS);
   }
 }
 
 double IrradiationMap::binArea() const{
-  return zBinWidth*rhoBinWidth;
+  return m_zBinWidth*m_rBinWidth;
 }
 
 bool IrradiationMap::operator < (const IrradiationMap& confrontedMap) const{
   return (binArea() < confrontedMap.binArea());
 }
 
-bool IrradiationMap::isInRegion(std::pair<double,double> coordinates) const {
-  return ((zMin <= coordinates.first) && (zMax >= coordinates.first) && (rhoMin <= coordinates.second) && (rhoMax >= coordinates.second));
+bool IrradiationMap::isInRegionZR(double zPos, double rPos) const {
+  return ((m_zMin <= zPos) && (m_zMax >= zPos) && (m_rMin <= rPos) && (m_rMax >= rPos));
 }
 
-double IrradiationMap::calculateIrradiation(std::pair<double,double> coordinates) const {
-  double z = 0;
-  double rho = 0;
-  double z1 = 0;
-  double z2 = 0;
-  double rho1 = 0;
-  double rho2 = 0;
-  double irr1 = 0;
-  double irr2 = 0;
+bool IrradiationMap::isInBinRegionZR(int& zPos, int& rPos) const {
+  return ((zPos>=0) && (zPos<=m_zBinNum) && (rPos>=0) && (rPos<=m_rBinNum));
+}
+
+double IrradiationMap::calculateIrradiationZR(double zPos, double rPos) const {
+  double z     = 0;
+  double r     = 0;
+  int    z1    = 0;
+  int    z2    = 0;
+  int    r1    = 0;
+  int    r2    = 0;
+  double irr1  = 0;
+  double irr2  = 0;
   double irr11 = 0;
   double irr21 = 0;
   double irr12 = 0;
   double irr22 = 0;
   double irrxy = 0;
 
-  if(isInRegion(coordinates)) {
-    //correct the coordinates in the map matrix reference
-    z = (coordinates.first - zMin) / zBinWidth;
-    rho = (coordinates.second - rhoMin) / rhoBinWidth;
+  // Mesh type - refer to mesh points
+  if (m_typeMesh) {
+    z = (zPos - m_zMin) / m_zBinWidth;
+    r = (rPos - m_rMin) / m_rBinWidth;
+  }
+  // Histogram type - always refer to the bin center
+  if (m_typeHist) {
+    z = (zPos - (m_zMin + m_zBinWidth/2.)) / m_zBinWidth;
+    r = (rPos - (m_rMin + m_rBinWidth/2.)) / m_rBinWidth;
+  }
+  // Take the 4 nearest bin centers & interpolate
+  z1 = int(floor(z));
+  z2 = int(ceil(z));
+  r1 = int(floor(r));
+  r2 = int(ceil(r));
 
-    //take the 4 nearest bin centers
-    z1 = floor(z);
-    z2 = ceil(z);
-    rho1 = floor(rho);
-    rho2 = ceil(rho);
+  // Take care about first and list bins in histogram -> no interpolation
+  if (m_typeHist) {
 
-    //if the point is in a intersection of the grid formed by the map bin centers
-    if((z1 == z2) && (rho1 == rho2)) {
-      //single value
-      irrxy = irradiation[int(rho1)][int(z1)];
-    }
+    if ( z>=-1/2. && z<=0 ) z1 = z2;
+    if ( r>=-1/2. && r<=0 ) r1 = r2;
 
-    //if is in a z line
-    else if (z1 == z2) {
-      irr1 = irradiation[int(rho1)][int(z1)];
-      irr2 = irradiation[int(rho2)][int(z1)];
-      //linear interpolation in rho
-      irrxy = irr1/(rho2-rho1) * (rho-rho1) + irr2/(rho2-rho1) * (rho2-rho);
-    }
-
-    //if is in a rho line
-    else if (rho1 == rho2) {
-      irr1 = irradiation[int(rho1)][int(z1)];
-      irr2 = irradiation[int(rho1)][int(z2)];
-      //linear interpolation in z
-      irrxy = irr1/(z2-z1) * (z-z1) + irr2/(z2-z1) * (z2-z);
-    }
-
-    //if is in the middle
-    else {
-      irr11 = irradiation[int(rho1)][int(z1)];
-      irr21 = irradiation[int(rho1)][int(z2)];
-      irr12 = irradiation[int(rho2)][int(z1)];
-      irr22 = irradiation[int(rho2)][int(z2)];
-      //bilinear interpolation in z and rho
-      irrxy = irr11/((z2-z1)*(rho2-rho1))*(z2-z)*(rho2-rho) + irr21/((z2-z1)*(rho2-rho1))*(z-z1)*(rho2-rho) + irr12/((z2-z1)*(rho2-rho1))*(z2-z)*(rho-rho1) + irr22/((z2-z1)*(rho2-rho1))*(z-z1)*(rho-rho1);
-    }
-  } else {
-    logERROR("Error while calculating module irradiation, module out of region");
+    if ( z>=(m_zBinNum-1) && z<=((m_zBinNum-1)+1/2.) ) z2 = z1;
+    if ( r>=(m_rBinNum-1) && r<=((m_rBinNum-1)+1/2.) ) r2 = r1;
   }
 
-  return irrxy;
+  // Avoid running out of range for max values -> use limit values instead and warn user!
+  if (z2>=m_zBinNum) {
+    z2 = m_zBinNum-1;
+    z1 = m_zBinNum-1;
+    std::ostringstream message;
+    message << "Value out of range when using: " << m_fileName << "Irradiation calculated for Z= " << (z2+1)*(m_zBinWidth)+m_zMin << " instead for Z= " << zPos;
+    logWARNING(message.str());
+    zPos = (z2+1)*(m_zBinWidth)+m_zMin;
+  }
+  if (r2>=m_rBinNum) {
+    r2 = m_rBinNum-1;
+    r1 = m_rBinNum-1;
+    std::ostringstream message;
+    message << "Value out of range when using: " << m_fileName << "Irradiation calculated for R= " << (r2+1)*(m_rBinWidth)+m_rMin << " instead for R= " << rPos;
+    logWARNING(message.str());
+    rPos = (r2+1)*(m_rBinWidth)+m_rMin;
+  }
+
+  if (isInRegionZR(zPos, rPos)) {
+    if (isInBinRegionZR(z1,r1) && isInBinRegionZR(z2,r2)) {
+
+      //if the point is in a intersection of the grid formed by the map bin centers
+      if((z1 == z2) && (r1 == r2)) {
+        //single value
+        irrxy = m_irradiation[z1][r1];
+      }
+
+      //if is in a z line
+      else if (z1 == z2) {
+        irr1 = m_irradiation[z1][r1];
+        irr2 = m_irradiation[z1][r2];
+        //linear interpolation in r
+        irrxy = irr2/(r2-r1)*(r-r1) + irr1/(r2-r1)*(r2-r);
+      }
+
+      //if is in a r line
+      else if (r1 == r2) {
+        irr1 = m_irradiation[z1][r1];
+        irr2 = m_irradiation[z2][r1];
+        //linear interpolation in z
+        irrxy = irr2/(z2-z1)*(z-z1) + irr1/(z2-z1)*(z2-z);
+      }
+
+      //if is in the middle
+      else {
+        irr11 = m_irradiation[z1][r1];
+        irr21 = m_irradiation[z2][r1];
+        irr12 = m_irradiation[z1][r2];
+        irr22 = m_irradiation[z2][r2];
+        //bilinear interpolation in z and r
+        irrxy = irr11/((z2-z1)*(r2-r1))*(z2-z)*(r2-r) + irr21/((z2-z1)*(r2-r1))*(z-z1)*(r2-r) + irr12/((z2-z1)*(r2-r1))*(z2-z)*(r-r1) + irr22/((z2-z1)*(r2-r1))*(z-z1)*(r-r1);
+      }
+    }
+    else logERROR("Irradiation map: (Z,R) bin out of region");
+  }
+  else logERROR("Irradiation map: (Z,R) position out of region");
+
+  // Convert output to
+  return irrxy*m_dataFactor;
 }
+
+double IrradiationMap::calculateIrradiationRZ(double rPos, double zPos) const {
+  double z     = 0;
+  double r     = 0;
+  int    z1    = 0;
+  int    z2    = 0;
+  int    r1    = 0;
+  int    r2    = 0;
+  double irr1  = 0;
+  double irr2  = 0;
+  double irr11 = 0;
+  double irr21 = 0;
+  double irr12 = 0;
+  double irr22 = 0;
+  double irrxy = 0;
+
+  // Mesh type - refer to mesh points
+  if (m_typeMesh) {
+    z = (zPos - m_zMin) / m_zBinWidth;
+    r = (rPos - m_rMin) / m_rBinWidth;
+  }
+  // Histogram type - always refer to the bin center
+  if (m_typeHist) {
+    z = (zPos - (m_zMin + m_zBinWidth/2.)) / m_zBinWidth;
+    r = (rPos - (m_rMin + m_rBinWidth/2.)) / m_rBinWidth;
+  }
+  // Take the 4 nearest bin centers & interpolate
+  z1 = int(floor(z));
+  z2 = int(ceil(z));
+  r1 = int(floor(r));
+  r2 = int(ceil(r));
+
+  // Take care about first and list bins in histogram -> no interpolation
+  if (m_typeHist) {
+    if (z>=-1/2. && z<=0) z1 = z2;
+    if (r>=-1/2. && z<=0) r1 = r2;
+
+    if ( z>=(m_zBinNum-1) && z<=((m_zBinNum-1)+1/2.) ) z2 = z1;
+    if ( r>=(m_rBinNum-1) && r<=((m_rBinNum-1)+1/2.) ) r2 = r1;
+  }
+
+  // Avoid running out of range for max values -> use limit values instead and warn user!
+  if (z2>=m_zBinNum) {
+    z2 = m_zBinNum-1;
+    z1 = m_zBinNum-1;
+    std::ostringstream message;
+    message << "Value out of range when using: " << m_fileName << "Irradiation calculated for Z= " << (z2+1)*(m_zBinWidth)+m_zMin << " instead for Z= " << zPos;
+    logWARNING(message.str());
+    zPos = (z2+1)*(m_zBinWidth)+m_zMin;
+  }
+  if (r2>=m_rBinNum) {
+    r2 = m_rBinNum-1;
+    r1 = m_rBinNum-1;
+    std::ostringstream message;
+    message << "Value out of range when using: " << m_fileName << "Irradiation calculated for R= " << (r2+1)*(m_rBinWidth)+m_rMin << " instead for R= " << rPos;
+    logWARNING(message.str());
+    rPos = (r2+1)*(m_rBinWidth)+m_rMin;
+  }
+
+  if(isInRegionZR(zPos, rPos)) {
+    if (isInBinRegionZR(z1,r1) && isInBinRegionZR(z2,r2)) {
+
+      //if the point is in a intersection of the grid formed by the map bin centers
+      if((z1 == z2) && (r1 == r2)) {
+        //single value
+        irrxy = m_irradiation[r1][z1];
+      }
+
+      //if is in a z line
+      else if (z1 == z2) {
+        irr1 = m_irradiation[r1][z1];
+        irr2 = m_irradiation[r2][z1];
+        //linear interpolation in r
+        irrxy = irr2/(r2-r1)*(r-r1) + irr1/(r2-r1)*(r2-r);
+      }
+
+      //if is in a r line
+      else if (r1 == r2) {
+        irr1 = m_irradiation[r1][z1];
+        irr2 = m_irradiation[r1][z2];
+        //linear interpolation in z
+        irrxy = irr2/(z2-z1)*(z-z1) + irr1/(z2-z1)*(z2-z);
+      }
+
+      //if is in the middle
+      else {
+        irr11 = m_irradiation[r1][z1];
+        irr21 = m_irradiation[r1][z2];
+        irr12 = m_irradiation[r2][z1];
+        irr22 = m_irradiation[r2][z2];
+        //bilinear interpolation in z and r
+        irrxy = irr11/((z2-z1)*(r2-r1))*(z2-z)*(r2-r) + irr21/((z2-z1)*(r2-r1))*(z-z1)*(r2-r) + irr12/((z2-z1)*(r2-r1))*(z2-z)*(r-r1) + irr22/((z2-z1)*(r2-r1))*(z-z1)*(r-r1);
+      }
+    }
+    else logERROR("Iradiation map: (R,Z) bin out of region");
+  }
+  else logWARNING("Irradiation map: (R,Z) position out of region.");
+
+  return irrxy*m_dataFactor;
+}
+

@@ -57,6 +57,9 @@ public:
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
+  Property<std::string, Default> chargedMapFile;   // Map of charged hadron fluxes, segmented in R x Z
+  Property<std::string, Default> photonsMapFile;   // Map of photon fluxes, segmented in R x Z
+
   Property<        double, NoDefault> minTracksEta, maxTracksEta;
   PropertyNode<std::string>           taggedTracking;
 
@@ -91,10 +94,12 @@ public:
       bpIntLength(           "beamPipeIntLength"     , parsedOnly(), 0.0),
       irradiationMapFiles(   "irradiationMapFiles"   , parsedAndChecked()),
       //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
+      chargedMapFile(        "chargedMapFile"        , parsedOnly(), std::string("")),
+      photonsMapFile(        "photonsMapFile"        , parsedOnly(), std::string("")),
       minTracksEta(          "minTracksEta"          , parsedOnly()),
       maxTracksEta(          "maxTracksEta"          , parsedOnly()),
       taggedTracking(        "TaggedTracking"        , parsedOnly())
-  { }
+  {}
 
   void crosscheck();
 

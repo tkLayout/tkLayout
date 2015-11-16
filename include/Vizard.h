@@ -180,7 +180,7 @@ namespace insur {
     //bool errorSummary(Analyzer& analyzer, RootWSite& site, std::string additionalTag, bool isTrigger);
     bool taggedErrorSummary(Analyzer& analyzer, RootWSite& site);
     bool triggerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site, bool extended);
-    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
+    bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site, std::string name = "");
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
                             Analyzer& pixelAnalyzer, Analyzer& stripAnalyzer, std::vector<Tracker*> tracker, SimParms& simparms, RootWSite& site);

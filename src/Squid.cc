@@ -6,11 +6,29 @@
 
 #include <SvnRevision.h>
 #include "Squid.h"
+#include "AnalyzerOccupancy.h"
 #include "StopWatch.h"
 #include <boost/algorithm/string/split.hpp>
 
 namespace insur {
+
   // public
+  const std::string Squid::err_no_geomfile           = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
+  const std::string Squid::err_no_matfile            = "The provided material configuration file does not exist.";
+  const std::string Squid::err_no_matfile_pixel      = "The material configuration file for the pixels does not exist.";
+  const std::string Squid::err_init_failed           = "Initialisation of the material calculator failed.";
+  const std::string Squid::err_no_tracker            = "The tracker object does not exist. The tracker must be created before calling this function.";
+  const std::string Squid::err_no_inacsurf           = "The collection of inactive surfaces does not exist. It must be created before calling this function";
+  const std::string Squid::err_no_matbudget          = "The material budget does not exist. It must be created before calling this function.";
+  const std::string Squid::err_no_triggerSummary     = "Could not report on the trigger performance.";
+  const std::string Squid::err_no_flukafile          = "The fluka charged hadrons or photons flux file doesn't exist.";
+  const std::string Squid::err_no_occupancy_failed   = "Occupancy calculation or visualisation failed.";
+  const std::string Squid::warn_rootonly             = "The collection of inactive surfaces does not exist. Only the .root file will be written.";
+  const std::string Squid::warn_custom_matfile       = "A customized material file was used for the tracker";
+  const std::string Squid::warn_custom_matfile_pixel = "A customized material file was used for the pixel";
+
+  const std::string Squid::default_trackername       = "defaultTrackerName";
+
   /**
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
@@ -246,31 +264,31 @@ namespace insur {
     return true;
   }
 
-/**
- * Dress the previously created geometry with module options. The modified tracker object remains
- * in the squid as the current tracker until it is overwritten by a call to another function that creates
- * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
- * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
- * pixel detector remains in the squid until it is replaced by a call to another function creating a new
- * one.
- * @param settingsfile The name and - if necessary - path of the module settings configuration file
- * @return True if there was an existing tracker to dress, false otherwise
- */
-/*  bool Squid::dressTracker() {
-    if (tr) {
-      startTaskClock("Assigning module types to tracker and pixel"); 
-      cp.dressTracker(tr, getSettingsFile());
-      if (px) cp.dressPixels(px, getSettingsFile());
-      stopTaskClock();
-      return true;
+  /**
+   * Dress the previously created geometry with module options. The modified tracker object remains
+   * in the squid as the current tracker until it is overwritten by a call to another function that creates
+   * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
+   * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
+   * pixel detector remains in the squid until it is replaced by a call to another function creating a new
+   * one.
+   * @param settingsfile The name and - if necessary - path of the module settings configuration file
+   * @return True if there was an existing tracker to dress, false otherwise
+   */
+  /*  bool Squid::dressTracker() {
+      if (tr) {
+        startTaskClock("Assigning module types to tracker and pixel");
+        cp.dressTracker(tr, getSettingsFile());
+        if (px) cp.dressPixels(px, getSettingsFile());
+        stopTaskClock();
+        return true;
+      }
+      else {
+        logERROR(err_no_tracker);
+        stopTaskClock();
+        return false;
+      }
     }
-    else {
-      logERROR(err_no_tracker);
-      stopTaskClock();
-      return false;
-    }
-  }
-*/
+  */
 
   /**
    * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
@@ -310,97 +328,97 @@ namespace insur {
     }
   } */
 
-/*
- *  Build database of overall material distribution in the tracker ...
- */
-bool Squid::buildMaterials(bool verbose) {
+  /*
+   *  Build database of overall material distribution in the tracker ...
+   */
+  bool Squid::buildMaterials(bool verbose) {
 
-  if (std_ || pxd_) {
+    if (std_ || pxd_) {
 
-    startTaskClock("Building inactive materials of defined trackers + beam pipe");
+      startTaskClock("Building inactive materials of defined trackers + beam pipe");
 
-    // Building pxd & strip inactive materials
-    if (pxd_) {
-      if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
-      Materialway materialwayPixel;
-      materialwayPixel.build(*pxd_, *pxdPasive_, weightDistributionPixel);
-    }
-    if (std_) {
-      if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
-      Materialway materialwayStrip;
-      materialwayStrip.build(*std_, *stdPasive_, weightDistributionTracker);
-    }
-  } else {
-
-    std::string message=std::string("Squid::buildMaterials() :")+err_no_tracker;
-    logERROR(message);
-    stopTaskClock();
-    return false;
-  }
-
-  stopTaskClock();
-  return true;
-}
-
-/**
- * Calculate a material budget for the previously created tracker object and collection of inactive
- * surfaces. The resulting material budget replaces the previously registered one, if such an object
- * existed. It remains in the squid until it is overwritten by a second call to this function or by
- * another one that creates a new material budget. This function succeeds if either the tracker or
- * both the tracker and the inactive surfaces exist. If a pixel detector exists, it gets its own material
- * budget at the same time. This object is treated exactly the same as the one for the tracker.
- * @param verbose A flag that turns the final status summary of the material budget on or off
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::createMaterialBudget(bool verbose) {
-
-  if (std_ || pxd_) {
-
-    startTaskClock("Calculating material budget of the tracker");
-    if (std_) {
-
-      if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
-      if (stdMb_) delete stdMb_;
-      stdMb_  = new MaterialBudget(*std_, *stdPasive_);
-
-      // Reset & calculate new
-      if (stripMaterialCalc_.initDone()) stripMaterialCalc_.reset();
-      if (matParser_.initMatCalc(stripMaterialCalc_, mainConfig_.getMattabDirectory())) {
-        //stdMb_->materialsAll(stripMaterialCalc_);
-        if (verbose) stdMb_->print();
+      // Building pxd & strip inactive materials
+      if (pxd_) {
+        if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
+        Materialway materialwayPixel;
+        materialwayPixel.build(*pxd_, *pxdPasive_, weightDistributionPixel);
       }
+      if (std_) {
+        if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
+        Materialway materialwayStrip;
+        materialwayStrip.build(*std_, *stdPasive_, weightDistributionTracker);
+      }
+    } else {
+
+      std::string message=std::string("Squid::buildMaterials() :")+err_no_tracker;
+      logERROR(message);
+      stopTaskClock();
+      return false;
     }
-    if (pxd_) {
 
-      if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
-      if (pxdMb_) delete pxdMb_;
-      pxdMb_ = new MaterialBudget(*pxd_, *pxdPasive_);
-
-      // Reset & calculate new
-      if (pixelMaterialCalc_.initDone()) pixelMaterialCalc_.reset();
-	    if (matParser_.initMatCalc(pixelMaterialCalc_, mainConfig_.getMattabDirectory())) {
-
-	      //pxdMb_->materialsAll(pixelMaterialCalc_);
-	      if (verbose) pxdMb_->print();
-	    }
-    }
     stopTaskClock();
     return true;
-  } else {
-    if (stdMb_) {
-      delete stdMb_;
-      stdMb_ = nullptr;
-    }
-    if (pxdMb_) {
-      delete pxdMb_;
-      pxdMb_ = nullptr;
-    }
-    std::string message = std::string("Squid::createMaterialBudget() :")+err_init_failed;
-    logERROR(message);
-    stopTaskClock();
-    return false;
   }
-}
+
+  /**
+   * Calculate a material budget for the previously created tracker object and collection of inactive
+   * surfaces. The resulting material budget replaces the previously registered one, if such an object
+   * existed. It remains in the squid until it is overwritten by a second call to this function or by
+   * another one that creates a new material budget. This function succeeds if either the tracker or
+   * both the tracker and the inactive surfaces exist. If a pixel detector exists, it gets its own material
+   * budget at the same time. This object is treated exactly the same as the one for the tracker.
+   * @param verbose A flag that turns the final status summary of the material budget on or off
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::createMaterialBudget(bool verbose) {
+
+    if (std_ || pxd_) {
+
+      startTaskClock("Calculating material budget of the tracker");
+      if (std_) {
+
+        if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
+        if (stdMb_) delete stdMb_;
+        stdMb_  = new MaterialBudget(*std_, *stdPasive_);
+
+        // Reset & calculate new
+        if (stripMaterialCalc_.initDone()) stripMaterialCalc_.reset();
+        if (matParser_.initMatCalc(stripMaterialCalc_, mainConfig_.getMattabDirectory())) {
+          //stdMb_->materialsAll(stripMaterialCalc_);
+          if (verbose) stdMb_->print();
+        }
+      }
+      if (pxd_) {
+
+        if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
+        if (pxdMb_) delete pxdMb_;
+        pxdMb_ = new MaterialBudget(*pxd_, *pxdPasive_);
+
+        // Reset & calculate new
+        if (pixelMaterialCalc_.initDone()) pixelMaterialCalc_.reset();
+  	    if (matParser_.initMatCalc(pixelMaterialCalc_, mainConfig_.getMattabDirectory())) {
+
+  	      //pxdMb_->materialsAll(pixelMaterialCalc_);
+  	      if (verbose) pxdMb_->print();
+  	    }
+      }
+      stopTaskClock();
+      return true;
+    } else {
+      if (stdMb_) {
+        delete stdMb_;
+        stdMb_ = nullptr;
+      }
+      if (pxdMb_) {
+        delete pxdMb_;
+        pxdMb_ = nullptr;
+      }
+      std::string message = std::string("Squid::createMaterialBudget() :")+err_init_failed;
+      logERROR(message);
+      stopTaskClock();
+      return false;
+    }
+  }
 
   /**
    * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
@@ -418,24 +436,24 @@ bool Squid::createMaterialBudget(bool verbose) {
   //   return false;
   // }
 
-//  /**
-//   * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
-//   * save the results in a plain text file.
-//   * @param graphout The name - without path - of the designated output file
-//   * @return True if there were no errors during processing, false otherwise
-//   */
-//  bool Squid::analyzeNeighbours(std::string graphout) {
-//    if (is) {
-//      startTaskClock("Creating inactive materials hierarchy");
-//      v.writeNeighbourGraph(*is, graphout);
-//      stopTaskClock();
-//      return true;
-//    }
-//    else {
-//      std::cout << "Squid::analyzeNeighbours(): " << err_no_inacsurf << std::endl;
-//      return false;
-//    }
-//  }
+  //  /**
+  //   * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
+  //   * save the results in a plain text file.
+  //   * @param graphout The name - without path - of the designated output file
+  //   * @return True if there were no errors during processing, false otherwise
+  //   */
+  //  bool Squid::analyzeNeighbours(std::string graphout) {
+  //    if (is) {
+  //      startTaskClock("Creating inactive materials hierarchy");
+  //      v.writeNeighbourGraph(*is, graphout);
+  //      stopTaskClock();
+  //      return true;
+  //    }
+  //    else {
+  //      std::cout << "Squid::analyzeNeighbours(): " << err_no_inacsurf << std::endl;
+  //      return false;
+  //    }
+  //  }
 
   /**
    * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
@@ -484,98 +502,98 @@ bool Squid::createMaterialBudget(bool verbose) {
     new ((void*) &vizard_) Vizard();
   }
 
-/**
- * Prepare the website object (if not done yet) from the configuration file
- * it needs the tracker object to be already there
- * @return a boolean with the operation success
- */
-bool Squid::prepareWebSite() {
+  /**
+   * Prepare the website object (if not done yet) from the configuration file
+   * it needs the tracker object to be already there
+   * @return a boolean with the operation success
+   */
+  bool Squid::prepareWebSite() {
 
-  if (sitePrepared_) return true;
+    if (sitePrepared_) return true;
 
-  // Set html results output directory
-  //string trackerName;
-  //if (htmlDir_ != "") trackerName = htmlDir_;
-  //else {
-  //
-  //  if (std_) {
-  //
-  //    trackerName = baseName_;
-  //  }
-  //  else trackerName = default_trackername;
-  //}
-  //string layoutDirectory;
-  //styleDirectory=mainConfiguration.getStyleDirectory();
-  //layoutDirectory=mainConfig_.getLayoutDirectory();
-  //layoutDirectory+="/"+trackerName;
+    // Set html results output directory
+    //string trackerName;
+    //if (htmlDir_ != "") trackerName = htmlDir_;
+    //else {
+    //
+    //  if (std_) {
+    //
+    //    trackerName = baseName_;
+    //  }
+    //  else trackerName = default_trackername;
+    //}
+    //string layoutDirectory;
+    //styleDirectory=mainConfiguration.getStyleDirectory();
+    //layoutDirectory=mainConfig_.getLayoutDirectory();
+    //layoutDirectory+="/"+trackerName;
 
-  //if (layoutDirectory!="") webSite_.setTargetDirectory(layoutDirectory);
-  //else return false;
+    //if (layoutDirectory!="") webSite_.setTargetDirectory(layoutDirectory);
+    //else return false;
 
-  if (htmlDir_!="") webSite_.setTargetDirectory(htmlDir_);
-  else return false;
+    if (htmlDir_!="") webSite_.setTargetDirectory(htmlDir_);
+    else return false;
 
-  // Set layout title
-  if (layoutName_!="") webSite_.setTitle(layoutName_);
-  else return false;
+    // Set layout title
+    if (layoutName_!="") webSite_.setTitle(layoutName_);
+    else return false;
 
-  webSite_.setComment("Layouts");
-  webSite_.setCommentLink("../");
-  webSite_.addAuthor("Giovanni Bianchi");
-  webSite_.addAuthor("Nicoletta De Maio");
-  webSite_.addAuthor("Stefano Martina");
-  webSite_.addAuthor("Stefano Mersi");
-  webSite_.setRevision(SvnRevision::revisionNumber);
-  return true;
-}
-
-/**
- * Actually creates the website where it was supposed to be
- * @return a boolean with the operation success
- */
-bool Squid::makeWebSite(bool addLogPage /* = true */) {
-
-  ostringstream message;
-  message << "Creating website in: " << htmlDir_;
-  startTaskClock(message.str());
-  if (!prepareWebSite()) {
-
-    logERROR("Problem in preparing website");
-    stopTaskClock();
-    return false;
-  }
-
-  // Add log webPage
-  if (addLogPage) {
-    vizard_.makeLogPage(webSite_);
-  }
-
-  bool result = webSite_.makeSite(false);
-  stopTaskClock();
-  return result;
-}
-
-/**
- * Analyze the previously created geometry and without no output  through rootweb.
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::pureAnalyzeGeometry(int tracks) {
-
-  // Analyzing detector
-  if (pxd_ || std_) {
-
-    startTaskClock("Analyzing geometry");
-    if (pxd_) pixelAnalyzer_.analyzeGeometry(*pxd_, tracks);
-    if (std_) stripAnalyzer_.analyzeGeometry(*std_, tracks);
-    stopTaskClock();
+    webSite_.setComment("Layouts");
+    webSite_.setCommentLink("../");
+    webSite_.addAuthor("Giovanni Bianchi");
+    webSite_.addAuthor("Nicoletta De Maio");
+    webSite_.addAuthor("Stefano Martina");
+    webSite_.addAuthor("Stefano Mersi");
+    webSite_.setRevision(SvnRevision::revisionNumber);
     return true;
   }
-  else {
-    std::string message = std::string("Squid::pureAnalyzeGeometry(): ")+err_no_tracker;
-    logERROR(message);
-    return false;
+
+  /**
+   * Actually creates the website where it was supposed to be
+   * @return a boolean with the operation success
+   */
+  bool Squid::makeWebSite(bool addLogPage /* = true */) {
+
+    ostringstream message;
+    message << "Creating website in: " << htmlDir_;
+    startTaskClock(message.str());
+    if (!prepareWebSite()) {
+
+      logERROR("Problem in preparing website");
+      stopTaskClock();
+      return false;
+    }
+
+    // Add log webPage
+    if (addLogPage) {
+      vizard_.makeLogPage(webSite_);
+    }
+
+    bool result = webSite_.makeSite(false);
+    stopTaskClock();
+    return result;
   }
-}
+
+  /**
+   * Analyze the previously created geometry and without no output  through rootweb.
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::pureAnalyzeGeometry(int tracks) {
+
+    // Analyzing detector
+    if (pxd_ || std_) {
+
+      startTaskClock("Analyzing geometry");
+      if (pxd_) pixelAnalyzer_.analyzeGeometry(*pxd_, tracks);
+      if (std_) stripAnalyzer_.analyzeGeometry(*std_, tracks);
+      stopTaskClock();
+      return true;
+    }
+    else {
+      std::string message = std::string("Squid::pureAnalyzeGeometry(): ")+err_no_tracker;
+      logERROR(message);
+      return false;
+    }
+  }
 
   bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
     // Call this before analyzetrigger if you want to have the map of suggested spacings
@@ -593,96 +611,96 @@ bool Squid::pureAnalyzeGeometry(int tracks) {
     return true;
   }
 
-/**
- * Analyze the previously created material budget with no output.
- * @param tracks The number of tracks that should be fanned out across the analysed region
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::pureAnalyzeMaterialBudget(int nTracks) {
+  /**
+   * Analyze the previously created material budget with no output.
+   * @param tracks The number of tracks that should be fanned out across the analysed region
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::pureAnalyzeMaterialBudget(int nTracks) {
 
-  if (stdMb_ || pxdMb_) {
+    if (stdMb_ || pxdMb_) {
+      // TODO: insert the creation of sample tracks here, to compute intersections only once
+
+      startTaskClock("Analyzing material budget" );
+      std::vector<MaterialBudget*> trkMb;
+      if (pxdMb_) {
+        trkMb.clear();
+        trkMb.push_back(pxdMb_);
+        pixelAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+      }
+      if (stdMb_) {
+        trkMb.clear();
+        trkMb.push_back(stdMb_);
+        stripAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+      }
+      if (pxdMb_ && stdMb_) {
+        trkMb.clear();
+        trkMb.push_back(pxdMb_);
+        trkMb.push_back(stdMb_);
+        trackerAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+      }
+      stopTaskClock();
+
+      //startTaskClock("Computing the weight summary");
+      //stripAnalyzer_.computeWeightSummary(*stdMb_);
+      //stopTaskClock();
+
+      return true;
+    } else {
+
+      std::string message = std::string("Squid::pureAnalyzeMaterialBudget() :")+err_no_matbudget;
+      logERROR(message);
+      return false;
+    }
+  }
+
+  /**
+   * Analyze the tracker resolution with no output.
+   * @param tracks The number of tracks that should be fanned out across the analysed region
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::pureAnalyzeResolution(int nTracks) {
+
+    if (stdMb_ || pxdMb_) {
     // TODO: insert the creation of sample tracks here, to compute intersections only once
 
-    startTaskClock("Analyzing material budget" );
-    std::vector<MaterialBudget*> trkMb;
-    if (pxdMb_) {
+      startTaskClock("Analyzing tracking resolutions");
+      std::vector<MaterialBudget*> trkMb;
       trkMb.clear();
-      trkMb.push_back(pxdMb_);
-      pixelAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+      if (pxdMb_) trkMb.push_back(pxdMb_);
+      if (stdMb_) trkMb.push_back(stdMb_);
+      trackerAnalyzer_.analyzeTaggedTracking(trkMb, mainConfig_.getMomenta(), nTracks);
+
+      stopTaskClock();
+      return true;
+    } else {
+
+      std::string message = std::string("Squid::pureAnalyzeResolution() :")+err_no_matbudget;
+      logERROR(message);
+      return false;
     }
-    if (stdMb_) {
-      trkMb.clear();
-      trkMb.push_back(stdMb_);
-      stripAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+  }
+
+  /**
+   * Produces the output of the analysis of the geomerty
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportGeometrySite() {
+
+    if (pxd_ || std_) {
+
+      startTaskClock("Creating geometry report");
+      if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"INNER");
+      if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"OUTER");
+      stopTaskClock();
+      return true;
+    } else {
+
+      std::string message = std::string("Squid::reportGeometrySite(): ")+err_no_tracker;
+      logERROR(message);
+      return false;
     }
-    if (pxdMb_ && stdMb_) {
-      trkMb.clear();
-      trkMb.push_back(pxdMb_);
-      trkMb.push_back(stdMb_);
-      trackerAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
-    }
-    stopTaskClock();
-
-    //startTaskClock("Computing the weight summary");
-    //stripAnalyzer_.computeWeightSummary(*stdMb_);
-    //stopTaskClock();
-
-    return true;
-  } else {
-
-    std::string message = std::string("Squid::pureAnalyzeMaterialBudget() :")+err_no_matbudget;
-    logERROR(message);
-    return false;
   }
-}
-
-/**
- * Analyze the tracker resolution with no output.
- * @param tracks The number of tracks that should be fanned out across the analysed region
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::pureAnalyzeResolution(int nTracks) {
-
-  if (stdMb_ || pxdMb_) {
-  // TODO: insert the creation of sample tracks here, to compute intersections only once
-
-    startTaskClock("Analyzing tracking resolutions");
-    std::vector<MaterialBudget*> trkMb;
-    trkMb.clear();
-    if (pxdMb_) trkMb.push_back(pxdMb_);
-    if (stdMb_) trkMb.push_back(stdMb_);
-    trackerAnalyzer_.analyzeTaggedTracking(trkMb, mainConfig_.getMomenta(), nTracks);
-
-    stopTaskClock();
-    return true;
-  } else {
-
-    std::string message = std::string("Squid::pureAnalyzeResolution() :")+err_no_matbudget;
-    logERROR(message);
-    return false;
-  }
-}
-
-/**
- * Produces the output of the analysis of the geomerty
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::reportGeometrySite() {
-
-  if (pxd_ || std_) {
-
-    startTaskClock("Creating geometry report");
-    if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"INNER");
-    if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"OUTER");
-    stopTaskClock();
-    return true;
-  } else {
-
-    std::string message = std::string("Squid::reportGeometrySite(): ")+err_no_tracker;
-    logERROR(message);
-    return false;
-  }
-}
 
   bool Squid::reportBandwidthSite() {
     if (std_) {
@@ -711,7 +729,43 @@ bool Squid::reportGeometrySite() {
       logERROR(err_no_tracker);
       return false;
     }
+  }
+  /*
+   * Calculate expected detector occupancy using Fluka simulation outputs:
+   *  - charged particles map
+   *  - photons map
+   */
+  bool Squid::reportOccupancySite() {
+    if (trackers_.size()!=0) {
+      if (simParms_->chargedMapFile()!="" && simParms_->photonsMapFile()!="") {
 
+        std::ostringstream message;
+        startTaskClock("Computing occupancy");
+
+        // Create occupancy analyzer & analyzer data
+        std::string chargedMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
+        std::string photonsMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
+        AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, trackers_);
+
+        bool outCalc = analyzerOccupancy.calculate(vis_eta_step);
+        bool outVis  = analyzerOccupancy.visualize(webSite_, simParms_);
+
+        stopTaskClock();
+        if (outCalc && outVis) return true;
+        else {
+          logERROR(err_no_flukafile);
+          return false;
+        }
+        return true;
+      }
+      else {
+        logERROR(err_no_flukafile);
+        return false;
+      }
+    } else {
+      logERROR(err_no_tracker);
+      return false;
+    }
   }
 
   bool Squid::reportPowerSite() {
@@ -729,11 +783,11 @@ bool Squid::reportGeometrySite() {
     }
   }
 
-/**
- * Produces the output of the analysis of the material budget analysis
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::reportMaterialBudgetSite(bool debugServices) {
+  /**
+   * Produces the output of the analysis of the material budget analysis
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportMaterialBudgetSite(bool debugServices) {
 
     if (stdMb_ || pxdMb_) {
 
@@ -754,26 +808,26 @@ bool Squid::reportMaterialBudgetSite(bool debugServices) {
     }
   }
 
-/**
- * Produces the output of the resolution measurement
- * @return True if there were no errors during processing, false otherwise
- */
-bool Squid::reportResolutionSite() {
+  /**
+   * Produces the output of the resolution measurement
+   * @return True if there were no errors during processing, false otherwise
+   */
+  bool Squid::reportResolutionSite() {
 
-  if (std_ || pxd_) {
+    if (std_ || pxd_) {
 
-    startTaskClock("Creating resolution report");
-    vizard_.taggedErrorSummary(trackerAnalyzer_, webSite_);
-    stopTaskClock();
-    return true;
+      startTaskClock("Creating resolution report");
+      vizard_.taggedErrorSummary(trackerAnalyzer_, webSite_);
+      stopTaskClock();
+      return true;
+    }
+    else {
+
+      std::string message = std::string("Squid::reportResolutionSite() :")+err_no_matbudget;
+      logERROR(message);
+      return false;
+    }
   }
-  else {
-
-    std::string message = std::string("Squid::reportResolutionSite() :")+err_no_matbudget;
-    logERROR(message);
-    return false;
-  }
-}
 
 
   /**
@@ -791,63 +845,73 @@ bool Squid::reportResolutionSite() {
     }
   }
 
-//  bool Squid::reportNeighbourGraphSite() {
-//
-//    if (vizard_.neighbourGraphSummary(*is, webSite_)) return true;
-//    else {
-//      logERROR(err_no_inacsurf);
-//      return false;
-//    }
-//  }
+  bool Squid::reportNeighbourGraphSite() {
 
-/*
- * Report additional information
- */
-bool Squid::reportInfoSite() {
+    bool outputOK = false;
 
-  if (trackers_.size()!=0) {
+    // Report PXD & STD separately
+    if (pxd_) {
+      if (vizard_.neighbourGraphSummary(*pxdPasive_, webSite_, "INNER")) outputOK = true;
+    }
+    if (std_) {
+      if (vizard_.neighbourGraphSummary(*stdPasive_, webSite_, "OUTER")) outputOK = true;
+    }
 
-    startTaskClock("Creating additional info report");
-
-    vizard_.additionalInfoSite(includeSet_, getSettingsFile(),
-                           pixelAnalyzer_, stripAnalyzer_, trackers_, *simParms_, webSite_);
-    stopTaskClock();
-    return true;
+    // Return
+    if (!outputOK) {
+      logERROR(err_no_inacsurf);
+      return false;
+    }
   }
-  else {
 
-    std::string message = std::string("Squid::reportInfoSite() :")+err_no_tracker;
-    logERROR(err_no_tracker);
-    return false;
+  /*
+   * Report additional information
+   */
+  bool Squid::reportInfoSite() {
+
+    if (trackers_.size()!=0) {
+
+      startTaskClock("Creating additional info report");
+
+      vizard_.additionalInfoSite(includeSet_, getSettingsFile(),
+                             pixelAnalyzer_, stripAnalyzer_, trackers_, *simParms_, webSite_);
+      stopTaskClock();
+      return true;
+    }
+    else {
+
+      std::string message = std::string("Squid::reportInfoSite() :")+err_no_tracker;
+      logERROR(err_no_tracker);
+      return false;
+    }
   }
-}
 
   void Squid::setBasename(std::string newBasename) {
     baseName_ = newBasename;
   }    
 
-void Squid::setGeometryFile(std::string geomFile) {
+  void Squid::setGeometryFile(std::string geomFile) {
 
-  myGeometryFile_ = geomFile;
-  size_t pos = geomFile.find_last_of('.');
-  if (pos != string::npos) { geomFile.erase(pos); }
-  baseName_ = geomFile;
+    myGeometryFile_ = geomFile;
+    size_t pos = geomFile.find_last_of('.');
+    if (pos != string::npos) { geomFile.erase(pos); }
+    baseName_ = geomFile;
 
-  // Set layout output htmlDir if not set explicite
-  if (htmlDir_=="") {
+    // Set layout output htmlDir if not set explicite
+    if (htmlDir_=="") {
 
-    htmlDir_ = baseName_;
-    pos = htmlDir_.find_last_of('/');
-    if (pos != string::npos) { htmlDir_.erase(pos); }
-    htmlDir_+="/"+insur::default_htmldir;
+      htmlDir_ = baseName_;
+      pos = htmlDir_.find_last_of('/');
+      if (pos != string::npos) { htmlDir_.erase(pos); }
+      htmlDir_+="/"+insur::default_htmldir;
+    }
+
+    // Set layout name according to geometry config file
+    std::vector<std::string> info;
+    boost::algorithm::split(info, geomFile, boost::algorithm::is_any_of("/"));
+    if (info.size()!=0) layoutName_ = info[info.size()-1];
+    else                layoutName_ = "";
   }
-
-  // Set layout name according to geometry config file
-  std::vector<std::string> info;
-  boost::algorithm::split(info, geomFile, boost::algorithm::is_any_of("/"));
-  if (info.size()!=0) layoutName_ = info[info.size()-1];
-  else                layoutName_ = "";
-}
 
   void Squid::setHtmlDir(std::string htmlDir) {
     htmlDir_ = htmlDir;
@@ -893,7 +957,8 @@ void Squid::setGeometryFile(std::string geomFile) {
     g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
     vizard_.setCommandLine(cmdLine);
   }
-}
+
+} // Namespace
 
 
 
