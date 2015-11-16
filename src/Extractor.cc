@@ -975,9 +975,6 @@ namespace insur {
 	  pos.trans.dx = 0;
 	  pos.trans.dy = 0;
 	  pos.trans.dz = 0;
-	  pos.trans.dx = 0;
-	  pos.trans.dy = 0;
-	  pos.trans.dz = 0;
 
 	  for (auto const &ringinfo : rinfoside.second) {
 	    auto const& rinfo = ringinfo.second;
@@ -993,7 +990,7 @@ namespace insur {
 		shape.rmax2 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		// update r extrema of the layer with cones extrema
 		//lrmin = MIN( lrmin, shape.rmin2);
-		//lrmax = MAX( lrmax, shape.rmax1);		
+		//lrmax = MAX( lrmax, shape.rmax1);
 	      }
 	      else {
 		shape.rmin1 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
@@ -1010,9 +1007,6 @@ namespace insur {
 	      shape.rmax1 = 0.0;
 	      shape.rmin2 = 0.0;
 	      shape.rmax2 = 0.0;
-	      shape.dz = 0.0;
-	      shape.rmin = 0.0;
-	      shape.rmax = 0.0;
 	      shape.type = tb; //section of tub
 	      shape.name_tag = rinfo.name + "Tub";
 	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2. + xml_epsilon;
@@ -1027,8 +1021,8 @@ namespace insur {
 	      so.push_back(shapeOp);
 
 	      // update r extrema of the layer with cone inter tub extrema
-	      lrmin = MIN( lrmin, shape.rmin);
-	      lrmax = MAX( lrmax, shape.rmax);
+	      lrmin = MIN( lrmin, rinfo.rmin - xml_epsilon);
+	      lrmax = MAX( lrmax, rinfo.rmax + xml_epsilon);
 
 	      logic.name_tag = rinfo.name;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
