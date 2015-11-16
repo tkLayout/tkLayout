@@ -20,6 +20,8 @@ namespace insur {
      */
     enum ShapeType { bx, tb, co, tp, pc };
 
+    enum ShapeOperationType { uni, intersec };
+
     enum AlgoPartype { st,num,vec};
     /**
      * @struct Rotation
@@ -129,6 +131,12 @@ namespace insur {
         double rmax2;
         std::vector<std::pair<double, double> > rzup;
         std::vector<std::pair<double, double> > rzdown;
+    };
+    struct ShapeOperationInfo {
+        ShapeOperationType type;
+        std::string name_tag;
+        std::string rSolid1;
+        std::string rSolid2;
     };
     /**
      * @struct PosInfo
@@ -313,6 +321,7 @@ namespace insur {
       std::vector<Composite> composites;
       std::vector<LogicalInfo> logic;
       std::vector<ShapeInfo> shapes;
+      std::vector<ShapeOperationInfo> shapeOps;
       std::vector<PosInfo> positions;
       std::vector<AlgoInfo> algos;
       std::map<std::string,Rotation> rots;
