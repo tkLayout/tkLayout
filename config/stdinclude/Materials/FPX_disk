@@ -40,28 +40,9 @@ Materials FPX_disk {
     }
   }
 
+
+
  
-
-  // Support Mechanics
-  //Mechanics
-  Component {
-    componentName Mechanics
-    service false
-    scaleOnSensor 0
-    Element {
-      elementName CF
-      quantity 0.4
-      unit mm
-    }
-    Element {
-      elementName Airex
-      quantity 4
-      unit mm
-    }
-  }
-
-
-
 
 
 // Power for the module
