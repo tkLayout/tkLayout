@@ -90,22 +90,21 @@ std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) cons
 }
 
 bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
-  double eta = direction.Eta(), phi = direction.Phi();
-  bool withinEta = eta > minEtaWithError(zError) && eta < maxEtaWithError(zError);
-  bool withinPhi = false;
-  // ATENTION: BUG - couldHit uses minPhi & maxPhi, which are wrongly calculated!!!!
-  //std::cout << "MinPhi: " << minPhi()/Pi()*180. << " MaxPhi: " << maxPhi()/Pi()*180. << " " << (maxPhi()-minPhi())/Pi()*180. << " " << (minPhi()-maxPhi())/Pi()*180. << std::endl;
-  //if (minPhi() < 0. && maxPhi() > 0. && maxPhi()-minPhi() > M_PI) // across PI
-  //  withinPhi = phi < minPhi() || phi > maxPhi(); // --> doesn't work correctly
-  //else
-  //  withinPhi = phi > minPhi() && phi < maxPhi();
 
-  // TODO: DIRTY FIX!!!
-  if (minPhi() < 0. && maxPhi() > 0.) withinPhi = true; // --> doesn't work correctly
-  else withinPhi = phi > minPhi() && phi < maxPhi();
-  ////bool withinPhiSub = phi-2*M_PI > minPhi() && phi-2*M_PI < maxPhi();
-  ////bool withinPhiAdd = phi+2*M_PI > minPhi() && phi+2*M_PI < maxPhi();
-  return withinEta && (withinPhi /*|| withinPhiSub || withinPhiAdd*/);
+  double eta       = direction.Eta();
+  double phi       = direction.Phi();
+  double shiftPhi  = phi + 2*M_PI;
+  bool   withinEta = false;
+  bool   withinPhi = false;
+
+  // Eta region covered by module
+  if (eta > minEtaWithError(zError) && eta < maxEtaWithError(zError)) withinEta = true;
+
+  // Phi region is from <-pi;+3*pi> due to crossline at +pi -> need to check phi & phi+2*pi
+  if ( (phi     >=minPhi() && phi     <=maxPhi()) ||
+       (shiftPhi>=minPhi() && shiftPhi<=maxPhi()) ) withinPhi = true;
+
+  return (withinEta && withinPhi);
 }
 
 

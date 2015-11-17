@@ -3088,16 +3088,17 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
       static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
       //static std::ofstream ofs("hits.txt");
-      for (auto& m : moduleV) {
-        // A module can be hit if it fits the phi (precise) contraints
-        // and the eta constaints (taken assuming origin within 5 sigma)
 
-        // ATENTION: BUG - couldHit uses minPhi & maxPhi, which are wrongly calculated!!!!
+      // Go through all modules and save only those that were hit
+      for (auto& m : moduleV) {
+
+        // CouldHit -> save CPU time by calculating a cross-section of hit and given module within track phi and eta
+        // (assuming origin error within +-5 sigma). Beware that module phi extends from -pi to +3*pi to avoid troubles
+        // with -pi & +pi cross-line
         if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
+
           auto h = m->checkTrackHits(origin, direction); 
-          if (h.second != HitType::NONE) {
-            result.push_back(std::make_pair(m,h.second));
-          }
+          if (h.second != HitType::NONE) result.push_back(std::make_pair(m,h.second));
         }
       }
       return result;
