@@ -436,6 +436,7 @@ namespace insur {
    * @param c A reference to the collection of composite material information; used for output
    * @param l A reference to the collection of volume hierarchy information; used for output
    * @param s A reference to the collection of shape parameters; used for output
+   * @param so A reference to the collection of operations on physical volumes
    * @param p A reference to the collection of volume positionings; used for output
    * @param a A reference to the collection of algorithm calls and their parameters; used for output
    * @param r A reference to the collection of rotations; used for output
@@ -585,9 +586,6 @@ namespace insur {
 	  if (iiter->getModule().uniRef().phi == 2 && (modRing == 1 || modRing == 2)) { RadiusOut = RadiusOut + iiter->getModule().center().Rho() / 2; }
 	}
       }
-      // tilted layer : r extrema of the layer
-      double lrmin = rmin;
-      double lrmax = rmax;
 
 
       if ((rmax - rmin) == 0.0) continue;
@@ -960,7 +958,14 @@ namespace insur {
       a.push_back(alg);
       alg.parameters.clear();
 
-      
+      // reset
+      shape.dx = 0.0;
+      shape.dy = 0.0;
+      shape.dyy = 0.0;	  
+      pos.trans.dx = 0;
+      pos.trans.dy = 0;
+      pos.trans.dz = 0;
+
       // tilted rings
       if ( !rinfoplus.empty() || !rinfominus.empty() ) {
 
@@ -969,60 +974,55 @@ namespace insur {
 	if ( !rinfominus.empty() ) { rinfototal.insert({"rinfominus", rinfominus}); }
 
 	for (auto const &rinfoside : rinfototal) {
-	  shape.dx = 0.0;
-	  shape.dy = 0.0;
-	  shape.dyy = 0.0;	  
-	  pos.trans.dx = 0;
-	  pos.trans.dy = 0;
-	  pos.trans.dz = 0;
 
 	  for (auto const &ringinfo : rinfoside.second) {
 	    auto const& rinfo = ringinfo.second;
 	    if (rinfo.modules > 0) {
 
+	      // reset
+	      shape.rmin = 0.0;
+	      shape.rmax = 0.0;
+
+	      // section of cone
 	      shape.name_tag = rinfo.name + "Cone";
-	      shape.type = co; //section of cone
+	      shape.type = co;
 	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2. + xml_epsilon;
 	      if (rinfo.isZPlus) {
 		shape.rmin1 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmax1 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmin2 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmax2 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
-		// update r extrema of the layer with cones extrema
-		//lrmin = MIN( lrmin, shape.rmin2);
-		//lrmax = MAX( lrmax, shape.rmax1);
 	      }
 	      else {
 		shape.rmin1 = rinfo.rminatzmin - 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmax1 = rinfo.rmaxatzmax + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmin2 = rinfo.rminatzmin - xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
 		shape.rmax2 = rinfo.rmaxatzmax + 2 * shape.dz * tan(rinfo.tiltAngle * M_PI / 180.0) + xml_epsilon * tan(rinfo.tiltAngle * M_PI / 180.0);
-		// update r extrema of the layer with cones extrema		
-		//lrmin = MIN( lrmin, shape.rmin1);
-		//lrmax = MAX( lrmax, shape.rmax2);
 	      }
 	      s.push_back(shape);
 
+	      // reset
 	      shape.rmin1 = 0.0;
 	      shape.rmax1 = 0.0;
 	      shape.rmin2 = 0.0;
 	      shape.rmax2 = 0.0;
-	      shape.type = tb; //section of tub
+
+	      // section of tub
+	      shape.type = tb;
 	      shape.name_tag = rinfo.name + "Tub";
 	      shape.dz = (rinfo.zmax - rinfo.zmin) / 2. + xml_epsilon;
 	      shape.rmin = rinfo.rmin - xml_epsilon;
 	      shape.rmax = rinfo.rmax + xml_epsilon;
 	      s.push_back(shape);
 
+	      // intersection of sections of cone and tub
+	      // Please note that the layer's dimensions rely on the fact this intersection is made,
+	      // so that layer's extrema are ~rmin and ~rmax
 	      shapeOp.name_tag = rinfo.name;
 	      shapeOp.type = intersec;
 	      shapeOp.rSolid1 = rinfo.name + "Cone";
 	      shapeOp.rSolid2 = rinfo.name + "Tub";
 	      so.push_back(shapeOp);
-
-	      // update r extrema of the layer with cone inter tub extrema
-	      lrmin = MIN( lrmin, rinfo.rmin - xml_epsilon);
-	      lrmax = MAX( lrmax, rinfo.rmax + xml_epsilon);
 
 	      logic.name_tag = rinfo.name;
 	      logic.shape_tag = nspace + ":" + logic.name_tag;
@@ -1108,10 +1108,6 @@ namespace insur {
       shape.name_tag = lname.str();
       shape.rmin = rmin - 2 * xml_epsilon;
       shape.rmax = rmax + 2 * xml_epsilon;
-      if (isTilted) {
-	shape.rmin = lrmin - xml_epsilon;
-	shape.rmax = lrmax + xml_epsilon;
-      }
       shape.dz = zmax + 2 * xml_epsilon;
       s.push_back(shape);
       logic.name_tag = lname.str();

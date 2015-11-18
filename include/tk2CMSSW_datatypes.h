@@ -129,9 +129,17 @@ namespace insur {
         double rmax1;
         double rmin2;
         double rmax2;
-        std::vector<std::pair<double, double> > rzup;
-        std::vector<std::pair<double, double> > rzdown;
+      std::vector<std::pair<double, double> > rzup;
+      std::vector<std::pair<double, double> > rzdown;
     };
+    /**
+     * @struct ShapeOperationInfo
+     * @brief This struct corresponds to operations on geometrical shapes in a <i>SolidSection</i> block in CMSSW XML.
+     * @param type The type of operation on volumes
+     * @param name_tag The name of the result volume of the operation
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     */
     struct ShapeOperationInfo {
         ShapeOperationType type;
         std::string name_tag;

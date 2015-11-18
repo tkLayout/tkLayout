@@ -62,8 +62,8 @@ namespace insur {
 	void cone(std::string name, double rmin1, double rmax1, double rmin2, double rmax2, double dz, std::ostringstream& stream);
         void polycone(std::string name, std::vector<std::pair<double, double> >& rzu,
                                std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream);
-	void sunion(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
-	void sintersection(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
+	void shapesUnion(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
+	void shapesIntersection(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
         void posPart(std::string parent, std::string child, std::string rotref, Translation& trans, int copy, std::ostringstream& stream);
         void rotation(std::string name, double thetax, double phix, double thetay, double phiy,
                                                           double thetaz, double phiz, std::ostringstream& stream);
