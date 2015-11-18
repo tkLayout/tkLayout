@@ -25,6 +25,7 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
 }
 */
 
+
 void DetectorModule::build() {
   check();
   if (!decorated().builtok()) {
@@ -56,22 +57,26 @@ void DetectorModule::build() {
 
 
 void DetectorModule::setup() {
-  resolutionLocalX.setup([this]() { 
-    double res = 0;
-    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
-    return sqrt(res)/numSensors();
-  });
 
-  resolutionLocalY.setup([this]() {
-    if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
-    else {
-      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-    }
-  });
+  /*// only set up this if parameters not specified
+    resolutionLocalX.setup([this]() {
+	double res = 0;
+	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	//std::cout << "sqrt(res)/numSensors() =" << sqrt(res)/numSensors() << std::endl;
+	return sqrt(res)/numSensors();
+      });
+    //std::cout << "resolutionLocalX() =" << resolutionLocalX() << std::endl;
+
+    // only set up this if parameters not specified
+    resolutionLocalY.setup([this]() {
+	if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
+	else {
+	  return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
+	}
+	});*/
 
   for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
 };
-
 
 
 
@@ -103,18 +108,21 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
 }
 
 
-double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR) const {
+double DetectorModule::resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
   double B = A/sqrt(1-A*A);
-  return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX(),2) + pow(B*sin(tiltAngle()) * resolutionLocalY(),2));
+  return sqrt(pow((B*sin(skewAngle())*cos(tiltAngle()) + cos(skewAngle())) * resolutionLocalX,2) + pow(B*sin(tiltAngle()) * resolutionLocalY,2));
 }
 
-double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta) const {
+double DetectorModule::resolutionEquivalentZ(double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const {
   double A = hitRho/(2*trackR); 
   double D = trackCotgTheta/sqrt(1-A*A);
-  return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX(),2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY(),2));
+  return sqrt(pow(((D*cos(tiltAngle()) + sin(tiltAngle()))*sin(skewAngle())) * resolutionLocalX,2) + pow((D*sin(tiltAngle()) + cos(tiltAngle())) * resolutionLocalY,2));
 }
 
+
+//double DetectorModule::calculateAlphaAndBeta(double hitRho, double trackR) const {
+  //}
 
 double DetectorModule::stripOccupancyPerEventBarrel() const {
   double rho = center().Rho()/10.;
@@ -184,12 +192,37 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
   return std::make_pair(gc, ht);
 };
 
-BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
-  setup();
-  
-  //myModuleCap_ = new ModuleCap(this);
-  //myModuleCap_->setCategory(MaterialProperties::b_mod);
+//BarrelModule::BarrelModule(Decorated* decorated) : DetectorModule(decorated) {
+//setup();
+                                    // this was already commented
+                                    //myModuleCap_ = new ModuleCap(this);
+                                    //myModuleCap_->setCategory(MaterialProperties::b_mod);
+//}
+
+void BarrelModule::check() {
+  PropertyObject::check();
+
+  //std::cout <<  "hasAnyResolutionLocalYParam() = " <<  hasAnyResolutionLocalYParam() << std::endl;
+
+  if (resolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
+
+  if (resolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
+
+
+
+  /*if (resolutionLocalX.state()
+      && (resolutionLocalXBarrelParam0() < 0 || resolutionLocalXBarrelParam0() > 0 || resolutionLocalXBarrelParam1() < 0 || resolutionLocalXBarrelParam1() > 0 || resolutionLocalXBarrelParam2() < 0 || resolutionLocalXBarrelParam2() > 0) 
+      && !(resolutionLocalXBarrelParam0() == 0 && resolutionLocalXBarrelParam1() == 0 && resolutionLocalXBarrelParam2() == 0)) {
+    throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
+    }
+
+  if (resolutionLocalY.state() 
+      && (resolutionLocalYBarrelParam0() < 0 || resolutionLocalYBarrelParam0() > 0 || resolutionLocalYBarrelParam1() < 0 || resolutionLocalYBarrelParam1() > 0 || resolutionLocalYBarrelParam2() < 0 || resolutionLocalYBarrelParam2() > 0 || resolutionLocalYBarrelParam3() < 0 || resolutionLocalYBarrelParam3() > 0 || resolutionLocalYBarrelParam4() < 0 || resolutionLocalYBarrelParam4() > 0) 
+      && !(resolutionLocalYBarrelParam0() == 0 && resolutionLocalYBarrelParam1() == 0 && resolutionLocalYBarrelParam2() == 0 && resolutionLocalYBarrelParam3() == 0 && resolutionLocalYBarrelParam4() == 0)) { 
+    throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified."); 
+    }*/
 }
+
 
 void BarrelModule::build() {
   try {
@@ -205,12 +238,34 @@ void BarrelModule::build() {
   builtok(true);
 }
 
-EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
-  setup();
-  
-  //myModuleCap_ = new ModuleCap(this);
-  //myModuleCap_->setCategory(MaterialProperties::e_mod);
-} 
+//EndcapModule::EndcapModule(Decorated* decorated) : DetectorModule(decorated) { 
+//setup();
+                                         // this was already commented
+                                         //myModuleCap_ = new ModuleCap(this);
+                                         //myModuleCap_->setCategory(MaterialProperties::e_mod);
+//} 
+
+
+void EndcapModule::check() {
+  PropertyObject::check();
+
+ if (resolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
+
+ if (resolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified.");
+
+  /*if (resolutionLocalX.state()
+      && (resolutionLocalXEndcapParam0() < 0 || resolutionLocalXEndcapParam0() > 0 || resolutionLocalXEndcapParam1() < 0 || resolutionLocalXEndcapParam1() > 0) 
+      && !(resolutionLocalXEndcapParam0() == 0 && resolutionLocalXEndcapParam1() == 0)) {
+    throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
+  }
+
+  if (resolutionLocalY.state() 
+      && (resolutionLocalYEndcapParam0() < 0 || resolutionLocalYEndcapParam0() > 0 || resolutionLocalYEndcapParam1() < 0 || resolutionLocalYEndcapParam1() > 0) 
+      && !(resolutionLocalYEndcapParam0() == 0 && resolutionLocalYEndcapParam1() == 0)) { 
+    throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified."); 
+    }*/
+}
+
 
 void EndcapModule::build() {
   try {
@@ -232,3 +287,4 @@ define_enum_strings(SensorLayout) = { "nosensors", "mono", "pt", "stereo" };
 define_enum_strings(ZCorrelation) = { "samesegment", "multisegment" };
 define_enum_strings(ReadoutType) = { "strip", "pixel", "pt" };
 define_enum_strings(ReadoutMode) = { "binary", "cluster" };
+
