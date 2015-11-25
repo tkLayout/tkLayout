@@ -185,7 +185,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
 
     TProfile* profXBar;
-    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : SR, L3 and L4 : LR)",100,-0.4,0.3,0,30);
+    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30);
     profXBar->GetYaxis()->SetRangeUser(0,30);
     profXBar->GetXaxis()->SetTitle("cotg(alpha)");
     profXBar->GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -193,7 +193,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profXBar->GetYaxis()->CenterTitle();
 
     TProfile* profYBar;
-    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : SR, L3 and L4 : LR)",100,0,5,0,60);
+    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
     profYBar->GetYaxis()->SetRangeUser(0,60);
     profYBar->GetXaxis()->SetTitle("|cotg(beta)|");
     profYBar->GetYaxis()->SetTitle("resolutionLocalY [um]");
@@ -201,7 +201,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profYBar->GetYaxis()->CenterTitle();
 
     TProfile* profXEnd;
-    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : LS)",100,-0.45,-0.25,0,30);
+    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
     profXEnd->GetYaxis()->SetRangeUser(0,30);
     profXEnd->GetXaxis()->SetTitle("cotg(alpha)");
     profXEnd->GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -209,7 +209,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profXEnd->GetYaxis()->CenterTitle();
 
     TProfile* profYEnd;
-    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : LS)",100,0.25,0.5,0,40);
+    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
     profYEnd->GetYaxis()->SetRangeUser(0,40);
     profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
     profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
@@ -217,19 +217,19 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profYEnd->GetYaxis()->CenterTitle();
 
 
-    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : SR, L3 and L4 : LR)",500,0,30);
+    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
     histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
     histXBar->GetXaxis()->CenterTitle();
 
-    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : SR, L3 and L4 : LR)",500,0,60);
+    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
     histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
     histYBar->GetXaxis()->CenterTitle();
 
-    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : LS)",500,0,30);
+    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
     histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
     histXEnd->GetXaxis()->CenterTitle();
 
-    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : LS)",500,0,40);
+    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
     histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
     histYEnd->GetXaxis()->CenterTitle();
 
