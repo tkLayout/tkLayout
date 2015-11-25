@@ -62,9 +62,6 @@ public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
 
-  //virtual bool hasAnyResolutionLocalXParam();
-  //virtual bool hasAnyResolutionLocalYParam();
-
   Property<int16_t, AutoDefault> side;
   
   Property<double, Computable> minPhi, maxPhi;

@@ -6,49 +6,37 @@
 Station {
   stationName BPX1
   type second
-minZ 300
-   maxZ 390
+  minZ 300
+  maxZ 390
 
-
-
-// (6+1) TWP/module
+  // (6+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu
-      quantity 1.547
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu
+        quantity 1.547
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
     }
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}
-}
-
-
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.134
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.134
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
-
 
 
 
@@ -56,55 +44,37 @@ Output {
 Station {
   stationName BPX2
   type second
-minZ 400
-   maxZ 490
+  minZ 400
+  maxZ 490
 
-
-
-// (3+1)*2 TWP/module
+  // (3+1)*2 TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu
-      quantity 1.768
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu
+        quantity 1.768
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
     }
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}
-}
-
-
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.134
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.134
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -112,14 +82,11 @@ Output {
 Station {
   stationName BPX3
   type second
-minZ 500
-   maxZ 590
+  minZ 500
+  maxZ 590
 
-
-
-// (1+1)*7 TWP/module
+  // (1+1)*7 TWP/module
   Conversion {
-
     Input {
     // Two conductors
     Element {
@@ -129,50 +96,24 @@ minZ 500
     }
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}
-}
-
-
-
-
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }
+  }
 
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.134
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.134
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -180,42 +121,35 @@ Output {
 Station {
   stationName BPX4
   type second
-minZ 600
-   maxZ 690
+  minZ 600
+  maxZ 690
 
-
-
-// (1+1)*14 TWP/module
+  // (1+1)*14 TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu
+        quantity 6.188
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
     }
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}
-}
-
-
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.134
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.134
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
+

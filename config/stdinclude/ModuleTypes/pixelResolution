@@ -33,20 +33,20 @@
       //resolutionLocalY 0.010 // 10 um
 
       // Parameters for resolutionLocalX :
-      @includestd ModuleTypes/XBarrel_SR
+      @includestd ModuleTypes/XBarrel_LS
 
       // Parameters for resolutionLocalY :
-      @includestd ModuleTypes/YBarrel_SR    
+      @includestd ModuleTypes/YBarrel_LS
     }
     Layer 3,4 {
       //resolutionLocalX 0.025 // 25 um
       //resolutionLocalY 0.025 // 25 um
 
       // Parameters for resolutionLocalX :
-      @includestd ModuleTypes/XBarrel_LR
+      @includestd ModuleTypes/XBarrel_LS
 
       // Parameters for resolutionLocalY :
-      @includestd ModuleTypes/YBarrel_LR
+      @includestd ModuleTypes/YBarrel_LS
       
     }
   }
@@ -74,10 +74,10 @@
       //resolutionLocalY 0.025 // 25 um
 
       // Parameters for resolutionLocalX :
-      @includestd ModuleTypes/XEndcap_LS 
+      @includestd ModuleTypes/XEndcap_SS 
 
       // Parameters for resolutionLocalY :
-      @includestd ModuleTypes/YEndcap_LS 
+      @includestd ModuleTypes/YEndcap_SS 
 
     }
   }

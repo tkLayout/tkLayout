@@ -6,86 +6,67 @@
 Station {
   stationName FPX1
   type second
-   minZ 330
-   maxZ 420
+  minZ 330
+  maxZ 420
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
-
-
 
 
 
@@ -93,84 +74,67 @@ Output {
 Station {
   stationName FPX2
   type second
-   minZ 430
-   maxZ 520
+  minZ 430
+  maxZ 520
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
 
 
 
@@ -178,82 +142,67 @@ Output {
 Station {
   stationName FPX3
   type second
-   minZ 532
-   maxZ 622
+  minZ 532
+  maxZ 622
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
 
 
 
@@ -261,80 +210,66 @@ Output {
 Station {
   stationName FPX4
   type second
-   minZ 679
-   maxZ 769
+  minZ 679
+  maxZ 769
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
-}
-Output {
-}
-}
+    Output {
+    }
+  }
 }
 
 
@@ -343,80 +278,66 @@ Output {
 Station {
   stationName FPX5
   type second
-   minZ 867
-   maxZ 957
+  minZ 867
+  maxZ 957
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
+  }
+  
+  // 7*(1+1) TWP/module
+  Conversion {
+    Input {
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
+    }
+    Output {
     }
   }
-
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-  Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
-    }
-}
-Output {
-}
-}
 }
 
 
@@ -425,406 +346,337 @@ Output {
 Station {
   stationName FPX6
   type second
-   minZ 1109
-   maxZ 1199
+  minZ 1109
+  maxZ 1199
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
+
 
 
 
 Station {
   stationName FPX7
   type second
-   minZ 1420
-   maxZ 1510
+  minZ 1420
+  maxZ 1510
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
+  }
+  
+  Conversion {
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
+    }
+    Output {
     }
   }
-
- Output {
-@includestd Materials/GBT_and_fibres
-}   
 }
 
-
-
-  Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
-    }
-}
-Output {
-}
-}
-}
 
 
 
 Station {
   stationName FPX8
   type second
-   minZ 2020
-   maxZ 2110
+  minZ 2020
+  maxZ 2110
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
+  }
+  
+  // 7*(1+1) TWP/module
+  Conversion {
+    Input {
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
+    }
+    Output {
     }
   }
-
- Output {
-@includestd Materials/GBT_and_fibres
-}   
 }
 
-
-
-  Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
-    }
-}
-Output {
-}
-}
-}
 
 
 
 Station {
   stationName FPX9
   type second
-   minZ 2322
-   maxZ 2412
+  minZ 2322
+  maxZ 2412
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
-// 7*(1+1) TWP/module
+  // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
+    }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
+  }
+  
+  Conversion {
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
+    }
+    Output {
     }
   }
-
- Output {
-@includestd Materials/GBT_and_fibres
-}   
 }
 
-
-
-  Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
-    }
-}
-Output {
-}
-}
-}
 
 
 
 Station {
   stationName FPX10
   type second
-   minZ 2650
-   maxZ 2740
+  minZ 2650
+  maxZ 2740
 
-// 2*(2+1) TWP/module
+  // 2*(2+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R1
-      quantity 1.326
-      unit g/m
-    }
+      // Two conductors
+      Element {
+        elementName Cu_R1
+        quantity 1.326
+        unit g/m
+      }
   }
-
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-
-
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
+  }
+  
 // 7*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R2
-      quantity 3.094
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R2
+        quantity 3.094
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
-// 14*(1+1) TWP/module
+  // 14*(1+1) TWP/module
   Conversion {
-
     Input {
-    // Two conductors
-    Element {
-      elementName Cu_R3
-      quantity 6.188
-      unit g/m
+      // Two conductors
+      Element {
+        elementName Cu_R3
+        quantity 6.188
+        unit g/m
+      }
     }
+    Output {
+      @includestd Materials/GBT_and_fibres
+    }   
   }
 
- Output {
-@includestd Materials/GBT_and_fibres
-}   
-}
-
-
-
   Conversion {
- Input {
-    // Two insulations
-    Element {
-      elementName Kapton
-      quantity 0.057
-      unit g/m
+    Input {
+      // Two insulations
+      Element {
+        elementName Kapton
+        quantity 0.057
+        unit g/m
+      }
     }
+    Output {
+    }
+  }
 }
-Output {
-}
-}
-}
-
-
-
 
