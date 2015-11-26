@@ -27,6 +27,9 @@ namespace insur {
   static const double pixel_radius = 25.0;
   static const double z_threshold_service_zigzag = 100.0;
 
+  static const double geom_support_margin_bottom      = 1;      // mm
+  static const double geom_support_margin_top         = 2;      // mm
+
   /**
    * Visualisation constants: material parameters for active surfaces, services and supports, plus top volume padding.
    * The selected materials are completely arbitrary and only meant to distinguish one type of surface from another visually.

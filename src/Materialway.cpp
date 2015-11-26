@@ -1665,9 +1665,13 @@ namespace material {
           supportStructure.updateInactiveSurfaces(inactiveSurface_);
         }
       }
-      
       void visit (Barrel& barrel) {
         for (auto& supportStructure : barrel.supportStructures()) {
+          supportStructure.updateInactiveSurfaces(inactiveSurface_);
+        }
+      }
+      void visit (Endcap& endcap) {
+        for (auto& supportStructure : endcap.supportStructures()) {
           supportStructure.updateInactiveSurfaces(inactiveSurface_);
         }
       }

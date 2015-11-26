@@ -23,6 +23,7 @@ using insur::InactiveElement;
 using insur::InactiveSurfaces;
 
 class Barrel;
+class Endcap;
 
 namespace material {
   class MaterialTab;
@@ -53,13 +54,14 @@ namespace material {
     virtual ~SupportStructure() {};
     void buildInTracker();
     void buildInBarrel(Barrel& barrel);
+    void buildInEndcap(Endcap& endcap);
 
     void updateInactiveSurfaces(InactiveSurfaces& inactiveSurfaces);
     
   private:
     const double inactiveElementWidth = insur::volume_width;
-    const double autoLayerMarginUpper = 1.; //margins for the auto barrel support
-    const double autoLayerMarginLower = 2. + insur::volume_width; //upper is upper for the support (is lower for the layer) and viceversa
+    const double autoLayerMarginUpper = insur::geom_support_margin_bottom; //1.; // margins for the auto barrel support
+    const double autoLayerMarginLower = insur::geom_support_margin_top;    //2.; // + insur::geom_inactive_volume_width; //upper is upper for the support (is lower for the layer) and viceversa
 
     PropertyNodeUnique<std::string> componentsNode;
 
