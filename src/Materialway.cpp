@@ -723,7 +723,7 @@ namespace material {
          
             while(section->maxZ() < attachPoint + sectionTolerance) {
               if(!section->hasNextSection()) {
-                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too hight.");
+                logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high.");
                 return;
               }
               section = section->nextSection();
@@ -1029,8 +1029,8 @@ namespace material {
 
   const double Materialway::gridFactor = 1000.0;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                               actually transforms millimiters in microns */
-  const int Materialway::sectionWidth = discretize(insur::volume_width);     /**< the width of a section */
-  const int Materialway::safetySpace = discretize(insur::epsilon);           /**< the safety space between sections */
+  const int Materialway::sectionWidth = discretize(insur::geom_inactive_volume_width);     /**< the width of a section */
+  const int Materialway::safetySpace = discretize(insur::geom_epsilon);           /**< the safety space between sections */
   //const double Materialway::globalMaxZ_mm = insur::max_length;                     /**< the Z coordinate of the end point of the sections */
   //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
