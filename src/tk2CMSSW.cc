@@ -170,10 +170,10 @@ namespace insur {
             std::cout << std::endl;
         }
         std::cout << "rotations: " << data.rots.size() << " entries." << std::endl;
-        for (unsigned int i = 0; i < data.rots.size(); i++) {
-            std::cout << "name = " << data.rots.at(i).name << ", thetax = " << data.rots.at(i).thetax << ", phix = ";
-            std::cout << data.rots.at(i).phix << ", thetay = " << data.rots.at(i).thetay << ", phiy = " << data.rots.at(i).phiy;
-            std::cout << ", thetaz = " << data.rots.at(i).thetaz << ", phiz = " << data.rots.at(i).phiz << std::endl;
+        for (auto const &it : data.rots) {
+            std::cout << "name = " << it.second.name << ", thetax = " << it.second.thetax << ", phix = ";
+            std::cout << it.second.phix << ", thetay = " << it.second.thetay << ", phiy = " << it.second.phiy;
+            std::cout << ", thetaz = " << it.second.thetaz << ", phiz = " << it.second.phiz << std::endl;
         }
         std::cout << "logic: " << data.logic.size() << " entries." << std::endl;
         for (unsigned int i = 0; i < data.logic.size(); i++) {
@@ -188,8 +188,12 @@ namespace insur {
                 std::cout << data.shapes.at(i).dz;
                 break;
                 case tb: std::cout << "tube, rmin = " << data.shapes.at(i).rmin << ", rmax = " << data.shapes.at(i).rmax;
-                std::cout << ", dz = " << data.shapes.at(i).dz;
-                break;
+		std::cout << ", dz = " << data.shapes.at(i).dz;
+		break;
+	        case co: std::cout << "cone, rmin1 = " << data.shapes.at(i).rmin1 << ", rmax1 = " << data.shapes.at(i).rmax1;
+	        std::cout << ", rmin2 = " << data.shapes.at(i).rmin2 << ", rmax2 = " << data.shapes.at(i).rmax2;
+	        std::cout << ", dz = " << data.shapes.at(i).dz;
+	        break;
                 case tp: std::cout << "trapezoid, dx = " << data.shapes.at(i).dx << ", dy = " << data.shapes.at(i).dy;
                 std::cout << ", dyy = " << data.shapes.at(i).dyy << ", dz = " << data.shapes.at(i).dz;
                 break;

@@ -1,0 +1,85 @@
+
+Materials FPX_R1 {
+  type module
+
+  // Default sensor:
+  ReferenceSensor 1 {
+    numStripsAcross 1024
+    numSegments 128
+  }
+
+  // Modules
+  Component {
+    componentName Module
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName SenSi
+      quantity 0.2
+      unit mm
+    }
+    Element {
+      elementName Si
+      quantity 0.15
+      unit mm
+    }
+    Element {
+      elementName PS-FEH-mix
+      quantity 0.15
+      unit mm
+    }
+    Element {
+      elementName Cu
+      quantity 0.05
+      unit mm
+    }
+    // Support
+    Element {
+      elementName CF
+      quantity 0.2
+      unit mm
+    }
+    Element {
+      elementName Pix_Bumps
+      quantity 0.017
+      unit mm
+    }
+    Element {
+      elementName Pix_Caps
+      quantity 0.939
+      unit g
+    }
+  }
+
+
+
+
+  // (2+1) TWP/module
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors
+    Element {
+      elementName Cu_R1
+      quantity 0.663
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName Kapton
+      quantity 0.057
+      unit g/m
+    }
+  }
+
+
+
+
+
+
+
+
+
+}
+

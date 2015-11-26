@@ -15,6 +15,7 @@
 #include "InactiveRing.h"
 #include "InactiveSurfaces.h"
 #include "Barrel.h"
+#include "Endcap.h"
 
 using insur::InactiveTube;
 using insur::InactiveRing;
@@ -34,13 +35,13 @@ namespace material {
 
 
   SupportStructure::SupportStructure() :
-    componentsNode("Component", parsedOnly()),
-    type("type", parsedAndChecked()),
-    autoPosition("autoPosition", parsedOnly()),
-    customZMin("customZMin", parsedOnly()),
-    customRMin("customRMin", parsedOnly()),
-    customLength("customLength", parsedOnly()),
-    customDir("customDir", parsedOnly())
+    componentsNode("Component"   , parsedOnly()),
+    type(          "type"        , parsedAndChecked()),
+    autoPosition(  "autoPosition", parsedOnly()),
+    customZMin(    "customZMin"  , parsedOnly()),
+    customRMin(    "customRMin"  , parsedOnly()),
+    customLength(  "customLength", parsedOnly()),
+    customDir(     "customDir"   , parsedOnly())
   {}
   
   void SupportStructure::buildInTracker() {
@@ -65,12 +66,13 @@ namespace material {
         }
 
         buildInactiveElementPair(direction_, customZMin(), customRMin(), customLength());
+        logINFO("Building custom support structure, positioned at Z: "+any2str(customZMin())+ " R: "+any2str(customRMin())+" of length: "+any2str(customLength()));
       } else {
         logERROR("Property customZMin, customRMin, customLength, or customDir not set.");
         return;
       }
     } else {
-      logERROR("Support type \"" + type() + "\" defined in wrong place.");
+      logERROR("Support type \"" + type() + "\" not supported at the Tracker level.");
       return;
     }
 
@@ -94,76 +96,116 @@ namespace material {
       if (autoPosition.state()) {
         direction_ = VERTICAL; //AUTO supports are only for barrels, and vertical
 
-        std::set<double> layerRadiuses; //use set for ordering safe check
+        std::set<double> layerRadii; //use set for ordering safe check
 
-        // class LayerVisitor : public ConstGeometryVisitor {
-        // private:
-        //   std::set<double>& layerRadiuses_;
-        //   const double& autoLayerMarginUpper_;
-        //   const double& autoLayerMarginLower_;
+         /* class LayerVisitor : public ConstGeometryVisitor {
+         private:
+           std::set<double>& layerRadiuses_;
+           const double& autoLayerMarginUpper_;
+           const double& autoLayerMarginLower_;
           
-        // public:
-        //   LayerVisitor(std::set<double>& layerRadiuses, const double& autoLayerMarginUpper, const double& autoLayerMarginLower) : 
-        //     layerRadiuses_(layerRadiuses),
-        //     autoLayerMarginUpper_(autoLayerMarginUpper),
-        //     autoLayerMarginLower_(autoLayerMarginLower)
-        //   {};
+         public:
+           LayerVisitor(std::set<double>& layerRadiuses, const double& autoLayerMarginUpper, const double& autoLayerMarginLower) :
+             layerRadiuses_(layerRadiuses),
+             autoLayerMarginUpper_(autoLayerMarginUpper),
+             autoLayerMarginLower_(autoLayerMarginLower)
+           {};
           
-        //   void visit(Layer& layer) {
-        //     layerRadiuses_.insert(layer.minR() - autoLayerMarginUpper_);
-        //     layerRadiuses_.insert(layer.maxR() + autoLayerMarginLower_);
-        //   }
-        // };
+           void visit(Layer& layer) {
+             layerRadiuses_.insert(layer.minR() - autoLayerMarginUpper_);
+             layerRadiuses_.insert(layer.maxR() + autoLayerMarginLower_);
+           }
+         };
 
-        // LayerVisitor visitor(layerRadiuses, autoLayerMarginUpper, autoLayerMarginLower);
-        // barrel.accept(visitor);
+         LayerVisitor visitor(layerRadiuses, autoLayerMarginUpper, autoLayerMarginLower);
+         barrel.accept(visitor); */
 
         //get radiuses around layers
         for(const Layer& layer : barrel.layers()) {
-          layerRadiuses.insert(layer.minR() - autoLayerMarginUpper);
-          layerRadiuses.insert(layer.maxR() + autoLayerMarginLower);
+          layerRadii.insert(layer.minR() - autoLayerMarginUpper);
+          layerRadii.insert(layer.maxR() + autoLayerMarginLower);
         }
-
-        if(layerRadiuses.size() < 4) {
+        if(layerRadii.size() < 4) {
           logERROR("Barrel with only one or zero layers. Auto support impossible to build.");
           return;
         }
 
         //delete minimum and maximum useless radiuses (support structure only in the inner spaces)
-        layerRadiuses.erase(layerRadiuses.begin());
-        layerRadiuses.erase(std::prev(layerRadiuses.end()));
+        layerRadii.erase(layerRadii.begin());
+        layerRadii.erase(std::prev(layerRadii.end()));
 
         //build inactiveElements inside spaces
-        for(std::set<double>::iterator minIter = layerRadiuses.begin(), maxIter = ++ layerRadiuses.begin(); minIter != layerRadiuses.end(); std::advance(minIter,2), std::advance(maxIter,2)) {
+        for(std::set<double>::iterator minIter = layerRadii.begin(), maxIter = ++ layerRadii.begin(); minIter != layerRadii.end(); std::advance(minIter,2), std::advance(maxIter,2)) {
           buildInactiveElementPair(direction_, autoPosition(), *minIter, *maxIter - *minIter);
         }
+        logINFO("Building barrel support structure vertically oriented, positioned at Z: "+any2str(autoPosition()));
       } else {
         logERROR("Property autoPosition not set.");
         return;
       }
       break;
-
     case TOP :
-      direction_ = HORIZONTAL; //TOP and BOTTOM supports are only for barrels, and horizontal
+      direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, barrel.minZ()),
-                               barrel.maxR() + autoLayerMarginLower,
+                               barrel.maxR() + insur::geom_support_margin_top, //autoLayerMarginLower,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
+      //std::cout << ">>Top barrel support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      logINFO("Building barrel top support structure horizontally oriented");
       break;
-
     case BOTTOM :
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, barrel.minZ()),
-                               barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
+                               barrel.minR() - insur::geom_support_margin_bottom, //inactiveElementWidth - autoLayerMarginUpper,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
+      //std::cout << ">>Bottom barrel support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      logINFO("Building barrel bottom support structure horizontally oriented");
       break;
-
     default :
-      logERROR("Support type \"" + type() + "\" defined in wrong place.");
+      logERROR("Support type \"" + type() + "\" not supported at the barrel level.");
+      return;
+    }
+    cleanup();
+  }
+
+  void SupportStructure::buildInEndcap(Endcap& endcap) {
+
+    InactiveElement* inactiveElement;
+    buildBase();
+
+    try {
+      supportType_ = typeStringMap.at(type());
+    }  catch (const std::out_of_range& ex) {
+      logERROR("Unrecognized value " + type() + ".");
       return;
     }
 
+    switch(supportType_) {
+    case TOP :
+
+      direction_ = HORIZONTAL;
+      buildInactiveElementPair(direction_,
+                               MAX(0, endcap.minZ()),
+                               endcap.maxR() + insur::geom_support_margin_top, //autoLayerMarginLower,
+                               endcap.maxZ() - MAX(0, endcap.minZ()));
+      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      logINFO("Building end-cap top support structure horizontally oriented");
+      break;
+    case BOTTOM :
+
+      direction_ = HORIZONTAL;
+      buildInactiveElementPair(direction_,
+                               MAX(0, endcap.minZ()),
+                               endcap.minR() - insur::geom_support_margin_bottom, //autoLayerMarginUpper,//inactiveElementWidth - autoLayerMarginUpper,
+                               endcap.maxZ() - MAX(0, endcap.minZ()));
+      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+      logINFO("Building end-cap bottom support structure horizontally oriented");
+      break;
+    default :
+      logERROR("Support type \"" + type() + "\" not supported at the end-cap level.");
+      return;
+    }
     cleanup();
   }
 

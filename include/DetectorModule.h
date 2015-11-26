@@ -1,6 +1,8 @@
 #ifndef DETECTOR_MODULE_H
 #define DETECTOR_MODULE_H
 
+#include <limits.h>
+
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include "Sensor.h"
@@ -59,6 +61,9 @@ protected:
 public:
   void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
   ModuleCap* getModuleCap() { return myModuleCap_ ; }
+
+  //virtual bool hasAnyResolutionLocalXParam();
+  //virtual bool hasAnyResolutionLocalYParam();
 
   Property<int16_t, AutoDefault> side;
   
@@ -134,13 +139,14 @@ public:
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
-  { }
+	{ }
 
-  virtual void setup();
-
-  virtual void build();
-// Geometric module interface
-  const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
+    virtual bool hasAnyResolutionLocalXParam() const = 0;
+    virtual bool hasAnyResolutionLocalYParam() const = 0;
+    virtual void setup();
+    virtual void build();
+    // Geometric module interface
+    const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
 
   const XYZVector& center() const { return decorated().center(); }
   const XYZVector& normal() const { return decorated().normal(); }
@@ -162,15 +168,27 @@ public:
   double tiltAngle() const { return tiltAngle_; }
   double skewAngle() const { return skewAngle_; }
 
-  double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta) const;
-  double resolutionEquivalentRPhi(double hitRho, double trackR) const;
+  double alpha (double trackPhi) const {
+    double deltaPhi = center().Phi() + skewAngle() - trackPhi;
+    if (fabs(deltaPhi) > M_PI/2.) {
+      if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
+      else deltaPhi = deltaPhi - 2.*M_PI;
+    }  
+    double alpha = deltaPhi + M_PI / 2.;
+    return alpha; 
+  }
+  double beta (double theta) const { return theta + tiltAngle(); }
+  virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
+  virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
+  double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
+  double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
   void translateZ(double z) { decorated().translate(XYZVector(0, 0, z)); clearSensorPolys(); }
-  void translateR(double radius) { 
+  void translateR(double radius) {
     XYZVector v = rAxis_.Unit()*radius;
-    decorated().translate(v); 
+    decorated().translate(v);
     clearSensorPolys();
   }
   void mirrorZ() { 
@@ -226,10 +244,10 @@ public:
   const Sensor& outerSensor() const { return sensors_.back(); }
   ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
   int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
-  int minSegments() const { int segm = 999999; for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
+  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
   int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
-  int minChannels() const { int min = 999999; for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
+  int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
 
   double totalPowerModule() const { return powerModuleOptical() + powerModuleChip(); }
@@ -268,26 +286,82 @@ public:
   int16_t ring() const { return (int16_t)myid(); }
   int16_t moduleRing() const { return ring(); }
   Property<int16_t, AutoDefault> rod;
+  ReadonlyProperty<double, NoDefault> cotalphaLimit;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Inf;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam0Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam1Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXBarrelParam2Sup;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam3;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYBarrelParam4;
 
+ BarrelModule(Decorated* decorated) :
+  DetectorModule(decorated),
+    cotalphaLimit                           ("cotalphaLimit"                           , parsedOnly()),
+    resolutionLocalXBarrelParam0Inf         ("resolutionLocalXBarrelParam0Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam1Inf         ("resolutionLocalXBarrelParam1Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam2Inf         ("resolutionLocalXBarrelParam2Inf"         , parsedOnly()),
+    resolutionLocalXBarrelParam0Sup         ("resolutionLocalXBarrelParam0Sup"         , parsedOnly()),
+    resolutionLocalXBarrelParam1Sup         ("resolutionLocalXBarrelParam1Sup"         , parsedOnly()),
+    resolutionLocalXBarrelParam2Sup         ("resolutionLocalXBarrelParam2Sup"         , parsedOnly()),
+    resolutionLocalYBarrelParam0            ("resolutionLocalYBarrelParam0"            , parsedOnly()),
+    resolutionLocalYBarrelParam1            ("resolutionLocalYBarrelParam1"            , parsedOnly()),
+    resolutionLocalYBarrelParam2            ("resolutionLocalYBarrelParam2"            , parsedOnly()),
+    resolutionLocalYBarrelParam3            ("resolutionLocalYBarrelParam3"            , parsedOnly()),
+    resolutionLocalYBarrelParam4            ("resolutionLocalYBarrelParam4"            , parsedOnly())
+      { setup(); }
 
-  BarrelModule(Decorated* decorated);
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXBarrelParam0Inf.state() || resolutionLocalXBarrelParam1Inf.state() || resolutionLocalXBarrelParam2Inf.state() || resolutionLocalXBarrelParam0Sup.state() || resolutionLocalXBarrelParam1Sup.state() || resolutionLocalXBarrelParam2Sup.state()); }
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
+  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYBarrelParam0.state() || resolutionLocalYBarrelParam1.state() || resolutionLocalYBarrelParam2.state() || resolutionLocalYBarrelParam3.state() || resolutionLocalYBarrelParam4.state()); }
+
+  void accept(GeometryVisitor& v) {
+    v.visit(*this);
     v.visit(*(DetectorModule*)this);
-    decorated().accept(v); 
+    decorated().accept(v);
   }
-  void accept(ConstGeometryVisitor& v) const { 
-    v.visit(*this); 
+  void accept(ConstGeometryVisitor& v) const {
+    v.visit(*this);
     v.visit(*(const DetectorModule*)this);
-    decorated().accept(v); 
+    decorated().accept(v);
   }
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());});
-    maxPhi.setup([&](){return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());});
+    minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+    resolutionLocalX.setup([this]() {
+	// only set up this if no model parameter specified
+	//std::cout <<  "hasAnyResolutionLocalYParam() = " <<  hasAnyResolutionLocalYParam() << std::endl;
+
+	if (!hasAnyResolutionLocalXParam()) {
+	  //std::cout << "resolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
+	  double res = 0;
+	  for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	  return sqrt(res)/numSensors();
+	}
+	// if model parameters specified, return -1
+	else return -1.0;
+      });
+    resolutionLocalY.setup([this]() {
+	// only set up this if no model parameters not specified
+	if (!hasAnyResolutionLocalYParam()) {
+	  //std::cout << "resolutionLocalY and resolutionLocalYBarrel parameters are all unset. Use of default formulae." << std::endl;
+	    if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
+	    else {
+	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
+	    }
+	  }
+	// if model parameters specified, return -1
+	else return -1.0;
+      });
   }
+  
+  void check() override;
 
   void build();
 
@@ -298,6 +372,15 @@ public:
   //double minR() const { return center().Rho(); }//MIN(basePoly().getVertex(0).Rho(), basePoly().getVertex(2).Rho()); }
 
   virtual ModuleSubdetector subdet() const { return BARREL; }
+
+  double calculateParameterizedResolutionLocalX(double trackPhi) const { 
+    double resolutionLocalXBarrelParam0, resolutionLocalXBarrelParam1, resolutionLocalXBarrelParam2;
+    if ((1./tan(alpha(trackPhi))) < cotalphaLimit()) { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Inf(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Inf(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Inf(); }
+    else { resolutionLocalXBarrelParam0 = resolutionLocalXBarrelParam0Sup(); resolutionLocalXBarrelParam1 = resolutionLocalXBarrelParam1Sup(); resolutionLocalXBarrelParam2 = resolutionLocalXBarrelParam2Sup(); }
+    return resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * 1./tan(alpha(trackPhi)) + resolutionLocalXBarrelParam2 * pow(1./tan(alpha(trackPhi)), 2); 
+}
+
+  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYBarrelParam0() + resolutionLocalYBarrelParam1() * exp(-resolutionLocalYBarrelParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYBarrelParam3() * fabs(1./tan(beta(theta))) + resolutionLocalYBarrelParam4()); }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? ring() : -ring()), layer(), rod() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), layer(), ring() }; }
@@ -313,14 +396,55 @@ public:
   int16_t moduleRing() const { return ring(); };
   int16_t blade() const { return (int16_t)myid(); } // CUIDADO Think of a better name!
   int16_t side() const { return (int16_t)signum(center().Z()); }
+  //bool hasAnyResolutionLocalXParam() override { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
+  //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
 
-  EndcapModule(Decorated* decorated);
+ EndcapModule(Decorated* decorated) :
+  DetectorModule(decorated),
+    resolutionLocalXEndcapParam0            ("resolutionLocalXEndcapParam0"            , parsedOnly()),
+    resolutionLocalXEndcapParam1            ("resolutionLocalXEndcapParam1"            , parsedOnly()),
+    resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
+    resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
+      { setup(); }
+
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
+  
+  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    maxPhi.setup([&](){return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    resolutionLocalX.setup([this]() {
+	// only set up this if no model parameter specified
+	if (!hasAnyResolutionLocalXParam()) {
+	  //std::cout << "resolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
+	    double res = 0;
+	    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	    return sqrt(res)/numSensors();
+	  }
+	// if model parameters specified, return -1
+	else return -1.0;
+      });
+    resolutionLocalY.setup([this]() {
+	// only set up this if no model parameters not specified
+	if (!hasAnyResolutionLocalYParam()) {
+	  //std::cout << "resolutionLocalY and resolutionLocalYEndcap parameters are all unset. Use of default formulae." << std::endl;
+	    if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
+	    else {
+	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
+	    }
+	  }
+	// if model parameters specified, return -1
+	else return -1.0;
+      });
   }
+
+  void check() override;
 
   void build();
 
@@ -329,7 +453,7 @@ public:
     v.visit(*(DetectorModule*)this);
     decorated().accept(v); 
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     v.visit(*(const DetectorModule*)this);
     decorated().accept(v); 
@@ -344,6 +468,10 @@ public:
 
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
+
+  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi)); }
+
+  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }
