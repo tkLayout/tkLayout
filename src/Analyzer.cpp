@@ -67,37 +67,7 @@ namespace insur {
     geomLiteEC         = nullptr; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
-
-    //etaMaxMaterial = 3.1;
-    etaMaxGeometry = 2.6;
-
-    trackingCuts.push_back(0.01);
-    triggerCuts.push_back(0.01);
-    double detaTrack = 0.8;
-    // TODO: make this configurable
-    addCut("C", detaTrack, detaTrack);
-    addCut("I", detaTrack*2, detaTrack*2);
-    addCut("F", detaTrack*3, detaTrack*3);
-    addCut("VF",detaTrack*4, detaTrack*4);
-    addCut("WF",detaTrack*5, detaTrack*5);
   }
-
-  // public
-  // TODO: add documentation for this function
-  void Analyzer::addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut) {
-    cutNames.push_back(cutName);
-    trackingCuts.push_back(trackingCut);
-    triggerCuts.push_back(triggerCut);
-  }
-
-  double Analyzer::getEtaMaxTracking() {
-    return trackingCuts[trackingCuts.size()-1];
-  }
-
-  double Analyzer::getEtaMaxTrigger() {
-    return triggerCuts[triggerCuts.size()-1];
-  }
-
 
   // private
   /* High-level function finding all hits for a given tracker (and pixel)
