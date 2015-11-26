@@ -364,11 +364,16 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
-    void clearGraphs(int graphAttributes, const std::string& aTag);
-    void calculateGraphs(const int& aMomentum,
-                         const TrackCollection& aTrackCollection,
-                         int graphAttributes,
-                         const string& graphTag);
+    void clearGraphsPt(int graphAttributes, const std::string& aTag);
+    void clearGraphsP(int graphAttributes, const std::string& aTag);
+    void calculateGraphsConstPt(const int& aMomentum,
+                                const TrackCollection& aTrackCollection,
+                                int graphAttributes,
+                                const string& graphTag);
+    void calculateGraphsConstP(const int& aMomentum,
+                               const TrackCollection& aTrackCollection,
+                               int graphAttributes,
+                               const string& graphTag);
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
