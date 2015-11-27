@@ -193,13 +193,18 @@ $(LIBDIR)/messageLogger.o: $(SRCDIR)/messageLogger.cpp $(INCDIR)/messageLogger.h
 	$(COMP) -c -o $(LIBDIR)/messageLogger.o $(SRCDIR)/messageLogger.cpp
 
 #EXOCOM
-exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
+exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
 	@echo "Built target 'exocom'."
 
 $(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
 	@echo "Building target MatParser.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatParser.o $(SRCDIR)/MatParser.cc
 	@echo "Built target MatParser.o"
+
+$(LIBDIR)/PixelExtractor.o: $(SRCDIR)/PixelExtractor.cc $(INCDIR)/PixelExtractor.h
+	@echo "Building target PixelExtractor.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PixelExtractor.o $(SRCDIR)/PixelExtractor.cc
+	@echo "Built target PixelExtractor.o"
 
 $(LIBDIR)/Extractor.o: $(SRCDIR)/Extractor.cc $(INCDIR)/Extractor.h
 	@echo "Building target Extractor.o..."
@@ -414,7 +419,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+  $(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
@@ -431,7 +436,7 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \

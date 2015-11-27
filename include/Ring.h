@@ -38,37 +38,40 @@ class Ring : public PropertyObject, public Buildable, public Identifiable<int>, 
 
   Property<ModuleShape, NoDefault> moduleShape;
   Property<double, Default> phiOverlap;
-  Property<bool, Default> requireOddModsPerSlice;
-  Property<int, Default> phiSegments;
-  Property<int, Default> additionalModules;
-  Property<bool, Default> alignEdges;
+  Property<bool  , Default> requireOddModsPerSlice;
+  Property<int   , Default> phiSegments;
+  Property<int   , Default> additionalModules;
+  Property<bool  , Default> alignEdges;
   Property<double, Default> ringGap;
-  Property<int, Default> smallParity;
+  Property<int   , Default> smallParity;
 
   double minRadius_, maxRadius_;
+  double averageZ_ = 0;
 
 public:
   enum BuildDirection { TOPDOWN, BOTTOMUP };
-  Property<int, AutoDefault> disk;
+
   ReadonlyProperty<double, NoDefault> smallDelta;
+  ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<BuildDirection, NoDefault> buildDirection;
+  Property<int   , AutoDefault> disk;
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
-  Property<int, NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
-  ReadonlyProperty<double, Computable> maxModuleThickness;
+  Property<int   , NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
+
   Property<double, Default> zRotation;
   Property<double, Default> ringOuterRadius;
   Property<double, Default> ringInnerRadius;
 
-
-  double minR() const { return minRadius_; }
-  double maxR() const { return maxRadius_; }
+  double minR()      const { return minRadius_; }
+  double maxR()      const { return maxRadius_; }
   double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
 
   const Container& modules() const { return modules_; }
 
-
+  int nModules() const { return modules_.size(); }
+ 
   Ring() :
       materialObject_(MaterialObject::ROD),
       moduleShape           ("moduleShape"           , parsedAndChecked()),
@@ -87,7 +90,7 @@ public:
   {}
 
   void setup() {
-    minZ.setup([this]() { double min = INT_MAX; for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
+    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
     maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
     maxModuleThickness.setup([this]() { 
       double max = 0; 
@@ -103,6 +106,7 @@ public:
 
   void translateZ(double z);
   void mirrorZ();
+  double averageZ() const { return averageZ_; }
   void cutAtEta(double eta);
 
   void accept(GeometryVisitor& v) { 

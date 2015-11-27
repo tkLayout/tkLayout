@@ -86,7 +86,7 @@ public:
         return max;
       });
       minR.setup([this]() {
-        double min = INT_MAX; 
+        double min = std::numeric_limits<double>::max(); 
         for (const auto& b : barrels_) min = MIN(min, b.minR());
         for (const auto& e : endcaps_) min = MIN(min, e.minR());
         return min;

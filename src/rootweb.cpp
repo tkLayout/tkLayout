@@ -1,7 +1,5 @@
 #include <rootweb.hh>
 
-#include <messageLogger.h>
-
 int RootWImage::imageCounter_ = 0;
 std::map <std::string, int> RootWImage::imageNameCounter_;
 
@@ -78,7 +76,7 @@ ostream& RootWTable::dump(ostream& output) {
       }
       output << ">";
       output << myTableContent[make_pair(iRow, iCol)];
-      output << "</" << myColorCode << ">" << " ";
+      output << "</" << myCellCode << ">" << " ";
     }
     output << "</tr>";
   }
@@ -398,8 +396,13 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
     } else if (
 	       (myClass=="TProfile") ||
 	       (myClass=="TGraph") ||
+	       (myClass=="TGraphErrors") ||
+	       (myClass=="TH1I") ||
+	       (myClass=="TH1F") ||
 	       (myClass=="TH1D") ||
 	       (myClass=="TH2C") ||
+	       (myClass=="TH2I") ||
+	       (myClass=="TH2F") ||
 	       (myClass=="TH2D") ||
 	       (myClass=="THStack") 
 	       ) {
@@ -417,10 +420,12 @@ void RootWImage::saveSummaryLoop(TPad* basePad, std::string baseName, TFile* myT
 	       (myClass=="TLine") ||
 	       (myClass=="TPaveText") ||
 	       (myClass=="TPolyLine") ||
-	       (myClass=="TText") 
+	       (myClass=="TText") ||
+	       (myClass=="TArc") || 
+	       (myClass=="TBox") 
 	       ) {
     } else {
-      logWARNING(Form("Unhandled class %s", myClass.c_str()));
+      std::cerr << Form("Unhandled class %s", myClass.c_str()) << std::endl;
     }
   }
 }

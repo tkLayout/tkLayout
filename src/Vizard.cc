@@ -1213,7 +1213,9 @@ namespace insur {
         diskTable->setContent(2, 0, "# mod");
         ringTable->setContent(0, 0, "Ring");
         ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"max"+subEnd);
+        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
+        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
@@ -1290,7 +1292,9 @@ namespace insur {
           int aRing=(*typeIt).first;
           ringTable->setContent(0, aRing, aRing);
           ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          ringTable->setContent(2, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+          ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
         }
       }
     };
@@ -4673,6 +4677,46 @@ namespace insur {
     myTextFile->addText(myStringStream.str());
     myContent.addItem(myTextFile);
 
+  }
+  //create an extra tab for xml file linking
+    bool Vizard::createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir) {
+    RootWPage* myPage = new RootWPage("XML");
+    myPage->setAddress("xml.html");
+    site.addPage(myPage);
+
+    std::vector<std::string> pixelxmlfilenames,trackerxmlfilenames;
+    boost::filesystem::path xmlDirectory(xmldir);
+    boost::filesystem::directory_iterator end_iter;
+    if ( boost::filesystem::exists(xmlDirectory) && boost::filesystem::is_directory(xmlDirectory)) {
+      for( boost::filesystem::directory_iterator dir_iter(xmlDirectory) ; dir_iter != end_iter ; ++dir_iter) {
+         if ( boost::filesystem::is_regular_file( dir_iter->path() ) ) {
+            // assign current file name to current_file and echo it out to the console.
+            std::string current_file =dir_iter->path().filename().string();
+            std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
+             if( current_file.find(".xml") != std::string::npos ) {
+              boost::filesystem::copy_file( dir_iter->path(),
+                                            layoutdir + current_file,
+                                            boost::filesystem::copy_option::overwrite_if_exists);
+              if( current_file.find("pixel") != std::string::npos )
+                pixelxmlfilenames.push_back(current_file);
+              else 
+                trackerxmlfilenames.push_back(current_file);
+             }
+        }
+      }
+    }
+    else std::cerr << "XML directory does not exist" << std::endl;
+
+    RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
+                                          "xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
+ 
+    RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
+                                          "xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
+    RootWContent* content = new RootWContent("xml files");
+    content->addItem(pxFileList);
+    content->addItem(tkFileList);
+    myPage->addContent(content);
+    
   }
 
 }

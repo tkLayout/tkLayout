@@ -1,7 +1,7 @@
 #include "Tracker.h"
 
 std::pair<double, double> Tracker::computeMinMaxEta() const {
-  double min = INT_MAX, max = 0;
+  double min = std::numeric_limits<double>::max(), max = 0;
   for (auto m : modules()) {
     min = MIN(min, m->minEta());
     max = MAX(max, m->maxEta());

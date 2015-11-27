@@ -183,7 +183,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   std::map<std::string, TrackCollectionMap> taggedTrackCollectionMapIdeal;
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-    phi = myDice.Rndm() * PI * 2.0;
+    phi = myDice.Rndm() * M_PI * 2.0;
     Material tmp;
     Track track;
     eta = i_eta * etaStep;
@@ -305,7 +305,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
 
     // Loop over nTracks (eta range [0, getEtaMaxTrigger()])
     for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-      phi = myDice.Rndm() * PI * 2.0;
+      phi = myDice.Rndm() * M_PI * 2.0;
       z0 = myDice.Gaus(0, zError);
       int nHits;
       Track track;
@@ -495,11 +495,11 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   // std::vector<Track> tvIdeal;
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
-    phi = myDice.Rndm() * PI * 2.0;
+    phi = myDice.Rndm() * M_PI * 2.0;
     Material tmp;
     Track track;
     eta = i_eta * etaStep;
-    theta = 2 * atan(pow(E, -1 * eta)); // TODO: switch to exp() here
+    theta = 2 * atan(exp(-eta)); // TODO: switch to exp() here
     track.setTheta(theta);
     track.setPhi(phi);
     //      active volumes, barrel
