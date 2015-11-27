@@ -71,15 +71,20 @@ namespace insur {
   static const std::string graph_nowrite = "Neighbour graph was not written to file.";
 
   // Some strings for the html formatting
-  static const std::string subStart = "<sub>";      // These only should be needed
-  static const std::string subEnd = "</sub>";
+  static const std::string subStart   = "<sub>";      // These only should be needed
+  static const std::string subEnd     = "</sub>";
   static const std::string superStart = "<sup>";
-  static const std::string superEnd = "</sup>";
+  static const std::string superEnd   = "</sup>";
   static const std::string smallStart = "<small>";
-  static const std::string smallEnd = "</small>";
-  static const std::string emphStart="<b>";
-  static const std::string emphEnd="</b>";
-  static const std::string muLetter = "&mu;";
+  static const std::string smallEnd   = "</small>";
+  static const std::string emphStart  = "<b>";
+  static const std::string emphEnd    = "</b>";
+  static const std::string muLetter   = "&mu;";
+  static const std::string etaLetter  = "&eta;";
+  static const std::string phiLetter  = "&phi;";
+  static const std::string thetaLetter= "&theta;";
+  static const std::string deltaLetter= "&delta;";
+
   //clearStart="<tt>";
   //clearEnd="</tt>";
 
@@ -88,10 +93,12 @@ namespace insur {
   static const int materialRebin = 2;
 
   // Colors for plot background and such
-  static const int color_plot_background = kWhite;
-  static const int color_pad_background = kGray;
-  static const int color_grid = kGreen-10;
-  static const int color_hard_grid = kGray;
+  static const int color_plot_background       = kWhite;
+  static const int color_pad_background        = kGray;
+  static const int color_grid                  = kGreen-10;
+  static const int color_hard_grid             = kGray;
+  static const std::vector<string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
+
 
   // Pads to plot the tracker ortho views
   static const unsigned int padYZ = 1;
@@ -269,7 +276,7 @@ namespace insur {
     void createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
-    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();
