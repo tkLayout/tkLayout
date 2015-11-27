@@ -57,8 +57,12 @@ public:
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
-  Property<std::string, Default> chargedMapFile;   // Map of charged hadron fluxes, segmented in R x Z
-  Property<std::string, Default> photonsMapFile;   // Map of photon fluxes, segmented in R x Z
+  Property<std::string, Default> chargedMapFile;         // Map of charged hadron fluxes, segmented in R x Z
+  Property<std::string, Default> chargedNoBMapFile;      // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied
+  Property<std::string, Default> chargedNoBNoMatMapFile; // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied, no material
+  Property<std::string, Default> photonsMapFile;         // Map of photon fluxes, segmented in R x Z
+  Property<std::string, Default> photonsNoBMapFile;      // Map of photon fluxes, segmented in R x Z, no mag. field applied
+  Property<std::string, Default> photonsNoBNoMatMapFile; // Map of photon fluxes, segmented in R x Z, no mag. field applied, no material
 
   Property<        double, NoDefault> minTracksEta, maxTracksEta;
   PropertyNode<std::string>           taggedTracking;
@@ -96,6 +100,10 @@ public:
       //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
       chargedMapFile(        "chargedMapFile"        , parsedOnly(), std::string("")),
       photonsMapFile(        "photonsMapFile"        , parsedOnly(), std::string("")),
+      chargedNoBMapFile(     "chargedNoBMapFile"     , parsedOnly(), std::string("")),
+      photonsNoBMapFile(     "photonsNoBMapFile"     , parsedOnly(), std::string("")),
+      chargedNoBNoMatMapFile("chargedNoBNoMatMapFile", parsedOnly(), std::string("")),
+      photonsNoBNoMatMapFile("photonsNoBNoMatMapFile", parsedOnly(), std::string("")),
       minTracksEta(          "minTracksEta"          , parsedOnly()),
       maxTracksEta(          "maxTracksEta"          , parsedOnly()),
       taggedTracking(        "TaggedTracking"        , parsedOnly())

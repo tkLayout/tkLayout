@@ -26,76 +26,39 @@ AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string ph
   m_photonsMap = new IrradiationMap(photonsFileName);
   m_chargedMap = new IrradiationMap(chargedFileName);
 
-  m_hisChargedFlux = nullptr;
-  m_hisPhotonsFlux = nullptr;
+  m_photonsMapNoB      = nullptr;
+  m_photonsMapNoBNoMat = nullptr;
+  m_chargedMapNoB      = nullptr;
+  m_chargedMapNoBNoMat = nullptr;
+
+  m_hisChargedFlux         = nullptr;
+  m_hisPhotonsFlux         = nullptr;
+  m_hisChargedNoBFlux      = nullptr;
+  m_hisChargedNoBNoMatFlux = nullptr;
+  m_hisPhotonsNoBFlux      = nullptr;
+  m_hisPhotonsNoBNoMatFlux = nullptr;
 }
 
 AnalyzerOccupancy::~AnalyzerOccupancy()
 {
   delete m_photonsMap;
   delete m_chargedMap;
+
+  if (m_photonsMapNoB     !=nullptr) delete m_photonsMapNoB;
+  if (m_photonsMapNoBNoMat!=nullptr) delete m_photonsMapNoBNoMat;
+  if (m_chargedMapNoB     !=nullptr) delete m_chargedMapNoB;
+  if (m_chargedMapNoBNoMat!=nullptr) delete m_chargedMapNoBNoMat;
 }
 
 bool AnalyzerOccupancy::calculate(double etaStep)
 {
-  // Make & fill flux histograms
-  if (m_chargedMap->isOfTypeMesh()) {
-    m_hisChargedFlux = new TH2D("ChargedFluxPerPP", "Flux of charged particles [cm^{-2}] per pp collision",
-                                m_chargedMap->getZNBins(), m_chargedMap->getZMin()-m_chargedMap->getZBinWidth()/2., m_chargedMap->getZMax()+m_chargedMap->getZBinWidth()/2.,
-                                m_chargedMap->getRNBins(), m_chargedMap->getRMin()-m_chargedMap->getRBinWidth()/2., m_chargedMap->getRMax()+m_chargedMap->getRBinWidth()/2.);
-  }
-  else {
-    m_hisChargedFlux = new TH2D("ChargedFluxPerPP", "Flux of charged particles [cm^{-2}] per pp collision",
-                                m_chargedMap->getZNBins(), m_chargedMap->getZMin(), m_chargedMap->getZMax(),
-                                m_chargedMap->getRNBins(), m_chargedMap->getRMin(), m_chargedMap->getRMax());
-  }
-  if (m_photonsMap->isOfTypeMesh()) {
-    m_hisPhotonsFlux = new TH2D("PhotonsFluxPerPP", "Flux of photons [cm^{-2}] per pp collision",
-                                m_photonsMap->getZNBins(), m_photonsMap->getZMin()-m_photonsMap->getZBinWidth()/2., m_photonsMap->getZMax()+m_photonsMap->getZBinWidth()/2.,
-                                m_photonsMap->getRNBins(), m_photonsMap->getRMin()-m_photonsMap->getRBinWidth()/2., m_photonsMap->getRMax()+m_photonsMap->getRBinWidth()/2.);
-  }
-  else {
-    m_hisPhotonsFlux = new TH2D("PhotonsFluxPerPP", "Flux of photons [cm^{-2}] per pp collision",
-                                m_photonsMap->getZNBins(), m_photonsMap->getZMin(), m_photonsMap->getZMax(),
-                                m_photonsMap->getRNBins(), m_photonsMap->getRMin(), m_photonsMap->getRMax());
-  }
-
-  for (int zBin=0; zBin<m_chargedMap->getZNBins(); zBin++) {
-    for (int rBin=0; rBin<m_chargedMap->getRNBins(); rBin++) {
-
-      double zPos = 0;
-      double rPos = 0;
-      if (m_chargedMap->isOfTypeMesh()) {
-        zPos = m_chargedMap->getZMin() + zBin*m_chargedMap->getZBinWidth();
-        rPos = m_chargedMap->getRMin() + rBin*m_chargedMap->getRBinWidth();
-      }
-      else {
-        zPos = m_chargedMap->getZMin() + (zBin+1/2.)*m_chargedMap->getZBinWidth();
-        rPos = m_chargedMap->getRMin() + (rBin+1/2.)*m_chargedMap->getRBinWidth();
-      }
-
-      // Map arranged in the format ZxR (THist binning starts from 1)
-      m_hisChargedFlux->SetBinContent(zBin+1, rBin+1, m_chargedMap->calculateIrradiationZR(zPos, rPos)/(1./Units::cm2));
-    }
-  }
-  for (int zBin=0; zBin<m_photonsMap->getZNBins(); zBin++) {
-    for (int rBin=0; rBin<m_photonsMap->getRNBins(); rBin++) {
-
-      double zPos = 0;
-      double rPos = 0;
-      if (m_photonsMap->isOfTypeMesh()) {
-        zPos = m_photonsMap->getZMin() + zBin*m_photonsMap->getZBinWidth();
-        rPos = m_photonsMap->getRMin() + rBin*m_photonsMap->getRBinWidth();
-      }
-      else {
-        zPos = m_photonsMap->getZMin() + (zBin+1/2.)*m_photonsMap->getZBinWidth();
-        rPos = m_photonsMap->getRMin() + (rBin+1/2.)*m_photonsMap->getRBinWidth();
-      }
-
-      // Map arranged in the format ZxR (THist binning starts from 1)
-      m_hisPhotonsFlux->SetBinContent(zBin+1, rBin+1, m_photonsMap->calculateIrradiationZR(zPos, rPos)/(1./Units::cm2));
-    }
-  }
+  // Make & fill all flux histograms
+  fillHistogram(m_chargedMap,         m_hisChargedFlux,         "ChargedFluxPerPP",         "Flux of charged particles [cm^{-2}] per pp collision");
+  fillHistogram(m_photonsMap,         m_hisPhotonsFlux,         "PhotonsFluxPerPP",         "Flux of photons [cm^{-2}] per pp collision");
+  fillHistogram(m_chargedMapNoB,      m_hisChargedNoBFlux,      "ChargedFluxPerPPNoB",      "Flux of charged particles [cm^{-2}] per pp collision - no mag. field");
+  fillHistogram(m_photonsMapNoB,      m_hisPhotonsNoBFlux,      "PhotonsFluxPerPPNoB",      "Flux of photons [cm^{-2}] per pp collision - no mag. field");
+  fillHistogram(m_chargedMapNoBNoMat, m_hisChargedNoBNoMatFlux, "ChargedFluxPerPPNoBNoMat", "Flux of charged particles [cm^{-2}] per pp collision - no mag. field & no material");
+  fillHistogram(m_photonsMapNoBNoMat, m_hisPhotonsNoBNoMatFlux, "PhotonsFluxPerPPNoBNoMat", "Flux of photons [cm^{-2}] per pp collision - no mag. field & no material");
   return true;
 }
 
@@ -106,8 +69,13 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
   webSite.addPage(myPage);
 
   // Draw plots
-  TCanvas* canvasPhotons = new TCanvas("PhotonsFluxCanvas", "RZ View of photons flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-  TCanvas* canvasCharged = new TCanvas("ChargedFluxCanvas", "RZ View of charged flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+  TCanvas* canvasPhotons = new TCanvas("PhotonsCanvas", "RZ View of photons flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+  TCanvas* canvasCharged = new TCanvas("ChargedCanvas", "RZ View of charged flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+
+  TCanvas* canvasPhotonsNoB      = nullptr;
+  TCanvas* canvasChargedNoB      = nullptr;
+  TCanvas* canvasPhotonsNoBNoMat = nullptr;
+  TCanvas* canvasChargedNoBNoMat = nullptr;
 
   canvasPhotons->cd();
   m_hisPhotonsFlux->Draw("COLZ");
@@ -117,7 +85,6 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
   m_hisPhotonsFlux->GetYaxis()->SetTitleOffset(1.2);
   m_hisPhotonsFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisPhotonsFlux->GetYaxis()->GetXmax());
 
-
   canvasCharged->cd();
   m_hisChargedFlux->Draw("COLZ");
   m_hisChargedFlux->GetXaxis()->SetTitle(std::string("Z ["+m_photonsMap->getZUnit()+"]").c_str());
@@ -126,16 +93,165 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
   m_hisChargedFlux->GetYaxis()->SetTitleOffset(1.2);
   m_hisChargedFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisChargedFlux->GetYaxis()->GetXmax());
 
+  if (m_hisPhotonsNoBFlux!=nullptr) {
+    canvasPhotonsNoB = new TCanvas("PhotonsNoBCanvas", "RZ View of photons flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasPhotonsNoB->cd();
+    m_hisPhotonsNoBFlux->Draw("COLZ");
+    m_hisPhotonsNoBFlux->GetXaxis()->SetTitle(std::string("Z ["+m_photonsMapNoB->getZUnit()+"]").c_str());
+    m_hisPhotonsNoBFlux->GetXaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsNoBFlux->GetYaxis()->SetTitle(std::string("R ["+m_photonsMapNoB->getRUnit()+"]").c_str());
+    m_hisPhotonsNoBFlux->GetYaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsNoBFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisPhotonsNoBFlux->GetYaxis()->GetXmax());
+  }
+
+  if (m_hisChargedNoBFlux!=nullptr) {
+    canvasChargedNoB = new TCanvas("ChargedNoBCanvas", "RZ View of charged flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasChargedNoB->cd();
+    m_hisChargedNoBFlux->Draw("COLZ");
+    m_hisChargedNoBFlux->GetXaxis()->SetTitle(std::string("Z ["+m_chargedMapNoB->getZUnit()+"]").c_str());
+    m_hisChargedNoBFlux->GetXaxis()->SetTitleOffset(1.2);
+    m_hisChargedNoBFlux->GetYaxis()->SetTitle(std::string("R ["+m_chargedMapNoB->getRUnit()+"]").c_str());
+    m_hisChargedNoBFlux->GetYaxis()->SetTitleOffset(1.2);
+    m_hisChargedNoBFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisChargedNoBFlux->GetYaxis()->GetXmax());
+  }
+
+  if (m_hisPhotonsNoBNoMatFlux!=nullptr) {
+    canvasPhotonsNoBNoMat = new TCanvas("PhotonsNoBNoMatCanvas", "RZ View of photons flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasPhotonsNoBNoMat->cd();
+    m_hisPhotonsNoBNoMatFlux->Draw("COLZ");
+    m_hisPhotonsNoBNoMatFlux->GetXaxis()->SetTitle(std::string("Z ["+m_photonsMapNoBNoMat->getZUnit()+"]").c_str());
+    m_hisPhotonsNoBNoMatFlux->GetXaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsNoBNoMatFlux->GetYaxis()->SetTitle(std::string("R ["+m_photonsMapNoBNoMat->getRUnit()+"]").c_str());
+    m_hisPhotonsNoBNoMatFlux->GetYaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsNoBNoMatFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisPhotonsNoBNoMatFlux->GetYaxis()->GetXmax());
+  }
+
+  if (m_hisChargedNoBNoMatFlux!=nullptr) {
+    canvasChargedNoBNoMat = new TCanvas("ChargedNoBNoMatCanvas", "RZ View of charged flux", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasChargedNoBNoMat->cd();
+    m_hisChargedNoBNoMatFlux->Draw("COLZ");
+    m_hisChargedNoBNoMatFlux->GetXaxis()->SetTitle(std::string("Z ["+m_chargedMapNoBNoMat->getZUnit()+"]").c_str());
+    m_hisChargedNoBNoMatFlux->GetXaxis()->SetTitleOffset(1.2);
+    m_hisChargedNoBNoMatFlux->GetYaxis()->SetTitle(std::string("R ["+m_chargedMapNoBNoMat->getRUnit()+"]").c_str());
+    m_hisChargedNoBNoMatFlux->GetYaxis()->SetTitleOffset(1.2);
+    m_hisChargedNoBNoMatFlux->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisChargedNoBNoMatFlux->GetYaxis()->GetXmax());
+  }
+
   RootWContent* plotsContent   = new RootWContent("Fluka simulation - fluxes per pp collision:", true);
   myPage->addContent(plotsContent);
 
-  RootWImage*   anImagePhotons = new RootWImage(canvasPhotons, canvasPhotons->GetWindowWidth(), canvasPhotons->GetWindowHeight());
-  anImagePhotons->setComment("RZ view of photons flux [cm^-2] in a tracker)");
+  RootWImage* anImagePhotons = new RootWImage(canvasPhotons, canvasPhotons->GetWindowWidth(), canvasPhotons->GetWindowHeight());
+  anImagePhotons->setComment("RZ view of photons flux [cm^-2] in a tracker");
   plotsContent->addItem(anImagePhotons);
 
-  RootWImage*   anImageCharged = new RootWImage(canvasCharged, canvasCharged->GetWindowWidth(), canvasCharged->GetWindowHeight());
-  anImageCharged->setComment("RZ view of charged particles flux [cm^-2] in a tracker)");
+  RootWImage* anImageCharged = new RootWImage(canvasCharged, canvasCharged->GetWindowWidth(), canvasCharged->GetWindowHeight());
+  anImageCharged->setComment("RZ view of charged particles flux [cm^-2] in a tracker");
   plotsContent->addItem(anImageCharged);
+
+  if (canvasPhotonsNoB!=nullptr) {
+    RootWImage* anImagePhotonsNoB = new RootWImage(canvasPhotonsNoB, canvasPhotonsNoB->GetWindowWidth(), canvasPhotonsNoB->GetWindowHeight());
+    anImagePhotonsNoB->setComment("RZ view of photons flux [cm^-2] in a tracker (B=0T)");
+    plotsContent->addItem(anImagePhotonsNoB);
+  }
+  if (canvasChargedNoB!=nullptr) {
+    RootWImage* anImageChargedNoB = new RootWImage(canvasChargedNoB, canvasChargedNoB->GetWindowWidth(), canvasChargedNoB->GetWindowHeight());
+    anImageChargedNoB->setComment("RZ view of charged particles flux [cm^-2] in a tracker (B=0T)");
+    plotsContent->addItem(anImageChargedNoB);
+  }
+  if (canvasPhotonsNoBNoMat!=nullptr) {
+    RootWImage* anImagePhotonsNoBNoMat = new RootWImage(canvasPhotonsNoBNoMat, canvasPhotonsNoBNoMat->GetWindowWidth(), canvasPhotonsNoBNoMat->GetWindowHeight());
+    anImagePhotonsNoBNoMat->setComment("RZ view of photons flux [cm^-2] from pp collision (B=0T))");
+    plotsContent->addItem(anImagePhotonsNoBNoMat);
+  }
+  if (canvasChargedNoBNoMat!=nullptr) {
+    RootWImage* anImageChargedNoBNoMat = new RootWImage(canvasChargedNoBNoMat, canvasChargedNoBNoMat->GetWindowWidth(), canvasChargedNoBNoMat->GetWindowHeight());
+    anImageChargedNoBNoMat->setComment("RZ view of charged particles flux [cm^-2] from pp collision (B=0T))");
+    plotsContent->addItem(anImageChargedNoBNoMat);
+  }
+
+  // Ratios
+  TCanvas * canvasPhotonsRatioMat  = nullptr;
+  TCanvas * canvasPhotonsRatioMatB = nullptr;
+  TCanvas * canvasChargedRatioMat  = nullptr;
+  TCanvas * canvasChargedRatioMatB = nullptr;
+  RootWContent* plotsRatioContent  = nullptr;
+
+  if ((m_hisPhotonsNoBFlux && m_hisPhotonsNoBNoMatFlux) || (m_hisChargedNoBFlux && m_hisChargedNoBNoMatFlux)) {
+    plotsRatioContent   = new RootWContent("Fluka simulation - ratio of fluxes per pp collision:", true);
+    myPage->addContent(plotsRatioContent);
+  }
+
+  if (m_hisPhotonsNoBFlux && m_hisPhotonsNoBNoMatFlux) {
+
+    m_hisPhotonsRatioMat  = (TH2D*)(m_hisPhotonsNoBFlux->Clone("PhotonsFluxPerPPRatioMat"));
+    m_hisPhotonsRatioMat->Divide(m_hisPhotonsNoBNoMatFlux);
+    m_hisPhotonsRatioMat->SetTitle("Ratio of photon flux - Material/(No material+No mag.field)");
+
+    m_hisPhotonsRatioMatB = (TH2D*)(m_hisPhotonsFlux->Clone("PhotonsFluxPerPPRatioMatB"));
+    m_hisPhotonsRatioMatB->Divide(m_hisPhotonsNoBNoMatFlux);
+    m_hisPhotonsRatioMatB->SetTitle("Ratio of photon flux - (Material+Mag.field)/(No material+No mag.field)");
+
+    canvasPhotonsRatioMat = new TCanvas("PhotonsRatioMatCanvas", "RZ Ratio of photons fluxes", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasPhotonsRatioMat->cd();
+    m_hisPhotonsRatioMat->Draw("COLZ");
+    m_hisPhotonsRatioMat->GetXaxis()->SetTitle(std::string("Z ["+m_photonsMapNoB->getZUnit()+"]").c_str());
+    m_hisPhotonsRatioMat->GetXaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsRatioMat->GetYaxis()->SetTitle(std::string("R ["+m_photonsMapNoB->getRUnit()+"]").c_str());
+    m_hisPhotonsRatioMat->GetYaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsRatioMat->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisPhotonsNoBFlux->GetYaxis()->GetXmax());
+
+    canvasPhotonsRatioMatB = new TCanvas("PhotonsRatioMatBCanvas", "RZ Ratio of photons fluxes", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasPhotonsRatioMatB->cd();
+    m_hisPhotonsRatioMatB->Draw("COLZ");
+    m_hisPhotonsRatioMatB->GetXaxis()->SetTitle(std::string("Z ["+m_photonsMapNoBNoMat->getZUnit()+"]").c_str());
+    m_hisPhotonsRatioMatB->GetXaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsRatioMatB->GetYaxis()->SetTitle(std::string("R ["+m_photonsMapNoBNoMat->getRUnit()+"]").c_str());
+    m_hisPhotonsRatioMatB->GetYaxis()->SetTitleOffset(1.2);
+    m_hisPhotonsRatioMatB->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisPhotonsNoBNoMatFlux->GetYaxis()->GetXmax());
+
+    RootWImage* anImagePhotonsRatioMat = new RootWImage(canvasPhotonsRatioMat, canvasPhotonsRatioMat->GetWindowWidth(), canvasPhotonsRatioMat->GetWindowHeight());
+    anImagePhotonsRatioMat->setComment("RZ ratio of photons fluxes - Material/(No material+No mag.field)");
+    plotsRatioContent->addItem(anImagePhotonsRatioMat);
+
+    RootWImage* anImagePhotonsRatioMatB = new RootWImage(canvasPhotonsRatioMatB, canvasPhotonsRatioMatB->GetWindowWidth(), canvasPhotonsRatioMatB->GetWindowHeight());
+    anImagePhotonsRatioMatB->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field)");
+    plotsRatioContent->addItem(anImagePhotonsRatioMatB);
+  }
+  if (m_hisChargedNoBFlux && m_hisChargedNoBNoMatFlux) {
+    m_hisChargedRatioMat  = (TH2D*)(m_hisChargedNoBFlux->Clone("ChargedFluxPerPPRatioMat"));
+    m_hisChargedRatioMat->Divide(m_hisChargedNoBNoMatFlux);
+    m_hisChargedRatioMat->SetTitle("Ratio of charged particles flux - Material/No material (B=0T)");
+
+    m_hisChargedRatioMatB = (TH2D*)(m_hisChargedFlux->Clone("ChargedFluxPerPPRatioMatB"));
+    m_hisChargedRatioMatB->Divide(m_hisChargedNoBNoMatFlux);
+    m_hisChargedRatioMatB->SetTitle("Ratio of charged particles flux - (Material+Mag.field)/(No material+No mag.field)");
+
+    canvasChargedRatioMat = new TCanvas("ChargedRatioMatCanvas", "RZ Ratio of charged particles fluxes", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasChargedRatioMat->cd();
+    m_hisChargedRatioMat->Draw("COLZ");
+    m_hisChargedRatioMat->GetXaxis()->SetTitle(std::string("Z ["+m_chargedMapNoB->getZUnit()+"]").c_str());
+    m_hisChargedRatioMat->GetXaxis()->SetTitleOffset(1.2);
+    m_hisChargedRatioMat->GetYaxis()->SetTitle(std::string("R ["+m_chargedMapNoB->getRUnit()+"]").c_str());
+    m_hisChargedRatioMat->GetYaxis()->SetTitleOffset(1.2);
+    m_hisChargedRatioMat->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisChargedNoBFlux->GetYaxis()->GetXmax());
+
+    canvasChargedRatioMatB = new TCanvas("ChargedRatioMatBCanvas", "RZ Ratio of charged particles fluxes", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+    canvasChargedRatioMatB->cd();
+    m_hisChargedRatioMatB->Draw("COLZ");
+    m_hisChargedRatioMatB->GetXaxis()->SetTitle(std::string("Z ["+m_chargedMapNoBNoMat->getZUnit()+"]").c_str());
+    m_hisChargedRatioMatB->GetXaxis()->SetTitleOffset(1.2);
+    m_hisChargedRatioMatB->GetYaxis()->SetTitle(std::string("R ["+m_chargedMapNoBNoMat->getRUnit()+"]").c_str());
+    m_hisChargedRatioMatB->GetYaxis()->SetTitleOffset(1.2);
+    m_hisChargedRatioMatB->GetYaxis()->SetRangeUser(simParms->bpRadius(), m_hisChargedNoBNoMatFlux->GetYaxis()->GetXmax());
+
+    RootWImage* anImageChargedRatioMat = new RootWImage(canvasChargedRatioMat, canvasChargedRatioMat->GetWindowWidth(), canvasChargedRatioMat->GetWindowHeight());
+    anImageChargedRatioMat->setComment("RZ ratio of charged particles fluxes - Material/No material (B=0T)");
+    plotsRatioContent->addItem(anImageChargedRatioMat);
+
+    RootWImage* anImageChargedRatioMatB = new RootWImage(canvasChargedRatioMatB, canvasChargedRatioMatB->GetWindowWidth(), canvasChargedRatioMatB->GetWindowHeight());
+    anImageChargedRatioMatB->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field)");
+    plotsRatioContent->addItem(anImageChargedRatioMatB);
+  }
 
   // Plot a table with calculated occupancies
   for (auto itTracker : m_trackers) {
@@ -365,3 +481,53 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
   return true;
 }
 
+void AnalyzerOccupancy::readNoMagFieldMap(std::string chargedFileName, std::string photonsFileName)
+{
+  m_photonsMapNoB = new IrradiationMap(photonsFileName);
+  m_chargedMapNoB = new IrradiationMap(chargedFileName);
+}
+
+void AnalyzerOccupancy::readNoMagFieldNoMaterialMap(std::string chargedFileName, std::string photonsFileName)
+{
+  m_photonsMapNoBNoMat = new IrradiationMap(photonsFileName);
+  m_chargedMapNoBNoMat = new IrradiationMap(chargedFileName);
+}
+
+bool AnalyzerOccupancy::fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title)
+{
+  if (map!=nullptr) {
+
+    // Make & fill flux histograms
+    if (map->isOfTypeMesh()) {
+      his = new TH2D(name.c_str(), title.c_str(),
+                     map->getZNBins(), map->getZMin()-map->getZBinWidth()/2., map->getZMax()+map->getZBinWidth()/2.,
+                     map->getRNBins(), map->getRMin()-map->getRBinWidth()/2., map->getRMax()+map->getRBinWidth()/2.);
+    }
+    else {
+      his = new TH2D(name.c_str(), title.c_str(),
+                     map->getZNBins(), map->getZMin(), map->getZMax(),
+                     map->getRNBins(), map->getRMin(), map->getRMax());
+    }
+
+    for (int zBin=0; zBin<map->getZNBins(); zBin++) {
+      for (int rBin=0; rBin<map->getRNBins(); rBin++) {
+
+        double zPos = 0;
+        double rPos = 0;
+        if (map->isOfTypeMesh()) {
+          zPos = map->getZMin() + zBin*map->getZBinWidth();
+          rPos = map->getRMin() + rBin*map->getRBinWidth();
+        }
+        else {
+          zPos = map->getZMin() + (zBin+1/2.)*map->getZBinWidth();
+          rPos = map->getRMin() + (rBin+1/2.)*map->getRBinWidth();
+        }
+
+        // Map arranged in the format ZxR (THist binning starts from 1)
+        his->SetBinContent(zBin+1, rBin+1, map->calculateIrradiationZR(zPos, rPos)/(1./Units::cm2));
+      }
+    }
+    return true;
+  }
+  else return false;
+}

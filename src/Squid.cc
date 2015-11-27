@@ -743,9 +743,17 @@ namespace insur {
         startTaskClock("Computing occupancy");
 
         // Create occupancy analyzer & analyzer data
-        std::string chargedMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
-        std::string photonsMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
+        std::string chargedMapFile         = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
+        std::string chargedNoBMapFile      = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedNoBMapFile();
+        std::string chargedNoBNoMatMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedNoBNoMatMapFile();
+        std::string photonsMapFile         = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
+        std::string photonsNoBMapFile      = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsNoBMapFile();
+        std::string photonsNoBNoMatMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsNoBNoMatMapFile();
+
         AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, trackers_);
+
+        if (simParms_->chargedNoBMapFile()     !="" && simParms_->photonsNoBMapFile()     !="") analyzerOccupancy.readNoMagFieldMap(chargedNoBMapFile, photonsNoBMapFile);
+        if (simParms_->chargedNoBNoMatMapFile()!="" && simParms_->photonsNoBNoMatMapFile()!="") analyzerOccupancy.readNoMagFieldNoMaterialMap(chargedNoBNoMatMapFile, photonsNoBNoMatMapFile);
 
         bool outCalc = analyzerOccupancy.calculate(vis_eta_step);
         bool outVis  = analyzerOccupancy.visualize(webSite_, simParms_);
