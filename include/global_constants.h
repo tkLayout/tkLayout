@@ -8,7 +8,6 @@
 
 #include <string>
 #include <vector>
-#include <Rtypes.h>
 
 namespace insur {
   static const double magnetic_field = 3.8; // Tesla; CMS magnet field strength
