@@ -123,6 +123,9 @@ namespace insur {
   static const int minimumBiasPrecision = 0;
   static const int weightPrecision = 0;
 
+  static const int tableResolutionPrecisionHigh = 5;
+  static const int tableResolutionPrecisionStd  = 3;
+
   class graphIndex {
   public:
     graphIndex() {} ;
