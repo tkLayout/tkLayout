@@ -204,6 +204,17 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     histYEnd->GetXaxis()->CenterTitle();
 
 
+
+    TProfile* profXBar0  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30); 
+    TProfile* profYBar0 = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
+    TProfile* profXEnd0  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
+    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
+    TH1D *histXBar0 = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
+    TH1D *histYBar0 = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
+    TH1D *histXEnd0 = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
+    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
+
+
     double efficiency = simParms().efficiency();
 
   materialTracksUsed = etaSteps;
@@ -286,7 +297,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Ideal (no material)
             Track idealTrackPt(trackPt);
             idealTrackPt.removeMaterial();
-            idealTrackPt.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
             TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(idealTrackPt);
@@ -297,7 +308,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
-            trackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(trackP);
@@ -305,7 +316,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            idealTrackP.computeErrors(NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
             TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(idealTrackP);
