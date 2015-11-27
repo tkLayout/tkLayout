@@ -70,7 +70,8 @@ public:
 
   const Container& modules() const { return modules_; }
 
-
+  int nModules() const { return modules_.size(); }
+ 
   Ring() :
       materialObject_(MaterialObject::ROD),
       moduleShape           ("moduleShape"           , parsedAndChecked()),

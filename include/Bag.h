@@ -16,13 +16,20 @@ using std::string;
     GraphBag();
     GraphBag(string parameter);
     const string& getParameterMeaning() const { return parameterMeaning_ ; }
+
     static const double Triggerable;
-    static const int RhoGraph;
-    static const int PhiGraph;
-    static const int DGraph;
-    static const int CtgthetaGraph;
-    static const int Z0Graph;
-    static const int PGraph;
+    static const int RhoGraph_Pt;
+    static const int PhiGraph_Pt;
+    static const int DGraph_Pt;
+    static const int CtgthetaGraph_Pt;
+    static const int Z0Graph_Pt;
+    static const int PGraph_Pt;
+    static const int RhoGraph_P;
+    static const int PhiGraph_P;
+    static const int DGraph_P;
+    static const int CtgthetaGraph_P;
+    static const int Z0Graph_P;
+    static const int PGraph_P;
     static const int TriggeredGraph;
     static const int IdealGraph;
     static const int RealGraph;
