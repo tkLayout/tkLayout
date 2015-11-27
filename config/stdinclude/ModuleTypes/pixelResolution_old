@@ -1,5 +1,5 @@
-//resolutionLocalX 0.013
-//resolutionLocalY 0.028
+//nominalResolutionLocalX 0.013
+//nominalResolutionLocalY 0.028
 
   Barrel PXB {
 // If paraneters to calculate resolutionLocalXBarrel and resolutionLocalYBarrel are specified, the following models are used :
@@ -7,8 +7,8 @@
 // Model : resolutionLocalYBarrel = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * exp(-resolutionLocalYBarrelParam2 * abs(cos(beta))) * sin(resolutionLocalYBarrelParam3 * abs(cos(beta)) + resolutionLocalYBarrelParam4)
 // With alpha and beta the reference notation angles for a track hitting a pixel module
     Layer 1,2 {
-      //resolutionLocalX 0.010 // 10 um
-      //resolutionLocalY 0.010 // 10 um
+      //nominalResolutionLocalX 0.010 // 10 um
+      //nominalResolutionLocalY 0.010 // 10 um
 
       resolutionLocalXBarrelParam0 0.0105  // mm
       resolutionLocalXBarrelParam1 -0.027  // mm
@@ -21,8 +21,8 @@
       resolutionLocalYBarrelParam4 0.8
     }
     Layer 3,4 {
-      //resolutionLocalX 0.025 // 25 um
-      //resolutionLocalY 0.025 // 25 um
+      //nominalResolutionLocalX 0.025 // 25 um
+      //nominalResolutionLocalY 0.025 // 25 um
 
       resolutionLocalXBarrelParam0 0.0105  // mm
       resolutionLocalXBarrelParam1 -0.027  // mm
@@ -42,8 +42,8 @@
 // Model : resolutionLocalYEndcap = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * abs(cos(beta))
 // With alpha and beta the reference notation angles for a track hitting a pixel module
     Ring 1,2 {
-      //resolutionLocalX 0.010 // 10 um
-      //resolutionLocalY 0.010 // 10 um
+      //nominalResolutionLocalX 0.010 // 10 um
+      //nominalResolutionLocalY 0.010 // 10 um
 
       resolutionLocalXEndcapParam0 0.005  // mm
       resolutionLocalXEndcapParam1 0      // mm
@@ -52,8 +52,8 @@
       resolutionLocalYEndcapParam1 0      // mm
     }
     Ring 3 {
-      //resolutionLocalX 0.025 // 25 um
-      //resolutionLocalY 0.025 // 25 um
+      //nominalResolutionLocalX 0.025 // 25 um
+      //nominalResolutionLocalY 0.025 // 25 um
 
       resolutionLocalXEndcapParam0 0.005  // mm
       resolutionLocalXEndcapParam1 0      // mm

@@ -156,11 +156,11 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
     if (hitModule_) {
       double resolutionLocalX, resolutionLocalY;
       
-      //std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
-      //std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
       //std::cout << "hitModule_->hasAnyResolutionLocalXParam() = " << hitModule_->hasAnyResolutionLocalXParam() << std::endl;
 
-      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
       else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
 	if ( hitModule_->subdet() == BARREL) {
 	  profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
@@ -178,7 +178,7 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
 	}
       }
 
-	if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
+	if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
 	else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
 	  if ( hitModule_->subdet() == BARREL) {
 	    profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
@@ -189,7 +189,7 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
 	    //std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;	  
 	    //std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;  
 	  }
-	  if ( hitModule_->subdet() == ENDCAP) {
+	  if (hitModule_->subdet() == ENDCAP) {
 	    profYEnd->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
 	    histYEnd->Fill(resolutionLocalY*1000);
 	  }
@@ -223,13 +223,13 @@ double Hit::getResolutionZ(double trackR) {
 
       double resolutionLocalX, resolutionLocalY;
       
-      //std::cout << "hitModule_->resolutionLocalX() = " << hitModule_->resolutionLocalX() << std::endl;
-      //std::cout << "hitModule_->resolutionLocalX.state() = " << hitModule_->resolutionLocalX.state() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
       
-      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->resolutionLocalX();
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
       else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
 
-      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->resolutionLocalY();
+      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
       else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
 
 

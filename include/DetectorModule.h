@@ -85,7 +85,7 @@ public:
   ReadonlyProperty<double, AutoDefault> powerStripChip;
   Property<double, AutoDefault> irradiationPower;
 
-  ReadonlyProperty<double, Computable> resolutionLocalX, resolutionLocalY;
+  ReadonlyProperty<double, Computable> nominalResolutionLocalX, nominalResolutionLocalY;
   ReadonlyProperty<double, Default>    triggerErrorX , triggerErrorY;
 
   ReadonlyProperty<double, Default> stereoRotation;
@@ -129,8 +129,8 @@ public:
       stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
       reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
       trackingTags             ("trackingTags"             , parsedOnly()),
-      resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
-      resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
+      nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
+      nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
@@ -331,12 +331,12 @@ public:
     DetectorModule::setup();
     minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
     maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    resolutionLocalX.setup([this]() {
+    nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
-	//std::cout <<  "hasAnyResolutionLocalYParam() = " <<  hasAnyResolutionLocalYParam() << std::endl;
+	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
 
 	if (!hasAnyResolutionLocalXParam()) {
-	  //std::cout << "resolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
+	  //std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	  double res = 0;
 	  for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
 	  return sqrt(res)/numSensors();
@@ -344,11 +344,11 @@ public:
 	// if model parameters specified, return -1
 	else return -1.0;
       });
-    resolutionLocalY.setup([this]() {
+    nominalResolutionLocalY.setup([this]() {
 	// only set up this if no model parameters not specified
 	if (!hasAnyResolutionLocalYParam()) {
 	  //std::cout << "resolutionLocalY and resolutionLocalYBarrel parameters are all unset. Use of default formulae." << std::endl;
-	    if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
+	    if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
 	    else {
 	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
 	    }
@@ -416,10 +416,11 @@ public:
     DetectorModule::setup();
     minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
     maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    resolutionLocalX.setup([this]() {
+    nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
+	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
 	if (!hasAnyResolutionLocalXParam()) {
-	  //std::cout << "resolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
+	  //std::cout << "nominalResolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
 	    double res = 0;
 	    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
 	    return sqrt(res)/numSensors();
@@ -427,11 +428,11 @@ public:
 	// if model parameters specified, return -1
 	else return -1.0;
       });
-    resolutionLocalY.setup([this]() {
+    nominalResolutionLocalY.setup([this]() {
 	// only set up this if no model parameters not specified
 	if (!hasAnyResolutionLocalYParam()) {
 	  //std::cout << "resolutionLocalY and resolutionLocalYEndcap parameters are all unset. Use of default formulae." << std::endl;
-	    if (stereoRotation() != 0.) return resolutionLocalX() / sin(stereoRotation());
+	    if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
 	    else {
 	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
 	    }
