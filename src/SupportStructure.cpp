@@ -148,7 +148,7 @@ namespace material {
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, barrel.minZ()),
-                               barrel.maxR() + insur::geom_support_margin_top, //autoLayerMarginLower,
+                               barrel.maxR() + autoLayerMarginLower,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
       //std::cout << ">>Top barrel support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building barrel top support structure horizontally oriented");
@@ -157,7 +157,7 @@ namespace material {
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, barrel.minZ()),
-                               barrel.minR() - insur::geom_support_margin_bottom, //inactiveElementWidth - autoLayerMarginUpper,
+                               barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                barrel.maxZ() - MAX(0, barrel.minZ()));
       //std::cout << ">>Bottom barrel support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building barrel bottom support structure horizontally oriented");
@@ -187,7 +187,7 @@ namespace material {
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, endcap.minZ()),
-                               endcap.maxR() + insur::geom_support_margin_top, //autoLayerMarginLower,
+                               endcap.maxR() + autoLayerMarginLower,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
       //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap top support structure horizontally oriented");
@@ -197,7 +197,7 @@ namespace material {
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
                                MAX(0, endcap.minZ()),
-                               endcap.minR() - insur::geom_support_margin_bottom, //autoLayerMarginUpper,//inactiveElementWidth - autoLayerMarginUpper,
+                               endcap.minR() - inactiveElementWidth - autoLayerMarginUpper,
                                endcap.maxZ() - MAX(0, endcap.minZ()));
       //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
       logINFO("Building end-cap bottom support structure horizontally oriented");
