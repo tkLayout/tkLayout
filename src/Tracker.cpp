@@ -1,7 +1,7 @@
 #include "Tracker.h"
 
 std::pair<double, double> Tracker::computeMinMaxEta() const {
-  double min = 9999, max = 0;
+  double min = std::numeric_limits<double>::max(), max = 0;
   for (auto m : modules()) {
     min = MIN(min, m->minEta());
     max = MAX(max, m->maxEta());
@@ -42,6 +42,7 @@ void Tracker::build() {
       endcaps_.push_back(e);
     }
 
+    // Build support structures within tracker
     for (auto& mapel : supportNode) {
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());

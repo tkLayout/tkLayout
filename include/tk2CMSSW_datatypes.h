@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include<map>
 
 namespace insur {
     /**
@@ -15,9 +16,11 @@ namespace insur {
      */
     enum CompType { wt, vl, ap };
     /**
-     * @enum ShapeType A list of possible shape types: box, tubs, tdr1 (trapezoid) and polycone
+     * @enum ShapeType A list of possible shape types: box, tubs, cones, tdr1 (trapezoid) and polycone
      */
-    enum ShapeType { bx, tb, tp, pc };
+    enum ShapeType { bx, tb, co, tp, pc };
+
+    enum AlgoPartype { st,num,vec};
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -94,15 +97,19 @@ namespace insur {
     /**
      * @struct ShapeInfo
      * @brief This struct corresponds to a geometrical shape in a <i>SolidSection</i> block in CMSSW XML (all measurements in mm).
-     * @param type The shape type: one of box, tube section, trapezoid or polycone
+     * @param type The shape type: one of box, tube section, cone section, trapezoid or polycone
      * @param name_tag The name of the shape volume
      * @param dx Half the width along the x-axis of the bottom side (boxes and trapezoids)
      * @param dxx Half the width along the x-axis at the top side (trapezoids only)
      * @param dy Half the height along the y-axis of the left side (boxes and trapezoids)
      * @param dyy Half the height along the y-axis of the right side (trapezoids only)
-     * @param dz Half the depth along the z-axis (boxes, trapezoids and tube sections)
+     * @param dz Half the depth along the z-axis (boxes, trapezoids, tub and cone sections)
      * @param rmin The minimal radius as measured from the z-axis (tube sections only) 
      * @param rmax The maximum radius as measured from the z-axis (tube sections only)
+     * @param rmin1 The minimal radius as measured from the z-axis, for the smallest-z section (cone sections only) 
+     * @param rmax1 The maximum radius as measured from the z-axis, for the smallest-z section (cone sections only)
+     * @param rmin2 The minimal radius as measured from the z-axis, for the biggest-z section (cone sections only) 
+     * @param rmax2 The maximum radius as measured from the z-axis, for the biggest-z section (cone sections only)
      * @param rzup A vector of pairs collecting the first half of an ordered sequence of points in <i>(r, z)</i> (polycone only)
      * @param rzdown A vector of pairs collecting the second half of an ordered sequence of points in <i>(r, z)</i> (polycone only)
      */
@@ -116,6 +123,10 @@ namespace insur {
         double dz;
         double rmin;
         double rmax;
+        double rmin1;
+        double rmax1;
+        double rmin2;
+        double rmax2;
         std::vector<std::pair<double, double> > rzup;
         std::vector<std::pair<double, double> > rzdown;
     };
@@ -135,6 +146,14 @@ namespace insur {
         std::string rotref;
         Translation trans;
     };
+
+    struct VecInfo {
+      std::string name;
+      std::string type;
+      std::string nEntries;
+      std::vector<double> values;
+    };
+
     /**
      * @struct AlgoInfo
      * @brief This struct collects the parameters that go into an <i>Algorithm</i> block in CMSSW XML.
@@ -146,32 +165,79 @@ namespace insur {
         std::string name;
         std::string parent;
         std::vector<std::string> parameters;
+        std::map<std::string,std::pair<std::string,AlgoPartype> > parameter_map;
+        VecInfo vecpar;
     };
     /**
-     * @struct RingInfo
+     * @struct ERingInfo
      * @brief This is a struct to collect temporary information about an endcap ring and the modules within it.
      * @param name The logical part name that identifies the ring
      * @param childname The logical part name that identifies the modules contained in the ring
-     * @param fw A flag indicating where in z the ring is: true if it is in z+, false if it is in z-
-     * @param modules The number of modules within the ring
-     * @param rin The minimum radius of the ring as measured from the z-axis
-     * @param rout The maximum radius of the ring as measured from the z-axis
-     * @param rmid The radius of the module mean point as measured from the z-axis
-     * @param mthk The total thickness of one of the ring modules
+     * @param fw Is it the forward ring of the disk ?
+     * @param isZPlus Is the ring (and disk) in the positive-z side ?
+     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
      * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     * @param modules The number of modules within the ring
+     * @param mthk Thickness of one of the ring's modules (hybrids included)
+     * @param rmin The minimum radius of the ring, as measured from the z-axis 
+     * @param rmid The radius of the module mean point, as measured from the z-axis
+     * @param rmax The maximum radius of the ring, as measured from the z-axis
      */
-    struct RingInfo {
+    struct ERingInfo {
         std::string name;
         std::string childname;
         bool fw;
-        int modules;
-        double rin;
-        double rout;
-        double rmid;
-        double mthk;
+        bool isZPlus;
+        bool fw_flipped;
         double phi;
+        int modules;
+        double mthk;
+        double rmin;
+        double rmid;
+        double rmax;
     };
-
+    /**
+     * @struct BTiltedRingInfo
+     * @brief This is a struct to collect temporary information about a barrel tilted ring and the modules within it.
+     * @param name The logical part name that identifies the ring
+     * @param childname The logical part name that identifies the modules contained in the ring
+     * @param isZPlus Is the ring in the positive-z side ?
+     * @param tiltAngle Module's tilt angle
+     * @param bw_flipped Are modules in the backward part (small |z|) of the ring flipped ?
+     * @param fw_flipped Are modules in the forward part (big |z|) of the ring flipped ?
+     * @param phi The angle <i>phi</i> in the x/y-plane of the first module on the ring
+     * @param modules The number of modules within the ring
+     * @param r1 The radius of the module mean point, as measured from the z-axis, for the inner part (small |z|) of the ring
+     * @param r2 The radius of the module mean point, as measured from the z-axis, for the outer part (big |z|) of the ring
+     * @param z1 z of the module's mean point, for the inner part (small |z|) of the ring
+     * @param z2 z of the module's mean point, for the outer part (big |z|) of the ring
+     * @param rmin The global minimum radius of the ring, as measured from the z-axis
+     * @param rmax The global maximum radius of the ring, as measured from the z-axis
+     * @param zmin The minimum z of the ring
+     * @param zmax The maximum z of the ring
+     * @param rminatzmin The minimum radius of the ring at z=zmin, as measured from the z-axis
+     * @param rmaxatzmax The maximum radius of the ring at z=zmax, as measured from the z-axis
+     */
+    struct BTiltedRingInfo {
+        std::string name;
+        std::string childname;
+        bool isZPlus;
+        double tiltAngle;
+        bool bw_flipped;
+        bool fw_flipped;
+        double phi;
+        int modules;
+        double r1;
+        double z1;
+        double r2;
+        double z2;
+        double rmin;
+        double rmax;
+        double zmin;
+        double zmax;
+        double rminatzmin;
+        double rmaxatzmax;     
+    };
      /*
       * * @struct ModuleROCInfo
       * * @brief The information in this struct is a parameter in SpecParInfo.
@@ -243,15 +309,15 @@ namespace insur {
      * @param specs 
      */
     struct CMSSWBundle {
-        std::vector<Element> elements;
-        std::vector<Composite> composites;
-        std::vector<LogicalInfo> logic;
-        std::vector<ShapeInfo> shapes;
-        std::vector<PosInfo> positions;
-        std::vector<AlgoInfo> algos;
-        std::vector<Rotation> rots;
-        std::vector<SpecParInfo> specs;
-        std::vector<RILengthInfo> lrilength;
+      std::vector<Element> elements;
+      std::vector<Composite> composites;
+      std::vector<LogicalInfo> logic;
+      std::vector<ShapeInfo> shapes;
+      std::vector<PosInfo> positions;
+      std::vector<AlgoInfo> algos;
+      std::map<std::string,Rotation> rots;
+      std::vector<SpecParInfo> specs;
+      std::vector<RILengthInfo> lrilength;
     };
 }
 #endif /* _TK2CMSSW_DATATYPES_H */

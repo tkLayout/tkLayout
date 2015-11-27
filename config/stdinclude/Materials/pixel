@@ -17,29 +17,45 @@ Materials module-pixel {
       elementName Si
       quantity 0.3
       unit mm
+      targetVolume 1
     }
     Element {
       elementName CF
       quantity 0.7
       unit g
+      targetVolume 1
     }
     Element {
       elementName Cu
       quantity 0.08
       unit g
+      targetVolume 1
     }
     Element {
       elementName Al
       quantity 0.16
       unit g
+      targetVolume 1
     }
     Element {
       elementName PE
       quantity 0.5
       unit g
+      targetVolume 1
     }
   }
 
+  Component {
+    componentName Chip
+    service false
+    scaleOnSensor 1
+    targetVolume 3
+    Element {
+      elementName Si
+      quantity 0.365
+      unit g
+    }
+  }
   //Cooling blocks
   Component {
     componentName "Cooling blocks"
@@ -49,12 +65,14 @@ Materials module-pixel {
       elementName Al
       quantity 0.3
       unit g
+      targetVolume 1
     }
     Element {
       scaleOnSensor 0
       elementName Al
       quantity 0.26
       unit g
+      targetVolume 1
     }
   }
 
@@ -71,16 +89,19 @@ Materials module-pixel {
       elementName Cu
       quantity 0.0263
       unit g
+      targetVolume 1
     }
     Element {
       elementName G10
       quantity 0.0324
       unit g
+      targetVolume 1
     }
     Element {
       elementName PE
       quantity 0.0557
       unit g
+      targetVolume 1
     }
   }
 
@@ -122,11 +143,13 @@ Materials module-pixel {
       elementName CF
       quantity  0.608
       unit g
+      targetVolume 1
     }
     Element {
       elementName Al
       quantity  0.0456
       unit g
+      targetVolume 1
     }
   }
 }

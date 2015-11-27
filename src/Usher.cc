@@ -20,8 +20,8 @@ namespace insur {
     InactiveSurfaces& Usher::arrange(Tracker& tracker, InactiveSurfaces& is, const std::list<Support*>& supports, bool printstatus) {
         TrackerIntRep tintrep;
         is.setUp(tintrep.analyze(tracker));
-        if (is.isUp()) is = arrangeUp(tintrep, is, outer_radius, supports);
-        else is = arrangeDown(tintrep, is, outer_radius, supports);
+        if (is.isUp()) is = arrangeUp(tintrep, is, geom_max_radius, supports);
+        else is = arrangeDown(tintrep, is, geom_max_radius, supports);
         is = mirror(tintrep, is);
         if (printstatus) print(tintrep, is, false);
         return is;
@@ -41,8 +41,8 @@ namespace insur {
         TrackerIntRep pintrep;
         startTaskClock("Arranging Pixel configuration");
         is.setUp(pintrep.analyze(pixels));
-        if (!pixels.skipAllServices()) is = servicesUp(pintrep, is, inner_radius, true);
-        if (!pixels.skipAllSupports()) is = supportsAll(pintrep, is, inner_radius, std::list<Support*>(), true);
+        if (!pixels.skipAllServices()) is = servicesUp(pintrep, is, geom_inner_strip_radius, true);
+        if (!pixels.skipAllSupports()) is = supportsAll(pintrep, is, geom_inner_strip_radius, std::list<Support*>(), true);
         stopTaskClock();
         is = mirror(pintrep, is);
         if (printstatus) print(pintrep, is, false);
@@ -228,17 +228,17 @@ namespace insur {
         // cut layers
         for (int i = 0; i < h; i ++) {
             if (!tracker.barrelHasServices(i)) continue;
-            zo = tracker.zOffsetBarrel(i) + epsilon;
+            zo = tracker.zOffsetBarrel(i) + geom_epsilon;
             zl = tracker.zOffsetBarrel(h) - zo;
             for (int j = 0; j < tracker.nOfLayers(i); j++) {
                 // layer end to barrel end
                 ri = tracker.innerRadiusLayer(k);
-                rw = tracker.innerRadiusLayer(k + 1) - ri - epsilon;
-                is = addBarrelServiceTube(is, zl, zo, ri, volume_width, false);
+                rw = tracker.innerRadiusLayer(k + 1) - ri - geom_epsilon;
+                is = addBarrelServiceTube(is, zl, zo, ri, geom_inactive_volume_width, false);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederIndex(tracker.realIndexLayer(k));
-                is = addBarrelServiceRing(is, volume_width, zo + zl, ri, rw, false);
+                is = addBarrelServiceRing(is,geom_inactive_volume_width, zo + zl, ri, rw, false);
                 // lower layer to upper layer
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                 is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::barrel);
@@ -253,15 +253,15 @@ namespace insur {
         if ((k == (int)tracker.totalLayers()) && (tracker.nOfEndcaps() == 0) ) is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFinal(true);
         else {
             // regular inner barrels
-            zl = volume_width;
+            zl = geom_inactive_volume_width;
             // barrel loop
             for (int i = h; i < tracker.nOfBarrels() - 1; i ++) {
                 if (!tracker.barrelHasServices(i)) continue;
-                zo = tracker.zOffsetBarrel(i) + epsilon;
+                zo = tracker.zOffsetBarrel(i) + geom_epsilon;
                 // layer loop
                 for (int j = 0; j < tracker.nOfLayers(i); j++) {
                     ri = tracker.innerRadiusLayer(k);
-                    rw = tracker.innerRadiusLayer(k + 1) - ri - volume_width - 2 * epsilon;
+                    rw = tracker.innerRadiusLayer(k + 1) - ri - geom_inactive_volume_width - 2 * geom_epsilon;
                     is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
                     is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
@@ -297,20 +297,20 @@ namespace insur {
             }
             // endcaps
             k = 0;
-            rw = volume_width;
+            rw = geom_inactive_volume_width;
             // endcap loop
             for (int i = 0; i < tracker.nOfEndcaps(); i++) {
                 if (!tracker.endcapHasServices(i)) continue;
                 if (i < tracker.nOfEndcaps() - 1) {
                     int l = findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + 1, tracker);
-                    ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * epsilon;
+                    ri = tracker.innerRadiusLayer(l) - 2 * rw - 2 * geom_epsilon;
                 }
-                else ri = r_outer - rw - epsilon;
+                else ri = r_outer - rw - geom_epsilon;
                 // disc loop
                 for (int j = 0; j < tracker.nOfDiscs(i); j++) {
                     // first disc in tracker
                     if (k == 0) {
-                        zl = tracker.zOffsetDisc(k) - tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps()) - volume_width - 2 * epsilon;
+                        zl = tracker.zOffsetDisc(k) - tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps()) - geom_inactive_volume_width - 2 * geom_epsilon;
                         zo = tracker.zOffsetDisc(k) - zl;
                         is = addEndcapServiceTube(is, zl, zo, ri, rw, false);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
@@ -325,20 +325,20 @@ namespace insur {
                         if (j == 0) {
                             double ro;
                             ro = tracker.innerRadiusLayer(findBarrelInnerRadius(tracker.nOfBarrels() - tracker.nOfEndcaps() + i, tracker));
-                            ro = ro - 2 * rw - 2 * epsilon;
-                            zo = tracker.zOffsetDisc(k - 1) + epsilon;
-                            zl = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) - zo + volume_width + epsilon;
+                            ro = ro - 2 * rw - 2 * geom_epsilon;
+                            zo = tracker.zOffsetDisc(k - 1) + geom_epsilon;
+                            zl = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) - zo + geom_inactive_volume_width + geom_epsilon;
                             is = addEndcapServiceTube(is, zl, zo, ro, rw, false);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
                             if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
-                            zo = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) + volume_width + 2 * epsilon;
+                            zo = tracker.zOffsetBarrel(tracker.nOfBarrels() - tracker.nOfEndcaps() + i) + geom_inactive_volume_width + 2 * geom_epsilon;
                             zl = tracker.zOffsetDisc(k) - zo;
                         }
                         // other disc in endcap
                         else {
-                            zl = tracker.zOffsetDisc(k) - tracker.zOffsetDisc(k - 1) - epsilon;
+                            zl = tracker.zOffsetDisc(k) - tracker.zOffsetDisc(k - 1) - geom_epsilon;
                             zo = tracker.zOffsetDisc(k) - zl;
                             
                         }
@@ -355,7 +355,7 @@ namespace insur {
                         if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getEndcapServicePart(is.getEndcapServices().size() - 1).track(false);
                     }
                     if ((i == tracker.nOfEndcaps() - 1) && (j == tracker.nOfDiscs(i) - 1)) {
-                        is = addEndcapServiceTube(is, max_length - zo - zl - epsilon, zo + zl + epsilon, ri, rw, true);
+                        is = addEndcapServiceTube(is, geom_max_length - zo - zl - geom_epsilon, zo + zl + geom_epsilon, ri, rw, true);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                         is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
@@ -389,14 +389,14 @@ namespace insur {
         int k = 0;
         // barrels
         //zrl = volume_width;
-        rtw = volume_width;
+        rtw = geom_inactive_volume_width;
         if (findMaxBarrelZ(tracker) < (tracker.zOffsetDisc(tracker.totalDiscs() - 1) + tracker.lengthDisc(tracker.totalDiscs() - 1)))
             zeo = tracker.zOffsetDisc(tracker.totalDiscs() - 1) + tracker.lengthDisc(tracker.totalDiscs() - 1);
         else zeo = findMaxBarrelZ(tracker);
         // inner barrels
         for (int i = 0; i < tracker.nOfBarrels() - 1; i++) {
             if (!tracker.barrelHasServices(i)) continue;
-            zbo = tracker.zOffsetBarrel(i) + epsilon;
+            zbo = tracker.zOffsetBarrel(i) + geom_epsilon;
             ztl = zeo - zbo;
             // layer loop
             for (int j = 0; j < tracker.nOfLayers(i); j++) {
@@ -412,12 +412,12 @@ namespace insur {
         // outmost barrel
         k = servicesOutmostBarrel(tracker, is, r_outer, k);
         // endcap (one by definition)
-        ri = r_outer - rtw - epsilon;
+        ri = r_outer - rtw - geom_epsilon;
         // disc loop
         for (int i = 0; i < tracker.totalDiscs(); i++) {
             if (!tracker.endcapHasServices(tracker.endcapFromDisc(i))) continue;
-            if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - volume_width - 2 * epsilon;
-            else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - epsilon;
+            if (i == 0) ztl = tracker.zOffsetDisc(i) - tracker.zOffsetBarrel(tracker.nOfBarrels() - 1) - geom_inactive_volume_width - 2 * geom_epsilon;
+            else ztl = tracker.zOffsetDisc(i) - tracker.zOffsetDisc(i - 1) - geom_epsilon;
             zeo = tracker.zOffsetDisc(i) - ztl;
             is = addEndcapServiceTube(is, ztl, zeo, ri, rtw, false);
             is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
@@ -434,7 +434,7 @@ namespace insur {
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
             }
             if (i == tracker.totalDiscs() - 1) {
-                is = addEndcapServiceTube(is, max_length - zeo - ztl - epsilon, zeo + ztl + epsilon, ri, rtw, true);
+                is = addEndcapServiceTube(is, geom_max_length - zeo - ztl - geom_epsilon, zeo + ztl + geom_epsilon, ri, rtw, true);
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setCategory(MaterialProperties::e_ser);
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourType(InactiveElement::endcap);
                 is.getEndcapServicePart(is.getEndcapServices().size() - 1).setNeighbourIndex(is.getEndcapServices().size() - 2);
@@ -455,7 +455,7 @@ namespace insur {
      */
     InactiveSurfaces& Usher::supportsAll(TrackerIntRep& tracker, InactiveSurfaces& is, double r_outer, const std::list<Support*>& supports, bool track_all) {
         // outer tube
-        is = addSupportTube(is, 2 * max_length, 0.0 - max_length, r_outer, volume_width);
+        is = addSupportTube(is, 2 * geom_max_length, 0.0 - geom_max_length, r_outer, geom_inactive_volume_width);
         is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::o_sup);
         if (!track_all) is.getSupportPart(is.getSupports().size() - 1).track(false);
         // barrels
@@ -486,13 +486,13 @@ namespace insur {
         int om_b;
         double zl, zo, ri, rw;
         om_b = tracker.nOfBarrels() - 1;
-        zl = volume_width;
+        zl = geom_inactive_volume_width;
         // last barrel without last layer
         if (!tracker.barrelHasServices(om_b)) return layer;
-        zo = tracker.zOffsetBarrel(om_b) + epsilon;
+        zo = tracker.zOffsetBarrel(om_b) + geom_epsilon;
         for (int i = 0; i < tracker.nOfLayers(om_b) - 1; i++) {
             ri = tracker.innerRadiusLayer(layer);
-            rw = tracker.innerRadiusLayer(layer + 1) - ri - epsilon;
+            rw = tracker.innerRadiusLayer(layer + 1) - ri - geom_epsilon;
             is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
             is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
             is.getBarrelServicePart(is.getBarrelServices().size() - 1).setFeederType(InactiveElement::tracker);
@@ -506,7 +506,7 @@ namespace insur {
         }
         // last layer
         ri = tracker.innerRadiusLayer(layer);
-        rw = r_outer - ri - epsilon;
+        rw = r_outer - ri - geom_epsilon;
         if (tracker.nOfEndcaps() == 0) is = addBarrelServiceRing(is, zl, zo, ri, rw, true);
         else is = addBarrelServiceRing(is, zl, zo, ri, rw, false);
         is.getBarrelServicePart(is.getBarrelServices().size() - 1).setCategory(MaterialProperties::b_ser);
@@ -535,7 +535,7 @@ namespace insur {
         for (int i = 0; i < tracker.nOfBarrels(); i++) {
             // no supports modelled if barrel only has one layer (or less)
             if (tracker.nOfLayers(i) > 1) {
-                zl = volume_width;
+                zl = geom_inactive_volume_width;
                 zo = findBarrelSupportRingZ(tracker, i); // tracker.zOffsetBarrel(i) + volume_width + 2 * epsilon;
                 ri = tracker.innerRadiusLayer(k);
                 rw = tracker.innerRadiusLayer(k + tracker.nOfLayers(i) - 1) - ri;
@@ -570,16 +570,16 @@ namespace insur {
             stst = findSupportStartStop(tracker, tmp, aux, z, is.isUp());
             // only continue if start and stop layer are meaningful
             if ((stst.second > 0) && (stst.first < stst.second)) {
-                r = tracker.innerRadiusLayer(stst.first) - volume_width - epsilon;
+                r = tracker.innerRadiusLayer(stst.first) - geom_inactive_volume_width - geom_epsilon;
                 // correct for cut layers => logical barrels in internal representation but part of bigger picture in model
                 if (aux.first == 0) z = tracker.zOffsetBarrel(i);
                 else z = tracker.zOffsetBarrel(aux.first + i - 1);
                 l = 2.0 * z;
                 z = -z;
-                is = addSupportTube(is, l, z, r, volume_width);
+                is = addSupportTube(is, l, z, r, geom_inactive_volume_width);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
-                r = tracker.outerRadiusLayer(stst.second) + epsilon;
-                is = addSupportTube(is, l, z, r, volume_width);
+                r = tracker.outerRadiusLayer(stst.second) + geom_epsilon;
+                is = addSupportTube(is, l, z, r, geom_inactive_volume_width);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::t_sup);
                 // outmost barrel support tube is outside the tracking volume
                 if ((!track_all) && (i == aux.second - 1)) is.getSupportPart(is.getSupports().size() - 1).track(false);
@@ -608,10 +608,10 @@ namespace insur {
         while (iter != guard) {
             next = iter;
             next++;
-            z = iter->second - volume_width - epsilon;
+            z = iter->second - geom_inactive_volume_width - geom_epsilon;
             // find inner radius of support disc
             start = iter->first - 1;
-            r = tracker.outerRadiusLayer(start) + epsilon;
+            r = tracker.outerRadiusLayer(start) + geom_epsilon;
             // find width of support disc: check if layer above is long or not
             regular = (next == guard) && (iter->first < (int)tracker.totalLayers() - 1);
             regular = regular || ((next != guard) && (next->first > iter->first + 1));
@@ -625,10 +625,10 @@ namespace insur {
             }
             stop = iter->first + 1;
             // set width of support disc
-            if (stop == tracker.totalLayers()) w = r_outer - r - epsilon;
-            else w = tracker.innerRadiusLayer(stop) - r - epsilon;
+            if (stop == tracker.totalLayers()) w = r_outer - r - geom_epsilon;
+            else w = tracker.innerRadiusLayer(stop) - r - geom_epsilon;
             // create volume
-            is = addSupportRing(is, volume_width, z, r, w);
+            is = addSupportRing(is, geom_inactive_volume_width, z, r, w);
             is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::b_sup);
             iter++;
         }
@@ -646,18 +646,18 @@ namespace insur {
     InactiveSurfaces& Usher::supportsEndcaps(TrackerIntRep& tracker, InactiveSurfaces& is, bool track_all) {
         double zl, zo, ri, rw;
         int k = 0;
-        rw = volume_width;
+        rw = geom_inactive_volume_width;
         // endcap loop
         for (int i = 0; i < tracker.nOfEndcaps(); i++) {
             // no supports if endcap has only one disc
             if (tracker.nOfDiscs(i) > 1) {
-                ri = tracker.outerRadiusEndcap(i) + epsilon;
+                ri = tracker.outerRadiusEndcap(i) + geom_epsilon;
                 zo = tracker.zOffsetDisc(k);
                 zl = tracker.zOffsetDisc(k + tracker.nOfDiscs(i) - 1) - zo;
                 is = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
                 if ((!track_all) && (i == tracker.nOfEndcaps() - 1)) is.getSupportPart(is.getSupports().size() - 1).track(false);
-                ri = tracker.innerRadiusEndcap(i) - rw - epsilon;
+                ri = tracker.innerRadiusEndcap(i) - rw - geom_epsilon;
                 is  = addSupportTube(is, zl, zo, ri, rw);
                 is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::e_sup);
             }
@@ -690,8 +690,8 @@ namespace insur {
             // support positions loop
             for (auto iter = extras.begin(); iter != extras.end(); iter++) {
                 // skip support definition if position is outside tracker volume
-                if ((*iter)->midZ() < max_length) {
-                    z = (*iter)->midZ() - volume_width / 2.0;
+                if ((*iter)->midZ() < geom_max_length) {
+                    z = (*iter)->midZ() - geom_inactive_volume_width / 2.0;
                     // support definition applies across all layers
                     if ((*iter)->index() == 0) {
                         for (int i = 0; i < aux.second; i++) {
@@ -898,9 +898,9 @@ namespace insur {
     InactiveSurfaces& Usher::addBarrelSupportsUserDefined(InactiveSurfaces& is, TrackerIntRep& tracker, int start, int stop, double z) {
         double r, w;
         for (int k = start; k < stop; k++) {
-            r = tracker.outerRadiusLayer(k) + epsilon;
-            w = tracker.innerRadiusLayer(k + 1) - r - epsilon;
-            is = addSupportRing(is, volume_width, z, r, w);
+            r = tracker.outerRadiusLayer(k) + geom_epsilon;
+            w = tracker.innerRadiusLayer(k + 1) - r - geom_epsilon;
+            is = addSupportRing(is, geom_inactive_volume_width, z, r, w);
             is.getSupportPart(is.getSupports().size() - 1).setCategory(MaterialProperties::u_sup);
         }
         return is;
@@ -1104,12 +1104,12 @@ namespace insur {
 
     double Usher::findBarrelSupportRingZ(TrackerIntRep& tracker, int i) const { // returns the Z of the supports at the end of the barrel (so that they clear any service ring)
       double zDiff = i < tracker.nOfBarrels() - 1 ? tracker.zOffsetBarrel(i+1) - tracker.zOffsetBarrel(i) : 0.;
-      if (fabs(zDiff) >= z_threshold_service_zigzag) { // checking if services zigzag
-        return tracker.zOffsetBarrel(i) + volume_width + 2*epsilon;
+      if (fabs(zDiff) >= geom_z_threshold_service_zigzag) { // checking if services zigzag
+        return tracker.zOffsetBarrel(i) + geom_inactive_volume_width + 2*geom_epsilon;
       } else {
         double maxZOffset = tracker.zOffsetBarrel(0);
         for (int i = 1; i < tracker.nOfBarrels(); i++) maxZOffset = MAX(maxZOffset, tracker.zOffsetBarrel(i));
-        return maxZOffset + volume_width + 2*epsilon;
+        return maxZOffset + geom_inactive_volume_width + 2*geom_epsilon;
       } 
     }
     
