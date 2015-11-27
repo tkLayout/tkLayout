@@ -2866,11 +2866,11 @@ namespace insur {
             myTable->setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
             myTable->setColor(1, baseColumn+j, myColor);
             if (averagesReal.size() > j) {
-              myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+              myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
-              myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+              myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
               myTable->setColor(3, baseColumn+j, myColor);
             }
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
@@ -3574,16 +3574,16 @@ namespace insur {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],1);
-              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
+              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],1);
-              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
+              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
               myTable->setColor(3, baseColumn+j, myColor);
             }
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
@@ -3660,16 +3660,16 @@ namespace insur {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],1);
-              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],5);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
+              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],1);
-              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],5);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
+              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
               myTable->setColor(3, baseColumn+j, myColor);
             }
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
