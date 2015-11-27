@@ -755,7 +755,7 @@ namespace insur {
         if (simParms_->chargedNoBMapFile()     !="" && simParms_->photonsNoBMapFile()     !="") analyzerOccupancy.readNoMagFieldMap(chargedNoBMapFile, photonsNoBMapFile);
         if (simParms_->chargedNoBNoMatMapFile()!="" && simParms_->photonsNoBNoMatMapFile()!="") analyzerOccupancy.readNoMagFieldNoMaterialMap(chargedNoBNoMatMapFile, photonsNoBNoMatMapFile);
 
-        bool outCalc = analyzerOccupancy.calculate(vis_eta_step);
+        bool outCalc = analyzerOccupancy.analyze();
         bool outVis  = analyzerOccupancy.visualize(webSite_, simParms_);
 
         stopTaskClock();

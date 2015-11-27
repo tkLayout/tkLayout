@@ -17,10 +17,10 @@
 
 using namespace insur;
 
-AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<Tracker*> trackers)
+AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<Tracker*> trackers) : AnalyzerModule(trackers)
 {
   // Set geometry, i.e. individual trackers
-  for (auto it : trackers) m_trackers.push_back(it);
+  //for (auto it : trackers) m_trackers.push_back(it);
 
   // Read data from files to memory
   m_photonsMap = new IrradiationMap(photonsFileName);
@@ -32,11 +32,15 @@ AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string ph
   m_chargedMapNoBNoMat = nullptr;
 
   m_hisChargedFlux         = nullptr;
-  m_hisPhotonsFlux         = nullptr;
   m_hisChargedNoBFlux      = nullptr;
   m_hisChargedNoBNoMatFlux = nullptr;
+  m_hisChargedRatioMat     = nullptr;
+  m_hisChargedRatioMatB    = nullptr;
+  m_hisPhotonsFlux         = nullptr;
   m_hisPhotonsNoBFlux      = nullptr;
   m_hisPhotonsNoBNoMatFlux = nullptr;
+  m_hisPhotonsRatioMat     = nullptr;
+  m_hisPhotonsRatioMatB    = nullptr;
 }
 
 AnalyzerOccupancy::~AnalyzerOccupancy()
@@ -50,7 +54,7 @@ AnalyzerOccupancy::~AnalyzerOccupancy()
   if (m_chargedMapNoBNoMat!=nullptr) delete m_chargedMapNoBNoMat;
 }
 
-bool AnalyzerOccupancy::calculate(double etaStep)
+bool AnalyzerOccupancy::analyze()
 {
   // Make & fill all flux histograms
   fillHistogram(m_chargedMap,         m_hisChargedFlux,         "ChargedFluxPerPP",         "Flux of charged particles [cm^{-2}] per pp collision");

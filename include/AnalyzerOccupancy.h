@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "AnalyzerModule.h"
 class RootWSite;
 class Tracker;
 class IrradiationMap;
@@ -20,7 +21,7 @@ class SimParms;
  * Analyze Fluka simulated fluxes of charged hadrons & photons and calculate occupancies, optimal pitch etc.
  * Vizualize data and print them out in a html formatted output.
  */
-class AnalyzerOccupancy {
+class AnalyzerOccupancy : AnalyzerModule {
 
  public:
   // Constructor
@@ -29,7 +30,7 @@ class AnalyzerOccupancy {
   ~AnalyzerOccupancy();
 
   // Calculate occupancy & ideal pitch size
-  bool calculate(double etaStep);
+  bool analyze();
   // Visualize - add html page with all calculations & results
   bool visualize(RootWSite& webSite, const SimParms* simParms);
   // Read no magnetic field map
@@ -43,7 +44,7 @@ class AnalyzerOccupancy {
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);
 
   // Analyzed geometry
-  std::vector<Tracker*> m_trackers;
+  //std::vector<Tracker*> m_trackers;
 
   IrradiationMap* m_photonsMap;         // Photons fluxes
   IrradiationMap* m_photonsMapNoB;      // Photons fluxes in a detector without magnetic field
