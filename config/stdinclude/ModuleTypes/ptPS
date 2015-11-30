@@ -16,8 +16,7 @@ powerModuleOptical 0
 sensorThickness 0.2
 
 serviceHybridWidth 12.0 //10.63 hybrid + 1.37 inactive silicon // OK
-//frontEndHybridWidth 11.5//10.05 hybrid + 1.45 inactive silicon // OK
-frontEndHybridWidth 9.5//8.05 hybrid + 1.45 inactive silicon // OK
+frontEndHybridWidth 11.5//10.05 hybrid + 1.45 inactive silicon // OK
 
 reduceCombinatorialBackground true
 
