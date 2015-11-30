@@ -424,6 +424,10 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
   int numLine = 1;
   std::set<string> includeSet;
   includeSet.insert(istreamid);
+  std::string istreamid_directory = istreamid.substr(0, istreamid.find_last_of("/"));
+  if (istreamid_directory == istreamid) {
+    istreamid_directory = ".";
+  }
   while(getline(is, line).good()) {
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
@@ -441,7 +445,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
       bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported 
       bool includeStdNew = trimmed.find("@include-std") != string::npos;
      // bool includeWeak = trimmed.find("@include-weak") != string::npos || trimmed.find("@include-std-weak") != string::npos || trimmed.find("@includestd-weak") != string::npos; // include weak command not supported for the moment
-      string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : std::string("");
+      string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : istreamid_directory+"/"; 
       filename = prefix + filename;
       ifstream ifs(filename);
       if (ifs) {
