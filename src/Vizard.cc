@@ -1249,8 +1249,8 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
-        tagMapAveRphiResolution[aSensorTag] += m.resolutionLocalX();
-        tagMapAveYResolution[aSensorTag] += m.resolutionLocalY();
+        tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX();
+        tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY();
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
         tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();

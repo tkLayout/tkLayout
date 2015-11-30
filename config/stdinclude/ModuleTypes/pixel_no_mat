@@ -12,8 +12,3 @@ stereoRotation 15
 zCorrelation multisegment
 
 plotColor 4
-
-@includestd Materials/pixel
-@includestd Materials/rodPixel
-@includestd Materials/diskPixel
-
