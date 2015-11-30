@@ -40,8 +40,7 @@ int main(int argc, char* argv[]) {
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
     ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
     ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
-    ;
-
+    ("pixelxml", "Produce XML output files for pixel.\nThe config file name (minus extension)\nwill be used as subdir.");
     
   po::options_description trackopt("Track simulation options");
   trackopt.add_options()
@@ -152,7 +151,12 @@ int main(int argc, char* argv[]) {
 
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
-
+   
+    if (vm.count("pixelxml")) {
+        squid.pixelExtraction(xmldir);
+    }
+    
+    if( vm.count("xml") || vm.count("pixelxml") )    squid.createAdditionalXmlSite(xmldir);
 
     if (!squid.reportGeometrySite()) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;

@@ -1,0 +1,152 @@
+// Endcap disks material
+
+//  #include <generic/CoolingBlocks> // TODO: check this - duplicate entry in ModuleMechanics
+
+Materials FPX_disk {
+  type layer
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 17.8
+      unit g
+    }
+    Element {
+      elementName CO2
+      quantity 10.8
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  // 12 pipes per disk
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPX_Steel
+      quantity 0.062
+      unit g/m
+    }
+    Element {
+      elementName FPX_CO2
+      quantity 0.038
+      unit g/m
+    }
+  }
+
+
+
+ 
+
+
+// Power for the module
+  Component {
+    componentName "Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 4.7
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 1
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  // 12 chains per disk
+  Component {
+    componentName "Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPX_Al
+      quantity 0.032
+      unit g/m
+    }
+    Element {
+      elementName FPX_PE
+      quantity 0.006
+      unit g/m
+    }
+  }
+
+ 
+
+
+
+
+// HV power wires
+// Power for the module
+  Component {
+    componentName "HV Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 3.7
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 0.9
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 12 chains per disk
+  Component {
+    componentName "HV Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPX_Al
+      quantity 0.026
+      unit g/m
+    }
+    Element {
+      elementName FPX_PE
+      quantity 0.006
+      unit g/m
+    }
+  }
+
+
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.4
+      unit mm
+    }
+    Element {
+      elementName Airex
+      quantity 4
+      unit mm
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+}
