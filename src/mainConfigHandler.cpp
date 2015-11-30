@@ -432,6 +432,15 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
     int includeStart;
+    if ((includeStart = trimmed.find("tiltedLayerSpecFile")) != string::npos) { // merging a spec file
+      string rightPart = trimmed.substr(includeStart + strlen("tiltedLayerSpecFile"));
+      string leftPart = trimmed.substr(0, includeStart + strlen("tiltedLayerSpecFile"));
+      int lastSpace;
+      for (lastSpace=0; (rightPart[lastSpace]==' ')&&(lastSpace<rightPart.size()); lastSpace++);
+      rightPart = rightPart.substr(lastSpace);
+      line = leftPart + " " + istreamid_directory + "/" + rightPart;
+    }
+
     if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std @include-weak @include-std-weak
       trimmed = trimmed.substr(includeStart);
       int quoteStart, quoteEnd;
