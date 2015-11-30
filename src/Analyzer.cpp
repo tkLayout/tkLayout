@@ -61,43 +61,13 @@ namespace insur {
     //colorPicker("rphi");
     //colorPicker("stereo");
     //colorPicker("ptIn");
-    geomLite = NULL;   geomLiteCreated=false;
-    geomLiteXY = NULL; geomLiteXYCreated=false;
-    geomLiteYZ = NULL; geomLiteYZCreated=false;
-    geomLiteEC = NULL; geomLiteECCreated=false;
+    geomLite           = nullptr; geomLiteCreated=false;
+    geomLiteXY         = nullptr; geomLiteXYCreated=false;
+    geomLiteYZ         = nullptr; geomLiteYZCreated=false;
+    geomLiteEC         = nullptr; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
-
-    //etaMaxMaterial = 3.1;
-    etaMaxGeometry = 2.6;
-
-    trackingCuts.push_back(0.01);
-    triggerCuts.push_back(0.01);
-    double detaTrack = 0.8;
-    // TODO: make this configurable
-    addCut("C", detaTrack, detaTrack);
-    addCut("I", detaTrack*2, detaTrack*2);
-    addCut("F", detaTrack*3, detaTrack*3);
-    addCut("VF",detaTrack*4, detaTrack*4);
-    addCut("WF",detaTrack*5, detaTrack*5);
   }
-
-  // public
-  // TODO: add documentation for this function
-  void Analyzer::addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut) {
-    cutNames.push_back(cutName);
-    trackingCuts.push_back(trackingCut);
-    triggerCuts.push_back(triggerCut);
-  }
-
-  double Analyzer::getEtaMaxTracking() {
-    return trackingCuts[trackingCuts.size()-1];
-  }
-
-  double Analyzer::getEtaMaxTrigger() {
-    return triggerCuts[triggerCuts.size()-1];
-  }
-
 
   // private
   /* High-level function finding all hits for a given tracker (and pixel)
@@ -155,14 +125,97 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     
   */                                
 
-void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
-                                     const std::vector<double>& momenta,
-                                     const std::vector<double>& triggerMomenta,
-                                     const std::vector<double>& thresholdProbabilities,
-                                     int etaSteps,
-                                     MaterialBudget* pm) {
+  void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
+				       const std::vector<double>& momenta,
+				       const std::vector<double>& triggerMomenta,
+				       const std::vector<double>& thresholdProbabilities,
+				       int etaSteps,
+				       MaterialBudget* pm) {
 
-  double efficiency = simParms().efficiency();
+
+    /*TCanvas* cc = new TCanvas();
+      cc->cd();
+      TFile *_file0 = TFile::Open("mm.root");
+      TProfile* mm = (TProfile*)_file0->FindObjectAny("mm");
+      cc->SetLogy();
+      mm->Draw();
+      TAxis* myAxis = mm->GetXaxis();
+      double xmin = myAxis->GetXmin();
+      double xmax = myAxis->GetXmax();
+      TF1* hypSec = new TF1("hypSec", "1/cosh(x)", xmin, xmax);
+      TProfile* newmm = (TProfile*)mm->Clone();
+      newmm->Multiply(hypSec);
+      newmm->GetYaxis()->SetTitle("#Delta#eta");
+      newmm->SetTitle("Pseudorapidity resolution");
+      cc = new TCanvas();
+      cc->cd();
+      cc->SetLogy();
+      newmm->Draw();*/
+
+    TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
+
+    TProfile* profXBar;
+    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30);
+    profXBar->GetYaxis()->SetRangeUser(0,30);
+    profXBar->GetXaxis()->SetTitle("cotg(alpha)");
+    profXBar->GetYaxis()->SetTitle("resolutionLocalX [um]");
+    profXBar->GetXaxis()->CenterTitle();
+    profXBar->GetYaxis()->CenterTitle();
+
+    TProfile* profYBar;
+    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
+    profYBar->GetYaxis()->SetRangeUser(0,60);
+    profYBar->GetXaxis()->SetTitle("|cotg(beta)|");
+    profYBar->GetYaxis()->SetTitle("resolutionLocalY [um]");
+    profYBar->GetXaxis()->CenterTitle();
+    profYBar->GetYaxis()->CenterTitle();
+
+    TProfile* profXEnd;
+    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
+    profXEnd->GetYaxis()->SetRangeUser(0,30);
+    profXEnd->GetXaxis()->SetTitle("cotg(alpha)");
+    profXEnd->GetYaxis()->SetTitle("resolutionLocalX [um]");
+    profXEnd->GetXaxis()->CenterTitle();
+    profXEnd->GetYaxis()->CenterTitle();
+
+    TProfile* profYEnd;
+    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
+    profYEnd->GetYaxis()->SetRangeUser(0,40);
+    profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
+    profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
+    profYEnd->GetXaxis()->CenterTitle();
+    profYEnd->GetYaxis()->CenterTitle();
+
+
+    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
+    histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
+    histXBar->GetXaxis()->CenterTitle();
+
+    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
+    histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
+    histYBar->GetXaxis()->CenterTitle();
+
+    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
+    histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
+    histXEnd->GetXaxis()->CenterTitle();
+
+    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
+    histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
+    histYEnd->GetXaxis()->CenterTitle();
+
+
+
+    TProfile* profXBar0  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30); 
+    TProfile* profYBar0 = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
+    TProfile* profXEnd0  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
+    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
+    TH1D *histXBar0 = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
+    TH1D *histYBar0 = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
+    TH1D *histXEnd0 = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
+    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
+
+
+    double efficiency = simParms().efficiency();
 
   materialTracksUsed = etaSteps;
 
@@ -179,8 +232,11 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
   // reset the list of tracks
   //std::map<string, std::vector<Track>> tv;
   //std::map<string, std::vector<Track>> tvIdeal;
-  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMap;
-  std::map<std::string, TrackCollectionMap> taggedTrackCollectionMapIdeal;
+  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMap;
+  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMap;
+  std::map<std::string, TrackCollectionMap> taggedTrackPtCollectionMapIdeal;
+  std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMapIdeal;
+
 
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     phi = myDice.Rndm() * M_PI * 2.0;
@@ -188,6 +244,7 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     Track track;
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
+    //std::cout << " track's phi = " << phi << std::endl; 
     track.setTheta(theta);      
     track.setPhi(phi);
 
@@ -211,11 +268,6 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
     hit->setCorrectedMaterial(beamPipeMat);
     track.addHit(hit);
 
-    // <SMe>
-    // track.sort();
-    // track.print();
-    // </SMe>
-
     if (!track.noHits()) {
       for (string tag : track.tags()) {
         track.keepTaggedOnly(tag);
@@ -225,52 +277,150 @@ void Analyzer::analyzeTaggedTracking(MaterialBudget& mb,
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
         if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          // For each transverse momentum
-          // compute the tracks error
-          for (const auto& ptit : momenta ) {
-            int parameter = ptit * 1000;       // <SMe> we store p or pT in MeV as int (key to the map) </SMe>
-            double transverseMomentum = ptit;  // <SMe> we assign the selected /transverse/ momentum to the track (in GeV) </SMe>
-            // parameter is pT in this case
-            track.setTransverseMomentum(transverseMomentum);
-            track.computeErrors();
-            TrackCollectionMap &myMap = taggedTrackCollectionMap[tag];
-            TrackCollection &myCollection = myMap[parameter];
-            myCollection.push_back(track);
 
-            Track idealTrack(track);
-            idealTrack.removeMaterial();
-            idealTrack.computeErrors();
-            TrackCollectionMap &myMapIdeal = taggedTrackCollectionMapIdeal[tag];
+          // For each momentum/transverse momentum compute the tracks error
+          for (const auto& pIter : momenta ) {
+            int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+            double momentum  = pIter;
+
+            // Case I) Initial momentum is equal to pT
+            double pT = momentum;
+
+            // Active+passive material
+            Track trackPt(track);
+            trackPt.setTransverseMomentum(pT);
+            trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
+            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+            TrackCollection &myCollection = myMap[parameter];
+            myCollection.push_back(trackPt);
+
+            // Ideal (no material)
+            Track idealTrackPt(trackPt);
+            idealTrackPt.removeMaterial();
+            idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-            myCollectionIdeal.push_back(idealTrack);
+            myCollectionIdeal.push_back(idealTrackPt);
+
+            // Case II) Initial momentum is equal to p
+            pT = momentum*sin(theta);
+
+            // Active+passive material
+            Track trackP(track);
+            trackP.setTransverseMomentum(pT);
+            trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+            TrackCollection &myCollectionII = myMapII[parameter];
+            myCollectionII.push_back(trackP);
+
+            // Ideal (no material)
+            Track idealTrackP(trackP);
+            idealTrackP.removeMaterial();
+            idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+            myCollectionIdealII.push_back(idealTrackP);
           }
         }    
       }
     }
   }
-  
-  // For each tracking system compute the resolution graphs // TODO: consts here
-  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMap) {
+
+  // Momentum = Pt
+  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
     const string& myTag = ttcmIt.first;
-    clearGraphs(GraphBag::RealGraph, myTag);
+    clearGraphsPt(GraphBag::RealGraph, myTag);
     /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
     for (const auto& tcmIt : myTrackCollection) {
       const int &parameter = tcmIt.first;
       const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphs(parameter, myCollection, GraphBag::RealGraph, myTag);
+      //std::cout << myCollection.size() << std::endl;
+      calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+    }
+  }
+  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
+    const string& myTag = ttcmIt.first;
+    clearGraphsPt(GraphBag::IdealGraph, myTag);
+    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+    for (const auto& tcmIt : myTrackCollection) {
+      const int &parameter = tcmIt.first;
+      const TrackCollection& myCollection = tcmIt.second;
+      calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
     }
   }
 
-  for (/*const*/ auto& ttcmIt : taggedTrackCollectionMapIdeal) {
+  // Momentum = P
+  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
     const string& myTag = ttcmIt.first;
-    clearGraphs(GraphBag::IdealGraph, myTag);
+    clearGraphsP(GraphBag::RealGraph, myTag);
     /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
     for (const auto& tcmIt : myTrackCollection) {
       const int &parameter = tcmIt.first;
       const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphs(parameter, myCollection, GraphBag::IdealGraph, myTag);
+      //std::cout << myCollection.size() << std::endl;
+      calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
     }
   }
+  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
+    const string& myTag = ttcmIt.first;
+    clearGraphsP(GraphBag::IdealGraph, myTag);
+    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+    for (const auto& tcmIt : myTrackCollection) {
+      const int &parameter = tcmIt.first;
+      const TrackCollection& myCollection = tcmIt.second;
+      calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
+    }
+  }
+
+  profXBar->Draw();
+  c1->Print("profXBar.gif");
+  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
+  profXBar->Write();
+  profXBar_out_file.Close();
+
+  profYBar->Draw();
+  c1->Print("profYBar.gif");
+  TFile profYBar_out_file("profYBar_out_file.root", "RECREATE");
+  profYBar->Write();
+  profYBar_out_file.Close();
+
+  profXEnd->Draw();
+  c1->Print("profXEnd.gif");
+  TFile profXEnd_out_file("profXEnd_out_file.root", "RECREATE");
+  profXEnd->Write();
+  profXEnd_out_file.Close();
+
+  profYEnd->Draw();
+  c1->Print("profYEnd.gif");
+  TFile profYEnd_out_file("profYEnd_out_file.root", "RECREATE");
+  profYEnd->Write();
+  profYEnd_out_file.Close();
+
+ 
+  
+  histXBar->DrawNormalized();
+  c1->Print("histXBar.gif");
+  TFile histXBar_out_file("histXBar_out_file.root", "RECREATE");
+  histXBar->Write();
+  histXBar_out_file.Close();
+
+  histYBar->DrawNormalized();
+  c1->Print("histYBar.gif");
+  TFile histYBar_out_file("histYBar_out_file.root", "RECREATE");
+  histYBar->Write();
+  histYBar_out_file.Close();
+
+  histXEnd->DrawNormalized();
+  c1->Print("histXEnd.gif");
+  TFile histXEnd_out_file("histXEnd_out_file.root", "RECREATE");
+  histXEnd->Write();
+  histXEnd_out_file.Close();
+
+  histYEnd->DrawNormalized();
+  c1->Print("histYEnd.gif");
+  TFile histYEnd_out_file("histYEnd_out_file.root", "RECREATE");
+  histYEnd->Write();
+  histYEnd_out_file.Close();
 
 }
 
@@ -488,7 +638,7 @@ void Analyzer::analyzeMaterialBudget(MaterialBudget& mb, const std::vector<doubl
   nTracks = etaSteps;
   // reset the number of bins and the histogram boundaries (0.0 to getEtaMaxMaterial()) for all histograms, recalculate the cell boundaries
   setHistogramBinsBoundaries(nTracks, 0.0, getEtaMaxMaterial());
-  setCellBoundaries(nTracks, 0.0, outer_radius + volume_width, 0.0, getEtaMaxMaterial());
+  setCellBoundaries(nTracks, 0.0, geom_max_radius + geom_inactive_volume_width, 0.0, getEtaMaxMaterial());
 
   // reset the list of tracks
   // std::vector<Track> tv;
@@ -1531,119 +1681,219 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
   return res;
 }
   
-  
-  void Analyzer::clearGraphs(int graphAttributes, const std::string& graphTag) {
-  std::map<int, TGraph>& thisRhoGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph, graphTag);
-  std::map<int, TGraph>& thisPhiGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph, graphTag);
-  std::map<int, TGraph>& thisDGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::DGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::DGraph, graphTag);
-  std::map<int, TGraph>& thisCtgThetaGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph, graphTag);
-  std::map<int, TGraph>& thisZ0Graphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph, graphTag);
-  std::map<int, TGraph>& thisPGraphs = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph, graphTag);
-  
-  thisRhoGraphs.clear();
-  thisPhiGraphs.clear();
-  thisDGraphs.clear();
-  thisCtgThetaGraphs.clear();
-  thisZ0Graphs.clear();
-  thisPGraphs.clear();
-  
+void Analyzer::clearGraphsPt(int graphAttributes, const std::string& graphTag) {
+  std::map<int, TGraph>& thisRhoGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph_Pt     , graphTag);
+  std::map<int, TGraph>& thisPhiGraphs_Pt      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph_Pt      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph_Pt     , graphTag);
+  std::map<int, TGraph>& thisDGraphs_Pt        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::DGraph_Pt        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::DGraph_Pt       , graphTag);
+  std::map<int, TGraph>& thisCtgThetaGraphs_Pt = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt, graphTag);
+  std::map<int, TGraph>& thisZ0Graphs_Pt       = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph_Pt       ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph_Pt      , graphTag);
+  std::map<int, TGraph>& thisPGraphs_Pt        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph_Pt        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph_Pt       , graphTag);
+
+  thisRhoGraphs_Pt.clear();
+  thisPhiGraphs_Pt.clear();
+  thisDGraphs_Pt.clear();
+  thisCtgThetaGraphs_Pt.clear();
+  thisZ0Graphs_Pt.clear();
+  thisPGraphs_Pt.clear();
 }
- 
+
+void Analyzer::clearGraphsP(int graphAttributes, const std::string& graphTag) {
+  std::map<int, TGraph>& thisRhoGraphs_P      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::RhoGraph_P      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::RhoGraph_P     , graphTag);
+  std::map<int, TGraph>& thisPhiGraphs_P      = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PhiGraph_P      ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PhiGraph_P     , graphTag);
+  std::map<int, TGraph>& thisDGraphs_P        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::DGraph_P        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::DGraph_P       , graphTag);
+  std::map<int, TGraph>& thisCtgThetaGraphs_P = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph_P ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph_P, graphTag);
+  std::map<int, TGraph>& thisZ0Graphs_P       = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph_P       ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph_P      , graphTag);
+  std::map<int, TGraph>& thisPGraphs_P        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph_P        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph_P       , graphTag);
+
+  thisRhoGraphs_P.clear();
+  thisPhiGraphs_P.clear();
+  thisDGraphs_P.clear();
+  thisCtgThetaGraphs_P.clear();
+  thisZ0Graphs_P.clear();
+  thisPGraphs_P.clear();
+
+}
  
 /**
  * Calculate the error graphs for the radius curvature, the distance and the angle, for each momentum,
  * and store them internally for later visualisation.
  * @param parameter The list of different momenta that the error graphs are calculated for
  */
-void Analyzer::calculateGraphs(const int& parameter, 
-                               const TrackCollection& aTrackCollection,
-                               int graphAttributes, 
-                               const string& graphTag) {
+void Analyzer::calculateGraphsConstPt(const int& parameter,
+                                      const TrackCollection& aTrackCollection,
+                                      int graphAttributes,
+                                      const string& graphTag) {
 
-  TGraph& thisRhoGraph       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::RhoGraph, parameter )      : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::RhoGraph       , graphTag, parameter);
-  TGraph& thisPhiGraph       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PhiGraph, parameter )      : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PhiGraph       , graphTag, parameter);
-  TGraph& thisDGraph         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::DGraph, parameter )        : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::DGraph         , graphTag, parameter);
-  TGraph& thisCtgThetaGraph  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph  , graphTag, parameter);
-  TGraph& thisZ0Graph        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph, parameter )       : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph        , graphTag, parameter);
-  TGraph& thisPGraph         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph, parameter )        : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph         , graphTag, parameter);
+  // Get graphs from graphBag
+  TGraph& thisRhoGraph_Pt       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::RhoGraph_Pt     , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::RhoGraph_Pt       , graphTag, parameter);
+  TGraph& thisPhiGraph_Pt       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PhiGraph_Pt     , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PhiGraph_Pt       , graphTag, parameter);
+  TGraph& thisDGraph_Pt         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::DGraph_Pt       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::DGraph_Pt         , graphTag, parameter);
+  TGraph& thisCtgThetaGraph_Pt  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph_Pt, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph_Pt  , graphTag, parameter);
+  TGraph& thisZ0Graph_Pt        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph_Pt      , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph_Pt        , graphTag, parameter);
+  TGraph& thisPGraph_Pt         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph_Pt       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph_Pt         , graphTag, parameter);
 
+  // Variables
   double eta, R;
-
-  // momentum loop
   std::ostringstream aName;
-  // Prepare plots: pT
-  double momentum = double(parameter)/1000.;
 
-  thisRhoGraph.SetTitle("Transverse momentum error;#eta;#sigma (#delta p_{T}/p_{T}) [%]");
+  // Prepare plot for const pt across eta
+  double momentum = double(parameter)/1000.;
+  double magField = magnetic_field;
+
+  // Prepare plots: pt
+  thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
   aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
-  thisRhoGraph.SetName(aName.str().c_str());
+  thisRhoGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: phi
-  thisPhiGraph.SetTitle("Track azimuthal angle error;#eta;#sigma (#delta #phi) [rad]");
+  thisPhiGraph_Pt.SetTitle("Track azimuthal angle error - const P_{T} across #eta;#eta;#delta #phi [deg]");
   aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
-  thisPhiGraph.SetName(aName.str().c_str());
+  thisPhiGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: d
-  thisDGraph.SetTitle("Transverse impact parameter error;#eta;#sigma (#delta d_{0}) [cm]");
+  thisDGraph_Pt.SetTitle("Transverse impact parameter error - const P_{T} across #eta;#eta;#delta d_{0} [#mum]");
   aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
-  thisDGraph.SetName(aName.str().c_str());
+  thisDGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: ctg(theta)
-  thisCtgThetaGraph.SetTitle("Track polar angle error;#eta;#sigma (#delta ctg(#theta))");
+  thisCtgThetaGraph_Pt.SetTitle("Track polar angle error - const P_{T} across #eta;#eta;#delta ctg(#theta)");
   aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
-  thisCtgThetaGraph.SetName(aName.str().c_str());
+  thisCtgThetaGraph_Pt.SetName(aName.str().c_str());
   // Prepare plots: z0
-  thisZ0Graph.SetTitle("Longitudinal impact parameter error;#eta;#sigma (#delta z_{0}) [cm]");
+  thisZ0Graph_Pt.SetTitle("Longitudinal impact parameter error - const P_{T} across #eta;#eta;#delta z_{0} [#mum]");
   aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
-  thisZ0Graph.SetName(aName.str().c_str());
+  thisZ0Graph_Pt.SetName(aName.str().c_str());
   // Prepare plots: p
-  thisPGraph.SetTitle("Momentum error;#eta;#sigma (#delta p/p) [%]");
+  thisPGraph_Pt.SetTitle("p resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
-  thisPGraph.SetName(aName.str().c_str());
- 
+  thisPGraph_Pt.SetName(aName.str().c_str());
+
   // track loop
   double graphValue;
   for ( const auto& myTrack : aTrackCollection ) {
     const double& drho = myTrack.getDeltaRho();
     const double& dphi = myTrack.getDeltaPhi();
-    const double& dd = myTrack.getDeltaD();
+    const double& dd   = myTrack.getDeltaD();
     const double& dctg = myTrack.getDeltaCtgTheta();
-    const double& dz0 = myTrack.getDeltaZ0();
-    const double& dp = myTrack.getDeltaP();
+    const double& dz0  = myTrack.getDeltaZ0();
+    const double& dp   = myTrack.getDeltaP();
     eta = myTrack.getEta();
-    R = myTrack.getTransverseMomentum() / magnetic_field / 0.3 * 1E3; // radius in mm
-    if (momentum / magnetic_field / 0.3 * 1E3!=R) { std::cerr << "ERROR (for the moment) it should be the same" << std::endl; } // TODO: remove this check
-
+    R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
     if (drho>0) {
       // deltaRho / rho = deltaRho * R
       graphValue = (drho * R) * 100; // in percent
-      thisRhoGraph.SetPoint(thisRhoGraph.GetN(), eta, graphValue);
+      thisRhoGraph_Pt.SetPoint(thisRhoGraph_Pt.GetN(), eta, graphValue);
     }
-
     if (dphi>0) {
-      graphValue = dphi; // radians is ok
-      thisPhiGraph.SetPoint(thisPhiGraph.GetN(), eta, graphValue);
+      graphValue = dphi/M_PI*180.; // in degrees
+      thisPhiGraph_Pt.SetPoint(thisPhiGraph_Pt.GetN(), eta, graphValue);
     }
-
     if (dd>0) {
-      graphValue = dd / 10.; // in cm
-      thisDGraph.SetPoint(thisDGraph.GetN(), eta, graphValue );
+      graphValue = dd * 1000.; // in um
+      thisDGraph_Pt.SetPoint(thisDGraph_Pt.GetN(), eta, graphValue );
     }
-
     if (dctg>0) {
       graphValue = dctg; // An absolute number
-      thisCtgThetaGraph.SetPoint(thisCtgThetaGraph.GetN(), eta, graphValue);
+      thisCtgThetaGraph_Pt.SetPoint(thisCtgThetaGraph_Pt.GetN(), eta, graphValue);
     }
-
     if (dz0>0) {
-        graphValue =  (dz0) / 10.; // in cm
-        thisZ0Graph.SetPoint(thisZ0Graph.GetN(), eta, graphValue);
+      graphValue =  (dz0) * 1000.; // in um
+      thisZ0Graph_Pt.SetPoint(thisZ0Graph_Pt.GetN(), eta, graphValue);
     }
-
     if ((dp>0)||true) {
-      graphValue = dp * 100.; // in percent 
-      thisPGraph.SetPoint(thisPGraph.GetN(), eta, graphValue);
+      double centralValue = dp * 100.; // in percent
+      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
     }
   }
 }
- 
+
+/**
+ * Calculate the error graphs for case II with const P across eta: the radius curvature, the distance and the angle, for each momentum,
+ * and store them internally for later visualisation.
+ * @param parameter The list of different momenta that the error graphs are calculated for
+ */
+void Analyzer::calculateGraphsConstP(const int& parameter,
+                                     const TrackCollection& aTrackCollection,
+                                     int graphAttributes,
+                                     const string& graphTag) {
+
+  // Get graphs from graphBag
+  TGraph& thisRhoGraph_P       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::RhoGraph_P     , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::RhoGraph_P       , graphTag, parameter);
+  TGraph& thisPhiGraph_P       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PhiGraph_P     , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PhiGraph_P       , graphTag, parameter);
+  TGraph& thisDGraph_P         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::DGraph_P       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::DGraph_P         , graphTag, parameter);
+  TGraph& thisCtgThetaGraph_P  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph_P, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph_P  , graphTag, parameter);
+  TGraph& thisZ0Graph_P        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph_P      , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph_P        , graphTag, parameter);
+  TGraph& thisPGraph_P         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph_P       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph_P         , graphTag, parameter);
+
+  // Variables
+  double eta, R;
+  std::ostringstream aName;
+
+  // Prepare plot for const pt across eta
+  double momentum = double(parameter)/1000.;
+  double magField = simParms_->magneticField();
+
+  // Prepare plots: pt
+  thisRhoGraph_P.SetTitle("p_{T} resolution versus #eta - const P across #eta;#eta;#delta p_{T}/p_{T} [%]");
+  aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
+  thisRhoGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: phi
+  thisPhiGraph_P.SetTitle("Track azimuthal angle error - const P across #eta;#eta;#delta #phi [deg]");
+  aName.str(""); aName << "phi_vs_eta" << momentum << graphTag;
+  thisPhiGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: d
+  thisDGraph_P.SetTitle("Transverse impact parameter error - const P across #eta;#eta;#delta d_{0} [#mum]");
+  aName.str(""); aName << "d_vs_eta" << momentum << graphTag;
+  thisDGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: ctg(theta)
+  thisCtgThetaGraph_P.SetTitle("Track polar angle error - const P across #eta;#eta;#delta ctg(#theta)");
+  aName.str(""); aName << "ctgTheta_vs_eta" << momentum << graphTag;
+  thisCtgThetaGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: z0
+  thisZ0Graph_P.SetTitle("Longitudinal impact parameter error - const P across #eta;#eta;#delta z_{0} [#mum]");
+  aName.str(""); aName << "z_vs_eta" << momentum << graphTag;
+  thisZ0Graph_P.SetName(aName.str().c_str());
+  // Prepare plots: p
+  thisPGraph_P.SetTitle("p resolution versus #eta - const P across #eta;#eta;#delta p/p [%]");
+  aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
+  thisPGraph_P.SetName(aName.str().c_str());
+
+  // track loop
+  double graphValue;
+  for ( const auto& myTrack : aTrackCollection ) {
+    const double& drho = myTrack.getDeltaRho();
+    const double& dphi = myTrack.getDeltaPhi();
+    const double& dd   = myTrack.getDeltaD();
+    const double& dctg = myTrack.getDeltaCtgTheta();
+    const double& dz0  = myTrack.getDeltaZ0();
+    const double& dp   = myTrack.getDeltaP();
+    eta = myTrack.getEta();
+    R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
+    if (drho>0) {
+      // deltaRho / rho = deltaRho * R
+      graphValue = (drho * R) * 100; // in percent
+      thisRhoGraph_P.SetPoint(thisRhoGraph_P.GetN(), eta, graphValue);
+    }
+    if (dphi>0) {
+      graphValue = dphi/M_PI*180; // in degrees
+      thisPhiGraph_P.SetPoint(thisPhiGraph_P.GetN(), eta, graphValue);
+    }
+    if (dd>0) {
+      graphValue = dd * 1000.; // in um
+      thisDGraph_P.SetPoint(thisDGraph_P.GetN(), eta, graphValue );
+    }
+    if (dctg>0) {
+      graphValue = dctg; // An absolute number
+      thisCtgThetaGraph_P.SetPoint(thisCtgThetaGraph_P.GetN(), eta, graphValue);
+    }
+    if (dz0>0) {
+      graphValue =  (dz0) * 1000.; // in um
+      thisZ0Graph_P.SetPoint(thisZ0Graph_P.GetN(), eta, graphValue);
+    }
+    if ((dp>0)||true) {
+      graphValue = dp * 100.; // in percent
+      thisPGraph_P.SetPoint(thisPGraph_P.GetN(), eta, graphValue);
+    }
+  }
+}
+
 /**
  * This convenience function resets and empties all histograms for the
  * material budget, so they are ready for a new round of analysis.
@@ -1868,24 +2118,24 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
 }
 */
 void Analyzer::prepareTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (outer_radius + volume_width) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (max_length) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (geom_max_length) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("z [mm]");
   myMap.SetYTitle("r [mm]");
-  myMap.SetBins(mapBinsX, 0.0, max_length*1.1, mapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  myMap.SetBins(mapBinsX, 0.0, geom_max_length*geom_safety_factor, mapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor);
   myMap.Reset();
 }
 
 void Analyzer::prepareRadialTrackerMap(TH2D& myMap, const std::string& name, const std::string& title) { 
-  int mapBinsY = int( (2*outer_radius) * 1.1 / 10.); // every cm
-  int mapBinsX = int( (2*outer_radius) * 1.1 / 10.); // every cm
+  int mapBinsY = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
+  int mapBinsX = int( (2*geom_max_radius) * geom_safety_factor / 10.); // every cm
   myMap.SetName(name.c_str());
   myMap.SetTitle(title.c_str());
   myMap.SetXTitle("x [mm]");
   myMap.SetYTitle("y [mm]");
-  myMap.SetBins(mapBinsX, -outer_radius*1.1, outer_radius*1.1, mapBinsY, -outer_radius*1.1, outer_radius*1.1);
+  myMap.SetBins(mapBinsX, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor, mapBinsY, -geom_max_radius*geom_safety_factor, geom_max_radius*geom_safety_factor);
   myMap.Reset();
 }
 
@@ -2135,17 +2385,17 @@ void Analyzer::setHistogramBinsBoundaries(int bins, double min, double max) {
   rglobal.SetBins(bins, min, max);
   iglobal.SetBins(bins, min, max);
   // isolines
-  isor.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
-  isoi.SetBins(bins, 0.0, max_length, bins / 2, 0.0, outer_radius + volume_width);
+  isor.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
+  isoi.SetBins(bins, 0.0, geom_max_length, bins / 2, 0.0, geom_max_radius + geom_inactive_volume_width);
   // Material distribution maps
-  int materialMapBinsY = int( (outer_radius + volume_width) * 1.1 / 5.); // every half a cm
-  int materialMapBinsX = int( (max_length) * 1.1 / 5.); // every half a cm
-  mapRadiation.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteraction.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCount.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapRadiationCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
-  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, max_length*1.1, materialMapBinsY, 0.0, (outer_radius + volume_width) * 1.1);
+  int materialMapBinsY = int( (geom_max_radius + geom_inactive_volume_width) * geom_safety_factor / 5.); // every half a cm
+  int materialMapBinsX = int( (geom_max_length) * geom_safety_factor / 5.); // every half a cm
+  mapRadiation.SetBins(       materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteraction.SetBins(     materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCount.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCount.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapRadiationCalib.SetBins(  materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
+  mapInteractionCalib.SetBins(materialMapBinsX, 0.0, geom_max_length*geom_safety_factor, materialMapBinsY, 0.0, (geom_max_radius + geom_inactive_volume_width)*geom_safety_factor);
 }
 
 /**
@@ -2879,40 +3129,39 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     }
 
 
-
     std::map<int, TGraph>& Analyzer::getRhoGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::RhoGraph;
+      attribute |= GraphBag::RhoGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 
     std::map<int, TGraph>& Analyzer::getPhiGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::PhiGraph;
+      attribute |= GraphBag::PhiGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 
     std::map<int, TGraph>& Analyzer::getDGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::DGraph;
+      attribute |= GraphBag::DGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 
     std::map<int, TGraph>& Analyzer::getCtgThetaGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::CtgthetaGraph;
+      attribute |= GraphBag::CtgthetaGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 
     std::map<int, TGraph>& Analyzer::getZ0Graphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::Z0Graph;
-      return myGraphBag.getGraphs(attribute);
+      attribute |= GraphBag::Z0Graph_Pt;
+     return myGraphBag.getGraphs(attribute);
     }
 
     std::map<int, TGraph>& Analyzer::getPGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
-      attribute |= GraphBag::PGraph;
+      attribute |= GraphBag::PGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 

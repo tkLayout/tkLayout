@@ -105,7 +105,7 @@ namespace insur {
            << m.dsDistance() << sep << m.thickness() << sep 
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
            << m.moduleType() << sep
-           << m.resolutionLocalX() << sep << m.resolutionLocalY() << sep 
+           << m.nominalResolutionLocalX() << sep << m.nominalResolutionLocalY() << sep 
            << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
       }
     };
@@ -137,6 +137,18 @@ namespace insur {
         logERROR(ss);
       }
 
+      // Look for tag "Support" not associated with a concrete Tracker and build supports
+      childRange = getChildRange(pt, "Support");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+
+        Support* support = new Support();
+        support->myid(kv.second.get_value(0));
+        support->store(kv.second);
+        support->build();
+        supports_.push_back(support);
+      });
+
+      // Read simulation parameters
       simParms_ = new SimParms();
 
       //iter between the default irradiation files vector and add each to simParm
@@ -426,7 +438,6 @@ namespace insur {
       stopTaskClock();
       return false;
     }
-
     if (addLogPage) {
       v.makeLogPage(site);
     }
