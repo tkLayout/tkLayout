@@ -289,6 +289,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             Track trackPt(track);
             trackPt.setTransverseMomentum(pT);
             track.pruneHits();
+            if (track.nActiveHits(true)<=2) continue; 
             trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
@@ -309,6 +310,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
             track.pruneHits();
+            if (track.nActiveHits(true)<=2) continue; 
             trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];

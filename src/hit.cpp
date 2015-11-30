@@ -616,7 +616,7 @@ void Track::computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TPr
   
   // check if matrix is sane and worth keeping
   if (!((correlations_.GetNoElements() > 0) && (correlations_.Determinant() != 0.0))) {
-    std::cerr << "WARNING: This is embarassing and it should be handled somehow" << std::endl;
+    logERROR(Form("A singular matrix was found (this is unexpected: all analyzed tracks should have >= 3 hits). nElements=%d, determinant = %f", correlations_.GetNoElements(), correlations_.Determinant()));
   }
 }
 
