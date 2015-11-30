@@ -137,6 +137,18 @@ namespace insur {
         logERROR(ss);
       }
 
+      // Look for tag "Support" not associated with a concrete Tracker and build supports
+      childRange = getChildRange(pt, "Support");
+      std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+
+        Support* support = new Support();
+        support->myid(kv.second.get_value(0));
+        support->store(kv.second);
+        support->build();
+        supports_.push_back(support);
+      });
+
+      // Read simulation parameters
       simParms_ = new SimParms();
 
       //iter between the default irradiation files vector and add each to simParm
@@ -426,12 +438,10 @@ namespace insur {
       stopTaskClock();
       return false;
     }
-
     if (addLogPage) {
       v.makeLogPage(site);
     }
 
-    // site.setSummaryFile(false); // If you want to disable the summary.root file, uncomment this line
     bool result = site.makeSite(false);
     stopTaskClock();
     return result;
@@ -706,6 +716,23 @@ namespace insur {
     std::string cmdLine(argv[1]);
     g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
     v.setCommandLine(cmdLine);
+  }
+
+  //pixel extractor part
+  void Squid::pixelExtraction(std::string xmlout) {
+    if (!px) {
+      logERROR("PixelExtractor could not find the pixel");
+    } 
+    else {
+      pxt.analyse(pxMaterialCalc.getMaterialTable(),*pm);
+      pxt.printXml(mainConfiguration, xmlout.empty() ? baseName_ : xmlout);
+    }
+  }
+   
+  void Squid::createAdditionalXmlSite(std::string xmlout) {
+    std::string xmlpath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
+    std::string layoutpath = mainConfiguration.getLayoutDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
+    v.createXmlSite(site,xmlpath,layoutpath);
   }
 }
 

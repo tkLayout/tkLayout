@@ -4,71 +4,63 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include "global_funcs.h"
 #include "Property.h"
 #include "Layer.h"
-#include "SupportStructure.h"
 #include "Visitable.h"
 
-using std::string;
-using std::vector;
-using material::SupportStructure;
+namespace material {
+  class SupportStructure;
+}
 
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
- public:
-  typedef PtrVector<Layer> Container;
-  typedef PtrVector<SupportStructure> SupportStructures;
+
  private:
-  Container layers_;
+  typedef boost::ptr_vector<Layer>                      Container;
+  typedef boost::ptr_vector<material::SupportStructure> SupportStructures;
+
+  Container         layers_;
   SupportStructures supportStructures_;
 
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
-  Property<bool, Default> sameRods;
-  Property<double, Default> barrelRotation;
-  Property<double, Default> supportMarginOuter;
-  Property<double, Default> supportMarginInner;
-  Property<bool, Default> innerRadiusFixed;
-  Property<bool, Default> outerRadiusFixed;
+  Property<bool  , Default>   sameRods;
+  Property<double, Default>   barrelRotation;
+  Property<double, Default>   supportMarginOuter;
+  Property<double, Default>   supportMarginInner;
+  Property<bool  , Default>   innerRadiusFixed;
+  Property<bool  , Default>   outerRadiusFixed;
   
-  PropertyNode<int> layerNode;
+  PropertyNode<int>               layerNode;
   PropertyNodeUnique<std::string> supportNode;
+
  public:
-  Property<int, NoDefault> numLayers;
-  ReadonlyProperty<double, Computable> maxZ, minZ;
-  ReadonlyProperty<double, Computable> maxR, minR;
-  ReadonlyProperty<bool, Default> skipServices;
-  
   Barrel() : 
-      numLayers("numLayers", parsedAndChecked()),
-      innerRadius("innerRadius", parsedAndChecked()),
-      outerRadius("outerRadius", parsedAndChecked()),
-      innerRadiusFixed("innerRadiusFixed", parsedAndChecked(), true),
-      outerRadiusFixed("outerRadiusFixed", parsedAndChecked(), true),
-      sameRods("sameRods", parsedAndChecked(), false),
-      barrelRotation("barrelRotation", parsedOnly(), 0.),
+      numLayers(         "numLayers"         , parsedAndChecked()),
+      innerRadius(       "innerRadius"       , parsedAndChecked()),
+      outerRadius(       "outerRadius"       , parsedAndChecked()),
+      innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
+      outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
+      sameRods(          "sameRods"          , parsedAndChecked(), false),
+      barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
       supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
       supportMarginInner("supportMarginInner", parsedOnly(), 2.),
-      skipServices("skipServices", parsedOnly(), false), // broken, do not use
-      layerNode("Layer", parsedOnly()),
-      supportNode("Support", parsedOnly())
+      skipServices(      "skipServices"      , parsedOnly(), false), // broken, do not use
+      layerNode(         "Layer"             , parsedOnly()),
+      supportNode(       "Support"           , parsedOnly())
       {}
-  
   void setup() {
-    maxZ.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
-    minZ.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
-    maxR.setup([this]() { double max = 0; for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
-    minR.setup([this]() { double min = 99999; for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
+    maxZ.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
+    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
+    maxR.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
+    minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
   }
-
   void build(); 
   void cutAtEta(double eta);
-
-  const Container& layers() const { return layers_; }
-
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& l : layers_) { l.accept(v); }
@@ -78,7 +70,13 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
     for (const auto& l : layers_) { l.accept(v); }
   }
 
-  SupportStructures& supportStructures() {return supportStructures_;}
+  const Container& layers() const        { return layers_; }
+  SupportStructures& supportStructures() { return supportStructures_; }
+
+  Property<        int   , NoDefault>  numLayers;
+  ReadonlyProperty<double, Computable> maxZ, minZ;
+  ReadonlyProperty<double, Computable> maxR, minR;
+  ReadonlyProperty<bool  , Default>    skipServices;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <set>
+#include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -85,7 +86,7 @@ public:
         return max;
       });
       minR.setup([this]() {
-        double min = 999999; 
+        double min = std::numeric_limits<double>::max(); 
         for (const auto& b : barrels_) min = MIN(min, b.minR());
         for (const auto& e : endcaps_) min = MIN(min, e.minR());
         return min;
