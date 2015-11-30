@@ -211,6 +211,10 @@ namespace insur {
         double rmin;
         double rmid;
         double rmax;
+        double zmin;
+        double zmax;
+        double zfw;
+        double zbw;
     };
     /**
      * @struct BTiltedRingInfo
