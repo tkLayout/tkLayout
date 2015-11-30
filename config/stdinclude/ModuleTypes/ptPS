@@ -36,7 +36,7 @@ Sensor 2 {
   numROCY 2
 }
 
-//resolutionLocalY 0.433013
+//nominalResolutionLocalY 0.433013
 
 plotColor 1
 

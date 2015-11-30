@@ -16,6 +16,13 @@
 #include <TMatrixTSym.h>
 #include <messageLogger.h>
 
+
+#include <TFile.h>
+#include <TProfile.h>
+#include <TF1.h>
+#include <TAxis.h>
+#include <TCanvas.h>
+
 //using namespace ROOT::Math;
 using namespace std;
 
@@ -65,7 +72,7 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
-  double getResolutionRphi(double trackR);
+  double getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd, double trackR);
   double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
   /**
@@ -134,7 +141,7 @@ protected:
   double deltaP_;
   void computeCorrelationMatrixRZ();
   void computeCovarianceMatrixRZ();
-  void computeCorrelationMatrix();
+  void computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd);
   void computeCovarianceMatrix();
   
   std::set<std::string> tags_;
@@ -164,7 +171,7 @@ public:
   Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
-  void computeErrors();
+  void computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd);
   void printErrors();
   void print();
   void removeMaterial();
