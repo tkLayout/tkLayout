@@ -1,7 +1,7 @@
 # Getting the code
 
-   git clone https://github.com/tkLayout/tkLayout.git
-   cd tkLayout
+     git clone https://github.com/tkLayout/tkLayout.git
+     cd tkLayout
 
 # Before the compilation/run
 
