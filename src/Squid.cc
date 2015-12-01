@@ -431,29 +431,29 @@ namespace insur {
    * @param mat_verbose A flag that turns the final status summary of the material budget on or off
    * @return True if there were no errors during processing, false otherwise
    */
-  // bool Squid::buildFullSystem(bool usher_verbose, bool mat_verbose) {
-  //   if (buildInactiveSurfaces(usher_verbose)) return createMaterialBudget(mat_verbose) && irradiateTracker();
-  //   return false;
-  // }
+   /*bool Squid::buildFullSystem(bool usher_verbose, bool mat_verbose) {
+     if (buildInactiveSurfaces(usher_verbose)) return createMaterialBudget(mat_verbose) && irradiateTracker();
+     return false;
+   }*/
 
-  //  /**
-  //   * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
-  //   * save the results in a plain text file.
-  //   * @param graphout The name - without path - of the designated output file
-  //   * @return True if there were no errors during processing, false otherwise
-  //   */
-  //  bool Squid::analyzeNeighbours(std::string graphout) {
-  //    if (is) {
-  //      startTaskClock("Creating inactive materials hierarchy");
-  //      v.writeNeighbourGraph(*is, graphout);
-  //      stopTaskClock();
-  //      return true;
-  //    }
-  //    else {
-  //      std::cout << "Squid::analyzeNeighbours(): " << err_no_inacsurf << std::endl;
-  //      return false;
-  //    }
-  //  }
+    /**
+     * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
+     * save the results in a plain text file.
+     * @param graphout The name - without path - of the designated output file
+     * @return True if there were no errors during processing, false otherwise
+     */
+    /*bool Squid::analyzeNeighbours(std::string graphout) {
+      if (is) {
+        startTaskClock("Creating inactive materials hierarchy");
+        v.writeNeighbourGraph(*is, graphout);
+        stopTaskClock();
+        return true;
+      }
+      else {
+        std::cout << "Squid::analyzeNeighbours(): " << err_no_inacsurf << std::endl;
+        return false;
+      }
+    }*/
 
   /**
    * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
