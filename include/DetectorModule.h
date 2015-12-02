@@ -328,12 +328,9 @@ public:
   }
 
   void setup() override {
-    DetectorModule::setup();
-    minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    nominalResolutionLocalX.setup([this]() {
+    /*nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
-	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
+	std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
 
 	if (!hasAnyResolutionLocalXParam()) {
 	  //std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
@@ -355,7 +352,10 @@ public:
 	  }
 	// if model parameters specified, return -1
 	else return -1.0;
-      });
+	});*/
+    DetectorModule::setup();
+    /*minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+      maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });*/
   }
   
   void check() override;
@@ -413,12 +413,9 @@ public:
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
   void setup() override {
-    DetectorModule::setup();
-    minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    nominalResolutionLocalX.setup([this]() {
+    /* nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
-	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
+	std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
 	if (!hasAnyResolutionLocalXParam()) {
 	  //std::cout << "nominalResolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
 	    double res = 0;
@@ -439,7 +436,10 @@ public:
 	  }
 	// if model parameters specified, return -1
 	else return -1.0;
-      });
+	});*/
+    DetectorModule::setup();
+    /*minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+      maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });*/
   }
 
   void check() override;
