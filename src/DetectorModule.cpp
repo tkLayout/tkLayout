@@ -82,23 +82,6 @@ void DetectorModule::setup() {
       // if model parameters specified, return -1
       else return -1.0;
     });
-  //std::cout << "hasAnyResolutionLocalXParam() = " << hasAnyResolutionLocalXParam() << std::endl;
-  /*// only set up this if parameters not specified
-    nominalResolutionLocalX.setup([this]() {
-	double res = 0;
-	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
-	//std::cout << "sqrt(res)/numSensors() =" << sqrt(res)/numSensors() << std::endl;
-	return sqrt(res)/numSensors();
-      });
-
-      // only set up this if parameters not specified
-      nominalResolutionLocalY.setup([this]() {
-      if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
-      else {
-      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-      }
-      });*/
-
   for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
   minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
   maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
@@ -233,20 +216,6 @@ void BarrelModule::check() {
   if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
 
   if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified.");
-
-
-
-  /*if (nominalResolutionLocalX.state()
-      && (resolutionLocalXBarrelParam0() < 0 || resolutionLocalXBarrelParam0() > 0 || resolutionLocalXBarrelParam1() < 0 || resolutionLocalXBarrelParam1() > 0 || resolutionLocalXBarrelParam2() < 0 || resolutionLocalXBarrelParam2() > 0) 
-      && !(resolutionLocalXBarrelParam0() == 0 && resolutionLocalXBarrelParam1() == 0 && resolutionLocalXBarrelParam2() == 0)) {
-    throw PathfulException("Only one between resolutionLocalX and resolutionLocalXBarrelParameters can be specified.");
-    }
-
-  if (nominalResolutionLocalY.state() 
-      && (resolutionLocalYBarrelParam0() < 0 || resolutionLocalYBarrelParam0() > 0 || resolutionLocalYBarrelParam1() < 0 || resolutionLocalYBarrelParam1() > 0 || resolutionLocalYBarrelParam2() < 0 || resolutionLocalYBarrelParam2() > 0 || resolutionLocalYBarrelParam3() < 0 || resolutionLocalYBarrelParam3() > 0 || resolutionLocalYBarrelParam4() < 0 || resolutionLocalYBarrelParam4() > 0) 
-      && !(resolutionLocalYBarrelParam0() == 0 && resolutionLocalYBarrelParam1() == 0 && resolutionLocalYBarrelParam2() == 0 && resolutionLocalYBarrelParam3() == 0 && resolutionLocalYBarrelParam4() == 0)) { 
-    throw PathfulException("Only one between resolutionLocalY and resolutionLocalYBarrelParameters can be specified."); 
-    }*/
 }
 
 
@@ -278,18 +247,6 @@ void EndcapModule::check() {
  if (nominalResolutionLocalX.state() && hasAnyResolutionLocalXParam()) throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
 
  if (nominalResolutionLocalY.state() && hasAnyResolutionLocalYParam()) throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified.");
-
-  /*if (nominalResolutionLocalX.state()
-      && (resolutionLocalXEndcapParam0() < 0 || resolutionLocalXEndcapParam0() > 0 || resolutionLocalXEndcapParam1() < 0 || resolutionLocalXEndcapParam1() > 0) 
-      && !(resolutionLocalXEndcapParam0() == 0 && resolutionLocalXEndcapParam1() == 0)) {
-    throw PathfulException("Only one between resolutionLocalX and resolutionLocalXEndcapParameters can be specified.");
-  }
-
-  if (nominalResolutionLocalY.state() 
-      && (resolutionLocalYEndcapParam0() < 0 || resolutionLocalYEndcapParam0() > 0 || resolutionLocalYEndcapParam1() < 0 || resolutionLocalYEndcapParam1() > 0) 
-      && !(resolutionLocalYEndcapParam0() == 0 && resolutionLocalYEndcapParam1() == 0)) { 
-    throw PathfulException("Only one between resolutionLocalY and resolutionLocalYEndcapParameters can be specified."); 
-    }*/
 }
 
 
