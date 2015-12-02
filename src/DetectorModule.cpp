@@ -59,7 +59,7 @@ void DetectorModule::build() {
 void DetectorModule::setup() {
   nominalResolutionLocalX.setup([this]() {
       // only set up this if no model parameter specified
-      std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
+      //std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
 
       if (!hasAnyResolutionLocalXParam()) {
 	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;

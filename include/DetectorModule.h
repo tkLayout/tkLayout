@@ -177,6 +177,14 @@ public:
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
   virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
+  double resolutionLocalX(double phi) {
+    if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
+    else { return calculateParameterizedResolutionLocalX(phi); }
+  }
+  double resolutionLocalY(double theta) {
+    if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
+    else { return calculateParameterizedResolutionLocalY(theta); }
+  }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
 
