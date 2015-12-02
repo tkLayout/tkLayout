@@ -328,34 +328,7 @@ public:
   }
 
   void setup() override {
-    /*nominalResolutionLocalX.setup([this]() {
-	// only set up this if no model parameter specified
-	std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
-
-	if (!hasAnyResolutionLocalXParam()) {
-	  //std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
-	  double res = 0;
-	  for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
-	  return sqrt(res)/numSensors();
-	}
-	// if model parameters specified, return -1
-	else return -1.0;
-      });
-    nominalResolutionLocalY.setup([this]() {
-	// only set up this if no model parameters not specified
-	if (!hasAnyResolutionLocalYParam()) {
-	  //std::cout << "resolutionLocalY and resolutionLocalYBarrel parameters are all unset. Use of default formulae." << std::endl;
-	    if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
-	    else {
-	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-	    }
-	  }
-	// if model parameters specified, return -1
-	else return -1.0;
-	});*/
     DetectorModule::setup();
-    /*minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-      maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });*/
   }
   
   void check() override;
@@ -413,33 +386,7 @@ public:
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
   void setup() override {
-    /* nominalResolutionLocalX.setup([this]() {
-	// only set up this if no model parameter specified
-	std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
-	if (!hasAnyResolutionLocalXParam()) {
-	  //std::cout << "nominalResolutionLocalX and resolutionLocalXEndcap parameters are all unset. Use of default formulae." << std::endl;
-	    double res = 0;
-	    for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
-	    return sqrt(res)/numSensors();
-	  }
-	// if model parameters specified, return -1
-	else return -1.0;
-      });
-    nominalResolutionLocalY.setup([this]() {
-	// only set up this if no model parameters not specified
-	if (!hasAnyResolutionLocalYParam()) {
-	  //std::cout << "resolutionLocalY and resolutionLocalYEndcap parameters are all unset. Use of default formulae." << std::endl;
-	    if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
-	    else {
-	      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-	    }
-	  }
-	// if model parameters specified, return -1
-	else return -1.0;
-	});*/
     DetectorModule::setup();
-    /*minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-      maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });*/
   }
 
   void check() override;

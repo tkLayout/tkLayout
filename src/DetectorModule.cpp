@@ -91,17 +91,17 @@ void DetectorModule::setup() {
 	return sqrt(res)/numSensors();
       });
 
-    // only set up this if parameters not specified
-    nominalResolutionLocalY.setup([this]() {
-	if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
-	else {
-	  return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
-	}
-	});*/
+      // only set up this if parameters not specified
+      nominalResolutionLocalY.setup([this]() {
+      if (stereoRotation() != 0.) return nominalResolutionLocalX() / sin(stereoRotation());
+      else {
+      return length() / maxSegments() / sqrt(12); // NOTE: not combining measurements from both sensors. The two sensors are closer than the length of the longer sensing element, making the 2 measurements correlated. considering only the best measurement is then a reasonable approximation (since in case of a PS module the strip measurement increases the precision by only 0.2% and in case of a 2S the sensors are so close that they basically always measure the same thing)
+      }
+      });*/
 
   for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
- minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+  minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+  maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
 };
 
 
