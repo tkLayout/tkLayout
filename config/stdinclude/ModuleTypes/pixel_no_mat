@@ -11,4 +11,6 @@ numROCY 16
 stereoRotation 15
 zCorrelation multisegment
 
+sensorThickness 0.15
+
 plotColor 4
