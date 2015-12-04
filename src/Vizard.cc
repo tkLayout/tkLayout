@@ -7,6 +7,8 @@
 #include <TPolyLine.h>
 #include <Units.h>
 
+#include "mainConfigHandler.h"
+
 namespace insur {
   // public
   /**
@@ -2173,6 +2175,10 @@ namespace insur {
     createModuleConnectionsCsv(analyzer.getModuleConnectionMap());
     myTextFile = new RootWTextFile("module_connections.csv", "Modules to Trigger Towers connections");
     myTextFile->addText(moduleConnectionsCsv_);
+    summaryContent->addItem(myTextFile);
+
+    myTextFile = new RootWTextFile("include_graph.gv", "GraphView include file (dot -Tsvg include_graph.gv > graph.svg");
+    myTextFile->addText(mainConfigHandler::instance().createGraphVizFile());
     summaryContent->addItem(myTextFile);
 
     return true; // TODO: make this meaningful
