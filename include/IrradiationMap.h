@@ -7,13 +7,10 @@
 #ifndef IRRADIATIONMAP_H_
 #define IRRADIATIONMAP_H_
 
-
 #include <string>
 #include <fstream>
 #include <utility>
 #include <vector>
-#include <cmath>
-#include "messageLogger.h"
 
 /**
  * @class IrradiationMap
@@ -117,6 +114,10 @@ private:
   const std::string comp_zBinWidth   = "# Z bin width: ";        /**< Prefix of the line of the header of the feeded file that precedes the value of bin width in Z*/
   const std::string comp_zBinNum     = "# Z number of bins: ";   /**< Prefix of the line of the header of the feeded file that precedes the value of the number of bins in Z*/
   const std::string comp_norm        = "# normalization value: ";/**< Prefix of the line of the header of the feeded file that precedes the value of the normalization value in fb^-1*/
+  const std::string comp_EscValue    = "/t";
+  const std::string comp_EscLine     = "/n";
+  const std::string comp_EscSpace    = " ";
+  const std::string comp_EscComment  = "#//;";
 
   std::string m_fileName;    /**< File name with irradiation data and predefined header*/
   std::string m_dataUnit;    /**< Flux unit*/

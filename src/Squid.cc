@@ -743,17 +743,48 @@ namespace insur {
         startTaskClock("Computing occupancy");
 
         // Create occupancy analyzer & analyzer data
-        std::string chargedMapFile         = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
-        std::string chargedNoBMapFile      = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedNoBMapFile();
-        std::string chargedNoBNoMatMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedNoBNoMatMapFile();
-        std::string photonsMapFile         = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
-        std::string photonsNoBMapFile      = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsNoBMapFile();
-        std::string photonsNoBNoMatMapFile = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsNoBNoMatMapFile();
+        std::string chargedMapFile          = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
+        std::string chargedMapLowThFile     = simParms_->chargedMapLowThFile();
+        std::string chargedMapBOffMatOnFile = simParms_->chargedMapBOffMatOnFile();
+        std::string chargedMapBOnMatOffFile = simParms_->chargedMapBOnMatOffFile();
+        std::string chargedMapBOffMatOffFile= simParms_->chargedMapBOffMatOffFile();
+        std::string chargedMapBOffTrkOffFile= simParms_->chargedMapBOffTrkOffFile();
+        std::string photonsMapFile          = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
+        std::string photonsMapLowThFile     = simParms_->photonsMapLowThFile();
+        std::string photonsMapBOffMatOnFile = simParms_->photonsMapBOffMatOnFile();
+        std::string photonsMapBOnMatOffFile = simParms_->photonsMapBOnMatOffFile();
+        std::string photonsMapBOffMatOffFile= simParms_->photonsMapBOffMatOffFile();
+        std::string photonsMapBOffTrkOffFile= simParms_->photonsMapBOffTrkOffFile();
+
+        std::string bFieldMapFile           = simParms_->bFieldMapFile();
 
         AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, trackers_);
 
-        if (simParms_->chargedNoBMapFile()     !="" && simParms_->photonsNoBMapFile()     !="") analyzerOccupancy.readNoMagFieldMap(chargedNoBMapFile, photonsNoBMapFile);
-        if (simParms_->chargedNoBNoMatMapFile()!="" && simParms_->photonsNoBNoMatMapFile()!="") analyzerOccupancy.readNoMagFieldNoMaterialMap(chargedNoBNoMatMapFile, photonsNoBNoMatMapFile);
+        // File existence is tested within the Analyzer class
+        if (!analyzerOccupancy.readMagFieldMap(mainConfig_.getIrradiationDirectory(), bFieldMapFile)) {
+          logINFO("Couldn't read the mag. field map!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+bFieldMapFile));
+        }
+        if (!analyzerOccupancy.readNoMagFieldIrradMap(mainConfig_.getIrradiationDirectory(),chargedMapBOffMatOnFile, photonsMapBOffMatOnFile)) {
+          logINFO("Couldn't read the irradiation map with no mag. field!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffMatOnFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffMatOnFile));
+        }
+        if (!analyzerOccupancy.readNoMaterialIrradMap(mainConfig_.getIrradiationDirectory(),chargedMapBOnMatOffFile, photonsMapBOnMatOffFile)) {
+          logINFO("Couldn't read the irradiation map with no material!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOnMatOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOnMatOffFile));
+        }
+        if (!analyzerOccupancy.readNoMagFieldNoMaterialIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapBOffMatOffFile, photonsMapBOffMatOffFile)) {
+          logINFO("Couldn't read the irradiation map with no mag. field & no material!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffMatOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffMatOffFile));
+        }
+        if (!analyzerOccupancy.readNoMagFieldNoTrackerIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapBOffTrkOffFile, photonsMapBOffTrkOffFile)) {
+          logINFO("Couldn't read the irradiation map with no mag. field & no tracker material!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffTrkOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffTrkOffFile));
+        }
+        if (!analyzerOccupancy.readLowThresholdIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapLowThFile, photonsMapLowThFile)) {
+          logINFO("Couldn't read the irradiation map with low thresholds set!");
+          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapLowThFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapLowThFile));
+        }
 
         bool outCalc = analyzerOccupancy.analyze();
         bool outVis  = analyzerOccupancy.visualize(webSite_, simParms_);

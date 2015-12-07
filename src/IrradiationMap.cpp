@@ -2,12 +2,14 @@
  * IrradiationMap.cpp
  *
  *  Created on: 19/feb/2014
- *      Author: Stefano Martina
+ *      Author: Stefano Martina, Zbynek Drasal
  */
 
 #include"IrradiationMap.h"
 #include <algorithm>
 #include <Units.h>
+#include <cmath>
+#include "messageLogger.h"
 
 IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
       m_fileName(irradiationMapFile),
@@ -37,134 +39,161 @@ IrradiationMap::IrradiationMap() : IrradiationMap("")
 
 void IrradiationMap::ingest(std::string fileName) {
   std::string line;
-  bool   found_m_rMin       = false;
-  bool   found_m_rMax       = false;
-  bool   found_m_rBinWidth  = false;
-  bool   found_m_rBinNum    = false;
-  bool   found_m_zMin       = false;
-  bool   found_m_zMax       = false;
-  bool   found_m_zBinWidth  = false;
-  bool   found_m_zBinNum    = false;
-  bool   found_m_norm       = false;
-  double m_irradiationValue = 0;
+  bool   found_rMin       = false;
+  bool   found_rMax       = false;
+  bool   found_rBinWidth  = false;
+  bool   found_rBinNum    = false;
+  bool   found_zMin       = false;
+  bool   found_zMax       = false;
+  bool   found_zBinWidth  = false;
+  bool   found_zBinNum    = false;
+  bool   found_norm       = false;
+  double irradiationValue = 0;
 
   std::string m_fileName = fileName;
   std::ifstream filein(m_fileName);
 
   if (!filein.is_open()) {
-    logERROR("Failed opening m_irradiation map file!");
+    std::ostringstream message;
+    message << "Failed opening map file: " << fileName << "!";
+    logERROR(message.str());
   }
+
+  // Check that all data correctly set to be able to read map
+  bool init = false;
 
   while(std::getline(filein, line)) {
     //find fluxUnit
     if (line.find(comp_dataUnit) == 0) {
       line.erase(0,comp_dataUnit.length());
       m_dataUnit = line;
-      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\n'), m_dataUnit.end());
-      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), ' ' ), m_dataUnit.end());
-      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), '\t'), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscLine.c_str() ), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscSpace.c_str()), m_dataUnit.end());
+      m_dataUnit.erase(std::remove(m_dataUnit.begin(), m_dataUnit.end(), comp_EscValue.c_str()), m_dataUnit.end());
       continue;
     }
-    //find m_rUnit
+    //find rUnit
     if (line.find(comp_rUnit) == 0) {
       line.erase(0,comp_rUnit.length());
       m_rUnit = line;
-      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), '\n'), m_rUnit.end());
-      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), ' ' ), m_rUnit.end());
-      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), '\t'), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscLine.c_str() ), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscSpace.c_str()), m_rUnit.end());
+      m_rUnit.erase(std::remove(m_rUnit.begin(), m_rUnit.end(), comp_EscValue.c_str()), m_rUnit.end());
       continue;
     }
-    //find m_rMin
+    //find rMin
     if (line.find(comp_rMin) == 0) {
       line.erase(0,comp_rMin.length());
       m_rMin = strtod(line.c_str(),NULL);
-      found_m_rMin = true;
+      found_rMin = true;
       continue;
     }
-    //find m_rMax
+    //find rMax
     if (line.find(comp_rMax) == 0) {
       line.erase(0,comp_rMax.length());
       m_rMax = strtod(line.c_str(),NULL);
-      found_m_rMax = true;
+      found_rMax = true;
       continue;
     }
-    //find m_rBinWidth
+    //find rBinWidth
     if (line.find(comp_rBinWidth) == 0) {
       line.erase(0,comp_rBinWidth.length());
       m_rBinWidth = strtod(line.c_str(),NULL);
-      found_m_rBinWidth = true;
+      found_rBinWidth = true;
       continue;
     }
-    //find m_rBinNum
+    //find rBinNum
     if (line.find(comp_rBinNum) == 0) {
       line.erase(0,comp_rBinNum.length());
       m_rBinNum = strtol(line.c_str(),NULL,10);
-      found_m_rBinNum = true;
+      found_rBinNum = true;
       continue;
     }
-    //find m_zUnit
+    //find zUnit
     if (line.find(comp_zUnit) == 0) {
       line.erase(0,comp_zUnit.length());
       m_zUnit = line;
-      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\n'), m_zUnit.end());
-      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), ' ' ), m_zUnit.end());
-      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), '\t'), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscLine.c_str() ), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscSpace.c_str()), m_zUnit.end());
+      m_zUnit.erase(std::remove(m_zUnit.begin(), m_zUnit.end(), comp_EscValue.c_str()), m_zUnit.end());
       continue;
     }
-    //find m_zMin
+    //find zMin
     if (line.find(comp_zMin) == 0) {
       line.erase(0,comp_zMin.length());
       m_zMin = strtod(line.c_str(),NULL);
-      found_m_zMin = true;
+      found_zMin = true;
       continue;
     }
-    //find m_zMax
+    //find zMax
     if (line.find(comp_zMax) == 0) {
       line.erase(0,comp_zMax.length());
       m_zMax = strtod(line.c_str(),NULL);
-      found_m_zMax = true;
+      found_zMax = true;
       continue;
     }
-    //find m_zBinWidth
+    //find zBinWidth
     if (line.find(comp_zBinWidth) == 0) {
       line.erase(0,comp_zBinWidth.length());
       m_zBinWidth = strtod(line.c_str(),NULL);
-      found_m_zBinWidth = true;
+      found_zBinWidth = true;
       continue;
     }
-    //find m_zBinNum
+    //find zBinNum
     if (line.find(comp_zBinNum) == 0) {
       line.erase(0,comp_zBinNum.length());
       m_zBinNum = strtol(line.c_str(),NULL,10);
-      found_m_zBinNum = true;
+      found_zBinNum = true;
       continue;
     }
-    //find m_normalization (invFemUnit)
+    //find normalization (invFemUnit)
     if (line.find(comp_norm) == 0) {
       line.erase(0,comp_norm.length());
       m_norm = strtol(line.c_str(),NULL,10);
-      found_m_norm = true;
+      found_norm = true;
       continue;
     }
 
     //skip other comment or empty lines
-    if (line.find_first_of("#//;")==0 || line=="") continue;
+    if (line.find_first_of(comp_EscComment)==0 || line=="") continue;
+
+    // Check that all values defined
+    if (!init) {
+
+      init = true;
+
+      // Check if found all values
+      if (!found_rMin      || !found_rMax    || !found_rBinWidth ||
+          !found_rBinNum   || !found_zMin    || !found_zMax ||
+          !found_zBinWidth || !found_zBinNum) {
+        std::ostringstream tempSS;
+        tempSS << "Error while parsing irradiation map values: found_rMin "  << found_rMin
+            << "; found_rMax "      << found_rMax    << "; found_rBinWidth " << found_rBinWidth
+            << "; found_rBinNum "   << found_rBinNum << "; found_zMin "      << found_zMin
+            << "; found_zMax "      << found_zMax    << "; found_zBinWidth " << found_zBinWidth
+            << "; found_zBinNum "   << found_zBinNum;
+        logERROR(tempSS);
+
+        // Irradiation field will be empty
+        break;
+      }
+    }
 
     //create a stream for reading values
     std::stringstream ss(line);
     //vector for storing a row
-    std::vector<double> m_irradiationLine;
+    std::vector<double> irradiationLine;
     while(!ss.eof()){
       //read a value
-      ss >> m_irradiationValue;
-      m_irradiationValue /= m_norm;
+      ss >> irradiationValue;
+      irradiationValue /= m_norm;
       if(!ss.eof()) {
         //add value to vector
-        m_irradiationLine.push_back(m_irradiationValue);
+        irradiationLine.push_back(irradiationValue);
       }
     }
     //add vector to matrix
-    m_irradiation.push_back(m_irradiationLine);
+    m_irradiation.push_back(irradiationLine);
   }
 
   //conversion (if units not defined in a file, default cm assumed -> conversion to software default mm done)
@@ -176,9 +205,8 @@ void IrradiationMap::ingest(std::string fileName) {
     message << "IrradiationMap: Flux units " << m_dataUnit << " not recognized. Used cm^-2 instead!";
     logWARNING(message.str());
   }
-  double rFactor = 1;
-  double zFactor   = 1;
 
+  double rFactor = 1;
   if      (m_rUnit=="mm") rFactor = Units::mm;
   else if (m_rUnit=="cm") rFactor = Units::cm;
   else if (m_rUnit=="m" ) rFactor = Units::m;
@@ -191,6 +219,7 @@ void IrradiationMap::ingest(std::string fileName) {
   m_rMax      *= rFactor;
   m_rBinWidth *= rFactor;
 
+  double zFactor = 1;
   if      (m_zUnit=="mm") zFactor = Units::mm;
   else if (m_zUnit=="cm") zFactor = Units::cm;
   else if (m_zUnit=="m" ) zFactor = Units::m;
@@ -221,19 +250,6 @@ void IrradiationMap::ingest(std::string fileName) {
   if (!m_typeMesh && !m_typeHist) {
     message << "Irradiation map: " << m_fileName << " - binning doesn't correspond to the defined range and the bin size!";
     logERROR("message.str()");
-  }
-
-  // Check if found all values
-  if (!found_m_rMin      || !found_m_rMax    || !found_m_rBinWidth ||
-      !found_m_rBinNum   || !found_m_zMin    || !found_m_zMax ||
-      !found_m_zBinWidth || !found_m_zBinNum) {
-    std::ostringstream tempSS;
-    tempSS << "Error while parsing m_irradiation map values: found_rMin "      << found_m_rMin
-        << "; found_rMax "      << found_m_rMax    << "; found_rBinWidth "   << found_m_rBinWidth
-        << "; found_rBinNum "   << found_m_rBinNum << "; found_m_zMin "      << found_m_zMin
-        << "; found_m_zMax "    << found_m_zMax      << "; found_m_zBinWidth " << found_m_zBinWidth
-        << "; found_m_zBinNum " << found_m_zBinNum;
-    logERROR(tempSS);
   }
 }
 
@@ -267,6 +283,9 @@ double IrradiationMap::calculateIrradiationZR(double zPos, double rPos) const {
   double irr12 = 0;
   double irr22 = 0;
   double irrxy = 0;
+
+  // Check that irradiation map was correctly filled
+  if (m_irradiation.size()==0) return 0;
 
   // Mesh type - refer to mesh points
   if (m_typeMesh) {
@@ -369,6 +388,9 @@ double IrradiationMap::calculateIrradiationRZ(double rPos, double zPos) const {
   double irr12 = 0;
   double irr22 = 0;
   double irrxy = 0;
+
+  // Check that irradiation map was correctly filled
+  if (m_irradiation.size()==0) return 0;
 
   // Mesh type - refer to mesh points
   if (m_typeMesh) {

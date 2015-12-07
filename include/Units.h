@@ -14,6 +14,8 @@ namespace Units {
   static const float GeV = 1E3;
   static const float TeV = 1E6;
 
+  static const float T   = 1.0;
+
   static const float mm  = 1.0;
   static const float cm  = 1E1;
   static const float m   = 1E3;

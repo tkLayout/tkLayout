@@ -57,12 +57,19 @@ public:
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 
-  Property<std::string, Default> chargedMapFile;         // Map of charged hadron fluxes, segmented in R x Z
-  Property<std::string, Default> chargedNoBMapFile;      // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied
-  Property<std::string, Default> chargedNoBNoMatMapFile; // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied, no material
-  Property<std::string, Default> photonsMapFile;         // Map of photon fluxes, segmented in R x Z
-  Property<std::string, Default> photonsNoBMapFile;      // Map of photon fluxes, segmented in R x Z, no mag. field applied
-  Property<std::string, Default> photonsNoBNoMatMapFile; // Map of photon fluxes, segmented in R x Z, no mag. field applied, no material
+  Property<std::string, Default> bFieldMapFile;           // Map of b field - not currently currently for tracking
+  Property<std::string, Default> chargedMapFile;          // Map of charged hadron fluxes, segmented in R x Z
+  Property<std::string, Default> chargedMapLowThFile;     // Map of charged hadron fluxes - electrons with lower threshold, segmented in R x Z
+  Property<std::string, Default> chargedMapBOffMatOnFile; // Map of charged hadron fluxes, segmented in R x Z, no mag. field applied
+  Property<std::string, Default> chargedMapBOnMatOffFile; // Map of charged hadron fluxes, segmented in R x Z, no material
+  Property<std::string, Default> chargedMapBOffMatOffFile;// Map of charged hadron fluxes, segmented in R x Z, no mag. field applied, no material
+  Property<std::string, Default> chargedMapBOffTrkOffFile;// Map of charged hadron fluxes, segmented in R x Z, no mag. field applied, no tracker material
+  Property<std::string, Default> photonsMapFile;          // Map of photon fluxes, segmented in R x Z
+  Property<std::string, Default> photonsMapLowThFile;     // Map of photon fluxes - electrons with lower threshold, segmented in R x Z
+  Property<std::string, Default> photonsMapBOffMatOnFile; // Map of photon fluxes, segmented in R x Z, no mag. field applied
+  Property<std::string, Default> photonsMapBOnMatOffFile; // Map of photon fluxes, segmented in R x Z, no material
+  Property<std::string, Default> photonsMapBOffMatOffFile;// Map of photon fluxes, segmented in R x Z, no mag. field applied, no material
+  Property<std::string, Default> photonsMapBOffTrkOffFile;// Map of photon fluxes, segmented in R x Z, no mag. field applied, no tracker material
 
   Property<        double, NoDefault> minTracksEta, maxTracksEta;
   PropertyNode<std::string>           taggedTracking;
@@ -70,43 +77,50 @@ public:
 
 
   SimParms() : 
-      numMinBiasEvents(      "numMinBiasEvents"      , parsedAndChecked()),
-      zErrorCollider(        "zErrorCollider"        , parsedAndChecked()),
-      rError(                "rError"                , parsedAndChecked()),
-      useIPConstraint(       "useIPConstraint"       , parsedAndChecked()),
-      ptCost(                "ptCost"                , parsedAndChecked()),
-      stripCost(             "stripCost"             , parsedAndChecked()),
-      efficiency(            "efficiency"            , parsedAndChecked()),
-      pixelEfficiency(       "pixelEfficiency"       , parsedAndChecked()),
-      bunchSpacingNs(        "bunchSpacingNs"        , parsedAndChecked()),
-      triggerEtaCut(         "triggerEtaCut"         , parsedOnly(), 2),
-      triggerPtCut(          "triggerPtCut"          , parsedOnly(), 1),
-      numTriggerTowersEta(   "numTriggerTowersEta"   , parsedOnly(), 1),
-      numTriggerTowersPhi(   "numTriggerTowersPhi"   , parsedOnly(), 1),
-      timeIntegratedLumi(    "timeIntegratedLumi"    , parsedOnly(), 3000),
-      operatingTemp(         "operatingTemp"         , parsedOnly(), -20),
-      chargeDepletionVoltage("chargeDepletionVoltage", parsedOnly(), 600),
-      alphaParm(             "alphaParm"             , parsedOnly(), 4e-17),
-      referenceTemp(         "referenceTemp"         , parsedOnly(), 20),
-      magneticField(         "magneticField"         , parsedOnly(), insur::magnetic_field),
-      dipoleMagneticField(   "dipoleMagneticField"   , parsedOnly(), 0.0),
-      dipoleDPlResAt10TeV(   "dipoleDPlResAt10TeV"   , parsedOnly(), 0.1),
-      dipoleXToX0(           "dipoleXToX0"           , parsedOnly(), 0.1),
-      bpRadius(              "beamPipeRadius"        , parsedOnly(), 0.0),
-      bpThickness(           "beamPipeThickness"     , parsedOnly(), 0.0),
-      bpRadLength(           "beamPipeRadLength"     , parsedOnly(), 0.0),
-      bpIntLength(           "beamPipeIntLength"     , parsedOnly(), 0.0),
-      irradiationMapFiles(   "irradiationMapFiles"   , parsedAndChecked()),
-      //irradiationMapFile("irradiationMapFile", parsedAndChecked()),
-      chargedMapFile(        "chargedMapFile"        , parsedOnly(), std::string("")),
-      photonsMapFile(        "photonsMapFile"        , parsedOnly(), std::string("")),
-      chargedNoBMapFile(     "chargedNoBMapFile"     , parsedOnly(), std::string("")),
-      photonsNoBMapFile(     "photonsNoBMapFile"     , parsedOnly(), std::string("")),
-      chargedNoBNoMatMapFile("chargedNoBNoMatMapFile", parsedOnly(), std::string("")),
-      photonsNoBNoMatMapFile("photonsNoBNoMatMapFile", parsedOnly(), std::string("")),
-      minTracksEta(          "minTracksEta"          , parsedOnly()),
-      maxTracksEta(          "maxTracksEta"          , parsedOnly()),
-      taggedTracking(        "TaggedTracking"        , parsedOnly())
+      numMinBiasEvents(        "numMinBiasEvents"        , parsedAndChecked()),
+      zErrorCollider(          "zErrorCollider"          , parsedAndChecked()),
+      rError(                  "rError"                  , parsedAndChecked()),
+      useIPConstraint(         "useIPConstraint"         , parsedAndChecked()),
+      ptCost(                  "ptCost"                  , parsedAndChecked()),
+      stripCost(               "stripCost"               , parsedAndChecked()),
+      efficiency(              "efficiency"              , parsedAndChecked()),
+      pixelEfficiency(         "pixelEfficiency"         , parsedAndChecked()),
+      bunchSpacingNs(          "bunchSpacingNs"          , parsedAndChecked()),
+      triggerEtaCut(           "triggerEtaCut"           , parsedOnly(), 2),
+      triggerPtCut(            "triggerPtCut"            , parsedOnly(), 1),
+      numTriggerTowersEta(     "numTriggerTowersEta"     , parsedOnly(), 1),
+      numTriggerTowersPhi(     "numTriggerTowersPhi"     , parsedOnly(), 1),
+      timeIntegratedLumi(      "timeIntegratedLumi"      , parsedOnly(), 3000),
+      operatingTemp(           "operatingTemp"           , parsedOnly(), -20),
+      chargeDepletionVoltage(  "chargeDepletionVoltage"  , parsedOnly(), 600),
+      alphaParm(               "alphaParm"               , parsedOnly(), 4e-17),
+      referenceTemp(           "referenceTemp"           , parsedOnly(), 20),
+      magneticField(           "magneticField"           , parsedOnly(), insur::magnetic_field),
+      dipoleMagneticField(     "dipoleMagneticField"     , parsedOnly(), 0.0),
+      dipoleDPlResAt10TeV(     "dipoleDPlResAt10TeV"     , parsedOnly(), 0.1),
+      dipoleXToX0(             "dipoleXToX0"             , parsedOnly(), 0.1),
+      bpRadius(                "beamPipeRadius"          , parsedOnly(), 0.0),
+      bpThickness(             "beamPipeThickness"       , parsedOnly(), 0.0),
+      bpRadLength(             "beamPipeRadLength"       , parsedOnly(), 0.0),
+      bpIntLength(             "beamPipeIntLength"       , parsedOnly(), 0.0),
+      irradiationMapFiles(     "irradiationMapFiles"     , parsedAndChecked()),
+      //irradiationMapFile(    "irradiationMapFile"      , parsedAndChecked()),
+      bFieldMapFile(           "bFieldMapFile"           , parsedOnly(), std::string("")),
+      chargedMapFile(          "chargedMapFile"          , parsedOnly(), std::string("")),
+      chargedMapLowThFile(     "chargedMapLowThFile"     , parsedOnly(), std::string("")),
+      chargedMapBOffMatOnFile( "chargedMapBOffMatOnFile" , parsedOnly(), std::string("")),
+      chargedMapBOnMatOffFile( "chargedMapBOnMatOffFile" , parsedOnly(), std::string("")),
+      chargedMapBOffMatOffFile("chargedMapBOffMatOffFile", parsedOnly(), std::string("")),
+      chargedMapBOffTrkOffFile("chargedMapBOffTrkOffFile", parsedOnly(), std::string("")),
+      photonsMapFile(          "photonsMapFile"          , parsedOnly(), std::string("")),
+      photonsMapLowThFile(     "photonsMapLowThFile"     , parsedOnly(), std::string("")),
+      photonsMapBOffMatOnFile( "photonsMapBOffMatOnFile" , parsedOnly(), std::string("")),
+      photonsMapBOnMatOffFile( "photonsMapBOnMatOffFile" , parsedOnly(), std::string("")),
+      photonsMapBOffMatOffFile("photonsMapBOffMatOffFile", parsedOnly(), std::string("")),
+      photonsMapBOffTrkOffFile("photonsMapBOffTrkOffFile", parsedOnly(), std::string("")),
+      minTracksEta(            "minTracksEta"            , parsedOnly()),
+      maxTracksEta(            "maxTracksEta"            , parsedOnly()),
+      taggedTracking(          "TaggedTracking"          , parsedOnly())
   {}
 
   void crosscheck();

@@ -7,6 +7,7 @@
 
 #include "IrradiationMapsManager.h"
 #include <Units.h>
+#include "messageLogger.h"
 
 IrradiationMapsManager::IrradiationMapsManager() {
 }
