@@ -566,11 +566,3 @@ void MaterialObject::ReferenceSensor::check() {
   if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimateEstimate and stripLengthEstimate can be specified");
 }
 
-/*int MaterialObject::ReferenceSensor::numStripsAcrossEstimate() const {
-  if (numStripsAcross.state()) return numStripsAcross();
-  else return floor(width() / pitchEstimate());
-}
-int MaterialObject::ReferenceSensor::numSegmentsEstimate() const {
-  if (numSegments.state()) return numSegments();
-  else return floor(length() / stripLengthEstimate());
-  }*/
