@@ -1,0 +1,13 @@
+// pt-PS module 10x5 for the inner region
+// GBT on the module
+
+Materials module-TBPS_L2_tilted_200 {
+  type module
+
+ 
+  @include-std CMS_Phase2/OuterTracker/Materials/Components/ptPS_200_16_components
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_moduleservices
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_services_rings_L2
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_supportprofiles_L2
+
+}
