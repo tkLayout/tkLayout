@@ -2177,9 +2177,9 @@ namespace insur {
     myTextFile->addText(moduleConnectionsCsv_);
     summaryContent->addItem(myTextFile);
 
-    myTextFile = new RootWTextFile("include_graph.gv", "GraphView include file (dot -Tsvg include_graph.gv > graph.svg");
-    myTextFile->addText(mainConfigHandler::instance().createGraphVizFile());
-    summaryContent->addItem(myTextFile);
+    RootWGraphViz* myGv = new RootWGraphViz("include_graph.gv", "Include structure");
+    myGv->addText(mainConfigHandler::instance().createGraphVizFile());
+    summaryContent->addItem(myGv);
 
     return true; // TODO: make this meaningful
   }
