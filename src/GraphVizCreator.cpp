@@ -26,7 +26,6 @@ std::string GraphVizCreator::createGraphVizFile() {
   result += "digraph aGraph {\n";
   result += indent_ + "overlap=false;\n";
   result += indent_ + "rankdir=LR;\n";
-  result += indent_ + "splines=curved;\n";
   result += indent_ + "graph [ranksep=2, nodesep=0.1];\n";
   std::string URLString;
   for (const auto& it : graphVizFilesToNodes_) {
