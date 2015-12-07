@@ -2,8 +2,7 @@
 // In rod service true means that exit from the rod
 //        service false means that stay in the rod (but in the service cylinder)
 
-
-   // Cooling for the module
+  // Cooling for the module
   Component {
     componentName Cooling
     service true
@@ -50,8 +49,6 @@
     }
   }
 
- 
-
   // Support Mechanics
   // Mechanics
   Component {
@@ -70,5 +67,4 @@
       unit g
     }
   }
- 
  

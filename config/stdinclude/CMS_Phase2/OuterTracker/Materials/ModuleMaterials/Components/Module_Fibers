@@ -1,0 +1,11 @@
+ // 2 Optical fibers
+Component {
+  componentName "Module Fibers"
+  service true
+  scaleOnSensor 0
+  Element {
+    elementName PE
+    quantity 1.51390639
+    unit g/m
+  }
+}

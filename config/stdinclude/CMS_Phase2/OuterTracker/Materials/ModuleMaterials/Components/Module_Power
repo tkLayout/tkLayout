@@ -1,0 +1,37 @@
+// Power lines for the module
+// LV for the DC/DC and HV for the sensor
+
+// Power for the converter (10V)
+// 2 wires
+Component {
+  componentName "Hybrid Power lines"
+  service true
+  scaleOnSensor 1
+  Element {
+    elementName Cu_MV
+    quantity 2.36
+    unit g/m
+  }
+  Element {
+    elementName PE
+    quantity 1.92
+    unit g/m
+  }
+}
+
+// HV: 1 wire
+Component {
+  componentName "Sensor HV line"
+  service true
+  scaleOnSensor 0
+  Element {
+    elementName Cu_HV
+    quantity 1.18
+    unit g/m
+  }
+  Element {
+    elementName PE
+    quantity 0.96
+    unit g/m
+  }
+}
