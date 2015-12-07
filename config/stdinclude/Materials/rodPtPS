@@ -1,9 +1,0 @@
-// ROD material
-// In rod service true means that exit from the rod
-//        service false means that stay in the rod (but in the service cylinder)
-
-Materials rodPtPS {
-  type rod
-
-  @includestd Materials/rodBase
-}

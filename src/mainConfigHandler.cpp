@@ -418,8 +418,13 @@ string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirect
 string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 
 
+// MASSIVE TODO: use boost::filesystem instead of guesswork...
 std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
   using namespace std;
+  // Assing the file id to this file name
+  int thisFileId = getFileId(istreamid);
+  std::string full_path = boost::filesystem::system_complete(istreamid).string();
+  addNodeUrl(istreamid, "file://"+full_path);
   string line;
   int numLine = 1;
   std::set<string> includeSet;
@@ -441,7 +446,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
       line = leftPart + " " + istreamid_directory + "/" + rightPart;
     }
 
-    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std @include-weak @include-std-weak
+    if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
       trimmed = trimmed.substr(includeStart);
       int quoteStart, quoteEnd;
       string filename;
@@ -453,13 +458,24 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
       }
       bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported 
       bool includeStdNew = trimmed.find("@include-std") != string::npos;
-     // bool includeWeak = trimmed.find("@include-weak") != string::npos || trimmed.find("@include-std-weak") != string::npos || trimmed.find("@includestd-weak") != string::npos; // include weak command not supported for the moment
-      string prefix = (includeStdOld || includeStdNew) ? getStandardIncludeDirectory()+"/" : istreamid_directory+"/"; 
+      string prefix;
+      int includedFileId;
+      if (includeStdOld || includeStdNew) {
+	prefix = getStandardIncludeDirectory()+"/";
+	addNodeRename(prefix+filename, "STD/"+filename);
+	addNodeUrl(prefix+filename, "file://"+prefix+filename);
+      } else {
+	prefix = istreamid_directory+"/"; 
+	full_path = boost::filesystem::system_complete(prefix).string();
+	addNodeUrl(prefix+filename, "file://"+full_path+"/"+filename);
+      }
       filename = prefix + filename;
+      includedFileId = getFileId(filename);
       ifstream ifs(filename);
       if (ifs) {
         stringstream ss;
         auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
+	addGraphLink(thisFileId, includedFileId);
         includeSet.insert(moreIncludes.begin(), moreIncludes.end());
         string indent = line.substr(0, line.find_first_not_of(" \t"));
         while (getline(ss, line).good()) {

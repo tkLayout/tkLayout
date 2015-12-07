@@ -705,7 +705,7 @@ namespace material {
           bool validConversion = true;
           
           if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
+            logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position (Z=" + to_string(section->minZ()) + "), Z too low (Z=" +to_string(discretize(secondConversionStation->maxZ_())) + ").");
             continue;
           }
           
@@ -894,7 +894,7 @@ namespace material {
             bool validConversion = true;
           
             if (section->minZ() > discretize(secondConversionStation->maxZ_())) {
-              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too low.");
+              logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position ("+to_string(section->minZ())+"), Z too low (Z="+to_string(discretize(secondConversionStation->maxZ_())) + ").");
               continue;
             }
 
@@ -912,7 +912,7 @@ namespace material {
          
               while(section->maxZ() < attachPoint + sectionTolerance) {
                 if(!section->hasNextSection()) {
-                  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too hight");
+                  logERROR("Impossible to place second level station \"" + secondConversionStation->stationName_() + "\" at desired position, Z too high");
                   return;
                 }
                 section = section->nextSection();

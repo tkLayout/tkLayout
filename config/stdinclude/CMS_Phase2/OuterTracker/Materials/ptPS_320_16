@@ -1,0 +1,7 @@
+// pt-PS module 10x5 for the inner region
+// GBT on the module
+
+Materials module-ptPS_320_16 {
+  type module
+  @include-std CMS_Phase2/OuterTracker/Materials/Components/ptPS_320_16_components
+}
