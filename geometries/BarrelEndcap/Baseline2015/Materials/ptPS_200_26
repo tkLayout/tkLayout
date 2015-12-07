@@ -6,14 +6,14 @@ Materials module-ptPS_320_26 {
 
   // Default sensor:
   ReferenceSensor 1 {
-    numStripsAcrossSet 960
-    //numSegmentsSet 2
-    numSegmentsSet 32
+    numStripsAcross 960
+    //numSegments 2
+    numSegments 32
   }
   ReferenceSensor 2 {
-    numStripsAcrossSet 960
-    //numSegmentsSet 32
-    numSegmentsSet 2
+    numStripsAcross 960
+    //numSegments 32
+    numSegments 2
   } 
 
 // Sensor and hybrid stuff

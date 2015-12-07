@@ -106,7 +106,7 @@ namespace insur {
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
            << m.moduleType() << sep
            << m.nominalResolutionLocalX() << sep << m.nominalResolutionLocalY() << sep 
-           << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
+           << m.numStripsAcrossEstimate() << sep << m.innerSensor().numSegmentsEstimate() << sep << m.outerSensor().numSegmentsEstimate() << std::endl;
       }
     };
     */

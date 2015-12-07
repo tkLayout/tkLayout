@@ -303,8 +303,8 @@ namespace material {
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
     componentName ("componentName", parsedOnly()),
-    //numStripsAcross("numStripsAcross", parsedOnly()),
-    //numSegments("numSegments", parsedOnly()),
+    //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
+    //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
     //nStripsAcross("nStripsAcross", parsedOnly()),
     //nSegments("nSegments", parsedOnly()),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
@@ -560,17 +560,17 @@ namespace material {
 void MaterialObject::ReferenceSensor::check() {
   PropertyObject::check();
   
-  if (!numStripsAcrossSet.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimate and pitchEstimate must be specified");
-  if (numStripsAcrossSet.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimate and pitchEstimate can be specified");
-  if (!numSegmentsSet.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimate and stripLengthEstimate must be specified");
-  if (numSegmentsSet.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimate and stripLengthEstimate can be specified");
+  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimateEstimate and pitchEstimate must be specified");
+  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimateEstimate and pitchEstimate can be specified");
+  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimateEstimate and stripLengthEstimate must be specified");
+  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimateEstimate and stripLengthEstimate can be specified");
 }
 
-/*int MaterialObject::ReferenceSensor::numStripsAcross() const {
-  if (numStripsAcrossSet.state()) return numStripsAcrossSet();
+/*int MaterialObject::ReferenceSensor::numStripsAcrossEstimate() const {
+  if (numStripsAcross.state()) return numStripsAcross();
   else return floor(width() / pitchEstimate());
 }
-int MaterialObject::ReferenceSensor::numSegments() const {
-  if (numSegmentsSet.state()) return numSegmentsSet();
+int MaterialObject::ReferenceSensor::numSegmentsEstimate() const {
+  if (numSegments.state()) return numSegments();
   else return floor(length() / stripLengthEstimate());
   }*/

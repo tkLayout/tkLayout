@@ -248,9 +248,9 @@ public:
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
   ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
-  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
-  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
-  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
+  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegmentsEstimate()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
+  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegmentsEstimate()); } return segm; }
+  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegmentsEstimate(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
   int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
@@ -260,9 +260,9 @@ public:
   double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
 
   
-  int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  int numStripsAcrossEstimate() const { return sensors().front().numStripsAcrossEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
   double pitch() const { return sensors().front().pitch(); }
-int numSegments() const { return sensors().front().numSegments(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
   double stripLength() const { return sensors().front().stripLength(); }
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 

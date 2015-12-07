@@ -4,10 +4,10 @@
 void Sensor::check() {
   PropertyObject::check();
   
-  if (!numStripsAcrossSet.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimate and pitchEstimate must be specified");
-  if (numStripsAcrossSet.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimate and pitchEstimate can be specified");
-  if (!numSegmentsSet.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimate and stripLengthEstimate must be specified");
-  if (numSegmentsSet.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimate and stripLengthEstimate can be specified");
+  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimateEstimate and pitchEstimate must be specified");
+  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimateEstimate and pitchEstimate can be specified");
+  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimateEstimate and stripLengthEstimate must be specified");
+  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimateEstimate and stripLengthEstimate can be specified");
 }
 
 double Sensor::normalOffset() const {
@@ -50,17 +50,17 @@ std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, co
   } else return std::make_pair(p, -1);
 }
 
-int Sensor::numStripsAcross() const {
-  if (numStripsAcrossSet.state()) return numStripsAcrossSet();
+int Sensor::numStripsAcrossEstimate() const {
+  if (numStripsAcross.state()) return numStripsAcross();
   else return floor(parent_->meanWidth() / pitchEstimate());
 }
-int Sensor::numSegments() const {
-  if (numSegmentsSet.state()) return numSegmentsSet();
+int Sensor::numSegmentsEstimate() const {
+  if (numSegments.state()) return numSegments();
   else return floor(parent_->length() / stripLengthEstimate());
 }
-double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcross(); }
-double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcross(); }
-double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcross(); }
-double Sensor::stripLength() const { return parent_->length() / numSegments(); }
+double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::stripLength() const { return parent_->length() / numSegmentsEstimate(); }
 
 define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };

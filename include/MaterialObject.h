@@ -72,29 +72,29 @@ namespace material {
     std::map<int, int> sensorChannels;
     class ReferenceSensor : public PropertyObject {
     public:
-      ReadonlyProperty<int, NoDefault> numStripsAcrossSet;
+      ReadonlyProperty<int, NoDefault> numStripsAcross;
       ReadonlyProperty<double, NoDefault> pitchEstimate;
-      ReadonlyProperty<int, NoDefault> numSegmentsSet;
+      ReadonlyProperty<int, NoDefault> numSegments;
       ReadonlyProperty<double, NoDefault> stripLengthEstimate;
       Property<double, NoDefault> width;
       Property<double, NoDefault> length;
     ReferenceSensor() :
-      numStripsAcrossSet("numStripsAcrossSet", parsedOnly()),
+      numStripsAcross("numStripsAcross", parsedOnly()),
 	pitchEstimate("pitchEstimate", parsedOnly()),
-	numSegmentsSet("numSegmentsSet", parsedOnly()),
+	numSegments("numSegments", parsedOnly()),
 	stripLengthEstimate("stripLengthEstimate", parsedOnly()),
 	length("length", parsedOnly()), // not checked because a custom checker is defined for RectangularModules
 	width("width", parsedOnly())  // same here
 	  {}
-      int numStripsAcross() const {
-	if (numStripsAcrossSet.state()) return numStripsAcrossSet();
+      int numStripsAcrossEstimate() const {
+	if (numStripsAcross.state()) return numStripsAcross();
 	else return floor(width() / pitchEstimate());
       }
-      int numSegments() const {
-	if (numSegmentsSet.state()) return numSegmentsSet();
+      int numSegmentsEstimate() const {
+	if (numSegments.state()) return numSegments();
 	else return floor(length() / stripLengthEstimate());
       }
-      int numChannels() const { return numStripsAcross() * numSegments(); }
+      int numChannels() const { return numStripsAcrossEstimate() * numSegmentsEstimate(); }
 
       void check() override;
     };

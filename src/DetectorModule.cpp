@@ -64,7 +64,7 @@ void DetectorModule::setup() {
       if (!hasAnyResolutionLocalXParam()) {
 	//std::cout << "nominalResolutionLocalX and resolutionLocalXBarrel parameters are all unset. Use of default formulae." << std::endl;
 	double res = 0;
-	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcross() / sqrt(12), 2);
+	for (const Sensor& s : sensors()) res += pow(meanWidth() / s.numStripsAcrossEstimate() / sqrt(12), 2);
 	return sqrt(res)/numSensors();
       }
       // if model parameters specified, return -1
@@ -140,10 +140,10 @@ double DetectorModule::stripOccupancyPerEventBarrel() const {
   double factor = fabs(sin(theta))*2; // 2 is a magic adjustment factor
   double dphideta = phiAperture() * etaAperture();
   double minNSegments = minSegments();
-  int numStripsAcross = sensors().begin()->numStripsAcross();
+  int numStripsAcrossEstimate = sensors().begin()->numStripsAcrossEstimate();
   double modWidth = (maxWidth() + minWidth())/2.;
 
-  double occupancy = myOccupancyBarrel / factor / (90/1e3) * (dphideta / minNSegments) * (modWidth / numStripsAcross);
+  double occupancy = myOccupancyBarrel / factor / (90/1e3) * (dphideta / minNSegments) * (modWidth / numStripsAcrossEstimate);
 
   return occupancy;
 }
@@ -156,10 +156,10 @@ double DetectorModule::stripOccupancyPerEventEndcap() const {
   double factor=fabs(cos(theta))*2; // 2 is a magic adjustment factor
   double dphideta = phiAperture() * etaAperture();
   double minNSegments = minSegments();
-  int numStripsAcross = sensors().begin()->numStripsAcross();
+  int numStripsAcrossEstimate = sensors().begin()->numStripsAcrossEstimate();
   double modWidth = (maxWidth() + minWidth())/2.;
 
-  double occupancy = myOccupancyEndcap / factor / (90/1e3) * (dphideta / minNSegments) * (modWidth / numStripsAcross);
+  double occupancy = myOccupancyEndcap / factor / (90/1e3) * (dphideta / minNSegments) * (modWidth / numStripsAcrossEstimate);
 
   return occupancy;
 }

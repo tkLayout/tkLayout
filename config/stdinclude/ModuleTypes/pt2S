@@ -20,16 +20,16 @@ frontEndHybridWidth 21.725 //20.625 hybrid + 1.1 inactive silicon   // OK
 
 Sensor 1 {
   sensorType strip
-  numStripsAcrossSet 1016
-  numSegmentsSet 2
+  numStripsAcross 1016
+  numSegments 2
   numROCX 8
   numROCY 2
 }
 
 Sensor 2 {
   sensorType strip
-  numStripsAcrossSet 1016
-  numSegmentsSet 2
+  numStripsAcross 1016
+  numSegments 2
   numROCX 8
   numROCY 2
 }

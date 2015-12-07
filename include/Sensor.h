@@ -19,9 +19,9 @@ class Sensor : public PropertyObject, public Buildable, public Identifiable<int>
   mutable const Polygon3d<4>* envPoly_ = 0; 
   Polygon3d<4>* buildOwnPoly(double polyOffset) const;
 public:
-  ReadonlyProperty<int, NoDefault> numStripsAcrossSet;
+  ReadonlyProperty<int, NoDefault> numStripsAcross;
   ReadonlyProperty<double, NoDefault> pitchEstimate;
-  ReadonlyProperty<int, NoDefault> numSegmentsSet;
+  ReadonlyProperty<int, NoDefault> numSegments;
   ReadonlyProperty<double, NoDefault> stripLengthEstimate;
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<double, Default> sensorThickness;
@@ -30,9 +30,9 @@ public:
   ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
 
  Sensor() :
-  numStripsAcrossSet("numStripsAcrossSet", parsedOnly()),
+  numStripsAcross("numStripsAcross", parsedOnly()),
     pitchEstimate("pitchEstimate", parsedOnly()),
-    numSegmentsSet("numSegmentsSet", parsedOnly()),
+    numSegments("numSegments", parsedOnly()),
     stripLengthEstimate("stripLengthEstimate", parsedOnly()),
     numROCX("numROCX", parsedOnly()),
     numROCY("numROCY", parsedOnly()),
@@ -42,16 +42,16 @@ public:
 
   void parent(const DetectorModule* m) { parent_ = m; }
 
-  int numStripsAcross() const;
-  int numSegments() const;
-  int numChannels() const { return numStripsAcross() * numSegments(); }
+  int numStripsAcrossEstimate() const;
+  int numSegmentsEstimate() const;
+  int numChannels() const { return numStripsAcrossEstimate() * numSegmentsEstimate(); }
   double minPitch() const;
   double maxPitch() const;
   double pitch() const;
   double stripLength() const;
 
-  int numROCRows() const { return numStripsAcross() / numROCX(); } 
-  int numROCCols() const { return numSegments() / numROCY(); }
+  int numROCRows() const { return numStripsAcrossEstimate() / numROCX(); } 
+  int numROCCols() const { return numSegmentsEstimate() / numROCY(); }
 
   int totalROCs() const { return numROCX() * numROCY(); }
 

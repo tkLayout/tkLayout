@@ -164,7 +164,7 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
 	histXBar->Fill(hitModule_->resolutionLocalX(myTrack_->getPhi())*1000);
 	//std::cout << "hitModule_->resolutionLocalX(myTrack_->getPhi()) * 1000 = " << hitModule_->resolutionLocalX(myTrack_->getPhi())*1000 << std::endl;
 	//std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
-	//std::cout << "hitModule_->numSegments()" << hitModule_->numSegments() << std::endl;
+	//std::cout << "hitModule_->numSegmentsEstimate()" << hitModule_->numSegmentsEstimate() << std::endl;
 	//std::cout << "hitModule_->stripLength()" << hitModule_->stripLength() << std::endl;
 
 	 

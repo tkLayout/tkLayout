@@ -4,8 +4,8 @@ Materials BPX_L2 {
 
   // Default sensor:
   ReferenceSensor 1 {
-    numStripsAcrossSet 1024
-    numSegmentsSet 128
+    numStripsAcross 1024
+    numSegments 128
   }
 
   // Modules

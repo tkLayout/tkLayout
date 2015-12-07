@@ -1513,9 +1513,9 @@ namespace insur {
         for (int iFace=0; iFace<(*tagMapIt).second->numSensors(); ++iFace) {
           // Strip length
           aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-            << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegments();
+            << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate();
           // Segments
-          aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegments()
+          aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate()
             << "x" << (*tagMapIt).second->sensors().at(iFace).numROCX();
           if (iFace<(*tagMapIt).second->numSensors() - 1) {
             aStripLength << ", ";

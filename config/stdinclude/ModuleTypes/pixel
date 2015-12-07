@@ -4,8 +4,8 @@ moduleType pixel
 numSensors 1
 
 sensorType largepix
-numStripsAcrossSet 1024
-numSegmentsSet 128
+numStripsAcross 1024
+numSegments 128
 numROCX 2
 numROCY 16
 stereoRotation 15
