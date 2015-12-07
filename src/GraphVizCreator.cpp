@@ -10,7 +10,13 @@ std::string GraphVizCreator::getNodeName(int nodeId) {
 }
 
 void GraphVizCreator::addGraphLink(int parentNodeId, int childNodeId) {
-  graphVizConnections_ += indent_ + getNodeName(parentNodeId)+":e -> "+getNodeName(childNodeId)+":w;\n";
+  std::vector<int>& linkedNodes = nodeLinks_[parentNodeId];
+  linkedNodes.push_back(childNodeId);
+}
+
+void GraphVizCreator::clearGraphLinks(int parentNodeId) {
+  std::vector<int>& linkedNodes = nodeLinks_[parentNodeId];
+  linkedNodes.clear();
 }
 
 void GraphVizCreator::addNodeRename(std::string nodeName, std::string symbolic) {
@@ -41,6 +47,12 @@ std::string GraphVizCreator::createGraphVizFile() {
     }
   }
   result += "\n";
+  for (const auto& it : nodeLinks_) {
+    const std::vector<int>& linkedNodes = it.second;
+    for (const auto& childIt : linkedNodes) {
+      graphVizConnections_ += indent_ + getNodeName(it.first)+":e -> "+getNodeName(childIt)+":w;\n";
+    }
+  }
   result += graphVizConnections_;
   result += "}\n";
 
