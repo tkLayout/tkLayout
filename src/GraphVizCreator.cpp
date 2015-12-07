@@ -10,7 +10,7 @@ std::string GraphVizCreator::getNodeName(int nodeId) {
 }
 
 void GraphVizCreator::addGraphLink(int parentNodeId, int childNodeId) {
-  graphVizConnections_ += "  "+getNodeName(parentNodeId)+":e -> "+getNodeName(childNodeId)+":w;\n";
+  graphVizConnections_ += indent_ + getNodeName(parentNodeId)+":e -> "+getNodeName(childNodeId)+":w;\n";
 }
 
 void GraphVizCreator::addNodeRename(std::string nodeName, std::string symbolic) {
@@ -23,10 +23,11 @@ void GraphVizCreator::addNodeUrl(std::string nodeName, std::string url) {
 
 std::string GraphVizCreator::createGraphVizFile() {
   std::string result;
-  result += "  digraph aGraph {\n";
-  result += "  overlap=false;\n";
-  result += "  rankdir=LR;\n";
-  result += "  splines=curved;\n";
+  result += "digraph aGraph {\n";
+  result += indent_ + "overlap=false;\n";
+  result += indent_ + "rankdir=LR;\n";
+  result += indent_ + "splines=curved;\n";
+  result += indent_ + "graph [ranksep=2, nodesep=0.1];\n";
   std::string URLString;
   for (const auto& it : graphVizFilesToNodes_) {
     if (nodeUrl_[it.first]!="") {
@@ -35,9 +36,9 @@ std::string GraphVizCreator::createGraphVizFile() {
       URLString="";
     }
     if (nodeRenameMap_[it.first]=="") {
-      result += "  "+getNodeName(it.second)+"[label=\""+it.first+"\""+URLString+"];\n";
+      result += indent_ + ""+getNodeName(it.second)+"[label=\""+it.first+"\""+URLString+"];\n";
     } else {
-      result += "  "+getNodeName(it.second)+"[label=\""+nodeRenameMap_[it.first]+"\" shape=box"+URLString+"];\n";
+      result += indent_ + ""+getNodeName(it.second)+"[label=\""+nodeRenameMap_[it.first]+"\" shape=box"+URLString+"];\n";
     }
   }
   result += "\n";

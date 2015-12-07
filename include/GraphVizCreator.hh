@@ -18,6 +18,7 @@ private:
   std::string graphVizConnections_;
   std::map<std::string, std::string> nodeRenameMap_;
   std::map<std::string, std::string> nodeUrl_;
+  const std::string indent_ = "    ";
 };
 
 #endif
