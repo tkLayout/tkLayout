@@ -22,16 +22,16 @@ reduceCombinatorialBackground true
 
 Sensor 1 {
   sensorType largepix
-  numStripsAcross 960
-  numSegments 32
+  numStripsAcrossSet 960
+  numSegmentsSet 32
   numROCX 4
   numROCY 2
 }
 
 Sensor 2 {
   sensorType strip
-  numStripsAcross 960
-  numSegments 2
+  numStripsAcrossSet 960
+  numSegmentsSet 2
   numROCX 4
   numROCY 2
 }

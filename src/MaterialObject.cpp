@@ -556,3 +556,21 @@ namespace material {
 
 
 } /* namespace material */
+
+void MaterialObject::ReferenceSensor::check() {
+  PropertyObject::check();
+  
+  if (!numStripsAcrossSet.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimate and pitchEstimate must be specified");
+  if (numStripsAcrossSet.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimate and pitchEstimate can be specified");
+  if (!numSegmentsSet.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimate and stripLengthEstimate must be specified");
+  if (numSegmentsSet.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimate and stripLengthEstimate can be specified");
+}
+
+/*int MaterialObject::ReferenceSensor::numStripsAcross() const {
+  if (numStripsAcrossSet.state()) return numStripsAcrossSet();
+  else return floor(width() / pitchEstimate());
+}
+int MaterialObject::ReferenceSensor::numSegments() const {
+  if (numSegmentsSet.state()) return numSegmentsSet();
+  else return floor(length() / stripLengthEstimate());
+  }*/

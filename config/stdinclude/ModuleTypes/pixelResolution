@@ -4,7 +4,7 @@
 // Nominal resolutionLocalX or Y : Please specify values for resolutionLocalX or Y in this file.
 // Example : nominalResolutionLocalX 0.010
 // Please note that if no value nor any parameter is specified in the cfg file, a nominal resolutionLocalX or Y is calculated using the following formulae :
-// nominalResolutionLocalX = RMS over sensors of (meanWidth / (numStripsAcross * sqrt(12)))
+// nominalResolutionLocalX = RMS over sensors of (meanWidth / (numStripsAcrossSet * sqrt(12)))
 // nominalResolutionLocalY = RMS over sensors of (length / (maxSegments * sqrt(12)))
 //
 // Parameterized resolutionLocalX or Y : Please specify the set of parameters for resolutionLocalX or Y in this file. Models used are from [1] and mentioned below.

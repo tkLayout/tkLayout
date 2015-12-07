@@ -261,6 +261,9 @@ public:
 
   
   int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double pitch() const { return sensors().front().pitch(); }
+int numSegments() const { return sensors().front().numSegments(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double stripLength() const { return sensors().front().stripLength(); }
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 
   double stripOccupancyPerEvent() const;

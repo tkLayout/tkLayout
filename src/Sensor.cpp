@@ -1,6 +1,14 @@
 #include "Sensor.h"
 #include "DetectorModule.h"
 
+void Sensor::check() {
+  PropertyObject::check();
+  
+  if (!numStripsAcrossSet.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimate and pitchEstimate must be specified");
+  if (numStripsAcrossSet.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimate and pitchEstimate can be specified");
+  if (!numSegmentsSet.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimate and stripLengthEstimate must be specified");
+  if (numSegmentsSet.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimate and stripLengthEstimate can be specified");
+}
 
 double Sensor::normalOffset() const {
   return parent_->numSensors() <= 1 ? 0. : (myid() == 1 ? -parent_->dsDistance()/2. : parent_->dsDistance()/2.);
@@ -42,6 +50,14 @@ std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, co
   } else return std::make_pair(p, -1);
 }
 
+int Sensor::numStripsAcross() const {
+  if (numStripsAcrossSet.state()) return numStripsAcrossSet();
+  else return floor(parent_->meanWidth() / pitchEstimate());
+}
+int Sensor::numSegments() const {
+  if (numSegmentsSet.state()) return numSegmentsSet();
+  else return floor(parent_->length() / stripLengthEstimate());
+}
 double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcross(); }
 double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcross(); }
 double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcross(); }

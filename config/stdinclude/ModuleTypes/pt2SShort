@@ -14,16 +14,16 @@ sensorThickness 0.2
 
 Sensor 1 {
   sensorType strip
-  numStripsAcross 1016
-  numSegments 2
+  numStripsAcrossSet 1016
+  numSegmentsSet 2
   numROCX 8
   numROCY 2
 }
 
 Sensor 2 {
   sensorType strip
-  numStripsAcross 1016
-  numSegments 2
+  numStripsAcrossSet 1016
+  numSegmentsSet 2
   numROCX 8
   numROCY 2
 }

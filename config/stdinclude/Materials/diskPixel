@@ -2,8 +2,8 @@ Materials diskPixel {
   type layer
 
   ReferenceSensor 1 {
-    numStripsAcross 1024
-    numSegments 128
+    numStripsAcrossSet 1024
+    numSegmentsSet 128
   }
   
 } 
