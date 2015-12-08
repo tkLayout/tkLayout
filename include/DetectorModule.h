@@ -4,6 +4,10 @@
 #include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
 
 #include "Sensor.h"
 #include "ModuleBase.h"
@@ -12,6 +16,7 @@
 #include "Visitable.h"
 #include "MaterialObject.h"
 
+using namespace boost::accumulators;
 using material::MaterialObject;
 
 //
@@ -170,9 +175,9 @@ public:
     if (fabs(deltaPhi) > M_PI/2.) {
       if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
       else deltaPhi = deltaPhi - 2.*M_PI;
-    }  
+    }
     double alpha = deltaPhi + M_PI / 2.;
-    return alpha; 
+    return alpha;
   }
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
@@ -187,6 +192,8 @@ public:
   }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
+  accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalX;
+  accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalY;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }

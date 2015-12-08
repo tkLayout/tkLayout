@@ -154,6 +154,11 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
     return -1;
   } else {
     if (hitModule_) {
+
+      //if ( hitModule_->moduleType()=="pixel" ) {
+	hitModule_->rollingParametrizedResolutionLocalX(hitModule_->resolutionLocalX(myTrack_->getPhi()));
+	hitModule_->rollingParametrizedResolutionLocalY(hitModule_->resolutionLocalY(myTrack_->getTheta()));
+	//}
       
       //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
       //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
@@ -162,6 +167,7 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
       if ( hitModule_->subdet() == BARREL && hitModule_->moduleType()=="pixel" ) {
 	profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000 ,1);
 	histXBar->Fill(hitModule_->resolutionLocalX(myTrack_->getPhi())*1000);
+
 	//std::cout << "hitModule_->resolutionLocalX(myTrack_->getPhi()) * 1000 = " << hitModule_->resolutionLocalX(myTrack_->getPhi())*1000 << std::endl;
 	//std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
 	//std::cout << "hitModule_->numSegmentsEstimate()" << hitModule_->numSegmentsEstimate() << std::endl;
@@ -180,7 +186,7 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
       if ( hitModule_->subdet() == BARREL && hitModule_->moduleType()=="pixel" ) {
 	profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), hitModule_->resolutionLocalY(myTrack_->getTheta())*1000 ,1);
 	histYBar->Fill(hitModule_->resolutionLocalY(myTrack_->getTheta())*1000);
-	//std::cout << "hitModule_->resolutionLocalY(myTrack_->getTheta()) * 1000 = " << hitModule_->resolutionLocalY(myTrack_->getTheta())*1000 << std::endl;
+	//std::cout << "hitModule_->resolutionLocalYx(myTrack_->getTheta()) * 1000 = " << hitModule_->resolutionLocalY(myTrack_->getTheta())*1000 << std::endl;
 	//std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
 
 	//std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;	  

@@ -46,6 +46,7 @@
 #include <TagMaker.h>
 
 #include <InactiveSurfaces.h>
+#include "Module.h"
 #include <rootweb.hh>
 #include <vector>
 #include <set>
@@ -57,6 +58,7 @@ namespace material {
   class WeightDistributionGrid;
 }
 
+using namespace boost::accumulators;
 using material::WeightDistributionGrid;
 
 namespace insur {

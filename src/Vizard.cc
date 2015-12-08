@@ -1249,8 +1249,12 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
-        tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX();
-        tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY();
+	if (!m.hasAnyResolutionLocalXParam()) { tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); }
+	else { if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) 
+	    std::cout << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
+	  tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX); }
+        if (!m.hasAnyResolutionLocalYParam()) { tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); }
+	else { if (!std::isnan(mean(m.rollingParametrizedResolutionLocalY))) tagMapAveYResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalY); }
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
         tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
