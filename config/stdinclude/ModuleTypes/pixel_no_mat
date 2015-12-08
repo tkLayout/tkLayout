@@ -4,10 +4,10 @@ moduleType pixel
 numSensors 1
 
 sensorType largepix
-numStripsAcross 1024
-//pitchEstimate 0.050
-numSegments 128
-//stripLengthEstimate 0.050
+//numStripsAcross 1024
+pitchEstimate 0.100
+//numSegments 128
+stripLengthEstimate 0.100
 numROCX 2
 numROCY 16
 stereoRotation 15
