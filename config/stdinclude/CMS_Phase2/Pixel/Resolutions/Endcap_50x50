@@ -1,0 +1,5 @@
+// Small square endcap pixel
+resolutionLocalXEndcapParam0 0.005  // mm
+resolutionLocalXEndcapParam1 0      // mm
+resolutionLocalYEndcapParam0 0.007  // mm
+resolutionLocalYEndcapParam1 0      // mm

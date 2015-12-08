@@ -1,0 +1,14 @@
+// 2S inactive silicon for 200 um sensors
+
+Component {
+  componentName "2S Inactive silicon"
+  service false
+  scaleOnSensor 0
+  //Sensor inactive edges
+  Element {
+    elementName Si
+    quantity 0.459
+    unit g
+    targetVolume 0
+  }
+}
