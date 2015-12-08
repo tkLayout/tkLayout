@@ -1,11 +1,22 @@
- // 2 Optical fibers
+// 2 Optical fibers
+
 Component {
-  componentName "Module Fibers"
+  componentName "2S Fibers"
   service true
   scaleOnSensor 0
   Element {
     elementName PE
-    quantity 1.51390639
+    quantity 1.139
+    unit g/m
+  }
+  Element {
+    elementName Glass
+    quantity 0.06
+    unit g/m
+  }
+  Element {
+    elementName Acrylate
+    quantity 0.07
     unit g/m
   }
 }

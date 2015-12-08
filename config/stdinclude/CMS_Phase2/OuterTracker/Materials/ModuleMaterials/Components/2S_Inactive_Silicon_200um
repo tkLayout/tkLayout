@@ -1,13 +1,13 @@
-// PS inactive silicon for 200 um sensors
+// 2S inactive silicon for 200 um sensors
 
 Component {
-  componentName "PS Inactive silicon"
+  componentName "2S Inactive silicon"
   service false
   scaleOnSensor 0
   //Sensor inactive edges
   Element {
     elementName Si
-    quantity 0.385
+    quantity 0.459
     unit g
     targetVolume 0
   }
