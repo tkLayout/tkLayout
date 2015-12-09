@@ -1418,9 +1418,9 @@ namespace insur {
     moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
     moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
     moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
-    moduleTable->setContent(rphiResolutionRmseRow, 0, "R/Phi resolution RMSE ("+muLetter+"m)");
+    moduleTable->setContent(rphiResolutionRmseRow, 0, "R/Phi resolution RMSE per module ("+muLetter+"m)");
     moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
-    moduleTable->setContent(yResolutionRmseRow, 0, "Y resolution RMSE ("+muLetter+"m)");
+    moduleTable->setContent(yResolutionRmseRow, 0, "Y resolution RMSE per module ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
