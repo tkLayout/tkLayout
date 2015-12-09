@@ -1405,7 +1405,7 @@ namespace insur {
     static const int powerRow = 24;
     static const int sensorPowerRow = 25;
     static const int costRow = 26;
-    static const int moduleWeightRow = 26;
+    static const int moduleWeightRow = 27;
     static const int inactiveWeightRow = 28;
     static const int totalWeightRow = 29;
 
