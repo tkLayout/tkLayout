@@ -423,6 +423,9 @@ std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream
   using namespace std;
   // Assing the file id to this file name
   int thisFileId = getFileId(istreamid);
+  // Avoid couble-counting: files included from this one
+  // should be counted only once
+  clearGraphLinks(thisFileId);
   std::string full_path = boost::filesystem::system_complete(istreamid).string();
   addNodeUrl(istreamid, "file://"+full_path);
   string line;

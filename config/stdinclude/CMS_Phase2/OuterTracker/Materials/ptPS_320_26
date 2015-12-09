@@ -3,6 +3,6 @@
 
 Materials module-ptPS_320_26 {
   type module
-  @include-std CMS_Phase2/OuterTracker/Materials/Components/ptPS_320_26_components
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/ptPS_320_26_components
 }
 

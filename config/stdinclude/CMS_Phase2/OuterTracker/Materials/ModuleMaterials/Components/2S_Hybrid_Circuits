@@ -1,0 +1,78 @@
+// 2S Two Front-end hybrids & 1 service hybrid with power and readout
+
+// Two hybrids
+Component {
+  componentName "2S FE hybrid circuits"
+  service false
+  scaleOnSensor 0
+  targetVolume 56
+  //FEH copper
+  Element {
+    elementName Cu
+    quantity 1.252
+    unit g
+  }
+  //FEH board + components
+  Element {
+    elementName 2S-FEH-mix
+    quantity 2.065
+    unit g
+  }
+  //FEH-sensors wirebonds
+  Element {
+    elementName Al
+    quantity 0.026
+    unit g
+  }
+  //Wirebond encapsulant
+  Element {
+    elementName WB-enc
+    quantity 0.891
+    unit g
+  }
+
+  //FEH CFRP support
+  Element {
+    elementName CFRP
+    quantity 4.146
+    unit g
+  }
+  //FEH CFRP stiffener
+  Element {
+    elementName CFRP
+    quantity 0.786
+    unit g
+  }
+}
+
+Component {
+  componentName "2S Service hybrids"
+  service false
+  scaleOnSensor 0
+  targetVolume 3
+  //SEH CFRP support
+  Element {
+    elementName CFRP
+    quantity 1.146
+    unit g
+  }
+  //SEH glue
+  Element {
+    elementName Epoxy
+    quantity 0.089
+    unit g
+  }
+  //SEH copper
+  Element {
+    elementName Cu
+    quantity 2.379
+    unit g
+  }
+  //SEH board + components
+  Element {
+    elementName 2S-SEH-mix
+    quantity 5.743
+    unit g
+  }
+}
+

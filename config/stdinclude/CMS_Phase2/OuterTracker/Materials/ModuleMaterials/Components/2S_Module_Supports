@@ -1,0 +1,29 @@
+// 2S Module Supports (for 10 cm-long modules)
+Component {
+  componentName "2S Module Supports"
+  service false
+  scaleOnSensor 0
+  // Cooling blocks
+  targetVolume 34
+  Element {
+    elementName Al-CF
+    quantity 4.32
+    unit g
+  }
+  // Screws
+  Element {
+    elementName Steel
+    quantity 0.34
+    unit g
+  }
+  Element {
+    elementName Al
+    quantity 0.08
+    unit g
+  }
+  Element {
+    elementName Brass
+    quantity 0.56
+    unit g
+  }
+}

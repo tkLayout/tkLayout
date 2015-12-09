@@ -1,4 +1,9 @@
+// Generic PS module properties
+
 moduleType pt2S
+// Active silicon size
+width 91.44
+length 100.5
 
 sensorLayout pt
 zCorrelation samesegment

@@ -1,0 +1,39 @@
+// All hybrid spacers for 4.0 mm
+
+Component {
+  componentName "PS FE hybrid spacers 4.0 mm"
+  targetVolume 56
+
+  //FEH spacer 4.0 mm
+  Element {
+    elementName Al-CF
+    quantity 2.9
+    unit g
+  }
+
+  //FEH glue 4.0 mm
+  Element {
+    elementName Epoxy
+    quantity 0.212
+    unit g
+  }
+}
+
+Component {
+  componentName "PS Readout hybrid spacer 4.0 mm"
+  targetVolume 3
+
+  //ROH glue 4.0 mm
+  Element {
+    elementName Epoxy
+    quantity 0.057
+    unit g
+  }
+
+  //ROH spacer 4.0 mm
+  Element {
+    elementName Al-CF
+    quantity 0.610
+    unit g
+  }
+}

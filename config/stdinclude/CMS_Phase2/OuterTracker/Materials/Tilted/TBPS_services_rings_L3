@@ -1,14 +1,10 @@
-// ROD material
-// In rod service true means that exit from the rod
-//        service false means that stay in the rod (but in the service cylinder)
+// Services and mechanics of layer-3 tilted rings (per module)
 
-
-   // Cooling for the module
+  // Cooling for the module
   Component {
     componentName Cooling
     service true
     scaleOnSensor 0
-    targetVolume 0
     Element {
       elementName Steel
       quantity 0.29
@@ -21,15 +17,12 @@
     }
   }
 
-
-
   // 1 TWP/rod
   // (This is a bus line: service does not accumulate)
   Component {
     componentName "Twisted pairs"
     service true
     scaleOnSensor 0
-    targetVolume 0
     // Two conductors and a drain
     Element {
       elementName Cu
@@ -50,8 +43,6 @@
     }
   }
 
-
- 
   // Support Mechanics
   // Mechanics
   Component {
