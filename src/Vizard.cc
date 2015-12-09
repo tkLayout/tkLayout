@@ -1171,13 +1171,16 @@ namespace insur {
       RootWTable* ringTable = new RootWTable();
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
+      std::map<std::string, int> tagMapResoCount;
       std::map<std::string, long> tagMapCountChan;
       std::map<std::string, double> tagMapMaxStripOccupancy;
       std::map<std::string, double> tagMapAveStripOccupancy;
       std::map<std::string, double> tagMapMaxHitOccupancy;
       std::map<std::string, double> tagMapAveHitOccupancy;
       std::map<std::string, double> tagMapAveRphiResolution;
+      std::map<std::string, double> tagMapAveRphiResolutionRmse;
       std::map<std::string, double> tagMapAveYResolution;
+      std::map<std::string, double> tagMapAveYResolutionRmse;
       std::map<std::string, double> tagMapAveRphiResolutionTrigger;
       std::map<std::string, double> tagMapAveYResolutionTrigger;
       std::map<std::string, double> tagMapSensorPowerAvg;
@@ -1249,12 +1252,31 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
-	if (!m.hasAnyResolutionLocalXParam()) { tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); }
-	else { if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) 
-	    std::cout << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
-	  tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX); }
-        if (!m.hasAnyResolutionLocalYParam()) { tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); }
-	else { if (!std::isnan(mean(m.rollingParametrizedResolutionLocalY))) tagMapAveYResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalY); }
+	if (!m.hasAnyResolutionLocalXParam()) { 
+	  tagMapResoCount[aSensorTag]++;
+	  std::cout << "m.nominalResolutionLocalX() = " << m.nominalResolutionLocalX() << std::endl;
+	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
+	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
+	}
+	else { 
+	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) {
+	    tagMapResoCount[aSensorTag]++;
+	    std::cout << "mean(m.rollingParametrizedResolutionLocalX) = " << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
+	    tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX);
+	    tagMapAveRphiResolutionRmse[aSensorTag] x+= sqrt(variance(m.rollingParametrizedResolutionLocalX));
+	  }
+	}
+
+        if (!m.hasAnyResolutionLocalYParam()) { 
+	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); 
+	  tagMapAveYResolutionRmse[aSensorTag] += 0.; 
+	}
+	else { 
+	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalY))) {
+	    tagMapAveYResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalY);
+	    tagMapAveYResolutionRmse[aSensorTag] += sqrt(variance(m.rollingParametrizedResolutionLocalY));
+	  }
+	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
         tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
@@ -1326,7 +1348,9 @@ namespace insur {
     std::ostringstream aStripOccupancy;
     std::ostringstream aHitOccupancy;
     std::ostringstream anRphiResolution;
+    std::ostringstream anRphiResolutionRmse;
     std::ostringstream aYResolution;
+    std::ostringstream aYResolutionRmse;
     std::ostringstream anRphiResolutionTrigger;
     std::ostringstream aYResolutionTrigger;
     std::ostringstream aPitchPair;
@@ -1368,20 +1392,22 @@ namespace insur {
     static const int striplengthRow = 11;
     static const int pitchpairsRow = 12;
     static const int rphiResolutionRow = 13;
-    static const int yResolutionRow = 14;
-    static const int rphiResolutionTriggerRow = 15;
-    static const int yResolutionTriggerRow = 16;
-    static const int stripOccupancyRow = 17;
-    static const int hitOccupancyRow = 18;
-    static const int powerPerModuleRow = 19;
-    static const int sensorPowerPerModuleAvgRow = 20;
-    static const int sensorPowerPerModuleMaxRow = 21;
-    static const int powerRow = 22;
-    static const int sensorPowerRow = 23;
-    static const int costRow = 24;
-    static const int moduleWeightRow = 25;
-    static const int inactiveWeightRow = 26;
-    static const int totalWeightRow = 27;
+    static const int rphiResolutionRmseRow = 14;
+    static const int yResolutionRow = 15;
+    static const int yResolutionRmseRow = 16;
+    static const int rphiResolutionTriggerRow = 17;
+    static const int yResolutionTriggerRow = 18;
+    static const int stripOccupancyRow = 19;
+    static const int hitOccupancyRow = 20;
+    static const int powerPerModuleRow = 21;
+    static const int sensorPowerPerModuleAvgRow = 22;
+    static const int sensorPowerPerModuleMaxRow = 23;
+    static const int powerRow = 24;
+    static const int sensorPowerRow = 25;
+    static const int costRow = 26;
+    static const int moduleWeightRow = 26;
+    static const int inactiveWeightRow = 28;
+    static const int totalWeightRow = 29;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
@@ -1392,7 +1418,9 @@ namespace insur {
     moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
     moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
     moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
+    moduleTable->setContent(rphiResolutionRmseRow, 0, "R/Phi resolution RMSE ("+muLetter+"m)");
     moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
+    moduleTable->setContent(yResolutionRmseRow, 0, "Y resolution RMSE ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
@@ -1474,10 +1502,17 @@ namespace insur {
 
       // RphiResolution
       anRphiResolution.str("");
-      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
       // YResolution
       aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+
+      // RphiResolution Rmse
+      anRphiResolutionRmse.str("");
+      anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+      // YResolution Rmse
+      aYResolutionRmse.str("");
+      aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
 
       // RphiResolution (trigger)
       anRphiResolutionTrigger.str("");
@@ -1605,7 +1640,9 @@ namespace insur {
       moduleTable->setContent(stripOccupancyRow, iType, aStripOccupancy.str());
       moduleTable->setContent(hitOccupancyRow, iType, aHitOccupancy.str());
       moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
+      moduleTable->setContent(rphiResolutionRmseRow, iType, anRphiResolutionRmse.str());
       moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
+      moduleTable->setContent(yResolutionRmseRow, iType, aYResolutionRmse.str());
       moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
       moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
       moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());

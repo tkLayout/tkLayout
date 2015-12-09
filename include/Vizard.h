@@ -113,6 +113,7 @@ namespace insur {
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
+  static const int rphiResolutionRmsePrecision = 1;
   static const int pitchPrecision = 0;
   static const int stripLengthPrecision = 1;
   static const int millionChannelPrecision = 2;
