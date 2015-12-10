@@ -2492,7 +2492,8 @@ namespace insur {
 
        // We skip in the case of ...
        // Filter sensor material and unexpected targetVolumes.
-       if ( el->componentName() == "Sensor"     ||
+
+       if ( el->componentName() == "Sensors"     ||
             el->componentName() == "PS Sensors" ||
             el->componentName() == "2S Sensors"    ) {
           continue; // We will not handle sensors in this class
