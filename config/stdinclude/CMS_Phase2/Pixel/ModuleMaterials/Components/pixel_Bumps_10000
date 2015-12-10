@@ -1,0 +1,13 @@
+// Bumps for a 10'000 um^2 pixel size
+// Bump size like Phase-1
+
+Component {
+  componentName "Bumps"
+  service false
+  scaleOnSensor 0
+  Element {
+    elementName Pix_Bumps
+    quantity 0.004
+    unit mm
+  }
+}

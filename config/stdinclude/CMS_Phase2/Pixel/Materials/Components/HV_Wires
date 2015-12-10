@@ -1,0 +1,25 @@
+// HV Power wires (currently 0.4mm^2)
+// 1 HV line only per power chain
+Component {
+  componentName "HV Power wires"
+  service true
+  scaleOnSensor 0
+  // Two wires
+  Element {
+    elementName Cu
+    quantity 0.56
+    unit g/m
+  }
+  // Two wires
+  Element {
+    elementName PE
+    quantity 0.44
+    unit g/m
+  }
+  // Two wires 0.4 mm^2
+  Element {
+    elementName Al
+    quantity 2.16
+    unit g/m
+  }
+}

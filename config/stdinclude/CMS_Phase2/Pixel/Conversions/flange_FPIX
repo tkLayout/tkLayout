@@ -1,0 +1,12 @@
+// Flange service conversion
+// used to generate services at the FPIX flange 
+
+Station {
+  stationName flange_FPIX
+  type flange
+
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Steel_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_CO2_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000
+}
