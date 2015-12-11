@@ -52,6 +52,10 @@ class AnalyzerOccupancy : AnalyzerModule {
 
  private:
 
+  // Constants
+  double c_fluxMin = 0.5E-5;
+  double c_fluxMax = 10;
+
   // Fill histogram
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);
 
@@ -85,8 +89,10 @@ class AnalyzerOccupancy : AnalyzerModule {
   TH2D* m_hisChargedFluxBOffTrkOff;
 
   TH2D* m_hisChargedRatioLTh;
+  TH2D* m_hisChargedRatioECalMat;
   TH2D* m_hisChargedRatioMat;
   TH2D* m_hisChargedRatioB;
+  TH2D* m_hisChargedRatioTrkB;
   TH2D* m_hisChargedRatioMatB;
 
   TH2D* m_hisPhotonsFluxBOnMatOn;
@@ -97,8 +103,10 @@ class AnalyzerOccupancy : AnalyzerModule {
   TH2D* m_hisPhotonsFluxBOffTrkOff;
 
   TH2D* m_hisPhotonsRatioLTh;
+  TH2D* m_hisPhotonsRatioECalMat;
   TH2D* m_hisPhotonsRatioMat;
   TH2D* m_hisPhotonsRatioB;
+  TH2D* m_hisPhotonsRatioTrkB;
   TH2D* m_hisPhotonsRatioMatB;
 };
 

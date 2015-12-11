@@ -17,14 +17,13 @@ class TCanvas;
 
 /**
  * @class BFieldMap
- * @brief This class represent a single B field map defined in space by (X,Y,Z) coordinates.
+ * @brief This class represent a single B field (Bx, By, Bz) map defined in space by (X,Y,Z) coordinates.
  * @details The map reads its configuration from the header (reading a new line starting by hash mark).
- * The maps are sortable with respect to the resolution using an operator <.
- * Get the B field using calculateBField method
  * The map is read-in either in a format of histogram, where #bins = (Max-Min)/binWidth, values are
- * then centered with respect to bin center.
- * Or the map is read-in in a format of grid (mesh), where #bins = (Max-Min)/binWidth + 1, values are
- * then directly corresponding the input.
+ * then centered with respect to the bin center. Or the map is read-in in a format of grid (mesh), where
+ * #bins = (Max-Min)/binWidth + 1, values are then directly corresponding the input.
+ * Get the B field vector at given position using calculateBField method. B field is returned as a
+ * std::vector<double> ([0]=X, [1]=Y, [2]=Z).
  */
 class BFieldMap {
 public:

@@ -1,7 +1,7 @@
 /*
  * BFieldMap.cpp
  *
- *  Created on: 19/feb/2014
+ *  Created on: 03/Dec/2015
  *      Author: Zbynek Drasal
  */
 
@@ -59,7 +59,7 @@ void BFieldMap::ingest(std::string fileName) {
   std::vector<double> bFieldVector;
   bFieldVector.resize(3);
 
-  std::string m_fileName = fileName;
+  m_fileName = fileName;
   std::ifstream filein(m_fileName);
 
   if (!filein.is_open()) {
