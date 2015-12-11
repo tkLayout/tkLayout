@@ -201,6 +201,18 @@ namespace insur {
             }
             std::cout << std::endl;
         }
+        std::cout << "operations on shapes: " << data.shapeOps.size() << " entries." << std::endl;
+        for (unsigned int i = 0; i < data.shapeOps.size(); i++) {
+            std::cout << "name_tag = " << data.shapeOps.at(i).name_tag << ", type = ";
+            switch (data.shapeOps.at(i).type) {
+	        case uni: std::cout << "union, rSolid1 = " << data.shapeOps.at(i).rSolid1 << ", rSolid2 = " << data.shapeOps.at(i).rSolid2;
+	        break;
+	        case intersec: std::cout << "intersection, rSolid1 = " << data.shapeOps.at(i).rSolid1 << ", rSolid2 = " << data.shapeOps.at(i).rSolid2;
+	        break;
+	        default: std::cout << "unknown operation";
+            }
+            std::cout << std::endl;
+        }
         std::cout << "positions: " << data.positions.size() << " entries." << std::endl;
         for (unsigned int i = 0; i < data.positions.size(); i++) {
             std::cout << "parent_tag = " << data.positions.at(i).parent_tag << ", child_tag = " << data.positions.at(i).child_tag;

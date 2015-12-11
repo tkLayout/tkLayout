@@ -20,6 +20,8 @@ namespace insur {
      */
     enum ShapeType { bx, tb, co, tp, pc };
 
+    enum ShapeOperationType { uni, intersec };
+
     enum AlgoPartype { st,num,vec};
     /**
      * @struct Rotation
@@ -127,8 +129,22 @@ namespace insur {
         double rmax1;
         double rmin2;
         double rmax2;
-        std::vector<std::pair<double, double> > rzup;
-        std::vector<std::pair<double, double> > rzdown;
+      std::vector<std::pair<double, double> > rzup;
+      std::vector<std::pair<double, double> > rzdown;
+    };
+    /**
+     * @struct ShapeOperationInfo
+     * @brief This struct corresponds to operations on geometrical shapes in a <i>SolidSection</i> block in CMSSW XML.
+     * @param type The type of operation on volumes
+     * @param name_tag The name of the result volume of the operation
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     */
+    struct ShapeOperationInfo {
+        ShapeOperationType type;
+        std::string name_tag;
+        std::string rSolid1;
+        std::string rSolid2;
     };
     /**
      * @struct PosInfo
@@ -195,6 +211,10 @@ namespace insur {
         double rmin;
         double rmid;
         double rmax;
+        double zmin;
+        double zmax;
+        double zfw;
+        double zbw;
     };
     /**
      * @struct BTiltedRingInfo
@@ -313,6 +333,7 @@ namespace insur {
       std::vector<Composite> composites;
       std::vector<LogicalInfo> logic;
       std::vector<ShapeInfo> shapes;
+      std::vector<ShapeOperationInfo> shapeOps;
       std::vector<PosInfo> positions;
       std::vector<AlgoInfo> algos;
       std::map<std::string,Rotation> rots;

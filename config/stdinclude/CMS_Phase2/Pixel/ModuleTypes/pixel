@@ -1,0 +1,13 @@
+moduleType pixel
+
+numSensors 1
+
+Sensor 1 {
+  sensorType largepix
+  numStripsAcross 1024
+  numSegments 128
+  numROCX 2
+  numROCY 16
+}
+
+plotColor 4

@@ -12,6 +12,8 @@
 #include <global_constants.h>
 #include <global_funcs.h>
 
+#include "GraphVizCreator.hh"
+
 using namespace std;
 
 #define HOMEDIRECTORY "HOME"
@@ -29,7 +31,7 @@ using namespace std;
 // be asked directly through std::cin and the corresponding
 // configuration file will be saved in the home directory
 
-class mainConfigHandler {
+class mainConfigHandler : public GraphVizCreator {
 private:
   mainConfigHandler();
 public:
@@ -85,6 +87,7 @@ private:
   string getDefaultMaterialsDirectory_();
   string getStandardIncludeDirectory_();
   string getGeometriesDirectory_();
+
 };
 
 #endif

@@ -1,0 +1,12 @@
+// pt-PS module 10x5 for the inner region
+// GBT on the module
+
+Materials module-TBPS_L1_lastFlat {
+  type module
+
+  @include-std CMS_Phase2/OuterTracker/Materials/ModuleMaterials/ptPS_320_26_components
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_moduleservices
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_services_lastFlat
+  @include-std CMS_Phase2/OuterTracker/Materials/Tilted/TBPS_supportprofiles_L1
+
+}
