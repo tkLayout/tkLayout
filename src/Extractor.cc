@@ -2488,28 +2488,30 @@ namespace insur {
     ElementsVector::const_iterator meit;
     for (meit = matElements.begin(); meit != matElements.end(); meit++) {
 
-       const MaterialObject::Element* el = *meit;
+      const MaterialObject::Element* el = *meit;
 
-       // We skip in the case of ...
-       // Filter sensor material and unexpected targetVolumes.
-
-       if ( el->componentName() == "Sensors"     ||
-            el->componentName() == "PS Sensors" ||
-            el->componentName() == "2S Sensors"    ) {
-          continue; // We will not handle sensors in this class
-       } else if ( el->targetVolume() == InnerSensor ||
-                   el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
-         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-         std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
-         std::exit(1);
-       } else if ( el->targetVolume() >= nTypes   &&
-                   el->targetVolume() != HybridFB &&
-                   el->targetVolume() != HybridLR &&
-                   el->targetVolume() != HybridFBLR_3456  ) {
-         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-         std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
-         std::exit(1);
-       }
+      // We skip in the case of ...
+      // Filter sensor material and unexpected targetVolumes.
+      if ( el->componentName() == "Sensor"      ||
+	   el->componentName() == "Sensors"     ||
+	   el->componentName() == "PS Sensor"   ||
+	   el->componentName() == "PS Sensors"  ||
+	   el->componentName() == "2S Sensor"   ||
+	   el->componentName() == "2S Sensors"    ) {
+	continue; // We will not handle sensors in this class
+      } else if ( el->targetVolume() == InnerSensor ||
+		  el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
+	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+	std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
+	std::exit(1);
+      } else if ( el->targetVolume() >= nTypes   &&
+		  el->targetVolume() != HybridFB &&
+		  el->targetVolume() != HybridLR &&
+		  el->targetVolume() != HybridFBLR_3456  ) {
+	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+	std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
+	std::exit(1);
+      }
 
        moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 
