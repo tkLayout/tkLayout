@@ -179,8 +179,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     profXEnd->GetYaxis()->CenterTitle();
 
     TProfile* profYEnd;
-    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
-    profYEnd->GetYaxis()->SetRangeUser(0,60);
+    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
+    profYEnd->GetYaxis()->SetRangeUser(0,40);
     profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
     profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
     profYEnd->GetXaxis()->CenterTitle();
@@ -199,7 +199,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
     histXEnd->GetXaxis()->CenterTitle();
 
-    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
+    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
     histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
     histYEnd->GetXaxis()->CenterTitle();
 
@@ -208,11 +208,11 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     TProfile* profXBar0  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30); 
     TProfile* profYBar0 = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
     TProfile* profXEnd0  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
-    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
+    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,40);
     TH1D *histXBar0 = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
     TH1D *histYBar0 = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
     TH1D *histXEnd0 = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
-    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
+    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,40);
 
 
     double efficiency = simParms().efficiency();
