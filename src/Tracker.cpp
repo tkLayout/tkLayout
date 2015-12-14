@@ -42,6 +42,7 @@ void Tracker::build() {
       endcaps_.push_back(e);
     }
 
+    // Build support structures within tracker
     for (auto& mapel : supportNode) {
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());

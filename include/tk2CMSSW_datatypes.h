@@ -8,7 +8,7 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include<map>
 
 namespace insur {
     /**
@@ -19,6 +19,10 @@ namespace insur {
      * @enum ShapeType A list of possible shape types: box, tubs, cones, tdr1 (trapezoid) and polycone
      */
     enum ShapeType { bx, tb, co, tp, pc };
+
+    enum ShapeOperationType { uni, intersec };
+
+    enum AlgoPartype { st,num,vec};
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -125,8 +129,22 @@ namespace insur {
         double rmax1;
         double rmin2;
         double rmax2;
-        std::vector<std::pair<double, double> > rzup;
-        std::vector<std::pair<double, double> > rzdown;
+      std::vector<std::pair<double, double> > rzup;
+      std::vector<std::pair<double, double> > rzdown;
+    };
+    /**
+     * @struct ShapeOperationInfo
+     * @brief This struct corresponds to operations on geometrical shapes in a <i>SolidSection</i> block in CMSSW XML.
+     * @param type The type of operation on volumes
+     * @param name_tag The name of the result volume of the operation
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     */
+    struct ShapeOperationInfo {
+        ShapeOperationType type;
+        std::string name_tag;
+        std::string rSolid1;
+        std::string rSolid2;
     };
     /**
      * @struct PosInfo
@@ -144,6 +162,14 @@ namespace insur {
         std::string rotref;
         Translation trans;
     };
+
+    struct VecInfo {
+      std::string name;
+      std::string type;
+      std::string nEntries;
+      std::vector<double> values;
+    };
+
     /**
      * @struct AlgoInfo
      * @brief This struct collects the parameters that go into an <i>Algorithm</i> block in CMSSW XML.
@@ -155,6 +181,8 @@ namespace insur {
         std::string name;
         std::string parent;
         std::vector<std::string> parameters;
+        std::map<std::string,std::pair<std::string,AlgoPartype> > parameter_map;
+        VecInfo vecpar;
     };
     /**
      * @struct ERingInfo
@@ -183,6 +211,10 @@ namespace insur {
         double rmin;
         double rmid;
         double rmax;
+        double zmin;
+        double zmax;
+        double zfw;
+        double zbw;
     };
     /**
      * @struct BTiltedRingInfo
@@ -301,6 +333,7 @@ namespace insur {
       std::vector<Composite> composites;
       std::vector<LogicalInfo> logic;
       std::vector<ShapeInfo> shapes;
+      std::vector<ShapeOperationInfo> shapeOps;
       std::vector<PosInfo> positions;
       std::vector<AlgoInfo> algos;
       std::map<std::string,Rotation> rots;

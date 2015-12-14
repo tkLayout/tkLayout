@@ -27,6 +27,7 @@ COMPILERFLAGS+=-std=c++11
 #COMPILERFLAGS+=-ggdb
 COMPILERFLAGS+=-g
 COMPILERFLAGS+=-fpermissive
+COMPILERFLAGS+=-lstdc++
 #COMPILERFLAGS+=-pg
 #COMPILERFLAGS+=-Werror
 #COMPILERFLAGS+=-O5
@@ -67,6 +68,9 @@ install:
 	./install.sh
 
 # Pt computation
+$(LIBDIR)/GraphVizCreator.o: $(SRCDIR)/GraphVizCreator.cpp $(INCDIR)/GraphVizCreator.hh
+	$(COMP) -c -o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/GraphVizCreator.cpp
+
 $(LIBDIR)/ptError.o: $(SRCDIR)/ptError.cpp $(INCDIR)/ptError.h
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/ptError.o $(SRCDIR)/ptError.cpp
 
@@ -193,13 +197,18 @@ $(LIBDIR)/messageLogger.o: $(SRCDIR)/messageLogger.cpp $(INCDIR)/messageLogger.h
 	$(COMP) -c -o $(LIBDIR)/messageLogger.o $(SRCDIR)/messageLogger.cpp
 
 #EXOCOM
-exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
+exocom:  $(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o $(LIBDIR)/XMLWriter.o
 	@echo "Built target 'exocom'."
 
 $(LIBDIR)/MatParser.o: $(SRCDIR)/MatParser.cc $(INCDIR)/MatParser.h
 	@echo "Building target MatParser.o..."
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/MatParser.o $(SRCDIR)/MatParser.cc
 	@echo "Built target MatParser.o"
+
+$(LIBDIR)/PixelExtractor.o: $(SRCDIR)/PixelExtractor.cc $(INCDIR)/PixelExtractor.h
+	@echo "Building target PixelExtractor.o..."
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/PixelExtractor.o $(SRCDIR)/PixelExtractor.cc
+	@echo "Built target PixelExtractor.o"
 
 $(LIBDIR)/Extractor.o: $(SRCDIR)/Extractor.cc $(INCDIR)/Extractor.h
 	@echo "Building target Extractor.o..."
@@ -382,8 +391,8 @@ $(LIBDIR)/StopWatch.o: $(SRCDIR)/StopWatch.cpp $(INCDIR)/StopWatch.h
 setup: $(BINDIR)/setup.bin
 	@echo "setup built"
 
-$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp
-	$(COMP) $(LINKERFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(SRCDIR)/setup.cpp \
+$(BINDIR)/setup.bin: $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cpp
+	$(COMP) $(LINKERFLAGS) $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/global_funcs.o $(LIBDIR)/GraphVizCreator.o $(SRCDIR)/setup.cpp \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/setup.bin
 
@@ -414,12 +423,12 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-  $(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+  $(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o  $(LIBDIR)/InactiveSurfaces.o  $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o getRevisionDefine
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o getRevisionDefine
 	#
 	# Let's make the revision object first
 	$(COMP) $(SVNREVISIONDEFINE) -c $(SRCDIR)/SvnRevision.cpp -o $(LIBDIR)/SvnRevision.o
@@ -431,12 +440,12 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
   $(LIBDIR)/AnalyzerVisitors/MaterialBillAnalyzer.o \
 	$(LIBDIR)/AnalyzerVisitors/TriggerFrequency.o $(LIBDIR)/AnalyzerVisitors/Bandwidth.o $(LIBDIR)/AnalyzerVisitors/IrradiationPower.o $(LIBDIR)/AnalyzerVisitors/TriggerProcessorBandwidth.o $(LIBDIR)/AnalyzerVisitors/TriggerDistanceTuningPlots.o \
 	$(LIBDIR)/AnalyzerVisitor.o $(LIBDIR)/Bag.o $(LIBDIR)/SummaryTable.o $(LIBDIR)/PtErrorAdapter.o $(LIBDIR)/Analyzer.o $(LIBDIR)/ptError.o \
-	$(LIBDIR)/MatParser.o $(LIBDIR)/Extractor.o \
+	$(LIBDIR)/MatParser.o $(LIBDIR)/PixelExtractor.o $(LIBDIR)/Extractor.o \
 	$(LIBDIR)/XMLWriter.o $(LIBDIR)/IrradiationMap.o $(LIBDIR)/IrradiationMapsManager.o $(LIBDIR)/MaterialTable.o $(LIBDIR)/MaterialBudget.o $(LIBDIR)/MaterialProperties.o \
 	$(LIBDIR)/ModuleCap.o $(LIBDIR)/InactiveSurfaces.o $(LIBDIR)/InactiveElement.o $(LIBDIR)/InactiveRing.o \
 	$(LIBDIR)/InactiveTube.o $(LIBDIR)/Usher.o $(LIBDIR)/Materialway.o $(LIBDIR)/MaterialTab.o $(LIBDIR)/WeightDistributionGrid.o $(LIBDIR)/MaterialObject.o $(LIBDIR)/ConversionStation.o $(LIBDIR)/SupportStructure.o $(LIBDIR)/MatCalc.o $(LIBDIR)/MatCalcDummy.o $(LIBDIR)/PlotDrawer.o \
 	$(LIBDIR)/Vizard.o $(LIBDIR)/tk2CMSSW.o $(LIBDIR)/Squid.o $(LIBDIR)/rootweb.o $(LIBDIR)/mainConfigHandler.o \
-	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o \
+	$(LIBDIR)/messageLogger.o $(LIBDIR)/Palette.o $(LIBDIR)/StopWatch.o $(LIBDIR)/GraphVizCreator.o \
 	$(LIBDIR)/SvnRevision.o \
 	$(LIBDIR)/tklayout.o \
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
@@ -450,6 +459,10 @@ $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/
 	$(COMP) $(ROOTFLAGS) $(LIBDIR)/module.o $(LIBDIR)/layer.o $(LIBDIR)/messageLogger.o $(TESTDIR)/testObjects.cpp \
         $(LIBDIR)/ptError.o $(LIBDIR)/moduleType.o \
 	$(ROOTLIBFLAGS) $(GEOMLIBFLAG) -o $(TESTDIR)/testObjects
+
+testGraphVizCreator: $(TESTDIR)/testGraphVizCreator
+$(TESTDIR)/testGraphVizCreator: $(TESTDIR)/testGraphVizCreator.cpp $(LIBDIR)/GraphVizCreator.o
+	g++ $(COMPILERFLAGS) $(INCLUDEFLAGS) $(LIBDIR)/GraphVizCreator.o $(TESTDIR)/testGraphVizCreator.cpp -o $(TESTDIR)/testGraphVizCreator
 
 rootwebTest: $(TESTDIR)/rootwebTest
 $(TESTDIR)/rootwebTest: $(TESTDIR)/rootwebTest.cpp $(LIBDIR)/mainConfigHandler.o $(LIBDIR)/rootweb.o 

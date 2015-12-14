@@ -1,0 +1,40 @@
+// Sensor spacers for 2S module 4.0 mm spacing
+
+Component {
+  componentName "2S Sensor spacers (4.0 mm)"
+  service false
+  scaleOnSensor 0
+  targetVolume 7
+
+  //Long-4.0mm (Main Bridge)
+  Element {
+    elementName Al-CF
+    quantity 3.160
+    unit g
+  }
+  //Short-4.0mm (Stump Bridge)
+  Element {
+    elementName Al-CF
+    quantity 0.65
+    unit g
+  }
+  //FEH support tab
+  Element {
+    targetVolume 0
+    elementName Al-CF
+    quantity 0.76
+    unit g
+  }
+  //Parylene 4.0mm
+  Element {
+    elementName Epoxy
+    quantity 0.09
+    unit g
+  }
+  //Bridges glue 4.0 mm
+  Element {
+    elementName Epoxy
+    quantity 0.163
+    unit g
+  }
+}

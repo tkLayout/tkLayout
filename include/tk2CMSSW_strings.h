@@ -99,6 +99,14 @@ namespace insur {
     static const std::string xml_rzpoint_open = "<RZPoint r=\"";
     static const std::string xml_rzpoint_inter = "*mm\" z=\"";
     static const std::string xml_rzpoint_close = "*mm\"/>\n";
+    static const std::string xml_union_open = "<UnionSolid name=\"";
+    static const std::string xml_union_inter = "\">\n";
+    static const std::string xml_union_close = "</UnionSolid>\n";
+    static const std::string xml_intersection_open = "<IntersectionSolid name=\"";
+    static const std::string xml_intersection_inter = "\">\n";
+    static const std::string xml_intersection_close = "</IntersectionSolid>\n";
+    static const std::string xml_rsolid_open = "<rSolid name=\"";
+    static const std::string xml_rsolid_close = "\"/>\n";
     static const std::string xml_pos_part_open = "<PosPart copyNumber=\"";
     static const std::string xml_pos_part_first_inter = "\">\n<rParent name=\"";
     static const std::string xml_pos_part_second_inter = "\"/>\n<rChild name=\"";
@@ -245,5 +253,17 @@ namespace insur {
     static const std::string xml_zv3 = "[Zv3]";
     static const std::string xml_root_radius = "[RootRadius]";
     static const std::string xml_track_beam_r2 = "[cms:TrackBeamR2]";
+    /**
+    *Constants required by Pixel Extractor
+    */
+    static const std::string xml_phaseII_pixbar = "Phase1PixelBarrel";
+    static const std::string xml_phaseII_pixecap = "Phase2PixelEndcap";
+    static const std::string xml_phaseII_pixbardet = "Phase1PixelBarrelDet";
+    static const std::string xml_phaseII_pixecapdet = "Phase2PixelEndcapDet";
+    static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
+    static const std::string xml_bmodbox = "BModuleBox";
+    static const std::string xml_emodbox = "EModuleBox";
+    static const std::string xml_phaseII_pixelHybridTag = "TopInactive";
+    static const std::string xml_phaseII_pixelChipTag = "BottomInactive";
 }
 #endif /* _TK2CMSSW_STRINGS_H */

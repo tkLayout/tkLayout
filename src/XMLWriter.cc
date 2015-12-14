@@ -98,6 +98,7 @@ namespace insur {
         std::vector<Composite>& c = d.composites;
         std::vector<LogicalInfo>& l = d.logic;
         std::vector<ShapeInfo>& s = d.shapes;
+	std::vector<ShapeOperationInfo>& so = d.shapeOps;
         std::vector<PosInfo>& p = d.positions;
         std::vector<AlgoInfo>& a = d.algos;
         std::map<std::string,Rotation>& r = d.rots;
@@ -109,7 +110,7 @@ namespace insur {
             materialSection(xml_newtrackerfile, e, c, buffer);
             rotationSection(r, xml_newtrackerfile, buffer);
             logicalPartSection(l, xml_newtrackerfile, buffer, true);
-            solidSection(s, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, true);
+            solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, true);
             posPartSection(p, a, xml_newtrackerfile, buffer);
         }
         else {
@@ -117,7 +118,7 @@ namespace insur {
             materialSection(xml_trackerfile, e, c, buffer);
             rotationSection(r, xml_trackerfile, buffer);
             logicalPartSection(l, xml_trackerfile, buffer);
-            solidSection(s, xml_trackerfile, buffer, trackerVolumeTemplate, true);
+            solidSection(s, so, xml_trackerfile, buffer, trackerVolumeTemplate, true);
             posPartSection(p, a, xml_trackerfile, buffer);
         }
         buffer << xml_defclose;
@@ -476,10 +477,11 @@ namespace insur {
      * is left to another function, though. All generated output is sent to an <i>ostringstream</i> that serves as a buffer for
      * the output file contents.
      * @param s A reference to the vector containing a series of physical volume definitions
+     * @param so A reference to the vector containing a series of operations on physical volumes
      * @param label The label of the solid section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt) {
+    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt) {
         stream << xml_solid_section_open << label << xml_general_inter;
         if (!wt) {
           //tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream); // CUIDADO old tracker volume, now parsed from a file
@@ -503,6 +505,16 @@ namespace insur {
 	    default: std::cerr << "solidSection(): unknown shape type found. Using box." << std::endl;
 	      box(s.at(i).name_tag, s.at(i).dx, s.at(i).dy, s.at(i).dz, stream);
 	    }
+	  }
+        }
+	for (unsigned int i = 0; i < so.size(); i++) {
+	  switch (so.at(i).type) {
+	  case uni : shapesUnion(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, stream);
+	    break;
+	  case intersec : shapesIntersection(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, stream);
+	    break;
+	  default: std::cerr << "solidSection(): unknown shape operation type found. Using union." << std::endl;
+	    shapesUnion(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, stream);
 	  }
         }
         stream << xml_solid_section_close;
@@ -664,7 +676,7 @@ namespace insur {
         stream << xml_tubs_third_inter << dz << xml_tubs_close;
     }
 
-/**
+    /**
      * This formatter writes an XML entry describing a cone shape to the stream that serves as a buffer for the output
      * file contents.
      * @param name The name of the cone shape; must be unique
@@ -703,6 +715,36 @@ namespace insur {
             stream << xml_rzpoint_open << rzd.at(i - 1).first << xml_rzpoint_inter << rzd.at(i - 1).second << xml_rzpoint_close;
         }
         stream << xml_polycone_close;
+    }
+
+    /**
+     * This formatter writes an XML entry describing an union of shapes, to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the result volume of the union
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     * @param stream A reference to the output buffer
+     */
+    void XMLWriter::shapesUnion(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream) {
+      stream << xml_union_open << name << xml_union_inter;
+      stream << xml_rsolid_open << rSolid1 << xml_rsolid_close;
+      stream << xml_rsolid_open << rSolid2 << xml_rsolid_close;
+      stream << xml_union_close;
+    }
+
+    /**
+     * This formatter writes an XML entry describing an intersection of shapes, to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the result volume of the intersection
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     * @param stream A reference to the output buffer
+     */
+    void XMLWriter::shapesIntersection(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream) {
+      stream << xml_intersection_open << name << xml_intersection_inter;
+      stream << xml_rsolid_open << rSolid1 << xml_rsolid_close;
+      stream << xml_rsolid_open << rSolid2 << xml_rsolid_close;
+      stream << xml_intersection_close;
     }
     
     /**

@@ -148,13 +148,55 @@ RILength Hit::getCorrectedMaterial() {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionRphi(double trackR) {
+double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd, double trackR) {
   if (objectKind_!=Active) {
     std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR);
+      double resolutionLocalX, resolutionLocalY;
+      
+      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
+      //std::cout << "hitModule_->hasAnyResolutionLocalXParam() = " << hitModule_->hasAnyResolutionLocalXParam() << std::endl;
+
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
+      else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
+	if ( hitModule_->subdet() == BARREL) {
+	  profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
+	  histXBar->Fill(resolutionLocalX*1000);
+	  //std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
+	  //std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
+
+	 
+	  //std::cout << "hitModule_->alpha(myTrack_->getPhi()) = " << hitModule_->alpha(myTrack_->getPhi()) << std::endl;
+	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;
+	}
+	if ( hitModule_->subdet() == ENDCAP) {
+	  profXEnd->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
+	  histXEnd->Fill(resolutionLocalX*1000);
+	}
+      }
+
+	if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
+	else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+	  if ( hitModule_->subdet() == BARREL) {
+	    profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
+	    histYBar->Fill(resolutionLocalY*1000);
+	    //std::cout << "resolutionLocalY * 1000 = " << resolutionLocalY*1000 << std::endl;
+	    //std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
+
+	    //std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;	  
+	    //std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;  
+	  }
+	  if (hitModule_->subdet() == ENDCAP) {
+	    profYEnd->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
+	    histYEnd->Fill(resolutionLocalY*1000);
+	  }
+	}
+
+
+      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX, resolutionLocalY);
      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
      // else return hitModule_->resolutionRPhi();
     } else {
@@ -178,7 +220,24 @@ double Hit::getResolutionZ(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta());
+
+      double resolutionLocalX, resolutionLocalY;
+      
+      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
+      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
+      
+      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
+      else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
+
+      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
+      else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
+
+
+
+
+
+
+      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX, resolutionLocalY);
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     } else {
@@ -242,6 +301,7 @@ Track::Track() {
  */
 Track::Track(const Track& t) {
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);
@@ -275,6 +335,7 @@ Track& Track::operator= (const Track &t) {
   
   // do the copy
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);
@@ -399,7 +460,7 @@ double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false *
       probability /= exp(myMaterial.interaction);
     }
   }
-  // If I did not reach the requested number of active hits
+  // If I did not reach the requestd number of active hits
   // The probability is zero
   return 0;
 }
@@ -461,7 +522,7 @@ double Track::setPhi(double& newPhi) {
  */
 // TODO: maybe updateradius is not necessary here. To be checked
 Hit* Track::addHit(Hit* newHit) {
-  hitV_.push_back(newHit); 
+  hitV_.push_back(newHit);
   if (newHit->getHitModule() != NULL) {
     tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
   }
@@ -481,7 +542,8 @@ void Track::sort() {
  * Compute the correlation matrices of the track hits for a series of different energies.
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
  */
-void Track::computeCorrelationMatrix() {
+void Track::computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd) {
+
   // matrix size
   int n = hitV_.size();
   correlations_.ResizeTo(n,n);
@@ -522,7 +584,7 @@ void Track::computeCorrelationMatrix() {
           for (int i = 0; i < r; i++)
             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
           if (r == c) {
-            double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
+            double prec = hitV_.at(r)->getResolutionRphi(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd, pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
             sum = sum + prec * prec;
           }
           correlations_(r, c) = sum;
@@ -554,7 +616,7 @@ void Track::computeCorrelationMatrix() {
   
   // check if matrix is sane and worth keeping
   if (!((correlations_.GetNoElements() > 0) && (correlations_.Determinant() != 0.0))) {
-    std::cerr << "WARNING: This is embarassing and it should be handled somehow" << std::endl;
+    logERROR(Form("A singular matrix was found (this is unexpected: all analyzed tracks should have >= 3 hits). nElements=%d, determinant = %f", correlations_.GetNoElements(), correlations_.Determinant()));
   }
 }
 
@@ -708,7 +770,7 @@ void Track::computeCovarianceMatrixRZ() {
  * distance of closest approach to the origin, all of them for each momentum of the test particle.
  * @param momentaList A reference of the list of energies that the errors should be calculated for
  */
-void Track::computeErrors() {
+void Track::computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd) {
   deltarho_ = 0 ;
   deltaphi_ = 0 ;
   deltad_ = 0 ;
@@ -732,7 +794,7 @@ void Track::computeErrors() {
   deltaZ0_ = err;
   
   // rPhi plane
-  computeCorrelationMatrix();
+  computeCorrelationMatrix(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
   computeCovarianceMatrix();
 
   // calculate delta rho, delta phi and delta d maps from covariances_ matrix
@@ -965,4 +1027,21 @@ std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
   return result;
 }
 
+void Track::setTransverseMomentum(const double newPt) {
+  transverseMomentum_ = newPt;
+}
 
+void Track::pruneHits() {
+  double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
+  Hit* myHit;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end();) {
+    myHit=(*hitIt);
+    if (myHit->getRadius()>2*R) {
+      auto nextHitIt = hitIt+1;
+      hitV_.erase(hitIt);
+      hitIt = nextHitIt;
+    } else {
+      hitIt++;
+    }
+  }
+}

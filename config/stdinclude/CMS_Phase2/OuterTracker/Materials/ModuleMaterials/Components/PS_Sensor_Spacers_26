@@ -1,0 +1,29 @@
+// Sensor spacers for PS module 2.6 mm spacing
+
+Component {
+  componentName "PS Sensor spacers (2.6 mm)"
+  service false
+  scaleOnSensor 0
+  targetVolume 7
+
+  //2.6mm bridge
+  Element {
+    elementName Al-CF
+    quantity 1.86
+    unit g
+  }
+
+  //Parylene 2.6mm
+  Element {
+    elementName Epoxy
+    quantity 0.09
+    unit g
+  }
+
+  //Bridges glue 2.6 mm
+  Element {
+    elementName Epoxy
+    quantity 0.163
+    unit g
+  }
+}
