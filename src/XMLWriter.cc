@@ -179,90 +179,12 @@ namespace insur {
 
 	// Add BarrelStack
 	out << xml_spec_par_open << "OuterTracker" << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
-	pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-	if (pos != -1) {
+	pos = findEntry(t, xml_subdet_barrel_stack + xml_par_tail);
+        if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	    std::string& refstring = t.at(pos).partselectors.at(i);
-
-	    std::string mnumber;
-	    if (refstring.find(xml_barrel_module) != std::string::npos) {
-	      mnumber = refstring.substr(xml_barrel_module.size());
-	      mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
-	    }
-	    std::string refstring2 = refstring.substr(xml_barrel_module.size() + mnumber.size());
-	    std::string lnumber;
-	    lnumber = refstring2.substr(xml_layer.size());
-	    lnumber = lnumber.substr(0, findNumericPrefixSize(lnumber));
-
-	    if (refstring.find(xml_base_lower) != std::string::npos) {
-	    out << xml_spec_par_selector << xml_barrel_module << mnumber << xml_layer << lnumber << xml_general_endline;
-	    }
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 	  }
-	}
-	/*lindex = findEntry(t, xml_subdet_layer + xml_par_tail);
-	rindex = findEntry(t, xml_subdet_straight_or_tilted_rod + xml_par_tail);
-	mindex = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-	// layer loop
-	for (unsigned int i = 0; i < t.at(lindex).partselectors.size(); i++) {
-	  std::string& lcurrent = t.at(lindex).partselectors.at(i);
-	  std::string lnumber = lcurrent.substr(xml_layer.size());
-	  // Looks whether a layer is tilted. If so, finds the number of its first tilted ring.
-	  bool isTilted = false;
-	  std::string firstTiltedRing;
-	  int j = 0;
-	  while ((isTilted == false) && (j < t.at(rindex).partselectors.size())) {	     
-	    std::string& rcurrent = t.at(rindex).partselectors.at(j);
-	    std::string compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
-	    compstr = compstr.substr(0, findNumericPrefixSize(compstr));
-	    if ((lnumber == compstr) && (rcurrent.find(xml_ring) != std::string::npos)) { 
-	      isTilted = true;
-	      firstTiltedRing = rcurrent.substr(xml_ring.size());
-	      firstTiltedRing = firstTiltedRing.substr(0, findNumericPrefixSize(firstTiltedRing));
-	    }
-	    j++;
-	  }
-	  // rod and (if any) tilted ring loop
-	  for (unsigned int j = 0; j < t.at(rindex).partselectors.size(); j++) {
-	    std::string& rcurrent = t.at(rindex).partselectors.at(j);
-	    std::string rnumber;
-	    std::string compstr;
-	    // rod case
-	    if (rcurrent.find(xml_rod) != std::string::npos) {
-	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size());
-	    }
-	    // (if any) tilted ring case
-	    else if ((rcurrent.find(xml_ring) != std::string::npos) && (rcurrent.find(xml_layer) != std::string::npos)) {
-	      rnumber = rcurrent.substr(xml_ring.size());
-	      rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
-	      compstr = rcurrent.substr(rcurrent.find(xml_layer) + xml_layer.size());
-	    }
-	    else { 
-	      std::cerr << "While building paths for trackerRecoMaterial.xml, neither " << xml_rod << " nor " << xml_ring << " can be found in " << rcurrent << "." << std::endl; 
-	    }
-	    compstr = compstr.substr(0, findNumericPrefixSize(compstr));
-
-	    // taking the rod or (if any) tilted ring matching the current layer
-	    if (lnumber == compstr) {
-	      // module loop
-	      for (unsigned int k = 0; k < t.at(mindex).partselectors.size(); k++) {
-		std::string& refstring = t.at(mindex).partselectors.at(k);
-		std::string mnumber;
-		if (refstring.find(xml_barrel_module) != std::string::npos) {
-		  mnumber = refstring.substr(xml_barrel_module.size());
-		  mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
-
-		  if ((!isTilted) // For untilted layer, takes all modules. e.g. BModule1 to BModule15 for Layer1.
-		      // For tilted layer, in case of rod, takes modules until first tilted ring. e.g. BModule1 to BModule4 for Layer1.
-		      || ((isTilted) && (rcurrent.find(xml_rod) != std::string::npos) && (atoi(mnumber.c_str()) < atoi(firstTiltedRing.c_str()))) 
-		      // For tilted layer, in case of tilted ring, takes the corresponding module. e.g. BModule5 for Ring5 of Layer1.
-		      || ((isTilted) && (rcurrent.find(xml_ring) != std::string::npos) && (atoi(mnumber.c_str()) == atoi(rnumber.c_str())))) {
-		    out << xml_spec_par_selector << xml_barrel_module << mnumber << xml_layer << lnumber << xml_general_endline;
-		  }
-		}
-	      }	    
-	    }
-	  }
-	  }*/
+        }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_barrel_stack;
         out << xml_spec_par_close;
 
@@ -297,26 +219,12 @@ namespace insur {
 
 	// Add EndcapStack
 	out << xml_spec_par_open << "OuterTracker" << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
-	pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
-	if (pos != -1) {
+	pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
+        if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	    std::string& refstring = t.at(pos).partselectors.at(i);
-
-	    std::string mnumber;
-	    if (refstring.find(xml_endcap_module) != std::string::npos) {
-	      mnumber = refstring.substr(xml_barrel_module.size());
-	      mnumber = mnumber.substr(0, findNumericPrefixSize(mnumber));
-	    }
-	    std::string refstring2 = refstring.substr(xml_endcap_module.size() + mnumber.size());
-	    std::string dnumber;
-	    dnumber = refstring2.substr(xml_disc.size());
-	    dnumber = dnumber.substr(0, findNumericPrefixSize(dnumber));
-
-	    if (refstring.find(xml_base_lower) != std::string::npos) {
-	      out << xml_spec_par_selector << xml_endcap_module << mnumber << xml_disc << dnumber << xml_general_endline;
-	    }
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 	  }
-	}
+        }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_endcap_stack;
         out << xml_spec_par_close;
 
