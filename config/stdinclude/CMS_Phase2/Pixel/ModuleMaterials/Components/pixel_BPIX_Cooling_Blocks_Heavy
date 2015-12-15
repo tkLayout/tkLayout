@@ -1,0 +1,13 @@
+// BPIX Cooling blocks
+// Model (quantity [g/m] = chip power [Watt] * 3)
+
+Component {
+  componentName "Cooling blocks"
+  service false
+  Element {
+    scaleOnSensor 0
+    elementName Al-CF
+    quantity 13.4
+    unit g/m
+  }
+}

@@ -1,0 +1,19 @@
+// 1:1 conversion of Cu_TWP_6+1_HS
+
+Conversion {
+  Input {
+    Element {
+      elementName Cu_TWP_6+1_HS
+      quantity 1
+      unit g/m
+    }
+  }
+  Output {
+    Element {
+      elementName Cu_TWP_6+1_HS
+      quantity 1
+      unit g/m
+      service true
+    }
+  }
+}

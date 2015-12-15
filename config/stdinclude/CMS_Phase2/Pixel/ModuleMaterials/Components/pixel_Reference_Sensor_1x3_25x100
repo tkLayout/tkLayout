@@ -1,0 +1,5 @@
+// Default 3x1 chips pixel sensor (25um x 100um)
+ReferenceSensor 1 {
+  numStripsAcross 680
+  numSegments 570
+}

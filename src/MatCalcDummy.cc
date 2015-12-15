@@ -123,8 +123,8 @@ namespace insur {
         se = 500.0;
         lb = 2000.0;
         le = 2000.0;
-        mt.addMaterial(ta, d_silicon, 1, 1.5);
-        mt.addMaterial(ts, d_copper, 2, 2.5);
-        mt.addMaterial(tl, d_carbon, 3, 3.5);
+        mt.addMaterial(ta, mat_d_silicon, 1, 1.5);
+        mt.addMaterial(ts, mat_d_copper, 2, 2.5);
+        mt.addMaterial(tl, mat_d_carbon, 3, 3.5);
     }
 }

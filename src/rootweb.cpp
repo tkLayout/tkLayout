@@ -1085,9 +1085,9 @@ ostream& RootWTextFile::dump(ostream& output) {
   std::ofstream outputFile;
   string destinationFileName = targetDirectory_ +"/" + fileName_;
   outputFile.open(destinationFileName.c_str());
-  // TODO: add a check heer if the file was correctly opened
-  //outputFile << myText_.str();
-  //myText_ >> outputFile;
+  // TODO: add a check here if the file was correctly opened
+  // outputFile << myText_.str();
+  // myText_ >> outputFile;
   outputFile << myText_.str() << endl;
   outputFile.close();
 
@@ -1103,7 +1103,7 @@ ostream& RootWTextFile::dump(ostream& output) {
 //*******************************************//
 
 ostream& RootWBinaryFile::dump(ostream& output) {
-  if (originalFileName_=="") {
+  if ((originalFileName_=="")&&(!noCopy_)) {
     cerr << "Warning: RootWBinaryFile::dump() was called without prior setting the original file name" << endl;
     return output;
   } 
@@ -1114,7 +1114,7 @@ ostream& RootWBinaryFile::dump(ostream& output) {
 
   string destinationFileName = targetDirectory_ +"/" + fileName_;
 
-  if (boost::filesystem::exists(originalFileName_) && originalFileName_ != destinationFileName) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
+  if ((!noCopy_)&&(boost::filesystem::exists(originalFileName_) && originalFileName_ != destinationFileName)) { // CUIDADO: naive control on copy on itself. it only matches the strings, not taking into account relative paths and symlinks
     try {
       if (boost::filesystem::exists(destinationFileName))
         boost::filesystem::remove(destinationFileName);
@@ -1214,3 +1214,26 @@ ostream& RootWInfo::dump(ostream& output) {
          << value_ << "</a></tt><br/>";
   return output;
 }
+
+//*******************************************//
+// RootWGraphViz                             //
+//*******************************************//
+
+ostream& RootWGraphViz::dump(ostream& output) {
+  string myDescription = description_;
+  description_ += " (GraphViz)";
+  RootWTextFile::dump(output);
+  int result = system("which dot > /dev/null");
+  if (result==0) {
+    string svgFileName = fileName_+".svg";
+    string command = "dot -Tsvg " + targetDirectory_ +"/" + fileName_ + " > " + targetDirectory_ + "/" + svgFileName;
+    result = system(command.c_str());
+    if (result==0) {
+      RootWBinaryFile* mySvg = new RootWBinaryFile(svgFileName, myDescription+" (SVG)" );
+      mySvg->setNoCopy(true);
+      mySvg->dump(output);
+    }
+  }
+  return output;
+}
+

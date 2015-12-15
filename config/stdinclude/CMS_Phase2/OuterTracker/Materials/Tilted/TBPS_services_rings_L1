@@ -1,0 +1,64 @@
+// Services and mechanics of layer-1 tilted rings (per module)
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 0.57
+      unit g/m
+    }
+    Element {
+      elementName CO2
+      quantity 0.35
+      unit g/m
+    }
+  }
+
+  // 1 TWP/rod
+  // (This is a bus line: service does not accumulate)
+  Component {
+    componentName "Twisted pairs"
+    service true
+    scaleOnSensor 0
+    // Two conductors and a drain
+    Element {
+      elementName Cu
+      quantity 0.019
+      unit g/m
+    }
+    // Two insulations
+    Element {
+      elementName PE
+      quantity 0.011
+      unit g/m
+    }
+    // Aluminium polyester foil
+    Element {
+      elementName Al
+      quantity 0.018
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  // Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    targetVolume 8
+    Element {
+      elementName CFRP
+      quantity 4.0
+      unit g
+    }
+     Element {
+      elementName Airex
+      quantity 0.94
+      unit g
+    }
+  }
+ 

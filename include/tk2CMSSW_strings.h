@@ -99,6 +99,14 @@ namespace insur {
     static const std::string xml_rzpoint_open = "<RZPoint r=\"";
     static const std::string xml_rzpoint_inter = "*mm\" z=\"";
     static const std::string xml_rzpoint_close = "*mm\"/>\n";
+    static const std::string xml_union_open = "<UnionSolid name=\"";
+    static const std::string xml_union_inter = "\">\n";
+    static const std::string xml_union_close = "</UnionSolid>\n";
+    static const std::string xml_intersection_open = "<IntersectionSolid name=\"";
+    static const std::string xml_intersection_inter = "\">\n";
+    static const std::string xml_intersection_close = "</IntersectionSolid>\n";
+    static const std::string xml_rsolid_open = "<rSolid name=\"";
+    static const std::string xml_rsolid_close = "\"/>\n";
     static const std::string xml_pos_part_open = "<PosPart copyNumber=\"";
     static const std::string xml_pos_part_first_inter = "\">\n<rParent name=\"";
     static const std::string xml_pos_part_second_inter = "\"/>\n<rChild name=\"";
@@ -208,6 +216,8 @@ namespace insur {
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
     static const std::string xml_subdet_2OT_layer = "Phase2OTBarrelLayer";
     static const std::string xml_subdet_straight_or_tilted_rod = "PixelBarrelLadder";
+    static const std::string xml_subdet_barrel_stack = "BarrelStack";
+    static const std::string xml_subdet_2OT_barrel_stack = "Phase2OTBarrelStack";
     static const std::string xml_subdet_tobdet = "PixelBarrelModule";
     static const std::string xml_subdet_tobdet_1 = "PixelBarrelDet";
     static const std::string xml_det_wheel = "TIDWheel";
@@ -217,8 +227,13 @@ namespace insur {
     static const std::string xml_subdet_wheel = "PixelEndcapDisk";
     static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
     static const std::string xml_subdet_ring = "PixelEndcapPanel";
+    static const std::string xml_subdet_endcap_stack = "EndcapStack";
+    static const std::string xml_subdet_2OT_endcap_stack = "Phase2OTEndcapStack";
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
+    static const std::string xml_subdet_lower_detectors = "LowerDetectors";
+    static const std::string xml_subdet_upper_detectors = "UpperDetectors";
+    static const std::string xml_true = "true";
     static const std::string xml_roc_x = "PixelROC_X";
     static const std::string xml_roc_y = "PixelROC_Y";
     static const std::string xml_roc_rows_name = "PixelROCRows";
