@@ -11,6 +11,7 @@
 #include "CoordinateOperations.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
+#include "messageLogger.h"
 
 using material::MaterialObject;
 
@@ -329,8 +330,63 @@ public:
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+    minPhi.setup([&](){
+
+      double min = 0;
+      // Module corners arranged normally or flipped:
+      // 0 |-----|3      3|-----|0
+      //   |     |   or   |     |
+      // 1 |-----|2      2|-----|1
+      //
+      //              x (inter. point)
+      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
+      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
+
+        min = MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        min = MIN(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
+
+        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+        min += M_PI;
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return min;
+    });
+    maxPhi.setup([&](){
+
+      double max = 0;
+      // Module corners arranged normally or flipped:
+      // 0 |-----|3      3|-----|0
+      //   |     |   or   |     |
+      // 1 |-----|2      2|-----|1
+      //
+      //              x (inter. point)
+      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
+      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
+
+        max = MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        max = MAX(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
+
+        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+        max += M_PI;
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return max;
+    });
+
     nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
 	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
@@ -414,8 +470,99 @@ public:
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    minPhi.setup([&](){
+
+      double min = 0;
+      // Module corners arranged normally:
+      // 0 |-----|3
+      //   |     |
+      // 1 |-----|2
+      //
+      //      x (inter. point)
+      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
+
+        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module corners flipped:
+      // 3 |-----|0
+      //   |     |
+      // 2 |-----|1
+      //
+      //      x (inter. point)
+      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+
+        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+        // Normal arrangement or flipped arrangement
+        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+          min += M_PI;
+        }
+        else logERROR("Endcap module min calculation failed - algorithm problem. Check algorithm!");
+
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return min;
+    });
+    maxPhi.setup([&](){
+
+      double max = 0;
+      // Module corners arranged normally:
+      // 0 |-----|3
+      //   |     |
+      // 1 |-----|2
+      //
+      //      x (inter. point)
+      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
+
+        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module corners flipped:
+      // 3 |-----|0
+      //   |     |
+      // 2 |-----|1
+      //
+      //      x (inter. point)
+      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+
+        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+        // Normal arrangement or flipped arrangement
+        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+          max += M_PI;
+        }
+        else logERROR("Endcap module max calculation failed - algorithm problem. Check algorithm!");
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return max;
+    });
     nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
 	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
