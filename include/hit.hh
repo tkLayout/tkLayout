@@ -62,6 +62,8 @@ protected:
   HitType activeHitType_;
 
 private:
+  double resolutionLocalX_; // Only used for hits on active
+  double resolutionLocalY_; // Only used for hits on active
   double myResolutionRphi_; // Only used for virtual hits on non-modules
   double myResolutionY_;    // Only used for virtual hits on non-modules
 
@@ -72,6 +74,7 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
+  void computeLocalResolution();
   double getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd, double trackR);
   double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
@@ -98,6 +101,8 @@ public:
   bool isIP() { return isIP_; };
   void setPixel(bool isPixel) { isPixel_ = isPixel;}
   void setTrigger(bool isTrigger) { isTrigger_ = isTrigger;}
+  double getResolutionLocalX() { return resolutionLocalX_; }
+  double getResolutionLocalY() { return resolutionLocalY_; }
   void setResolutionRphi(double newRes) { myResolutionRphi_ = newRes; } // Only used for virtual hits on non-modules
   void setResolutionY(double newRes) { myResolutionY_ = newRes; } // Only used for virtual hits on non-modules
   bool setIP(bool newIP) { return isIP_ = newIP; }
@@ -139,6 +144,7 @@ protected:
   double deltaCtgTheta_;
   double deltaZ0_;
   double deltaP_;
+  void computeLocalResolution();
   void computeCorrelationMatrixRZ();
   void computeCovarianceMatrixRZ();
   void computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd);
@@ -151,6 +157,7 @@ public:
   Track(const Track& t);
   ~Track();
   Track& operator=(const Track &t);
+  std::vector<Hit*> getHitV() const { return hitV_; }
   bool noHits() { return hitV_.empty(); }
   int nHits() { return hitV_.size(); }
   double setTheta(double& newTheta);

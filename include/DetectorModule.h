@@ -194,6 +194,8 @@ public:
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
   accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalX;
   accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalY;
+  std::vector<std::pair<double, double>> parametrizedResolutionLocalXValues;
+  std::vector<std::pair<double, double>> parametrizedResolutionLocalYValues;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }

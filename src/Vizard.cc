@@ -1254,16 +1254,20 @@ namespace insur {
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
 	if (!m.hasAnyResolutionLocalXParam()) { 
 	  tagMapResoCount[aSensorTag]++;
-	  std::cout << "m.nominalResolutionLocalX() = " << m.nominalResolutionLocalX() << std::endl;
+
+	  //std::cout << "m.nominalResolutionLocalX() = " << m.nominalResolutionLocalX() << std::endl;
+
 	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
 	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
 	}
 	else { 
 	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) {
 	    tagMapResoCount[aSensorTag]++;
-	    std::cout << "mean(m.rollingParametrizedResolutionLocalX) = " << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
+
+	    //std::cout << "mean(m.rollingParametrizedResolutionLocalX) = " << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
+
 	    tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX);
-	    tagMapAveRphiResolutionRmse[aSensorTag] x+= sqrt(variance(m.rollingParametrizedResolutionLocalX));
+	    tagMapAveRphiResolutionRmse[aSensorTag] += sqrt(variance(m.rollingParametrizedResolutionLocalX));
 	  }
 	}
 

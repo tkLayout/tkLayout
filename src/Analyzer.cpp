@@ -321,7 +321,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(idealTrackP);
           }
-        }    
+        }
       }
     }
   }
@@ -395,7 +395,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
   TFile profYEnd_out_file("profYEnd_out_file.root", "RECREATE");
   profYEnd->Write();
   profYEnd_out_file.Close();
-
+  
  
   
   histXBar->DrawNormalized();
@@ -1774,6 +1774,25 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     const double& dctg = myTrack.getDeltaCtgTheta();
     const double& dz0  = myTrack.getDeltaZ0();
     const double& dp   = myTrack.getDeltaP();
+
+
+    /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
+    if ( hitModules.at(0).first->getObjectKind() == Active) {
+    std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
+    }*/
+
+    std::vector<Hit*> hitModules = myTrack.getHitV();
+    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
+    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
+    for (auto& mh : hitModules) {
+    if ( mh->getObjectKind() == Hit::Active) {
+      if (mh->getHitModule()) {
+	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+      }
+    }
+    }
+
+
     eta = myTrack.getEta();
     R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
     if (drho>0) {

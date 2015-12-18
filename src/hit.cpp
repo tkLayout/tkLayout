@@ -140,6 +140,18 @@ RILength Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
+
+void Hit::computeLocalResolution() {
+  if (objectKind_!= Active) {
+    std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
+  } else {
+    if (hitModule_) {
+      resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
+      resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
+    }
+  }
+}
+
 /**
  * Getter for the rPhi resolution (local x coordinate for a module)
  * If the hit is not active it returns -1
@@ -163,6 +175,16 @@ double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* 
       //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
       //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
       //std::cout << "hitModule_->hasAnyResolutionLocalXParam() = " << hitModule_->hasAnyResolutionLocalXParam() << std::endl;
+	if (hitModule_->hasAnyResolutionLocalXParam()) {
+	  hitModule_->parametrizedResolutionLocalXValues.push_back(std::make_pair(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000));
+	}
+	if (hitModule_->hasAnyResolutionLocalYParam()) {
+	  hitModule_->parametrizedResolutionLocalYValues.push_back(std::make_pair(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), hitModule_->resolutionLocalY(myTrack_->getTheta())*1000));
+	}
+
+
+
+
 
       if ( hitModule_->subdet() == BARREL && hitModule_->moduleType()=="pixel" ) {
 	profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000 ,1);
@@ -635,6 +657,13 @@ void Track::computeCovarianceMatrix() {
   covariances_ = diffsT * C.Invert() * diffs;
 }
 
+void Track::computeLocalResolution() {
+  int n = hitV_.size();
+  for (int i = 0; i < n; i++) {
+    if (hitV_.at(i)->getObjectKind() != Hit::Inactive) hitV_.at(i)->computeLocalResolution();
+  }
+}
+
 /**
  * Compute the correlation matrices of the track hits for a series of different energies.
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
@@ -766,6 +795,10 @@ void Track::computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* prof
   deltaCtgTheta_ = 0 ;
   deltaZ0_ = 0 ;
   deltaP_ = 0 ;
+
+
+  // Compute spatial resolution for all active hits
+  computeLocalResolution();
 
   // Compute the relevant matrices (RZ plane)
   computeCorrelationMatrixRZ();
