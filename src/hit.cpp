@@ -48,6 +48,8 @@ Hit::Hit() {
     isPixel_ = false;
     isTrigger_ = false;
     isIP_ = false;
+    resolutionLocalX_ = 0;
+    resolutionLocalY_ = 0;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
     activeHitType_ = HitType::NONE;
@@ -68,6 +70,8 @@ Hit::Hit(const Hit& h) {
     isPixel_ = h.isPixel_;
     isTrigger_ = h.isTrigger_;
     isIP_ = h.isIP_;
+    resolutionLocalX_ = h.resolutionLocalX_;
+    resolutionLocalY_ = h.resolutionLocalY_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
     activeHitType_ = h.activeHitType_;
@@ -148,6 +152,7 @@ void Hit::computeLocalResolution() {
     if (hitModule_) {
       resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
       resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
+      //std::cout << resolutionLocalX_ << std::endl;
     }
   }
 }
@@ -660,7 +665,10 @@ void Track::computeCovarianceMatrix() {
 void Track::computeLocalResolution() {
   int n = hitV_.size();
   for (int i = 0; i < n; i++) {
-    if (hitV_.at(i)->getObjectKind() != Hit::Inactive) hitV_.at(i)->computeLocalResolution();
+    if (hitV_.at(i)->getObjectKind() != Hit::Inactive) {
+      hitV_.at(i)->computeLocalResolution();
+      //std::cout << hitV_.at(i)->getResolutionLocalX() << std::endl;
+    }
   }
 }
 

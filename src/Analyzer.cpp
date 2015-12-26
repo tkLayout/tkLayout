@@ -292,6 +292,18 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
+
+
+std::vector<Hit*> hitModules = trackPt.getHitV();
+    for (auto& mh : hitModules) {
+    if ( mh->getObjectKind() == Hit::Active) {
+      if (mh->getHitModule()) {
+	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+      }
+    }
+    }
+
+
             myCollection.push_back(trackPt);
 
             // Ideal (no material)
@@ -1787,7 +1799,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     for (auto& mh : hitModules) {
     if ( mh->getObjectKind() == Hit::Active) {
       if (mh->getHitModule()) {
-	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+	std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
       }
     }
     }
