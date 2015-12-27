@@ -169,6 +169,10 @@ namespace insur {
     TH2D& getMapPhiEta() { return mapPhiEta; }
     TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
     TH1D& getHitDistribution() {return hitDistribution; }
+    TH1D& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
+    TH1D& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
+    TH1D& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
+    TH1D& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
@@ -321,6 +325,10 @@ namespace insur {
     TriggerSectorMap triggerSectorMap_;
 
     TH1D hitDistribution;
+    TH1D parametrizedResolutionLocalXBarrelDistribution;
+    TH1D parametrizedResolutionLocalXEndcapsDistribution;
+    TH1D parametrizedResolutionLocalYBarrelDistribution;
+    TH1D parametrizedResolutionLocalYEndcapsDistribution;
     GraphBag myGraphBag;
     mapBag myMapBag;
     profileBag myProfileBag;
@@ -372,6 +380,7 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
     void calculateGraphsConstPt(const int& aMomentum,

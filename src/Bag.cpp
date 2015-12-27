@@ -38,6 +38,11 @@ const int profileBag::TriggeredProfile  = 0x0000007;
 const int profileBag::TriggeredFractionProfile  = 0x0000008;
 const int profileBag::TriggerPurityProfile = 0x0000010;
 const int profileBag::TriggerProfile    = 0x0000040;
+const int profileBag::ParametrizedResolutionLocalXBarrelProfile  = 0x0000080;
+const int profileBag::ParametrizedResolutionLocalXEndcapsProfile = 0x0000100;
+const int profileBag::ParametrizedResolutionLocalYBarrelProfile  = 0x0000200;
+const int profileBag::ParametrizedResolutionLocalYEndcapsProfile = 0x0000400;
+const int profileBag::ParametrizedResolutionProfile = 0x0000800;
 
 // These strings should be different from one another
 // Also one should never be a substring of the other
@@ -163,6 +168,10 @@ int mapBag::clearMaps(const int& attributeMask) {
 
 int profileBag::clearTriggerProfiles() {
   return clearProfiles(profileBag::TriggerProfile);
+}
+
+int profileBag::clearParametrizedResolutionProfiles() {
+  return clearProfiles(profileBag::ParametrizedResolutionProfile);
 }
 
 int profileBag::clearTriggerNamedProfiles() {

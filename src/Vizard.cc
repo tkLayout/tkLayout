@@ -2586,6 +2586,7 @@ namespace insur {
       // Create the contents
       RootWContent& resolutionContent = myPage.addContent("Track resolution");
       RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
+      //RootWContent& parametrizedResolutionContent = myPage.addContent("Modules parametrized resolution");
 
       std::string scenarioStr;
       for (int scenario=0; scenario<2; ++scenario) {
@@ -2968,6 +2969,7 @@ namespace insur {
       RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "  +etaLetter+" (no material)", false);
       RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P across "   +etaLetter+" (material)"   , false);
       RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across "   +etaLetter+" (no material)", false);
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized resolution", false);
   
       // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
       std::string scenarioStr="";
@@ -3725,6 +3727,54 @@ namespace insur {
           }
         }
       }
+      // Modules parametrized resolution
+profileBag aProfileBag = analyzer.getProfileBag();
+ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXBarrelProfile);
+std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
+std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
+std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
+
+
+
+//TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
+ 
+
+
+// Check if profiles exist
+ if (!parametrizedResolutionLocalXBarrelProfile.empty()) {
+   TCanvas resoXBarCanvas;
+   resoXBarCanvas.SetGrid(1,1);
+   resoXBarCanvas.SetFillColor(color_plot_background);
+   resoXBarCanvas.cd();
+   parametrizedResolutionLocalXBarrelProfile[0].Draw();
+   RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (!parametrizedResolutionLocalXEndcapsProfile.empty()) {
+   TCanvas resoXEndCanvas;
+   resoXEndCanvas.SetGrid(1,1);
+   resoXEndCanvas.SetFillColor(color_plot_background);
+   resoXEndCanvas.cd();
+   parametrizedResolutionLocalXEndcapsProfile[0].Draw();
+   RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (!parametrizedResolutionLocalYBarrelProfile.empty()) {
+   TCanvas resoYBarCanvas;
+   resoYBarCanvas.SetGrid(1,1);
+   resoYBarCanvas.SetFillColor(color_plot_background);
+   resoYBarCanvas.cd();
+   parametrizedResolutionLocalYBarrelProfile[0].Draw();
+   RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (!parametrizedResolutionLocalYEndcapsProfile.empty()) {
+   TCanvas resoYEndCanvas;
+   resoYEndCanvas.SetGrid(1,1);
+   resoYEndCanvas.SetFillColor(color_plot_background);
+   resoYEndCanvas.cd();
+   parametrizedResolutionLocalYEndcapsProfile[0].Draw();
+   RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+
+
     } // For tags
     return true;
   }
