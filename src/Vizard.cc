@@ -3727,6 +3727,9 @@ namespace insur {
         }
       }
 
+
+
+
       if (tag == "pixel") {
      
 	// Modules parametrized spatial resolution profiles
@@ -3736,6 +3739,12 @@ namespace insur {
 	std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
 	std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
 
+// Modules parametrized spatial resolution distributions
+	TH1D& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+	TH1D& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+	TH1D& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+	TH1D& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
 	if (!parametrizedResolutionLocalXBarrelProfile.empty() || !parametrizedResolutionLocalYBarrelProfile.empty() || !parametrizedResolutionLocalXEndcapsProfile.empty() || !parametrizedResolutionLocalYEndcapsProfile.empty()) {
 
 	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
@@ -3743,10 +3752,18 @@ namespace insur {
 	// Add modules parametrized spatial resolution profiles
 	if (!parametrizedResolutionLocalXBarrelProfile.empty()) {
 	  TCanvas resoXBarCanvas;
-	  resoXBarCanvas.SetGrid(1,1);
+	  TVirtualPad* myPad;
+
 	  resoXBarCanvas.SetFillColor(color_plot_background);
-	  resoXBarCanvas.cd();
+	  resoXBarCanvas.Divide(2,1);
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelProfile[0].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution.DrawNormalized();
 	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	}
 	if (!parametrizedResolutionLocalYBarrelProfile.empty()) {
@@ -3774,20 +3791,16 @@ namespace insur {
 	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	}
 
-	// Modules parametrized spatial resolution distributions
-	TH1D& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
-	TH1D& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
-	TH1D& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
-	TH1D& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+	
 
 	// Add modules parametrized spatial resolution distributions
-	if (parametrizedResolutionLocalXBarrelDistribution.GetEntries() != 0) {
+	/*if (parametrizedResolutionLocalXBarrelDistribution.GetEntries() != 0) {
 	  TCanvas resoXBarDistCanvas;
 	  resoXBarDistCanvas.SetFillColor(color_plot_background);
 	  resoXBarDistCanvas.cd();
 	  parametrizedResolutionLocalXBarrelDistribution.DrawNormalized();
 	  RootWImage& resoXBarDistImage = parametrizedResolutionContent.addImage(resoXBarDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	}
+	  }*/
 	if (parametrizedResolutionLocalYBarrelDistribution.GetEntries() != 0) {
 	  TCanvas resoYBarDistCanvas;
 	  resoYBarDistCanvas.SetFillColor(color_plot_background);
