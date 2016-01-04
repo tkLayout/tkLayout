@@ -75,7 +75,7 @@ public:
   Hit(double myDistance, Module* myModule, HitType activeHitType);
   Module* getHitModule() { return hitModule_; };
   void computeLocalResolution();
-  double getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd, double trackR);
+  double getResolutionRphi(double trackR);
   double getResolutionZ(double trackR);
   void setHitModule(Module* myModule);
   /**
@@ -147,7 +147,7 @@ protected:
   void computeLocalResolution();
   void computeCorrelationMatrixRZ();
   void computeCovarianceMatrixRZ();
-  void computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd);
+  void computeCorrelationMatrix();
   void computeCovarianceMatrix();
   
   std::set<std::string> tags_;
@@ -178,7 +178,7 @@ public:
   Hit* addHit(Hit* newHit);
   const std::set<std::string>& tags() const { return tags_; }
   void sort();
-  void computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd);
+  void computeErrors();
   void printErrors();
   void print();
   void removeMaterial();

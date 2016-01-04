@@ -132,90 +132,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       int etaSteps,
 				       MaterialBudget* pm) {
 
-
-    /*TCanvas* cc = new TCanvas();
-      cc->cd();
-      TFile *_file0 = TFile::Open("mm.root");
-      TProfile* mm = (TProfile*)_file0->FindObjectAny("mm");
-      cc->SetLogy();
-      mm->Draw();
-      TAxis* myAxis = mm->GetXaxis();
-      double xmin = myAxis->GetXmin();
-      double xmax = myAxis->GetXmax();
-      TF1* hypSec = new TF1("hypSec", "1/cosh(x)", xmin, xmax);
-      TProfile* newmm = (TProfile*)mm->Clone();
-      newmm->Multiply(hypSec);
-      newmm->GetYaxis()->SetTitle("#Delta#eta");
-      newmm->SetTitle("Pseudorapidity resolution");
-      cc = new TCanvas();
-      cc->cd();
-      cc->SetLogy();
-      newmm->Draw();*/
-
-    TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
-
-    TProfile* profXBar;
-    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30);
-    profXBar->GetYaxis()->SetRangeUser(0,30);
-    profXBar->GetXaxis()->SetTitle("cotg(alpha)");
-    profXBar->GetYaxis()->SetTitle("resolutionLocalX [um]");
-    profXBar->GetXaxis()->CenterTitle();
-    profXBar->GetYaxis()->CenterTitle();
-
-    TProfile* profYBar;
-    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
-    profYBar->GetYaxis()->SetRangeUser(0,60);
-    profYBar->GetXaxis()->SetTitle("|cotg(beta)|");
-    profYBar->GetYaxis()->SetTitle("resolutionLocalY [um]");
-    profYBar->GetXaxis()->CenterTitle();
-    profYBar->GetYaxis()->CenterTitle();
-
-    TProfile* profXEnd;
-    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
-    profXEnd->GetYaxis()->SetRangeUser(0,30);
-    profXEnd->GetXaxis()->SetTitle("cotg(alpha)");
-    profXEnd->GetYaxis()->SetTitle("resolutionLocalX [um]");
-    profXEnd->GetXaxis()->CenterTitle();
-    profXEnd->GetYaxis()->CenterTitle();
-
-    TProfile* profYEnd;
-    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
-    profYEnd->GetYaxis()->SetRangeUser(0,60);
-    profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
-    profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
-    profYEnd->GetXaxis()->CenterTitle();
-    profYEnd->GetYaxis()->CenterTitle();
-
-
-    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
-    histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
-    histXBar->GetXaxis()->CenterTitle();
-
-    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
-    histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
-    histYBar->GetXaxis()->CenterTitle();
-
-    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
-    histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
-    histXEnd->GetXaxis()->CenterTitle();
-
-    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
-    histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
-    histYEnd->GetXaxis()->CenterTitle();
-
-
-
-    TProfile* profXBar0  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30); 
-    TProfile* profYBar0 = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
-    TProfile* profXEnd0  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
-    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
-    TH1D *histXBar0 = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
-    TH1D *histYBar0 = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
-    TH1D *histXEnd0 = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
-    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
-
-
-    double efficiency = simParms().efficiency();
+  double efficiency = simParms().efficiency();
 
   materialTracksUsed = etaSteps;
 
@@ -289,19 +206,19 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackPt(track);
             trackPt.setTransverseMomentum(pT);
-            trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
+            trackPt.computeErrors();
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
 
 
-std::vector<Hit*> hitModules = trackPt.getHitV();
-    for (auto& mh : hitModules) {
-    if ( mh->getObjectKind() == Hit::Active) {
-      if (mh->getHitModule()) {
-	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
-      }
-    }
-    }
+	    std::vector<Hit*> hitModules = trackPt.getHitV();
+	    for (auto& mh : hitModules) {
+	      if ( mh->getObjectKind() == Hit::Active) {
+		if (mh->getHitModule()) {
+		  //std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+		}
+	      }
+	    }
 
 
             myCollection.push_back(trackPt);
@@ -309,7 +226,7 @@ std::vector<Hit*> hitModules = trackPt.getHitV();
             // Ideal (no material)
             Track idealTrackPt(trackPt);
             idealTrackPt.removeMaterial();
-            idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            idealTrackPt.computeErrors();
             TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(idealTrackPt);
@@ -320,7 +237,7 @@ std::vector<Hit*> hitModules = trackPt.getHitV();
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
-            trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            trackP.computeErrors();
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(trackP);
@@ -328,7 +245,7 @@ std::vector<Hit*> hitModules = trackPt.getHitV();
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+            idealTrackP.computeErrors();
             TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(idealTrackP);
@@ -387,57 +304,6 @@ std::vector<Hit*> hitModules = trackPt.getHitV();
       calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
     }
   }
-
-  /*profXBar->Draw();
-  c1->Print("profXBar.gif");
-  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
-  profXBar->Write();
-  profXBar_out_file.Close();
-
-  profYBar->Draw();
-  c1->Print("profYBar.gif");
-  TFile profYBar_out_file("profYBar_out_file.root", "RECREATE");
-  profYBar->Write();
-  profYBar_out_file.Close();
-
-  profXEnd->Draw();
-  c1->Print("profXEnd.gif");
-  TFile profXEnd_out_file("profXEnd_out_file.root", "RECREATE");
-  profXEnd->Write();
-  profXEnd_out_file.Close();
-
-  profYEnd->Draw();
-  c1->Print("profYEnd.gif");
-  TFile profYEnd_out_file("profYEnd_out_file.root", "RECREATE");
-  profYEnd->Write();
-  profYEnd_out_file.Close();
-  
- 
-  
-  histXBar->DrawNormalized();
-  c1->Print("histXBar.gif");
-  TFile histXBar_out_file("histXBar_out_file.root", "RECREATE");
-  histXBar->Write();
-  histXBar_out_file.Close();
-
-  histYBar->DrawNormalized();
-  c1->Print("histYBar.gif");
-  TFile histYBar_out_file("histYBar_out_file.root", "RECREATE");
-  histYBar->Write();
-  histYBar_out_file.Close();
-
-  histXEnd->DrawNormalized();
-  c1->Print("histXEnd.gif");
-  TFile histXEnd_out_file("histXEnd_out_file.root", "RECREATE");
-  histXEnd->Write();
-  histXEnd_out_file.Close();
-
-  histYEnd->DrawNormalized();
-  c1->Print("histYEnd.gif");
-  TFile histYEnd_out_file("histYEnd_out_file.root", "RECREATE");
-  histYEnd->Write();
-  histYEnd_out_file.Close();*/
-
 }
 
   /**
@@ -1787,11 +1653,6 @@ parametrizedResolutionLocalYEndcapsDistribution.Reset();
   // track loop
   for ( const auto& myTrack : myCollection ) {
 
-    /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
-      if ( hitModules.at(0).first->getObjectKind() == Active) {
-      std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
-      }*/
-
  std::vector<Hit*> hitModules = myTrack.getHitV();
     //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
     //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
@@ -1827,14 +1688,7 @@ parametrizedResolutionLocalYEndcapsDistribution.Reset();
     }
   }
 
-  /*TCanvas *cgab = new TCanvas("cgab","Profile histogram example",200,10,700,500);
-parametrizedResolutionLocalXBarrelProfile[0].Draw();
-  cgab->Print("profXBar.gif");
-  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
-  parametrizedResolutionLocalXBarrelProfile[0].Write();
-  profXBar_out_file.Close();*/
-
-
+ 
   }
  }
 
