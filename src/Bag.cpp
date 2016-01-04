@@ -183,13 +183,25 @@ std::map<double, TProfile>& profileBag::getProfiles(const int& attribute) {
   return profileMap_[attribute];
 }
 
+std::map<double, TProfile>& profileBag::getTaggedProfiles(int attribute, const string& tag) {
+  tagSet_.insert(tag);
+  return taggedProfileMap_[std::make_pair(attribute, tag)];
+}
+
 // TODO: this looks like an invitation to use template classes Will
 // do as soon as I have time :D (copy-paste worked till now...)
 int profileBag::clearProfiles(const int& attributeMask) {
+  int deleteCounter = 0;
+  for (auto it = taggedProfileMap_.begin(); it != taggedProfileMap_.end();) { // first clear tagged profiles with the specified attribute
+    if ((it->first.first & attributeMask) == attributeMask) {
+      it = taggedProfileMap_.erase(it);
+      ++deleteCounter;
+    } else ++it;
+  }
   std::map<int, std::map<double, TProfile> >::iterator it;
   std::map<int, std::map<double, TProfile> >::iterator nextIt;
 
-  int deleteCounter = 0;
+  //int deleteCounter = 0;
   int anAttribute;
   for (it=profileMap_.begin(); it!=profileMap_.end(); ) {
     anAttribute=it->first;

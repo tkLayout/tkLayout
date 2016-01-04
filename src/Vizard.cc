@@ -2969,7 +2969,6 @@ namespace insur {
       RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "  +etaLetter+" (no material)", false);
       RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P across "   +etaLetter+" (material)"   , false);
       RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across "   +etaLetter+" (no material)", false);
-      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized resolution", false);
   
       // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
       std::string scenarioStr="";
@@ -3727,20 +3726,31 @@ namespace insur {
           }
         }
       }
-      // Modules parametrized resolution
+
+      if (tag == "pixel") {
+RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
+
+      // Modules parametrized spatial resolution profiles
 profileBag aProfileBag = analyzer.getProfileBag();
  std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXBarrelProfile);
-std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
-std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
-std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
+ std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
+ std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
+ std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
+
+
+/*TCanvas *cgab = new TCanvas("cgab","Profile histogram example",200,10,700,500);
+ cgab->cd();
+parametrizedResolutionLocalXBarrelProfile[0].Draw();
+  cgab->Print("profXBar.gif");
+  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
+  parametrizedResolutionLocalXBarrelProfile[0].Write();
+  profXBar_out_file.Close(); */
 
 
 
-//TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
+
  
-
-
-// Check if profiles exist
+// Add modules parametrized spatial resolution profiles
  if (!parametrizedResolutionLocalXBarrelProfile.empty()) {
    TCanvas resoXBarCanvas;
    resoXBarCanvas.SetGrid(1,1);
@@ -3748,14 +3758,6 @@ std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfil
    resoXBarCanvas.cd();
    parametrizedResolutionLocalXBarrelProfile[0].Draw();
    RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
- }
- if (!parametrizedResolutionLocalXEndcapsProfile.empty()) {
-   TCanvas resoXEndCanvas;
-   resoXEndCanvas.SetGrid(1,1);
-   resoXEndCanvas.SetFillColor(color_plot_background);
-   resoXEndCanvas.cd();
-   parametrizedResolutionLocalXEndcapsProfile[0].Draw();
-   RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
  }
  if (!parametrizedResolutionLocalYBarrelProfile.empty()) {
    TCanvas resoYBarCanvas;
@@ -3765,6 +3767,14 @@ std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfil
    parametrizedResolutionLocalYBarrelProfile[0].Draw();
    RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
  }
+ if (!parametrizedResolutionLocalXEndcapsProfile.empty()) {
+   TCanvas resoXEndCanvas;
+   resoXEndCanvas.SetGrid(1,1);
+   resoXEndCanvas.SetFillColor(color_plot_background);
+   resoXEndCanvas.cd();
+   parametrizedResolutionLocalXEndcapsProfile[0].Draw();
+   RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+ }
  if (!parametrizedResolutionLocalYEndcapsProfile.empty()) {
    TCanvas resoYEndCanvas;
    resoYEndCanvas.SetGrid(1,1);
@@ -3773,6 +3783,45 @@ std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfil
    parametrizedResolutionLocalYEndcapsProfile[0].Draw();
    RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
  }
+
+
+ // Modules parametrized spatial resolution distributions
+ TH1D& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+ TH1D& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+ TH1D& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+ TH1D& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+ // Add modules parametrized spatial resolution distributions
+ if (parametrizedResolutionLocalXBarrelDistribution.GetEntries() != 0) {
+   TCanvas resoXBarDistCanvas;
+   resoXBarDistCanvas.SetFillColor(color_plot_background);
+   resoXBarDistCanvas.cd();
+   parametrizedResolutionLocalXBarrelDistribution.DrawNormalized();
+   RootWImage& resoXBarDistImage = parametrizedResolutionContent.addImage(resoXBarDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (parametrizedResolutionLocalYBarrelDistribution.GetEntries() != 0) {
+   TCanvas resoYBarDistCanvas;
+   resoYBarDistCanvas.SetFillColor(color_plot_background);
+   resoYBarDistCanvas.cd();
+   parametrizedResolutionLocalYBarrelDistribution.DrawNormalized();
+   RootWImage& resoYBarDistImage = parametrizedResolutionContent.addImage(resoYBarDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (parametrizedResolutionLocalXEndcapsDistribution.GetEntries() != 0) {
+   TCanvas resoXEndDistCanvas;
+   resoXEndDistCanvas.SetFillColor(color_plot_background);
+   resoXEndDistCanvas.cd();
+   parametrizedResolutionLocalXEndcapsDistribution.DrawNormalized();
+   RootWImage& resoXEndDistImage = parametrizedResolutionContent.addImage(resoXEndDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+ if (parametrizedResolutionLocalYEndcapsDistribution.GetEntries() != 0) {
+   TCanvas resoXEndDistCanvas;
+   resoXEndDistCanvas.SetFillColor(color_plot_background);
+   resoXEndDistCanvas.cd();
+   parametrizedResolutionLocalXEndcapsDistribution.DrawNormalized();
+   RootWImage& resoXEndDistImage = parametrizedResolutionContent.addImage(resoXEndDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+ }
+
+  }
 
 
     } // For tags
