@@ -485,7 +485,7 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool debugResolution) {
     if (mb) {
 //      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
       // TODO: insert the creation of sample tracks here, to compute intersections only once
@@ -511,6 +511,7 @@ namespace insur {
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
+				debugResolution,
                                 tracks, pm);
         stopTaskClock();
       }

@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
     ("material,m", "Report materials and weights analyses.")
     ("resolution,r", "Report resolution analysis.")
+    ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
@@ -137,12 +138,12 @@ int main(int argc, char* argv[]) {
     if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
 
     // If we need to have the material model, then we build it
-    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
+    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
-        if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
-          if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"))) return EXIT_FAILURE;
+        if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution")) {
+          if (!squid.pureAnalyzeMaterialBudget(mattracks, (vm.count("all") || vm.count("resolution") ||  vm.count("debug-resolution")), vm.count("debug-resolution"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
+          if ((vm.count("all") || vm.count("resolution") || vm.count("debug-resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
         if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
         if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);

@@ -129,6 +129,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       const std::vector<double>& momenta,
 				       const std::vector<double>& triggerMomenta,
 				       const std::vector<double>& thresholdProbabilities,
+				       bool& debugResolution,
 				       int etaSteps,
 				       MaterialBudget* pm) {
 
@@ -255,8 +256,9 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     }
   }
 
-
+  if (debugResolution) {
   calculateParametrizedResolutionPlots(taggedTrackPtCollectionMap);
+  }
 
   // Momentum = Pt
   for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {

@@ -3728,14 +3728,17 @@ namespace insur {
       }
 
       if (tag == "pixel") {
-	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
-
+     
 	// Modules parametrized spatial resolution profiles
 	profileBag aProfileBag = analyzer.getProfileBag();
 	std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXBarrelProfile);
 	std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
 	std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
 	std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
+
+	if (!parametrizedResolutionLocalXBarrelProfile.empty() || !parametrizedResolutionLocalYBarrelProfile.empty() || !parametrizedResolutionLocalXEndcapsProfile.empty() || !parametrizedResolutionLocalYEndcapsProfile.empty()) {
+
+	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
 	// Add modules parametrized spatial resolution profiles
 	if (!parametrizedResolutionLocalXBarrelProfile.empty()) {
@@ -3806,6 +3809,7 @@ namespace insur {
 	  parametrizedResolutionLocalXEndcapsDistribution.DrawNormalized();
 	  RootWImage& resoXEndDistImage = parametrizedResolutionContent.addImage(resoXEndDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
 	}
+      }
       }
 
     } // For tags
