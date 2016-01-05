@@ -1580,7 +1580,7 @@ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfil
  std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
 
 
-parametrizedResolutionLocalXBarrelProfile[0].SetNameTitle("resoXBarProf","Resolution on local X coordinate for pixel barrel modules");
+ parametrizedResolutionLocalXBarrelProfile[0].SetNameTitle("resoXBarProf","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
  parametrizedResolutionLocalXBarrelProfile[0].SetBins(100,-0.4,0.3);
  parametrizedResolutionLocalXBarrelProfile[0].GetYaxis()->SetRangeUser(0,30);
  parametrizedResolutionLocalXBarrelProfile[0].GetXaxis()->SetTitle("cotg(alpha)");
@@ -1588,7 +1588,7 @@ parametrizedResolutionLocalXBarrelProfile[0].SetNameTitle("resoXBarProf","Resolu
  parametrizedResolutionLocalXBarrelProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalXBarrelProfile[0].GetYaxis()->CenterTitle();
 
-parametrizedResolutionLocalXEndcapsProfile[0].SetNameTitle("resoXBarProf","Resolution on local X coordinate for pixel endcaps modules");
+ parametrizedResolutionLocalXEndcapsProfile[0].SetNameTitle("resoXEndProf","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
  parametrizedResolutionLocalXEndcapsProfile[0].SetBins(100,-0.45,-0.25);
  parametrizedResolutionLocalXEndcapsProfile[0].GetYaxis()->SetRangeUser(0,30);
  parametrizedResolutionLocalXEndcapsProfile[0].GetXaxis()->SetTitle("cotg(alpha)");
@@ -1596,7 +1596,7 @@ parametrizedResolutionLocalXEndcapsProfile[0].SetNameTitle("resoXBarProf","Resol
  parametrizedResolutionLocalXEndcapsProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalXEndcapsProfile[0].GetYaxis()->CenterTitle();
 
-parametrizedResolutionLocalYBarrelProfile[0].SetNameTitle("resoYBarProf","Resolution on local Y coordinate for pixel barrel modules");
+ parametrizedResolutionLocalYBarrelProfile[0].SetNameTitle("resoYBarProf","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
  parametrizedResolutionLocalYBarrelProfile[0].SetBins(100,0,5);
  parametrizedResolutionLocalYBarrelProfile[0].GetYaxis()->SetRangeUser(0,60);
  parametrizedResolutionLocalYBarrelProfile[0].GetXaxis()->SetTitle("|cotg(beta)|");
@@ -1604,7 +1604,7 @@ parametrizedResolutionLocalYBarrelProfile[0].SetNameTitle("resoYBarProf","Resolu
  parametrizedResolutionLocalYBarrelProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalYBarrelProfile[0].GetYaxis()->CenterTitle();
 
-parametrizedResolutionLocalYEndcapsProfile[0].SetNameTitle("resoYBarProf","Resolution on local Y coordinate for pixel endcaps modules");
+ parametrizedResolutionLocalYEndcapsProfile[0].SetNameTitle("resoYEndProf","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
  parametrizedResolutionLocalYEndcapsProfile[0].SetBins(100,0.25,0.5);
  parametrizedResolutionLocalYEndcapsProfile[0].GetYaxis()->SetRangeUser(0,60);
  parametrizedResolutionLocalYEndcapsProfile[0].GetXaxis()->SetTitle("|cotg(beta)|");
@@ -1614,25 +1614,25 @@ parametrizedResolutionLocalYEndcapsProfile[0].SetNameTitle("resoYBarProf","Resol
 
  
  parametrizedResolutionLocalXBarrelDistribution.Reset();
- parametrizedResolutionLocalXBarrelDistribution.SetNameTitle("resoXBarDistr","Resolution on local X coordinate for pixel barrel modules");
+ parametrizedResolutionLocalXBarrelDistribution.SetNameTitle("resoXBarDistr","Distribution of the resolution on local X coordinate (barrel modules)");
  parametrizedResolutionLocalXBarrelDistribution.SetBins(500,0,30);
  parametrizedResolutionLocalXBarrelDistribution.GetXaxis()->SetTitle("resolutionLocalX [um]");
  parametrizedResolutionLocalXBarrelDistribution.GetXaxis()->CenterTitle();
 
-parametrizedResolutionLocalXEndcapsDistribution.Reset();
- parametrizedResolutionLocalXEndcapsDistribution.SetNameTitle("resoXEndDistr","Resolution on local X coordinate for pixel endcaps modules");
+ parametrizedResolutionLocalXEndcapsDistribution.Reset();
+ parametrizedResolutionLocalXEndcapsDistribution.SetNameTitle("resoXEndDistr","Distribution of the resolution on local X coordinate (endcaps modules)");
  parametrizedResolutionLocalXEndcapsDistribution.SetBins(500,0,30);
  parametrizedResolutionLocalXEndcapsDistribution.GetXaxis()->SetTitle("resolutionLocalX [um]");
  parametrizedResolutionLocalXEndcapsDistribution.GetXaxis()->CenterTitle();
 
-parametrizedResolutionLocalYBarrelDistribution.Reset();
- parametrizedResolutionLocalYBarrelDistribution.SetNameTitle("resoYBarDistr","Resolution on local Y coordinate for pixel barrel modules");
+ parametrizedResolutionLocalYBarrelDistribution.Reset();
+ parametrizedResolutionLocalYBarrelDistribution.SetNameTitle("resoYBarDistr","Distribution of the resolution on local Y coordinate (barrel modules)");
  parametrizedResolutionLocalYBarrelDistribution.SetBins(500,0,60);
  parametrizedResolutionLocalYBarrelDistribution.GetXaxis()->SetTitle("resolutionLocalY [um]");
  parametrizedResolutionLocalYBarrelDistribution.GetXaxis()->CenterTitle();
 
-parametrizedResolutionLocalYEndcapsDistribution.Reset();
- parametrizedResolutionLocalYEndcapsDistribution.SetNameTitle("resoYEndDistr","Resolution on local Y coordinate for pixel endcaps modules");
+ parametrizedResolutionLocalYEndcapsDistribution.Reset();
+ parametrizedResolutionLocalYEndcapsDistribution.SetNameTitle("resoYEndDistr","Distribution of the resolution on local Y coordinate (endcaps modules)");
  parametrizedResolutionLocalYEndcapsDistribution.SetBins(500,0,60);
  parametrizedResolutionLocalYEndcapsDistribution.GetXaxis()->SetTitle("resolutionLocalY [um]");
  parametrizedResolutionLocalYEndcapsDistribution.GetXaxis()->CenterTitle();
