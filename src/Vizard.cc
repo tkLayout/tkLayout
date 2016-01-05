@@ -3751,9 +3751,7 @@ namespace insur {
 	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any %s module.", tag.c_str()));
 	}
 
-	else {
-
-	  // Add modules parametrized spatial resolution profiles
+	else { // Add modules parametrized spatial resolution profiles and distributions	  
 	  if (parametrizedResolutionLocalXBarrelProfile[0].GetEntries() != 0) {
 	    TCanvas resoXBarCanvas;
 	    resoXBarCanvas.SetFillColor(color_plot_background);
@@ -3822,71 +3820,7 @@ namespace insur {
 	    resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	    resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  }
-
-
-
-
-
-
-
-
-
-	/*if (!parametrizedResolutionLocalYBarrelProfile.empty()) {
-	  TCanvas resoYBarCanvas;
-	  resoYBarCanvas.SetGrid(1,1);
-	  resoYBarCanvas.SetFillColor(color_plot_background);
-	  resoYBarCanvas.cd();
-	  parametrizedResolutionLocalYBarrelProfile[0].Draw();
-	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	}
-	if (!parametrizedResolutionLocalXEndcapsProfile.empty()) {
-	  TCanvas resoXEndCanvas;
-	  resoXEndCanvas.SetGrid(1,1);
-	  resoXEndCanvas.SetFillColor(color_plot_background);
-	  resoXEndCanvas.cd();
-	  parametrizedResolutionLocalXEndcapsProfile[0].Draw();
-	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	}
-	if (!parametrizedResolutionLocalYEndcapsProfile.empty()) {
-	  TCanvas resoYEndCanvas;
-	  resoYEndCanvas.SetGrid(1,1);
-	  resoYEndCanvas.SetFillColor(color_plot_background);
-	  resoYEndCanvas.cd();
-	  parametrizedResolutionLocalYEndcapsProfile[0].Draw();
-	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	  }*/
-	
-
-	// Add modules parametrized spatial resolution distributions
-	/*if (parametrizedResolutionLocalXBarrelDistribution.GetEntries() != 0) {
-	  TCanvas resoXBarDistCanvas;
-	  resoXBarDistCanvas.SetFillColor(color_plot_background);
-	  resoXBarDistCanvas.cd();
-	  parametrizedResolutionLocalXBarrelDistribution.DrawNormalized();
-	  RootWImage& resoXBarDistImage = parametrizedResolutionContent.addImage(resoXBarDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  }
-	if (parametrizedResolutionLocalYBarrelDistribution.GetEntries() != 0) {
-	  TCanvas resoYBarDistCanvas;
-	  resoYBarDistCanvas.SetFillColor(color_plot_background);
-	  resoYBarDistCanvas.cd();
-	  parametrizedResolutionLocalYBarrelDistribution.DrawNormalized();
-	  RootWImage& resoYBarDistImage = parametrizedResolutionContent.addImage(resoYBarDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	}
-	if (parametrizedResolutionLocalXEndcapsDistribution.GetEntries() != 0) {
-	  TCanvas resoXEndDistCanvas;
-	  resoXEndDistCanvas.SetFillColor(color_plot_background);
-	  resoXEndDistCanvas.cd();
-	  parametrizedResolutionLocalXEndcapsDistribution.DrawNormalized();
-	  RootWImage& resoXEndDistImage = parametrizedResolutionContent.addImage(resoXEndDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	}
-	if (parametrizedResolutionLocalYEndcapsDistribution.GetEntries() != 0) {
-	  TCanvas resoXEndDistCanvas;
-	  resoXEndDistCanvas.SetFillColor(color_plot_background);
-	  resoXEndDistCanvas.cd();
-	  parametrizedResolutionLocalXEndcapsDistribution.DrawNormalized();
-	  RootWImage& resoXEndDistImage = parametrizedResolutionContent.addImage(resoXEndDistCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-	  }*/
-      }
       }
 
     } // For tags
