@@ -1580,6 +1580,7 @@ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfil
  std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);
 
 
+ parametrizedResolutionLocalXBarrelProfile[0].Reset();
  parametrizedResolutionLocalXBarrelProfile[0].SetNameTitle("resoXBarProf","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
  parametrizedResolutionLocalXBarrelProfile[0].SetBins(100,-0.4,0.3);
  parametrizedResolutionLocalXBarrelProfile[0].GetYaxis()->SetRangeUser(0,30);
@@ -1588,6 +1589,7 @@ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfil
  parametrizedResolutionLocalXBarrelProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalXBarrelProfile[0].GetYaxis()->CenterTitle();
 
+ parametrizedResolutionLocalXEndcapsProfile[0].Reset();
  parametrizedResolutionLocalXEndcapsProfile[0].SetNameTitle("resoXEndProf","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
  parametrizedResolutionLocalXEndcapsProfile[0].SetBins(100,-0.45,-0.25);
  parametrizedResolutionLocalXEndcapsProfile[0].GetYaxis()->SetRangeUser(0,30);
@@ -1596,6 +1598,7 @@ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfil
  parametrizedResolutionLocalXEndcapsProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalXEndcapsProfile[0].GetYaxis()->CenterTitle();
 
+ parametrizedResolutionLocalYBarrelProfile[0].Reset();
  parametrizedResolutionLocalYBarrelProfile[0].SetNameTitle("resoYBarProf","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
  parametrizedResolutionLocalYBarrelProfile[0].SetBins(100,0,5);
  parametrizedResolutionLocalYBarrelProfile[0].GetYaxis()->SetRangeUser(0,60);
@@ -1604,6 +1607,7 @@ std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfil
  parametrizedResolutionLocalYBarrelProfile[0].GetXaxis()->CenterTitle();
  parametrizedResolutionLocalYBarrelProfile[0].GetYaxis()->CenterTitle();
 
+ parametrizedResolutionLocalYEndcapsProfile[0].Reset();
  parametrizedResolutionLocalYEndcapsProfile[0].SetNameTitle("resoYEndProf","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
  parametrizedResolutionLocalYEndcapsProfile[0].SetBins(100,0.25,0.5);
  parametrizedResolutionLocalYEndcapsProfile[0].GetYaxis()->SetRangeUser(0,60);

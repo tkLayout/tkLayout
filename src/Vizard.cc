@@ -3747,13 +3747,14 @@ namespace insur {
 	TH1D& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
 	TH1D& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
-	if (parametrizedResolutionLocalXBarrelProfile.empty() && parametrizedResolutionLocalYBarrelProfile.empty() && parametrizedResolutionLocalXEndcapsProfile.empty() && parametrizedResolutionLocalYEndcapsProfile.empty() && parametrizedResolutionLocalXBarrelDistribution.GetEntries() == 0 && parametrizedResolutionLocalYBarrelDistribution.GetEntries() == 0 && parametrizedResolutionLocalXEndcapsDistribution.GetEntries() == 0 && parametrizedResolutionLocalYEndcapsDistribution.GetEntries() == 0) {
+	if (parametrizedResolutionLocalXBarrelProfile[0].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[0].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[0].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[0].GetEntries() == 0) {
 	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any %s module.", tag.c_str()));
 	}
 
 	else {
+
 	  // Add modules parametrized spatial resolution profiles
-	  if (!parametrizedResolutionLocalXBarrelProfile.empty()) {
+	  if (parametrizedResolutionLocalXBarrelProfile[0].GetEntries() != 0) {
 	    TCanvas resoXBarCanvas;
 	    resoXBarCanvas.SetFillColor(color_plot_background);
 	    resoXBarCanvas.Divide(2,1);
@@ -3770,7 +3771,7 @@ namespace insur {
 	    resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	    resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	  }
-	  if (!parametrizedResolutionLocalYBarrelProfile.empty()) {
+	  if (parametrizedResolutionLocalYBarrelProfile[0].GetEntries() != 0) {
 	    TCanvas resoYBarCanvas;
 	    resoYBarCanvas.SetFillColor(color_plot_background);
 	    resoYBarCanvas.Divide(2,1);
@@ -3787,7 +3788,7 @@ namespace insur {
 	    resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	    resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	  }
-	  if (!parametrizedResolutionLocalXEndcapsProfile.empty()) {
+	  if (parametrizedResolutionLocalXEndcapsProfile[0].GetEntries() != 0) {
 	    TCanvas resoXEndCanvas;
 	    resoXEndCanvas.SetFillColor(color_plot_background);
 	    resoXEndCanvas.Divide(2,1);
@@ -3804,7 +3805,7 @@ namespace insur {
 	    resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	    resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	  }
-	  if (!parametrizedResolutionLocalYEndcapsProfile.empty()) {
+	  if (parametrizedResolutionLocalYEndcapsProfile[0].GetEntries() != 0) {
 	    TCanvas resoYEndCanvas;
 	    resoYEndCanvas.SetFillColor(color_plot_background);
 	    resoYEndCanvas.Divide(2,1);
