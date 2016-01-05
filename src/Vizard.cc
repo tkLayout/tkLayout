@@ -3727,10 +3727,6 @@ namespace insur {
         }
       }
 
-
-
-
-      //if (tag == "pixel") {
      
 	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
@@ -3826,7 +3822,6 @@ namespace insur {
 	    resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  }
 	}
-	//}
 
     } // For tags
     return true;
