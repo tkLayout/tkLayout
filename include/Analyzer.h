@@ -170,10 +170,14 @@ namespace insur {
     TH2D& getMapPhiEta() { return mapPhiEta; }
     TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
     TH1D& getHitDistribution() {return hitDistribution; }
-    TH1D& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
-    TH1D& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
-    TH1D& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
-    TH1D& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
@@ -324,12 +328,16 @@ namespace insur {
 
     ModuleConnectionMap moduleConnections_;
     TriggerSectorMap triggerSectorMap_;
-
+    
     TH1D hitDistribution;
-    TH1D parametrizedResolutionLocalXBarrelDistribution;
-    TH1D parametrizedResolutionLocalXEndcapsDistribution;
-    TH1D parametrizedResolutionLocalYBarrelDistribution;
-    TH1D parametrizedResolutionLocalYEndcapsDistribution;
+    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile;
+    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
     GraphBag myGraphBag;
     mapBag myMapBag;
     profileBag myProfileBag;
