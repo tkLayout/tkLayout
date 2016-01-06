@@ -170,14 +170,6 @@ namespace insur {
     TH2D& getMapPhiEta() { return mapPhiEta; }
     TCanvas& getEtaProfileCanvas() {return etaProfileCanvas; }
     TH1D& getHitDistribution() {return hitDistribution; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
@@ -330,14 +322,6 @@ namespace insur {
     TriggerSectorMap triggerSectorMap_;
     
     TH1D hitDistribution;
-    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile;
-    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
     GraphBag myGraphBag;
     mapBag myMapBag;
     profileBag myProfileBag;
@@ -389,7 +373,6 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
-    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);
     void clearGraphsPt(int graphAttributes, const std::string& aTag);
     void clearGraphsP(int graphAttributes, const std::string& aTag);
     void calculateGraphsConstPt(const int& aMomentum,
@@ -400,6 +383,23 @@ namespace insur {
                                const TrackCollection& aTrackCollection,
                                int graphAttributes,
                                const string& graphTag);
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);
+    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile;
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
+    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
