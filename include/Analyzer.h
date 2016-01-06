@@ -215,6 +215,14 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, double>& getTagWeigth() { return tagWeight; };
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
+    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
@@ -296,6 +304,15 @@ namespace insur {
     std::map<std::string, SummaryTable> endcapComponentWeights;
     std::map<std::string, double> typeWeight;
     std::map<std::string, double> tagWeight;
+
+    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
+    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile; 
+    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
 
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
@@ -383,23 +400,7 @@ namespace insur {
                                const TrackCollection& aTrackCollection,
                                int graphAttributes,
                                const string& graphTag);
-    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);
-    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile;
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
-    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
-    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
-    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);    
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);

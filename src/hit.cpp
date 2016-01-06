@@ -765,7 +765,7 @@ void Track::computeErrors() {
 
 
   // Compute spatial resolution for all active hits
-  computeLocalResolution();
+  //computeLocalResolution();
 
   // Compute the relevant matrices (RZ plane)
   computeCorrelationMatrixRZ();
