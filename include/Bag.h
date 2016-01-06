@@ -90,19 +90,11 @@ using std::string;
     static const int TriggerProfile;
     static const int TriggeredFractionProfile;
     static const int TriggerPurityProfile;
-    static const int ParametrizedResolutionLocalXBarrelProfile;
-    static const int ParametrizedResolutionLocalXEndcapsProfile;
-    static const int ParametrizedResolutionLocalYBarrelProfile;
-    static const int ParametrizedResolutionLocalYEndcapsProfile;
-    static const int ParametrizedResolutionProfile;
     static const std::string TriggerProfileName;
     static const std::string TriggerProfileNameWindow;
     static const std::string TurnOnCurveName;
     std::map<double, TProfile>& getProfiles(const int& attribute);
-    std::map<double, TProfile>& getTaggedProfiles(int attribute, const string& tag);
-    const std::set<string>& getTagSet() const { return tagSet_; }
     int clearTriggerProfiles();
-    int clearParametrizedResolutionProfiles();
     int clearTriggerNamedProfiles();
     std::map<double, TProfile>& getNamedProfiles(const std::string& name);
     std::vector<std::string> getProfileNames(const std::string& name);
@@ -110,9 +102,7 @@ using std::string;
     int clearProfiles(const int& attributeMask);
     int clearNamedProfiles(const std::string& name);
     std::map<int, std::map<double, TProfile> > profileMap_;
-    std::map<std::pair<int, string>, std::map<double, TProfile> > taggedProfileMap_;
-    std::set<string> tagSet_;
-    std::map<std::string, std::map<double, TProfile> > namedProfileMap_;  
+    std::map<std::string, std::map<double, TProfile> > namedProfileMap_;
   };     
 
 #endif

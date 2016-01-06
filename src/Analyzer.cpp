@@ -1566,17 +1566,6 @@ Material Analyzer::findHitsInactiveSurfaces(std::vector<InactiveElement>& elemen
 
   void Analyzer::calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap) {
 
-    //myProfileBag.clearParametrizedResolutionProfiles();
-
-  // Get graphs from graphBag
-  //TGraph& thisRhoGraph_Pt       = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::RhoGraph_Pt     , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::RhoGraph_Pt       , graphTag, parameter);
-
- 
-    /*std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXBarrelProfile);
- std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
- std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
- std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = myProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);*/
-
 for (auto& ttcmIt : taggedTrackPtCollectionMap) {
     const string& myTag = ttcmIt.first;
     TrackCollectionMap& myTrackCollection = ttcmIt.second;
@@ -1643,11 +1632,7 @@ for (auto& ttcmIt : taggedTrackPtCollectionMap) {
  parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
  parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
 
- // Prepare plots: pt
-//thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
-//aName.str(""); aName << "pt_vs_eta" << momentum << graphTag;
-//thisRhoGraph_Pt.SetName(aName.str().c_str());
-  
+ 
 
  
     for (const auto& tcmIt : myTrackCollection) {
@@ -1658,9 +1643,7 @@ for (auto& ttcmIt : taggedTrackPtCollectionMap) {
   // track loop
   for ( const auto& myTrack : myCollection ) {
 
-    //std::vector<Hit*> hits = myTrack.getHitV();
-    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
-    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
+   
     for (auto& hit : myTrack.getHitV()) {
       if (myTag != "tracker" || (myTag == "tracker" && !hit->isPixel())) {
 	

@@ -3726,32 +3726,28 @@ namespace insur {
         }
       }
 
+      // If debug requested, add modules' parametrized spatial resolution profiles and distributions to website resolution tabs
       if (debugResolution) {
 	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
-	// Modules parametrized spatial resolution profiles
+	// Modules' parametrized spatial resolution profiles
 	std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
 	std::map<std::string, TProfile>& parametrizedResolutionLocalYBarrelProfile = analyzer.getParametrizedResolutionLocalYBarrelProfile();
 	std::map<std::string, TProfile>& parametrizedResolutionLocalXEndcapsProfile = analyzer.getParametrizedResolutionLocalXEndcapsProfile();
 	std::map<std::string, TProfile>& parametrizedResolutionLocalYEndcapsProfile = analyzer.getParametrizedResolutionLocalYEndcapsProfile();
 
-	/*profileBag aProfileBag = analyzer.getProfileBag();
-	std::map<double, TProfile>& parametrizedResolutionLocalXBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXBarrelProfile);
-	std::map<double, TProfile>& parametrizedResolutionLocalYBarrelProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYBarrelProfile);
-	std::map<double, TProfile>& parametrizedResolutionLocalXEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalXEndcapsProfile);
-	std::map<double, TProfile>& parametrizedResolutionLocalYEndcapsProfile = aProfileBag.getProfiles(profileBag::ParametrizedResolutionProfile|profileBag::ParametrizedResolutionLocalYEndcapsProfile);*/
-
-	// Modules parametrized spatial resolution distributions
-	 std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
-	 std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
-	 std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
-	 std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+	// Modules' parametrized spatial resolution distributions
+	std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+	std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+	std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+	std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
 	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
 	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any %s module.", tag.c_str()));
 	}
 
-	else { // Add modules parametrized spatial resolution profiles and distributions	  
+	// If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
+	else {	  
 	  if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
 	    TCanvas resoXBarCanvas;
 	    resoXBarCanvas.SetFillColor(color_plot_background);
@@ -3821,7 +3817,7 @@ namespace insur {
 	    resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  }
 	}
-      }
+      } // debugResolution
 
     } // For tags
     return true;

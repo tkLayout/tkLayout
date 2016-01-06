@@ -38,11 +38,6 @@ const int profileBag::TriggeredProfile  = 0x0000007;
 const int profileBag::TriggeredFractionProfile  = 0x0000008;
 const int profileBag::TriggerPurityProfile = 0x0000010;
 const int profileBag::TriggerProfile    = 0x0000040;
-const int profileBag::ParametrizedResolutionLocalXBarrelProfile  = 0x0000080;
-const int profileBag::ParametrizedResolutionLocalXEndcapsProfile = 0x0000100;
-const int profileBag::ParametrizedResolutionLocalYBarrelProfile  = 0x0000200;
-const int profileBag::ParametrizedResolutionLocalYEndcapsProfile = 0x0000400;
-const int profileBag::ParametrizedResolutionProfile = 0x0000800;
 
 // These strings should be different from one another
 // Also one should never be a substring of the other
@@ -170,10 +165,6 @@ int profileBag::clearTriggerProfiles() {
   return clearProfiles(profileBag::TriggerProfile);
 }
 
-int profileBag::clearParametrizedResolutionProfiles() {
-  return clearProfiles(profileBag::ParametrizedResolutionProfile);
-}
-
 int profileBag::clearTriggerNamedProfiles() {
   return clearNamedProfiles(profileBag::TriggerProfileName);
 }
@@ -183,25 +174,13 @@ std::map<double, TProfile>& profileBag::getProfiles(const int& attribute) {
   return profileMap_[attribute];
 }
 
-std::map<double, TProfile>& profileBag::getTaggedProfiles(int attribute, const string& tag) {
-  tagSet_.insert(tag);
-  return taggedProfileMap_[std::make_pair(attribute, tag)];
-}
-
 // TODO: this looks like an invitation to use template classes Will
 // do as soon as I have time :D (copy-paste worked till now...)
 int profileBag::clearProfiles(const int& attributeMask) {
-  int deleteCounter = 0;
-  for (auto it = taggedProfileMap_.begin(); it != taggedProfileMap_.end();) { // first clear tagged profiles with the specified attribute
-    if ((it->first.first & attributeMask) == attributeMask) {
-      it = taggedProfileMap_.erase(it);
-      ++deleteCounter;
-    } else ++it;
-  }
   std::map<int, std::map<double, TProfile> >::iterator it;
   std::map<int, std::map<double, TProfile> >::iterator nextIt;
 
-  //int deleteCounter = 0;
+  int deleteCounter = 0;
   int anAttribute;
   for (it=profileMap_.begin(); it!=profileMap_.end(); ) {
     anAttribute=it->first;
