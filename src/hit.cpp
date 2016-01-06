@@ -150,9 +150,18 @@ void Hit::computeLocalResolution() {
     std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
   } else {
     if (hitModule_) {
+      /*if (hitModule_->hasAnyResolutionLocalXParam()) {
+	hitModule_->parametrizedResolutionLocalXValues.push_back(std::make_pair(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000));
+	}
+	if (hitModule_->hasAnyResolutionLocalYParam()) {
+	hitModule_->parametrizedResolutionLocalYValues.push_back(std::make_pair(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), hitModule_->resolutionLocalY(myTrack_->getTheta())*1000));
+	}*/
+
       resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
       resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
-      //std::cout << resolutionLocalX_ << std::endl;
+
+      hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
+      hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
     }
   }
 }
@@ -171,20 +180,7 @@ double Hit::getResolutionRphi(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-
-      
-	hitModule_->rollingParametrizedResolutionLocalX(hitModule_->resolutionLocalX(myTrack_->getPhi()));
-	hitModule_->rollingParametrizedResolutionLocalY(hitModule_->resolutionLocalY(myTrack_->getTheta()));
-
-	if (hitModule_->hasAnyResolutionLocalXParam()) {
-	  hitModule_->parametrizedResolutionLocalXValues.push_back(std::make_pair(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000));
-	}
-	if (hitModule_->hasAnyResolutionLocalYParam()) {
-	  hitModule_->parametrizedResolutionLocalYValues.push_back(std::make_pair(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), hitModule_->resolutionLocalY(myTrack_->getTheta())*1000));
-	}
-
-
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, hitModule_->resolutionLocalX(myTrack_->getPhi()), hitModule_->resolutionLocalY(myTrack_->getTheta()));
+      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX_, resolutionLocalY_);
       // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
       // else return hitModule_->resolutionRPhi();
     } else {
@@ -208,11 +204,7 @@ double Hit::getResolutionZ(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      
-      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
-      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
-
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), hitModule_->resolutionLocalX(myTrack_->getPhi()), hitModule_->resolutionLocalY(myTrack_->getTheta()));
+      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX_, resolutionLocalY_);
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     } else {
@@ -765,7 +757,7 @@ void Track::computeErrors() {
 
 
   // Compute spatial resolution for all active hits
-  //computeLocalResolution();
+  computeLocalResolution();
 
   // Compute the relevant matrices (RZ plane)
   computeCorrelationMatrixRZ();

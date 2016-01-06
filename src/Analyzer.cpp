@@ -1874,7 +1874,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill profiles and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double cotAlpha = 1./tan(hitModule->alpha(myTrack.getPhi()));
-		  double resolutionLocalX =  hitModule->resolutionLocalX(myTrack.getPhi()) * 1000; // um
+		  double resolutionLocalX =  hit->getResolutionLocalX() * 1000; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalXBarrelProfile[myTag].Fill(cotAlpha, resolutionLocalX, 1);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
@@ -1887,7 +1887,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill profiles and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
 		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack.getTheta())));
-		  double resolutionLocalY = hitModule->resolutionLocalY(myTrack.getTheta()) * 1000; // um
+		  double resolutionLocalY = hit->getResolutionLocalY() * 1000; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalYBarrelProfile[myTag].Fill(absCotBeta, resolutionLocalY, 1);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
