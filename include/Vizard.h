@@ -183,7 +183,7 @@ namespace insur {
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
     bool errorSummary(Analyzer& a, RootWSite& site, std::string additionalTag, bool isTrigger);
-    bool taggedErrorSummary(Analyzer& a, RootWSite& site);
+    bool taggedErrorSummary(Analyzer& a, RootWSite& site, bool& debugResolution);
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 

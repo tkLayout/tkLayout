@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
         if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution")) {
           if (!squid.pureAnalyzeMaterialBudget(mattracks, (vm.count("all") || vm.count("resolution") ||  vm.count("debug-resolution")), vm.count("debug-resolution"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("resolution") || vm.count("debug-resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
+          if ((vm.count("all") || vm.count("resolution") || vm.count("debug-resolution"))  && !squid.reportResolutionSite(vm.count("debug-resolution"))) return EXIT_FAILURE;	  
         }
         if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
         if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);

@@ -1658,16 +1658,17 @@ for (auto& ttcmIt : taggedTrackPtCollectionMap) {
   // track loop
   for ( const auto& myTrack : myCollection ) {
 
- std::vector<Hit*> hitModules = myTrack.getHitV();
+    //std::vector<Hit*> hits = myTrack.getHitV();
     //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
     //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
-    for (auto& mh : hitModules) {
-      if ( mh->getObjectKind() == Hit::Active) {
-	if (mh->getHitModule()) {
-	  //std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+    for (auto& hit : myTrack.getHitV()) {
+      if (myTag != "tracker" || (myTag == "tracker" && !hit->isPixel())) {
+	
+	if ((hit->getObjectKind() == Hit::Active) && hit->getHitModule()) {
+	  //std::cout << "hit->getResolutionLocalX() = " << hit->getResolutionLocalX() << std::endl;
 
-	  Module* hitModule = mh->getHitModule();
-	  if (myTag != "tracker" || (myTag == "tracker" && hitModule->moduleType()!="pixel")) {
+	  Module* hitModule = hit->getHitModule();
+	  
 	  if (hitModule->hasAnyResolutionLocalXParam()) {
 	    if ( hitModule->subdet() == BARREL ) {
 	      parametrizedResolutionLocalXBarrelProfile[myTag].Fill(1./tan(hitModule->alpha(myTrack.getPhi())), hitModule->resolutionLocalX(myTrack.getPhi())*1000 ,1);
@@ -1688,7 +1689,7 @@ for (auto& ttcmIt : taggedTrackPtCollectionMap) {
 	      parametrizedResolutionLocalYEndcapsDistribution[myTag].Fill(hitModule->resolutionLocalY(myTrack.getTheta())*1000);
 	    }
 	  }
-	}
+	
 	}
       }
     }

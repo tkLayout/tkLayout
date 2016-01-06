@@ -2586,7 +2586,6 @@ namespace insur {
       // Create the contents
       RootWContent& resolutionContent = myPage.addContent("Track resolution");
       RootWContent& idealResolutionContent = myPage.addContent("Track resolution (without material)");
-      //RootWContent& parametrizedResolutionContent = myPage.addContent("Modules parametrized resolution");
 
       std::string scenarioStr;
       for (int scenario=0; scenario<2; ++scenario) {
@@ -2939,7 +2938,7 @@ namespace insur {
     return false;
   }
 
-  bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
+  bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site, bool& debugResolution) {
 
     //********************************//
     //*                              *//
@@ -3727,7 +3726,7 @@ namespace insur {
         }
       }
 
-     
+      if (debugResolution) {
 	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
 	// Modules parametrized spatial resolution profiles
@@ -3822,6 +3821,7 @@ namespace insur {
 	    resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
 	  }
 	}
+      }
 
     } // For tags
     return true;

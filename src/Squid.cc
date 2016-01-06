@@ -608,14 +608,14 @@ namespace insur {
    * Produces the output of the resolution measurement
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportResolutionSite() {
+  bool Squid::reportResolutionSite(bool debugResolution) {
     if (mb) {
       startTaskClock("Creating resolution report");
       v.errorSummary(a, site, "", false);
 #ifdef NO_TAGGED_TRACKING
       v.errorSummary(a, site, "trigger", true);
 #else
-      v.taggedErrorSummary(a, site);
+      v.taggedErrorSummary(a, site, debugResolution);
 #endif
       stopTaskClock();
       return true;
