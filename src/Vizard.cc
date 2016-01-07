@@ -1426,8 +1426,8 @@ namespace insur {
     moduleTable->setContent(yResolutionRmseRow, 0, "Y resolution RMSE per module ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
-    moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
-    moduleTable->setContent(striplengthRow, 0, "Strip length");
+    moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max) ("+muLetter+"m)");
+    moduleTable->setContent(striplengthRow, 0, "Strip length (mm)");
     moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
     moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
     moduleTable->setContent(numbermodsRow, 0, "N. mod");
@@ -1528,8 +1528,8 @@ namespace insur {
 
       // Pitches
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->outerSensor().minPitch()*1e3);
-      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch()*1e3);
+      loPitch=int((*tagMapIt).second->outerSensor().minPitch()*1e3); // mm -> um
+      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch()*1e3); // mm -> um
       addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {
