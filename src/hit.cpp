@@ -1033,15 +1033,9 @@ void Track::setTransverseMomentum(const double newPt) {
 
 void Track::pruneHits() {
   double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
-  Hit* myHit;
-  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end();) {
-    myHit=(*hitIt);
-    if (myHit->getRadius()>2*R) {
-      auto nextHitIt = hitIt+1;
-      hitV_.erase(hitIt);
-      hitIt = nextHitIt;
-    } else {
-      hitIt++;
-    }
+  std::vector<Hit*> hitN;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
+    if (((*hitIt)->getRadius()) < 2*R) {  hitN.push_back(*hitIt); }
   }
+  hitV_ = hitN;
 }
