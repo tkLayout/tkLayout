@@ -253,6 +253,17 @@ double Track::getMagField() const {
   }
   else return magField_;
 }
+void Track::pruneHits() {
+
+  double R = getRadius();
+
+  std::vector<Hit*> hitN;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
+    if (((*hitIt)->getRadius()) > 2*R) {  hitN.push_back(*hitIt); }
+  }
+  hitV_ = hitN;
+}
+
 
 /*
  * Getter for rho = 1/R

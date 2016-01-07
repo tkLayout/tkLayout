@@ -77,6 +77,7 @@ public:
   double getPhi() const {return phi_;}
   void   setTransverseMomentum(const double newPt) { transverseMomentum_ = newPt; }
   double getTransverseMomentum() const { return transverseMomentum_; }
+  void   pruneHits(); // Remove hits that don't follow the parabolic approximation used in tracking
   void   setMagField(const double & magField) { magField_ = magField; }
   double getMagField() const;
   double getRho() const;
