@@ -1252,31 +1252,28 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
+	// modules' spatial resolution along the local X axis is not parametrized
 	if (!m.hasAnyResolutionLocalXParam()) { 
 	  tagMapResoCount[aSensorTag]++;
-
-	  //std::cout << "m.nominalResolutionLocalX() = " << m.nominalResolutionLocalX() << std::endl;
-
 	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
 	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
 	}
+	// modules' spatial resolution along the local X axis is parametrized
 	else { 
-	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) {
+	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalX))) { // not all modules are hit
 	    tagMapResoCount[aSensorTag]++;
-
-	    //std::cout << "mean(m.rollingParametrizedResolutionLocalX) = " << mean(m.rollingParametrizedResolutionLocalX) << std::endl;
-
 	    tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX);
 	    tagMapAveRphiResolutionRmse[aSensorTag] += sqrt(variance(m.rollingParametrizedResolutionLocalX));
 	  }
 	}
-
+	// modules' spatial resolution along the local Y axis is not parametrized
         if (!m.hasAnyResolutionLocalYParam()) { 
 	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); 
 	  tagMapAveYResolutionRmse[aSensorTag] += 0.; 
 	}
+	// modules' spatial resolution along the local Y axis is parametrized
 	else { 
-	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalY))) {
+	  if (!std::isnan(mean(m.rollingParametrizedResolutionLocalY))) { // not all modules are hit
 	    tagMapAveYResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalY);
 	    tagMapAveYResolutionRmse[aSensorTag] += sqrt(variance(m.rollingParametrizedResolutionLocalY));
 	  }
@@ -1421,9 +1418,9 @@ namespace insur {
     moduleTable->setContent(totalAreaRow, 0, "Total area (m"+superStart+"2"+superEnd+")");
     moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
     moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
-    moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
+    moduleTable->setContent(rphiResolutionRow, 0, "Mean of R/Phi resolutions ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionRmseRow, 0, "R/Phi resolution RMSE per module ("+muLetter+"m)");
-    moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
+    moduleTable->setContent(yResolutionRow, 0, "Mean of Y resolutions ("+muLetter+"m)");
     moduleTable->setContent(yResolutionRmseRow, 0, "Y resolution RMSE per module ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
@@ -1507,13 +1504,13 @@ namespace insur {
       // RphiResolution
       anRphiResolution.str("");
       anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
-      // YResolution
-      aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
-
       // RphiResolution Rmse
       anRphiResolutionRmse.str("");
       anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+
+      // YResolution
+      aYResolution.str("");
+      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um    
       // YResolution Rmse
       aYResolutionRmse.str("");
       aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
@@ -1526,7 +1523,6 @@ namespace insur {
       aYResolutionTrigger.str("");
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
         aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
-
 
       // Pitches
       aPitchPair.str("");
