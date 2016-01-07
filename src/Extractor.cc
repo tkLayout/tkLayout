@@ -479,7 +479,7 @@ namespace insur {
 
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={};
-    SpecParInfo rocdims, lspec, rspec, mspec;
+    SpecParInfo rocdims, lspec, rspec, sspec, mspec;
     // Layer
     lspec.name = xml_subdet_layer + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
@@ -488,6 +488,10 @@ namespace insur {
     rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_straight_or_tilted_rod;
+    // Module stack
+    sspec.name = xml_subdet_barrel_stack + xml_par_tail;
+    sspec.parameter.first = xml_tkddd_structure;
+    sspec.parameter.second =  xml_subdet_2OT_barrel_stack;
     // Module
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
@@ -697,6 +701,10 @@ namespace insur {
 	      }
 	      pos.rotref = "";
 	    }
+
+	    // Topology
+	    sspec.partselectors.push_back(mname.str());
+	    sspec.moduletypes.push_back(minfo_zero);
 
 
             // WAFER
@@ -1124,6 +1132,7 @@ namespace insur {
     }
     if (!lspec.partselectors.empty()) t.push_back(lspec);
     if (!rspec.partselectors.empty()) t.push_back(rspec);
+    if (!sspec.partselectors.empty()) t.push_back(sspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
   
@@ -1181,7 +1190,7 @@ namespace insur {
 
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={}; 
-    SpecParInfo rocdims, dspec, rspec, mspec;
+    SpecParInfo rocdims, dspec, rspec, sspec, mspec;
     // Disk
     dspec.name = xml_subdet_wheel + xml_par_tail;
     dspec.parameter.first = xml_tkddd_structure;
@@ -1190,6 +1199,10 @@ namespace insur {
     rspec.name = xml_subdet_ring + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_ring;
+    // Module stack
+    sspec.name = xml_subdet_endcap_stack + xml_par_tail;
+    sspec.parameter.first = xml_tkddd_structure;
+    sspec.parameter.second = xml_subdet_2OT_endcap_stack;
     // Module
     mspec.name = xml_subdet_tiddet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
@@ -1345,6 +1358,10 @@ namespace insur {
 	      // module composite material
 	      //matname << xml_base_actcomp << "D" << layer << "R" << modRing;
 	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
+
+	    //Topology
+	    sspec.partselectors.push_back(mname.str());
+            sspec.moduletypes.push_back(minfo_zero);
 
 
 
@@ -1654,6 +1671,7 @@ namespace insur {
     }
     if (!dspec.partselectors.empty()) t.push_back(dspec);
     if (!rspec.partselectors.empty()) t.push_back(rspec);
+    if (!sspec.partselectors.empty()) t.push_back(sspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
 
@@ -2488,27 +2506,30 @@ namespace insur {
     ElementsVector::const_iterator meit;
     for (meit = matElements.begin(); meit != matElements.end(); meit++) {
 
-       const MaterialObject::Element* el = *meit;
+      const MaterialObject::Element* el = *meit;
 
-       // We skip in the case of ...
-       // Filter sensor material and unexpected targetVolumes.
-       if ( el->componentName() == "Sensor"     ||
-            el->componentName() == "PS Sensors" ||
-            el->componentName() == "2S Sensors"    ) {
-          continue; // We will not handle sensors in this class
-       } else if ( el->targetVolume() == InnerSensor ||
-                   el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
-         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-         std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
-         std::exit(1);
-       } else if ( el->targetVolume() >= nTypes   &&
-                   el->targetVolume() != HybridFB &&
-                   el->targetVolume() != HybridLR &&
-                   el->targetVolume() != HybridFBLR_3456  ) {
-         std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-         std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
-         std::exit(1);
-       }
+      // We skip in the case of ...
+      // Filter sensor material and unexpected targetVolumes.
+      if ( el->componentName() == "Sensor"      ||
+	   el->componentName() == "Sensors"     ||
+	   el->componentName() == "PS Sensor"   ||
+	   el->componentName() == "PS Sensors"  ||
+	   el->componentName() == "2S Sensor"   ||
+	   el->componentName() == "2S Sensors"    ) {
+	continue; // We will not handle sensors in this class
+      } else if ( el->targetVolume() == InnerSensor ||
+		  el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
+	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+	std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
+	std::exit(1);
+      } else if ( el->targetVolume() >= nTypes   &&
+		  el->targetVolume() != HybridFB &&
+		  el->targetVolume() != HybridLR &&
+		  el->targetVolume() != HybridFBLR_3456  ) {
+	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+	std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
+	std::exit(1);
+      }
 
        moduleMassWithoutSensors_expected += el->quantityInGrams(module);
 

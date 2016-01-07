@@ -583,7 +583,7 @@ void Track::computeCorrelationMatrix() {
   
   // check if matrix is sane and worth keeping
   if (!((correlations_.GetNoElements() > 0) && (correlations_.Determinant() != 0.0))) {
-    std::cerr << "WARNING: This is embarassing and it should be handled somehow" << std::endl;
+    logERROR(Form("A singular matrix was found (this is unexpected: all analyzed tracks should have >= 3 hits). nElements=%d, determinant = %f", correlations_.GetNoElements(), correlations_.Determinant()));
   }
 }
 
@@ -1008,4 +1008,15 @@ std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
   return result;
 }
 
+void Track::setTransverseMomentum(const double newPt) {
+  transverseMomentum_ = newPt;
+}
 
+void Track::pruneHits() {
+  double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
+  std::vector<Hit*> hitN;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
+    if (((*hitIt)->getRadius()) < 2*R) {  hitN.push_back(*hitIt); }
+  }
+  hitV_ = hitN;
+}

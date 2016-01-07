@@ -1,0 +1,34 @@
+
+Component {
+   componentName "MPA and Bumps"
+   service false
+   scaleOnSensor 0
+   //MPA on sensors
+   Element {
+     elementName Si
+     quantity 2.069
+     unit g
+     targetVolume 7
+   }
+   //MPA periphery
+   Element {
+     elementName Si
+     quantity 0.256
+     unit g
+     targetVolume 56
+   }
+   // Underfill
+   Element {
+     elementName Epoxy
+     quantity 0.874
+     unit g
+     targetVolume 7
+   }
+   // Bumps
+   Element {
+     elementName Sn95Ag5
+     quantity 0.407
+     unit g
+     targetVolume 7
+   }
+}

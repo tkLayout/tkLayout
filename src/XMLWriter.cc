@@ -142,6 +142,7 @@ namespace insur {
         std::string line;
         unsigned int i;
         int pos;
+	//int lindex, rindex, mindex;
         while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
         out << line << std::endl << getSimpleHeader(); // output the preamble followed by the header
 
@@ -166,7 +167,7 @@ namespace insur {
         out << xml_spec_par_close;
 
 
-        // Add Rods
+        // Add Rods (straight or tilted)
         out << xml_spec_par_open << "OuterTracker" << xml_subdet_straight_or_tilted_rod << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_straight_or_tilted_rod + xml_par_tail);
         if (pos != -1) {
@@ -176,6 +177,18 @@ namespace insur {
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_or_tilted_rod;
         out << xml_spec_par_close;
+
+	// Add BarrelStack
+	out << xml_spec_par_open << "OuterTracker" << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, xml_subdet_barrel_stack + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
+        }
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_barrel_stack;
+        out << xml_spec_par_close;
+
 
         // Add Phase2OTForward
         out << xml_spec_par_open << xml_2OTendcap << "SubDet" << xml_par_tail << xml_general_inter;
@@ -205,6 +218,58 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
         out << xml_spec_par_close;
 
+	// Add EndcapStack
+	out << xml_spec_par_open << "OuterTracker" << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
+        }
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_endcap_stack;
+        out << xml_spec_par_close;
+
+	// Add LowerDetectors
+	out << xml_spec_par_open << "OuterTracker" << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
+	      out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	    }
+	  }
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
+	      out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	    }
+	  }
+        }
+        out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_lower_detectors << xml_spec_par_parameter_second << xml_true;
+        out << xml_spec_par_close;
+
+	// Add UpperDetectors
+	out << xml_spec_par_open << "OuterTracker" << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
+	      out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	    }
+	  }
+        }
+        pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+        if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
+	      out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	    }
+	  }
+        }
+        out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_upper_detectors << xml_spec_par_parameter_second << xml_true;
+        out << xml_spec_par_close;
 		
 		//Write specPar blocks for ROC parameters 
 		//TOB

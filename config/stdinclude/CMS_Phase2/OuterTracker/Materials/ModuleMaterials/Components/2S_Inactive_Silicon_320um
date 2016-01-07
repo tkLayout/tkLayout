@@ -1,0 +1,21 @@
+// 2S inactive silicon for 320 um sensors
+
+Component {
+  componentName "2S Inactive silicon"
+  service false
+  scaleOnSensor 0
+  //Silicon deep diffused
+  Element {
+    elementName Si
+    quantity 5.134
+    unit g
+    targetVolume 7
+  }
+  //Sensor inactive edges
+  Element {
+    elementName Si
+    quantity 0.734
+    unit g
+    targetVolume 0
+  }
+}

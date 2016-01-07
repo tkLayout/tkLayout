@@ -195,7 +195,6 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
         if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-
           // For each momentum/transverse momentum compute the tracks error
           for (const auto& pIter : momenta ) {
             int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
@@ -207,6 +206,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackPt(track);
             trackPt.setTransverseMomentum(pT);
+            trackPt.pruneHits();
+            if (trackPt.nActiveHits(true)<=2) continue; 
             trackPt.computeErrors();
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
@@ -226,6 +227,8 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
+            trackP.pruneHits();
+            if (trackP.nActiveHits(true)<=2) continue; 
             trackP.computeErrors();
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];

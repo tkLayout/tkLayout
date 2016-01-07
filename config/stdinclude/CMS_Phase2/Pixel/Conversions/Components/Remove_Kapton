@@ -1,0 +1,15 @@
+// Simple conversion rule removing Kapton from routing
+
+Conversion {
+  Input {
+    // Two insulations
+    Element {
+      elementName Kapton
+      quantity 0.057
+      unit g/m
+    }
+  }
+  Output {
+  }
+}
+
