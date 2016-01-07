@@ -4,10 +4,10 @@
 void Sensor::check() {
   PropertyObject::check();
   
-  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcrossEstimateEstimate and pitchEstimate must be specified");
-  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcrossEstimateEstimate and pitchEstimate can be specified");
-  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegmentsEstimateEstimate and stripLengthEstimate must be specified");
-  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegmentsEstimateEstimate and stripLengthEstimate can be specified");
+  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcross and pitchEstimate must be specified");
+  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcross and pitchEstimate can be specified");
+  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegments and stripLengthEstimate must be specified");
+  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegments and stripLengthEstimate can be specified");
 }
 
 double Sensor::normalOffset() const {
