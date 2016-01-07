@@ -281,27 +281,32 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
           for (const auto& pIter : momenta ) {
             int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
             double momentum  = pIter;
-
+            
             // Case I) Initial momentum is equal to pT
             double pT = momentum;
-
+              
             // Active+passive material
             Track trackPt(track);
             trackPt.setTransverseMomentum(pT);
+
+            // Remove tracks with less than 3 hits
             trackPt.pruneHits();
-            if (trackPt.nActiveHits(true)<=2) continue; 
-            trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
-            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
-            TrackCollection &myCollection = myMap[parameter];
-            myCollection.push_back(trackPt);
+            if (trackPt.nActiveHits(true)<=2) {
+              trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
+              TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+              TrackCollection &myCollection = myMap[parameter];
+              myCollection.push_back(trackPt);
+            }
 
             // Ideal (no material)
             Track idealTrackPt(trackPt);
             idealTrackPt.removeMaterial();
-            idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-            myCollectionIdeal.push_back(idealTrackPt);
+            if (idealTrackPt.nActiveHits(true)<=2) {
+              idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+              TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
+              TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
+              myCollectionIdeal.push_back(idealTrackPt);
+            }
 
             // Case II) Initial momentum is equal to p
             pT = momentum*sin(theta);
@@ -309,20 +314,25 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
+
+            // Remove tracks with less than 3 hits
             trackP.pruneHits();
-            if (trackP.nActiveHits(true)<=2) continue; 
-            trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
-            TrackCollection &myCollectionII = myMapII[parameter];
-            myCollectionII.push_back(trackP);
+            if (trackP.nActiveHits(true)<=2) {
+              trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+              TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+              TrackCollection &myCollectionII = myMapII[parameter];
+              myCollectionII.push_back(trackP);
+            }
 
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
-            myCollectionIdealII.push_back(idealTrackP);
+            if (idealTrackP.nActiveHits(true)<=2) {
+              idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
+              TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+              TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+              myCollectionIdealII.push_back(idealTrackP);
+            }
           }
         }    
       }
