@@ -202,24 +202,29 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 
             // Case I) Initial momentum is equal to pT
             double pT = momentum;
-
+              
             // Active+passive material
             Track trackPt(track);
             trackPt.setTransverseMomentum(pT);
+
+            // Remove tracks with less than 3 hits
             trackPt.pruneHits();
-            if (trackPt.nActiveHits(true)<=2) continue; 
-            trackPt.computeErrors();
-            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
-            TrackCollection &myCollection = myMap[parameter];
-            myCollection.push_back(trackPt);
+            if (trackPt.nActiveHits(true)<=2) {
+              trackPt.computeErrors();
+              TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+              TrackCollection &myCollection = myMap[parameter];
+              myCollection.push_back(trackPt);
+            }
 
             // Ideal (no material)
             Track idealTrackPt(trackPt);
             idealTrackPt.removeMaterial();
-            idealTrackPt.computeErrors();
-            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-            myCollectionIdeal.push_back(idealTrackPt);
+            if (idealTrackPt.nActiveHits(true)<=2) {
+              idealTrackPt.computeErrors();
+              TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
+              TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
+              myCollectionIdeal.push_back(idealTrackPt);
+            }
 
             // Case II) Initial momentum is equal to p
             pT = momentum*sin(theta);
@@ -227,20 +232,25 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
             // Active+passive material
             Track trackP(track);
             trackP.setTransverseMomentum(pT);
+
+            // Remove tracks with less than 3 hits
             trackP.pruneHits();
-            if (trackP.nActiveHits(true)<=2) continue; 
-            trackP.computeErrors();
-            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
-            TrackCollection &myCollectionII = myMapII[parameter];
-            myCollectionII.push_back(trackP);
+            if (trackP.nActiveHits(true)<=2) {
+              trackP.computeErrors();
+              TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+              TrackCollection &myCollectionII = myMapII[parameter];
+              myCollectionII.push_back(trackP);
+            }
 
             // Ideal (no material)
             Track idealTrackP(trackP);
             idealTrackP.removeMaterial();
-            idealTrackP.computeErrors();
-            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
-            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
-            myCollectionIdealII.push_back(idealTrackP);
+            if (idealTrackP.nActiveHits(true)<=2) {
+              idealTrackP.computeErrors();
+              TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+              TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+              myCollectionIdealII.push_back(idealTrackP);
+            }
           }
         }
       }
