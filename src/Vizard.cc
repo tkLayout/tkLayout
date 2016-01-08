@@ -3745,7 +3745,7 @@ namespace insur {
 	std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
 	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
-	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any %s module.", tag.c_str()));
+	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module (%s).", tag.c_str()));
 	}
 
 	// If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
