@@ -1906,7 +1906,22 @@ namespace insur {
     // myCanvas->SetFillColor(color_plot_background);
     // myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     // myImage->setComment("Power density distribution");
-    // myContent->addItem(myImage);        
+    // myContent->addItem(myImage);
+
+
+
+
+    // Modules' parametrized spatial resolution profiles
+	std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
+	std::cout << parametrizedResolutionLocalXBarrelProfile.size() << std::endl;
+	std::cout << name << std::endl;
+	std::cout << parametrizedResolutionLocalXBarrelProfile["pixel"].GetEntries() << std::endl;
+      
+
+
+
+
+
 
 
     // TODO: make this meaningful!

@@ -513,6 +513,12 @@ namespace insur {
                                 mainConfiguration.getThresholdProbabilities(),
 				debugResolution,
                                 tracks, pm);
+	pixelAnalyzer.analyzeTaggedTracking(*pm,
+                                mainConfiguration.getMomenta(),
+                                mainConfiguration.getTriggerMomenta(),
+                                mainConfiguration.getThresholdProbabilities(),
+				debugResolution,
+				    tracks, NULL);
         stopTaskClock();
       }
       return true;
@@ -616,6 +622,7 @@ namespace insur {
       v.errorSummary(a, site, "trigger", true);
 #else
       v.taggedErrorSummary(a, site, debugResolution);
+      v.taggedErrorSummary(pixelAnalyzer, site, debugResolution);
 #endif
       stopTaskClock();
       return true;
