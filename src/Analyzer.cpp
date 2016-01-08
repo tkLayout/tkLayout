@@ -194,63 +194,57 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         track.setTriggerResolution(true); // TODO: remove this (?)
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
-        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          // For each momentum/transverse momentum compute the tracks error
-          for (const auto& pIter : momenta ) {
-            int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
-            double momentum  = pIter;
+        // For each momentum/transverse momentum compute the tracks error
+        for (const auto& pIter : momenta ) {
+          int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+          double momentum  = pIter;
 
-            // Case I) Initial momentum is equal to pT
-            double pT = momentum;
-              
-            // Active+passive material
-            Track trackPt(track);
-            trackPt.setTransverseMomentum(pT);
+          // Case I) Initial momentum is equal to pT
+          double pT = momentum;
+  
+          // Active+passive material
+          Track trackPt(track);
+          trackPt.setTransverseMomentum(pT);        
+          trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            trackPt.computeErrors();
+            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+            TrackCollection &myCollection = myMap[parameter];
+            myCollection.push_back(trackPt);
+          }
 
-            // Remove tracks with less than 3 hits
-            trackPt.pruneHits();
-            if (trackPt.nActiveHits(true)<=2) {
-              trackPt.computeErrors();
-              TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
-              TrackCollection &myCollection = myMap[parameter];
-              myCollection.push_back(trackPt);
-            }
+          // Ideal (no material)
+          Track idealTrackPt(trackPt);
+          idealTrackPt.removeMaterial(); 
+          if (idealTrackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            idealTrackPt.computeErrors();
+            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
+            myCollectionIdeal.push_back(idealTrackPt);
+          }
 
-            // Ideal (no material)
-            Track idealTrackPt(trackPt);
-            idealTrackPt.removeMaterial();
-            if (idealTrackPt.nActiveHits(true)<=2) {
-              idealTrackPt.computeErrors();
-              TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
-              TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-              myCollectionIdeal.push_back(idealTrackPt);
-            }
+          // Case II) Initial momentum is equal to p
+          pT = momentum*sin(theta);
 
-            // Case II) Initial momentum is equal to p
-            pT = momentum*sin(theta);
+          // Active+passive material
+          Track trackP(track);
+          trackP.setTransverseMomentum(pT);
+          trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            trackP.computeErrors();
+            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+            TrackCollection &myCollectionII = myMapII[parameter];
+            myCollectionII.push_back(trackP);
+          }
 
-            // Active+passive material
-            Track trackP(track);
-            trackP.setTransverseMomentum(pT);
-
-            // Remove tracks with less than 3 hits
-            trackP.pruneHits();
-            if (trackP.nActiveHits(true)<=2) {
-              trackP.computeErrors();
-              TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
-              TrackCollection &myCollectionII = myMapII[parameter];
-              myCollectionII.push_back(trackP);
-            }
-
-            // Ideal (no material)
-            Track idealTrackP(trackP);
-            idealTrackP.removeMaterial();
-            if (idealTrackP.nActiveHits(true)<=2) {
-              idealTrackP.computeErrors();
-              TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
-              TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
-              myCollectionIdealII.push_back(idealTrackP);
-            }
+          // Ideal (no material)
+          Track idealTrackP(trackP);
+          idealTrackP.removeMaterial();
+          if (idealTrackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            idealTrackP.computeErrors();
+            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+            myCollectionIdealII.push_back(idealTrackP);
           }
         }
       }
