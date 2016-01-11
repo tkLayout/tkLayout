@@ -1505,31 +1505,31 @@ namespace insur {
 
       // RphiResolution
       anRphiResolution.str("");
-      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
       // RphiResolution Rmse
       anRphiResolutionRmse.str("");
-      anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+      anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
 
       // YResolution
       aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um    
+      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
       // YResolution Rmse
       aYResolutionRmse.str("");
-      aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] * 1000; // mm -> um
+      aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
 
       // RphiResolution (trigger)
       anRphiResolutionTrigger.str("");
       if ( v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] != v.tagMapAveRphiResolution[(*tagMapIt).first] )
-        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       // YResolution (trigger)
       aYResolutionTrigger.str("");
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
-        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
 
       // Pitches
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->outerSensor().minPitch()*1e3); // mm -> um
-      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch()*1e3); // mm -> um
+      loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
+      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
       addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {
@@ -3764,7 +3764,8 @@ namespace insur {
 	}
 
 	// If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
-	else {	  
+	else {
+	  gStyle->SetOptStat("emr");
 	  if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
 	    TCanvas resoXBarCanvas;
 	    resoXBarCanvas.SetFillColor(color_plot_background);
@@ -3777,6 +3778,7 @@ namespace insur {
 	    parametrizedResolutionLocalXBarrelProfile[tag].Draw();
 	    myPad = resoXBarCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
 	    RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
@@ -3794,6 +3796,7 @@ namespace insur {
 	    parametrizedResolutionLocalYBarrelProfile[tag].Draw();
 	    myPad = resoYBarCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
 	    RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
@@ -3811,6 +3814,7 @@ namespace insur {
 	    parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
 	    myPad = resoXEndCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
 	    RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
@@ -3828,6 +3832,7 @@ namespace insur {
 	    parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
 	    myPad = resoYEndCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
 	    RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
@@ -3835,6 +3840,7 @@ namespace insur {
 	  }
 	}
       } // debugResolution
+      gStyle->SetOptStat(0);
 
     } // For tags
     return true;

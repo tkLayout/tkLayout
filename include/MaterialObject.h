@@ -88,11 +88,11 @@ namespace material {
 	  {}
       int numStripsAcrossEstimate() const {
 	if (numStripsAcross.state()) return numStripsAcross();
-	else return floor(width() / pitchEstimate());
+	else return floor(width() / pitchEstimate() + 0.5);
       }
       int numSegmentsEstimate() const {
 	if (numSegments.state()) return numSegments();
-	else return floor(length() / stripLengthEstimate());
+	else return floor(length() / stripLengthEstimate() + 0.5);
       }
       int numChannels() const { return numStripsAcrossEstimate() * numSegmentsEstimate(); }
 

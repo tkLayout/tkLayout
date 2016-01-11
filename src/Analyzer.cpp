@@ -10,6 +10,7 @@
 #include <Palette.h>
 
 #include "AnalyzerVisitors/MaterialBillAnalyzer.h"
+#include <Units.h>
 
 #undef MATERIAL_SHADOW
 
@@ -194,49 +195,53 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         track.setTriggerResolution(true); // TODO: remove this (?)
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
-        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          // For each momentum/transverse momentum compute the tracks error
-          for (const auto& pIter : momenta ) {
-            int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
-            double momentum  = pIter;
+        // For each momentum/transverse momentum compute the tracks error
+        for (const auto& pIter : momenta ) {
+          int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+          double momentum  = pIter;
 
-            // Case I) Initial momentum is equal to pT
-            double pT = momentum;
-
-            // Active+passive material
-            Track trackPt(track);
-            trackPt.setTransverseMomentum(pT);
-            trackPt.pruneHits();
-            if (trackPt.nActiveHits(true)<=2) continue; 
+          // Case I) Initial momentum is equal to pT
+          double pT = momentum;
+  
+          // Active+passive material
+          Track trackPt(track);
+          trackPt.setTransverseMomentum(pT);        
+          trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
             trackPt.computeErrors();
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
             TrackCollection &myCollection = myMap[parameter];
             myCollection.push_back(trackPt);
+          }
 
-            // Ideal (no material)
-            Track idealTrackPt(trackPt);
-            idealTrackPt.removeMaterial();
+          // Ideal (no material)
+          Track idealTrackPt(trackPt);
+          idealTrackPt.removeMaterial(); 
+          if (idealTrackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
             idealTrackPt.computeErrors();
             TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(idealTrackPt);
+          }
 
-            // Case II) Initial momentum is equal to p
-            pT = momentum*sin(theta);
+          // Case II) Initial momentum is equal to p
+          pT = momentum*sin(theta);
 
-            // Active+passive material
-            Track trackP(track);
-            trackP.setTransverseMomentum(pT);
-            trackP.pruneHits();
-            if (trackP.nActiveHits(true)<=2) continue; 
+          // Active+passive material
+          Track trackP(track);
+          trackP.setTransverseMomentum(pT);
+          trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
             trackP.computeErrors();
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
             TrackCollection &myCollectionII = myMapII[parameter];
             myCollectionII.push_back(trackP);
+          }
 
-            // Ideal (no material)
-            Track idealTrackP(trackP);
-            idealTrackP.removeMaterial();
+          // Ideal (no material)
+          Track idealTrackP(trackP);
+          idealTrackP.removeMaterial();
+          if (idealTrackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
             idealTrackP.computeErrors();
             TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
             TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
@@ -1799,7 +1804,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       // Modules' parametrized spatial resolution profiles
       parametrizedResolutionLocalXBarrelProfile[myTag].Reset();
       parametrizedResolutionLocalXBarrelProfile[myTag].SetNameTitle("resoXBarProf","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
-      parametrizedResolutionLocalXBarrelProfile[myTag].SetBins(100,-0.4,0.3);
+      parametrizedResolutionLocalXBarrelProfile[myTag].SetBins(100,-0.3,0.3);
       parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetRangeUser(0,30);
       parametrizedResolutionLocalXBarrelProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -1808,7 +1813,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       parametrizedResolutionLocalXEndcapsProfile[myTag].Reset();
       parametrizedResolutionLocalXEndcapsProfile[myTag].SetNameTitle("resoXEndProf","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
-      parametrizedResolutionLocalXEndcapsProfile[myTag].SetBins(100,-0.45,-0.25);
+      parametrizedResolutionLocalXEndcapsProfile[myTag].SetBins(100,-0.3,0.3);
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,30);
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -1826,7 +1831,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       parametrizedResolutionLocalYEndcapsProfile[myTag].Reset();
       parametrizedResolutionLocalYEndcapsProfile[myTag].SetNameTitle("resoYEndProf","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
-      parametrizedResolutionLocalYEndcapsProfile[myTag].SetBins(100,0.25,0.5);
+      parametrizedResolutionLocalYEndcapsProfile[myTag].SetBins(100,0,0.5);
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,60);
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
@@ -1877,7 +1882,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		// If any parameter for resolution on local X coordinate specified for hitModule, fill profiles and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double cotAlpha = 1./tan(hitModule->alpha(myTrack.getPhi()));
-		  double resolutionLocalX =  hit->getResolutionLocalX() * 1000; // um
+		  double resolutionLocalX =  hit->getResolutionLocalX() / Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalXBarrelProfile[myTag].Fill(cotAlpha, resolutionLocalX, 1);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
@@ -1890,7 +1895,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 		// If any parameter for resolution on local Y coordinate specified for hitModule, fill profiles and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
 		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack.getTheta())));
-		  double resolutionLocalY = hit->getResolutionLocalY() * 1000; // um
+		  double resolutionLocalY = hit->getResolutionLocalY() / Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
 		    parametrizedResolutionLocalYBarrelProfile[myTag].Fill(absCotBeta, resolutionLocalY, 1);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
