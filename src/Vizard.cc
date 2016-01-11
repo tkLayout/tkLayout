@@ -3749,7 +3749,8 @@ namespace insur {
 	}
 
 	// If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
-	else {	  
+	else {
+	  gStyle->SetOptStat("emr");
 	  if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
 	    TCanvas resoXBarCanvas;
 	    resoXBarCanvas.SetFillColor(color_plot_background);
@@ -3762,6 +3763,7 @@ namespace insur {
 	    parametrizedResolutionLocalXBarrelProfile[tag].Draw();
 	    myPad = resoXBarCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
 	    RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
@@ -3779,6 +3781,7 @@ namespace insur {
 	    parametrizedResolutionLocalYBarrelProfile[tag].Draw();
 	    myPad = resoYBarCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
 	    RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
@@ -3796,6 +3799,7 @@ namespace insur {
 	    parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
 	    myPad = resoXEndCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
 	    RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
@@ -3813,6 +3817,7 @@ namespace insur {
 	    parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
 	    myPad = resoYEndCanvas.GetPad(2);
 	    myPad->cd();
+	    parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
 	    parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
 	    RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 	    resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
@@ -3820,6 +3825,7 @@ namespace insur {
 	  }
 	}
       } // debugResolution
+      gStyle->SetOptStat(0);
 
     } // For tags
     return true;
