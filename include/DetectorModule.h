@@ -8,6 +8,10 @@
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
+#include <boost/accumulators/statistics/count.hpp>
+
 
 #include "Sensor.h"
 #include "ModuleBase.h"
@@ -192,8 +196,8 @@ public:
   }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
-  accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalX;
-  accumulator_set<double, stats<tag::mean, tag::variance> > rollingParametrizedResolutionLocalY;
+  accumulator_set<double, features<tag::count>, stats<tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
+  accumulator_set<double, features<tag::count>, stats<tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
   //std::vector<std::pair<double, double>> parametrizedResolutionLocalXValues;
   //std::vector<std::pair<double, double>> parametrizedResolutionLocalYValues;
 

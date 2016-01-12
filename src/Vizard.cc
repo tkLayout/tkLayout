@@ -1179,6 +1179,7 @@ namespace insur {
       std::map<std::string, double> tagMapAveStripOccupancy;
       std::map<std::string, double> tagMapMaxHitOccupancy;
       std::map<std::string, double> tagMapAveHitOccupancy;
+      double sumX, sumSquaresX, countX;
       std::map<std::string, double> tagMapAveRphiResolution;
       std::map<std::string, double> tagMapAveRphiResolutionRmse;
       std::map<std::string, double> tagMapAveYResolution;
@@ -1266,6 +1267,9 @@ namespace insur {
 	    tagMapResoCount[aSensorTag]++;
 	    tagMapAveRphiResolution[aSensorTag] += mean(m.rollingParametrizedResolutionLocalX);
 	    tagMapAveRphiResolutionRmse[aSensorTag] += sqrt(variance(m.rollingParametrizedResolutionLocalX));
+	    sumX += sum(m.rollingParametrizedResolutionLocalX);
+	    sumSquaresX += moment<2>(m.rollingParametrizedResolutionLocalX) * count(m.rollingParametrizedResolutionLocalX);
+	    countX += count(m.rollingParametrizedResolutionLocalX);
 	  }
 	}
 	// modules' spatial resolution along the local Y axis is not parametrized
@@ -1351,6 +1355,7 @@ namespace insur {
     std::ostringstream aStripOccupancy;
     std::ostringstream aHitOccupancy;
     std::ostringstream anRphiResolution;
+    double sumX, sumSquaresX, countX;
     std::ostringstream anRphiResolutionRmse;
     std::ostringstream aYResolution;
     std::ostringstream aYResolutionRmse;
@@ -1506,6 +1511,8 @@ namespace insur {
       // RphiResolution
       anRphiResolution.str("");
       anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
+      std::cout << "mean = " << sumX/double(countX) << std::endl;
+      std::cout << "std = " << sqrt((double(countX)*sumSquaresX-sumX*sumX) / (double(countX)*double(countX))) << std::endl;
       // RphiResolution Rmse
       anRphiResolutionRmse.str("");
       anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapResoCount[(*tagMapIt).first] / Units::um; // mm -> um
