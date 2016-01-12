@@ -511,14 +511,16 @@ namespace insur {
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
+				false,
 				debugResolution,
                                 tracks, pm);
 	pixelAnalyzer.analyzeTaggedTracking(*pm,
-                                mainConfiguration.getMomenta(),
-                                mainConfiguration.getTriggerMomenta(),
-                                mainConfiguration.getThresholdProbabilities(),
-				debugResolution,
-				    tracks, NULL);
+					    mainConfiguration.getMomenta(),
+					    mainConfiguration.getTriggerMomenta(),
+					    mainConfiguration.getThresholdProbabilities(),
+					    true,
+					    debugResolution,
+					    tracks, NULL);
         stopTaskClock();
       }
       return true;
@@ -532,11 +534,11 @@ namespace insur {
    * Produces the output of the analysis of the geomerty analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportGeometrySite() {
+  bool Squid::reportGeometrySite(bool debugResolution) {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, is, site);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, "pixel");
+      v.geometrySummary(a, *tr, *simParms_, is, site, debugResolution);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, debugResolution, "pixel");
       stopTaskClock();
       return true;
     } else {
@@ -614,15 +616,15 @@ namespace insur {
    * Produces the output of the resolution measurement
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportResolutionSite(bool debugResolution) {
+  bool Squid::reportResolutionSite() {
     if (mb) {
       startTaskClock("Creating resolution report");
       v.errorSummary(a, site, "", false);
 #ifdef NO_TAGGED_TRACKING
       v.errorSummary(a, site, "trigger", true);
 #else
-      v.taggedErrorSummary(a, site, debugResolution);
-      v.taggedErrorSummary(pixelAnalyzer, site, debugResolution);
+      v.taggedErrorSummary(a, site);
+      v.taggedErrorSummary(pixelAnalyzer, site);
 #endif
       stopTaskClock();
       return true;

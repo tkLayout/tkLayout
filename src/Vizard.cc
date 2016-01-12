@@ -1117,7 +1117,7 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string name) {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
@@ -1894,6 +1894,7 @@ namespace insur {
     drawEtaCoverage(*myPage, analyzer);
     drawEtaCoverageStubs(*myPage, analyzer);
 
+    // TODO: make this meaningful!
     // // Power density
     // myCanvas = new TCanvas("PowerDensity", "PowerDensity", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     // myCanvas->cd();
@@ -1909,24 +1910,111 @@ namespace insur {
     // myContent->addItem(myImage);
 
 
+    // If debug requested, add modules' parametrized spatial resolution profiles and distributions to website resolution tabs
+    if (debugResolution) {
 
+      std::string tag;
+      if (name == "" ) tag = "tracker";
+      else tag = name;
 
-    // Modules' parametrized spatial resolution profiles
-	std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
-	std::cout << parametrizedResolutionLocalXBarrelProfile.size() << std::endl;
-	std::cout << name << std::endl;
-	std::cout << parametrizedResolutionLocalXBarrelProfile["pixel"].GetEntries() << std::endl;
-      
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
+      // Modules' parametrized spatial resolution profiles
+      std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalYBarrelProfile = analyzer.getParametrizedResolutionLocalYBarrelProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalXEndcapsProfile = analyzer.getParametrizedResolutionLocalXEndcapsProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalYEndcapsProfile = analyzer.getParametrizedResolutionLocalYEndcapsProfile();
 
+      // Modules' parametrized spatial resolution distributions
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
+      if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. See modules table for spatial resolution estimates."));
+      }
 
+      // If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
+      else {
+	gStyle->SetOptStat("emr");
+	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
+	  TCanvas resoXBarCanvas;
+	  resoXBarCanvas.SetFillColor(color_plot_background);
+	  resoXBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelProfile[tag].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() != 0) {
+	  TCanvas resoYBarCanvas;
+	  resoYBarCanvas.SetFillColor(color_plot_background);
+	  resoYBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelProfile[tag].Draw();
+	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() != 0) {
+	  TCanvas resoXEndCanvas;
+	  resoXEndCanvas.SetFillColor(color_plot_background);
+	  resoXEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
+	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() != 0) {
+	  TCanvas resoYEndCanvas;
+	  resoYEndCanvas.SetFillColor(color_plot_background);
+	  resoYEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
+	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	}
+      }
+    } // debugResolution
+    gStyle->SetOptStat(0);
 
-
-
-    // TODO: make this meaningful!
     return true;
-
   }
 
   // Draws all the profile plots present in the analyzer into the given TCanvas
@@ -2955,7 +3043,7 @@ namespace insur {
     return false;
   }
 
-  bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site, bool& debugResolution) {
+  bool Vizard::taggedErrorSummary(Analyzer& analyzer, RootWSite& site) {
 
     //********************************//
     //*                              *//
@@ -3742,106 +3830,6 @@ namespace insur {
           }
         }
       }
-
-      // If debug requested, add modules' parametrized spatial resolution profiles and distributions to website resolution tabs
-      if (debugResolution) {
-	RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
-
-	// Modules' parametrized spatial resolution profiles
-	std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
-	std::map<std::string, TProfile>& parametrizedResolutionLocalYBarrelProfile = analyzer.getParametrizedResolutionLocalYBarrelProfile();
-	std::map<std::string, TProfile>& parametrizedResolutionLocalXEndcapsProfile = analyzer.getParametrizedResolutionLocalXEndcapsProfile();
-	std::map<std::string, TProfile>& parametrizedResolutionLocalYEndcapsProfile = analyzer.getParametrizedResolutionLocalYEndcapsProfile();
-
-	// Modules' parametrized spatial resolution distributions
-	std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
-	std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
-	std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
-	std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
-
-	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
-	  parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module (%s).", tag.c_str()));
-	}
-
-	// If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
-	else {
-	  gStyle->SetOptStat("emr");
-	  if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
-	    TCanvas resoXBarCanvas;
-	    resoXBarCanvas.SetFillColor(color_plot_background);
-	    resoXBarCanvas.Divide(2,1);
-	    TVirtualPad* myPad;
-	    myPad = resoXBarCanvas.GetPad(0);
-	    myPad->SetFillColor(color_pad_background);
-	    myPad = resoXBarCanvas.GetPad(1);
-	    myPad->cd();
-	    parametrizedResolutionLocalXBarrelProfile[tag].Draw();
-	    myPad = resoXBarCanvas.GetPad(2);
-	    myPad->cd();
-	    parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
-	    parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
-	    RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	    resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
-	    resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
-	  }
-	  if (parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() != 0) {
-	    TCanvas resoYBarCanvas;
-	    resoYBarCanvas.SetFillColor(color_plot_background);
-	    resoYBarCanvas.Divide(2,1);
-	    TVirtualPad* myPad;
-	    myPad = resoYBarCanvas.GetPad(0);
-	    myPad->SetFillColor(color_pad_background);
-	    myPad = resoYBarCanvas.GetPad(1);
-	    myPad->cd();
-	    parametrizedResolutionLocalYBarrelProfile[tag].Draw();
-	    myPad = resoYBarCanvas.GetPad(2);
-	    myPad->cd();
-	    parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
-	    parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
-	    RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	    resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
-	    resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
-	  }
-	  if (parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() != 0) {
-	    TCanvas resoXEndCanvas;
-	    resoXEndCanvas.SetFillColor(color_plot_background);
-	    resoXEndCanvas.Divide(2,1);
-	    TVirtualPad* myPad;
-	    myPad = resoXEndCanvas.GetPad(0);
-	    myPad->SetFillColor(color_pad_background);
-	    myPad = resoXEndCanvas.GetPad(1);
-	    myPad->cd();
-	    parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
-	    myPad = resoXEndCanvas.GetPad(2);
-	    myPad->cd();
-	    parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
-	    parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
-	    RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	    resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
-	    resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
-	  }
-	  if (parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() != 0) {
-	    TCanvas resoYEndCanvas;
-	    resoYEndCanvas.SetFillColor(color_plot_background);
-	    resoYEndCanvas.Divide(2,1);
-	    TVirtualPad* myPad;
-	    myPad = resoYEndCanvas.GetPad(0);
-	    myPad->SetFillColor(color_pad_background);
-	    myPad = resoYEndCanvas.GetPad(1);
-	    myPad->cd();
-	    parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
-	    myPad = resoYEndCanvas.GetPad(2);
-	    myPad->cd();
-	    parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
-	    parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
-	    RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	    resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
-	    resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
-	  }
-	}
-      } // debugResolution
-      gStyle->SetOptStat(0);
-
     } // For tags
     return true;
   }

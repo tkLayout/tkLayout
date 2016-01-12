@@ -130,6 +130,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       const std::vector<double>& momenta,
 				       const std::vector<double>& triggerMomenta,
 				       const std::vector<double>& thresholdProbabilities,
+				       bool isPixel,
 				       bool& debugResolution,
 				       int etaSteps,
 				       MaterialBudget* pm) {
@@ -164,7 +165,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
-    track.setTheta(theta);      
+    track.setTheta(theta);
     track.setPhi(phi);
 
     tmp = findAllHits(mb, pm, eta, theta, phi, track);
@@ -252,55 +253,55 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     }
   }
 
-  // Momentum = Pt
-  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsPt(GraphBag::RealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      //std::cout << myCollection.size() << std::endl;
-      calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+  if (!isPixel) {
+    // Momentum = Pt
+    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsPt(GraphBag::RealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	//std::cout << myCollection.size() << std::endl;
+	calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+      }
     }
-  }
-  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsPt(GraphBag::IdealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
+    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsPt(GraphBag::IdealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
+      }
     }
-  }
 
-  // Momentum = P
-  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsP(GraphBag::RealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      //std::cout << myCollection.size() << std::endl;
-      calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
+    // Momentum = P
+    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsP(GraphBag::RealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	//std::cout << myCollection.size() << std::endl;
+	calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
+      }
+    }
+    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsP(GraphBag::IdealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
+      }
     }
   }
-  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsP(GraphBag::IdealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
-    }
-  }
-
   if (debugResolution) calculateParametrizedResolutionPlots(taggedTrackPtCollectionMap);
-
-}
+  }
 
   /**
    * The analysis function performing all necessary the trigger efficiencies
@@ -1296,7 +1297,7 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
  * @param theta The track angle in the yz-plane
  * @param t A reference to the current track object
  * @param cat The category of inactive surfaces that need to be considered within the collection; none if the function is to look at all of them
- * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
+ * @param A boolean flag to indicate which set of active surfaces isa nalysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
  */
 
