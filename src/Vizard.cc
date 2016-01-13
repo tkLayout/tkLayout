@@ -1268,10 +1268,10 @@ namespace insur {
 	}
 	// modules' spatial resolution along the local X axis is parametrized
 	else {
-	  if (m.numActiveHits() > 0) {
+	  if (m.countParametrizedResolutionLocalX() > 0) {
 	    tagMapSumXResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalX);
-	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * m.numActiveHits();	  
-	    tagMapCountXResolution[aSensorTag] += double(m.numActiveHits());
+	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * m.countParametrizedResolutionLocalX();	  
+	    tagMapCountXResolution[aSensorTag] += double(m.countParametrizedResolutionLocalX());
 	  }
 	}
 	// modules' spatial resolution along the local Y axis is not parametrized
@@ -1281,10 +1281,10 @@ namespace insur {
 	}
 	// modules' spatial resolution along the local Y axis is parametrized
 	else { 
-	   if (m.numActiveHits() > 0) {
+	   if (m.countParametrizedResolutionLocalY() > 0) {
 	    tagMapSumYResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalY);
-	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * m.numActiveHits();	  
-	    tagMapCountYResolution[aSensorTag] += double(m.numActiveHits());
+	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * m.countParametrizedResolutionLocalY();	  
+	    tagMapCountYResolution[aSensorTag] += double(m.countParametrizedResolutionLocalY());
 	  }
 	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();

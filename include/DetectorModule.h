@@ -64,7 +64,8 @@ protected:
   double tiltAngle_ = 0., skewAngle_ = 0.;
 
   int numHits_ = 0;
-  int numActiveHits_ = 0;
+  int countParametrizedResolutionLocalX_;
+  int countParametrizedResolutionLocalY_;
 
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
@@ -294,10 +295,11 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
-  int numActiveHits() const { return numActiveHits_; }
+  int countParametrizedResolutionLocalX() const { return countParametrizedResolutionLocalX_; }
+  int countParametrizedResolutionLocalY() const { return countParametrizedResolutionLocalY_; }
   void resetHits() { numHits_ = 0; }
-  void addActiveHits(int addNum) { numActiveHits_ = numActiveHits_+ addNum; }
-
+  void addCountParametrizedResolutionLocalX(int addInt) { countParametrizedResolutionLocalX_ = countParametrizedResolutionLocalX_ + addInt; }
+  void addCountParametrizedResolutionLocalY(int addInt) { countParametrizedResolutionLocalY_ = countParametrizedResolutionLocalY_ + addInt; }
 };
 
 
