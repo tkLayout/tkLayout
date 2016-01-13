@@ -64,9 +64,7 @@ protected:
   double tiltAngle_ = 0., skewAngle_ = 0.;
 
   int numHits_ = 0;
-  int countParametrizedResolutionLocalX_;
-  int countParametrizedResolutionLocalY_;
-
+  
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
 public:
@@ -198,8 +196,8 @@ public:
   }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
-  accumulator_set<double, features<tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
-  accumulator_set<double, features<tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
@@ -295,11 +293,7 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
-  int countParametrizedResolutionLocalX() const { return countParametrizedResolutionLocalX_; }
-  int countParametrizedResolutionLocalY() const { return countParametrizedResolutionLocalY_; }
   void resetHits() { numHits_ = 0; }
-  void addCountParametrizedResolutionLocalX(int addInt) { countParametrizedResolutionLocalX_ = countParametrizedResolutionLocalX_ + addInt; }
-  void addCountParametrizedResolutionLocalY(int addInt) { countParametrizedResolutionLocalY_ = countParametrizedResolutionLocalY_ + addInt; }
 };
 
 

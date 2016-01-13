@@ -152,15 +152,9 @@ void Hit::computeLocalResolution() {
     if (hitModule_) {
       resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
       resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
-
-      if (hitModule_->hasAnyResolutionLocalXParam()) {
-	hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
-	hitModule_->addCountParametrizedResolutionLocalX(1);
-      }
-      if (hitModule_->hasAnyResolutionLocalYParam()) {
-	hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
-	hitModule_->addCountParametrizedResolutionLocalY(1);
-      }
+      
+      if (hitModule_->hasAnyResolutionLocalXParam()) hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
+      if (hitModule_->hasAnyResolutionLocalYParam()) hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
     }
   }
 }
