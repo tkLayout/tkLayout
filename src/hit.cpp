@@ -150,16 +150,10 @@ void Hit::computeLocalResolution() {
     std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
   } else {
     if (hitModule_) {
-      /*if (hitModule_->hasAnyResolutionLocalXParam()) {
-	hitModule_->parametrizedResolutionLocalXValues.push_back(std::make_pair(1./tan(hitModule_->alpha(myTrack_->getPhi())), hitModule_->resolutionLocalX(myTrack_->getPhi())*1000));
-	}
-	if (hitModule_->hasAnyResolutionLocalYParam()) {
-	hitModule_->parametrizedResolutionLocalYValues.push_back(std::make_pair(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), hitModule_->resolutionLocalY(myTrack_->getTheta())*1000));
-	}*/
-
       resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
       resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
 
+      hitModule_->addActiveHits(1);
       hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
       hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
     }
