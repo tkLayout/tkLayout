@@ -1512,6 +1512,8 @@ namespace insur {
       // RphiResolution
       anRphiResolution.str("");
       // modules' spatial resolution along the local X axis is not parametrized
+      std::cout << "v.tagMapAveRphiResolution[(*tagMapIt).first] = " << v.tagMapAveRphiResolution[(*tagMapIt).first] < std::endl;
+      std::cout << "v.tagMapCountXResolution[(*tagMapIt).first] = " << v.tagMapCountXResolution[(*tagMapIt).first] << std::endl;
       if (v.tagMapCountXResolution[(*tagMapIt).first] == 0) {
 	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       }
