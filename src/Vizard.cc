@@ -1183,11 +1183,13 @@ namespace insur {
       std::map<std::string, double> tagMapSumXResolution;
       std::map<std::string, double> tagMapSumSquaresXResolution;
       std::map<std::string, double> tagMapCountXResolution;
+      std::map<std::string, double> tagMapIsParametrizedXResolution;
       std::map<std::string, double> tagMapAveYResolution;
       std::map<std::string, double> tagMapAveYResolutionRmse;
       std::map<std::string, double> tagMapSumYResolution;
       std::map<std::string, double> tagMapSumSquaresYResolution;
       std::map<std::string, double> tagMapCountYResolution;
+      std::map<std::string, double> tagMapIsParametrizedYResolution;
       std::map<std::string, double> tagMapAveRphiResolutionTrigger;
       std::map<std::string, double> tagMapAveYResolutionTrigger;
       std::map<std::string, double> tagMapSensorPowerAvg;
@@ -1261,12 +1263,14 @@ namespace insur {
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
 	// modules' spatial resolution along the local X axis is not parametrized
 	if (!m.hasAnyResolutionLocalXParam()) {
+	  tagMapIsParametrizedXResolution[aSensorTag] = false;
 	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
 	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
 	}
 	// modules' spatial resolution along the local X axis is parametrized
 	else {
-	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalX) > 0) { // only on hit modules
+	  tagMapIsParametrizedXResolution[aSensorTag] = true;
+	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalX) > 0) { // calculation only on hit modules
 	    tagMapSumXResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalX);
 	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * boost::accumulators::count(m.rollingParametrizedResolutionLocalX);	  
 	    tagMapCountXResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalX));
@@ -1274,16 +1278,17 @@ namespace insur {
 	}
 	// modules' spatial resolution along the local Y axis is not parametrized
         if (!m.hasAnyResolutionLocalYParam()) { 
+	  tagMapIsParametrizedYResolution[aSensorTag] = false;
 	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); 
 	  tagMapAveYResolutionRmse[aSensorTag] += 0.; 
 	}
 	// modules' spatial resolution along the local Y axis is parametrized
 	else {
-	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalY) > 0) { // only on hit modules
+	  tagMapIsParametrizedYResolution[aSensorTag] = true;
+	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalY) > 0) { // calculation only on hit modules
 	    tagMapSumYResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalY);
 	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * boost::accumulators::count(m.rollingParametrizedResolutionLocalY);	  													     
 	    tagMapCountYResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalY));
-	    //std::cout << m.countParametrizedResolutionLocalY() << std::endl;
 	  }
 	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
@@ -1509,50 +1514,76 @@ namespace insur {
       addOccupancyElement(v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
       addOccupancyElement(v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
 
+      // Formulae used for mean and RMSE in the parametric case :
+      // mean = S / N
+      // Rmse = (N*Q - S^2) / N^2
+      // with the following notation :
+      // N : count
+      // S : sum
+      // Q : sum of squares
+
       // RphiResolution
       anRphiResolution.str("");
       // modules' spatial resolution along the local X axis is not parametrized
-      std::cout << "v.tagMapAveRphiResolution[(*tagMapIt).first] = " << v.tagMapAveRphiResolution[(*tagMapIt).first] < std::endl;
-      std::cout << "v.tagMapCountXResolution[(*tagMapIt).first] = " << v.tagMapCountXResolution[(*tagMapIt).first] << std::endl;
-      if (v.tagMapCountXResolution[(*tagMapIt).first] == 0) {
+      if (!v.tagMapIsParametrizedXResolution[(*tagMapIt).first]) {
 	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       }
       // modules' spatial resolution along the local X axis is parametrized
       else {
+	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
 	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumXResolution[(*tagMapIt).first]) / (v.tagMapCountXResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	}
+	else {
+	  anRphiResolution << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
       }
 
       // RphiResolution Rmse
       anRphiResolutionRmse.str("");
       // modules' spatial resolution along the local X axis is not parametrized
-      if (v.tagMapCountXResolution[(*tagMapIt).first] == 0) {
+      if (!v.tagMapIsParametrizedXResolution[(*tagMapIt).first]) {
 	anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       }
       // modules' spatial resolution along the local X axis is parametrized
       else {
+	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
 	anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountXResolution[(*tagMapIt).first] * v.tagMapSumSquaresXResolution[(*tagMapIt).first] - pow(v.tagMapSumXResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountXResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	}
+	else {
+	  anRphiResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
       }
 
       // YResolution
       aYResolution.str("");
       // modules' spatial resolution along the local Y axis is not parametrized
-      if (v.tagMapCountYResolution[(*tagMapIt).first] == 0) {
+      if (!v.tagMapIsParametrizedYResolution[(*tagMapIt).first]) {
 	aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       }
       // modules' spatial resolution along the local Y axis is parametrized
       else {
+	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
 	aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumYResolution[(*tagMapIt).first]) / (v.tagMapCountYResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	}
+	else {
+	  aYResolution << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
       }
 
       // YResolution Rmse
       aYResolutionRmse.str("");
       // modules' spatial resolution along the local Y axis is not parametrized
-      if (v.tagMapCountYResolution[(*tagMapIt).first] == 0) {
+      if (!v.tagMapIsParametrizedYResolution[(*tagMapIt).first]) {
 	aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       }
       // modules' spatial resolution along the local Y axis is parametrized
       else {
+	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
 	aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountYResolution[(*tagMapIt).first] * v.tagMapSumSquaresYResolution[(*tagMapIt).first] - pow(v.tagMapSumYResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountYResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	}
+	else {
+	  aYResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
       }
 
       // RphiResolution (trigger)
