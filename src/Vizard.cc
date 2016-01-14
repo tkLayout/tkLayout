@@ -1117,7 +1117,7 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string name) {
     trackers_.push_back(&tracker);
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
@@ -1179,7 +1179,17 @@ namespace insur {
       std::map<std::string, double> tagMapMaxHitOccupancy;
       std::map<std::string, double> tagMapAveHitOccupancy;
       std::map<std::string, double> tagMapAveRphiResolution;
+      std::map<std::string, double> tagMapAveRphiResolutionRmse;
+      std::map<std::string, double> tagMapSumXResolution;
+      std::map<std::string, double> tagMapSumSquaresXResolution;
+      std::map<std::string, double> tagMapCountXResolution;
+      std::map<std::string, double> tagMapIsParametrizedXResolution;
       std::map<std::string, double> tagMapAveYResolution;
+      std::map<std::string, double> tagMapAveYResolutionRmse;
+      std::map<std::string, double> tagMapSumYResolution;
+      std::map<std::string, double> tagMapSumSquaresYResolution;
+      std::map<std::string, double> tagMapCountYResolution;
+      std::map<std::string, double> tagMapIsParametrizedYResolution;
       std::map<std::string, double> tagMapAveRphiResolutionTrigger;
       std::map<std::string, double> tagMapAveYResolutionTrigger;
       std::map<std::string, double> tagMapSensorPowerAvg;
@@ -1251,8 +1261,36 @@ namespace insur {
         tagMapMaxHitOccupancy[aSensorTag] = MAX(m.hitOccupancyPerEvent()*nMB, tagMapMaxHitOccupancy[aSensorTag]);
         tagMapAveStripOccupancy[aSensorTag] += m.stripOccupancyPerEvent()*nMB;
         tagMapAveHitOccupancy[aSensorTag] += m.hitOccupancyPerEvent()*nMB;
-        tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX();
-        tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY();
+	// modules' spatial resolution along the local X axis is not parametrized
+	if (!m.hasAnyResolutionLocalXParam()) {
+	  tagMapIsParametrizedXResolution[aSensorTag] = false;
+	  tagMapAveRphiResolution[aSensorTag] += m.nominalResolutionLocalX(); 
+	  tagMapAveRphiResolutionRmse[aSensorTag] += 0.; 
+	}
+	// modules' spatial resolution along the local X axis is parametrized
+	else {
+	  tagMapIsParametrizedXResolution[aSensorTag] = true;
+	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalX) > 0) { // calculation only on hit modules
+	    tagMapSumXResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalX);
+	    tagMapSumSquaresXResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalX) * boost::accumulators::count(m.rollingParametrizedResolutionLocalX);	  
+	    tagMapCountXResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalX));
+	  }
+	}
+	// modules' spatial resolution along the local Y axis is not parametrized
+        if (!m.hasAnyResolutionLocalYParam()) { 
+	  tagMapIsParametrizedYResolution[aSensorTag] = false;
+	  tagMapAveYResolution[aSensorTag] += m.nominalResolutionLocalY(); 
+	  tagMapAveYResolutionRmse[aSensorTag] += 0.; 
+	}
+	// modules' spatial resolution along the local Y axis is parametrized
+	else {
+	  tagMapIsParametrizedYResolution[aSensorTag] = true;
+	  if (boost::accumulators::count(m.rollingParametrizedResolutionLocalY) > 0) { // calculation only on hit modules
+	    tagMapSumYResolution[aSensorTag] += sum(m.rollingParametrizedResolutionLocalY);
+	    tagMapSumSquaresYResolution[aSensorTag] += moment<2>(m.rollingParametrizedResolutionLocalY) * boost::accumulators::count(m.rollingParametrizedResolutionLocalY);	  													     
+	    tagMapCountYResolution[aSensorTag] += double(boost::accumulators::count(m.rollingParametrizedResolutionLocalY));
+	  }
+	}
         //tagMapAveRphiResolutionTrigger[aSensorTag] += m.resolutionRPhiTrigger();
         //tagMapAveYResolutionTrigger[aSensorTag] += m.resolutionYTrigger();
         tagMapSensorPowerAvg[aSensorTag] += m.irradiationPower();
@@ -1324,7 +1362,9 @@ namespace insur {
     std::ostringstream aStripOccupancy;
     std::ostringstream aHitOccupancy;
     std::ostringstream anRphiResolution;
+    std::ostringstream anRphiResolutionRmse;
     std::ostringstream aYResolution;
+    std::ostringstream aYResolutionRmse;
     std::ostringstream anRphiResolutionTrigger;
     std::ostringstream aYResolutionTrigger;
     std::ostringstream aPitchPair;
@@ -1366,20 +1406,22 @@ namespace insur {
     static const int striplengthRow = 11;
     static const int pitchpairsRow = 12;
     static const int rphiResolutionRow = 13;
-    static const int yResolutionRow = 14;
-    static const int rphiResolutionTriggerRow = 15;
-    static const int yResolutionTriggerRow = 16;
-    static const int stripOccupancyRow = 17;
-    static const int hitOccupancyRow = 18;
-    static const int powerPerModuleRow = 19;
-    static const int sensorPowerPerModuleAvgRow = 20;
-    static const int sensorPowerPerModuleMaxRow = 21;
-    static const int powerRow = 22;
-    static const int sensorPowerRow = 23;
-    static const int costRow = 24;
-    static const int moduleWeightRow = 25;
-    static const int inactiveWeightRow = 26;
-    static const int totalWeightRow = 27;
+    static const int rphiResolutionRmseRow = 14;
+    static const int yResolutionRow = 15;
+    static const int yResolutionRmseRow = 16;
+    static const int rphiResolutionTriggerRow = 17;
+    static const int yResolutionTriggerRow = 18;
+    static const int stripOccupancyRow = 19;
+    static const int hitOccupancyRow = 20;
+    static const int powerPerModuleRow = 21;
+    static const int sensorPowerPerModuleAvgRow = 22;
+    static const int sensorPowerPerModuleMaxRow = 23;
+    static const int powerRow = 24;
+    static const int sensorPowerRow = 25;
+    static const int costRow = 26;
+    static const int moduleWeightRow = 27;
+    static const int inactiveWeightRow = 28;
+    static const int totalWeightRow = 29;
 
     // Row names
     moduleTable->setContent(tagRow, 0, "Tag");
@@ -1389,12 +1431,14 @@ namespace insur {
     moduleTable->setContent(totalAreaRow, 0, "Total area (m"+superStart+"2"+superEnd+")");
     moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
     moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
-    moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
-    moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
+    moduleTable->setContent(rphiResolutionRow, 0, "Local X axis resolution : " + muLetter + " ("+muLetter+"m)");
+    moduleTable->setContent(rphiResolutionRmseRow, 0, "Local X axis resolution : " + sigmaLetter + " ("+muLetter+"m)");
+    moduleTable->setContent(yResolutionRow, 0, "Local Y axis resolution : " + muLetter + " ("+muLetter+"m)");
+    moduleTable->setContent(yResolutionRmseRow, 0, "Local Y axis resolution : " + sigmaLetter + " ("+muLetter+"m)");
     moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
     moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
-    moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
-    moduleTable->setContent(striplengthRow, 0, "Strip length");
+    moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max) ("+muLetter+"m)");
+    moduleTable->setContent(striplengthRow, 0, "Strip length (mm)");
     moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
     moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
     moduleTable->setContent(numbermodsRow, 0, "N. mod");
@@ -1470,27 +1514,91 @@ namespace insur {
       addOccupancyElement(v.tagMapAveStripOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
       addOccupancyElement(v.tagMapAveHitOccupancy[(*tagMapIt).first]*100/v.tagMapCount[(*tagMapIt).first]);
 
+      // Formulae used for mean and RMSE in the parametric case :
+      // mean = S / N
+      // Rmse = (N*Q - S^2) / N^2
+      // with the following notation :
+      // N : count
+      // S : sum
+      // Q : sum of squares
+
       // RphiResolution
       anRphiResolution.str("");
-      anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      // modules' spatial resolution along the local X axis is not parametrized
+      if (!v.tagMapIsParametrizedXResolution[(*tagMapIt).first]) {
+	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
+      }
+      // modules' spatial resolution along the local X axis is parametrized
+      else {
+	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
+	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumXResolution[(*tagMapIt).first]) / (v.tagMapCountXResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	}
+	else {
+	  anRphiResolution << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
+      }
+
+      // RphiResolution Rmse
+      anRphiResolutionRmse.str("");
+      // modules' spatial resolution along the local X axis is not parametrized
+      if (!v.tagMapIsParametrizedXResolution[(*tagMapIt).first]) {
+	anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveRphiResolutionRmse[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
+      }
+      // modules' spatial resolution along the local X axis is parametrized
+      else {
+	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
+	anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountXResolution[(*tagMapIt).first] * v.tagMapSumSquaresXResolution[(*tagMapIt).first] - pow(v.tagMapSumXResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountXResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	}
+	else {
+	  anRphiResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
+      }
+
       // YResolution
       aYResolution.str("");
-      aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+      // modules' spatial resolution along the local Y axis is not parametrized
+      if (!v.tagMapIsParametrizedYResolution[(*tagMapIt).first]) {
+	aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolution[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
+      }
+      // modules' spatial resolution along the local Y axis is parametrized
+      else {
+	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
+	aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumYResolution[(*tagMapIt).first]) / (v.tagMapCountYResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	}
+	else {
+	  aYResolution << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
+      }
+
+      // YResolution Rmse
+      aYResolutionRmse.str("");
+      // modules' spatial resolution along the local Y axis is not parametrized
+      if (!v.tagMapIsParametrizedYResolution[(*tagMapIt).first]) {
+	aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << v.tagMapAveYResolutionRmse[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
+      }
+      // modules' spatial resolution along the local Y axis is parametrized
+      else {
+	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
+	aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountYResolution[(*tagMapIt).first] * v.tagMapSumSquaresYResolution[(*tagMapIt).first] - pow(v.tagMapSumYResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountYResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	}
+	else {
+	  aYResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
+	}
+      }
 
       // RphiResolution (trigger)
       anRphiResolutionTrigger.str("");
       if ( v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] != v.tagMapAveRphiResolution[(*tagMapIt).first] )
-        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
+        anRphiResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveRphiResolutionTrigger[(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
       // YResolution (trigger)
       aYResolutionTrigger.str("");
       if ( v.tagMapAveYResolutionTrigger[(*tagMapIt).first] != v.tagMapAveYResolution[(*tagMapIt).first] )
-        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] * 1000; // mm -> um
-
+        aYResolutionTrigger << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << v.tagMapAveYResolutionTrigger [(*tagMapIt).first] / v.tagMapCount[(*tagMapIt).first] / Units::um; // mm -> um
 
       // Pitches
       aPitchPair.str("");
-      loPitch=int((*tagMapIt).second->outerSensor().minPitch()*1e3);
-      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch()*1e3);
+      loPitch=int((*tagMapIt).second->outerSensor().minPitch() / Units::um); // mm -> um
+      hiPitch=int((*tagMapIt).second->outerSensor().maxPitch() / Units::um); // mm -> um
       addOccupancyElement((loPitch+hiPitch)/2);
 
       if (loPitch==hiPitch) {
@@ -1515,9 +1623,9 @@ namespace insur {
         for (int iFace=0; iFace<(*tagMapIt).second->numSensors(); ++iFace) {
           // Strip length
           aStripLength << std::fixed << std::setprecision(stripLengthPrecision)
-            << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegments();
+            << (*tagMapIt).second->length()/(*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate();
           // Segments
-          aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegments()
+          aSegment << std::dec << (*tagMapIt).second->sensors().at(iFace).numSegmentsEstimate()
             << "x" << (*tagMapIt).second->sensors().at(iFace).numROCX();
           if (iFace<(*tagMapIt).second->numSensors() - 1) {
             aStripLength << ", ";
@@ -1603,7 +1711,9 @@ namespace insur {
       moduleTable->setContent(stripOccupancyRow, iType, aStripOccupancy.str());
       moduleTable->setContent(hitOccupancyRow, iType, aHitOccupancy.str());
       moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
+      moduleTable->setContent(rphiResolutionRmseRow, iType, anRphiResolutionRmse.str());
       moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
+      moduleTable->setContent(yResolutionRmseRow, iType, aYResolutionRmse.str());
       moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
       moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
       moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
@@ -1853,6 +1963,7 @@ namespace insur {
     drawEtaCoverage(*myPage, analyzer);
     drawEtaCoverageStubs(*myPage, analyzer);
 
+    // TODO: make this meaningful!
     // // Power density
     // myCanvas = new TCanvas("PowerDensity", "PowerDensity", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     // myCanvas->cd();
@@ -1865,12 +1976,114 @@ namespace insur {
     // myCanvas->SetFillColor(color_plot_background);
     // myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     // myImage->setComment("Power density distribution");
-    // myContent->addItem(myImage);        
+    // myContent->addItem(myImage);
 
 
-    // TODO: make this meaningful!
+    // If debug requested, add modules' parametrized spatial resolution profiles and distributions to website resolution tabs
+    if (debugResolution) {
+
+      std::string tag;
+      if (name == "" ) tag = "tracker";
+      else tag = name;
+
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
+
+      // Modules' parametrized spatial resolution profiles
+      std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalYBarrelProfile = analyzer.getParametrizedResolutionLocalYBarrelProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalXEndcapsProfile = analyzer.getParametrizedResolutionLocalXEndcapsProfile();
+      std::map<std::string, TProfile>& parametrizedResolutionLocalYEndcapsProfile = analyzer.getParametrizedResolutionLocalYEndcapsProfile();
+
+      // Modules' parametrized spatial resolution distributions
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+      if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. See modules table for spatial resolution estimates."));
+      }
+
+      // If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
+      else {
+	gStyle->SetOptStat("emr");
+	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
+	  TCanvas resoXBarCanvas;
+	  resoXBarCanvas.SetFillColor(color_plot_background);
+	  resoXBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelProfile[tag].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() != 0) {
+	  TCanvas resoYBarCanvas;
+	  resoYBarCanvas.SetFillColor(color_plot_background);
+	  resoYBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelProfile[tag].Draw();
+	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() != 0) {
+	  TCanvas resoXEndCanvas;
+	  resoXEndCanvas.SetFillColor(color_plot_background);
+	  resoXEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
+	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() != 0) {
+	  TCanvas resoYEndCanvas;
+	  resoYEndCanvas.SetFillColor(color_plot_background);
+	  resoYEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
+	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	}
+      }
+    } // debugResolution
+    gStyle->SetOptStat(0);
+
     return true;
-
   }
 
   // Draws all the profile plots present in the analyzer into the given TCanvas

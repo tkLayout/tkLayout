@@ -15,8 +15,8 @@ sensorThickness 0.150
 
 Sensor 1 {
   sensorType pixel
-  numStripsAcross 340
-  numSegments 285
+  pitchEstimate 0.050
+  stripLengthEstimate 0.200
   numROCX 1 
   numROCY 3
 }

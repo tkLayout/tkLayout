@@ -48,6 +48,8 @@ Hit::Hit() {
     isPixel_ = false;
     isTrigger_ = false;
     isIP_ = false;
+    resolutionLocalX_ = 0;
+    resolutionLocalY_ = 0;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
     activeHitType_ = HitType::NONE;
@@ -68,6 +70,8 @@ Hit::Hit(const Hit& h) {
     isPixel_ = h.isPixel_;
     isTrigger_ = h.isTrigger_;
     isIP_ = h.isIP_;
+    resolutionLocalX_ = h.resolutionLocalX_;
+    resolutionLocalY_ = h.resolutionLocalY_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
     activeHitType_ = h.activeHitType_;
@@ -140,6 +144,21 @@ RILength Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
+
+void Hit::computeLocalResolution() {
+  if (objectKind_!= Active) {
+    std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
+  } else {
+    if (hitModule_) {
+      resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
+      resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
+      
+      if (hitModule_->hasAnyResolutionLocalXParam()) hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
+      if (hitModule_->hasAnyResolutionLocalYParam()) hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
+    }
+  }
+}
+
 /**
  * Getter for the rPhi resolution (local x coordinate for a module)
  * If the hit is not active it returns -1
@@ -148,57 +167,15 @@ RILength Hit::getCorrectedMaterial() {
  * if there is not any hit module, then the hit's resolution property is read and returned
  * @return the hit's local resolution
  */
-double Hit::getResolutionRphi(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd, double trackR) {
+double Hit::getResolutionRphi(double trackR) {
   if (objectKind_!=Active) {
     std::cerr << "ERROR: Hit::getResolutionRphi called on a non-active hit" << std::endl;
     return -1;
   } else {
     if (hitModule_) {
-      double resolutionLocalX, resolutionLocalY;
-      
-      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
-      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
-      //std::cout << "hitModule_->hasAnyResolutionLocalXParam() = " << hitModule_->hasAnyResolutionLocalXParam() << std::endl;
-
-      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
-      else { resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi()); 
-	if ( hitModule_->subdet() == BARREL) {
-	  profXBar->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
-	  histXBar->Fill(resolutionLocalX*1000);
-	  //std::cout << "resolutionLocalX * 1000 = " << resolutionLocalX*1000 << std::endl;
-	  //std::cout << "cotan(hitModule_->alpha(myTrack_->getPhi())) = " << 1./tan(hitModule_->alpha(myTrack_->getPhi())) << std::endl;
-
-	 
-	  //std::cout << "hitModule_->alpha(myTrack_->getPhi()) = " << hitModule_->alpha(myTrack_->getPhi()) << std::endl;
-	  //std::cout << "myTrack_->getPhi() = " << myTrack_->getPhi() << " hitModule_->subdet() = " << hitModule_->subdet() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;
-	}
-	if ( hitModule_->subdet() == ENDCAP) {
-	  profXEnd->Fill(1./tan(hitModule_->alpha(myTrack_->getPhi())), resolutionLocalX*1000 ,1);
-	  histXEnd->Fill(resolutionLocalX*1000);
-	}
-      }
-
-	if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
-	else { resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
-	  if ( hitModule_->subdet() == BARREL) {
-	    profYBar->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
-	    histYBar->Fill(resolutionLocalY*1000);
-	    //std::cout << "resolutionLocalY * 1000 = " << resolutionLocalY*1000 << std::endl;
-	    //std::cout << "fabs(cotan(hitModule_->beta(myTrack_->getTheta()))) = " << fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))) << std::endl;
-
-	    //std::cout << "hitModule_->beta(myTrack_->getTheta()) = " << hitModule_->beta(myTrack_->getTheta()) << std::endl;	  
-	    //std::cout << "myTrack_->getTheta() = " << myTrack_->getTheta() << " hitModule_->center().Phi() = " << hitModule_->center().Phi() << " hitModule_->center().X() = " << hitModule_->center().X() << " hitModule_->center().Y() = " << hitModule_->center().Y() << " hitModule_->center().Z() = " << hitModule_->center().Z() << "hitModule_->skewAngle() = " << hitModule_->skewAngle() << std::endl;  
-	  }
-	  if (hitModule_->subdet() == ENDCAP) {
-	    profYEnd->Fill(fabs(1./tan(hitModule_->beta(myTrack_->getTheta()))), resolutionLocalY*1000 ,1);
-	    histYEnd->Fill(resolutionLocalY*1000);
-	  }
-	}
-
-
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX, resolutionLocalY);
-     // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
-     // else return hitModule_->resolutionRPhi();
+      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX_, resolutionLocalY_);
+      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
+      // else return hitModule_->resolutionRPhi();
     } else {
       return myResolutionRphi_;
     }
@@ -220,24 +197,7 @@ double Hit::getResolutionZ(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-
-      double resolutionLocalX, resolutionLocalY;
-      
-      //std::cout << "hitModule_->nominalResolutionLocalX() = " << hitModule_->nominalResolutionLocalX() << std::endl;
-      //std::cout << "hitModule_->nominalResolutionLocalX.state() = " << hitModule_->nominalResolutionLocalX.state() << std::endl;
-      
-      if (!hitModule_->hasAnyResolutionLocalXParam()) resolutionLocalX = hitModule_->nominalResolutionLocalX();
-      else resolutionLocalX = hitModule_->calculateParameterizedResolutionLocalX(myTrack_->getPhi());
-
-      if (!hitModule_->hasAnyResolutionLocalYParam()) resolutionLocalY = hitModule_->nominalResolutionLocalY();
-      else resolutionLocalY = hitModule_->calculateParameterizedResolutionLocalY(myTrack_->getTheta());
-
-
-
-
-
-
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX, resolutionLocalY);
+      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX_, resolutionLocalY_);
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     } else {
@@ -542,7 +502,7 @@ void Track::sort() {
  * Compute the correlation matrices of the track hits for a series of different energies.
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
  */
-void Track::computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd) {
+void Track::computeCorrelationMatrix() {
 
   // matrix size
   int n = hitV_.size();
@@ -584,7 +544,7 @@ void Track::computeCorrelationMatrix(TProfile* profXBar, TProfile* profYBar, TPr
           for (int i = 0; i < r; i++)
             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
           if (r == c) {
-            double prec = hitV_.at(r)->getResolutionRphi(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd, pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
+            double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, insur::magnetic_field)); // if Bmod = getResoX natural 
             sum = sum + prec * prec;
           }
           correlations_(r, c) = sum;
@@ -644,6 +604,16 @@ void Track::computeCovarianceMatrix() {
   }
   diffsT.Transpose(diffs);
   covariances_ = diffsT * C.Invert() * diffs;
+}
+
+void Track::computeLocalResolution() {
+  int n = hitV_.size();
+  for (int i = 0; i < n; i++) {
+    if (hitV_.at(i)->getObjectKind() != Hit::Inactive) {
+      hitV_.at(i)->computeLocalResolution();
+      //std::cout << hitV_.at(i)->getResolutionLocalX() << std::endl;
+    }
+  }
 }
 
 /**
@@ -770,13 +740,17 @@ void Track::computeCovarianceMatrixRZ() {
  * distance of closest approach to the origin, all of them for each momentum of the test particle.
  * @param momentaList A reference of the list of energies that the errors should be calculated for
  */
-void Track::computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* profXEnd, TProfile* profYEnd, TH1D* histXBar, TH1D* histYBar, TH1D* histXEnd, TH1D* histYEnd) {
+void Track::computeErrors() {
   deltarho_ = 0 ;
   deltaphi_ = 0 ;
   deltad_ = 0 ;
   deltaCtgTheta_ = 0 ;
   deltaZ0_ = 0 ;
   deltaP_ = 0 ;
+
+
+  // Compute spatial resolution for all active hits
+  computeLocalResolution();
 
   // Compute the relevant matrices (RZ plane)
   computeCorrelationMatrixRZ();
@@ -794,7 +768,7 @@ void Track::computeErrors(TProfile* profXBar, TProfile* profYBar, TProfile* prof
   deltaZ0_ = err;
   
   // rPhi plane
-  computeCorrelationMatrix(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
+  computeCorrelationMatrix();
   computeCovarianceMatrix();
 
   // calculate delta rho, delta phi and delta d maps from covariances_ matrix

@@ -106,7 +106,7 @@ namespace insur {
            << m.minWidth() << sep << m.maxWidth() << sep << m.length() << sep
            << m.moduleType() << sep
            << m.nominalResolutionLocalX() << sep << m.nominalResolutionLocalY() << sep 
-           << m.numStripsAcross() << sep << m.innerSensor().numSegments() << sep << m.outerSensor().numSegments() << std::endl;
+           << m.numStripsAcrossEstimate() << sep << m.innerSensor().numSegmentsEstimate() << sep << m.outerSensor().numSegmentsEstimate() << std::endl;
       }
     };
     */
@@ -485,7 +485,7 @@ namespace insur {
    * @param tracks The number of tracks that should be fanned out across the analysed region
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution) {
+  bool Squid::pureAnalyzeMaterialBudget(int tracks, bool triggerResolution, bool debugResolution) {
     if (mb) {
 //      startTaskClock(!trackingResolution ? "Analyzing material budget" : "Analyzing material budget and estimating resolution");
       // TODO: insert the creation of sample tracks here, to compute intersections only once
@@ -511,7 +511,16 @@ namespace insur {
                                 mainConfiguration.getMomenta(),
                                 mainConfiguration.getTriggerMomenta(),
                                 mainConfiguration.getThresholdProbabilities(),
+				false,
+				debugResolution,
                                 tracks, pm);
+	pixelAnalyzer.analyzeTaggedTracking(*pm,
+					    mainConfiguration.getMomenta(),
+					    mainConfiguration.getTriggerMomenta(),
+					    mainConfiguration.getThresholdProbabilities(),
+					    true,
+					    debugResolution,
+					    tracks, NULL);
         stopTaskClock();
       }
       return true;
@@ -525,11 +534,11 @@ namespace insur {
    * Produces the output of the analysis of the geomerty analysis
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::reportGeometrySite() {
+  bool Squid::reportGeometrySite(bool debugResolution) {
     if (tr) {
       startTaskClock("Creating geometry report");
-      v.geometrySummary(a, *tr, *simParms_, is, site);
-      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, "pixel");
+      v.geometrySummary(a, *tr, *simParms_, is, site, debugResolution);
+      if (px) v.geometrySummary(pixelAnalyzer, *px, *simParms_, pi, site, debugResolution, "pixel");
       stopTaskClock();
       return true;
     } else {
@@ -615,6 +624,7 @@ namespace insur {
       v.errorSummary(a, site, "trigger", true);
 #else
       v.taggedErrorSummary(a, site);
+      v.taggedErrorSummary(pixelAnalyzer, site);
 #endif
       stopTaskClock();
       return true;
