@@ -83,8 +83,6 @@ void DetectorModule::setup() {
       else return -1.0;
     });
   for (Sensor& s : sensors_) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
-  minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-  maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
 };
 
 

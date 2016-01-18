@@ -850,7 +850,6 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   ModuleCap* myModuleCap;
   Module* myModule;
-
   //  unsigned int nLocalMasses;
 
   std::map<std::string, double>::const_iterator localmassesBegin;
@@ -1805,7 +1804,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       // Modules' parametrized spatial resolution profiles
       parametrizedResolutionLocalXBarrelProfile[myTag].Reset();
       parametrizedResolutionLocalXBarrelProfile[myTag].SetNameTitle("resoXBarProf","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
-      parametrizedResolutionLocalXBarrelProfile[myTag].SetBins(100,-0.3,0.3);
+      parametrizedResolutionLocalXBarrelProfile[myTag].SetBins(500,-0.3,0.3);
       parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetRangeUser(0,30);
       parametrizedResolutionLocalXBarrelProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -1814,7 +1813,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       parametrizedResolutionLocalXEndcapsProfile[myTag].Reset();
       parametrizedResolutionLocalXEndcapsProfile[myTag].SetNameTitle("resoXEndProf","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
-      parametrizedResolutionLocalXEndcapsProfile[myTag].SetBins(100,-0.3,0.3);
+      parametrizedResolutionLocalXEndcapsProfile[myTag].SetBins(500,-0.3,0.3);
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,30);
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
       parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
@@ -1823,7 +1822,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       parametrizedResolutionLocalYBarrelProfile[myTag].Reset();
       parametrizedResolutionLocalYBarrelProfile[myTag].SetNameTitle("resoYBarProf","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
-      parametrizedResolutionLocalYBarrelProfile[myTag].SetBins(100,0,5);
+      parametrizedResolutionLocalYBarrelProfile[myTag].SetBins(500,0,5);
       parametrizedResolutionLocalYBarrelProfile[myTag].GetYaxis()->SetRangeUser(0,60);
       parametrizedResolutionLocalYBarrelProfile[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
       parametrizedResolutionLocalYBarrelProfile[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
@@ -1832,7 +1831,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
       parametrizedResolutionLocalYEndcapsProfile[myTag].Reset();
       parametrizedResolutionLocalYEndcapsProfile[myTag].SetNameTitle("resoYEndProf","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
-      parametrizedResolutionLocalYEndcapsProfile[myTag].SetBins(100,0,0.5);
+      parametrizedResolutionLocalYEndcapsProfile[myTag].SetBins(500,0,0.8);
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,60);
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
       parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");

@@ -2081,7 +2081,6 @@ namespace insur {
 	}
       }
     } // debugResolution
-    gStyle->SetOptStat(0);
 
     return true;
   }
