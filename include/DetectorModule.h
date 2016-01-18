@@ -350,6 +350,8 @@ public:
 
   void setup() override {
     DetectorModule::setup();
+    minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
   }
   
   void check() override;
@@ -408,6 +410,8 @@ public:
 
   void setup() override {
     DetectorModule::setup();
+    minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
   }
 
   void check() override;
