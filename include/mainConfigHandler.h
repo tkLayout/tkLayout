@@ -26,6 +26,18 @@ using namespace std;
 #define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
 #define THRESHOLDPROBABILITIESDEFINITION "TKG_THRESHOLD_PROB"
 
+class ConfigInputOutput {
+public:
+  ConfigInputOutput(istream& newIs, ostream& newOs) : is(newIs) , os(newOs) {}
+  istream& is;
+  ostream& os;
+  string absoluteFileName = "";
+  string relativeFileName = "";
+  bool standardInclude = false;
+  set<string> includePathList;
+  string getIncludedFile(string fileName);
+};
+
 // This object wil read the configuration only once
 // If the configuration file is not present, wuations will
 // be asked directly through std::cin and the corresponding
@@ -51,7 +63,7 @@ public:
   string getStandardIncludeDirectory();
   string getGeometriesDirectory();
   string getConfigFileName();
-  std::set<string> preprocessConfiguration(istream& is, ostream& os, const string& istreamid);
+  std::set<string> preprocessConfiguration(ConfigInputOutput);
   vector<double>& getMomenta();
   vector<double>& getTriggerMomenta();
   vector<double>& getThresholdProbabilities();

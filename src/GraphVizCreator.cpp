@@ -23,6 +23,10 @@ void GraphVizCreator::addNodeRename(std::string nodeName, std::string symbolic) 
   nodeRenameMap_[nodeName]=symbolic;
 }
 
+void GraphVizCreator::setNodeLocal(std::string nodeName, bool isLocal) {
+  nodeLocal_[nodeName]=isLocal;
+}
+
 void GraphVizCreator::addNodeUrl(std::string nodeName, std::string url) {
   nodeUrl_[nodeName]=url;
 }
@@ -40,10 +44,12 @@ std::string GraphVizCreator::createGraphVizFile() {
     } else {
       URLString="";
     }
+    std::string addBox = "";
+    if (!nodeLocal_[it.first]) addBox = " shape=box";
     if (nodeRenameMap_[it.first]=="") {
-      result += indent_ + ""+getNodeName(it.second)+"[label=\""+it.first+"\""+URLString+"];\n";
+      result += indent_ + ""+getNodeName(it.second)+"[label=\""+it.first+"\""+URLString+" "+addBox+"];\n";
     } else {
-      result += indent_ + ""+getNodeName(it.second)+"[label=\""+nodeRenameMap_[it.first]+"\" shape=box"+URLString+"];\n";
+      result += indent_ + ""+getNodeName(it.second)+"[label=\""+nodeRenameMap_[it.first]+"\""+addBox+URLString+"];\n";
     }
   }
   result += "\n";

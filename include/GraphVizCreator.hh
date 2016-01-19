@@ -14,12 +14,15 @@ public:
   std::string createGraphVizFile();
   void addNodeRename(std::string nodeName, std::string symbolic);
   void addNodeUrl(std::string nodeName, std::string url);
+  void setNodeLocal(std::string nodeName, bool isLocal);
 private:
   std::map<std::string, int> graphVizFilesToNodes_;
   std::string graphVizConnections_;
   std::map<std::string, std::string> nodeRenameMap_;
   std::map<std::string, std::string> nodeUrl_;
   std::map<int, std::vector<int> > nodeLinks_;
+  std::map<std::string, bool> nodeLocal_;
+
   const std::string indent_ = "    ";
 };
 
