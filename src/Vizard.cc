@@ -1979,7 +1979,7 @@ namespace insur {
     // myContent->addItem(myImage);
 
 
-    // If debug requested, add modules' parametrized spatial resolution profiles and distributions to website resolution tabs
+    // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
     if (debugResolution) {
 
       std::string tag;
@@ -1988,11 +1988,11 @@ namespace insur {
 
       RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
 
-      // Modules' parametrized spatial resolution profiles
-      std::map<std::string, TProfile>& parametrizedResolutionLocalXBarrelProfile = analyzer.getParametrizedResolutionLocalXBarrelProfile();
-      std::map<std::string, TProfile>& parametrizedResolutionLocalYBarrelProfile = analyzer.getParametrizedResolutionLocalYBarrelProfile();
-      std::map<std::string, TProfile>& parametrizedResolutionLocalXEndcapsProfile = analyzer.getParametrizedResolutionLocalXEndcapsProfile();
-      std::map<std::string, TProfile>& parametrizedResolutionLocalYEndcapsProfile = analyzer.getParametrizedResolutionLocalYEndcapsProfile();
+      // Modules' parametrized spatial resolution maps
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXBarrelMap = analyzer.getParametrizedResolutionLocalXBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYBarrelMap = analyzer.getParametrizedResolutionLocalYBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
 
       // Modules' parametrized spatial resolution distributions
       std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
@@ -2000,14 +2000,14 @@ namespace insur {
       std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
       std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
-      if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() == 0) {
+      if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
 	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. See modules table for spatial resolution estimates."));
       }
 
-      // If profiles not empty, add modules' parametrized spatial resolution profiles and corresponding distributions
+      // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
       else {
 	gStyle->SetOptStat("emr");
-	if (parametrizedResolutionLocalXBarrelProfile[tag].GetEntries() != 0) {
+	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
 	  TCanvas resoXBarCanvas;
 	  resoXBarCanvas.SetFillColor(color_plot_background);
 	  resoXBarCanvas.Divide(2,1);
@@ -2016,7 +2016,7 @@ namespace insur {
 	  myPad->SetFillColor(color_pad_background);
 	  myPad = resoXBarCanvas.GetPad(1);
 	  myPad->cd();
-	  parametrizedResolutionLocalXBarrelProfile[tag].Draw();
+	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
 	  myPad = resoXBarCanvas.GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
@@ -2025,7 +2025,7 @@ namespace insur {
 	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
 	}
-	if (parametrizedResolutionLocalYBarrelProfile[tag].GetEntries() != 0) {
+	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
 	  TCanvas resoYBarCanvas;
 	  resoYBarCanvas.SetFillColor(color_plot_background);
 	  resoYBarCanvas.Divide(2,1);
@@ -2034,7 +2034,7 @@ namespace insur {
 	  myPad->SetFillColor(color_pad_background);
 	  myPad = resoYBarCanvas.GetPad(1);
 	  myPad->cd();
-	  parametrizedResolutionLocalYBarrelProfile[tag].Draw();
+	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
 	  myPad = resoYBarCanvas.GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
@@ -2043,7 +2043,7 @@ namespace insur {
 	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
 	}
-	if (parametrizedResolutionLocalXEndcapsProfile[tag].GetEntries() != 0) {
+	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
 	  TCanvas resoXEndCanvas;
 	  resoXEndCanvas.SetFillColor(color_plot_background);
 	  resoXEndCanvas.Divide(2,1);
@@ -2052,7 +2052,7 @@ namespace insur {
 	  myPad->SetFillColor(color_pad_background);
 	  myPad = resoXEndCanvas.GetPad(1);
 	  myPad->cd();
-	  parametrizedResolutionLocalXEndcapsProfile[tag].Draw();
+	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
 	  myPad = resoXEndCanvas.GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
@@ -2061,7 +2061,7 @@ namespace insur {
 	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
 	}
-	if (parametrizedResolutionLocalYEndcapsProfile[tag].GetEntries() != 0) {
+	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
 	  TCanvas resoYEndCanvas;
 	  resoYEndCanvas.SetFillColor(color_plot_background);
 	  resoYEndCanvas.Divide(2,1);
@@ -2070,7 +2070,7 @@ namespace insur {
 	  myPad->SetFillColor(color_pad_background);
 	  myPad = resoYEndCanvas.GetPad(1);
 	  myPad->cd();
-	  parametrizedResolutionLocalYEndcapsProfile[tag].Draw();
+	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
 	  myPad = resoYEndCanvas.GetPad(2);
 	  myPad->cd();
 	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);

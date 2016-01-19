@@ -1,4 +1,3 @@
-// 
 // File:   Analyzer.h
 // Author: ndemaio
 //
@@ -216,10 +215,10 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, double>& getTagWeigth() { return tagWeight; };
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXBarrelProfile() {return parametrizedResolutionLocalXBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalXEndcapsProfile() { return parametrizedResolutionLocalXEndcapsProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYBarrelProfile() { return parametrizedResolutionLocalYBarrelProfile; }
-    std::map<std::string, TProfile>& getParametrizedResolutionLocalYEndcapsProfile() { return parametrizedResolutionLocalYEndcapsProfile; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalXBarrelMap() {return parametrizedResolutionLocalXBarrelMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalYBarrelMap() { return parametrizedResolutionLocalYBarrelMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalYEndcapsMap() { return parametrizedResolutionLocalYEndcapsMap; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
     std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
@@ -306,10 +305,10 @@ namespace insur {
     std::map<std::string, double> typeWeight;
     std::map<std::string, double> tagWeight;
 
-    std::map<std::string, TProfile> parametrizedResolutionLocalXBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalXEndcapsProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYBarrelProfile;
-    std::map<std::string, TProfile> parametrizedResolutionLocalYEndcapsProfile; 
+    std::map<std::string, TH2D> parametrizedResolutionLocalXBarrelMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalXEndcapsMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalYBarrelMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalYEndcapsMap; 
     std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
     std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
