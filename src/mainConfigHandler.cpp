@@ -192,7 +192,7 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
     value = "";
     return false;
   } else if (tokens.size() < 2) { 
-    cerr << "Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
+    cerr << "ERROR: Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
   } else {
     parameter = ctrim(tokens.at(0), " \"\n\t");
@@ -245,7 +245,7 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
         thresholdProbabilities_ = parseDoubleList(value);
         thresholdProbabilitiesFound = true;
       } else {
-        cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
+        cerr << "ERROR: Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
   }
@@ -415,7 +415,9 @@ string ConfigInputOutput::getIncludedFile(string fileName) {
   for (const auto& aPath : includePathList) {
     testPath = aPath+"/"+fileName;
     testPath = boost::filesystem::system_complete(testPath).string();
-    if ( boost::filesystem::exists(testPath) ) result.push_back(testPath);
+    if ( boost::filesystem::exists(testPath) ) {
+      result.push_back(testPath);
+    }
   }
   if (result.size()==1) return result.at(0);
   else if (result.size()==0) {
@@ -473,7 +475,6 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
   includeSet.insert(absoluteFileName);
 
   while(getline(is, line).good()) {
-    // cerr << "Parsing raw line: " << line << endl;
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
     int includeStart;
@@ -488,12 +489,6 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
     }
 
     if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
-
-      // Debug
-      cerr << "  Include line detected : >>>" << line << "<<<" << endl;
-      cerr << "          current include path : ";
-      for (const auto& aPath : cfgInOut.includePathList ) cerr << "                               : " << aPath << endl;
-
       trimmed = trimmed.substr(includeStart);
       int quoteStart, quoteEnd;
       string nextIncludeFileName;
@@ -510,13 +505,10 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
       string fullIncludedFileName;
       int includedFileId;
       if (includeStdOld || includeStdNew) {
-	cerr << "          include is standard" << endl;
 	fullIncludedFileName = getStandardIncludeDirectory()+ "/" + nextIncludeFileName;
       } else {
-	cerr << "          include is relative" << endl;
 	fullIncludedFileName = cfgInOut.getIncludedFile(nextIncludeFileName);
       }
-      cerr << "          fullIncludedFileName : >>>" << fullIncludedFileName << "<<< (" << nextIncludeFileName << ")" << endl;      
       includedFileId = getFileId(fullIncludedFileName);
       
       ifstream ifs(fullIncludedFileName);
@@ -539,7 +531,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
           os << indent << line << endl;   
         }
       } else {
-        cerr << "Warning: ignoring " << ( (includeStdOld||includeStdNew) ? "@include-std" : "@include" ) << " directive in " << absoluteFileName << ":" << numLine << " : could not open included file : " << nextIncludeFileName << endl;
+        cerr << "ERROR: ignoring " << ( (includeStdOld||includeStdNew) ? "@include-std" : "@include" ) << " directive in " << absoluteFileName << ":" << numLine << " : could not open included file : " << nextIncludeFileName << endl;
       }
     } else {
       os << line << endl;
