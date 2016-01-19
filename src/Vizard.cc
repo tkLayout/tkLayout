@@ -2006,6 +2006,8 @@ namespace insur {
 
       // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
       else {
+	gStyle->SetTitleX(0.54);
+	gStyle->SetTitleW(1);
 	gStyle->SetOptStat("emr");
 	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
 	  TCanvas resoXBarCanvas;

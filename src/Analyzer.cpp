@@ -1841,25 +1841,25 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       // Modules' parametrized spatial resolution distributions
       parametrizedResolutionLocalXBarrelDistribution[myTag].Reset();
       parametrizedResolutionLocalXBarrelDistribution[myTag].SetNameTitle("resoXBarDistr","Distribution of the resolution on local X coordinate (barrel modules)");
-      parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(500,0,30);
+      parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(500, 0, 30);
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalXEndcapsDistribution[myTag].Reset();
       parametrizedResolutionLocalXEndcapsDistribution[myTag].SetNameTitle("resoXEndDistr","Distribution of the resolution on local X coordinate (endcaps modules)");
-      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(500,0,30);
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(500, 0, 30);
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYBarrelDistribution[myTag].Reset();
       parametrizedResolutionLocalYBarrelDistribution[myTag].SetNameTitle("resoYBarDistr","Distribution of the resolution on local Y coordinate (barrel modules)");
-      parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(500,0,60);
+      parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(500, 0, 60);
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYEndcapsDistribution[myTag].Reset();
       parametrizedResolutionLocalYEndcapsDistribution[myTag].SetNameTitle("resoYEndDistr","Distribution of the resolution on local Y coordinate (endcaps modules)");
-      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(500,0,60);
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(500, 0, 60);
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
  
