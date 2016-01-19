@@ -1946,16 +1946,14 @@ namespace insur {
     else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    int prevStat = gStyle->GetOptStat();
-    gStyle->SetOptStat(0);
     hitMapCanvas->cd();
     //gStyle->SetPalette(1);
     hitMapCanvas->SetFillColor(color_plot_background);
     hitMapCanvas->SetBorderMode(0);
     hitMapCanvas->SetBorderSize(0);
     analyzer.getMapPhiEta().Draw("colz");
+    analyzer.getMapPhiEta().SetStats(0);
     hitMapCanvas->Modified();
-    gStyle->SetOptStat(prevStat);
     myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
