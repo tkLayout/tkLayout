@@ -452,22 +452,13 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
 
   // Assing the file id to this file name
   int thisFileId = getFileId(absoluteFileName);
-  if (cfgInOut.standardInclude) {
-    addNodeRename(absoluteFileName, "STD/"+relativeFileName);
-    addNodeUrl(absoluteFileName, "file://"+absoluteFileName);
-    setNodeLocal(absoluteFileName, false);
-  } else {
-    addNodeRename(absoluteFileName, relativeFileName);
-    addNodeUrl(absoluteFileName, "file://"+absoluteFileName);
-    setNodeLocal(absoluteFileName, true);
-  }
-
+  setNodeLocal(absoluteFileName, ! cfgInOut.standardInclude);
+  prepareNodeOutput(absoluteFileName, relativeFileName, cfgInOut.webOutput);
 
   // Avoid double-counting: files included from this one should be
   // counted only once
   clearGraphLinks(thisFileId);
   std::string full_path = boost::filesystem::system_complete(absoluteFileName).string();
-  addNodeUrl(absoluteFileName, "file://"+full_path);
 
   string line;
   int numLine = 1;
@@ -520,6 +511,7 @@ std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cf
 	nextIncludeInputOutput.standardInclude=(includeStdOld || includeStdNew);
 	nextIncludeInputOutput.absoluteFileName=fullIncludedFileName;
 	nextIncludeInputOutput.relativeFileName=nextIncludeFileName;
+	nextIncludeInputOutput.webOutput=cfgInOut.webOutput;
         auto&& moreIncludes = preprocessConfiguration(nextIncludeInputOutput);
 
 	// Graph node links

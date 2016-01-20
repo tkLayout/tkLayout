@@ -36,6 +36,7 @@ public:
   bool standardInclude = false;
   set<string> includePathList;
   string getIncludedFile(string fileName);
+  bool webOutput;
 };
 
 // This object wil read the configuration only once

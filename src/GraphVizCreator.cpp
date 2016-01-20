@@ -1,4 +1,6 @@
 #include <GraphVizCreator.hh>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 
 int GraphVizCreator::getFileId(std::string istreamid) {
   if (graphVizFilesToNodes_[istreamid]==0) graphVizFilesToNodes_[istreamid]=graphVizFilesToNodes_.size();
@@ -65,3 +67,33 @@ std::string GraphVizCreator::createGraphVizFile() {
   return result;
 }
 
+void GraphVizCreator::prepareNodeOutput(std::string absoluteFileName, std::string relativeFileName, bool webOutput) {
+  bool isLocal = nodeLocal_[absoluteFileName];
+
+  // Name the node correctly on the output graph
+  if (isLocal==false) addNodeRename(absoluteFileName, "STD/"+relativeFileName); // @include-std 
+  else addNodeRename(absoluteFileName, relativeFileName); // @include
+
+  // Prepare the correct link
+  if (webOutput) addNodeUrl(absoluteFileName, destinationEncode(absoluteFileName));
+  else addNodeUrl(absoluteFileName, "file://"+absoluteFileName);
+
+}
+
+std::string GraphVizCreator::destinationEncode(const std::string& originalFileName) {
+  boost::filesystem::path p(originalFileName);
+  return std::to_string(getFileId(originalFileName))+"-"+p.filename().string();
+}
+
+void GraphVizCreator::createEncodedFileList(std::vector<std::string>& originalFileNames,
+					    std::vector<std::string>& destinationFileNames) {
+  originalFileNames.clear();
+  destinationFileNames.clear();
+  for (auto& aFileToNode : graphVizFilesToNodes_ ) {
+    const std::string& origFileName = aFileToNode.first;
+    std::string destFileName = destinationEncode(aFileToNode.first);
+    originalFileNames.push_back(origFileName);
+    destinationFileNames.push_back(destFileName);
+    nodeDestinationFilename_[origFileName]=destFileName;
+  }
+}

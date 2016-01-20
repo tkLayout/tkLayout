@@ -74,7 +74,8 @@ namespace insur {
     mainConfig.absoluteFileName=getGeometryFile();
     mainConfig.relativeFileName=getGeometryFile();
     mainConfig.standardInclude=false;
-    includeSet_ = mainConfiguration.preprocessConfiguration(mainConfig);
+    mainConfig.webOutput = webOutput;
+    mainConfiguration.preprocessConfiguration(mainConfig);
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
     using namespace boost::property_tree;
     ptree pt;
@@ -669,7 +670,7 @@ namespace insur {
       return false;
     } else {
       startTaskClock("Saving additional information");
-      v.additionalInfoSite(includeSet_, getSettingsFile(),
+      v.additionalInfoSite(getSettingsFile(),
                            a, pixelAnalyzer, *tr, *simParms_, site);
       stopTaskClock();
       return true;
