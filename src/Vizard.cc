@@ -2006,7 +2006,7 @@ namespace insur {
       else {
 	RootWTable* myTable = new RootWTable();
 	parametrizedResolutionContent.addItem(myTable);
-	myTable->setContent(1, 1, "These are modules parametrized spatial resolution plots for all modules types, over full barrel or endcaps volumes.");
+	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
 	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
 	myTable->setContent(3, 1, " ");
 	myTable->setContent(4, 1, " ");
