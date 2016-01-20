@@ -2225,7 +2225,7 @@ namespace insur {
   }
   
 
-  bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
+  bool Vizard::additionalInfoSite(const std::string& settingsfile,
                                   Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
@@ -2286,15 +2286,13 @@ namespace insur {
 
     std::string destinationFilename;
 
-    if (!includeSet.empty()) {
-      std::vector<std::string> destSet;
-      std::transform(includeSet.begin(), includeSet.end(), std::back_inserter(destSet), [](const std::string& s) {
-        auto pos = s.find_last_of('/');
-        return (pos != string::npos ? s.substr(pos+1) : s);  
-      });
-      RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", includeSet.begin(), includeSet.end());
-      simulationContent->addItem(myBinaryFileList);
-    }
+    // Let's add the included files from the main configuration
+    mainConfigHandler& mainConfig = mainConfigHandler::instance();
+    std::vector<std::string> origSet;
+    std::vector<std::string> destSet;
+    mainConfig.createEncodedFileList(origSet, destSet);
+    RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(destSet.begin(), destSet.end(), "Geometry configuration file(s)", origSet.begin(), origSet.end());
+    simulationContent->addItem(myBinaryFileList);
 
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");

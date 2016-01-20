@@ -29,7 +29,6 @@ template <class T> bool from_string(T& t, const std::string& s,
 
 mainConfigHandler::mainConfigHandler() {
   goodConfigurationRead_ = false;
-  //styleDirectory_ = "";
   binDirectory_ = "";
   layoutDirectory_ = "";
   standardDirectory_ = "";
@@ -193,7 +192,7 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
     value = "";
     return false;
   } else if (tokens.size() < 2) { 
-    cerr << "Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
+    cerr << "ERROR: Cannot understand line: '" << codeLine << "' in the configuration file " << CONFIGURATIONFILENAME << endl;
     return false;
   } else {
     parameter = ctrim(tokens.at(0), " \"\n\t");
@@ -226,12 +225,7 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
     configFileIs.getline(myLine, 1024);
     if (parseLine(myLine, parameter, value)) {
       // Case insensitive: the configuration file should be a shell script too
-      //std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
-      // If he's defining the style directory, then we map it to styleDirectory_
-      //if (parameter==STYLEDIRECTORYDEFINITION) {
-      //styleDirectory_ = value;
-      //styleFound=true;
-      //} 
+      // std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::tolower);
       if (parameter==BINDIRECTORYDEFINITION) {
         binDirectory_ = value;
         binFound = true;
@@ -251,7 +245,7 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
         thresholdProbabilities_ = parseDoubleList(value);
         thresholdProbabilitiesFound = true;
       } else {
-        cerr << "Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
+        cerr << "ERROR: Unknown parameter " << parameter << " in the configuration file " << CONFIGURATIONFILENAME << endl;
       }
     }
   }
@@ -276,7 +270,6 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
     cout << endl;
   }
 
-  //return (styleFound&&layoutFound&&xmlFound&&momentaFound);
   return (binFound&&layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound);
 }
 
@@ -287,7 +280,6 @@ bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
 bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
   bool result = readConfiguration(true);
   if (result) {
-    //styleDirectory = styleDirectory_;
     layoutDirectory = layoutDirectory_;
   }
   return result;
@@ -417,75 +409,121 @@ string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirec
 string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
 string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 
+string ConfigInputOutput::getIncludedFile(string fileName) {
+  vector<string> result;
+  string testPath;
+  for (const auto& aPath : includePathList) {
+    testPath = aPath+"/"+fileName;
+    testPath = boost::filesystem::system_complete(testPath).string();
+    if ( boost::filesystem::exists(testPath) ) {
+      result.push_back(testPath);
+    }
+  }
+  if (result.size()==1) return result.at(0);
+  else if (result.size()==0) {
+    cerr << "ERROR: cannot find file " << fileName << " in any of the include path directories: " << endl;
+    for (const auto& aPath : includePathList)  cerr << "   * " << aPath << endl;
+    return "";
+  } else {
+    cerr << "ERROR: file " << fileName << " found multiple times in the include path directories: " << endl;
+    for (const auto& aFile : result)  cerr << "   * " << aFile << endl;
+    return "";
+  }
+}
 
-// MASSIVE TODO: use boost::filesystem instead of guesswork...
-std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
+std::set<string> mainConfigHandler::preprocessConfiguration(ConfigInputOutput cfgInOut) {
   using namespace std;
+
+  istream& is = cfgInOut.is;
+  ostream& os = cfgInOut.os;
+  const string& absoluteFileName = cfgInOut.absoluteFileName;
+  const string& relativeFileName = cfgInOut.relativeFileName;
+  bool& standardInclude = cfgInOut.standardInclude;
+  string absoluteFileNameDirectory = boost::filesystem::canonical(absoluteFileName).parent_path().string();
+
+  // For the first run and if it's not a standardInclude I have to att
+  // ths file's path to the list of visited include paths
+  if (cfgInOut.includePathList.size()==0) {
+    string firstFileName = boost::filesystem::canonical(cfgInOut.absoluteFileName).string();
+    addNodeUrl(firstFileName, "file://"+cfgInOut.absoluteFileName);
+    setNodeLocal(firstFileName, true);
+  }
+  if ((cfgInOut.includePathList.size()==0)||(!standardInclude)) cfgInOut.includePathList.insert(absoluteFileNameDirectory);
+
   // Assing the file id to this file name
-  int thisFileId = getFileId(istreamid);
-  // Avoid couble-counting: files included from this one
-  // should be counted only once
+  int thisFileId = getFileId(absoluteFileName);
+  setNodeLocal(absoluteFileName, ! cfgInOut.standardInclude);
+  prepareNodeOutput(absoluteFileName, relativeFileName, cfgInOut.webOutput);
+
+  // Avoid double-counting: files included from this one should be
+  // counted only once
   clearGraphLinks(thisFileId);
-  std::string full_path = boost::filesystem::system_complete(istreamid).string();
-  addNodeUrl(istreamid, "file://"+full_path);
+  std::string full_path = boost::filesystem::system_complete(absoluteFileName).string();
+
   string line;
   int numLine = 1;
   std::set<string> includeSet;
-  includeSet.insert(istreamid);
-  std::string istreamid_directory = istreamid.substr(0, istreamid.find_last_of("/"));
-  if (istreamid_directory == istreamid) {
-    istreamid_directory = ".";
-  }
+  includeSet.insert(absoluteFileName);
+
   while(getline(is, line).good()) {
     if (line.find("//") != string::npos) line = line.erase(line.find("//"));
     string trimmed = trim(line);
     int includeStart;
-    if ((includeStart = trimmed.find("tiltedLayerSpecFile")) != string::npos) { // merging a spec file
+    // Merging a spec file (adding the latest includepath to the filename)
+    if ((includeStart = trimmed.find("tiltedLayerSpecFile")) != string::npos) { 
       string rightPart = trimmed.substr(includeStart + strlen("tiltedLayerSpecFile"));
       string leftPart = trimmed.substr(0, includeStart + strlen("tiltedLayerSpecFile"));
       int lastSpace;
       for (lastSpace=0; (rightPart[lastSpace]==' ')&&(lastSpace<rightPart.size()); lastSpace++);
       rightPart = rightPart.substr(lastSpace);
-      line = leftPart + " " + istreamid_directory + "/" + rightPart;
+      line = leftPart + " " + absoluteFileNameDirectory + "/" + rightPart;
     }
 
     if ((includeStart = trimmed.find("@include")) != string::npos) { //@include @include-std
       trimmed = trimmed.substr(includeStart);
       int quoteStart, quoteEnd;
-      string filename;
+      string nextIncludeFileName;
       if ((quoteStart = trimmed.find_first_of("\"")) != string::npos && (quoteEnd = trimmed.find_last_of("\"")) != string::npos) {
-        filename = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
+        nextIncludeFileName = ctrim(trimmed.substr(quoteStart, quoteEnd - quoteStart + 1), "\"");
       } else {
         auto tokens = split(trimmed, " ");
-        filename = tokens.size() > 1 ? tokens[1] : "";
+        nextIncludeFileName = tokens.size() > 1 ? tokens[1] : "";
       }
+
       bool includeStdOld = trimmed.find("@includestd") != string::npos;  // both @includestd (deprecated) and @include-std (preferred) are supported 
       bool includeStdNew = trimmed.find("@include-std") != string::npos;
-      string prefix;
+
+      string fullIncludedFileName;
       int includedFileId;
       if (includeStdOld || includeStdNew) {
-	prefix = getStandardIncludeDirectory()+"/";
-	addNodeRename(prefix+filename, "STD/"+filename);
-	addNodeUrl(prefix+filename, "file://"+prefix+filename);
+	fullIncludedFileName = getStandardIncludeDirectory()+ "/" + nextIncludeFileName;
       } else {
-	prefix = istreamid_directory+"/"; 
-	full_path = boost::filesystem::system_complete(prefix).string();
-	addNodeUrl(prefix+filename, "file://"+full_path+"/"+filename);
+	fullIncludedFileName = cfgInOut.getIncludedFile(nextIncludeFileName);
       }
-      filename = prefix + filename;
-      includedFileId = getFileId(filename);
-      ifstream ifs(filename);
+      includedFileId = getFileId(fullIncludedFileName);
+      
+      ifstream ifs(fullIncludedFileName);
+
       if (ifs) {
         stringstream ss;
-        auto&& moreIncludes = preprocessConfiguration(ifs, ss, filename);
+	ConfigInputOutput nextIncludeInputOutput(ifs, ss);
+	nextIncludeInputOutput.includePathList=cfgInOut.includePathList;
+	nextIncludeInputOutput.standardInclude=(includeStdOld || includeStdNew);
+	nextIncludeInputOutput.absoluteFileName=fullIncludedFileName;
+	nextIncludeInputOutput.relativeFileName=nextIncludeFileName;
+	nextIncludeInputOutput.webOutput=cfgInOut.webOutput;
+        auto&& moreIncludes = preprocessConfiguration(nextIncludeInputOutput);
+
+	// Graph node links
 	addGraphLink(thisFileId, includedFileId);
         includeSet.insert(moreIncludes.begin(), moreIncludes.end());
         string indent = line.substr(0, line.find_first_not_of(" \t"));
+
         while (getline(ss, line).good()) {
           os << indent << line << endl;   
         }
       } else {
-        cerr << "WARNING: " << istreamid << ":" << numLine << ": Ignoring malformed @include or @includestd directive" << endl;
+        cerr << "ERROR: ignoring " << ( (includeStdOld||includeStdNew) ? "@include-std" : "@include" ) << " directive in " << absoluteFileName << ":" << numLine << " : could not open included file : " << nextIncludeFileName << endl;
       }
     } else {
       os << line << endl;

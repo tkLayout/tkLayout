@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
   po::options_description otheropt("Other options");
   otheropt.add_options()
     ("version,v", "Prints software version (SVN revision) and quits.")
+    ("webOutput,w", "Prepares the output for web publishing (local running is assumed otherwise).")
     ;
 
   
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   squid.setGeometryFile(basename);
+  squid.webOutput = (vm.count("webOutput")!=0);
   if (htmldir != "") squid.setHtmlDir(htmldir);
 
 
