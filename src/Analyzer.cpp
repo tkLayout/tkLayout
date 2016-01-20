@@ -850,7 +850,6 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   ModuleCap* myModuleCap;
   Module* myModule;
-
   //  unsigned int nLocalMasses;
 
   std::map<std::string, double>::const_iterator localmassesBegin;
@@ -1802,65 +1801,65 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       const string& myTag = ttcmIt.first;
       TrackCollectionMap& myTrackCollection = ttcmIt.second;
 
-      // Modules' parametrized spatial resolution profiles
-      parametrizedResolutionLocalXBarrelProfile[myTag].Reset();
-      parametrizedResolutionLocalXBarrelProfile[myTag].SetNameTitle("resoXBarProf","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
-      parametrizedResolutionLocalXBarrelProfile[myTag].SetBins(100,-0.3,0.3);
-      parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetRangeUser(0,30);
-      parametrizedResolutionLocalXBarrelProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
-      parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
-      parametrizedResolutionLocalXBarrelProfile[myTag].GetXaxis()->CenterTitle();
-      parametrizedResolutionLocalXBarrelProfile[myTag].GetYaxis()->CenterTitle();
+      // Modules' parametrized spatial resolution maps
+      parametrizedResolutionLocalXBarrelMap[myTag].Reset();
+      parametrizedResolutionLocalXBarrelMap[myTag].SetNameTitle("resoXBarMap","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
+      parametrizedResolutionLocalXBarrelMap[myTag].SetBins(500, -0.3, 0.3, 500, 0, 30);
+      parametrizedResolutionLocalXBarrelMap[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      parametrizedResolutionLocalXBarrelMap[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXBarrelMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalXBarrelMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalXBarrelMap[myTag].SetMarkerColor(kBlue + 2);
 
-      parametrizedResolutionLocalXEndcapsProfile[myTag].Reset();
-      parametrizedResolutionLocalXEndcapsProfile[myTag].SetNameTitle("resoXEndProf","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
-      parametrizedResolutionLocalXEndcapsProfile[myTag].SetBins(100,-0.3,0.3);
-      parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,30);
-      parametrizedResolutionLocalXEndcapsProfile[myTag].GetXaxis()->SetTitle("cotg(alpha)");
-      parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
-      parametrizedResolutionLocalXEndcapsProfile[myTag].GetXaxis()->CenterTitle();
-      parametrizedResolutionLocalXEndcapsProfile[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalXEndcapsMap[myTag].Reset();
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetNameTitle("resoXEndMap","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetBins(500, -0.3, 0.3, 500, 0, 30);
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetMarkerColor(kBlue + 2);
 
-      parametrizedResolutionLocalYBarrelProfile[myTag].Reset();
-      parametrizedResolutionLocalYBarrelProfile[myTag].SetNameTitle("resoYBarProf","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
-      parametrizedResolutionLocalYBarrelProfile[myTag].SetBins(100,0,5);
-      parametrizedResolutionLocalYBarrelProfile[myTag].GetYaxis()->SetRangeUser(0,60);
-      parametrizedResolutionLocalYBarrelProfile[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
-      parametrizedResolutionLocalYBarrelProfile[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
-      parametrizedResolutionLocalYBarrelProfile[myTag].GetXaxis()->CenterTitle();
-      parametrizedResolutionLocalYBarrelProfile[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYBarrelMap[myTag].Reset();
+      parametrizedResolutionLocalYBarrelMap[myTag].SetNameTitle("resoYBarMap","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
+      parametrizedResolutionLocalYBarrelMap[myTag].SetBins(500, 0, 5, 500, 0, 60);
+      parametrizedResolutionLocalYBarrelMap[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
+      parametrizedResolutionLocalYBarrelMap[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYBarrelMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalYBarrelMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYBarrelMap[myTag].SetMarkerColor(kBlue + 2);
 
-      parametrizedResolutionLocalYEndcapsProfile[myTag].Reset();
-      parametrizedResolutionLocalYEndcapsProfile[myTag].SetNameTitle("resoYEndProf","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
-      parametrizedResolutionLocalYEndcapsProfile[myTag].SetBins(100,0,0.5);
-      parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetRangeUser(0,60);
-      parametrizedResolutionLocalYEndcapsProfile[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
-      parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
-      parametrizedResolutionLocalYEndcapsProfile[myTag].GetXaxis()->CenterTitle();
-      parametrizedResolutionLocalYEndcapsProfile[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYEndcapsMap[myTag].Reset();
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetNameTitle("resoYEndMap","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetBins(500, 0, 0.8, 500, 0, 60);
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetMarkerColor(kBlue + 2);
  
       // Modules' parametrized spatial resolution distributions
       parametrizedResolutionLocalXBarrelDistribution[myTag].Reset();
       parametrizedResolutionLocalXBarrelDistribution[myTag].SetNameTitle("resoXBarDistr","Distribution of the resolution on local X coordinate (barrel modules)");
-      parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(500,0,30);
+      parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(500, 0, 30);
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalXEndcapsDistribution[myTag].Reset();
       parametrizedResolutionLocalXEndcapsDistribution[myTag].SetNameTitle("resoXEndDistr","Distribution of the resolution on local X coordinate (endcaps modules)");
-      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(500,0,30);
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(500, 0, 30);
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
       parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYBarrelDistribution[myTag].Reset();
       parametrizedResolutionLocalYBarrelDistribution[myTag].SetNameTitle("resoYBarDistr","Distribution of the resolution on local Y coordinate (barrel modules)");
-      parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(500,0,60);
+      parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(500, 0, 60);
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->CenterTitle();
 
       parametrizedResolutionLocalYEndcapsDistribution[myTag].Reset();
       parametrizedResolutionLocalYEndcapsDistribution[myTag].SetNameTitle("resoYEndDistr","Distribution of the resolution on local Y coordinate (endcaps modules)");
-      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(500,0,60);
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(500, 0, 60);
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
       parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
  
@@ -1880,29 +1879,29 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 	      if ((hit->getObjectKind() == Hit::Active) && hit->getHitModule()) {
 		
 		Module* hitModule = hit->getHitModule();
-		// If any parameter for resolution on local X coordinate specified for hitModule, fill profiles and distributions
+		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalXParam()) {
 		  double cotAlpha = 1./tan(hitModule->alpha(myTrack.getPhi()));
 		  double resolutionLocalX =  hit->getResolutionLocalX() / Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
-		    parametrizedResolutionLocalXBarrelProfile[myTag].Fill(cotAlpha, resolutionLocalX, 1);
+		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);
 		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
 		  }
 		  if ( hitModule->subdet() == ENDCAP ) {
-		    parametrizedResolutionLocalXEndcapsProfile[myTag].Fill(cotAlpha, resolutionLocalX, 1);
+		    parametrizedResolutionLocalXEndcapsMap[myTag].Fill(cotAlpha, resolutionLocalX);
 		    parametrizedResolutionLocalXEndcapsDistribution[myTag].Fill(resolutionLocalX);
 		  }
 		}
-		// If any parameter for resolution on local Y coordinate specified for hitModule, fill profiles and distributions
+		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
 		if (hitModule->hasAnyResolutionLocalYParam()) {
 		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack.getTheta())));
 		  double resolutionLocalY = hit->getResolutionLocalY() / Units::um; // um
 		  if ( hitModule->subdet() == BARREL ) {
-		    parametrizedResolutionLocalYBarrelProfile[myTag].Fill(absCotBeta, resolutionLocalY, 1);
+		    parametrizedResolutionLocalYBarrelMap[myTag].Fill(absCotBeta, resolutionLocalY);
 		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
 		  }
 		  if (hitModule->subdet() == ENDCAP ) {
-		    parametrizedResolutionLocalYEndcapsProfile[myTag].Fill(absCotBeta, resolutionLocalY, 1);
+		    parametrizedResolutionLocalYEndcapsMap[myTag].Fill(absCotBeta, resolutionLocalY);
 		    parametrizedResolutionLocalYEndcapsDistribution[myTag].Fill(resolutionLocalY);
 		  }
 		}
