@@ -2777,6 +2777,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetMarkerSize(1.5);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
   totalEtaProfile.SetBins(100, 0, maxEta);
+  totalEtaProfile.SetStats(0);
 
   totalEtaProfileSensors.Reset();
   totalEtaProfileSensors.SetName("totalEtaProfileSensors");
@@ -2785,6 +2786,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileSensors.SetMarkerSize(1.5);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
   totalEtaProfileSensors.SetBins(100, 0, maxEta);
+  totalEtaProfileSensors.SetStats(0);
 
   totalEtaProfileStubs.Reset();
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
@@ -2793,6 +2795,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetMarkerSize(1.5);
   totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs");
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
+  totalEtaProfileStubs.SetStats(0);
 
   std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
 

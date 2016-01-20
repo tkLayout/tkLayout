@@ -1946,16 +1946,14 @@ namespace insur {
     else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    int prevStat = gStyle->GetOptStat();
-    gStyle->SetOptStat(0);
     hitMapCanvas->cd();
     //gStyle->SetPalette(1);
     hitMapCanvas->SetFillColor(color_plot_background);
     hitMapCanvas->SetBorderMode(0);
     hitMapCanvas->SetBorderSize(0);
     analyzer.getMapPhiEta().Draw("colz");
+    analyzer.getMapPhiEta().SetStats(0);
     hitMapCanvas->Modified();
-    gStyle->SetOptStat(prevStat);
     myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     myImage->setComment("Hit coverage in eta, phi");
     myContent->addItem(myImage);
@@ -2001,11 +1999,18 @@ namespace insur {
       std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
 
       if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
-	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. See modules table for spatial resolution estimates."));
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
       }
 
       // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
       else {
+	RootWTable* myTable = new RootWTable();
+	parametrizedResolutionContent.addItem(myTable);
+	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
+	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
+	myTable->setContent(3, 1, " ");
+	myTable->setContent(4, 1, " ");
+
 	gStyle->SetTitleX(0.54);
 	gStyle->SetTitleW(1);
 	gStyle->SetOptStat("emr");
