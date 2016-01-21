@@ -1,0 +1,69 @@
+Element {
+      elementName Cu
+      quantity 0.474
+      unit g
+      service false
+    }
+Element {
+      elementName PS-ROH-mix
+      quantity 3.024
+      unit g
+      service false
+    }
+
+// 1/6 DC converters
+Element {
+      elementName Cu
+      quantity 0.403
+      unit g
+      service false
+    }
+Element {
+      elementName PS-POH-mix
+      quantity 0.518
+      unit g
+      service false
+    }
+
+// 2 Optical fibers
+ Element {
+      elementName PE
+      quantity 1.139
+      unit g/m
+      service true
+    }
+    Element {
+      elementName Glass
+      quantity 0.06
+      unit g/m
+      service true
+    }
+    Element {
+      elementName Acrylate
+      quantity 0.07
+      unit g/m
+      service true
+    }
+
+    // 1/6 DC alim
+    // Two wires/6
+    Element {
+      elementName Cu
+      quantity 0.093
+      unit g/m
+      service true
+    }
+    // Two wires/6
+    Element {
+      elementName PE
+      quantity 0.074
+      unit g/m
+      service true
+    }
+    // Two wires/6 0.4 mm^2
+    Element {
+      elementName Al
+      quantity 0.36
+      unit g/m
+      service true
+    }
