@@ -11,20 +11,6 @@ Element {
       service false
     }
 
-// 1/6 DC converters
-Element {
-      elementName Cu
-      quantity 0.403
-      unit g
-      service false
-    }
-Element {
-      elementName PS-POH-mix
-      quantity 0.518
-      unit g
-      service false
-    }
-
 // 2 Optical fibers
  Element {
       elementName PE
@@ -44,27 +30,26 @@ Element {
       unit g/m
       service true
     }
-// 1/6 DC alim
 
-  
+    // Alim wires
     // Two wires
     Element {
       elementName Cu
-      quantity 0.093
+      quantity 0.558
       unit g/m
       service true
     }
     // Two wires
     Element {
       elementName PE
-      quantity 0.074
+      quantity 0.444
       unit g/m
       service true
     }
     // Two wires 0.4 mm^2
     Element {
       elementName Al
-      quantity 0.36
+      quantity 2.16
       unit g/m
       service true
     }

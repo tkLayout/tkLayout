@@ -10,6 +10,7 @@
 #include <Palette.h>
 
 #include "AnalyzerVisitors/MaterialBillAnalyzer.h"
+#include <Units.h>
 
 #undef MATERIAL_SHADOW
 
@@ -129,93 +130,12 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
 				       const std::vector<double>& momenta,
 				       const std::vector<double>& triggerMomenta,
 				       const std::vector<double>& thresholdProbabilities,
+				       bool isPixel,
+				       bool& debugResolution,
 				       int etaSteps,
 				       MaterialBudget* pm) {
 
-
-    /*TCanvas* cc = new TCanvas();
-      cc->cd();
-      TFile *_file0 = TFile::Open("mm.root");
-      TProfile* mm = (TProfile*)_file0->FindObjectAny("mm");
-      cc->SetLogy();
-      mm->Draw();
-      TAxis* myAxis = mm->GetXaxis();
-      double xmin = myAxis->GetXmin();
-      double xmax = myAxis->GetXmax();
-      TF1* hypSec = new TF1("hypSec", "1/cosh(x)", xmin, xmax);
-      TProfile* newmm = (TProfile*)mm->Clone();
-      newmm->Multiply(hypSec);
-      newmm->GetYaxis()->SetTitle("#Delta#eta");
-      newmm->SetTitle("Pseudorapidity resolution");
-      cc = new TCanvas();
-      cc->cd();
-      cc->SetLogy();
-      newmm->Draw();*/
-
-    TCanvas *c1 = new TCanvas("c1","Profile histogram example",200,10,700,500);
-
-    TProfile* profXBar;
-    profXBar  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30);
-    profXBar->GetYaxis()->SetRangeUser(0,30);
-    profXBar->GetXaxis()->SetTitle("cotg(alpha)");
-    profXBar->GetYaxis()->SetTitle("resolutionLocalX [um]");
-    profXBar->GetXaxis()->CenterTitle();
-    profXBar->GetYaxis()->CenterTitle();
-
-    TProfile* profYBar;
-    profYBar = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
-    profYBar->GetYaxis()->SetRangeUser(0,60);
-    profYBar->GetXaxis()->SetTitle("|cotg(beta)|");
-    profYBar->GetYaxis()->SetTitle("resolutionLocalY [um]");
-    profYBar->GetXaxis()->CenterTitle();
-    profYBar->GetYaxis()->CenterTitle();
-
-    TProfile* profXEnd;
-    profXEnd  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
-    profXEnd->GetYaxis()->SetRangeUser(0,30);
-    profXEnd->GetXaxis()->SetTitle("cotg(alpha)");
-    profXEnd->GetYaxis()->SetTitle("resolutionLocalX [um]");
-    profXEnd->GetXaxis()->CenterTitle();
-    profXEnd->GetYaxis()->CenterTitle();
-
-    TProfile* profYEnd;
-    profYEnd  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
-    profYEnd->GetYaxis()->SetRangeUser(0,60);
-    profYEnd->GetXaxis()->SetTitle("|cotg(beta)|");
-    profYEnd->GetYaxis()->SetTitle("resolutionLocalY [um]");
-    profYEnd->GetXaxis()->CenterTitle();
-    profYEnd->GetYaxis()->CenterTitle();
-
-
-    TH1D *histXBar = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
-    histXBar->GetXaxis()->SetTitle("resolutionLocalX [um]");
-    histXBar->GetXaxis()->CenterTitle();
-
-    TH1D *histYBar = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
-    histYBar->GetXaxis()->SetTitle("resolutionLocalY [um]");
-    histYBar->GetXaxis()->CenterTitle();
-
-    TH1D *histXEnd = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
-    histXEnd->GetXaxis()->SetTitle("resolutionLocalX [um]");
-    histXEnd->GetXaxis()->CenterTitle();
-
-    TH1D *histYEnd = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
-    histYEnd->GetXaxis()->SetTitle("resolutionLocalY [um]");
-    histYEnd->GetXaxis()->CenterTitle();
-
-
-
-    TProfile* profXBar0  = new TProfile("hprof","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,-0.4,0.3,0,30); 
-    TProfile* profYBar0 = new TProfile("hprof","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",100,0,5,0,60);
-    TProfile* profXEnd0  = new TProfile("hprof","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,-0.45,-0.25,0,30);
-    TProfile* profYEnd0  = new TProfile("hprof","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",100,0.25,0.5,0,60);
-    TH1D *histXBar0 = new TH1D("hist","Resolution on local X coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,30);
-    TH1D *histYBar0 = new TH1D("hist","Resolution on local Y coordinate for pixel barrel modules (L1 and L2 : LS, L3 and L4 : LS)",500,0,60);
-    TH1D *histXEnd0 = new TH1D("hist","Resolution on local X coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,30);
-    TH1D *histYEnd0 = new TH1D("hist","Resolution on local Y coordinate for pixel endcap modules (R1 and R2 : SS, R3 : SS)",500,0,60);
-
-
-    double efficiency = simParms().efficiency();
+  double efficiency = simParms().efficiency();
 
   materialTracksUsed = etaSteps;
 
@@ -245,7 +165,7 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
     eta = i_eta * etaStep;
     theta = 2 * atan(exp(-eta));
     //std::cout << " track's phi = " << phi << std::endl; 
-    track.setTheta(theta);      
+    track.setTheta(theta);
     track.setPhi(phi);
 
     tmp = findAllHits(mb, pm, eta, theta, phi, track);
@@ -276,166 +196,112 @@ void Analyzer::createTaggedTrackCollection(std::vector<MaterialBudget*> material
         track.setTriggerResolution(true); // TODO: remove this (?)
 
         if (efficiency!=1) track.addEfficiency(efficiency, false);
-        if (track.nActiveHits(true)>2) { // At least 3 points are needed to measure the arrow
-          // For each momentum/transverse momentum compute the tracks error
-          for (const auto& pIter : momenta ) {
-            int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
-            double momentum  = pIter;
-            
-            // Case I) Initial momentum is equal to pT
-            double pT = momentum;
-              
-            // Active+passive material
-            Track trackPt(track);
-            trackPt.setTransverseMomentum(pT);
+        // For each momentum/transverse momentum compute the tracks error
+        for (const auto& pIter : momenta ) {
+          int    parameter = pIter * 1000; // Store p or pT in MeV as int (key to the map)
+          double momentum  = pIter;
 
-            // Remove tracks with less than 3 hits
-            trackPt.pruneHits();
-            if (trackPt.nActiveHits(true)<=2) {
-              trackPt.computeErrors(profXBar, profYBar, profXEnd, profYEnd, histXBar, histYBar, histXEnd, histYEnd);
-              TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
-              TrackCollection &myCollection = myMap[parameter];
-              myCollection.push_back(trackPt);
-            }
-
-            // Ideal (no material)
-            Track idealTrackPt(trackPt);
-            idealTrackPt.removeMaterial();
-            if (idealTrackPt.nActiveHits(true)<=2) {
-              idealTrackPt.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-              TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
-              TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
-              myCollectionIdeal.push_back(idealTrackPt);
-            }
-
-            // Case II) Initial momentum is equal to p
-            pT = momentum*sin(theta);
-
-            // Active+passive material
-            Track trackP(track);
-            trackP.setTransverseMomentum(pT);
-
-            // Remove tracks with less than 3 hits
-            trackP.pruneHits();
-            if (trackP.nActiveHits(true)<=2) {
-              trackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-              TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
-              TrackCollection &myCollectionII = myMapII[parameter];
-              myCollectionII.push_back(trackP);
-            }
-
-            // Ideal (no material)
-            Track idealTrackP(trackP);
-            idealTrackP.removeMaterial();
-            if (idealTrackP.nActiveHits(true)<=2) {
-              idealTrackP.computeErrors(profXBar0, profYBar0, profXEnd0, profYEnd0, histXBar0, histYBar0, histXEnd0, histYEnd0);
-              TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
-              TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
-              myCollectionIdealII.push_back(idealTrackP);
-            }
+          // Case I) Initial momentum is equal to pT
+          double pT = momentum;
+  
+          // Active+passive material
+          Track trackPt(track);
+          trackPt.setTransverseMomentum(pT);        
+          trackPt.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            trackPt.computeErrors();
+            TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
+            TrackCollection &myCollection = myMap[parameter];
+            myCollection.push_back(trackPt);
           }
-        }    
+
+          // Ideal (no material)
+          Track idealTrackPt(trackPt);
+          idealTrackPt.removeMaterial(); 
+          if (idealTrackPt.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            idealTrackPt.computeErrors();
+            TrackCollectionMap &myMapIdeal     = taggedTrackPtCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdeal = myMapIdeal[parameter];
+            myCollectionIdeal.push_back(idealTrackPt);
+          }
+
+          // Case II) Initial momentum is equal to p
+          pT = momentum*sin(theta);
+
+          // Active+passive material
+          Track trackP(track);
+          trackP.setTransverseMomentum(pT);
+          trackP.pruneHits();                // Remove hits from a track that is not able to reach a given radius due to its limited momentum
+          if (trackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            trackP.computeErrors();
+            TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
+            TrackCollection &myCollectionII = myMapII[parameter];
+            myCollectionII.push_back(trackP);
+          }
+
+          // Ideal (no material)
+          Track idealTrackP(trackP);
+          idealTrackP.removeMaterial();
+          if (idealTrackP.nActiveHits(true)>=3) { // Only keep tracks which have minimum 3 active hits
+            idealTrackP.computeErrors();
+            TrackCollectionMap &myMapIdealII     = taggedTrackPCollectionMapIdeal[tag];
+            TrackCollection &myCollectionIdealII = myMapIdealII[parameter];
+            myCollectionIdealII.push_back(idealTrackP);
+          }
+        }
       }
     }
   }
 
-  // Momentum = Pt
-  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsPt(GraphBag::RealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      //std::cout << myCollection.size() << std::endl;
-      calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+  if (!isPixel) {
+    // Momentum = Pt
+    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMap) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsPt(GraphBag::RealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	//std::cout << myCollection.size() << std::endl;
+	calculateGraphsConstPt(parameter, myCollection, GraphBag::RealGraph, myTag);
+      }
+    }
+    for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsPt(GraphBag::IdealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
+      }
+    }
+
+    // Momentum = P
+    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsP(GraphBag::RealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	//std::cout << myCollection.size() << std::endl;
+	calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
+      }
+    }
+    for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
+      const string& myTag = ttcmIt.first;
+      clearGraphsP(GraphBag::IdealGraph, myTag);
+      /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
+      for (const auto& tcmIt : myTrackCollection) {
+	const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+	calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
+      }
     }
   }
-  for (/*const*/ auto& ttcmIt : taggedTrackPtCollectionMapIdeal) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsPt(GraphBag::IdealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphsConstPt(parameter, myCollection, GraphBag::IdealGraph, myTag);
-    }
+  if (debugResolution) calculateParametrizedResolutionPlots(taggedTrackPtCollectionMap);
   }
-
-  // Momentum = P
-  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMap) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsP(GraphBag::RealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      //std::cout << myCollection.size() << std::endl;
-      calculateGraphsConstP(parameter, myCollection, GraphBag::RealGraph, myTag);
-    }
-  }
-  for (/*const*/ auto& ttcmIt : taggedTrackPCollectionMapIdeal) {
-    const string& myTag = ttcmIt.first;
-    clearGraphsP(GraphBag::IdealGraph, myTag);
-    /*const*/ TrackCollectionMap& myTrackCollection = ttcmIt.second;
-    for (const auto& tcmIt : myTrackCollection) {
-      const int &parameter = tcmIt.first;
-      const TrackCollection& myCollection = tcmIt.second;
-      calculateGraphsConstP(parameter, myCollection, GraphBag::IdealGraph, myTag);
-    }
-  }
-
-  profXBar->Draw();
-  c1->Print("profXBar.gif");
-  TFile profXBar_out_file("profXBar_out_file.root", "RECREATE");
-  profXBar->Write();
-  profXBar_out_file.Close();
-
-  profYBar->Draw();
-  c1->Print("profYBar.gif");
-  TFile profYBar_out_file("profYBar_out_file.root", "RECREATE");
-  profYBar->Write();
-  profYBar_out_file.Close();
-
-  profXEnd->Draw();
-  c1->Print("profXEnd.gif");
-  TFile profXEnd_out_file("profXEnd_out_file.root", "RECREATE");
-  profXEnd->Write();
-  profXEnd_out_file.Close();
-
-  profYEnd->Draw();
-  c1->Print("profYEnd.gif");
-  TFile profYEnd_out_file("profYEnd_out_file.root", "RECREATE");
-  profYEnd->Write();
-  profYEnd_out_file.Close();
-
- 
-  
-  histXBar->DrawNormalized();
-  c1->Print("histXBar.gif");
-  TFile histXBar_out_file("histXBar_out_file.root", "RECREATE");
-  histXBar->Write();
-  histXBar_out_file.Close();
-
-  histYBar->DrawNormalized();
-  c1->Print("histYBar.gif");
-  TFile histYBar_out_file("histYBar_out_file.root", "RECREATE");
-  histYBar->Write();
-  histYBar_out_file.Close();
-
-  histXEnd->DrawNormalized();
-  c1->Print("histXEnd.gif");
-  TFile histXEnd_out_file("histXEnd_out_file.root", "RECREATE");
-  histXEnd->Write();
-  histXEnd_out_file.Close();
-
-  histYEnd->DrawNormalized();
-  c1->Print("histYEnd.gif");
-  TFile histYEnd_out_file("histYEnd_out_file.root", "RECREATE");
-  histYEnd->Write();
-  histYEnd_out_file.Close();
-
-}
 
   /**
    * The analysis function performing all necessary the trigger efficiencies
@@ -984,7 +850,6 @@ void Analyzer::computeDetailedWeights(std::vector<std::vector<ModuleCap> >& trac
 
   ModuleCap* myModuleCap;
   Module* myModule;
-
   //  unsigned int nLocalMasses;
 
   std::map<std::string, double>::const_iterator localmassesBegin;
@@ -1431,7 +1296,7 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
  * @param theta The track angle in the yz-plane
  * @param t A reference to the current track object
  * @param cat The category of inactive surfaces that need to be considered within the collection; none if the function is to look at all of them
- * @param A boolean flag to indicate which set of active surfaces is analysed: true if the belong to a pixel detector, false if they belong to the tracker
+ * @param A boolean flag to indicate which set of active surfaces isa nalysed: true if the belong to a pixel detector, false if they belong to the tracker
  * @return The scaled and summed up radiation and interaction lengths for the given collection of elements and track, bundled into a <i>std::pair</i>
  */
 
@@ -1787,6 +1652,25 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
     const double& dctg = myTrack.getDeltaCtgTheta();
     const double& dz0  = myTrack.getDeltaZ0();
     const double& dp   = myTrack.getDeltaP();
+
+
+    /*std::vector<std::pair<Module*,HitType>> hitModules = myTrack.getHitModules();
+    if ( hitModules.at(0).first->getObjectKind() == Active) {
+    std::cout << "hitModules.at(0).first->getResolutionLocalX() = " << hitModules.at(0).first->getResolutionLocalX() << std::endl;
+    }*/
+
+    std::vector<Hit*> hitModules = myTrack.getHitV();
+    //std::cout << "hitModules.at(0)->getObjectKind() = " << hitModules.at(0)->getObjectKind() << std::endl;
+    //std::cout << "Hit::Inactive = " << Hit::Inactive << std::endl;
+    for (auto& mh : hitModules) {
+    if ( mh->getObjectKind() == Hit::Active) {
+      if (mh->getHitModule()) {
+	//std::cout << "mh->getResolutionLocalX() = " << mh->getResolutionLocalX() << std::endl;
+      }
+    }
+    }
+
+
     eta = myTrack.getEta();
     R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
     if (drho>0) {
@@ -1905,6 +1789,129 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       thisPGraph_P.SetPoint(thisPGraph_P.GetN(), eta, graphValue);
     }
   }
+}
+
+  /**
+   * Creates the modules' parametrized spatial resolution profiles and distributions
+   * @param taggedTrackPtCollectionMap Tagged collections of tracks
+   */
+  void Analyzer::calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap) {
+
+    for (auto& ttcmIt : taggedTrackPtCollectionMap) {
+      const string& myTag = ttcmIt.first;
+      TrackCollectionMap& myTrackCollection = ttcmIt.second;
+
+      // Modules' parametrized spatial resolution maps
+      parametrizedResolutionLocalXBarrelMap[myTag].Reset();
+      parametrizedResolutionLocalXBarrelMap[myTag].SetNameTitle("resoXBarMap","Resolution on local X coordinate vs cotg(alpha) (barrel modules)");
+      parametrizedResolutionLocalXBarrelMap[myTag].SetBins(500, -0.3, 0.3, 500, 0, 30);
+      parametrizedResolutionLocalXBarrelMap[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      parametrizedResolutionLocalXBarrelMap[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXBarrelMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalXBarrelMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalXBarrelMap[myTag].SetMarkerColor(kBlue + 2);
+
+      parametrizedResolutionLocalXEndcapsMap[myTag].Reset();
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetNameTitle("resoXEndMap","Resolution on local X coordinate vs cotg(alpha) (endcaps modules)");
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetBins(500, -0.3, 0.3, 500, 0, 30);
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetXaxis()->SetTitle("cotg(alpha)");
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetYaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalXEndcapsMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalXEndcapsMap[myTag].SetMarkerColor(kBlue + 2);
+
+      parametrizedResolutionLocalYBarrelMap[myTag].Reset();
+      parametrizedResolutionLocalYBarrelMap[myTag].SetNameTitle("resoYBarMap","Resolution on local Y coordinate vs |cotg(beta)| (barrel modules)");
+      parametrizedResolutionLocalYBarrelMap[myTag].SetBins(500, 0, 5, 500, 0, 60);
+      parametrizedResolutionLocalYBarrelMap[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
+      parametrizedResolutionLocalYBarrelMap[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYBarrelMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalYBarrelMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYBarrelMap[myTag].SetMarkerColor(kBlue + 2);
+
+      parametrizedResolutionLocalYEndcapsMap[myTag].Reset();
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetNameTitle("resoYEndMap","Resolution on local Y coordinate vs |cotg(beta)| (endcaps modules)");
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetBins(500, 0, 0.8, 500, 0, 60);
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetXaxis()->SetTitle("|cotg(beta)|");
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetYaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetXaxis()->CenterTitle();
+      parametrizedResolutionLocalYEndcapsMap[myTag].GetYaxis()->CenterTitle();
+      parametrizedResolutionLocalYEndcapsMap[myTag].SetMarkerColor(kBlue + 2);
+ 
+      // Modules' parametrized spatial resolution distributions
+      parametrizedResolutionLocalXBarrelDistribution[myTag].Reset();
+      parametrizedResolutionLocalXBarrelDistribution[myTag].SetNameTitle("resoXBarDistr","Distribution of the resolution on local X coordinate (barrel modules)");
+      parametrizedResolutionLocalXBarrelDistribution[myTag].SetBins(500, 0, 30);
+      parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXBarrelDistribution[myTag].GetXaxis()->CenterTitle();
+
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].Reset();
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetNameTitle("resoXEndDistr","Distribution of the resolution on local X coordinate (endcaps modules)");
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].SetBins(500, 0, 30);
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalX [um]");
+      parametrizedResolutionLocalXEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
+
+      parametrizedResolutionLocalYBarrelDistribution[myTag].Reset();
+      parametrizedResolutionLocalYBarrelDistribution[myTag].SetNameTitle("resoYBarDistr","Distribution of the resolution on local Y coordinate (barrel modules)");
+      parametrizedResolutionLocalYBarrelDistribution[myTag].SetBins(500, 0, 60);
+      parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYBarrelDistribution[myTag].GetXaxis()->CenterTitle();
+
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].Reset();
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetNameTitle("resoYEndDistr","Distribution of the resolution on local Y coordinate (endcaps modules)");
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].SetBins(500, 0, 60);
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->SetTitle("resolutionLocalY [um]");
+      parametrizedResolutionLocalYEndcapsDistribution[myTag].GetXaxis()->CenterTitle();
+ 
+      for (const auto& tcmIt : myTrackCollection) {
+	//const int &parameter = tcmIt.first;
+	const TrackCollection& myCollection = tcmIt.second;
+
+ 	// track loop
+	for ( const auto& myTrack : myCollection ) {
+
+	  // hit loop
+	  for (auto& hit : myTrack.getHitV()) {
+
+	    // In case the tag is "tracker", takes only the outer tracker
+	    if (myTag != "tracker" || (myTag == "tracker" && !hit->isPixel())) {
+	      // Consider hit modules	
+	      if ((hit->getObjectKind() == Hit::Active) && hit->getHitModule()) {
+		
+		Module* hitModule = hit->getHitModule();
+		// If any parameter for resolution on local X coordinate specified for hitModule, fill maps and distributions
+		if (hitModule->hasAnyResolutionLocalXParam()) {
+		  double cotAlpha = 1./tan(hitModule->alpha(myTrack.getPhi()));
+		  double resolutionLocalX =  hit->getResolutionLocalX() / Units::um; // um
+		  if ( hitModule->subdet() == BARREL ) {
+		    parametrizedResolutionLocalXBarrelMap[myTag].Fill(cotAlpha, resolutionLocalX);
+		    parametrizedResolutionLocalXBarrelDistribution[myTag].Fill(resolutionLocalX);
+		  }
+		  if ( hitModule->subdet() == ENDCAP ) {
+		    parametrizedResolutionLocalXEndcapsMap[myTag].Fill(cotAlpha, resolutionLocalX);
+		    parametrizedResolutionLocalXEndcapsDistribution[myTag].Fill(resolutionLocalX);
+		  }
+		}
+		// If any parameter for resolution on local Y coordinate specified for hitModule, fill maps and distributions
+		if (hitModule->hasAnyResolutionLocalYParam()) {
+		  double absCotBeta = fabs(1./tan(hitModule->beta(myTrack.getTheta())));
+		  double resolutionLocalY = hit->getResolutionLocalY() / Units::um; // um
+		  if ( hitModule->subdet() == BARREL ) {
+		    parametrizedResolutionLocalYBarrelMap[myTag].Fill(absCotBeta, resolutionLocalY);
+		    parametrizedResolutionLocalYBarrelDistribution[myTag].Fill(resolutionLocalY);
+		  }
+		  if (hitModule->subdet() == ENDCAP ) {
+		    parametrizedResolutionLocalYEndcapsMap[myTag].Fill(absCotBeta, resolutionLocalY);
+		    parametrizedResolutionLocalYEndcapsDistribution[myTag].Fill(resolutionLocalY);
+		  }
+		}
+	      }
+	    }
+
+	  } // hit loop
+	} // track loop
+      } // collection loop
+    } // tag loop
 }
 
 /**
@@ -2770,6 +2777,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfile.SetMarkerSize(1.5);
   totalEtaProfile.SetTitle("Number of modules with at least one hit;#eta;Number of hit modules");
   totalEtaProfile.SetBins(100, 0, maxEta);
+  totalEtaProfile.SetStats(0);
 
   totalEtaProfileSensors.Reset();
   totalEtaProfileSensors.SetName("totalEtaProfileSensors");
@@ -2778,6 +2786,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileSensors.SetMarkerSize(1.5);
   totalEtaProfileSensors.SetTitle("Number of hits;#eta;Number of hits");
   totalEtaProfileSensors.SetBins(100, 0, maxEta);
+  totalEtaProfileSensors.SetStats(0);
 
   totalEtaProfileStubs.Reset();
   totalEtaProfileStubs.SetName("totalEtaProfileStubs");
@@ -2786,6 +2795,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetMarkerSize(1.5);
   totalEtaProfileStubs.SetTitle("Number of modules with a stub;#eta;Number of stubs");
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
+  totalEtaProfileStubs.SetStats(0);
 
   std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
 

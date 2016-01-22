@@ -196,8 +196,8 @@ FOREACH( file ${all_sources} )
    IF( ${file} MATCHES "global_funcs.cpp" )
      SET( source_globalfunctions ${file} )
    ENDIF()
-      IF( ${file} MATCHES "GraphVizCreator.cpp" )
-     SET( source_graphviz ${file} )
+   IF( ${file} MATCHES "GraphVizCreator.cpp" )
+     SET( source_graphvizcreator ${file} )
    ENDIF()
    LIST( APPEND sources ${file} )
  ENDIF()
@@ -220,7 +220,7 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynamic linking of internal/external libraries
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${source_graphviz} ${headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_graphvizcreator} ${source_mainhandler} ${source_globalfunctions} ${headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
 
 # explicitly say that the executable depends on custom target

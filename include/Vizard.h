@@ -46,6 +46,7 @@
 #include <TagMaker.h>
 
 #include <InactiveSurfaces.h>
+#include "Module.h"
 #include <rootweb.hh>
 #include <vector>
 #include <set>
@@ -57,6 +58,7 @@ namespace material {
   class WeightDistributionGrid;
 }
 
+using namespace boost::accumulators;
 using material::WeightDistributionGrid;
 
 namespace insur {
@@ -80,6 +82,7 @@ namespace insur {
   static const std::string emphStart  = "<b>";
   static const std::string emphEnd    = "</b>";
   static const std::string muLetter   = "&mu;";
+  static const std::string sigmaLetter= "&sigma;";
   static const std::string etaLetter  = "&eta;";
   static const std::string phiLetter  = "&phi;";
   static const std::string thetaLetter= "&theta;";
@@ -111,6 +114,7 @@ namespace insur {
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
+  static const int rphiResolutionRmsePrecision = 1;
   static const int pitchPrecision = 0;
   static const int stripLengthPrecision = 1;
   static const int millionChannelPrecision = 2;
@@ -175,7 +179,7 @@ namespace insur {
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
+    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
@@ -184,7 +188,7 @@ namespace insur {
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
-    bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
+    bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();

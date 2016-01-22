@@ -4,6 +4,14 @@
 #include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
+#include <boost/accumulators/statistics/count.hpp>
+
 
 #include "Sensor.h"
 #include "ModuleBase.h"
@@ -13,6 +21,7 @@
 #include "MaterialObject.h"
 #include "messageLogger.h"
 
+using namespace boost::accumulators;
 using material::MaterialObject;
 
 //
@@ -56,7 +65,7 @@ protected:
   double tiltAngle_ = 0., skewAngle_ = 0.;
 
   int numHits_ = 0;
-
+  
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
 public:
@@ -171,15 +180,25 @@ public:
     if (fabs(deltaPhi) > M_PI/2.) {
       if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
       else deltaPhi = deltaPhi - 2.*M_PI;
-    }  
+    }
     double alpha = deltaPhi + M_PI / 2.;
-    return alpha; 
+    return alpha;
   }
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
   virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
+  double resolutionLocalX(double phi) {
+    if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
+    else { return calculateParameterizedResolutionLocalX(phi); }
+  }
+  double resolutionLocalY(double theta) {
+    if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
+    else { return calculateParameterizedResolutionLocalY(theta); }
+  }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
@@ -241,9 +260,9 @@ public:
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
   ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
-  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
-  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
-  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
+  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegmentsEstimate()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
+  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegmentsEstimate()); } return segm; }
+  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegmentsEstimate(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
   int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
@@ -253,7 +272,10 @@ public:
   double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
 
   
-  int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  int numStripsAcrossEstimate() const { return sensors().front().numStripsAcrossEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double pitch() const { return sensors().front().pitch(); }
+int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double stripLength() const { return sensors().front().stripLength(); }
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 
   double stripOccupancyPerEvent() const;
@@ -273,7 +295,6 @@ public:
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
   void resetHits() { numHits_ = 0; }
-
 };
 
 
