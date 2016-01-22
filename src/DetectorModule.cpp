@@ -104,7 +104,10 @@ bool DetectorModule::couldHit(const XYZVector& direction, double zError) const {
   if ( (phi     >=minPhi() && phi     <=maxPhi()) ||
        (shiftPhi>=minPhi() && shiftPhi<=maxPhi()) ) withinPhi = true;
 
-  return (withinEta && withinPhi);
+  // Checking that hit within a module region works for barrel-type modules only!!!
+  if (this->shape()==ModuleShape::RECTANGULAR) return (withinEta && withinPhi);
+  // ATTENTION: For wedge shaped modules, min, max procedure will not work correctly -> return true to avoid errors --> will be implemented in the future
+  else return true;
 }
 
 
