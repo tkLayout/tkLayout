@@ -1804,7 +1804,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
 
       // Central region value
       double centralValue = dp * 100.; // in percent
-      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
+      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, centralValue);
 
       if (thisPGraphDipole_Pt) {
 
