@@ -1448,62 +1448,73 @@ namespace insur {
     myPage->addContent(myContent);
     RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
 
-    static const int tagRow = 1;
-    static const int typeRow = 2;
-    static const int thicknessRow = 3;
-    static const int moduleAreaRow = 4;
-    static const int totalAreaRow = 5;
-    static const int numbermodsRow = 6;
-    static const int numbersensRow = 7;
-    static const int channelRow = 8;
-    static const int nstripsRow = 9;
-    static const int segmentsRow = 10;
-    static const int striplengthRow = 11;
-    static const int pitchpairsRow = 12;
-    static const int rphiResolutionRow = 13;
-    static const int yResolutionRow = 14;
-    static const int rphiResolutionTriggerRow = 15;
-    static const int yResolutionTriggerRow = 16;
-    static const int stripOccupancyRow = 17;
-    static const int hitOccupancyRow = 18;
-    static const int powerPerModuleRow = 19;
-    static const int sensorPowerPerModuleAvgRow = 20;
-    static const int sensorPowerPerModuleMaxRow = 21;
-    static const int powerRow = 22;
-    static const int sensorPowerRow = 23;
-    static const int costRow = 24;
-    static const int moduleWeightRow = 25;
-    static const int inactiveWeightRow = 26;
-    static const int totalWeightRow = 27;
+    static const int tagRow            = 1; //1;
+    static const int typeRow           = 2; //2;
+    //static const int thicknessRow  = 3;
+    static const int moduleAreaRow     = 3; //4;
+    static const int totalAreaRow      = 4; //5;
+    static const int numbermodsRow     = 5; //6;
+    static const int numbersensRow     = 6; //7;
+    static const int channelRow        = 7; //8;
+    static const int nstripsRow        = 8; //9;
+    //static const int segmentsRow = 10;
+    //static const int striplengthRow = 11;
+    //static const int pitchpairsRow = 12;
+    static const int rphiResolutionRow = 9; //13;
+    static const int zResolutionRow    = 10; //14;
+    //static const int rphiResolutionTriggerRow = 15;
+    //static const int yResolutionTriggerRow = 16;
+    //static const int stripOccupancyRow = 17;
+    //static const int hitOccupancyRow = 18;
+    //static const int powerPerModuleRow = 19;
+    //static const int sensorPowerPerModuleAvgRow = 20;
+    //static const int sensorPowerPerModuleMaxRow = 21;
+    //static const int powerRow = 22;
+    //static const int sensorPowerRow = 23;
+    //static const int costRow = 24;
+    //static const int moduleWeightRow = 25;
+    static const int inactiveWeightRow = 15; //26;
+    static const int totalWeightRow    = 16; //27;
+
+    static const int nChannelsRPhi1Row  = 11;
+    static const int nChannelsRPhi2Row  = 12;
+    static const int nChannelsZ1Row     = 13;
+    static const int nChannelsZ2Row     = 14;
 
     // Row names
-    moduleTable->setContent(tagRow, 0, "Tag");
-    moduleTable->setContent(typeRow, 0, "Type");
-    moduleTable->setContent(thicknessRow, 0, "Sensor spacing");
-    moduleTable->setContent(moduleAreaRow, 0, "Sensor area (mm"+superStart+"2"+superEnd+")");
-    moduleTable->setContent(totalAreaRow, 0, "Total area (m"+superStart+"2"+superEnd+")");
-    moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
-    moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
-    moduleTable->setContent(rphiResolutionRow, 0, "R/Phi resolution ("+muLetter+"m)");
-    moduleTable->setContent(yResolutionRow, 0, "Y resolution ("+muLetter+"m)");
-    moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
-    moduleTable->setContent(yResolutionTriggerRow, 0, "Y resolution [pt] ("+muLetter+"m)");
-    moduleTable->setContent(pitchpairsRow, 0, "Pitch (min/max)");
-    moduleTable->setContent(striplengthRow, 0, "Strip length");
-    moduleTable->setContent(segmentsRow, 0, "Segments x Chips");
-    moduleTable->setContent(nstripsRow, 0, "Chan/Sensor");
-    moduleTable->setContent(numbermodsRow, 0, "N. mod");
-    moduleTable->setContent(numbersensRow, 0, "N. sens");
-    moduleTable->setContent(channelRow, 0, "Channels (M)");
-    moduleTable->setContent(powerRow, 0, "FE Power (kW)");
-    moduleTable->setContent(sensorPowerRow, 0, "Sensor power (kW)");
-    moduleTable->setContent(powerPerModuleRow, 0, "FE Power/mod (mW)");
-    moduleTable->setContent(sensorPowerPerModuleAvgRow, 0, "Agerage sensor power/mod (mW)");
-    moduleTable->setContent(sensorPowerPerModuleMaxRow, 0, "Max sensor power/mod (mW)");
-    moduleTable->setContent(costRow, 0, "Cost (MCHF)");
-    moduleTable->setContent(moduleWeightRow, 0, "Weight (av, g)");
-    moduleTable->setContent(inactiveWeightRow, 0, "Service Weight");
-    moduleTable->setContent(totalWeightRow, 0, "Total Weight");
+    moduleTable->setContent(tagRow                  , 0, "Tag");
+    moduleTable->setContent(typeRow                 , 0, "Type");
+    moduleTable->setContent(moduleAreaRow           , 0, "Sensor area (mm"+superStart+"2"+superEnd+")");
+    moduleTable->setContent(totalAreaRow            , 0, "Total area (m"+superStart+"2"+superEnd+")");
+    moduleTable->setContent(numbermodsRow           , 0, "Number of modules");
+    moduleTable->setContent(numbersensRow           , 0, "Number of sensors");
+    moduleTable->setContent(channelRow              , 0, "Number of channels (M)");
+    moduleTable->setContent(nstripsRow              , 0, "Number of channels per sensor");
+    moduleTable->setContent(rphiResolutionRow       , 0, "R-Phi resolution ("+muLetter+"m)");
+    moduleTable->setContent(zResolutionRow          , 0, "Z resolution ("+muLetter+"m)");
+    //moduleTable->setContent(nChannelsRPhi1Row       , 0, "Number of channels in R/Phi - 1.side");
+    //moduleTable->setContent(nChannelsRPhi2Row       , 0, "Number of channels in R/Phi - 2.side");
+    //moduleTable->setContent(nChannelsZ1Row          , 0, "Number of channels in Z - 1.side");
+    //moduleTable->setContent(nChannelsZ2Row          , 0, "Number of channels in Z - 2.side");
+    //moduleTable->setContent(inactiveWeightRow       , 0, "Service Weight");
+    //moduleTable->setContent(totalWeightRow          , 0, "Total Weight");
+    //moduleTable->setContent(thicknessRow            , 0, "Sensor spacing");
+    //moduleTable->setContent(stripOccupancyRow, 0, "Strip Occ (max/av)");
+    //moduleTable->setContent(hitOccupancyRow, 0, "Hit Occ (max/av)");
+
+    //moduleTable->setContent(rphiResolutionTriggerRow, 0, "R/Phi resolution [pt] ("+muLetter+"m)");
+    //moduleTable->setContent(yResolutionTriggerRow   , 0, "Y resolution [pt] ("+muLetter+"m)");
+    //moduleTable->setContent(pitchpairsRow           , 0, "Pitch (min/max)");
+    //moduleTable->setContent(striplengthRow          , 0, "Strip length");
+    //moduleTable->setContent(segmentsRow             , 0, "Number of segments x Chips");
+
+    //moduleTable->setContent(powerRow         , 0, "FE Power (kW)");
+    //moduleTable->setContent(sensorPowerRow   , 0, "Sensor power (kW)");
+    //moduleTable->setContent(powerPerModuleRow, 0, "FE Power/mod (mW)");
+    //moduleTable->setContent(sensorPowerPerModuleAvgRow, 0, "Average sensor power/mod (mW)");
+    //moduleTable->setContent(sensorPowerPerModuleMaxRow, 0, "Max sensor power/mod (mW)");
+    //moduleTable->setContent(costRow, 0, "Cost (MCHF)");
+    //moduleTable->setContent(moduleWeightRow, 0, "Weight (av, g)");
 
     int loPitch;
     int hiPitch;
@@ -1631,7 +1642,6 @@ namespace insur {
         }
       }
 
-
       // Number Mod
       aNumberMod.str("");
       aNumberMod << std::dec << geometryVisitor.tagMapCount[(*tagMapIt).first];
@@ -1694,34 +1704,33 @@ namespace insur {
       moduleTable->setContent(0, iType, aName.str());
       moduleTable->setContent(tagRow, iType, aTag.str());
       moduleTable->setContent(typeRow, iType, aType.str());
-      moduleTable->setContent(stripOccupancyRow, iType, aStripOccupancy.str());
-      moduleTable->setContent(hitOccupancyRow, iType, aHitOccupancy.str());
+      //moduleTable->setContent(stripOccupancyRow, iType, aStripOccupancy.str());
+      //moduleTable->setContent(hitOccupancyRow, iType, aHitOccupancy.str());
       moduleTable->setContent(rphiResolutionRow, iType, anRphiResolution.str());
-      moduleTable->setContent(yResolutionRow, iType, aYResolution.str());
-      moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
-      moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
-      moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
-      moduleTable->setContent(striplengthRow, iType, aStripLength.str());
-      moduleTable->setContent(segmentsRow, iType, aSegment.str());
+      moduleTable->setContent(zResolutionRow, iType, aYResolution.str());
+      //moduleTable->setContent(rphiResolutionTriggerRow, iType, anRphiResolutionTrigger.str());
+      //moduleTable->setContent(yResolutionTriggerRow, iType, aYResolutionTrigger.str());
+      //moduleTable->setContent(pitchpairsRow, iType, aPitchPair.str());
+      //moduleTable->setContent(striplengthRow, iType, aStripLength.str());
+      //moduleTable->setContent(segmentsRow, iType, aSegment.str());
       moduleTable->setContent(nstripsRow, iType, anNstrips.str());
       moduleTable->setContent(numbermodsRow, iType, aNumberMod.str());
       moduleTable->setContent(numbersensRow, iType, aNumberSens.str());
-      moduleTable->setContent(powerRow, iType, aPower.str());
-      moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
-      moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
-      moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
-      moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
-      moduleTable->setContent(costRow, iType, aCost.str());
-      moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
+      //moduleTable->setContent(powerRow, iType, aPower.str());
+      //moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
+      //moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
+      //moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
+      //moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
+      //moduleTable->setContent(costRow, iType, aCost.str());
+      //moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
 
-      moduleTable->setContent(thicknessRow, iType, aThickness.str());
+      //moduleTable->setContent(thicknessRow, iType, aThickness.str());
       moduleTable->setContent(moduleAreaRow, iType, aModuleArea.str());
       moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
       moduleTable->setContent(channelRow, iType, aChannel.str());
       // moduleTable->setContent(areaRow, iType, anArea.str());
 
     }
-
     // Summary Csv - use trackerID as an identifier of current tracker
     if (!m_summaryCsv.existCsvText("Label")) {
       m_summaryCsv.addCsvElement("Label", "Name");
@@ -1763,13 +1772,13 @@ namespace insur {
     //<< "(m" << superStart << "2" << superEnd << ")" << emphEnd;
     // moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
     moduleTable->setContent(totalAreaRow, iType, aTotalArea.str());
-    moduleTable->setContent(stripOccupancyRow, iType, "");
-    moduleTable->setContent(hitOccupancyRow, iType, "");
+    //moduleTable->setContent(stripOccupancyRow, iType, "");
+    //moduleTable->setContent(hitOccupancyRow, iType, "");
     moduleTable->setContent(rphiResolutionRow, iType, "");
-    moduleTable->setContent(yResolutionRow, iType, "");
-    moduleTable->setContent(pitchpairsRow, iType, "");
-    moduleTable->setContent(striplengthRow, iType, "");
-    moduleTable->setContent(segmentsRow, iType, "");
+    //moduleTable->setContent(yResolutionRow, iType, "");
+    //moduleTable->setContent(pitchpairsRow, iType, "");
+    //moduleTable->setContent(striplengthRow, iType, "");
+    //moduleTable->setContent(segmentsRow, iType, "");
     moduleTable->setContent(nstripsRow, iType, "");
     aNumberMod.str("");
     aNumberMod << emphStart << geometryVisitor.totCountMod << emphEnd;
@@ -1800,19 +1809,19 @@ namespace insur {
       aSensorPower << "n/a";
     }
     aCost    << std::fixed << std::setprecision(costPrecision) << totalCost;
-    moduleTable->setContent(powerRow, iType, aPower.str());
-    moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
-    moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
-    moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
-    moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
-    moduleTable->setContent(costRow, iType, aCost.str());
+    //moduleTable->setContent(powerRow, iType, aPower.str());
+    //moduleTable->setContent(powerPerModuleRow, iType, aPowerPerModule.str());
+    //moduleTable->setContent(sensorPowerRow, iType, aSensorPower.str());
+    //moduleTable->setContent(sensorPowerPerModuleAvgRow, iType, aSensorPowerPerModuleAvg.str());
+    //moduleTable->setContent(sensorPowerPerModuleMaxRow, iType, aSensorPowerPerModuleMax.str());
+    //moduleTable->setContent(costRow, iType, aCost.str());
     aWeight.str("");
     if (moduleTotalWeight > 1e-6) { // non-zero check for double
       aWeight << std::fixed << std::setprecision(weightPrecision) << moduleTotalWeight/1.e3 << " (kg)";
     } else {
       aWeight << "n/a";
     }
-    moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
+    //moduleTable->setContent(moduleWeightRow, iType, aWeight.str());
     aWeight.str("");
     if (inactiveSurfacesTotalMass > 1e-6) {
       aWeight << std::fixed << std::setprecision(weightPrecision) << inactiveSurfacesTotalMass/1.e3 << " (kg)";

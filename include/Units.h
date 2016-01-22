@@ -35,6 +35,19 @@ namespace Units {
   static const float k   = 1E3;
   static const float M   = 1E6;
   static const float G   = 1E9;
+
+  static const float s   = 1.0;
+
+  static const int     b   = 1.0;
+  static const float   B   = 8.0;
+  static const float   kb  = 1.0 * 1024;
+  static const double  Mb  = 1.0 * 1024 * 1024;
+  static const double  Gb  = 1.0 * 1024 * 1024 * 1024;
+  static const double  Tb  = 1.0 * 1024 * 1024 * 1024 * 1024;
+  static const float   kB  = 8.0 * 1024;
+  static const float   MB  = 8.0 * 1024 * 1024;
+  static const double  GB  = 8.0 * 1024 * 1024 * 1024;
+  static const double  TB  = 8.0 * 1024 * 1024 * 1024 * 1024;
 } // Namespace
 
 #endif /* INCLUDE_UNITS_H_ */

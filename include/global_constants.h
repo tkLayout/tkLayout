@@ -14,6 +14,8 @@ namespace insur {
   static const double                  magnetic_field     = 3.8;       // Tesla; CMS magnet field strength
   static const double                  trk_max_occupancy  = 0.01;      // Maximum required occupancy in the tracker
   static const std::vector<signed int> trk_pile_up        = {200,1000};// Considered pile-up scenarios
+  static const double                  collision_freq     = 40000000;  // Collision frequency
+  static const double                  trigger_freq       = 1000000;   // Trigger frequency
 
   /**
    * Geometry constants; all length measurements are in mm
