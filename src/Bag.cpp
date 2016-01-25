@@ -8,12 +8,17 @@ const int GraphBag::DGraph_Pt        = 0x003;
 const int GraphBag::CtgthetaGraph_Pt = 0x004;
 const int GraphBag::Z0Graph_Pt       = 0x005;
 const int GraphBag::PGraph_Pt        = 0x006;
-const int GraphBag::RhoGraph_P       = 0x008;
-const int GraphBag::PhiGraph_P       = 0x009;
-const int GraphBag::DGraph_P         = 0x010;
-const int GraphBag::CtgthetaGraph_P  = 0x011;
-const int GraphBag::Z0Graph_P        = 0x012;
-const int GraphBag::PGraph_P         = 0x013;
+const int GraphBag::LGraph_Pt        = 0x007;
+const int GraphBag::BetaGraph_Pt     = 0x008;
+const int GraphBag::OmegaGraph_Pt    = 0x009;
+
+const int GraphBag::RhoGraph_P       = 0x00A;
+const int GraphBag::PhiGraph_P       = 0x00B;
+const int GraphBag::DGraph_P         = 0x00C;
+const int GraphBag::CtgthetaGraph_P  = 0x00D;
+const int GraphBag::Z0Graph_P        = 0x00E;
+const int GraphBag::PGraph_P         = 0x00F;
+
 const int GraphBag::IdealGraph       = 0x020;
 const int GraphBag::RealGraph        = 0x040;
 const int GraphBag::TriggerGraph     = 0x080;

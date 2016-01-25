@@ -1566,6 +1566,9 @@ void Analyzer::clearGraphsPt(int graphAttributes, const std::string& graphTag) {
   std::map<int, TGraph>& thisCtgThetaGraphs_Pt = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph_Pt, graphTag);
   std::map<int, TGraph>& thisZ0Graphs_Pt       = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph_Pt       ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph_Pt      , graphTag);
   std::map<int, TGraph>& thisPGraphs_Pt        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph_Pt        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph_Pt       , graphTag);
+  std::map<int, TGraph>& thisLGraphs_Pt        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::LGraph_Pt        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::LGraph_Pt       , graphTag);
+  std::map<int, TGraph>& thisBetaGraphs_Pt     = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::BetaGraph_Pt     ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::BetaGraph_Pt    , graphTag);
+  std::map<int, TGraph>& thisOmegaGraphs_Pt    = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::OmegaGraph_Pt    ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::OmegaGraph_Pt   , graphTag);
 
   thisRhoGraphs_Pt.clear();
   thisPhiGraphs_Pt.clear();
@@ -1609,6 +1612,9 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   TGraph& thisCtgThetaGraph_Pt  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph_Pt, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph_Pt  , graphTag, parameter);
   TGraph& thisZ0Graph_Pt        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph_Pt      , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph_Pt        , graphTag, parameter);
   TGraph& thisPGraph_Pt         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph_Pt       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph_Pt         , graphTag, parameter);
+  TGraph& thisLGraph_Pt         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::LGraph_Pt       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::LGraph_Pt         , graphTag, parameter);
+  TGraph& thisBetaGraph_Pt      = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::BetaGraph_Pt    , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::BetaGraph_Pt      , graphTag, parameter);
+  TGraph& thisOmegaGraph_Pt     = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::OmegaGraph_Pt   , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::OmegaGraph_Pt     , graphTag, parameter);
 
   // Variables
   double eta, R;
@@ -1642,6 +1648,18 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   thisPGraph_Pt.SetTitle("p resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph_Pt.SetName(aName.str().c_str());
+  // Prepare plots: L
+  thisLGraph_Pt.SetTitle("c#tau resolution versus #eta - const P_{T} across #eta;#eta;#delta c#tau [#mum]");
+  aName.str(""); aName << "l_vs_eta" << momentum << graphTag;
+  thisLGraph_Pt.SetName(aName.str().c_str());
+  // Prepare plots: Beta
+  thisBetaGraph_Pt.SetTitle("#beta - const P_{T} across #eta;#eta;#beta [rad]");
+  aName.str(""); aName << "beta_vs_eta" << momentum << graphTag;
+  thisBetaGraph_Pt.SetName(aName.str().c_str());
+  // Prepare plots: Omega
+  thisOmegaGraph_Pt.SetTitle("#omega - const P_{T} across #eta;#eta;#omega [rad]");
+  aName.str(""); aName << "omega_vs_eta" << momentum << graphTag;
+  thisOmegaGraph_Pt.SetName(aName.str().c_str());
 
   // track loop
   double graphValue;
@@ -1672,6 +1690,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
 
 
     eta = myTrack.getEta();
+    double theta = myTrack.getTheta();
     R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
     if (drho>0) {
       // deltaRho / rho = deltaRho * R
@@ -1679,11 +1698,11 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       thisRhoGraph_Pt.SetPoint(thisRhoGraph_Pt.GetN(), eta, graphValue);
     }
     if (dphi>0) {
-      graphValue = dphi/M_PI*180.; // in degrees
+      graphValue = dphi / Units::deg; // in degrees
       thisPhiGraph_Pt.SetPoint(thisPhiGraph_Pt.GetN(), eta, graphValue);
     }
     if (dd>0) {
-      graphValue = dd * 1000.; // in um
+      graphValue = dd / Units::um ; // in um
       thisDGraph_Pt.SetPoint(thisDGraph_Pt.GetN(), eta, graphValue );
     }
     if (dctg>0) {
@@ -1691,12 +1710,25 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       thisCtgThetaGraph_Pt.SetPoint(thisCtgThetaGraph_Pt.GetN(), eta, graphValue);
     }
     if (dz0>0) {
-      graphValue =  (dz0) * 1000.; // in um
+      graphValue =  (dz0) / Units::um ; // in um
       thisZ0Graph_Pt.SetPoint(thisZ0Graph_Pt.GetN(), eta, graphValue);
     }
     if ((dp>0)||true) {
       double centralValue = dp * 100.; // in percent
-      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
+      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue); // BUG!!!
+    }
+    if ((dd>0)&&(dz0>0)) {
+      double resolution = (cos(theta)*cos(theta)+1)/dd/dd + sin(theta)*sin(theta)/dz0/dz0;
+      resolution = sqrt(2/resolution) / Units::um ; // resolution in um
+      thisLGraph_Pt.SetPoint(thisLGraph_Pt.GetN(), eta, resolution);
+
+      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd*dd*dd);
+      beta = atan(beta);
+      thisBetaGraph_Pt.SetPoint(thisBetaGraph_Pt.GetN(), eta, beta);
+
+      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd/dd)/dz0/dd;
+      omega = atan(omega);
+      thisOmegaGraph_Pt.SetPoint(thisOmegaGraph_Pt.GetN(), eta, omega);
     }
   }
 }
@@ -3185,6 +3217,24 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
     std::map<int, TGraph>& Analyzer::getPGraphs(bool ideal, bool isTrigger) {
       int attribute = GraphBag::buildAttribute(ideal, isTrigger);
       attribute |= GraphBag::PGraph_Pt;
+      return myGraphBag.getGraphs(attribute);
+    }
+
+    std::map<int, TGraph>& Analyzer::getLGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::LGraph_Pt;
+      return myGraphBag.getGraphs(attribute);
+    }
+
+    std::map<int, TGraph>& Analyzer::getBetaGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::BetaGraph_Pt;
+      return myGraphBag.getGraphs(attribute);
+    }
+
+    std::map<int, TGraph>& Analyzer::getOmegaGraphs(bool ideal, bool isTrigger) {
+      int attribute = GraphBag::buildAttribute(ideal, isTrigger);
+      attribute |= GraphBag::OmegaGraph_Pt;
       return myGraphBag.getGraphs(attribute);
     }
 
