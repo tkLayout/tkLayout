@@ -27,12 +27,17 @@ using std::string;
     static const int LGraph_Pt;
     static const int BetaGraph_Pt;
     static const int OmegaGraph_Pt;
+
     static const int RhoGraph_P;
     static const int PhiGraph_P;
     static const int DGraph_P;
     static const int CtgthetaGraph_P;
     static const int Z0Graph_P;
     static const int PGraph_P;
+    static const int LGraph_P;
+    static const int BetaGraph_P;
+    static const int OmegaGraph_P;
+
     static const int TriggeredGraph;
     static const int IdealGraph;
     static const int RealGraph;

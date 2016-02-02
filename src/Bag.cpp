@@ -18,6 +18,9 @@ const int GraphBag::DGraph_P         = 0x00C;
 const int GraphBag::CtgthetaGraph_P  = 0x00D;
 const int GraphBag::Z0Graph_P        = 0x00E;
 const int GraphBag::PGraph_P         = 0x00F;
+const int GraphBag::LGraph_P         = 0x010;
+const int GraphBag::BetaGraph_P      = 0x011;
+const int GraphBag::OmegaGraph_P     = 0x012;
 
 const int GraphBag::IdealGraph       = 0x020;
 const int GraphBag::RealGraph        = 0x040;

@@ -1576,6 +1576,10 @@ void Analyzer::clearGraphsPt(int graphAttributes, const std::string& graphTag) {
   thisCtgThetaGraphs_Pt.clear();
   thisZ0Graphs_Pt.clear();
   thisPGraphs_Pt.clear();
+  thisLGraphs_Pt.clear();
+  thisBetaGraphs_Pt.clear();
+  thisOmegaGraphs_Pt.clear();
+
 }
 
 void Analyzer::clearGraphsP(int graphAttributes, const std::string& graphTag) {
@@ -1585,6 +1589,9 @@ void Analyzer::clearGraphsP(int graphAttributes, const std::string& graphTag) {
   std::map<int, TGraph>& thisCtgThetaGraphs_P = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::CtgthetaGraph_P ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::CtgthetaGraph_P, graphTag);
   std::map<int, TGraph>& thisZ0Graphs_P       = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::Z0Graph_P       ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::Z0Graph_P      , graphTag);
   std::map<int, TGraph>& thisPGraphs_P        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::PGraph_P        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::PGraph_P       , graphTag);
+  std::map<int, TGraph>& thisLGraphs_P        = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::LGraph_P        ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::LGraph_P       , graphTag);
+  std::map<int, TGraph>& thisBetaGraphs_P     = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::BetaGraph_P     ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::BetaGraph_P    , graphTag);
+  std::map<int, TGraph>& thisOmegaGraphs_P    = graphTag.empty() ? myGraphBag.getGraphs(graphAttributes | GraphBag::OmegaGraph_P    ) : myGraphBag.getTaggedGraphs(graphAttributes | GraphBag::OmegaGraph_P   , graphTag);
 
   thisRhoGraphs_P.clear();
   thisPhiGraphs_P.clear();
@@ -1592,6 +1599,9 @@ void Analyzer::clearGraphsP(int graphAttributes, const std::string& graphTag) {
   thisCtgThetaGraphs_P.clear();
   thisZ0Graphs_P.clear();
   thisPGraphs_P.clear();
+  thisLGraphs_P.clear();
+  thisBetaGraphs_P.clear();
+  thisOmegaGraphs_P.clear();
 
 }
  
@@ -1714,8 +1724,8 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       thisZ0Graph_Pt.SetPoint(thisZ0Graph_Pt.GetN(), eta, graphValue);
     }
     if ((dp>0)||true) {
-      double centralValue = dp * 100.; // in percent
-      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue); // BUG!!!
+      graphValue = dp * 100.; // in percent
+      thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
     }
     if ((dd>0)&&(dz0>0)) {
       double resolution = (cos(theta)*cos(theta)+1)/dd/dd + sin(theta)*sin(theta)/dz0/dz0;
@@ -1750,6 +1760,9 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   TGraph& thisCtgThetaGraph_P  = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::CtgthetaGraph_P, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::CtgthetaGraph_P  , graphTag, parameter);
   TGraph& thisZ0Graph_P        = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::Z0Graph_P      , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::Z0Graph_P        , graphTag, parameter);
   TGraph& thisPGraph_P         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraph_P       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraph_P         , graphTag, parameter);
+  TGraph& thisLGraph_P         = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::LGraph_P       , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::LGraph_P         , graphTag, parameter);
+  TGraph& thisBetaGraph_P      = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::BetaGraph_P    , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::BetaGraph_P      , graphTag, parameter);
+  TGraph& thisOmegaGraph_P     = graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::OmegaGraph_P   , parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::OmegaGraph_P     , graphTag, parameter);
 
   // Variables
   double eta, R;
@@ -1783,6 +1796,18 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
   thisPGraph_P.SetTitle("p resolution versus #eta - const P across #eta;#eta;#delta p/p [%]");
   aName.str(""); aName << "p_vs_eta" << momentum << graphTag;
   thisPGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: L
+  thisLGraph_P.SetTitle("c#tau resolution versus #eta - const P across #eta;#eta;#delta c#tau [#mum]");
+  aName.str(""); aName << "l_vs_eta" << momentum << graphTag;
+  thisLGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: Beta
+  thisBetaGraph_P.SetTitle("#beta - const P across #eta;#eta;#beta [rad]");
+  aName.str(""); aName << "beta_vs_eta" << momentum << graphTag;
+  thisBetaGraph_P.SetName(aName.str().c_str());
+  // Prepare plots: Omega
+  thisOmegaGraph_P.SetTitle("#omega - const P across #eta;#eta;#omega [rad]");
+  aName.str(""); aName << "omega_vs_eta" << momentum << graphTag;
+  thisOmegaGraph_P.SetName(aName.str().c_str());
 
   // track loop
   double graphValue;
@@ -1794,6 +1819,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
     const double& dz0  = myTrack.getDeltaZ0();
     const double& dp   = myTrack.getDeltaP();
     eta = myTrack.getEta();
+    double theta = myTrack.getTheta();
     R = myTrack.getTransverseMomentum() / magField / 0.3 * 1E3; // radius in mm
     if (drho>0) {
       // deltaRho / rho = deltaRho * R
@@ -1820,6 +1846,20 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
       graphValue = dp * 100.; // in percent
       thisPGraph_P.SetPoint(thisPGraph_P.GetN(), eta, graphValue);
     }
+    if ((dd>0)&&(dz0>0)) {
+      double resolution = (cos(theta)*cos(theta)+1)/dd/dd + sin(theta)*sin(theta)/dz0/dz0;
+      resolution = sqrt(2/resolution) / Units::um ; // resolution in um
+      thisLGraph_P.SetPoint(thisLGraph_P.GetN(), eta, resolution);
+
+      double beta = (cos(theta)*cos(theta)+1)*dz0*dz0*dz0/(sin(theta)*sin(theta)*dd*dd*dd);
+      beta = atan(beta);
+      thisBetaGraph_P.SetPoint(thisBetaGraph_P.GetN(), eta, beta);
+
+      double omega = ((cos(theta)*cos(theta)+1)-sin(theta)*sin(theta)*dz0*dz0/dd/dd)/dz0/dd;
+      omega = atan(omega);
+      thisOmegaGraph_P.SetPoint(thisOmegaGraph_P.GetN(), eta, omega);
+    }
+
   }
 }
 
