@@ -89,12 +89,13 @@ namespace insur {
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
     bool translateFullSystemToXML(std::string xmlout = "");
+    bool webOutput = false;
 
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool pureAnalyzeMaterialBudget(int tracks, bool trackingResolution);
-    bool reportGeometrySite();
+    bool pureAnalyzeMaterialBudget(int tracks, bool trackingResolution, bool debugResolution);
+    bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
     bool reportPowerSite();

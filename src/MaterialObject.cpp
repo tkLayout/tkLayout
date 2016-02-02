@@ -303,8 +303,8 @@ namespace material {
 
   MaterialObject::Element::Element(MaterialObject::Type& newMaterialType) :
     componentName ("componentName", parsedOnly()),
-    //numStripsAcross("numStripsAcross", parsedOnly()),
-    //numSegments("numSegments", parsedOnly()),
+    //numStripsAcrossEstimate("numStripsAcrossEstimate", parsedOnly()),
+    //numSegmentsEstimate("numSegmentsEstimate", parsedOnly()),
     //nStripsAcross("nStripsAcross", parsedOnly()),
     //nSegments("nSegments", parsedOnly()),
     referenceSensorNode ("ReferenceSensor", parsedOnly()),
@@ -556,3 +556,13 @@ namespace material {
 
 
 } /* namespace material */
+
+void MaterialObject::ReferenceSensor::check() {
+  PropertyObject::check();
+  
+  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcross and pitchEstimate must be specified");
+  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcross and pitchEstimate can be specified");
+  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegments and stripLengthEstimate must be specified");
+  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegments and stripLengthEstimate can be specified");
+}
+

@@ -4,6 +4,14 @@
 #include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
+#include <boost/accumulators/statistics/count.hpp>
+
 
 #include "Sensor.h"
 #include "ModuleBase.h"
@@ -11,7 +19,9 @@
 #include "CoordinateOperations.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
+#include "messageLogger.h"
 
+using namespace boost::accumulators;
 using material::MaterialObject;
 
 //
@@ -55,7 +65,7 @@ protected:
   double tiltAngle_ = 0., skewAngle_ = 0.;
 
   int numHits_ = 0;
-
+  
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
   ModuleCap* myModuleCap_ = NULL;
 public:
@@ -170,15 +180,25 @@ public:
     if (fabs(deltaPhi) > M_PI/2.) {
       if (deltaPhi < 0.) deltaPhi = deltaPhi + 2.*M_PI;
       else deltaPhi = deltaPhi - 2.*M_PI;
-    }  
+    }
     double alpha = deltaPhi + M_PI / 2.;
-    return alpha; 
+    return alpha;
   }
   double beta (double theta) const { return theta + tiltAngle(); }
   virtual double calculateParameterizedResolutionLocalX(double phi) const = 0;
   virtual double calculateParameterizedResolutionLocalY(double theta) const = 0;
+  double resolutionLocalX(double phi) {
+    if (!hasAnyResolutionLocalXParam()) { return nominalResolutionLocalX(); }
+    else { return calculateParameterizedResolutionLocalX(phi); }
+  }
+  double resolutionLocalY(double theta) {
+    if (!hasAnyResolutionLocalYParam()) { return nominalResolutionLocalY(); }
+    else { return calculateParameterizedResolutionLocalY(theta); }
+  }
   double resolutionEquivalentZ   (double hitRho, double trackR, double trackCotgTheta, double resolutionLocalX, double resolutionLocalY) const;
   double resolutionEquivalentRPhi(double hitRho, double trackR, double resolutionLocalX, double resolutionLocalY) const;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalX;
+  accumulator_set<double, features<tag::count, tag::mean, tag::variance, tag::sum, tag::moment<2>>> rollingParametrizedResolutionLocalY;
 
   void translate(const XYZVector& vector) { decorated().translate(vector); clearSensorPolys(); }
   void mirror(const XYZVector& vector) { decorated().mirror(vector); clearSensorPolys(); }
@@ -240,9 +260,9 @@ public:
   const Sensor& innerSensor() const { return sensors_.front(); }
   const Sensor& outerSensor() const { return sensors_.back(); }
   ElementsVector& getLocalElements() const {return materialObject_.getLocalElements(); }
-  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegments()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
-  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegments()); } return segm; }
-  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegments(); } return cnt; }
+  int maxSegments() const { int segm = 0; for (const auto& s : sensors()) { segm = MAX(segm, s.numSegmentsEstimate()); } return segm; } // CUIDADO NEEDS OPTIMIZATION (i.e. caching or just MAX())
+  int minSegments() const { int segm = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { segm = MIN(segm, s.numSegmentsEstimate()); } return segm; }
+  int totalSegments() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numSegmentsEstimate(); } return cnt; }
   int maxChannels() const { int max = 0; for (const auto& s : sensors()) { max = MAX(max, s.numChannels()); } return max; } 
   int minChannels() const { int min = std::numeric_limits<int>::max(); for (const auto& s : sensors()) { min = MIN(min, s.numChannels()); } return min; } 
   int totalChannels() const { int cnt = 0; for (const auto& s : sensors()) { cnt += s.numChannels(); } return cnt; } 
@@ -252,7 +272,10 @@ public:
   double totalPower() const { return totalPowerModule() + totalPowerStrip()*outerSensor().numChannels(); }
 
   
-  int numStripsAcross() const { return sensors().front().numStripsAcross(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  int numStripsAcrossEstimate() const { return sensors().front().numStripsAcrossEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double pitch() const { return sensors().front().pitch(); }
+int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate(); } // CUIDADO this assumes both sensors have the same number of sensing elements in the transversal direction - typically it is like that
+  double stripLength() const { return sensors().front().stripLength(); }
   double sensorThickness() const { return sensors().front().sensorThickness(); } // CUIDADO this has to be fixed (called in Extractor.cc), sensor thickness can be different for different sensors
 
   double stripOccupancyPerEvent() const;
@@ -272,7 +295,6 @@ public:
   std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
   int numHits() const { return numHits_; }
   void resetHits() { numHits_ = 0; }
-
 };
 
 
@@ -329,8 +351,63 @@ public:
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){ return MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
-    maxPhi.setup([&](){ return MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi()); });
+    minPhi.setup([&](){
+
+      double min = 0;
+      // Module corners arranged normally or flipped:
+      // 0 |-----|3      3|-----|0
+      //   |     |   or   |     |
+      // 1 |-----|2      2|-----|1
+      //
+      //              x (inter. point)
+      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
+      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
+
+        min = MIN(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        min = MIN(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
+
+        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+        min += M_PI;
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return min;
+    });
+    maxPhi.setup([&](){
+
+      double max = 0;
+      // Module corners arranged normally or flipped:
+      // 0 |-----|3      3|-----|0
+      //   |     |   or   |     |
+      // 1 |-----|2      2|-----|1
+      //
+      //              x (inter. point)
+      // --> problem if absolute difference in phi betwwen barrel corners higher than phi
+      if (!(fabs(basePoly().getVertex(0).Phi()-basePoly().getVertex(2).Phi())>=M_PI)) {
+
+        max = MAX(basePoly().getVertex(0).Phi(), basePoly().getVertex(2).Phi());
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        max = MAX(polygon.getVertex(0).Phi(), polygon.getVertex(2).Phi());
+
+        // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+        max += M_PI;
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return max;
+    });
+
     nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
 	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
@@ -414,8 +491,99 @@ public:
 
   void setup() override {
     DetectorModule::setup();
-    minPhi.setup([&](){ return minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
-    maxPhi.setup([&](){ return maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi); });
+    minPhi.setup([&](){
+
+      double min = 0;
+      // Module corners arranged normally:
+      // 0 |-----|3
+      //   |     |
+      // 1 |-----|2
+      //
+      //      x (inter. point)
+      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
+
+        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module corners flipped:
+      // 3 |-----|0
+      //   |     |
+      // 2 |-----|1
+      //
+      //      x (inter. point)
+      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+
+        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+        // Normal arrangement or flipped arrangement
+        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+          min += M_PI;
+        }
+        else logERROR("Endcap module min calculation failed - algorithm problem. Check algorithm!");
+
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return min;
+    });
+    maxPhi.setup([&](){
+
+      double max = 0;
+      // Module corners arranged normally:
+      // 0 |-----|3
+      //   |     |
+      // 1 |-----|2
+      //
+      //      x (inter. point)
+      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
+
+        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module corners flipped:
+      // 3 |-----|0
+      //   |     |
+      // 2 |-----|1
+      //
+      //      x (inter. point)
+      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+
+        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+      }
+      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
+      else {
+
+        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+        polygon.rotateZ(M_PI);
+
+        max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+        // Normal arrangement or flipped arrangement
+        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+          max += M_PI;
+        }
+        else logERROR("Endcap module max calculation failed - algorithm problem. Check algorithm!");
+      }
+      // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
+      return max;
+    });
     nominalResolutionLocalX.setup([this]() {
 	// only set up this if no model parameter specified
 	//std::cout <<  "hasAnyResolutionLocalXParam() = " <<  hasAnyResolutionLocalXParam() << std::endl;
