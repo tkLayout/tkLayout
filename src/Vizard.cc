@@ -1516,7 +1516,7 @@ namespace insur {
 
       // Formulae used for mean and RMSE in the parametric case :
       // mean = S / N
-      // Rmse = (N*Q - S^2) / N^2
+      // rmse = sqrt( (N*Q - S^2) / N^2 )
       // with the following notation :
       // N : count
       // S : sum
@@ -1531,7 +1531,7 @@ namespace insur {
       // modules' spatial resolution along the local X axis is parametrized
       else {
 	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
-	anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumXResolution[(*tagMapIt).first]) / (v.tagMapCountXResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	  anRphiResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumXResolution[(*tagMapIt).first]) / (v.tagMapCountXResolution[(*tagMapIt).first]) / Units::um; // mm -> um
 	}
 	else {
 	  anRphiResolution << "n/a"; // resolution is parametrized but no run with -r or -R
@@ -1547,7 +1547,7 @@ namespace insur {
       // modules' spatial resolution along the local X axis is parametrized
       else {
 	if (v.tagMapCountXResolution[(*tagMapIt).first] != 0) {
-	anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountXResolution[(*tagMapIt).first] * v.tagMapSumSquaresXResolution[(*tagMapIt).first] - pow(v.tagMapSumXResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountXResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	  anRphiResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt(fabs((v.tagMapCountXResolution[(*tagMapIt).first] * v.tagMapSumSquaresXResolution[(*tagMapIt).first] - pow(v.tagMapSumXResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountXResolution[(*tagMapIt).first], 2))) / Units::um; // mm -> um
 	}
 	else {
 	  anRphiResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
@@ -1563,7 +1563,7 @@ namespace insur {
       // modules' spatial resolution along the local Y axis is parametrized
       else {
 	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
-	aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumYResolution[(*tagMapIt).first]) / (v.tagMapCountYResolution[(*tagMapIt).first]) / Units::um; // mm -> um
+	  aYResolution << std::dec << std::fixed << std::setprecision(rphiResolutionPrecision) << (v.tagMapSumYResolution[(*tagMapIt).first]) / (v.tagMapCountYResolution[(*tagMapIt).first]) / Units::um; // mm -> um
 	}
 	else {
 	  aYResolution << "n/a"; // resolution is parametrized but no run with -r or -R
@@ -1579,7 +1579,7 @@ namespace insur {
       // modules' spatial resolution along the local Y axis is parametrized
       else {
 	if (v.tagMapCountYResolution[(*tagMapIt).first] != 0) {
-	aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt((v.tagMapCountYResolution[(*tagMapIt).first] * v.tagMapSumSquaresYResolution[(*tagMapIt).first] - pow(v.tagMapSumYResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountYResolution[(*tagMapIt).first], 2)) / Units::um; // mm -> um
+	  aYResolutionRmse << std::dec << std::fixed << std::setprecision(rphiResolutionRmsePrecision) << sqrt(fabs((v.tagMapCountYResolution[(*tagMapIt).first] * v.tagMapSumSquaresYResolution[(*tagMapIt).first] - pow(v.tagMapSumYResolution[(*tagMapIt).first], 2)) / pow(v.tagMapCountYResolution[(*tagMapIt).first], 2))) / Units::um; // mm -> um
 	}
 	else {
 	  aYResolutionRmse << "n/a"; // resolution is parametrized but no run with -r or -R
