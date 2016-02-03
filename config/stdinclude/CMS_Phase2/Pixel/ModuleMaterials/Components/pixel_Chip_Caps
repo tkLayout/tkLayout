@@ -1,0 +1,6 @@
+// Capacitors for one pixel chip
+Element {
+  elementName Pix_Caps
+  quantity 0.313
+  unit g
+}

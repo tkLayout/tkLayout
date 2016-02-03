@@ -30,9 +30,7 @@ Component {
     quantity 0.2
     unit mm
   }
-  Element {
-    elementName Pix_Caps
-    quantity 0.939
-    unit g
-  }
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common/pixel_Chip_Caps
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common/pixel_Chip_Caps
+  @include-std CMS_Phase2/Pixel/ModuleMaterials/Components/pixel_Module_Common/pixel_Chip_Caps
 }
