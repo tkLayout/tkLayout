@@ -27,6 +27,7 @@ using material::ConversionStation;
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
   typedef PtrVector<RodPair> Container;
+  typedef vector<unique_ptr<TiltedRing>> TiltedRodTemplate;
 private:
   Container rods_;
   MaterialObject materialObject_;
@@ -64,6 +65,10 @@ public:
   Property<bool, Default> sameParityRods;
   Property<double, Default> layerRotation;
 
+  Property<int, Default> buildNumModulesFlat;
+  Property<int, AutoDefault> buildNumModulesTilted;
+  Property<bool, Default> isTilted;
+  Property<bool, Default> isTiltedAuto;
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
@@ -82,8 +87,12 @@ public:
             placeRadiusHint("placeRadiusHint", parsedOnly()),
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
-            layerRotation  ("layerRotation",   parsedOnly(), 0.),
-            sameParityRods ("sameParityRods" , parsedAndChecked(), false),
+	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
+	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
+	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 2),
+	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
+	    isTilted       ("isTilted"       , parsedOnly(), false),
+	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
   { setup(); }
 
@@ -101,7 +110,7 @@ public:
   int totalModules() const { return numModulesPerRod()*numRods(); }
   double rodThickness() const { return rods_.front().thickness(); }
   double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
-  bool isTilted() const { return rods_.front().isTilted(); }
+  //bool isTilted() const { return rods_.front().isTilted(); }
   
   double tilt() const { return 0.0; }
   double startAngle() const { return 90.0; }

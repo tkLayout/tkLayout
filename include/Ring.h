@@ -19,6 +19,67 @@ using std::string;
 #define MAX_WEDGE_CALC_LOOPS 100
 
 
+class TiltedRing : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+
+ public:
+  typedef PtrVector<BarrelModule> Container;
+ private :
+  Container modules_;
+  MaterialObject materialObject_;
+  
+  double thetaOuterUP_, thetaOuterDOWN_, thetaOuter_, tiltAngleIdealOuter_, deltaTiltIdealOuter_, zOuter_;
+  double thetaInner_, tiltAngleIdealInner_, deltaTiltIdealInner_, zInner_;
+
+  double thetaStart_, thetaEnd_;
+
+
+ public:
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
+  Property<double, NoDefault> tiltAngle;
+  Property<double, NoDefault> theta_g;
+  Property<double, Default> zOverlap;
+
+  const Container& modules() const { return modules_; }
+
+ TiltedRing() :
+  materialObject_(MaterialObject::ROD),
+    innerRadius           ("innerRadius"           , parsedAndChecked()),
+    outerRadius           ("outerRadius"           , parsedAndChecked()),
+    tiltAngle             ("tiltAngle"             , parsedAndChecked()),
+    theta_g               ("theta_g"               , parsedAndChecked()),
+    zOverlap              ("zOverlap"              , parsedAndChecked(), 1.)
+      {}
+
+  void build();
+  void buildLeftRight();
+  void check() override;
+
+  void accept(GeometryVisitor& v) { 
+    v.visit(*this); 
+    for (auto& m : modules_) { m.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const { 
+    v.visit(*this); 
+    for (const auto& m : modules_) { m.accept(v); }
+  }
+  const MaterialObject& materialObject() const { return materialObject_; };
+
+  
+  double zOuter() const { return zOuter_; }
+  double zInner() const { return zInner_; }
+  double thetaEnd() const { return thetaEnd_; }
+
+};
+
+
+
+
+
+
+
+
+
 class Ring : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
   typedef PtrVector<EndcapModule> Container;
   Container modules_;

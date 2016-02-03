@@ -123,7 +123,6 @@ void Ring::buildBottomUp() {
     wmod->build();
 
     modLength = wmod->length();
-
     emod = GeometryFactory::make<EndcapModule>(wmod);
 
   } else {
@@ -225,3 +224,88 @@ const MaterialObject& Ring::materialObject() const{
 }
 
 define_enum_strings(Ring::BuildDirection) = { "topdown", "bottomup" };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+inline void TiltedRing::check() {
+  PropertyObject::check();
+}
+
+
+
+
+void TiltedRing::buildLeftRight(double lastThetaEnd) {
+  
+  thetaStart_ = lastThetaEnd;
+
+  RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
+  rmod->store(propertyTree());
+  rmod->build();
+  double dsDistance = mod->dsDistance();
+  double lengthEff = mod->length() - zOverlap();
+  
+
+  thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tiltAngle())/(2.*tan(thetaStart_)) + lengthEff*sin(tiltAngle())/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tiltAngle()) + lengthEff/2.0*cos(tiltAngle()) ));
+
+  thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tiltAngle())/(2.*tan(thetaStart_)) + lengthEff*sin(tiltAngle())/(2.*tan(thetaStart_)) + dsDistance/2.*sin(tiltAngle()) + lengthEff/2.0*cos(tiltAngle()) ));
+
+  thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
+
+  zOuter_ = outerRadius() / tan(thetaOuter_);
+  zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(theta_g());
+
+
+  double zH2p = zOuter_ - 0.5 * lengthEff * cos(tiltAngle());
+  double rH2p = outerRadius() + 0.5 * lengthEff * sin(tiltAngle());
+  double zH2pp = zOuter_ + 0.5 * lengthEff * cos(tiltAngle());
+  double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tiltAngle());
+
+  double zH2UP = zOuter_ + 0.5 * dsDistance * sin(tiltAngle());
+  double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tiltAngle());
+  double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tiltAngle());
+  double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tiltAngle());
+  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tiltAngle());
+  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tiltAngle());
+
+  double zH2DOWN = zOuter_ - 0.5 * dsDistance * sin(tiltAngle());
+  double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tiltAngle());
+  double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tiltAngle());
+  double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tiltAngle());
+  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tiltAngle());
+  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tiltAngle());
+
+
+  thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+
+  //buildModules(emod, numMods, smallDelta());
+
+}
+
+
+void TiltedRing::build(double lastThetaEnd) {
+  materialObject_.store(propertyTree());
+  materialObject_.build();
+
+
+  try {
+    logINFO(Form("Building %s", fullid(*this).c_str()));
+    check();
+    buildLeftRight(lastThetaEnd);
+
+  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+
+  cleanup();
+  builtok(true);
+}
