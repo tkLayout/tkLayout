@@ -1,0 +1,24 @@
+// 2x2 chips pixel module (25um x 100um)
+moduleType pixel_2x2_25x100
+
+// Active silicon size
+width 34
+length 38
+
+numSensors 1
+
+powerStripChip 0
+powerModuleChip 0
+powerModuleOptical 0
+
+sensorThickness 0.150
+
+Sensor 1 {
+  sensorType pixel
+  pitchEstimate 0.025
+  stripLengthEstimate 0.100
+  numROCX 2 
+  numROCY 2
+}
+
+plotColor 4
