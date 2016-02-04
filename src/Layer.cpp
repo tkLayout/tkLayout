@@ -214,10 +214,16 @@ void Layer::buildTilted() {
     TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate();
 
     for (int i = 0; i < tiltedRodTemplate.size(); i++) {
-      TiltedModuleSpecs ti{ tiltedRodTemplate[i]->innerRadius(), tiltedRodTemplate[i]->zInner(), tiltedRodTemplate[i]->tiltAngle() };
-      TiltedModuleSpecs to{ tiltedRodTemplate[i]->outerRadius(), tiltedRodTemplate[i]->zOuter(), tiltedRodTemplate[i]->tiltAngle() };
-      if (ti.valid()) tmspecs1.push_back(ti);
-      if (to.valid()) tmspecs2.push_back(to);
+      TiltedModuleSpecs ti{ tiltedRodTemplate[i]->innerRadius(), tiltedRodTemplate[i]->zInner(), tiltedRodTemplate[i]->tiltAngle()*M_PI/180. };
+      TiltedModuleSpecs to{ tiltedRodTemplate[i]->outerRadius(), tiltedRodTemplate[i]->zOuter(), tiltedRodTemplate[i]->tiltAngle()*M_PI/180. };
+      std::cout << "i = " << i << std::endl;
+      std::cout << "tiltAngle = " << tiltedRodTemplate[i]->tiltAngle()*M_PI/180. << std::endl;
+      std::cout << "innerRadius = " << tiltedRodTemplate[i]->innerRadius() << std::endl;
+      std::cout << "zInner = " << tiltedRodTemplate[i]->zInner() << std::endl;
+      std::cout << "outerRadius = " << tiltedRodTemplate[i]->outerRadius() << std::endl;
+      std::cout << "zOuter = " << tiltedRodTemplate[i]->zOuter() << std::endl;
+      if (ti.valid()) { tmspecs1.push_back(ti); }
+      if (to.valid()) { tmspecs2.push_back(to); }
     }
 
     numRods_ = 18; //take care!!!!!!!

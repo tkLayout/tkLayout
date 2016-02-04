@@ -278,8 +278,8 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
     zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(thetag);
   }
 
-  std::cout << "zOuter_ = " << zOuter_ << std::endl;
-  std::cout << "zInner_ = " << zInner_ << std::endl;
+  //std::cout << "zOuter_ = " << zOuter_ << std::endl;
+  //std::cout << "zInner_ = " << zInner_ << std::endl;
 
 
   double zH2p = zOuter_ - 0.5 * lengthEff * cos(tilt);
