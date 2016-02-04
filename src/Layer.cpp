@@ -103,18 +103,35 @@ RodTemplate Layer::makeRodTemplate() {
   return rodTemplate;
 }
 
-TiltedRodTemplate Layer::makeTiltedRodTemplate() {
-  TiltedRodTemplate tiltedRodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
- 
 
-  for (int i = buildNumModulesFlat(); i < (buildNumModulesFlat() + buildNumModulesTilted()); i++) {
-    tiltedRodTemplate[i] = std::move(unique_ptr<TiltedRing>(GeometryFactory::make<TiltedRing>()));
-    tiltedRodTemplate[i]->store(propertyTree());
-    if (ringNode.count(i+1) > 0) rodTemplate[i]->store(ringNode.at(i+1));
-    rodTemplate[i]->build(rodTemplate[i-1]->thetaEnd());
-  }
-  return rodTemplate;
+
+TiltedRodTemplate Layer::makeTiltedRodTemplate() {
+  TiltedRodTemplate tiltedRodTemplate;
+  for (int i = 0; i < buildNumModulesTilted(); i++) {
+    //std::cout << "i = " << i << std::endl;
+
+    TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
+    tiltedRing->myid(buildNumModulesFlat()+i+1);
+    tiltedRing->store(propertyTree());
+    if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
+    if ( i == 0 ) { tiltedRing->build( M_PI/2. ); }
+    else { 
+      //std::cout << "(tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd()<< std::endl;
+    tiltedRing->build((tiltedRodTemplate.at(i-1))->thetaEnd()); 
 }
+
+
+    
+    //std::cout << "tiltedRing->outerRadius() = " << tiltedRing->outerRadius() << std::endl;
+    //std::cout << "tiltedRing->zOuter() = " << tiltedRing->zOuter() << std::endl;
+    //std::cout << "tiltedRing->tiltAngle() = " << tiltedRing->tiltAngle() << std::endl;
+    //std::cout << "tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd() << std::endl;
+
+    tiltedRodTemplate.push_back(tiltedRing);
+  }
+  return tiltedRodTemplate;
+}
+
 
 
 void Layer::buildStraight() {
@@ -166,12 +183,14 @@ void Layer::buildStraight() {
 
 void Layer::buildTilted() {
 
+  vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
+
+
   if (!isTiltedAuto()) {
     std::ifstream ifs(tiltedLayerSpecFile());
     if (ifs.fail()) throw PathfulException("Cannot open tilted modules spec file \"" + tiltedLayerSpecFile() + "\"");
 
     string line;
-    vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
     while(getline(ifs, line).good()) {
       if (line.empty()) continue;
       auto tokens = split<double>(line, " ", false);
@@ -187,15 +206,22 @@ void Layer::buildTilted() {
 
   else {
 
-  buildNumModules(numModulesFlat());
-  buildFlat();
+    /*if (buildNumModulesFlat() != 0) {
+      buildNumModules(buildNumModulesFlat());
+      buildStraight();
+      }*/
 
-  TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate();
+    TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate();
 
+    for (int i = 0; i < tiltedRodTemplate.size(); i++) {
+      TiltedModuleSpecs ti{ tiltedRodTemplate[i]->innerRadius(), tiltedRodTemplate[i]->zInner(), tiltedRodTemplate[i]->tiltAngle() };
+      TiltedModuleSpecs to{ tiltedRodTemplate[i]->outerRadius(), tiltedRodTemplate[i]->zOuter(), tiltedRodTemplate[i]->tiltAngle() };
+      if (ti.valid()) tmspecs1.push_back(ti);
+      if (to.valid()) tmspecs2.push_back(to);
+    }
+
+    numRods_ = 18; //take care!!!!!!!
   }
-
-
-
 
 
 

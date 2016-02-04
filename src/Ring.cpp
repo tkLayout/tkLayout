@@ -249,54 +249,74 @@ inline void TiltedRing::check() {
 void TiltedRing::buildLeftRight(double lastThetaEnd) {
   
   thetaStart_ = lastThetaEnd;
+  double tilt = tiltAngle() * M_PI / 180.;
+  double thetag = theta_g() * M_PI / 180.;
 
   RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
   rmod->store(propertyTree());
   rmod->build();
-  double dsDistance = mod->dsDistance();
-  double lengthEff = mod->length() - zOverlap();
+  double dsDistance = rmod->dsDistance();
+  double lengthEff = rmod->length() - zOverlap();
   
 
-  thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tiltAngle())/(2.*tan(thetaStart_)) + lengthEff*sin(tiltAngle())/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tiltAngle()) + lengthEff/2.0*cos(tiltAngle()) ));
+  if (thetaStart_ == (M_PI / 2.)) {
+    thetaOuterUP_ = M_PI / 2.;
+    thetaOuterDOWN_ = M_PI / 2.;
+    thetaOuter_ = M_PI / 2.;
+    zOuter_ = 0.0;
+    zInner_ = 0.0;
+  }
 
-  thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tiltAngle())/(2.*tan(thetaStart_)) + lengthEff*sin(tiltAngle())/(2.*tan(thetaStart_)) + dsDistance/2.*sin(tiltAngle()) + lengthEff/2.0*cos(tiltAngle()) ));
+  else {
+    thetaOuterUP_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) + dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) - dsDistance/2.*sin(tilt) + lengthEff/2.0*cos(tilt) ));
 
-  thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
+    thetaOuterDOWN_ = atan( outerRadius() / ( outerRadius()/tan(thetaStart_) - dsDistance*cos(tilt)/(2.*tan(thetaStart_)) + lengthEff*sin(tilt)/(2.*tan(thetaStart_)) + dsDistance/2.*sin(tilt) + lengthEff/2.0*cos(tilt) ));
 
-  zOuter_ = outerRadius() / tan(thetaOuter_);
-  zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(theta_g());
+    thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
 
+    zOuter_ = outerRadius() / tan(thetaOuter_);
+    zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(thetag);
+  }
 
-  double zH2p = zOuter_ - 0.5 * lengthEff * cos(tiltAngle());
-  double rH2p = outerRadius() + 0.5 * lengthEff * sin(tiltAngle());
-  double zH2pp = zOuter_ + 0.5 * lengthEff * cos(tiltAngle());
-  double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tiltAngle());
-
-  double zH2UP = zOuter_ + 0.5 * dsDistance * sin(tiltAngle());
-  double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tiltAngle());
-  double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tiltAngle());
-  double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tiltAngle());
-  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tiltAngle());
-  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tiltAngle());
-
-  double zH2DOWN = zOuter_ - 0.5 * dsDistance * sin(tiltAngle());
-  double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tiltAngle());
-  double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tiltAngle());
-  double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tiltAngle());
-  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tiltAngle());
-  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tiltAngle());
+  std::cout << "zOuter_ = " << zOuter_ << std::endl;
+  std::cout << "zInner_ = " << zInner_ << std::endl;
 
 
+  double zH2p = zOuter_ - 0.5 * lengthEff * cos(tilt);
+  double rH2p = outerRadius() + 0.5 * lengthEff * sin(tilt);
+  double zH2pp = zOuter_ + 0.5 * lengthEff * cos(tilt);
+  double rH2pp = outerRadius() - 0.5 * lengthEff * sin(tilt);
+
+  double zH2UP = zOuter_ + 0.5 * dsDistance * sin(tilt);
+  double rH2UP = outerRadius() + 0.5 * dsDistance * cos(tilt);
+  double zH2pUP = zH2UP - 0.5 * lengthEff * cos(tilt);
+  double rH2pUP = rH2UP + 0.5 * lengthEff * sin(tilt);
+  double zH2ppUP = zH2UP + 0.5 * lengthEff * cos(tilt);
+  double rH2ppUP = rH2UP - 0.5 * lengthEff * sin(tilt);
+
+  double zH2DOWN = zOuter_ - 0.5 * dsDistance * sin(tilt);
+  double rH2DOWN = outerRadius() - 0.5 * dsDistance * cos(tilt);
+  double zH2pDOWN = zH2DOWN - 0.5 * lengthEff * cos(tilt);
+  double rH2pDOWN = rH2DOWN + 0.5 * lengthEff * sin(tilt);
+  double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff * cos(tilt);
+  double rH2ppDOWN = rH2DOWN - 0.5 * lengthEff * sin(tilt);
+
+
+  /*std::cout << "zH2ppUP = " << zH2ppUP << " zH2ppDOWN = " << zH2ppDOWN << std::endl;
+  std::cout << "rH2ppUP = " << rH2ppUP <<" rH2ppDOWN = " << rH2ppDOWN << std::endl;
+  
+  std::cout << "atan(rH2ppUP / zH2ppUP) = " << atan(rH2ppUP / zH2ppUP) << std::endl;
+  std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;*/
   thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
-
+  //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
   //buildModules(emod, numMods, smallDelta());
 
 }
 
 
 void TiltedRing::build(double lastThetaEnd) {
-  materialObject_.store(propertyTree());
-  materialObject_.build();
+  //materialObject_.store(propertyTree());
+  //materialObject_.build();
 
 
   try {

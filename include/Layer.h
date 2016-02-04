@@ -10,6 +10,7 @@
 #include "Property.h"
 #include "Module.h"
 #include "RodPair.h"
+#include "Ring.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
 
@@ -24,10 +25,11 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 
+typedef std::vector<TiltedRing*> TiltedRodTemplate;
+
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
   typedef PtrVector<RodPair> Container;
-  typedef vector<unique_ptr<TiltedRing>> TiltedRodTemplate;
 private:
   Container rods_;
   MaterialObject materialObject_;
@@ -37,6 +39,7 @@ private:
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate();
+  TiltedRodTemplate makeTiltedRodTemplate();
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
@@ -89,7 +92,7 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
-	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 2),
+	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 1),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),
