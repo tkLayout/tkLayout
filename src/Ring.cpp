@@ -250,7 +250,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   
   thetaStart_ = lastThetaEnd;
   double tilt = tiltAngle() * M_PI / 180.;
-  double thetag = theta_g() * M_PI / 180.;
+  double theta_gRad = theta_g() * M_PI / 180.;
 
   RectangularModule* rmod = GeometryFactory::make<RectangularModule>();
   rmod->store(propertyTree());
@@ -275,7 +275,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
     thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
 
     zOuter_ = outerRadius() / tan(thetaOuter_);
-    zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(thetag);
+    zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(theta_gRad);
   }
 
   //std::cout << "zOuter_ = " << zOuter_ << std::endl;

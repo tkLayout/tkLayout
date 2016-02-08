@@ -225,8 +225,10 @@ void Layer::buildTilted() {
       if (ti.valid()) { tmspecs1.push_back(ti); }
       if (to.valid()) { tmspecs2.push_back(to); }
     }
+    if (myid() == 1) {    numRods_ = 18;  } //take care!!!!!!!
+    else if (myid() == 2) {    numRods_ = 26;  } //take care!!!!!!!
+    else if (myid() == 3) {    numRods_ = 36;  } //take care!!!!!!!
 
-    numRods_ = 18; //take care!!!!!!!
   }
 
 

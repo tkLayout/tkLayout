@@ -56,11 +56,11 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   void buildLeftRight(double lastThetaEnd);
   void check() override;
 
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& m : modules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& m : modules_) { m.accept(v); }
     }
@@ -160,7 +160,7 @@ public:
       for (const auto& m : modules_) { 
         max = MAX(max, m.thickness()); 
       } 
-      return max; 
+      return max;
     });
   }
   
