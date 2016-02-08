@@ -232,8 +232,13 @@ void Layer::buildTilted() {
       std::cout << "idealTilt2 = " << tiltedRodTemplate[i]->tiltAngleIdealOuter() << std::endl;
       std::cout << "gap = " << tiltedRodTemplate[i]->gapR() << std::endl;
       std::cout << "avR = " << tiltedRodTemplate[i]->averageR() << std::endl;
-      if (i >= 1) { std::cout << "cov1 = " << (tiltedRodTemplate[i]->thetaStart1() - tiltedRodTemplate[i-1]->thetaEnd1()) * 180. / M_PI << std::endl; }
-      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRodTemplate[i]->zOuter() - tiltedRodTemplate[i-1]->zOuter() << std::endl; }      
+      if (i >= 1) { std::cout << "cov1 = " << (tiltedRodTemplate[i]->thetaStartInner() - tiltedRodTemplate[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
+      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRodTemplate[i]->zOuter() - tiltedRodTemplate[i-1]->zOuter() << std::endl; }
+
+      if (i >= 1) {
+	double zErrorAngle = atan( (tiltedRodTemplate[i]->rStartOuter_REAL() - tiltedRodTemplate[i-1]->rEndOuter_REAL()) / (tiltedRodTemplate[i-1]->zEndOuter_REAL() - tiltedRodTemplate[i]->zStartOuter_REAL()) );
+	std::cout << "zError = " << tiltedRodTemplate[i]->zStartOuter_REAL() + tiltedRodTemplate[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
+      }
 
       if (ti.valid()) { tmspecs1.push_back(ti); }
       if (to.valid()) { tmspecs2.push_back(to); }

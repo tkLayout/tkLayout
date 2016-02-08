@@ -256,9 +256,12 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   rmod->store(propertyTree());
   rmod->build();
   double dsDistance = rmod->dsDistance();
-  double lengthEff = rmod->length() - zOverlap();
+  double length = rmod->length();
+  double lengthEff = length - zOverlap();
   double width = rmod->width();
   
+
+  // MODULE 2 (OUTER MODULE)
 
   if (thetaStart_ == (M_PI / 2.)) {
     thetaOuterUP_ = M_PI / 2.;
@@ -276,6 +279,10 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
 
     zOuter_ = outerRadius() / tan(thetaOuter_);
   }
+
+
+  tiltAngleIdealOuter_ = 90. - thetaOuter_ * 180. / M_PI;
+  deltaTiltIdealOuter_ = tiltAngle() - tiltAngleIdealOuter_;
 
   //std::cout << "zOuter_ = " << zOuter_ << std::endl;
   //std::cout << "zInner_ = " << zInner_ << std::endl;
@@ -306,6 +313,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   
   std::cout << "atan(rH2ppUP / zH2ppUP) = " << atan(rH2ppUP / zH2ppUP) << std::endl;
   std::cout << "MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) = " << MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN)) << std::endl;*/
+  
   thetaEnd_ = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
   //std::cout << "thetaEnd_ = " << thetaEnd_ << std::endl;
   //buildModules(emod, numMods, smallDelta());
@@ -313,12 +321,10 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
 
 
 
-  tiltAngleIdealOuter_ = 90. - thetaOuter_ * 180. / M_PI;
-  deltaTiltIdealOuter_ = tiltAngle() - tiltAngleIdealOuter_;
 
 
 
-
+  // MODULE 1 (INNER MODULE)
 
   if (thetaStart_ == (M_PI / 2.)) { zInner_ = 0.0; }
   else { zInner_ = zOuter_ - (outerRadius() - innerRadius()) / tan(theta_gRad); }
@@ -347,12 +353,74 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   double zH1ppDOWN = zH1DOWN + 0.5 * lengthEff * cos(tilt);
   double rH1ppDOWN = rH1DOWN - 0.5 * lengthEff * sin(tilt);
 
-  thetaStart1_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
-  thetaEnd1_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
+  thetaStartInner_ = MIN( atan(rH1pUP / zH1pUP), atan(rH1pDOWN / zH1pDOWN));
+  thetaEndInner_ = MAX( atan(rH1ppUP / zH1ppUP), atan(rH1ppDOWN / zH1ppDOWN));
 
 
 
+  // FOR INFO
   phiOverlap_ = atan(width / (2.* rH2pUP)) + atan(width / (2.* rH1pUP)) - 2. * M_PI / numPhi();
+
+
+
+  // FOR INFO : REAL COORDS (MODULE LENGTH WITH NO Z OVERLAP)
+
+  double zH2pUP_REAL = zH2UP - 0.5 * length * cos(tilt);
+  double rH2pUP_REAL = rH2UP + 0.5 * length * sin(tilt);
+  double zH2ppUP_REAL = zH2UP + 0.5 * length * cos(tilt);
+  double rH2ppUP_REAL = rH2UP - 0.5 * length * sin(tilt);
+
+  double zH2pDOWN_REAL = zH2DOWN - 0.5 * length * cos(tilt);
+  double rH2pDOWN_REAL = rH2DOWN + 0.5 * length * sin(tilt);
+  double zH2ppDOWN_REAL = zH2DOWN + 0.5 * length * cos(tilt);
+  double rH2ppDOWN_REAL = rH2DOWN - 0.5 * length * sin(tilt);
+
+  if ( fabs(rH2pUP_REAL / zH2pUP_REAL) < fabs(rH2pDOWN_REAL / zH2pDOWN_REAL) ) { 
+    rStartOuter_REAL_ = rH2pUP_REAL; 
+    zStartOuter_REAL_ = zH2pUP_REAL;
+  }
+  else { 
+    rStartOuter_REAL_ = rH2pDOWN_REAL; 
+    zStartOuter_REAL_ = zH2pDOWN_REAL;
+  }
+  if ( fabs(rH2ppUP_REAL / zH2ppUP_REAL) > fabs(rH2ppDOWN_REAL / zH2ppDOWN_REAL) ) { 
+    rEndOuter_REAL_ = rH2ppUP_REAL; 
+    zEndOuter_REAL_ = zH2ppUP_REAL;
+  }
+  else { 
+    rEndOuter_REAL_ = rH2ppDOWN_REAL; 
+    zEndOuter_REAL_ = zH2ppDOWN_REAL;
+  }
+
+
+
+  /*double zH1pUP_REAL = zH1UP - 0.5 * length * cos(tilt);
+  double rH1pUP_REAL = rH1UP + 0.5 * length * sin(tilt);
+  double zH1ppUP_REAL = zH1UP + 0.5 * length * cos(tilt);
+  double rH1ppUP_REAL = rH1UP - 0.5 * length * sin(tilt);
+
+  double zH1pDOWN_REAL = zH1DOWN - 0.5 * length * cos(tilt);
+  double rH1pDOWN_REAL = rH1DOWN + 0.5 * length * sin(tilt);
+  double zH1ppDOWN_REAL = zH1DOWN + 0.5 * length * cos(tilt);
+  double rH1ppDOWN_REAL = rH1DOWN - 0.5 * length * sin(tilt);
+
+  if ( (rH1pUP_REAL / zH1pUP_REAL) < (rH1pDOWN_REAL / zH1pDOWN_REAL) ) { 
+    rStartInner_REAL_ = rH1pUP_REAL; 
+    zStartInner_REAL_ = zH1pUP_REAL;
+  }
+  else { 
+    rStartInner_REAL_ = rH1pDOWN_REAL; 
+    zStartInner_REAL_ = zH1pDOWN_REAL;
+  }
+  if ( (rH1ppUP_REAL / zH1ppUP_REAL) > (rH1ppDOWN_REAL / zH1ppDOWN_REAL) ) { 
+    rEndInner_REAL_ = rH1ppUP_REAL; 
+    zEndInner_REAL_ = zH1ppUP_REAL;
+  }
+  else { 
+    rEndInner_REAL_ = rH1ppDOWN_REAL; 
+    zEndInner_REAL_ = zH1ppDOWN_REAL;
+    }*/
+
 
 }
 
