@@ -105,7 +105,7 @@ RodTemplate Layer::makeRodTemplate() {
 
 
 
-TiltedRodTemplate Layer::makeTiltedRodTemplate() {
+TiltedRodTemplate Layer::makeTiltedRodTemplate(double numPhi) {
   TiltedRodTemplate tiltedRodTemplate;
   for (int i = 0; i < buildNumModulesTilted(); i++) {
     //std::cout << "i = " << i << std::endl;
@@ -114,6 +114,7 @@ TiltedRodTemplate Layer::makeTiltedRodTemplate() {
     tiltedRing->myid(buildNumModulesFlat()+i+1);
     tiltedRing->store(propertyTree());
     if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
+    tiltedRing->numPhi(numPhi);
     if ( i == 0 ) { tiltedRing->build( M_PI/2. ); }
     else { 
       //std::cout << "(tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd()<< std::endl;
@@ -211,7 +212,11 @@ void Layer::buildTilted() {
       buildStraight();
       }*/
 
-    TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate();
+    if (myid() == 1) {    numRods_ = 18;  } //take care!!!!!!!
+    else if (myid() == 2) {    numRods_ = 26;  } //take care!!!!!!!
+    else if (myid() == 3) {    numRods_ = 36;  } //take care!!!!!!!
+
+    TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate(numRods_);
 
     for (int i = 0; i < tiltedRodTemplate.size(); i++) {
       TiltedModuleSpecs ti{ tiltedRodTemplate[i]->innerRadius(), tiltedRodTemplate[i]->zInner(), tiltedRodTemplate[i]->tiltAngle()*M_PI/180. };
@@ -222,12 +227,18 @@ void Layer::buildTilted() {
       std::cout << "zInner = " << tiltedRodTemplate[i]->zInner() << std::endl;
       std::cout << "outerRadius = " << tiltedRodTemplate[i]->outerRadius() << std::endl;
       std::cout << "zOuter = " << tiltedRodTemplate[i]->zOuter() << std::endl;
+
+      std::cout << "theta2 = " << tiltedRodTemplate[i]->thetaOuter() * 180. / M_PI << std::endl;
+      std::cout << "idealTilt2 = " << tiltedRodTemplate[i]->tiltAngleIdealOuter() << std::endl;
+      std::cout << "gap = " << tiltedRodTemplate[i]->gapR() << std::endl;
+      std::cout << "avR = " << tiltedRodTemplate[i]->averageR() << std::endl;
+      if (i >= 1) { std::cout << "cov1 = " << (tiltedRodTemplate[i]->thetaStart1() - tiltedRodTemplate[i-1]->thetaEnd1()) * 180. / M_PI << std::endl; }
+      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRodTemplate[i]->zOuter() - tiltedRodTemplate[i-1]->zOuter() << std::endl; }      
+
       if (ti.valid()) { tmspecs1.push_back(ti); }
       if (to.valid()) { tmspecs2.push_back(to); }
     }
-    if (myid() == 1) {    numRods_ = 18;  } //take care!!!!!!!
-    else if (myid() == 2) {    numRods_ = 26;  } //take care!!!!!!!
-    else if (myid() == 3) {    numRods_ = 36;  } //take care!!!!!!!
+    
 
   }
 

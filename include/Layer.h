@@ -39,7 +39,7 @@ private:
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate();
-  TiltedRodTemplate makeTiltedRodTemplate();
+  TiltedRodTemplate makeTiltedRodTemplate(double numPhi);
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
@@ -92,7 +92,7 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
-	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 1),
+	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 1),	    
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),

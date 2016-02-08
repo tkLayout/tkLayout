@@ -33,6 +33,10 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
   double thetaStart_, thetaEnd_;
 
+  double thetaStart1_, thetaEnd1_;
+
+  double numPhi_, phiOverlap_;
+
 
  public:
   Property<double, NoDefault> innerRadius;
@@ -70,7 +74,30 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   
   double zOuter() const { return zOuter_; }
   double zInner() const { return zInner_; }
+  double thetaOuter() const { return thetaOuter_; }
+  double thetaInner() const { return thetaInner_; }
   double thetaEnd() const { return thetaEnd_; }
+
+
+  double tiltAngleIdealOuter() const { return tiltAngleIdealOuter_; }
+  double deltaTiltIdealOuter() const { return deltaTiltIdealOuter_; }
+
+  double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
+  double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
+
+  double thetaStart1() const { return thetaStart1_; }
+  double thetaEnd1() const { return thetaEnd1_; }
+
+  double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
+  double averageZ() const { return (zInner_ + zOuter_) / 2.; }
+
+  double deltaR() const { return outerRadius() - innerRadius(); }
+  double gapR() const { return (outerRadius() - innerRadius()) / sin(theta_g() * M_PI / 180.); }
+  double deltaZ() const { return zOuter_ - zInner_; }
+
+  void numPhi(double numPhi) { numPhi_ = numPhi; }
+  double numPhi() const { return numPhi_; }
+  double phiOverlap() const { return  phiOverlap_; }
 
 };
 
