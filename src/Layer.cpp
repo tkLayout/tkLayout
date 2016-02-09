@@ -240,6 +240,8 @@ void Layer::buildTilted() {
 	std::cout << "zError = " << tiltedRodTemplate[i]->zStartOuter_REAL() + tiltedRodTemplate[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
       }
 
+      std::cout << atan(tiltedRodTemplate[i]->rEndOuter_REAL() / tiltedRodTemplate[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;
+
       if (ti.valid()) { tmspecs1.push_back(ti); }
       if (to.valid()) { tmspecs2.push_back(to); }
     }

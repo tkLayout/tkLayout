@@ -68,8 +68,8 @@ public:
   Property<bool, Default> sameParityRods;
   Property<double, Default> layerRotation;
 
-  Property<int, Default> buildNumModulesFlat;
-  Property<int, AutoDefault> buildNumModulesTilted;
+  Property<int, NoDefault> buildNumModulesFlat;
+  Property<int, NoDefault> buildNumModulesTilted;
   Property<bool, Default> isTilted;
   Property<bool, Default> isTiltedAuto;
   Property<string, AutoDefault> tiltedLayerSpecFile;
@@ -92,7 +92,7 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
-	    buildNumModulesFlat("numModulesFlat"     , parsedOnly(), 1),	    
+	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),	    
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),
