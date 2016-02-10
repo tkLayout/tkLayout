@@ -308,7 +308,6 @@ void Layer::buildTilted() {
   first->myid(1);
   first->store(propertyTree());
   first->build(rodTemplate, tmspecs1, 1);
-  first->maxZ(1150.);
   rods_.push_back(first);
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
@@ -316,14 +315,12 @@ void Layer::buildTilted() {
   second->store(propertyTree());
   second->build(rodTemplate, tmspecs2, 0);
   second->rotateZ(rodPhiRotation);
-  second->maxZ(1150.);
   rods_.push_back(second);
 
   for (int i = 2; i < numRods_; i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
-    rod->maxZ(1150.);
     rods_.push_back(rod);
     }
 
