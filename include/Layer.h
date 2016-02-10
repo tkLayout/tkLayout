@@ -35,16 +35,18 @@ private:
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
+  double flatPartThetaEnd_;
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate();
-  TiltedRodTemplate makeTiltedRodTemplate(double numPhi);
+  TiltedRodTemplate makeTiltedRodTemplate(double flatPartThetaEnd);
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
   Property<double, Default> phiOverlap;
   Property<int, Default> phiSegments;
+  Property<int, NoDefault> numModulesPhi;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
   PropertyNodeUnique<std::string> stationsNode;
@@ -52,7 +54,7 @@ private:
   double placeRadius_;
   int numRods_;
 
-  void buildStraight();
+  void buildStraight(bool isFlatPart);
   void buildTilted();
 public:
   Property<int, AutoDefault> buildNumModules;
@@ -82,6 +84,7 @@ public:
             bigParity      ("bigParity"      , parsedOnly(), -1),
             phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
+	    numModulesPhi  ("numModulesPhi"  , parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
             stationsNode   ("Station"        , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),

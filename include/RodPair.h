@@ -20,6 +20,15 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
+
+struct TiltedModuleSpecs {
+  double r, z, gamma;
+  bool valid() const {
+    return r > 0.0 && fabs(gamma) <= 2*M_PI;
+  }
+};
+
+
 typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
 class RodPair : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
@@ -66,6 +75,15 @@ public:
   void rotateZ(double angle);
 
   void cutAtEta(double eta);
+
+  vector<TiltedModuleSpecs> giveZPlusModulesCoords(int buildNumModulesFlat) const { 
+    vector<TiltedModuleSpecs> output; 
+    for (auto it = zPlusModules_.begin(); it < zPlusModules_.begin() + buildNumModulesFlat; ++it) {
+      TiltedModuleSpecs t{it->center().Rho(), it->center().Z(), 0.0};
+      output.push_back(t);
+    }
+    return output;
+  }
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
   
@@ -134,15 +152,36 @@ public:
   std::set<int> solveCollisionsZMinus();
   void compressToZ(double z);
 
-};
+  double thetaEnd() const {
+    auto it = zPlusModules_.end() - 1;
+
+    double dsDistance = it->dsDistance();
+    double length = it->length();
+    double lengthEff = length - zOverlap();
+    double lastR = it->center().Rho();
+    double lastZ = it->center().Z();
 
 
-struct TiltedModuleSpecs {
-  double r, z, gamma;
-  bool valid() const {
-    return r > 0.0 && fabs(gamma) <= 2*M_PI;
+    double zH2pp = lastZ + 0.5 * lengthEff;
+    double rH2pp = lastR;
+
+    double zH2UP = lastZ;
+    double rH2UP = lastR + 0.5 * dsDistance;
+    double zH2ppUP = zH2UP + 0.5 * lengthEff;
+    double rH2ppUP = rH2UP;
+
+    double zH2DOWN = lastZ;
+    double rH2DOWN = lastR - 0.5 * dsDistance;
+    double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff;
+    double rH2ppDOWN = rH2DOWN;
+
+    double thetaEnd = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+    return thetaEnd;
   }
+
 };
+
+
 
 class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
  

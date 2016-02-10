@@ -316,7 +316,7 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
     mod->flipped(parity != 1); // Attaching the correct flipped() value to the module
     mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
-   // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
+    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules.push_back(mod);
   }
 }
