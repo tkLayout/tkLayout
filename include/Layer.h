@@ -129,7 +129,7 @@ public:
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); } 
 
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rods_) { r.accept(v); }
   }

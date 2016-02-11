@@ -13,7 +13,7 @@ void Layer::check() {
   //if ((isTilted() && isTiltedAuto()) && !buildNumModulesTilted()) throw PathfulException("Automatic tilted layer : numModulesTilted must be specified");
 }
 
-void Layer::cutAtEta(double eta) { 
+void Layer::cutAtEta(double eta) {
   for (auto& r : rods_) r.cutAtEta(eta); 
   rods_.erase_if([](const RodPair& r) { return r.numModules() == 0; }); // get rid of rods which have been completely pruned
 }
@@ -120,11 +120,7 @@ TiltedRodTemplate Layer::makeTiltedRodTemplate(double flatPartThetaEnd) {
 
 
     if ( i == 0 ) { 
-      double startAngle;
-      if (flatPartThetaEnd == 0.) { startAngle = M_PI/2.; }
-      else {startAngle = flatPartThetaEnd; }
-
-      tiltedRing->build( startAngle ); 
+      tiltedRing->build(flatPartThetaEnd); 
     }
     else { 
       //std::cout << "(tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd()<< std::endl;
@@ -174,6 +170,7 @@ void Layer::buildStraight(bool isFlatPart) {
   else if (maxZ.state()) first->maxZ(maxZ());
   first->smallDelta(smallDelta());
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
+  if (isFlatPart && buildNumModulesFlat() > 0) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); std::cout << "cmoi" << pow(-1, buildNumModulesFlat()) << std::endl; }
   first->store(propertyTree());
   first->build(rodTemplate);
 
@@ -235,7 +232,7 @@ void Layer::buildTilted() {
 
   else {
 
-    flatPartThetaEnd_ = 0.;
+    flatPartThetaEnd_ = M_PI / 2.;
 
     if (buildNumModulesFlat() != 0) {
       buildNumModules(buildNumModulesFlat());
