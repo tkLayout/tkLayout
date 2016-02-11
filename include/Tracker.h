@@ -79,7 +79,7 @@ public:
   {}
 
   void setup() {
-      maxR.setup([this]() { 
+      maxR.setup([this]() {
         double max = 0; 
         for (const auto& b : barrels_) max = MAX(max, b.maxR());
         for (const auto& e : endcaps_) max = MAX(max, e.maxR());
