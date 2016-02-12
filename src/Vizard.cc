@@ -1961,21 +1961,22 @@ namespace insur {
     drawEtaCoverage(*myPage, analyzer);
     drawEtaCoverageStubs(*myPage, analyzer);
 
-    // TODO: make this meaningful!
-    // // Power density
-    // myCanvas = new TCanvas("PowerDensity", "PowerDensity", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    // myCanvas->cd();
-    // //myCanvas->SetLogx();
-    // //myCanvas->SetLogy();
-    // TGraph& pd = analyzer.getPowerDensity();
-    // pd.SetMarkerStyle(8);
-    // pd.SetMarkerColor(kBlue);
-    // pd.Draw("ap");
-    // myCanvas->SetFillColor(color_plot_background);
-    // myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    // myImage->setComment("Power density distribution");
-    // myContent->addItem(myImage);
-
+    // Add detailed geometry info here
+    RootWContent* filesContent = new RootWContent("Geometry files", false);
+    myPage->addContent(filesContent);
+    RootWTextFile* myTextFile;
+    // Barrel coordinates
+    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinate file");
+    myTextFile->addText(createBarrelModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // Endcap coordinates
+    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
+    myTextFile->addText(createEndcapModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // All coordinates
+    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
+    myTextFile->addText(createAllModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
 
     // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
     if (debugResolution) {
@@ -2235,7 +2236,7 @@ namespace insur {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
-    RootWContent *simulationContent, *filesContent, *summaryContent, *fullLayoutContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent;
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
 
@@ -2261,8 +2262,6 @@ namespace insur {
     if (aLayout) myPage->addContent(fullLayoutContent);
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
-    filesContent = new RootWContent("Geometry files");
-    myPage->addContent(filesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
      
@@ -2310,23 +2309,6 @@ namespace insur {
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
 
-    RootWTextFile* myTextFile;
-    createBarrelModulesCsv(tracker);
-    createEndcapModulesCsv(tracker);
-    createAllModulesCsv(tracker);
-    // Barrel coordinates
-    myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
-    myTextFile->addText(barrelModulesCsv_);
-    filesContent->addItem(myTextFile);
-    // Endcap coordinates
-    myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
-    myTextFile->addText(endcapModulesCsv_);
-    filesContent->addItem(myTextFile);
-    // All coordinates
-    myTextFile = new RootWTextFile("allCoordinates.csv", "Complete coordinate file");
-    myTextFile->addText(allModulesCsv_);
-    filesContent->addItem(myTextFile);
-
     // TODO: make an object that handles this properly:
     RootWTable* myTable = new RootWTable();
     myTable->setContent(1, 0, "CHF/cm"+superStart+"2"+superEnd);
@@ -2367,6 +2349,8 @@ namespace insur {
     //*  Summary files               *//
     //*                              *//
     //********************************//
+
+    RootWTextFile* myTextFile;
 
     // Summary of layout and performance
     myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
@@ -5100,7 +5084,7 @@ namespace insur {
     moduleConnectionsCsv_ = ss.str();
   }
 
-  void Vizard::createAllModulesCsv(const Tracker& t) {
+  std::string Vizard::createAllModulesCsv(const Tracker& t) {
     class TrackerVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
       string sectionName_;
@@ -5132,10 +5116,10 @@ namespace insur {
     TrackerVisitor v;
     v.preVisit();
     t.accept(v);
-    allModulesCsv_ = v.output();
+    return v.output();
   }
 
-  void Vizard::createBarrelModulesCsv(const Tracker& t) {
+  std::string Vizard::createBarrelModulesCsv(const Tracker& t) {
     class BarrelVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
       string barName_;
@@ -5163,10 +5147,10 @@ namespace insur {
     BarrelVisitor v;
     v.preVisit();
     t.accept(v);
-    barrelModulesCsv_ = v.output();
+    return v.output();
   }
   
-  void Vizard::createEndcapModulesCsv(const Tracker& t) {
+  std::string Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {
       double minZ_;
     public:
@@ -5195,7 +5179,7 @@ namespace insur {
     EndcapVisitor v;
     v.preVisit(); 
     t.accept(v);
-    endcapModulesCsv_ = v.output.str();
+    return v.output.str();
   }
 
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
