@@ -2248,6 +2248,135 @@ namespace insur {
     // myImage->setComment("Power density distribution");
     // myContent->addItem(myImage);
 
+    // Add detailed geometry info here
+    RootWContent* filesContent = new RootWContent("Geometry files", false);
+    myPage->addContent(filesContent);
+    RootWTextFile* myTextFile;
+    // Barrel coordinates
+    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinate file");
+    myTextFile->addText(createBarrelModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // Endcap coordinates
+    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
+    myTextFile->addText(createEndcapModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // All coordinates
+    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
+    myTextFile->addText(createAllModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+
+    // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
+    if (debugResolution) {
+
+      std::string tag;
+      if (name == "" ) tag = "tracker";
+      else tag = name;
+
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
+
+      // Modules' parametrized spatial resolution maps
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXBarrelMap = analyzer.getParametrizedResolutionLocalXBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYBarrelMap = analyzer.getParametrizedResolutionLocalYBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
+
+      // Modules' parametrized spatial resolution distributions
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+      if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
+      }
+
+      // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
+      else {
+	RootWTable* myTable = new RootWTable();
+	parametrizedResolutionContent.addItem(myTable);
+	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
+	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
+	myTable->setContent(3, 1, " ");
+	myTable->setContent(4, 1, " ");
+
+	gStyle->SetTitleX(0.54);
+	gStyle->SetTitleW(1);
+	gStyle->SetOptStat("emr");
+	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoXBarCanvas;
+	  resoXBarCanvas.SetFillColor(color_plot_background);
+	  resoXBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoYBarCanvas;
+	  resoYBarCanvas.SetFillColor(color_plot_background);
+	  resoYBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
+	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoXEndCanvas;
+	  resoXEndCanvas.SetFillColor(color_plot_background);
+	  resoXEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
+	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoYEndCanvas;
+	  resoYEndCanvas.SetFillColor(color_plot_background);
+	  resoYEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
+	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	}
+      }
+    } // debugResolution
+
     return true;
   }
 
@@ -2394,7 +2523,7 @@ namespace insur {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
-    RootWContent *simulationContent, *filesContent, *summaryContent, *fullLayoutContent;
+    RootWContent *simulationContent, *summaryContent, *fullLayoutContent;
     RootWBinaryFile* myBinaryFile;
     std::string trackerName = tracker.myid();
 
@@ -2420,8 +2549,6 @@ namespace insur {
     if (aLayout) myPage->addContent(fullLayoutContent);
     simulationContent = new RootWContent("Simulation parameters");
     myPage->addContent(simulationContent);
-    filesContent = new RootWContent("Geometry files");
-    myPage->addContent(filesContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
      
@@ -2469,23 +2596,6 @@ namespace insur {
     myInfo->setValue(geometryTracksUsed);
     simulationContent->addItem(myInfo);
 
-    RootWTextFile* myTextFile;
-    createBarrelModulesCsv(tracker);
-    createEndcapModulesCsv(tracker);
-    createAllModulesCsv(tracker);
-    // Barrel coordinates
-    myTextFile = new RootWTextFile("barrelCoordinates.csv", "Barrel modules coordinate file");
-    myTextFile->addText(barrelModulesCsv_);
-    filesContent->addItem(myTextFile);
-    // Endcap coordinates
-    myTextFile = new RootWTextFile("endcapCoordinates.csv", "Endcap modules coordinate file");
-    myTextFile->addText(endcapModulesCsv_);
-    filesContent->addItem(myTextFile);
-    // All coordinates
-    myTextFile = new RootWTextFile("allCoordinates.csv", "Complete coordinate file");
-    myTextFile->addText(allModulesCsv_);
-    filesContent->addItem(myTextFile);
-
     // TODO: make an object that handles this properly:
     RootWTable* myTable = new RootWTable();
     myTable->setContent(1, 0, "CHF/cm"+superStart+"2"+superEnd);
@@ -2526,6 +2636,8 @@ namespace insur {
     //*  Summary files               *//
     //*                              *//
     //********************************//
+
+    RootWTextFile* myTextFile;
 
     // Summary of layout and performance
     myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
@@ -5265,7 +5377,7 @@ namespace insur {
     moduleConnectionsCsv_ = ss.str();
   }
 
-  void Vizard::createAllModulesCsv(const Tracker& t) {
+  std::string Vizard::createAllModulesCsv(const Tracker& t) {
     class TrackerVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
       string sectionName_;
@@ -5297,10 +5409,10 @@ namespace insur {
     TrackerVisitor v;
     v.preVisit();
     t.accept(v);
-    allModulesCsv_ = v.output();
+    return v.output();
   }
 
-  void Vizard::createBarrelModulesCsv(const Tracker& t) {
+  std::string Vizard::createBarrelModulesCsv(const Tracker& t) {
     class BarrelVisitor : public ConstGeometryVisitor {
       std::stringstream output_;
       string barName_;
@@ -5328,10 +5440,10 @@ namespace insur {
     BarrelVisitor v;
     v.preVisit();
     t.accept(v);
-    barrelModulesCsv_ = v.output();
+    return v.output();
   }
   
-  void Vizard::createEndcapModulesCsv(const Tracker& t) {
+  std::string Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {
       double minZ_;
     public:
@@ -5360,7 +5472,7 @@ namespace insur {
     EndcapVisitor v;
     v.preVisit(); 
     t.accept(v);
-    endcapModulesCsv_ = v.output.str();
+    return v.output.str();
   }
 
   void Vizard::drawCircle(double radius, bool full, int color/*=kBlack*/) {
