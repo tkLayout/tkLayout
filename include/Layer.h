@@ -127,13 +127,13 @@ public:
   const Container& rods() const { return rods_; }
 
   void cutAtEta(double eta);
-  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); } 
+  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
 
   void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rods_) { r.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& r : rods_) { r.accept(v); }
   }

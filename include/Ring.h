@@ -163,7 +163,7 @@ public:
 
   double minR()      const { return minRadius_; }
   double maxR()      const { return maxRadius_; }
-  double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
+  double thickness() const { return smallDelta()*2 + maxModuleThickness(); }
 
   const Container& modules() const { return modules_; }
 
@@ -190,7 +190,7 @@ public:
     minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
     maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
     maxModuleThickness.setup([this]() { 
-      double max = 0; 
+      double max = 0;
       for (const auto& m : modules_) { 
         max = MAX(max, m.thickness()); 
       } 

@@ -278,6 +278,10 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
     thetaOuter_ = MAX(thetaOuterUP_, thetaOuterDOWN_);
 
     zOuter_ = outerRadius() / tan(thetaOuter_);
+
+    if ((thetaStart_ * 180. / M_PI > 84) && (thetaStart_ * 180. / M_PI < 85)) { 
+      std::cout << "outerRadius() = " << outerRadius() << "thetaStart_ = " << thetaStart_ << "tilt = " << tilt << "thetaOuter_ = " << thetaOuter_ << "zOuter_ = " << zOuter_ << "length = " << length << "zOverlap() = " << zOverlap() << std::endl;   
+    }
   }
 
 

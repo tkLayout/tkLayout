@@ -96,6 +96,7 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
 
 RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
+  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   for (int i = 0; i < rodTemplate.size(); i++) {
     rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
     rodTemplate[i]->store(propertyTree());
@@ -119,10 +120,11 @@ TiltedRodTemplate Layer::makeTiltedRodTemplate(double flatPartThetaEnd) {
     tiltedRing->numPhi(numModulesPhi());
 
 
-    if ( i == 0 ) { 
+    if ( i == 0 ) {
+      std::cout << "flatPartThetaEnd = " << flatPartThetaEnd * 180. / M_PI << std::endl;
       tiltedRing->build(flatPartThetaEnd); 
     }
-    else { 
+    else {
       //std::cout << "(tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd()<< std::endl;
       tiltedRing->build((tiltedRodTemplate.at(i-1))->thetaEnd()); 
     }
@@ -170,7 +172,7 @@ void Layer::buildStraight(bool isFlatPart) {
   else if (maxZ.state()) first->maxZ(maxZ());
   first->smallDelta(smallDelta());
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
-  if (isFlatPart && buildNumModulesFlat() > 0) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); std::cout << "cmoi" << pow(-1, buildNumModulesFlat()) << std::endl; }
+  if (isFlatPart && buildNumModulesFlat() > 0) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); std::cout << pow(-1, buildNumModulesFlat()) << std::endl; }
   first->store(propertyTree());
   first->build(rodTemplate);
 
@@ -181,19 +183,19 @@ void Layer::buildStraight(bool isFlatPart) {
 
   first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
   //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
-  vector<TiltedModuleSpecs> coords = first->giveZPlusModulesCoords(4);
+  /*vector<TiltedModuleSpecs> coords = first->giveZPlusModulesCoords(1);
   for (int i = 0; i < coords.size(); i++) {
     std::cout << "tmspecs1[i].r = " << coords[i].r << "tmspecs1[i].z = " << coords[i].z << std::endl;
-  }
+    }*/
   rods_.push_back(first);
 
   second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
   //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
   second->rotateZ(rodPhiRotation);
-  vector<TiltedModuleSpecs> coords2 = second->giveZPlusModulesCoords(4);
+  /*vector<TiltedModuleSpecs> coords2 = second->giveZPlusModulesCoords(1);
   for (int i = 0; i < coords2.size(); i++) {
     std::cout << "tmspecs2[i].r = " << coords2[i].r << "tmspecs2[i].z = " << coords2[i].z << std::endl;
-  }
+    }*/
   flatPartThetaEnd_ = second->thetaEnd();
   rods_.push_back(second);
 

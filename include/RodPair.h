@@ -92,7 +92,7 @@ public:
     for (auto& m : zPlusModules_) { m.accept(v); }
     for (auto& m : zMinusModules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& m : zPlusModules_) { m.accept(v); }
     for (const auto& m : zMinusModules_) { m.accept(v); }
@@ -155,15 +155,15 @@ public:
   double thetaEnd() const {
     double thetaEnd;
 
-    if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
-    else {
-      auto it = zPlusModules_.end() - 1;
+    //if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
+    //else {
+      auto lastMod = zPlusModules_.back();
 
-      double dsDistance = it->dsDistance();
-      double length = it->length();
+      double dsDistance = lastMod.dsDistance();
+      double length = lastMod.length();
       double lengthEff = length - zOverlap();
-      double lastR = it->center().Rho();
-      double lastZ = it->center().Z();
+      double lastR = lastMod.center().Rho();
+      double lastZ = lastMod.center().Z();
 
 
       double zH2pp = lastZ + 0.5 * lengthEff;
@@ -172,6 +172,8 @@ public:
       double zH2UP = lastZ;
       double rH2UP = lastR + 0.5 * dsDistance;
       double zH2ppUP = zH2UP + 0.5 * lengthEff;
+      std::cout << "rH2UP = " << rH2UP << "zH2ppUP = " << zH2ppUP << std::endl;
+      std::cout << " zOverlap() = " <<  zOverlap() << std::endl;
       double rH2ppUP = rH2UP;
 
       double zH2DOWN = lastZ;
@@ -180,7 +182,10 @@ public:
       double rH2ppDOWN = rH2DOWN;
 
       thetaEnd = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
-    }
+
+      // findMaxZModule as a function
+      //thetaEnd = atan(lastMod->planarMaxR() / (lastMod->planarMaxZ() - zOverlap());
+      // }
     return thetaEnd;
   }
 

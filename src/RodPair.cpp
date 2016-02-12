@@ -279,7 +279,9 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
   vector<double> zPlusList = computeZList(begin, end, startZ, BuildDir::RIGHT, zPlusParity(), fixedStartZ);
   vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -zPlusParity(), !fixedStartZ);
 
-  double zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); // balancing uneven pos/neg strings
+  double zUnbalance = 0.;
+  //if (!zPlusList.empty() && zMinusList.empty()) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2); } // balancing uneven pos/neg strings
+  if (!zPlusList.empty() && !zMinusList.empty()) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); } // balancing uneven pos/neg strings
 
   if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge
     std::ostringstream tempSS;
@@ -288,7 +290,7 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
     logWARNING(tempSS);
 
     return std::make_pair(zPlusList, zMinusList);
-  }  
+  }
 
   if (fabs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
     return computeZListPair(begin, end,
@@ -298,8 +300,9 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
     std::ostringstream tempSS;
     tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " converged after " << recursionCounter << " step(s).\n" 
            << "   Residual Z unbalance is " << zUnbalance << ".\n"
-           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n"
-           << "   Z+ rod starts at " << zPlusList.front() << ", Z- rod starts at " << zMinusList.front() << ".";
+           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n";
+    if (!zPlusList.empty()) { tempSS << "Z+ rod starts at " << zPlusList.front() << ".\n"; }
+    if (!zMinusList.empty()) { tempSS << "Z- rod starts at " << zMinusList.front() << ".\n"; }
     logINFO(tempSS);
     return std::make_pair(zPlusList, zMinusList);
   }
@@ -323,6 +326,8 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
 
 void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
+  std::cout << "startZ = " << startZ << std::endl;
+  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation
@@ -337,7 +342,7 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
   if (!collisionsZPlus.empty() || !collisionsZMinus.empty()) logWARNING("Some modules have been translated to avoid collisions. Check info tab");
 
   if (compressed() && maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
-  currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.); 
+  currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
 
