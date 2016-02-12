@@ -348,11 +348,11 @@ void Layer::build() {
       conversionStation->check();
       conversionStation->build();
       
-      if(conversionStation->stationType() == ConversionStation::Type::FLANGE) {
-        if(flangeConversionStation_ == nullptr) { //take only first defined flange station
+      if (conversionStation->stationType() == ConversionStation::Type::FLANGE) {
+        if (flangeConversionStation_ == nullptr) { //take only first defined flange station
           flangeConversionStation_ = conversionStation;
         }
-      }else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
+      } else if(conversionStation->stationType() == ConversionStation::Type::SECOND) {
         secondConversionStations_.push_back(conversionStation);
       }
     }

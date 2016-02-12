@@ -944,8 +944,7 @@ namespace insur {
       pconverter <<  nspace + ":" + rodname.str();
       alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
       pconverter.str("");
-      pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
-      alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+      alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
       pconverter.str("");
       pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
       alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));

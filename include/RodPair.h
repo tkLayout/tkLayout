@@ -153,29 +153,34 @@ public:
   void compressToZ(double z);
 
   double thetaEnd() const {
-    auto it = zPlusModules_.end() - 1;
+    double thetaEnd;
 
-    double dsDistance = it->dsDistance();
-    double length = it->length();
-    double lengthEff = length - zOverlap();
-    double lastR = it->center().Rho();
-    double lastZ = it->center().Z();
+    if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
+    else {
+      auto it = zPlusModules_.end() - 1;
+
+      double dsDistance = it->dsDistance();
+      double length = it->length();
+      double lengthEff = length - zOverlap();
+      double lastR = it->center().Rho();
+      double lastZ = it->center().Z();
 
 
-    double zH2pp = lastZ + 0.5 * lengthEff;
-    double rH2pp = lastR;
+      double zH2pp = lastZ + 0.5 * lengthEff;
+      double rH2pp = lastR;
 
-    double zH2UP = lastZ;
-    double rH2UP = lastR + 0.5 * dsDistance;
-    double zH2ppUP = zH2UP + 0.5 * lengthEff;
-    double rH2ppUP = rH2UP;
+      double zH2UP = lastZ;
+      double rH2UP = lastR + 0.5 * dsDistance;
+      double zH2ppUP = zH2UP + 0.5 * lengthEff;
+      double rH2ppUP = rH2UP;
 
-    double zH2DOWN = lastZ;
-    double rH2DOWN = lastR - 0.5 * dsDistance;
-    double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff;
-    double rH2ppDOWN = rH2DOWN;
+      double zH2DOWN = lastZ;
+      double rH2DOWN = lastR - 0.5 * dsDistance;
+      double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff;
+      double rH2ppDOWN = rH2DOWN;
 
-    double thetaEnd = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+      thetaEnd = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
+    }
     return thetaEnd;
   }
 

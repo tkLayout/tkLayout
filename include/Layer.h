@@ -118,7 +118,7 @@ public:
   double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
   //bool isTilted() const { return rods_.front().isTilted(); }
   
-  double tilt() const { return 0.0; }
+  //double tilt() const { return 0.0; }
   double startAngle() const { return 90.0; }
 
   void check() override;
