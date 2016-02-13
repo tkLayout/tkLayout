@@ -138,6 +138,9 @@ namespace insur {
     std::map<int, TGraph>& getCtgThetaGraphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getZ0Graphs(bool ideal, bool isTrigger);
     std::map<int, TGraph>& getPGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getLGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getBetaGraphs(bool ideal, bool isTrigger);
+    std::map<int, TGraph>& getOmegaGraphs(bool ideal, bool isTrigger);
     GraphBag& getGraphBag() { return myGraphBag; }
     mapBag& getMapBag() { return myMapBag; }
     profileBag& getProfileBag() { return myProfileBag; }
