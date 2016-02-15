@@ -95,7 +95,7 @@ public:
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
 	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
-	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),	    
+	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
 	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),

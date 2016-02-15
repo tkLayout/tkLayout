@@ -188,16 +188,18 @@ void Layer::buildStraight(bool isFlatPart) {
     std::cout << "tmspecs1[i].r = " << coords[i].r << "tmspecs1[i].z = " << coords[i].z << std::endl;
     }*/
   rods_.push_back(first);
+  //if (isFlatPart) { flatRods_.push_back(first); }
 
   second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
   //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
   second->rotateZ(rodPhiRotation);
   /*vector<TiltedModuleSpecs> coords2 = second->giveZPlusModulesCoords(1);
   for (int i = 0; i < coords2.size(); i++) {
-    std::cout << "tmspecs2[i].r = " << coords2[i].r << "tmspecs2[i].z = " << coords2[i].z << std::endl;
-    }*/
+  std::cout << "tmspecs2[i].r = " << coords2[i].r << "tmspecs2[i].z = " << coords2[i].z << std::endl;
+  }*/
   flatPartThetaEnd_ = second->thetaEnd();
   rods_.push_back(second);
+  //if (isFlatPart) { flatRods_.push_back(second); }
 
   if (!isFlatPart) {
     for (int i = 2; i < numRods_; i++) {
@@ -205,6 +207,7 @@ void Layer::buildStraight(bool isFlatPart) {
       rod->myid(i+1);
       rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
       rods_.push_back(rod);
+      //if (isFlatPart) { flatRods_.push_back(rod); }
     }
   }
 }

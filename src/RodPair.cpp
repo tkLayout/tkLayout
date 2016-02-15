@@ -280,7 +280,6 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
   vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -zPlusParity(), !fixedStartZ);
 
   double zUnbalance = 0.;
-  //if (!zPlusList.empty() && zMinusList.empty()) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2); } // balancing uneven pos/neg strings
   if (!zPlusList.empty() && !zMinusList.empty()) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); } // balancing uneven pos/neg strings
 
   if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge

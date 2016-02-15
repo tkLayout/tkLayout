@@ -155,8 +155,8 @@ public:
   double thetaEnd() const {
     double thetaEnd;
 
-    //if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
-    //else {
+    if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
+    else {
       auto lastMod = zPlusModules_.back();
 
       double dsDistance = lastMod.dsDistance();
@@ -185,7 +185,7 @@ public:
 
       // findMaxZModule as a function
       //thetaEnd = atan(lastMod->planarMaxR() / (lastMod->planarMaxZ() - zOverlap());
-      // }
+    }
     return thetaEnd;
   }
 
