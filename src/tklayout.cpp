@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     ("bandwidth-cpu,B", "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
     ("material,m", "Report materials and weights analyses.")
     ("resolution,r", "Report resolution analysis.")
+    ("debug-resolution,R", "Report extended resolution analysis : debug plots for modules parametrized spatial resolution.")
     ("trigger,t", "Report base trigger analysis.")
     ("trigger-ext,T", "Report extended trigger analysis.\n\t(implies 't')")
     ("debug-services,d", "Service additional debug info")
@@ -40,8 +41,7 @@ int main(int argc, char* argv[]) {
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
     ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
     ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
-    ;
-
+    ("pixelxml", "Produce XML output files for pixel.\nThe config file name (minus extension)\nwill be used as subdir.");
     
   po::options_description trackopt("Track simulation options");
   trackopt.add_options()
@@ -62,6 +62,7 @@ int main(int argc, char* argv[]) {
   po::options_description otheropt("Other options");
   otheropt.add_options()
     ("version,v", "Prints software version (SVN revision) and quits.")
+    ("webOutput,w", "Prepares the output for web publishing (local running is assumed otherwise).")
     ;
 
   
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   squid.setGeometryFile(basename);
+  squid.webOutput = (vm.count("webOutput")!=0);
   if (htmldir != "") squid.setHtmlDir(htmldir);
 
 
@@ -138,12 +140,12 @@ int main(int argc, char* argv[]) {
     if ((vm.count("all") || vm.count("power")) && (!squid.reportPowerSite()) ) return EXIT_FAILURE;
 
     // If we need to have the material model, then we build it
-    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
+    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution") || vm.count("graph") || vm.count("xml") ) {
       if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
-        if ( vm.count("all") || vm.count("material") || vm.count("resolution") ) {
-          if (!squid.pureAnalyzeMaterialBudget(mattracks, vm.count("all") || vm.count("resolution"))) return EXIT_FAILURE;
+        if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("debug-resolution")) {
+          if (!squid.pureAnalyzeMaterialBudget(mattracks, (vm.count("all") || vm.count("resolution") ||  vm.count("debug-resolution")), vm.count("debug-resolution"))) return EXIT_FAILURE;
           if ((vm.count("all") || vm.count("material"))  && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
-          if ((vm.count("all") || vm.count("resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
+          if ((vm.count("all") || vm.count("resolution") || vm.count("debug-resolution"))  && !squid.reportResolutionSite()) return EXIT_FAILURE;	  
         }
         if (vm.count("graph") && !squid.reportNeighbourGraphSite()) return EXIT_FAILURE;
         if (vm.count("xml") && !squid.translateFullSystemToXML(xmldir)) return (EXIT_FAILURE);
@@ -152,9 +154,14 @@ int main(int argc, char* argv[]) {
 
     if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
         ( !squid.analyzeTriggerEfficiency(mattracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
+   
+    if (vm.count("pixelxml")) {
+        squid.pixelExtraction(xmldir);
+    }
+    
+    if( vm.count("xml") || vm.count("pixelxml") )    squid.createAdditionalXmlSite(xmldir);
 
-
-    if (!squid.reportGeometrySite()) return EXIT_FAILURE;
+    if (!squid.reportGeometrySite(vm.count("debug-resolution"))) return EXIT_FAILURE;
     if (!squid.additionalInfoSite()) return EXIT_FAILURE;
     if (!squid.makeSite()) return EXIT_FAILURE;
 

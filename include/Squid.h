@@ -35,6 +35,7 @@
 #include <Support.h>
 #include "Materialway.h"
 #include "WeightDistributionGrid.h"
+#include <PixelExtractor.h>
 
 
 using material::Materialway;
@@ -88,12 +89,13 @@ namespace insur {
     //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
     bool translateFullSystemToXML(std::string xmlout = "");
+    bool webOutput = false;
 
     // Functions using rootweb
     bool analyzeTriggerEfficiency(int tracks, bool detailed);
     bool pureAnalyzeGeometry(int tracks);
-    bool pureAnalyzeMaterialBudget(int tracks, bool trackingResolution);
-    bool reportGeometrySite();
+    bool pureAnalyzeMaterialBudget(int tracks, bool trackingResolution, bool debugResolution);
+    bool reportGeometrySite(bool debugResolution);
     bool reportBandwidthSite();
     bool reportTriggerProcessorsSite();
     bool reportPowerSite();
@@ -109,7 +111,8 @@ namespace insur {
 
     void simulateTracks(const po::variables_map& varmap, int seed);
     void setCommandLine(int argc, char* argv[]);
-
+    void pixelExtraction(std::string xmlout);
+    void createAdditionalXmlSite(std::string xmlout);
   private:
     //std::string g;
     Tracker* tr;
@@ -157,7 +160,7 @@ namespace insur {
 
     bool prepareWebsite();
     bool sitePrepared;
-
+    PixelExtractor pxt;
   };
 }
 #endif	/* _SQUID_H */

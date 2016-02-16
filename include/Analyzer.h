@@ -1,4 +1,3 @@
-// 
 // File:   Analyzer.h
 // Author: ndemaio
 //
@@ -41,6 +40,14 @@
 #include "Bag.h"
 #include "SummaryTable.h"
 #include "TagMaker.h"
+
+
+
+#include <TFile.h>
+#include <TProfile.h>
+#include <TF1.h>
+#include <TAxis.h>
+#include <TCanvas.h>
 
 
 namespace insur {
@@ -145,6 +152,8 @@ namespace insur {
                                const std::vector<double>& momenta,
                                const std::vector<double>& triggerMomenta,
                                const std::vector<double>& thresholdProbabilities,
+			       bool isPixel,
+			       bool& debugResolution,
                                int etaSteps = 50,
                                MaterialBudget* pm = NULL);
     virtual void analyzeTriggerEfficiency(Tracker& tracker,
@@ -206,6 +215,14 @@ namespace insur {
     std::map<std::string, SummaryTable>& getEndcapWeightComponentSummary() { return endcapComponentWeights;};
     std::map<std::string, double>& getTypeWeigth() { return typeWeight; };
     std::map<std::string, double>& getTagWeigth() { return tagWeight; };
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalXBarrelMap() {return parametrizedResolutionLocalXBarrelMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalXEndcapsMap() { return parametrizedResolutionLocalXEndcapsMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalYBarrelMap() { return parametrizedResolutionLocalYBarrelMap; }
+    std::map<std::string, TH2D>& getParametrizedResolutionLocalYEndcapsMap() { return parametrizedResolutionLocalYEndcapsMap; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXBarrelDistribution() {return parametrizedResolutionLocalXBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalXEndcapsDistribution() { return parametrizedResolutionLocalXEndcapsDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYBarrelDistribution() { return parametrizedResolutionLocalYBarrelDistribution; }
+    std::map<std::string, TH1D>& getParametrizedResolutionLocalYEndcapsDistribution() { return parametrizedResolutionLocalYEndcapsDistribution; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyTrueSummaries() { return triggerFrequencyTrueSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyInterestingSummaries() { return triggerFrequencyInterestingSummaries_; }
     std::map<std::string, SummaryTable>& getTriggerFrequencyFakeSummaries() { return triggerFrequencyFakeSummaries_; }
@@ -232,17 +249,10 @@ namespace insur {
 
     const TriggerSectorMap& getTriggerSectorMap() const { return triggerSectorMap_; }
 
-    // double getEtaMaxMaterial() { return etaMaxMaterial; } 
-    double getEtaMaxMaterial() { return getEtaMaxTracking(); }
-    double getEtaMaxGeometry() { return etaMaxGeometry; } 
-    double getEtaMaxTracking();
-    double getEtaMaxTrigger();
-    // void setEtaMaxMaterial(const double& newValue) { etaMaxMaterial = newValue; } 
-    void setEtaMaxGeometry(const double& newValue) { etaMaxGeometry = newValue; } 
-    void addCut(const std::string& cutName, const double& trackingCut, const double& triggerCut);
-    const std::vector<double>& getTrackingCuts() { return trackingCuts; }
-    const std::vector<double>& getTriggerCuts() { return triggerCuts; }
-    const std::vector<std::string>& getCutNames() { return cutNames; }
+    inline double getEtaMaxMaterial() const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxGeometry() const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxTracker()  const { return insur::geom_max_eta_coverage;}
+    inline double getEtaMaxTrigger()  const { return insur::geom_max_eta_coverage;}
 
     void simParms(SimParms* sp) { simParms_ = sp; }
     const SimParms& simParms() const { return *simParms_; }
@@ -295,6 +305,15 @@ namespace insur {
     std::map<std::string, double> typeWeight;
     std::map<std::string, double> tagWeight;
 
+    std::map<std::string, TH2D> parametrizedResolutionLocalXBarrelMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalXEndcapsMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalYBarrelMap;
+    std::map<std::string, TH2D> parametrizedResolutionLocalYEndcapsMap; 
+    std::map<std::string, TH1D> parametrizedResolutionLocalXBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalXEndcapsDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYBarrelDistribution;
+    std::map<std::string, TH1D> parametrizedResolutionLocalYEndcapsDistribution;
+
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerDataBandwidths_;
     std::map<std::string, std::map<std::pair<int, int>, double> > triggerFrequenciesPerEvent_;
     std::map<std::string, SummaryTable> triggerFrequencyTrueSummaries_, triggerFrequencyFakeSummaries_, triggerFrequencyMisfilteredSummaries_, triggerFrequencyCombinatorialSummaries_, triggerFrequencyInterestingSummaries_;
@@ -318,7 +337,7 @@ namespace insur {
 
     ModuleConnectionMap moduleConnections_;
     TriggerSectorMap triggerSectorMap_;
-
+    
     TH1D hitDistribution;
     GraphBag myGraphBag;
     mapBag myMapBag;
@@ -371,11 +390,17 @@ namespace insur {
     virtual Material findHitsInactiveSurfaces(std::vector<InactiveElement>& elements, double eta, double theta,
                                               Track& t, bool isPixel = false);
 
-    void clearGraphs(int graphAttributes, const std::string& aTag);
-    void calculateGraphs(const int& aMomentum,
-                         const TrackCollection& aTrackCollection,
-                         int graphAttributes,
-                         const string& graphTag);
+    void clearGraphsPt(int graphAttributes, const std::string& aTag);
+    void clearGraphsP(int graphAttributes, const std::string& aTag);
+    void calculateGraphsConstPt(const int& aMomentum,
+                                const TrackCollection& aTrackCollection,
+                                int graphAttributes,
+                                const string& graphTag);
+    void calculateGraphsConstP(const int& aMomentum,
+                               const TrackCollection& aTrackCollection,
+                               int graphAttributes,
+                               const string& graphTag);
+    void calculateParametrizedResolutionPlots(std::map<std::string, TrackCollectionMap>& taggedTrackPtCollectionMap);    
     void fillTriggerEfficiencyGraphs(const Tracker& tracker,
                                      const std::vector<double>& triggerMomenta,
                                      const std::vector<Track>& trackVector);
@@ -417,16 +442,6 @@ namespace insur {
 
     bool isModuleInEtaSector(const Tracker& tracker, const Module* module, int etaSector) const;
     bool isModuleInPhiSector(const Tracker& tracker, const Module* module, int phiSector) const;
-
-    /*
-     * Eta values to show results
-     */
-    //double etaMaxMaterial;
-    double etaMaxGeometry;
-
-    std::vector<std::string> cutNames;
-    std::vector<double> trackingCuts;
-    std::vector<double> triggerCuts;
 
     static int bsCounter;
     

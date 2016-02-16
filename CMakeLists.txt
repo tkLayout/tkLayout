@@ -175,25 +175,29 @@ FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/inclu
 # Exlude files with main function defined
 SET ( sources "" )
 FOREACH( file ${all_sources} )
- IF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" )
+ IF ( ${file} MATCHES "MaterialSection.cpp" OR ${file} MATCHES "HoughTrack.cpp" OR ${file} MATCHES "moduleType.cpp" OR
+      ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "tunePtParam.cpp" )
+   SET ( APPEND source_other ${file} )
+   MESSAGE( STATUS "Omitting the following ?buggy? file: ${file} !!!" ) 
+ ELSEIF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
    IF ( ${file} MATCHES "tklayout.cpp" ) 
      SET( source_tklayout ${file} )
    ENDIF()
    IF ( ${file} MATCHES "setup.cpp" ) 
      SET( source_setup ${file} )
    ENDIF()
- # Files not used at all - buggy files - FIX
- ELSEIF( ${file} MATCHES "TrackShooter.cpp" OR ${file} MATCHES "PtError.cpp" OR 
-         ${file} MATCHES "Histo.cpp" OR ${file} MATCHES "HoughTrack.cpp" OR 
-         ${file} MATCHES "MaterialSection.cpp" OR ${file} MATCHES "moduleType.cpp" OR
-         ${file} MATCHES "tunePtParam.cpp")
-   LIST( APPEND sources_unused ${file} )
+   IF ( ${file} MATCHES "delphize.cpp" )
+     SET( source_delphize ${file} )
+   ENDIF()
  ELSE()
    IF( ${file} MATCHES "mainConfigHandler.cpp" )
      SET( source_mainhandler ${file} )
    ENDIF()
    IF( ${file} MATCHES "global_funcs.cpp" )
      SET( source_globalfunctions ${file} )
+   ENDIF()
+   IF( ${file} MATCHES "GraphVizCreator.cpp" )
+     SET( source_graphvizcreator ${file} )
    ENDIF()
    LIST( APPEND sources ${file} )
  ENDIF()
@@ -212,23 +216,26 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 #----------------------------------------------------------------------------
 # add the executable, and link it to the geant4 libraries
 #
-SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+#SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynamic linking of internal/external libraries
 
 ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_graphvizcreator} ${source_mainhandler} ${source_globalfunctions} ${headers} )
+ADD_EXECUTABLE(delphize ${source_delphize} )
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
 TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS})
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
+TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS})
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
+INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
@@ -240,6 +247,9 @@ IF(CMAKE_HOST_UNIX)
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
                    EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/tklayout $ENV{HOME}/bin/tklayout)" )
 
+    INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/delphize to ${PROJECT_SOURCE_DIR}/bin/delphize... \" )
+                   EXECUTE_PROCESS(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${PROJECT_SOURCE_DIR}/bin/delphize $ENV{HOME}/bin/delphize)" )
+
     # Configure tkLayout
     INSTALL( CODE "MESSAGE(STATUS \"Configuring tkLayout software...\" )
                    MESSAGE(STATUS \" Target directories setup:\" )
@@ -248,6 +258,42 @@ IF(CMAKE_HOST_UNIX)
                    EXECUTE_PROCESS(COMMAND bash -c \"if ! ${PROJECT_SOURCE_DIR}/bin/setup.bin --checkDir; then echo \\\"Problem during installation\\\"; else echo \\\"Installation successful\\\"; fi\")" )
 
 ENDIF()
+
+#----------------------------------------------------------------------------
+# Documentation
+#
+# Find Doxygen
+FIND_PACKAGE( Doxygen )
+IF( DOXYGEN_FOUND )
+
+    # Add doc target
+    ADD_CUSTOM_TARGET( doc ) 
+    ADD_CUSTOM_COMMAND( TARGET doc
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${PROJECT_SOURCE_DIR}/README.md" "${PROJECT_SOURCE_DIR}/doc/README.md"    
+        COMMAND "${DOXYGEN_EXECUTABLE}" ARGS "Doxyfile"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
+        COMMENT "Building API Documentation in ${PROJECT_SOURCE_DIR}/doc... "
+        VERBATIM )
+
+ELSE()
+    MESSAGE( STATUS "Doxygen not found in your system!!" )
+    IF( INSTALL_DOC )
+        MESSAGE( STATUS "INSTALL_DOC forced to OFF" )
+        SET( INSTALL_DOC OFF )
+    ENDIF()
+ENDIF()
+
+# Install documentation
+#IF( INSTALL_DOC )
+#    # make sure doxygen is executed (make doc) before make install
+#    INSTALL( CODE "EXEC_PROGRAM(${CMAKE_BUILD_TOOL} ${PROJECT_BINARY_DIR} ARGS doc)" )
+#    # install documentation
+#    INSTALL( DIRECTORY "${PROJECT_SOURCE_DIR}/doc"
+#            DESTINATION .
+#            PATTERN "*CVS*" EXCLUDE )
+#ENDIF()
+
 
 #----------------------------------------------------------------------------
 # Uninstall 

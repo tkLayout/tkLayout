@@ -46,6 +46,7 @@
 #include <TagMaker.h>
 
 #include <InactiveSurfaces.h>
+#include "Module.h"
 #include <rootweb.hh>
 #include <vector>
 #include <set>
@@ -57,6 +58,7 @@ namespace material {
   class WeightDistributionGrid;
 }
 
+using namespace boost::accumulators;
 using material::WeightDistributionGrid;
 
 namespace insur {
@@ -71,15 +73,21 @@ namespace insur {
   static const std::string graph_nowrite = "Neighbour graph was not written to file.";
 
   // Some strings for the html formatting
-  static const std::string subStart = "<sub>";      // These only should be needed
-  static const std::string subEnd = "</sub>";
+  static const std::string subStart   = "<sub>";      // These only should be needed
+  static const std::string subEnd     = "</sub>";
   static const std::string superStart = "<sup>";
-  static const std::string superEnd = "</sup>";
+  static const std::string superEnd   = "</sup>";
   static const std::string smallStart = "<small>";
-  static const std::string smallEnd = "</small>";
-  static const std::string emphStart="<b>";
-  static const std::string emphEnd="</b>";
-  static const std::string muLetter = "&mu;";
+  static const std::string smallEnd   = "</small>";
+  static const std::string emphStart  = "<b>";
+  static const std::string emphEnd    = "</b>";
+  static const std::string muLetter   = "&mu;";
+  static const std::string sigmaLetter= "&sigma;";
+  static const std::string etaLetter  = "&eta;";
+  static const std::string phiLetter  = "&phi;";
+  static const std::string thetaLetter= "&theta;";
+  static const std::string deltaLetter= "&delta;";
+
   //clearStart="<tt>";
   //clearEnd="</tt>";
 
@@ -88,10 +96,12 @@ namespace insur {
   static const int materialRebin = 2;
 
   // Colors for plot background and such
-  static const int color_plot_background = kWhite;
-  static const int color_pad_background = kGray;
-  static const int color_grid = kGreen-10;
-  static const int color_hard_grid = kGray;
+  static const int color_plot_background       = kWhite;
+  static const int color_pad_background        = kGray;
+  static const int color_grid                  = kGreen-10;
+  static const int color_hard_grid             = kGray;
+  static const std::vector<string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
+
 
   // Pads to plot the tracker ortho views
   static const unsigned int padYZ = 1;
@@ -104,6 +114,7 @@ namespace insur {
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
+  static const int rphiResolutionRmsePrecision = 1;
   static const int pitchPrecision = 0;
   static const int stripLengthPrecision = 1;
   static const int millionChannelPrecision = 2;
@@ -115,6 +126,9 @@ namespace insur {
   static const int costPerUnitPrecision  = 1;
   static const int minimumBiasPrecision = 0;
   static const int weightPrecision = 0;
+
+  static const int tableResolutionPrecisionHigh = 5;
+  static const int tableResolutionPrecisionStd  = 3;
 
   class graphIndex {
   public:
@@ -165,7 +179,7 @@ namespace insur {
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
     void histogramSummary(Analyzer& a, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
     void weigthSummart(Analyzer& a, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
+    bool geometrySummary(Analyzer& a, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, bool& debugResolution, std::string alternativeName = "");
     bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& a, Tracker& tracker, RootWSite& site);
@@ -174,12 +188,13 @@ namespace insur {
     bool triggerSummary(Analyzer& a, Tracker& tracker, RootWSite& site, bool extended);
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site); 
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
-    bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
+    bool additionalInfoSite(const std::string& settingsfile,
                             Analyzer& analyzer, Analyzer& pixelAnalyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     std::string getSummaryString();
     std::string getSummaryLabelString();
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
+      bool createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir);
 
   protected:
     TGeoManager* gm;
@@ -249,7 +264,6 @@ namespace insur {
     std::string occupancyCsv_;
     std::string triggerSectorMapCsv_;
     std::string moduleConnectionsCsv_;
-    std::string barrelModulesCsv_, endcapModulesCsv_, allModulesCsv_;
     void setSummaryString(std::string);
     void addSummaryElement(std::string element, bool first = false);
     void setSummaryLabelString(std::string);
@@ -263,12 +277,12 @@ namespace insur {
 
     void createTriggerSectorMapCsv(const TriggerSectorMap& tsm);
     void createModuleConnectionsCsv(const ModuleConnectionMap& moduleConnections);
-    void createBarrelModulesCsv(const Tracker& t);
-    void createEndcapModulesCsv(const Tracker& t);
-    void createAllModulesCsv(const Tracker& t);
+    std::string createBarrelModulesCsv(const Tracker& t);
+    std::string createEndcapModulesCsv(const Tracker& t);
+    std::string createAllModulesCsv(const Tracker& t);
 
     TProfile* newProfile(TH1D* nn);
-    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int rebin = 1);
+    TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
     std::vector<Tracker*> trackers_;
     TCanvas* drawFullLayout();

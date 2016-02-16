@@ -48,6 +48,8 @@ Hit::Hit() {
     isPixel_ = false;
     isTrigger_ = false;
     isIP_ = false;
+    resolutionLocalX_ = 0;
+    resolutionLocalY_ = 0;
     myResolutionRphi_ = 0;
     myResolutionY_ = 0;
     activeHitType_ = HitType::NONE;
@@ -68,6 +70,8 @@ Hit::Hit(const Hit& h) {
     isPixel_ = h.isPixel_;
     isTrigger_ = h.isTrigger_;
     isIP_ = h.isIP_;
+    resolutionLocalX_ = h.resolutionLocalX_;
+    resolutionLocalY_ = h.resolutionLocalY_;
     myResolutionRphi_ = h.myResolutionRphi_;
     myResolutionY_ = h.myResolutionY_;
     activeHitType_ = h.activeHitType_;
@@ -140,6 +144,21 @@ RILength Hit::getCorrectedMaterial() {
     return correctedMaterial_;
 }
 
+
+void Hit::computeLocalResolution() {
+  if (objectKind_!= Active) {
+    std::cerr << "ERROR: Hit::computeLocalResolution called on a non-active hit" << std::endl;
+  } else {
+    if (hitModule_) {
+      resolutionLocalX_ = hitModule_->resolutionLocalX(myTrack_->getPhi());
+      resolutionLocalY_ = hitModule_->resolutionLocalY(myTrack_->getTheta());
+      
+      if (hitModule_->hasAnyResolutionLocalXParam()) hitModule_->rollingParametrizedResolutionLocalX(resolutionLocalX_);
+      if (hitModule_->hasAnyResolutionLocalYParam()) hitModule_->rollingParametrizedResolutionLocalY(resolutionLocalY_);
+    }
+  }
+}
+
 /**
  * Getter for the rPhi resolution (local x coordinate for a module)
  * If the hit is not active it returns -1
@@ -154,9 +173,9 @@ double Hit::getResolutionRphi(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR);
-     // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
-     // else return hitModule_->resolutionRPhi();
+      return hitModule_->resolutionEquivalentRPhi(getRadius(), trackR, resolutionLocalX_, resolutionLocalY_);
+      // if (isTrigger_) return hitModule_->resolutionRPhiTrigger();
+      // else return hitModule_->resolutionRPhi();
     } else {
       return myResolutionRphi_;
     }
@@ -178,7 +197,7 @@ double Hit::getResolutionZ(double trackR) {
     return -1;
   } else {
     if (hitModule_) {
-      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta());
+      return hitModule_->resolutionEquivalentZ(getRadius(), trackR, myTrack_->getCotgTheta(), resolutionLocalX_, resolutionLocalY_);
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     } else {
@@ -242,6 +261,7 @@ Track::Track() {
  */
 Track::Track(const Track& t) {
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);
@@ -275,6 +295,7 @@ Track& Track::operator= (const Track &t) {
   
   // do the copy
   theta_ = t.theta_;
+  phi_ = t.phi_;
   cotgTheta_ = t.cotgTheta_;
   eta_ = t.eta_;
   correlations_.ResizeTo(t.correlations_);
@@ -399,7 +420,7 @@ double Track::hadronActiveHitsProbability(int nHits, bool usePixels /* = false *
       probability /= exp(myMaterial.interaction);
     }
   }
-  // If I did not reach the requested number of active hits
+  // If I did not reach the requestd number of active hits
   // The probability is zero
   return 0;
 }
@@ -461,7 +482,7 @@ double Track::setPhi(double& newPhi) {
  */
 // TODO: maybe updateradius is not necessary here. To be checked
 Hit* Track::addHit(Hit* newHit) {
-  hitV_.push_back(newHit); 
+  hitV_.push_back(newHit);
   if (newHit->getHitModule() != NULL) {
     tags_.insert(newHit->getHitModule()->trackingTags.begin(), newHit->getHitModule()->trackingTags.end()); 
   }
@@ -482,6 +503,7 @@ void Track::sort() {
  * @param momenta A reference of the list of energies that the correlation matrices should be calculated for
  */
 void Track::computeCorrelationMatrix() {
+
   // matrix size
   int n = hitV_.size();
   correlations_.ResizeTo(n,n);
@@ -554,7 +576,7 @@ void Track::computeCorrelationMatrix() {
   
   // check if matrix is sane and worth keeping
   if (!((correlations_.GetNoElements() > 0) && (correlations_.Determinant() != 0.0))) {
-    std::cerr << "WARNING: This is embarassing and it should be handled somehow" << std::endl;
+    logERROR(Form("A singular matrix was found (this is unexpected: all analyzed tracks should have >= 3 hits). nElements=%d, determinant = %f", correlations_.GetNoElements(), correlations_.Determinant()));
   }
 }
 
@@ -582,6 +604,16 @@ void Track::computeCovarianceMatrix() {
   }
   diffsT.Transpose(diffs);
   covariances_ = diffsT * C.Invert() * diffs;
+}
+
+void Track::computeLocalResolution() {
+  int n = hitV_.size();
+  for (int i = 0; i < n; i++) {
+    if (hitV_.at(i)->getObjectKind() != Hit::Inactive) {
+      hitV_.at(i)->computeLocalResolution();
+      //std::cout << hitV_.at(i)->getResolutionLocalX() << std::endl;
+    }
+  }
 }
 
 /**
@@ -715,6 +747,10 @@ void Track::computeErrors() {
   deltaCtgTheta_ = 0 ;
   deltaZ0_ = 0 ;
   deltaP_ = 0 ;
+
+
+  // Compute spatial resolution for all active hits
+  computeLocalResolution();
 
   // Compute the relevant matrices (RZ plane)
   computeCorrelationMatrixRZ();
@@ -965,4 +1001,15 @@ std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
   return result;
 }
 
+void Track::setTransverseMomentum(const double newPt) {
+  transverseMomentum_ = newPt;
+}
 
+void Track::pruneHits() {
+  double R = transverseMomentum_ / insur::magnetic_field / 0.3 * 1E3; // curvature radius in mm
+  std::vector<Hit*> hitN;
+  for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
+    if (((*hitIt)->getRadius()) < 2*R) {  hitN.push_back(*hitIt); }
+  }
+  hitV_ = hitN;
+}

@@ -1,6 +1,14 @@
 #include "Sensor.h"
 #include "DetectorModule.h"
 
+void Sensor::check() {
+  PropertyObject::check();
+  
+  if (!numStripsAcross.state() && !pitchEstimate.state()) throw PathfulException("At least one between numStripsAcross and pitchEstimate must be specified");
+  if (numStripsAcross.state() && pitchEstimate.state()) throw PathfulException("Only one between numStripsAcross and pitchEstimate can be specified");
+  if (!numSegments.state() && !stripLengthEstimate.state()) throw PathfulException("At least one between numSegments and stripLengthEstimate must be specified");
+  if (numSegments.state() && stripLengthEstimate.state()) throw PathfulException("Only one between numSegments and stripLengthEstimate can be specified");
+}
 
 double Sensor::normalOffset() const {
   return parent_->numSensors() <= 1 ? 0. : (myid() == 1 ? -parent_->dsDistance()/2. : parent_->dsDistance()/2.);
@@ -42,9 +50,17 @@ std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, co
   } else return std::make_pair(p, -1);
 }
 
-double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcross(); }
-double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcross(); }
-double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcross(); }
-double Sensor::stripLength() const { return parent_->length() / numSegments(); }
+int Sensor::numStripsAcrossEstimate() const {
+  if (numStripsAcross.state()) return numStripsAcross();
+  else return floor(parent_->meanWidth() / pitchEstimate() + 0.5);
+}
+int Sensor::numSegmentsEstimate() const {
+  if (numSegments.state()) return numSegments();
+  else return floor(parent_->length() / stripLengthEstimate() + 0.5);
+}
+double Sensor::minPitch() const { return parent_->minWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::maxPitch() const { return parent_->maxWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::pitch() const { return parent_->meanWidth() / (double)numStripsAcrossEstimate(); }
+double Sensor::stripLength() const { return parent_->length() / numSegmentsEstimate(); }
 
 define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };

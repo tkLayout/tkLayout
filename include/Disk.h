@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <limits.h>
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
@@ -36,8 +37,8 @@ private:
   Property<double, NoDefault> innerRadius;
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> bigDelta;
-  Property<double, Default> rOverlap;
-  Property<int, Default> bigParity;
+  Property<double, Default>   rOverlap;
+  Property<int   , Default>   bigParity;
 
   PropertyNode<int> ringNode;
   PropertyNodeUnique<std::string> stationsNode;
@@ -48,8 +49,9 @@ private:
 
   double averageZ_ = 0;
 public:
-  Property<int, NoDefault> numRings;
+  Property<int, NoDefault>    numRings;
   Property<double, NoDefault> zError;
+  Property<double, NoDefault> zHalfLength;
   Property<double, NoDefault> buildZ;
   Property<double, NoDefault> placeZ;
 
@@ -60,23 +62,24 @@ public:
   Disk() :
     materialObject_(MaterialObject::LAYER),
     flangeConversionStation_(nullptr),
-    numRings("numRings", parsedAndChecked()),
-    innerRadius("innerRadius", parsedAndChecked()),
-    outerRadius("outerRadius", parsedAndChecked()),
-    bigDelta("bigDelta", parsedAndChecked()),
-    zError("zError", parsedAndChecked()),
-    rOverlap("rOverlap", parsedOnly(), 1.),
-    bigParity("bigParity", parsedOnly(), 1),
-    buildZ("buildZ", parsedOnly()),
-    placeZ("placeZ", parsedOnly()),
-    ringNode("Ring", parsedOnly()),
-    stationsNode("Station", parsedOnly())
+    numRings(    "numRings"   , parsedAndChecked()),
+    innerRadius( "innerRadius", parsedAndChecked()),
+    outerRadius( "outerRadius", parsedAndChecked()),
+    bigDelta(    "bigDelta"   , parsedAndChecked()),
+    zError(      "zError"     , parsedAndChecked()),
+    zHalfLength( "zHalfLength", parsedAndChecked()),
+    rOverlap(    "rOverlap"   , parsedOnly(), 1.),
+    bigParity(   "bigParity"  , parsedOnly(), 1),
+    buildZ(      "buildZ"     , parsedOnly()),
+    placeZ(      "placeZ"     , parsedOnly()),
+    ringNode(    "Ring"       , parsedOnly()),
+    stationsNode("Station"    , parsedOnly())
   {}
 
   void setup() {
-    minZ.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
-    maxZ.setup([this]() { double max = -99999; for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; }); //TODO: Make this value nicer
-    minR.setup([this]() { double min = 99999; for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
+    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minZ()); } return min; });
+    maxZ.setup([this]() { double max = std::numeric_limits<double>::lowest(); for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
+    minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });

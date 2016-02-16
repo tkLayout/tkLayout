@@ -59,9 +59,9 @@ public:
        << "/Height=" << int(m.length()*1000)/1000.
        << "/Thickness=" << int(m.thickness()*1000)/1000.
        << "/Type=" << m.moduleType()
-       << "/StripsAcross=" << m.outerSensor().numStripsAcross()
+       << "/StripsAcross=" << m.outerSensor().numStripsAcrossEstimate()
        << "/Faces=" << m.numSensors();
-    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegments();
+    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegmentsEstimate();
 
     return ss.str();
   }
@@ -74,9 +74,9 @@ public:
        << "/Height=" << int(m.length()*1000)/1000.
        << "/Thickness=" << int(m.thickness()*1000)/1000.
        << "/Type=" << m.moduleType()
-       << "/StripsAcross=" << m.outerSensor().numStripsAcross()
+       << "/StripsAcross=" << m.outerSensor().numStripsAcrossEstimate()
        << "/Faces=" << m.numSensors();
-    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegments();
+    for (const auto& s : m.sensors()) ss << "/Segments=" << s.numSegmentsEstimate();
 
     return ss.str();
   }    

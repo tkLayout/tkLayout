@@ -1,9 +1,0 @@
-Materials diskPixel {
-  type layer
-
-  ReferenceSensor 1 {
-    numStripsAcross 1024
-    numSegments 128
-  }
-  
-} 

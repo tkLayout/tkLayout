@@ -199,6 +199,7 @@ public:
 class RootWBinaryFile : public RootWFile {
 private:
   string originalFileName_;
+  bool noCopy_ = false;
 public:
   RootWBinaryFile() {};
   ~RootWBinaryFile() {};
@@ -208,6 +209,7 @@ public:
     setFileName(newFileName); setDescription(newDescription); setOriginalFile(newOriginalFile);};
   void setOriginalFile(string newFile) {originalFileName_ = newFile ; };
   ostream& dump(ostream& output);
+  void setNoCopy(bool newNoCopy) { noCopy_ = newNoCopy ; }
 };
 
 class RootWBinaryFileList : public RootWFileList {
@@ -349,6 +351,13 @@ public:
   void  addItem(RootWItem* anItem, string itemName);
   vector<RootWItem*> getOtherItems();
 };
+
+class RootWGraphViz : public RootWTextFile {
+public:
+  RootWGraphViz(string a, string b) : RootWTextFile(a, b) {} ;
+  ostream& dump(ostream& output);
+};
+
 
 
   
