@@ -76,13 +76,13 @@ public:
 
   void cutAtEta(double eta);
 
-  vector<TiltedModuleSpecs> giveZPlusModulesCoords(int buildNumModulesFlat) const { 
-    vector<TiltedModuleSpecs> output; 
-    for (auto it = zPlusModules_.begin(); it < zPlusModules_.begin() + buildNumModulesFlat; ++it) {
+  vector<TiltedModuleSpecs> giveZPlusModulesCoords() const { 
+    vector<TiltedModuleSpecs> ZPlusModulesCoords; 
+    for (auto it = zPlusModules_.begin(); it < zPlusModules_.end(); ++it) {
       TiltedModuleSpecs t{it->center().Rho(), it->center().Z(), 0.0};
-      output.push_back(t);
+      ZPlusModulesCoords.push_back(t);
     }
-    return output;
+    return ZPlusModulesCoords;
   }
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
@@ -157,34 +157,26 @@ public:
 
     if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
     else {
+      // findMaxZModule as a function
       auto lastMod = zPlusModules_.back();
 
       double dsDistance = lastMod.dsDistance();
-      double length = lastMod.length();
-      double lengthEff = length - zOverlap();
       double lastR = lastMod.center().Rho();
-      double lastZ = lastMod.center().Z();
+      
+      double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
 
-
-      double zH2pp = lastZ + 0.5 * lengthEff;
-      double rH2pp = lastR;
-
-      double zH2UP = lastZ;
-      double rH2UP = lastR + 0.5 * dsDistance;
-      double zH2ppUP = zH2UP + 0.5 * lengthEff;
-      std::cout << "rH2UP = " << rH2UP << "zH2ppUP = " << zH2ppUP << std::endl;
-      std::cout << " zOverlap() = " <<  zOverlap() << std::endl;
-      double rH2ppUP = rH2UP;
-
-      double zH2DOWN = lastZ;
-      double rH2DOWN = lastR - 0.5 * dsDistance;
-      double zH2ppDOWN = zH2DOWN + 0.5 * lengthEff;
-      double rH2ppDOWN = rH2DOWN;
-
-      thetaEnd = MAX( atan(rH2ppUP / zH2ppUP), atan(rH2ppDOWN / zH2ppDOWN));
-
-      // findMaxZModule as a function
-      //thetaEnd = atan(lastMod->planarMaxR() / (lastMod->planarMaxZ() - zOverlap());
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ() - zOverlap()));
+    
+      /*std::cout << "lastMod.center().Rho() = " << lastMod.center().Rho() << std::endl;
+      std::cout << "lastMod.dsDistance() = " << lastMod.dsDistance() << std::endl;
+      std::cout << "lastMod.thickness() = " << lastMod.thickness() << std::endl;
+      std::cout << "rH2ppUP = " << rH2ppUP << std::endl;
+      std::cout << "thetaEnd = " << thetaEnd << std::endl;
+   
+      std::cout << "lastMod.planarMaxR() = " << lastMod.planarMaxR() << std::endl;
+      std::cout << "lastMod.planarMaxZ() - zOverlap() = " << lastMod.planarMaxZ() - zOverlap() << std::endl;
+      double thetaEnd2 = atan(lastMod.planarMaxR() / (lastMod.planarMaxZ() - zOverlap()));
+      std::cout << "thetaEnd2 = " << thetaEnd2 << std::endl;*/
     }
     return thetaEnd;
   }

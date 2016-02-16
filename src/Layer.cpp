@@ -108,37 +108,26 @@ RodTemplate Layer::makeRodTemplate() {
 
 
 
-TiltedRodTemplate Layer::makeTiltedRodTemplate(double flatPartThetaEnd) {
-  TiltedRodTemplate tiltedRodTemplate;
+TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
+  TiltedRingsTemplate tiltedRingsTemplate;
+
   for (int i = 0; i < buildNumModulesTilted(); i++) {
-    //std::cout << "i = " << i << std::endl;
 
     TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
     tiltedRing->myid(buildNumModulesFlat()+i+1);
     tiltedRing->store(propertyTree());
     if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
-    tiltedRing->numPhi(numModulesPhi());
+    tiltedRing->numPhi(numRods());
 
-
-    if ( i == 0 ) {
-      std::cout << "flatPartThetaEnd = " << flatPartThetaEnd * 180. / M_PI << std::endl;
-      tiltedRing->build(flatPartThetaEnd); 
-    }
-    else {
-      //std::cout << "(tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd()<< std::endl;
-      tiltedRing->build((tiltedRodTemplate.at(i-1))->thetaEnd()); 
-    }
-
-
-    
-    //std::cout << "tiltedRing->outerRadius() = " << tiltedRing->outerRadius() << std::endl;
-    //std::cout << "tiltedRing->zOuter() = " << tiltedRing->zOuter() << std::endl;
-    //std::cout << "tiltedRing->tiltAngle() = " << tiltedRing->tiltAngle() << std::endl;
-    //std::cout << "tiltedRodTemplate.at(i-1))->thetaEnd() = " << (tiltedRodTemplate.at(i-1))->thetaEnd() << std::endl;
-
-    tiltedRodTemplate.push_back(tiltedRing);
+    double lastThetaEnd;
+    if ( i == 0 ) lastThetaEnd = flatPartThetaEnd; 
+    else lastThetaEnd = (tiltedRingsTemplate.at(i-1))->thetaEnd();
+ 
+    tiltedRing->build(lastThetaEnd);
+    tiltedRingsTemplate.push_back(tiltedRing);
   }
-  return tiltedRodTemplate;
+
+  return tiltedRingsTemplate;
 }
 
 
@@ -150,19 +139,18 @@ void Layer::buildStraight(bool isFlatPart) {
   if (!isFlatPart) {
     std::pair<double, int> optimalLayerParms = calculateOptimalLayerParms(rodTemplate);
     placeRadius_ = optimalLayerParms.first; 
-    numRods_ = optimalLayerParms.second;
-    numModulesPhi(numRods_);
+    numRods(optimalLayerParms.second);
   }
   else {
     placeRadius_ = placeRadiusHint();
-    numRods_ = numModulesPhi();
   }
+
   if (!minBuildRadius.state() || !maxBuildRadius.state()) {
     minBuildRadius(placeRadius_);
     maxBuildRadius(placeRadius_);
   }
 
-  float rodPhiRotation = 2*M_PI/numRods_;
+  float rodPhiRotation = 2*M_PI/numRods();
 
   StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
   first->myid(1);
@@ -172,7 +160,7 @@ void Layer::buildStraight(bool isFlatPart) {
   else if (maxZ.state()) first->maxZ(maxZ());
   first->smallDelta(smallDelta());
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
-  if (isFlatPart && buildNumModulesFlat() > 0) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); std::cout << pow(-1, buildNumModulesFlat()) << std::endl; }
+  if (isFlatPart) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
   first->store(propertyTree());
   first->build(rodTemplate);
 
@@ -182,34 +170,25 @@ void Layer::buildStraight(bool isFlatPart) {
   if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
   first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
-  //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
-  /*vector<TiltedModuleSpecs> coords = first->giveZPlusModulesCoords(1);
-  for (int i = 0; i < coords.size(); i++) {
-    std::cout << "tmspecs1[i].r = " << coords[i].r << "tmspecs1[i].z = " << coords[i].z << std::endl;
-    }*/
-  rods_.push_back(first);
-  //if (isFlatPart) { flatRods_.push_back(first); }
+  if (!isFlatPart) { rods_.push_back(first); }
+  else { flatPartRods_.push_back(first); }
 
   second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
-  //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
   second->rotateZ(rodPhiRotation);
-  /*vector<TiltedModuleSpecs> coords2 = second->giveZPlusModulesCoords(1);
-  for (int i = 0; i < coords2.size(); i++) {
-  std::cout << "tmspecs2[i].r = " << coords2[i].r << "tmspecs2[i].z = " << coords2[i].z << std::endl;
-  }*/
-  flatPartThetaEnd_ = second->thetaEnd();
-  rods_.push_back(second);
-  //if (isFlatPart) { flatRods_.push_back(second); }
+  if (!isFlatPart) { rods_.push_back(second); }
+  else { flatPartRods_.push_back(second); }
 
-  if (!isFlatPart) {
-    for (int i = 2; i < numRods_; i++) {
-      RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
-      rod->myid(i+1);
-      rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
-      rods_.push_back(rod);
-      //if (isFlatPart) { flatRods_.push_back(rod); }
-    }
+  
+
+
+  for (int i = 2; i < numRods(); i++) {
+    StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
+    rod->myid(i+1);
+    rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
+    if (!isFlatPart) { rods_.push_back(rod); }
+    else { flatPartRods_.push_back(rod); }
   }
+
 }
 
 void Layer::buildTilted() {
@@ -230,81 +209,106 @@ void Layer::buildTilted() {
       TiltedModuleSpecs t2{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
       if (t1.valid()) tmspecs1.push_back(t1);
       if (t2.valid()) tmspecs2.push_back(t2);
-      numRods_ = tokens[6]; // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
+      numRods(tokens[6]); // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
     }
     ifs.close();
   }
 
   else {
 
-    flatPartThetaEnd_ = M_PI / 2.;
+    double flatPartThetaEnd = M_PI / 2.;
 
     if (buildNumModulesFlat() != 0) {
+
       buildNumModules(buildNumModulesFlat());
+      //numRods_ = numModulesPhi();
       buildStraight(true);
 
-      //StraightRodPair* flatRod1 = rods_.begin();
-      vector<TiltedModuleSpecs> info1 = (rods_.begin())->giveZPlusModulesCoords(buildNumModulesFlat());
-      tmspecs1.insert(tmspecs1.end(), info1.begin(), info1.end());
-      //StraightRodPair* flatRod2 = rods_.begin() + 1;
-      vector<TiltedModuleSpecs> info2 = (rods_.begin() + 1)->giveZPlusModulesCoords(buildNumModulesFlat());
-      tmspecs2.insert(tmspecs2.end(), info2.begin(), info2.end());
+      if (flatPartRods_.size() >= 2) {
+	StraightRodPair* flatPartRod1 = flatPartRods_.front();
+	vector<TiltedModuleSpecs> tmspecsFlatPartRod1 = flatPartRod1->giveZPlusModulesCoords();
+	//vector<TiltedModuleSpecs> info1 = (flatPartRods_.begin())->giveZPlusModulesCoords();
+	//tmspecs1.insert(tmspecs1.end(), info1.begin(), info1.end());
+	for (auto it = tmspecsFlatPartRod1.begin(); it < tmspecsFlatPartRod1.end(); ++it) {
+	  if (it->valid()) tmspecs1.push_back(*it);
+	}
+	StraightRodPair* flatPartRod2 = flatPartRods_.at(1);
+	vector<TiltedModuleSpecs> tmspecsFlatPartRod2 = flatPartRod2->giveZPlusModulesCoords();
+	//vector<TiltedModuleSpecs> info2 = (flatPartRods_.begin() + 1)->giveZPlusModulesCoords();
+	//tmspecs2.insert(tmspecs2.end(), info2.begin(), info2.end());
+	for (auto it = tmspecsFlatPartRod2.begin(); it < tmspecsFlatPartRod2.end(); ++it) {
+	  if (it->valid()) tmspecs2.push_back(*it);
+	}
+	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
+      }
+      else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }
+    }
+    
 
-      rods_.clear();
+    if (tmspecs1.size() != buildNumModulesFlat()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part rod 1 has " + to_string(tmspecs1.size()) + " module(s).");
+    }
+    if (tmspecs2.size() != buildNumModulesFlat()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part rod 2 has " + to_string(tmspecs1.size()) + " module(s).");
     }
 
-    numRods_ = numModulesPhi();
+    
 
-    std::cout << "myid() = " << myid() << std::endl;
-    std::cout << "numRods_ = " << numRods_ << std::endl;
+    //std::cout << "myid() = " << myid() << std::endl;
+    //std::cout << "numRods_ = " << numRods_ << std::endl;
     //std::cout << "tmspecs1.end().r = " << tmspecs1[tmspecs1.size()-1].r << "tmspecs1.end().z = " << tmspecs1[tmspecs1.size()-1].z << std::endl;
     //std::cout << "tmspecs2.end().r = " << tmspecs2[tmspecs2.size()-1].r << "tmspecs2.end().z = " << tmspecs2[tmspecs2.size()-1].z << std::endl;
     
 
-    TiltedRodTemplate tiltedRodTemplate = makeTiltedRodTemplate(flatPartThetaEnd_);
+    tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
-    for (int i = 0; i < tiltedRodTemplate.size(); i++) {
-      TiltedModuleSpecs ti{ tiltedRodTemplate[i]->innerRadius(), tiltedRodTemplate[i]->zInner(), tiltedRodTemplate[i]->tiltAngle()*M_PI/180. };
-      TiltedModuleSpecs to{ tiltedRodTemplate[i]->outerRadius(), tiltedRodTemplate[i]->zOuter(), tiltedRodTemplate[i]->tiltAngle()*M_PI/180. };
+    for (int i = 0; i < tiltedRingsGeometry_.size(); i++) {
+      TiltedModuleSpecs ti{ tiltedRingsGeometry_[i]->innerRadius(), tiltedRingsGeometry_[i]->zInner(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
+      TiltedModuleSpecs to{ tiltedRingsGeometry_[i]->outerRadius(), tiltedRingsGeometry_[i]->zOuter(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
       /*std::cout << "i = " << i << std::endl;
-      std::cout << "tiltAngle = " << tiltedRodTemplate[i]->tiltAngle()*M_PI/180. << std::endl;
-      std::cout << "innerRadius = " << tiltedRodTemplate[i]->innerRadius() << std::endl;
-      std::cout << "zInner = " << tiltedRodTemplate[i]->zInner() << std::endl;
-      std::cout << "outerRadius = " << tiltedRodTemplate[i]->outerRadius() << std::endl;
-      std::cout << "zOuter = " << tiltedRodTemplate[i]->zOuter() << std::endl;*/
+      std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
+      std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
+      std::cout << "zInner = " << tiltedRingsGeometry_[i]->zInner() << std::endl;
+      std::cout << "outerRadius = " << tiltedRingsGeometry_[i]->outerRadius() << std::endl;
+      std::cout << "zOuter = " << tiltedRingsGeometry_[i]->zOuter() << std::endl;*/
 
 
 
 
-      /*std::cout << "theta2 = " << tiltedRodTemplate[i]->thetaOuter() * 180. / M_PI << std::endl;
-      std::cout << "idealTilt2 = " << tiltedRodTemplate[i]->tiltAngleIdealOuter() << std::endl;
-      std::cout << "gap = " << tiltedRodTemplate[i]->gapR() << std::endl;
-      std::cout << "avR = " << tiltedRodTemplate[i]->averageR() << std::endl;
-      if (i >= 1) { std::cout << "cov1 = " << (tiltedRodTemplate[i]->thetaStartInner() - tiltedRodTemplate[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
-      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRodTemplate[i]->zOuter() - tiltedRodTemplate[i-1]->zOuter() << std::endl; }
+      /*std::cout << "theta2 = " << tiltedRingsGeometry_[i]->thetaOuter() * 180. / M_PI << std::endl;
+      std::cout << "idealTilt2 = " << tiltedRingsGeometry_[i]->tiltAngleIdealOuter() << std::endl;
+      std::cout << "gap = " << tiltedRingsGeometry_[i]->gapR() << std::endl;
+      std::cout << "avR = " << tiltedRingsGeometry_[i]->averageR() << std::endl;
+      if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[i]->thetaStartInner() - tiltedRingsGeometry_[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
+      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[i]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
 
       if (i >= 1) {
-	double zErrorAngle = atan( (tiltedRodTemplate[i]->rStartOuter_REAL() - tiltedRodTemplate[i-1]->rEndOuter_REAL()) / (tiltedRodTemplate[i-1]->zEndOuter_REAL() - tiltedRodTemplate[i]->zStartOuter_REAL()) );
-	std::cout << "zError = " << tiltedRodTemplate[i]->zStartOuter_REAL() + tiltedRodTemplate[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
+	double zErrorAngle = atan( (tiltedRingsGeometry_[i]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[i]->zStartOuter_REAL()) );
+	std::cout << "zError = " << tiltedRingsGeometry_[i]->zStartOuter_REAL() + tiltedRingsGeometry_[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
       }
 
-      std::cout << atan(tiltedRodTemplate[i]->rEndOuter_REAL() / tiltedRodTemplate[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
+      std::cout << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
 
-      if (ti.valid()) { tmspecs1.push_back(ti); }
-      if (to.valid()) { tmspecs2.push_back(to); }
+      if (ti.valid()) tmspecs1.push_back(ti);
+      if (to.valid()) tmspecs2.push_back(to);
     }
     
 
   }
 
 
+  if (tmspecs1.size() != (buildNumModulesFlat() + buildNumModulesTilted())) {
+    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecs1.size()) + " module(s) in total.");
+  }
+  if (tmspecs2.size() != (buildNumModulesFlat() + buildNumModulesTilted())) {
+    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecs1.size()) + " module(s) in total.");
+  }
 
-
-  buildNumModules(tmspecs1.size());
+  buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
 
   RodTemplate rodTemplate = makeRodTemplate();
 
-  float rodPhiRotation = 2*M_PI/numRods_;
+  float rodPhiRotation = 2*M_PI/numRods();
 
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
@@ -319,7 +323,7 @@ void Layer::buildTilted() {
   second->rotateZ(rodPhiRotation);
   rods_.push_back(second);
 
-  for (int i = 2; i < numRods_; i++) {
+  for (int i = 2; i < numRods(); i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));

@@ -25,7 +25,7 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 
-typedef std::vector<TiltedRing*> TiltedRodTemplate;
+typedef std::vector<TiltedRing*> TiltedRingsTemplate;
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:
@@ -35,24 +35,24 @@ private:
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
-  double flatPartThetaEnd_;
+  std::vector<StraightRodPair*> flatPartRods_;
+  TiltedRingsTemplate tiltedRingsGeometry_;
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
   RodTemplate makeRodTemplate();
-  TiltedRodTemplate makeTiltedRodTemplate(double flatPartThetaEnd);
+  TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
   Property<double, Default> phiOverlap;
   Property<int, Default> phiSegments;
-  Property<int, NoDefault> numModulesPhi;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
   PropertyNodeUnique<std::string> stationsNode;
 
   double placeRadius_;
-  int numRods_;
+  //int numRods_;
 
   void buildStraight(bool isFlatPart);
   void buildTilted();
@@ -70,6 +70,8 @@ public:
   Property<bool, Default> sameParityRods;
   Property<double, Default> layerRotation;
 
+  Property<int, NoDefault> numRods;
+
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
   Property<bool, Default> isTilted;
@@ -84,7 +86,7 @@ public:
             bigParity      ("bigParity"      , parsedOnly(), -1),
             phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
-	    numModulesPhi  ("numModulesPhi"  , parsedOnly()),
+	    numRods        ("numRods"        , parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
             stationsNode   ("Station"        , parsedOnly()),
             buildNumModules("numModules"     , parsedOnly()),
@@ -110,7 +112,7 @@ public:
   }
 
   double placeRadius() const { return placeRadius_; }
-  int numRods() const { return rods_.size(); }
+  //int numRods() const { return rods_.size(); }
   int numModulesPerRod() const { return rods_.front().numModules(); }
   int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
   int totalModules() const { return numModulesPerRod()*numRods(); }
@@ -125,6 +127,8 @@ public:
   void build();
 
   const Container& rods() const { return rods_; }
+  const std::vector<StraightRodPair*>& flatPartRods() const { return flatPartRods_; }
+  const TiltedRingsTemplate& tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
 
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
@@ -144,5 +148,12 @@ public:
 };
 
 
+
+/*class TiltedLayer : public Layer, public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<TiltedLayer>, public Visitable {
+
+ private :
+  TiltedRodTemplate tiltedRings_;
+
+  }*/
 
 #endif
