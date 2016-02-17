@@ -6,8 +6,8 @@
 void Layer::check() {
   PropertyObject::check();
 
-  if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+  //if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  //else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
 
   //if ((isTilted() && isTiltedAuto()) && !buildNumModulesFlat()) throw PathfulException("Automatic tilted layer : numModulesFlat must be specified");
   //if ((isTilted() && isTiltedAuto()) && !buildNumModulesTilted()) throw PathfulException("Automatic tilted layer : numModulesTilted must be specified");
@@ -111,20 +111,20 @@ RodTemplate Layer::makeRodTemplate() {
 TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
   TiltedRingsTemplate tiltedRingsTemplate;
 
-  for (int i = 0; i < buildNumModulesTilted(); i++) {
+  for (int i = (buildNumModulesFlat() + 1); i < (buildNumModulesFlat() + buildNumModulesTilted() + 1); i++) {
 
     TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
-    tiltedRing->myid(buildNumModulesFlat()+i+1);
+    tiltedRing->myid(i);
     tiltedRing->store(propertyTree());
-    if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
+    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
     tiltedRing->numPhi(numRods());
 
     double lastThetaEnd;
-    if ( i == 0 ) lastThetaEnd = flatPartThetaEnd; 
+    if ( i == buildNumModulesFlat() + 1 ) lastThetaEnd = flatPartThetaEnd; 
     else lastThetaEnd = (tiltedRingsTemplate.at(i-1))->thetaEnd();
  
     tiltedRing->build(lastThetaEnd);
-    tiltedRingsTemplate.push_back(tiltedRing);
+    tiltedRingsTemplate[i] = tiltedRing;
   }
 
   return tiltedRingsTemplate;
@@ -193,7 +193,7 @@ void Layer::buildStraight(bool isFlatPart) {
 
 void Layer::buildTilted() {
 
-  vector<TiltedModuleSpecs> tmspecs1, tmspecs2;
+  vector<TiltedModuleSpecs> tmspecsi, tmspecso;
 
 
   if (!isTiltedAuto()) {
@@ -205,10 +205,10 @@ void Layer::buildTilted() {
       if (line.empty()) continue;
       auto tokens = split<double>(line, " ", false);
       if (tokens.size() < 7) { logERROR("Failed parsing tilted barrel line: " + line); continue; };
-      TiltedModuleSpecs t1{ tokens[0], tokens[1], tokens[2]*M_PI/180. };
-      TiltedModuleSpecs t2{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
-      if (t1.valid()) tmspecs1.push_back(t1);
-      if (t2.valid()) tmspecs2.push_back(t2);
+      TiltedModuleSpecs ti{ tokens[0], tokens[1], tokens[2]*M_PI/180. };
+      TiltedModuleSpecs to{ tokens[3], tokens[4], tokens[5]*M_PI/180. };
+      if (ti.valid()) tmspecsi.push_back(ti);
+      if (to.valid()) tmspecso.push_back(to);
       numRods(tokens[6]); // this assumes every row of the spec file has the same value for the last column (num rods in phi) 
     }
     ifs.close();
@@ -221,35 +221,35 @@ void Layer::buildTilted() {
     if (buildNumModulesFlat() != 0) {
 
       buildNumModules(buildNumModulesFlat());
-      //numRods_ = numModulesPhi();
       buildStraight(true);
+
 
       if (flatPartRods_.size() >= 2) {
 	StraightRodPair* flatPartRod1 = flatPartRods_.front();
-	vector<TiltedModuleSpecs> tmspecsFlatPartRod1 = flatPartRod1->giveZPlusModulesCoords();
-	//vector<TiltedModuleSpecs> info1 = (flatPartRods_.begin())->giveZPlusModulesCoords();
-	//tmspecs1.insert(tmspecs1.end(), info1.begin(), info1.end());
-	for (auto it = tmspecsFlatPartRod1.begin(); it < tmspecsFlatPartRod1.end(); ++it) {
-	  if (it->valid()) tmspecs1.push_back(*it);
+	const auto& zPlusModules1 = flatPartRod1->modules().first;
+	for (const auto& m : zPlusModules1) {
+	  TiltedModuleSpecs t1{m.center().Rho(), m.center().Z(), 0.0};
+	  if (t1.valid()) (bigParity() > 0 ? tmspecso.push_back(t1) : tmspecsi.push_back(t1));
 	}
+
 	StraightRodPair* flatPartRod2 = flatPartRods_.at(1);
-	vector<TiltedModuleSpecs> tmspecsFlatPartRod2 = flatPartRod2->giveZPlusModulesCoords();
-	//vector<TiltedModuleSpecs> info2 = (flatPartRods_.begin() + 1)->giveZPlusModulesCoords();
-	//tmspecs2.insert(tmspecs2.end(), info2.begin(), info2.end());
-	for (auto it = tmspecsFlatPartRod2.begin(); it < tmspecsFlatPartRod2.end(); ++it) {
-	  if (it->valid()) tmspecs2.push_back(*it);
+	const auto& zPlusModules2 = flatPartRod2->modules().first;
+	for (const auto& m : zPlusModules2) {
+	  TiltedModuleSpecs t2{m.center().Rho(), m.center().Z(), 0.0};
+	  if (t2.valid()) (bigParity() > 0 ? tmspecsi.push_back(t2) : tmspecso.push_back(t2));
 	}
+
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
       }
       else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }
     }
     
 
-    if (tmspecs1.size() != buildNumModulesFlat()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part rod 1 has " + to_string(tmspecs1.size()) + " module(s).");
+    if (tmspecsi.size() != buildNumModulesFlat()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part inner rod has " + to_string(tmspecsi.size()) + " module(s).");
     }
-    if (tmspecs2.size() != buildNumModulesFlat()) {
-      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part rod 2 has " + to_string(tmspecs1.size()) + " module(s).");
+    if (tmspecso.size() != buildNumModulesFlat()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part outer rod has " + to_string(tmspecso.size()) + " module(s).");
     }
 
     
@@ -263,8 +263,9 @@ void Layer::buildTilted() {
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
     for (int i = 0; i < tiltedRingsGeometry_.size(); i++) {
-      TiltedModuleSpecs ti{ tiltedRingsGeometry_[i]->innerRadius(), tiltedRingsGeometry_[i]->zInner(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
-      TiltedModuleSpecs to{ tiltedRingsGeometry_[i]->outerRadius(), tiltedRingsGeometry_[i]->zOuter(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
+      int ringNumber = buildNumModulesFlat() + i + 1;
+      TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+      TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
       /*std::cout << "i = " << i << std::endl;
       std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
       std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
@@ -287,24 +288,24 @@ void Layer::buildTilted() {
 	std::cout << "zError = " << tiltedRingsGeometry_[i]->zStartOuter_REAL() + tiltedRingsGeometry_[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
       }
 
-      std::cout << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
+      std::cout << "cov2 = " << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
 
-      if (ti.valid()) tmspecs1.push_back(ti);
-      if (to.valid()) tmspecs2.push_back(to);
+      if (ti.valid()) tmspecsi.push_back(ti);
+      if (to.valid()) tmspecso.push_back(to);
     }
     
 
   }
 
 
-  if (tmspecs1.size() != (buildNumModulesFlat() + buildNumModulesTilted())) {
-    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecs1.size()) + " module(s) in total.");
-  }
-  if (tmspecs2.size() != (buildNumModulesFlat() + buildNumModulesTilted())) {
-    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecs1.size()) + " module(s) in total.");
-  }
-
   buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
+
+  if (tmspecsi.size() != buildNumModules()) {
+    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
+  }
+  if (tmspecso.size() != buildNumModules()) {
+    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
+  }
 
   RodTemplate rodTemplate = makeRodTemplate();
 
@@ -313,13 +314,13 @@ void Layer::buildTilted() {
   TiltedRodPair* first = GeometryFactory::make<TiltedRodPair>();
   first->myid(1);
   first->store(propertyTree());
-  first->build(rodTemplate, tmspecs1, 1);
+  first->build(rodTemplate, tmspecsi, 1);
   rods_.push_back(first);
 
   TiltedRodPair* second = GeometryFactory::make<TiltedRodPair>();
   second->myid(2);
   second->store(propertyTree());
-  second->build(rodTemplate, tmspecs2, 0);
+  second->build(rodTemplate, tmspecso, 0);
   second->rotateZ(rodPhiRotation);
   rods_.push_back(second);
 
@@ -331,9 +332,9 @@ void Layer::buildTilted() {
     }
 
   // computing the layer's place radius as the average of all the modules' radii
-  placeRadius_  = std::accumulate(tmspecs1.begin(), tmspecs1.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
-  placeRadius_ += std::accumulate(tmspecs2.begin(), tmspecs2.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
-  placeRadius_ /= tmspecs1.size() + tmspecs2.size();
+  placeRadius_  = std::accumulate(tmspecsi.begin(), tmspecsi.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius_ += std::accumulate(tmspecso.begin(), tmspecso.end(), 0., [](double x, const TiltedModuleSpecs& t) { return x+t.r; });
+  placeRadius_ /= tmspecsi.size() + tmspecso.size();
 
 }
 

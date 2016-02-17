@@ -25,7 +25,7 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 
-typedef std::vector<TiltedRing*> TiltedRingsTemplate;
+typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 public:

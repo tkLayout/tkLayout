@@ -76,15 +76,6 @@ public:
 
   void cutAtEta(double eta);
 
-  vector<TiltedModuleSpecs> giveZPlusModulesCoords() const { 
-    vector<TiltedModuleSpecs> ZPlusModulesCoords; 
-    for (auto it = zPlusModules_.begin(); it < zPlusModules_.end(); ++it) {
-      TiltedModuleSpecs t{it->center().Rho(), it->center().Z(), 0.0};
-      ZPlusModulesCoords.push_back(t);
-    }
-    return ZPlusModulesCoords;
-  }
-
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
   
   void accept(GeometryVisitor& v) { 
