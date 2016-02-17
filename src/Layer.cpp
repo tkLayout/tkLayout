@@ -109,25 +109,25 @@ RodTemplate Layer::makeRodTemplate() {
 
 
 TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
-  TiltedRingsTemplate tiltedRingsTemplate;
+  TiltedRingsTemplate tiltedRingsGeometry;
 
-  for (int i = 0; i < buildNumModulesTilted(); i++) {
+  for (int i = (buildNumModulesFlat() + 1); i < (buildNumModulesFlat() + buildNumModulesTilted() + 1); i++) {
 
     TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
-    tiltedRing->myid(buildNumModulesFlat()+i+1);
+    tiltedRing->myid(i);
     tiltedRing->store(propertyTree());
-    if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
+    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
     tiltedRing->numPhi(numRods());
 
     double lastThetaEnd;
-    if ( i == 0 ) lastThetaEnd = flatPartThetaEnd; 
-    else lastThetaEnd = (tiltedRingsTemplate.at(i-1))->thetaEnd();
+    if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
+    else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEnd();
  
     tiltedRing->build(lastThetaEnd);
-    tiltedRingsTemplate.push_back(tiltedRing);
+    tiltedRingsGeometry[i] = tiltedRing;
   }
 
-  return tiltedRingsTemplate;
+  return tiltedRingsGeometry;
 }
 
 
@@ -262,37 +262,42 @@ void Layer::buildTilted() {
 
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
-    for (int i = 0; i < tiltedRingsGeometry_.size(); i++) {
-      TiltedModuleSpecs ti{ tiltedRingsGeometry_[i]->innerRadius(), tiltedRingsGeometry_[i]->zInner(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
-      TiltedModuleSpecs to{ tiltedRingsGeometry_[i]->outerRadius(), tiltedRingsGeometry_[i]->zOuter(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
-      /*std::cout << "i = " << i << std::endl;
-      std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
-      std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
-      std::cout << "zInner = " << tiltedRingsGeometry_[i]->zInner() << std::endl;
-      std::cout << "outerRadius = " << tiltedRingsGeometry_[i]->outerRadius() << std::endl;
-      std::cout << "zOuter = " << tiltedRingsGeometry_[i]->zOuter() << std::endl;*/
-
-
-
-
-      /*std::cout << "theta2 = " << tiltedRingsGeometry_[i]->thetaOuter() * 180. / M_PI << std::endl;
-      std::cout << "idealTilt2 = " << tiltedRingsGeometry_[i]->tiltAngleIdealOuter() << std::endl;
-      std::cout << "gap = " << tiltedRingsGeometry_[i]->gapR() << std::endl;
-      std::cout << "avR = " << tiltedRingsGeometry_[i]->averageR() << std::endl;
-      if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[i]->thetaStartInner() - tiltedRingsGeometry_[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
-      if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[i]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
-
-      if (i >= 1) {
-	double zErrorAngle = atan( (tiltedRingsGeometry_[i]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[i]->zStartOuter_REAL()) );
-	std::cout << "zError = " << tiltedRingsGeometry_[i]->zStartOuter_REAL() + tiltedRingsGeometry_[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
-      }
-
-      std::cout << "cov2 = " << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
-
-      if (ti.valid()) tmspecsi.push_back(ti);
-      if (to.valid()) tmspecso.push_back(to);
+    if (tiltedRingsGeometry_.size() != buildNumModulesTilted()) {
+      logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
     }
-    
+    else {
+      for (int i = 0; i < buildNumModulesTilted(); i++) {
+	int ringNumber = buildNumModulesFlat() + 1 + i;
+	TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+	TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+	/*std::cout << "i = " << i << std::endl;
+	  std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
+	  std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
+	  std::cout << "zInner = " << tiltedRingsGeometry_[i]->zInner() << std::endl;
+	  std::cout << "outerRadius = " << tiltedRingsGeometry_[i]->outerRadius() << std::endl;
+	  std::cout << "zOuter = " << tiltedRingsGeometry_[i]->zOuter() << std::endl;*/
+
+
+
+
+	/*std::cout << "theta2 = " << tiltedRingsGeometry_[i]->thetaOuter() * 180. / M_PI << std::endl;
+	  std::cout << "idealTilt2 = " << tiltedRingsGeometry_[i]->tiltAngleIdealOuter() << std::endl;
+	  std::cout << "gap = " << tiltedRingsGeometry_[i]->gapR() << std::endl;
+	  std::cout << "avR = " << tiltedRingsGeometry_[i]->averageR() << std::endl;
+	  if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[i]->thetaStartInner() - tiltedRingsGeometry_[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
+	  if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[i]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
+
+	  if (i >= 1) {
+	  double zErrorAngle = atan( (tiltedRingsGeometry_[i]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[i]->zStartOuter_REAL()) );
+	  std::cout << "zError = " << tiltedRingsGeometry_[i]->zStartOuter_REAL() + tiltedRingsGeometry_[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
+	  }
+
+	  std::cout << "cov2 = " << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
+
+	if (ti.valid()) tmspecsi.push_back(ti);
+	if (to.valid()) tmspecso.push_back(to);
+      }
+    } 
 
   }
 
