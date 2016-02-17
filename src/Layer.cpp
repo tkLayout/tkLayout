@@ -6,8 +6,8 @@
 void Layer::check() {
   PropertyObject::check();
 
-  //if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  //else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+  if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
 
   //if ((isTilted() && isTiltedAuto()) && !buildNumModulesFlat()) throw PathfulException("Automatic tilted layer : numModulesFlat must be specified");
   //if ((isTilted() && isTiltedAuto()) && !buildNumModulesTilted()) throw PathfulException("Automatic tilted layer : numModulesTilted must be specified");
@@ -111,20 +111,20 @@ RodTemplate Layer::makeRodTemplate() {
 TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
   TiltedRingsTemplate tiltedRingsTemplate;
 
-  for (int i = (buildNumModulesFlat() + 1); i < (buildNumModulesFlat() + buildNumModulesTilted() + 1); i++) {
+  for (int i = 0; i < buildNumModulesTilted(); i++) {
 
     TiltedRing* tiltedRing = GeometryFactory::make<TiltedRing>();
-    tiltedRing->myid(i);
+    tiltedRing->myid(buildNumModulesFlat()+i+1);
     tiltedRing->store(propertyTree());
-    if (ringNode.count(i) > 0) tiltedRing->store(ringNode.at(i));
+    if (ringNode.count(buildNumModulesFlat()+i+1) > 0) tiltedRing->store(ringNode.at(buildNumModulesFlat()+i+1));
     tiltedRing->numPhi(numRods());
 
     double lastThetaEnd;
-    if ( i == buildNumModulesFlat() + 1 ) lastThetaEnd = flatPartThetaEnd; 
+    if ( i == 0 ) lastThetaEnd = flatPartThetaEnd; 
     else lastThetaEnd = (tiltedRingsTemplate.at(i-1))->thetaEnd();
  
     tiltedRing->build(lastThetaEnd);
-    tiltedRingsTemplate[i] = tiltedRing;
+    tiltedRingsTemplate.push_back(tiltedRing);
   }
 
   return tiltedRingsTemplate;
@@ -263,9 +263,8 @@ void Layer::buildTilted() {
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
     for (int i = 0; i < tiltedRingsGeometry_.size(); i++) {
-      int ringNumber = buildNumModulesFlat() + i + 1;
-      TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
-      TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
+      TiltedModuleSpecs ti{ tiltedRingsGeometry_[i]->innerRadius(), tiltedRingsGeometry_[i]->zInner(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
+      TiltedModuleSpecs to{ tiltedRingsGeometry_[i]->outerRadius(), tiltedRingsGeometry_[i]->zOuter(), tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. };
       /*std::cout << "i = " << i << std::endl;
       std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
       std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
