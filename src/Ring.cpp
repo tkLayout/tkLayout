@@ -403,7 +403,6 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   }
 
 
-
   /*double zH1pUP_REAL = zH1UP - 0.5 * length * cos(tilt);
   double rH1pUP_REAL = rH1UP + 0.5 * length * sin(tilt);
   double zH1ppUP_REAL = zH1UP + 0.5 * length * cos(tilt);

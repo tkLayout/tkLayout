@@ -28,15 +28,29 @@ using material::ConversionStation;
 typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
-public:
+ public:
   typedef PtrVector<RodPair> Container;
-private:
+ private:
+  class TiltedRingsGeometryInfo {
+  private:
+    std::map<int, double> covInner_;
+    std::map<int, double> deltaZOuter_;
+    std::map<int, double> zError_;
+  public:
+    TiltedRingsGeometryInfo(int, TiltedRingsTemplate tiltedRingsGeometry);
+    std::map<int, double> covInner() const { return covInner_; }
+    std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+    std::map<int, double> zError() const { return zError_; }
+  };
+
+ private:
   Container rods_;
   MaterialObject materialObject_;
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
   std::vector<StraightRodPair*> flatPartRods_;
   TiltedRingsTemplate tiltedRingsGeometry_;
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0, tiltedRingsGeometry_);
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
@@ -128,6 +142,7 @@ public:
   const Container& rods() const { return rods_; }
   const std::vector<StraightRodPair*>& flatPartRods() const { return flatPartRods_; }
   const TiltedRingsTemplate& tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
+  //const TiltedRingsGeometryInfo& tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }

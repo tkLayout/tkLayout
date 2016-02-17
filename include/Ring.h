@@ -106,6 +106,8 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double rEndOuter_REAL() const { return rEndOuter_REAL_; }
   double zEndOuter_REAL() const { return zEndOuter_REAL_; }
 
+  double covOuter_REAL () const { return atan(rEndOuter_REAL_ / zEndOuter_REAL_); }
+
 };
 
 

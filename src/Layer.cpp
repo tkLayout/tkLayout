@@ -3,6 +3,16 @@
 #include "messageLogger.h"
 #include "ConversionStation.h"
 
+Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, TiltedRingsTemplate tiltedRingsGeometry) {
+  for (int i = (numModulesFlat + 2); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
+    covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
+    deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
+
+    double zErrorAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i-1]->zEndOuter_REAL() - tiltedRingsGeometry[i]->zStartOuter_REAL()) );
+    zError_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() + tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorAngle);
+  }
+}
+
 void Layer::check() {
   PropertyObject::check();
 
@@ -262,10 +272,7 @@ void Layer::buildTilted() {
 
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 
-    if (tiltedRingsGeometry_.size() != buildNumModulesTilted()) {
-      logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
-    }
-    else {
+    if (tiltedRingsGeometry_.size() == buildNumModulesTilted()) {
       for (int i = 0; i < buildNumModulesTilted(); i++) {
 	int ringNumber = buildNumModulesFlat() + 1 + i;
 	TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
@@ -297,18 +304,22 @@ void Layer::buildTilted() {
 	if (ti.valid()) tmspecsi.push_back(ti);
 	if (to.valid()) tmspecso.push_back(to);
       }
+      TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), tiltedRingsGeometry_);
     } 
+    else {
+      logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
+    }
 
-  }
 
+    buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
 
-  buildNumModules(buildNumModulesFlat() + buildNumModulesTilted());
+    if (tmspecsi.size() != buildNumModules()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
+    }
+    if (tmspecso.size() != buildNumModules()) {
+      logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
+    }
 
-  if (tmspecsi.size() != buildNumModules()) {
-    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 1 has " + to_string(tmspecsi.size()) + " module(s) in total.");
-  }
-  if (tmspecso.size() != buildNumModules()) {
-    logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " and numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rod 2 has " + to_string(tmspecso.size()) + " module(s) in total.");
   }
 
   RodTemplate rodTemplate = makeRodTemplate();

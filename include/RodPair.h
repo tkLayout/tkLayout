@@ -78,7 +78,7 @@ public:
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
   
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& m : zPlusModules_) { m.accept(v); }
     for (auto& m : zMinusModules_) { m.accept(v); }
