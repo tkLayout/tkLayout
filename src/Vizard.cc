@@ -1348,6 +1348,119 @@ namespace insur {
 
 
 
+    //********************************//
+    //*                              *//
+    //*Tilted layers additional info *//
+    //*                              *//
+    //********************************//
+    myContent = new RootWContent("Tilted layers additional info");
+    myPage->addContent(myContent);
+
+    class TiltedLayersVisitor : public ConstGeometryVisitor {
+    public:
+      std::vector<RootWTable*> tiltedLayersTable;
+      //int nTiltedLayers = 0;
+
+      /*void preVisit() {
+        layerTable->setContent(0, 0, "Layer");
+        layerTable->setContent(1, 0, "r");
+        layerTable->setContent(2, 0, "z_max");
+        layerTable->setContent(3, 0, "# mod");
+        layerTable->setContent(4, 0, "# rods");
+        diskTable->setContent(0, 0, "Disk");
+        diskTable->setContent(1, 0, "z");
+        diskTable->setContent(2, 0, "# mod");
+        ringTable->setContent(0, 0, "Ring");
+        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
+        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
+	}*/
+
+      void visit(const Layer& l) override {
+	if (l.isTilted() && l.isTiltedAuto()) {
+	  //nTiltedLayers++;
+	  //int rowsOffset = (nTiltedLayers - 1) * 16;
+	  RootWTable* tiltedLayerTable = new RootWTable();
+
+	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
+	    int ringNumber = l.buildNumModulesFlat() + 1 + i;
+	    tiltedLayerTable->setContent(0, 0, "Ring");
+	    tiltedLayerTable->setContent(0, i+1, ringNumber);
+	    tiltedLayerTable->setContent(1, 0, "tiltAngle");
+	    tiltedLayerTable->setContent(1, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngle());
+	    tiltedLayerTable->setContent(2, 0, "theta_g");
+	    tiltedLayerTable->setContent(2, i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g());
+	    tiltedLayerTable->setContent(3, 0, "rInner");
+	    tiltedLayerTable->setContent(3, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), coordPrecision);
+	    tiltedLayerTable->setContent(4, 0, "zInner");
+	    tiltedLayerTable->setContent(4, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner(), coordPrecision);
+	    tiltedLayerTable->setContent(5, 0, "rOuter");
+	    tiltedLayerTable->setContent(5, i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius(), coordPrecision);
+	    tiltedLayerTable->setContent(6, 0, "zOuter");
+	    tiltedLayerTable->setContent(6, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), coordPrecision);
+	    tiltedLayerTable->setContent(7, 0, "tiltAngleIdealInner");
+	    tiltedLayerTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealInner());
+	    tiltedLayerTable->setContent(8, 0, "deltaTiltIdealInner");
+	    tiltedLayerTable->setContent(8, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealInner());
+	    tiltedLayerTable->setContent(9, 0, "tiltAngleIdealOuter");
+	    tiltedLayerTable->setContent(9, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealOuter());
+	    tiltedLayerTable->setContent(10, 0, "deltaTiltIdealOuter");
+	    tiltedLayerTable->setContent(10, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealOuter());
+	    tiltedLayerTable->setContent(11, 0, "averageR");
+	    tiltedLayerTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->averageR(), coordPrecision);
+	    tiltedLayerTable->setContent(12, 0, "averageZ");
+	    tiltedLayerTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), coordPrecision);
+	    tiltedLayerTable->setContent(13, 0, "gapR");
+	    tiltedLayerTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR(), coordPrecision);
+	    tiltedLayerTable->setContent(14, 0, "phiOverlap");
+	    tiltedLayerTable->setContent(14, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap() * 180. / M_PI);
+	    tiltedLayerTable->setContent(15, 0, "deltaZOuter");
+	    tiltedLayerTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
+	    tiltedLayerTable->setContent(16, 0, "coverageInner");
+	    tiltedLayerTable->setContent(16, i+1, l.tiltedRingsGeometryInfo().covInner()[ringNumber] * 180. / M_PI, coordPrecision);
+	    tiltedLayerTable->setContent(17, 0, "zError");
+	    tiltedLayerTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zError()[ringNumber], coordPrecision);
+	  }
+	  tiltedLayersTable.push_back(tiltedLayerTable);
+	}
+      }
+
+      /*void postVisit() {
+        layerTable->setContent(0, nBarrelLayers+1, "Total");
+        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
+        diskTable->setContent(0, nDisks+1, "Total");
+        diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
+
+        std::ostringstream myName;
+        for (auto typeIt = ringTypeMap.begin();
+             typeIt!=ringTypeMap.end(); typeIt++) {
+          auto* anEC = (*typeIt).second;
+          int aRing=(*typeIt).first;
+          ringTable->setContent(0, aRing, aRing);
+          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
+          ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
+          ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
+          ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
+        }
+      }*/
+    };
+
+    TiltedLayersVisitor tv;
+    //v.preVisit();
+    tracker.accept(tv);
+    //tv.postVisit();
+
+    for (int i = 0; i < tv.tiltedLayersTable.size(); i++) {
+      myContent->addItem(tv.tiltedLayersTable.at(i));
+    }
+
+
+
+
+
+
+
 
     double totalPower=0; 
     double totalCost=0;

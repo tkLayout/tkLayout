@@ -140,9 +140,9 @@ public:
   void build();
 
   const Container& rods() const { return rods_; }
-  const std::vector<StraightRodPair*>& flatPartRods() const { return flatPartRods_; }
-  const TiltedRingsTemplate& tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
-  const TiltedRingsGeometryInfo& tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
+  std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
+  TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
