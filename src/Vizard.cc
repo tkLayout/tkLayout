@@ -1348,17 +1348,18 @@ namespace insur {
 
 
 
-    //********************************//
-    //*                              *//
-    //*Tilted layers additional info *//
-    //*                              *//
-    //********************************//
-    myContent = new RootWContent("Tilted layers : additional info");
+    //***************************************//
+    //*                                     *//
+    //* Automatic-placement tilted layers : *//
+    //*            Additional info          *//
+    //***************************************//
+    myContent = new RootWContent("Tilted layers from automatic-placement : additional info");
 
     class TiltedLayersVisitor : public ConstGeometryVisitor {
     public:
-      std::vector<RootWTable*> tiltedLayersTable;
-      int nTiltedAutoLayers = 0;
+      std::vector<RootWTable*> tiltedLayerNames;
+      std::vector<RootWTable*> tiltedLayerTables;
+      int nTiltedLayers = 0;
 
       /*void preVisit() {
         layerTable->setContent(0, 0, "Layer");
@@ -1378,10 +1379,14 @@ namespace insur {
 
       void visit(const Layer& l) override {
 	if (l.isTilted() && l.isTiltedAuto()) {
-	  nTiltedAutoLayers++;
-	  //int rowsOffset = (nTiltedLayers - 1) * 16;
-	  RootWTable* tiltedLayerTable = new RootWTable();
+	  nTiltedLayers++;
+	  //int rowsOffset = (nTiltedLayers - 1) * 18;
 
+	  RootWTable* tiltedLayerName = new RootWTable();
+	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");  
+	  tiltedLayerNames.push_back(tiltedLayerName);
+
+	  RootWTable* tiltedLayerTable = new RootWTable();
 	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
 	    int ringNumber = l.buildNumModulesFlat() + 1 + i;
 	    tiltedLayerTable->setContent(0, 0, "Ring");
@@ -1421,7 +1426,7 @@ namespace insur {
 	    tiltedLayerTable->setContent(17, 0, "zError");
 	    tiltedLayerTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zError()[ringNumber], coordPrecision);
 	  }
-	  tiltedLayersTable.push_back(tiltedLayerTable);
+	  tiltedLayerTables.push_back(tiltedLayerTable);
 	}
       }
 
@@ -1446,14 +1451,23 @@ namespace insur {
     };
 
     TiltedLayersVisitor tv;
-    //v.preVisit();
+    //tv.preVisit();
     tracker.accept(tv);
     //tv.postVisit();
 
-    if (tv.nTiltedAutoLayers > 0) {
+    if (tv.nTiltedLayers > 0) {
       myPage->addContent(myContent);
-      for (int i = 0; i < tv.tiltedLayersTable.size(); i++) {
-	myContent->addItem(tv.tiltedLayersTable.at(i));
+
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      spacer->setContent(3, 0, " ");
+
+      for (int i = 0; i < tv.nTiltedLayers; i++) {
+	myContent->addItem(tv.tiltedLayerNames.at(i));
+	myContent->addItem(tv.tiltedLayerTables.at(i));
+	if (i < tv.nTiltedLayers - 1) { myContent->addItem(spacer); }
       }
     }
 
