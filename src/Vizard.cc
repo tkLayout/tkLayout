@@ -1361,26 +1361,9 @@ namespace insur {
       std::vector<RootWTable*> tiltedLayerTables;
       int nTiltedLayers = 0;
 
-      /*void preVisit() {
-        layerTable->setContent(0, 0, "Layer");
-        layerTable->setContent(1, 0, "r");
-        layerTable->setContent(2, 0, "z_max");
-        layerTable->setContent(3, 0, "# mod");
-        layerTable->setContent(4, 0, "# rods");
-        diskTable->setContent(0, 0, "Disk");
-        diskTable->setContent(1, 0, "z");
-        diskTable->setContent(2, 0, "# mod");
-        ringTable->setContent(0, 0, "Ring");
-        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
-        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
-        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
-	}*/
-
       void visit(const Layer& l) override {
 	if (l.isTilted() && l.isTiltedAuto()) {
 	  nTiltedLayers++;
-	  //int rowsOffset = (nTiltedLayers - 1) * 18;
 
 	  RootWTable* tiltedLayerName = new RootWTable();
 	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");  
@@ -1429,31 +1412,10 @@ namespace insur {
 	  tiltedLayerTables.push_back(tiltedLayerTable);
 	}
       }
-
-      /*void postVisit() {
-        layerTable->setContent(0, nBarrelLayers+1, "Total");
-        layerTable->setContent(3, nBarrelLayers+1, totalBarrelModules);
-        diskTable->setContent(0, nDisks+1, "Total");
-        diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
-
-        std::ostringstream myName;
-        for (auto typeIt = ringTypeMap.begin();
-             typeIt!=ringTypeMap.end(); typeIt++) {
-          auto* anEC = (*typeIt).second;
-          int aRing=(*typeIt).first;
-          ringTable->setContent(0, aRing, aRing);
-          ringTable->setContent(1, aRing, anEC->minR(), coordPrecision);
-          ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
-          ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
-          ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
-        }
-      }*/
     };
 
-    TiltedLayersVisitor tv;
-    //tv.preVisit();
+    TiltedLayersVisitor tv;  
     tracker.accept(tv);
-    //tv.postVisit();
 
     if (tv.nTiltedLayers > 0) {
       myPage->addContent(myContent);
