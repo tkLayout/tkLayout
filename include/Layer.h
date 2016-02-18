@@ -37,7 +37,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
     std::map<int, double> deltaZOuter_;
     std::map<int, double> zError_;
   public:
-    TiltedRingsGeometryInfo(int, TiltedRingsTemplate tiltedRingsGeometry);
+    TiltedRingsGeometryInfo(int numModulesFlat, TiltedRingsTemplate tiltedRingsGeometry);
     std::map<int, double> covInner() const { return covInner_; }
     std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
     std::map<int, double> zError() const { return zError_; }
@@ -142,13 +142,13 @@ public:
   const Container& rods() const { return rods_; }
   const std::vector<StraightRodPair*>& flatPartRods() const { return flatPartRods_; }
   const TiltedRingsTemplate& tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
-  //const TiltedRingsGeometryInfo& tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
+  const TiltedRingsGeometryInfo& tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
   void cutAtEta(double eta);
   void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); }
 
   void accept(GeometryVisitor& v) {
-    v.visit(*this); 
+    v.visit(*this);
     for (auto& r : rods_) { r.accept(v); }
   }
   void accept(ConstGeometryVisitor& v) const {

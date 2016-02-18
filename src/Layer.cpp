@@ -251,9 +251,9 @@ void Layer::buildTilted() {
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
       }
-      else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }
+      else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }     
     }
-    
+
 
     if (tmspecsi.size() != buildNumModulesFlat()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part inner rod has " + to_string(tmspecsi.size()) + " module(s).");
@@ -261,14 +261,9 @@ void Layer::buildTilted() {
     if (tmspecso.size() != buildNumModulesFlat()) {
       logERROR("Layer " + to_string(myid()) + " : numModulesFlat = " + to_string(buildNumModulesFlat()) + " but flat part outer rod has " + to_string(tmspecso.size()) + " module(s).");
     }
-
     
 
-    //std::cout << "myid() = " << myid() << std::endl;
-    //std::cout << "numRods_ = " << numRods_ << std::endl;
-    //std::cout << "tmspecs1.end().r = " << tmspecs1[tmspecs1.size()-1].r << "tmspecs1.end().z = " << tmspecs1[tmspecs1.size()-1].z << std::endl;
-    //std::cout << "tmspecs2.end().r = " << tmspecs2[tmspecs2.size()-1].r << "tmspecs2.end().z = " << tmspecs2[tmspecs2.size()-1].z << std::endl;
-    
+
 
     tiltedRingsGeometry_ = makeTiltedRingsTemplate(flatPartThetaEnd);
 

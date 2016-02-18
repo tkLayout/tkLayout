@@ -1976,7 +1976,12 @@ namespace insur {
     // myImage->setComment("Power density distribution");
     // myContent->addItem(myImage);
 
-
+    //********************************//
+    //*                              *//
+    //*    Modules parametrized      *//
+    //*     spatial resolution       *//
+    //*                              *//
+    //********************************//
     // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
     if (debugResolution) {
 
