@@ -299,7 +299,7 @@ void Layer::buildTilted() {
 	if (ti.valid()) tmspecsi.push_back(ti);
 	if (to.valid()) tmspecso.push_back(to);
       }
-      TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), tiltedRingsGeometry_);
+      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), tiltedRingsGeometry_);
     } 
     else {
       logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
