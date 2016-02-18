@@ -1153,6 +1153,7 @@ namespace insur {
       }
     }
 
+
     //********************************//
     //*                              *//
     //*       Layers and disks       *//
@@ -1346,14 +1347,13 @@ namespace insur {
     myContent->addItem(v.ringTable);
 
 
-
-
     //***************************************//
     //*                                     *//
     //* Automatic-placement tilted layers : *//
     //*            Additional info          *//
+    //*                                     *//
     //***************************************//
-    myContent = new RootWContent("Tilted layers from automatic-placement : additional info");
+    myContent = new RootWContent("Tilted layers from automatic placement : additional info");
 
     class TiltedLayersVisitor : public ConstGeometryVisitor {
     public:
@@ -1472,12 +1472,11 @@ namespace insur {
     }
 
 
-
-
-
-
-
-
+    //********************************//
+    //*                              *//
+    //*       Modules                *//
+    //*                              *//
+    //********************************//
     double totalPower=0; 
     double totalCost=0;
     double moduleTotalWeight=0;
@@ -1513,11 +1512,6 @@ namespace insur {
     int barrelCount=0;
     int endcapCount=0;
 
-    //********************************//
-    //*                              *//
-    //*       Modules                *//
-    //*                              *//
-    //********************************//
     myContent = new RootWContent("Modules", false);
     myPage->addContent(myContent);
     RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
@@ -1969,6 +1963,126 @@ namespace insur {
     }
     moduleTable->setContent(totalWeightRow, iType, aWeight.str());
 
+
+    //********************************//
+    //*                              *//
+    //*    Modules parametrized      *//
+    //*     spatial resolution       *//
+    //*                              *//
+    //********************************//
+    // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
+    if (debugResolution) {
+
+      std::string tag;
+      if (name == "" ) tag = "tracker";
+      else tag = name;
+
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
+
+      // Modules' parametrized spatial resolution maps
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXBarrelMap = analyzer.getParametrizedResolutionLocalXBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYBarrelMap = analyzer.getParametrizedResolutionLocalYBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
+
+      // Modules' parametrized spatial resolution distributions
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+      if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
+      }
+
+      // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
+      else {
+	RootWTable* myTable = new RootWTable();
+	parametrizedResolutionContent.addItem(myTable);
+	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
+	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
+	myTable->setContent(3, 1, " ");
+	myTable->setContent(4, 1, " ");
+
+	gStyle->SetTitleX(0.54);
+	gStyle->SetTitleW(1);
+	gStyle->SetOptStat("emr");
+	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoXBarCanvas;
+	  resoXBarCanvas.SetFillColor(color_plot_background);
+	  resoXBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoYBarCanvas;
+	  resoYBarCanvas.SetFillColor(color_plot_background);
+	  resoYBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
+	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoXEndCanvas;
+	  resoXEndCanvas.SetFillColor(color_plot_background);
+	  resoXEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
+	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoYEndCanvas;
+	  resoYEndCanvas.SetFillColor(color_plot_background);
+	  resoYEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
+	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	}
+      }
+    } // debugResolution
+
+
     //********************************//
     //*                              *//
     //*       Plots                  *//
@@ -2104,124 +2218,6 @@ namespace insur {
     // myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     // myImage->setComment("Power density distribution");
     // myContent->addItem(myImage);
-
-    //********************************//
-    //*                              *//
-    //*    Modules parametrized      *//
-    //*     spatial resolution       *//
-    //*                              *//
-    //********************************//
-    // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
-    if (debugResolution) {
-
-      std::string tag;
-      if (name == "" ) tag = "tracker";
-      else tag = name;
-
-      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
-
-      // Modules' parametrized spatial resolution maps
-      std::map<std::string, TH2D>& parametrizedResolutionLocalXBarrelMap = analyzer.getParametrizedResolutionLocalXBarrelMap();
-      std::map<std::string, TH2D>& parametrizedResolutionLocalYBarrelMap = analyzer.getParametrizedResolutionLocalYBarrelMap();
-      std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
-      std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
-
-      // Modules' parametrized spatial resolution distributions
-      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
-      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
-      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
-      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
-
-      if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
-	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
-      }
-
-      // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
-      else {
-	RootWTable* myTable = new RootWTable();
-	parametrizedResolutionContent.addItem(myTable);
-	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
-	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
-	myTable->setContent(3, 1, " ");
-	myTable->setContent(4, 1, " ");
-
-	gStyle->SetTitleX(0.54);
-	gStyle->SetTitleW(1);
-	gStyle->SetOptStat("emr");
-	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoXBarCanvas;
-	  resoXBarCanvas.SetFillColor(color_plot_background);
-	  resoXBarCanvas.Divide(2,1);
-	  TVirtualPad* myPad;
-	  myPad = resoXBarCanvas.GetPad(0);
-	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXBarCanvas.GetPad(1);
-	  myPad->cd();
-	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
-	  myPad = resoXBarCanvas.GetPad(2);
-	  myPad->cd();
-	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
-	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
-	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
-	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
-	}
-	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
-	  TCanvas resoYBarCanvas;
-	  resoYBarCanvas.SetFillColor(color_plot_background);
-	  resoYBarCanvas.Divide(2,1);
-	  TVirtualPad* myPad;
-	  myPad = resoYBarCanvas.GetPad(0);
-	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYBarCanvas.GetPad(1);
-	  myPad->cd();
-	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
-	  myPad = resoYBarCanvas.GetPad(2);
-	  myPad->cd();
-	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
-	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
-	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
-	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
-	}
-	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoXEndCanvas;
-	  resoXEndCanvas.SetFillColor(color_plot_background);
-	  resoXEndCanvas.Divide(2,1);
-	  TVirtualPad* myPad;
-	  myPad = resoXEndCanvas.GetPad(0);
-	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoXEndCanvas.GetPad(1);
-	  myPad->cd();
-	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
-	  myPad = resoXEndCanvas.GetPad(2);
-	  myPad->cd();
-	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
-	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
-	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
-	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
-	}
-	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
-	  TCanvas resoYEndCanvas;
-	  resoYEndCanvas.SetFillColor(color_plot_background);
-	  resoYEndCanvas.Divide(2,1);
-	  TVirtualPad* myPad;
-	  myPad = resoYEndCanvas.GetPad(0);
-	  myPad->SetFillColor(color_pad_background);
-	  myPad = resoYEndCanvas.GetPad(1);
-	  myPad->cd();
-	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
-	  myPad = resoYEndCanvas.GetPad(2);
-	  myPad->cd();
-	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
-	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
-	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
-	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
-	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
-	}
-      }
-    } // debugResolution
 
     return true;
   }
