@@ -19,8 +19,26 @@ void Layer::check() {
   if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
   else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
 
-  //if ((isTilted() && isTiltedAuto()) && !buildNumModulesFlat()) throw PathfulException("Automatic tilted layer : numModulesFlat must be specified");
-  //if ((isTilted() && isTiltedAuto()) && !buildNumModulesTilted()) throw PathfulException("Automatic tilted layer : numModulesTilted must be specified");
+  if (!isTilted()) {
+    if (!phiOverlap.state()) throw PathfulException("Straight layer : phiOverlap must be specified.");
+    if (numRods.state()) throw PathfulException("Straight layer : numRods should not be specified.");
+    if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
+  }
+
+  if (!isTilted() || (isTilted() && !isTiltedAuto())) {
+    if (buildNumModulesFlat.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify numModulesFlat. Not used.");
+    if (buildNumModulesTilted.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify numModulesTilted. Not used.");
+  }
+
+  if (isTilted()) {
+    if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
+    if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
+    if (isTiltedAuto()) {    
+      if (!buildNumModulesFlat.state()) throw PathfulException("Tilted layer with automatic placement : numModulesFlat must be specified.");
+      if (!buildNumModulesTilted.state()) throw PathfulException("Tilted layer with automatic placement : numModulesTilted must be specified.");
+      if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
+    }
+  }
 }
 
 void Layer::cutAtEta(double eta) {

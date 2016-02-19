@@ -1353,7 +1353,7 @@ namespace insur {
     //*            Additional info          *//
     //*                                     *//
     //***************************************//
-    myContent = new RootWContent("Tilted layers from automatic placement : additional info");
+    myContent = new RootWContent("Tilted layers with automatic placement : additional info");
 
     class TiltedLayersVisitor : public ConstGeometryVisitor {
     public:

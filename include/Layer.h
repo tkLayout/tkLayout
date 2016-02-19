@@ -59,7 +59,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
-  Property<double, Default> phiOverlap;
+  Property<double, NoDefault> phiOverlap;
   Property<int, Default> phiSegments;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
@@ -88,7 +88,7 @@ public:
   Property<int, NoDefault> buildNumModulesFlat;
   Property<int, NoDefault> buildNumModulesTilted;
   Property<bool, Default> isTilted;
-  Property<bool, Default> isTiltedAuto;
+  Property<bool, NoDefault> isTiltedAuto;
   Property<string, AutoDefault> tiltedLayerSpecFile;
 
   Layer() :
@@ -97,7 +97,7 @@ public:
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
-            phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
+	    phiOverlap     ("phiOverlap"     , parsedOnly()),
             phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
 	    numRods        ("numRods"        , parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
@@ -113,7 +113,7 @@ public:
 	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
-	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly(), true),
+	    isTiltedAuto   ("isTiltedAuto"   , parsedOnly()),
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
   { setup(); }
 
