@@ -125,7 +125,6 @@ public:
   }
 
   double placeRadius() const { return placeRadius_; }
-  //int numRods() const { return rods_.size(); }
   int numModulesPerRod() const { return rods_.front().numModules(); }
   int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
   int totalModules() const { return numModulesPerRod()*numRods(); }
@@ -133,7 +132,6 @@ public:
   double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
   //bool isTilted() const { return rods_.front().isTilted(); }
   
-  //double tilt() const { return 0.0; }
   double startAngle() const { return 90.0; }
 
   void check() override;

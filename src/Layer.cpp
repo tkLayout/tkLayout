@@ -8,8 +8,16 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, Tilt
     covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
     deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
 
-    double zErrorAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i-1]->zEndOuter_REAL() - tiltedRingsGeometry[i]->zStartOuter_REAL()) );
-    zError_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() + tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorAngle);
+    double zErrorAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i-1]->zEndOuter_REAL()) );
+    zError_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorAngle);
+    if (i == 10) {
+      std::cout << "zError_[i] = " << zError_[i] << std::endl;
+      double lastZ = tiltedRingsGeometry[i-1]->zEndOuter_REAL();
+      double newZ = tiltedRingsGeometry[i]->zStartOuter_REAL();
+      double lastR = tiltedRingsGeometry[i-1]->rEndOuter_REAL();
+      double newR = tiltedRingsGeometry[i]->rStartOuter_REAL();
+      std::cout << "zError = " << (lastZ * newR / lastR - newZ) / (newR/lastR - 1) << std::endl;
+    }
   }
 }
 
