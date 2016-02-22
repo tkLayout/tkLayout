@@ -33,14 +33,16 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
  private:
   class TiltedRingsGeometryInfo {
   private:
-    std::map<int, double> covInner_;
     std::map<int, double> deltaZOuter_;
-    std::map<int, double> zError_;
+    //std::map<int, double> covInner_;
+    std::map<int, double> zErrorInner_;
+    std::map<int, double> zErrorOuter_;
   public:
     TiltedRingsGeometryInfo(int numModulesFlat, TiltedRingsTemplate tiltedRingsGeometry);
-    std::map<int, double> covInner() const { return covInner_; }
     std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
-    std::map<int, double> zError() const { return zError_; }
+    //std::map<int, double> covInner() const { return covInner_; }
+    std::map<int, double> zErrorInner() const { return zErrorInner_; }
+    std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
   };
 
  private:

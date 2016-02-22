@@ -38,6 +38,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double numPhi_, phiOverlap_;
 
   double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
+  double rStartInner_REAL_, zStartInner_REAL_, rEndInner_REAL_, zEndInner_REAL_;
 
 
  public:
@@ -105,8 +106,13 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   double zStartOuter_REAL() const { return zStartOuter_REAL_; } 
   double rEndOuter_REAL() const { return rEndOuter_REAL_; }
   double zEndOuter_REAL() const { return zEndOuter_REAL_; }
+  double thetaEndOuter_REAL () const { return atan(rEndOuter_REAL_ / zEndOuter_REAL_); }
 
-  double covOuter_REAL () const { return atan(rEndOuter_REAL_ / zEndOuter_REAL_); }
+  double rStartInner_REAL() const { return rStartInner_REAL_; }
+  double zStartInner_REAL() const { return zStartInner_REAL_; } 
+  double rEndInner_REAL() const { return rEndInner_REAL_; }
+  double zEndInner_REAL() const { return zEndInner_REAL_; }
+  double thetaEndInner_REAL () const { return atan(rEndInner_REAL_ / zEndInner_REAL_); }
 
 };
 

@@ -403,7 +403,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
     zStartOuter_REAL_ = zH2pUP_REAL;
   }
   else { 
-    rStartOuter_REAL_ = rH2pDOWN_REAL; 
+    rStartOuter_REAL_ = rH2pDOWN_REAL;
     zStartOuter_REAL_ = zH2pDOWN_REAL;
   }
   if ( fabs(rH2ppUP_REAL / zH2ppUP_REAL) > fabs(rH2ppDOWN_REAL / zH2ppDOWN_REAL) ) { 
@@ -416,7 +416,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   }
 
 
-  /*double zH1pUP_REAL = zH1UP - 0.5 * length * cos(tilt);
+  double zH1pUP_REAL = zH1UP - 0.5 * length * cos(tilt);
   double rH1pUP_REAL = rH1UP + 0.5 * length * sin(tilt);
   double zH1ppUP_REAL = zH1UP + 0.5 * length * cos(tilt);
   double rH1ppUP_REAL = rH1UP - 0.5 * length * sin(tilt);
@@ -441,7 +441,7 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
   else { 
     rEndInner_REAL_ = rH1ppDOWN_REAL; 
     zEndInner_REAL_ = zH1ppDOWN_REAL;
-    }*/
+  }
 
 
 }
