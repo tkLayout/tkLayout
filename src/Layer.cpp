@@ -159,7 +159,7 @@ TiltedRingsTemplate Layer::makeTiltedRingsTemplate(double flatPartThetaEnd) {
     if (i == (buildNumModulesFlat() + 1)) lastThetaEnd = flatPartThetaEnd; 
     else lastThetaEnd = tiltedRingsGeometry[i-1]->thetaEnd();
  
-    tiltedRing->build(lastThetaEnd);
+    tiltedRing->build(lastThetaEnd); 
     tiltedRingsGeometry[i] = tiltedRing;
   }
 
@@ -312,7 +312,7 @@ void Layer::buildTilted() {
 	  std::cout << "idealTilt2 = " << tiltedRingsGeometry_[i]->tiltAngleIdealOuter() << std::endl;
 	  std::cout << "gap = " << tiltedRingsGeometry_[i]->gapR() << std::endl;
 	  std::cout << "avR = " << tiltedRingsGeometry_[i]->averageR() << std::endl;
-	  if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[i]->thetaStartInner() - tiltedRingsGeometry_[i-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
+	  if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[ringNumber]->thetaStartInner() - tiltedRingsGeometry_[ringNumber-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
 	  if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[i]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
 
 	  if (i >= 1) {

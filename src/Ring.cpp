@@ -369,7 +369,20 @@ void TiltedRing::buildLeftRight(double lastThetaEnd) {
 
 
   // FOR INFO
-  phiOverlap_ = atan(width / (2.* rH2pUP)) + atan(width / (2.* rH1pUP)) - 2. * M_PI / numPhi();
+
+  //phiOverlapDEG_ = atan(width / (2.* rH2pUP)) + atan(width / (2.* rH1pUP)) - 2. * M_PI / numPhi();
+
+  double T = tan(2.*M_PI / numPhi());
+  double A = 1. / (2. * rH1pUP);
+  double B = 1. / (2. * rH2pUP);
+
+  double a = T * A * B;
+  double b = - (A + B);
+  double c = - T;
+
+  double s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+
+  phiOverlap_ = width + s;
 
 
 

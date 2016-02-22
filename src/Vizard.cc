@@ -1366,7 +1366,7 @@ namespace insur {
 	  nTiltedLayers++;
 
 	  RootWTable* tiltedLayerName = new RootWTable();
-	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");  
+	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
 	  tiltedLayerNames.push_back(tiltedLayerName);
 
 	  RootWTable* tiltedLayerTable = new RootWTable();
@@ -1400,8 +1400,8 @@ namespace insur {
 	    tiltedLayerTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), coordPrecision);
 	    tiltedLayerTable->setContent(13, 0, "gapR");
 	    tiltedLayerTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR(), coordPrecision);
-	    tiltedLayerTable->setContent(14, 0, "phiOverlap (°)");
-	    tiltedLayerTable->setContent(14, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap() * 180. / M_PI, coordPrecision);
+	    tiltedLayerTable->setContent(14, 0, "phiOverlap");
+	    tiltedLayerTable->setContent(14, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);
 	    if (i > 0) {
 	      tiltedLayerTable->setContent(15, 0, "deltaZ" + subStart + "Outer" + subEnd + "");
 	      tiltedLayerTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
