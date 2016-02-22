@@ -3,16 +3,30 @@
 #include "messageLogger.h"
 #include "ConversionStation.h"
 
-Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, TiltedRingsTemplate tiltedRingsGeometry) {
-  for (int i = (numModulesFlat + 2); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
-    deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
+Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner_REAL, double flatPartzEndInner_REAL, double flatPartrEndOuter_REAL, double flatPartzEndOuter_REAL,TiltedRingsTemplate tiltedRingsGeometry) {
+  for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
 
-    //covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
-    double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - tiltedRingsGeometry[i-1]->rEndInner_REAL()) / (tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i-1]->zEndInner_REAL()) );
-    zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
+    if (i == (numModulesFlat + 1)) {
 
-    double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i-1]->zEndOuter_REAL()) );
-    zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
+      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - flatPartrEndInner_REAL) / (tiltedRingsGeometry[i]->zStartInner_REAL() - flatPartzEndInner_REAL) );
+      zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
+
+      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - flatPartrEndOuter_REAL) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - flatPartzEndOuter_REAL) );
+      zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
+
+    }
+
+    else {
+      deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
+
+      //covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
+
+      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - tiltedRingsGeometry[i-1]->rEndInner_REAL()) / (tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i-1]->zEndInner_REAL()) );
+      zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
+
+      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - tiltedRingsGeometry[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i-1]->zEndOuter_REAL()) );
+      zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
+    }
   }
 }
 
@@ -248,6 +262,10 @@ void Layer::buildTilted() {
   else {
 
     double flatPartThetaEnd = M_PI / 2.;
+    double flatPartrEndInner_REAL = 0;
+    double flatPartzEndInner_REAL = 0;
+    double flatPartrEndOuter_REAL = 0;
+    double flatPartzEndOuter_REAL = 0;
 
     if (buildNumModulesFlat() != 0) {
 
@@ -271,6 +289,15 @@ void Layer::buildTilted() {
 	}
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
+	auto lastMod1 = zPlusModules1.back();
+	auto lastMod2 = zPlusModules2.back();
+	flatPartrEndInner_REAL = (bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());
+	flatPartzEndInner_REAL = (bigParity() > 0 ? lastMod2.planarMaxZ() : lastMod1.planarMaxZ());
+	flatPartrEndOuter_REAL = (bigParity() > 0 ? lastMod1.center().Rho() + 0.5* lastMod1.dsDistance() : lastMod2.center().Rho() + 0.5* lastMod2.dsDistance());
+	flatPartzEndOuter_REAL = (bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());
+	
+
+
       }
       else { logERROR(to_string(flatPartRods_.size()) + " straight rod was built for the whole flat part."); }     
     }
@@ -293,34 +320,34 @@ void Layer::buildTilted() {
 	int ringNumber = buildNumModulesFlat() + 1 + i;
 	TiltedModuleSpecs ti{ tiltedRingsGeometry_[ringNumber]->innerRadius(), tiltedRingsGeometry_[ringNumber]->zInner(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
 	TiltedModuleSpecs to{ tiltedRingsGeometry_[ringNumber]->outerRadius(), tiltedRingsGeometry_[ringNumber]->zOuter(), tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. };
-	/*std::cout << "i = " << i << std::endl;
-	  std::cout << "tiltAngle = " << tiltedRingsGeometry_[i]->tiltAngle()*M_PI/180. << std::endl;
-	  std::cout << "innerRadius = " << tiltedRingsGeometry_[i]->innerRadius() << std::endl;
-	  std::cout << "zInner = " << tiltedRingsGeometry_[i]->zInner() << std::endl;
-	  std::cout << "outerRadius = " << tiltedRingsGeometry_[i]->outerRadius() << std::endl;
-	  std::cout << "zOuter = " << tiltedRingsGeometry_[i]->zOuter() << std::endl;*/
+	/*std::cout << "ringNumber = " << ringNumber << std::endl;
+	  std::cout << "tiltAngle = " << tiltedRingsGeometry_[ringNumber]->tiltAngle()*M_PI/180. << std::endl;
+	  std::cout << "innerRadius = " << tiltedRingsGeometry_[ringNumber]->innerRadius() << std::endl;
+	  std::cout << "zInner = " << tiltedRingsGeometry_[ringNumber]->zInner() << std::endl;
+	  std::cout << "outerRadius = " << tiltedRingsGeometry_[ringNumber]->outerRadius() << std::endl;
+	  std::cout << "zOuter = " << tiltedRingsGeometry_[ringNumber]->zOuter() << std::endl;*/
 
 
 
 
-	/*std::cout << "theta2 = " << tiltedRingsGeometry_[i]->thetaOuter() * 180. / M_PI << std::endl;
-	  std::cout << "idealTilt2 = " << tiltedRingsGeometry_[i]->tiltAngleIdealOuter() << std::endl;
-	  std::cout << "gap = " << tiltedRingsGeometry_[i]->gapR() << std::endl;
-	  std::cout << "avR = " << tiltedRingsGeometry_[i]->averageR() << std::endl;
+	/*std::cout << "theta2 = " << tiltedRingsGeometry_[ringNumber]->thetaOuter() * 180. / M_PI << std::endl;
+	  std::cout << "idealTilt2 = " << tiltedRingsGeometry_[ringNumber]->tiltAngleIdealOuter() << std::endl;
+	  std::cout << "gap = " << tiltedRingsGeometry_[ringNumber]->gapR() << std::endl;
+	  std::cout << "avR = " << tiltedRingsGeometry_[ringNumber]->averageR() << std::endl;
 	  if (i >= 1) { std::cout << "cov1 = " << (tiltedRingsGeometry_[ringNumber]->thetaStartInner() - tiltedRingsGeometry_[ringNumber-1]->thetaEndInner()) * 180. / M_PI << std::endl; }
-	  if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[i]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
+	  if (i >= 1) { std::cout << "deltaz2 = " << tiltedRingsGeometry_[ringNumber]->zOuter() - tiltedRingsGeometry_[i-1]->zOuter() << std::endl; }
 
 	  if (i >= 1) {
-	  double zErrorAngle = atan( (tiltedRingsGeometry_[i]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[i]->zStartOuter_REAL()) );
-	  std::cout << "zError = " << tiltedRingsGeometry_[i]->zStartOuter_REAL() + tiltedRingsGeometry_[i]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
+	  double zErrorAngle = atan( (tiltedRingsGeometry_[ringNumber]->rStartOuter_REAL() - tiltedRingsGeometry_[i-1]->rEndOuter_REAL()) / (tiltedRingsGeometry_[i-1]->zEndOuter_REAL() - tiltedRingsGeometry_[ringNumber]->zStartOuter_REAL()) );
+	  std::cout << "zError = " << tiltedRingsGeometry_[ringNumber]->zStartOuter_REAL() + tiltedRingsGeometry_[ringNumber]->rStartOuter_REAL() / tan(zErrorAngle) << std::endl; 
 	  }
 
-	  std::cout << "cov2 = " << atan(tiltedRingsGeometry_[i]->rEndOuter_REAL() / tiltedRingsGeometry_[i]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
+	  std::cout << "cov2 = " << atan(tiltedRingsGeometry_[ringNumber]->rEndOuter_REAL() / tiltedRingsGeometry_[ringNumber]->zEndOuter_REAL()) * 180. / M_PI << std::endl;*/
 
 	if (ti.valid()) tmspecsi.push_back(ti);
 	if (to.valid()) tmspecso.push_back(to);
       }
-      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), tiltedRingsGeometry_);
+      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), flatPartrEndInner_REAL, flatPartzEndInner_REAL, flatPartrEndOuter_REAL, flatPartzEndOuter_REAL, tiltedRingsGeometry_);
     } 
     else {
       logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");

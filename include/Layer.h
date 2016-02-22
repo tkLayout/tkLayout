@@ -38,7 +38,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
     std::map<int, double> zErrorInner_;
     std::map<int, double> zErrorOuter_;
   public:
-    TiltedRingsGeometryInfo(int numModulesFlat, TiltedRingsTemplate tiltedRingsGeometry);
+    TiltedRingsGeometryInfo(int numModulesFlat, double, double, double, double, TiltedRingsTemplate tiltedRingsGeometry);
     std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
     //std::map<int, double> covInner() const { return covInner_; }
     std::map<int, double> zErrorInner() const { return zErrorInner_; }
@@ -52,7 +52,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   std::vector<ConversionStation*> secondConversionStations_;
   std::vector<StraightRodPair*> flatPartRods_;
   TiltedRingsTemplate tiltedRingsGeometry_;
-  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0, tiltedRingsGeometry_);
+  TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
  
   double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
   pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
