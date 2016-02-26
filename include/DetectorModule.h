@@ -474,6 +474,8 @@ public:
   //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam3;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
 
@@ -481,11 +483,13 @@ public:
   DetectorModule(decorated),
     resolutionLocalXEndcapParam0            ("resolutionLocalXEndcapParam0"            , parsedOnly()),
     resolutionLocalXEndcapParam1            ("resolutionLocalXEndcapParam1"            , parsedOnly()),
+    resolutionLocalXEndcapParam2            ("resolutionLocalXEndcapParam2"            , parsedOnly()),
+    resolutionLocalXEndcapParam3            ("resolutionLocalXEndcapParam3"            , parsedOnly()),
     resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
     resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
       { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state() || resolutionLocalXEndcapParam2.state() || resolutionLocalXEndcapParam3.state()); }
   
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
@@ -635,7 +639,16 @@ public:
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi)); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const {
+    if (moduleType() == "pixel_1x3_25x100" || moduleType() == "pixel_1x3_50x50") {
+      // if (pitch() == 0.025 || pitch() == 0.050) { 
+      std::cout << pitch() << std::endl;
+      return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * exp(-pow(1./tan(alpha(trackPhi)), 2.) / resolutionLocalXEndcapParam3()) * cos(resolutionLocalXEndcapParam2() * 1./tan(alpha(trackPhi)));
+    }
+    else {
+      return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi));
+    }
+  }
 
   double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
 
