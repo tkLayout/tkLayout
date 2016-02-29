@@ -640,9 +640,7 @@ public:
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
   double calculateParameterizedResolutionLocalX(double trackPhi) const {
-    if (moduleType() == "pixel_1x3_25x100" || moduleType() == "pixel_1x3_50x50") {
-      // if (pitch() == 0.025 || pitch() == 0.050) { 
-      std::cout << pitch() << std::endl;
+    if (pitch() == 0.025 || pitch() == 0.050) { 
       return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * exp(-pow(1./tan(alpha(trackPhi)), 2.) / resolutionLocalXEndcapParam3()) * cos(resolutionLocalXEndcapParam2() * 1./tan(alpha(trackPhi)));
     }
     else {
