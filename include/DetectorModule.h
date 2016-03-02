@@ -478,6 +478,8 @@ public:
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam3;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam3;
 
  EndcapModule(Decorated* decorated) :
   DetectorModule(decorated),
@@ -486,12 +488,14 @@ public:
     resolutionLocalXEndcapParam2            ("resolutionLocalXEndcapParam2"            , parsedOnly()),
     resolutionLocalXEndcapParam3            ("resolutionLocalXEndcapParam3"            , parsedOnly()),
     resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
-    resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
+    resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly()),
+    resolutionLocalYEndcapParam2            ("resolutionLocalYEndcapParam2"            , parsedOnly()),
+    resolutionLocalYEndcapParam3            ("resolutionLocalYEndcapParam3"            , parsedOnly())
       { setup(); }
 
   bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state() || resolutionLocalXEndcapParam2.state() || resolutionLocalXEndcapParam3.state()); }
   
-  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
+  bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state() || resolutionLocalYEndcapParam2.state() || resolutionLocalYEndcapParam3.state()); }
 
   void setup() override {
     DetectorModule::setup();
@@ -648,7 +652,14 @@ public:
     }
   }
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
+  double calculateParameterizedResolutionLocalY(double theta) const {
+    if (pitch() == 0.050) {
+      return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * exp(-resolutionLocalYEndcapParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYEndcapParam3() * fabs(1./tan(beta(theta))));
+    }
+    else {
+      return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta)));
+    }
+  }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }
