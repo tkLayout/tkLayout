@@ -653,7 +653,7 @@ public:
   }
 
   double calculateParameterizedResolutionLocalY(double theta) const {
-    if (pitch() == 0.050) {
+    if (stripLength() == 0.050) {
       return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * exp(-resolutionLocalYEndcapParam2() * fabs(1./tan(beta(theta)))) * sin(resolutionLocalYEndcapParam3() * fabs(1./tan(beta(theta))));
     }
     else {
