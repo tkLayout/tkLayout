@@ -519,13 +519,15 @@ namespace insur {
 				false,
 				debugResolution,
                                 tracks, pm);
-	pixelAnalyzer.analyzeTaggedTracking(*pm,
-					    mainConfiguration.getMomenta(),
-					    mainConfiguration.getTriggerMomenta(),
-					    mainConfiguration.getThresholdProbabilities(),
-					    true,
-					    debugResolution,
-					    tracks, NULL);
+	if (pm) {
+	  pixelAnalyzer.analyzeTaggedTracking(*pm,
+					      mainConfiguration.getMomenta(),
+					      mainConfiguration.getTriggerMomenta(),
+					      mainConfiguration.getThresholdProbabilities(),
+					      true,
+					      debugResolution,
+					      tracks, NULL);
+	}
         stopTaskClock();
       }
       return true;
