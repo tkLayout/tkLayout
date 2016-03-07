@@ -104,7 +104,8 @@ namespace insur {
         std::map<std::string,Rotation>& r = d.rots;
         std::ostringstream buffer;
         buffer << xml_preamble;
-        buffer << getExtendedHeader();
+        buffer << getSimpleHeader();
+	buffer << xml_definition;
         if (wt) {
             buffer << xml_new_const_section;
             materialSection(xml_newtrackerfile, e, c, buffer);
