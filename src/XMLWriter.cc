@@ -105,6 +105,7 @@ namespace insur {
         std::ostringstream buffer;
         buffer << xml_preamble;
         buffer << getSimpleHeader();
+	buffer << xml_definition;
         if (wt) {
             buffer << xml_new_const_section;
             materialSection(xml_newtrackerfile, e, c, buffer);
