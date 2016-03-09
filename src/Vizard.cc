@@ -5317,6 +5317,7 @@ namespace insur {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);
+    if (!boost::filesystem::exists(layoutdir)) { boost::filesystem::create_directory(layoutdir); }
 
     std::vector<std::string> pixelxmlfilenames,trackerxmlfilenames;
     boost::filesystem::path xmlDirectory(xmldir);
