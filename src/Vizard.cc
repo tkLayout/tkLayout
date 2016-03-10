@@ -5313,49 +5313,55 @@ namespace insur {
 
   }
   //create an extra tab for xml file linking
-    bool Vizard::createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir) {
+  bool Vizard::createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir) {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);
     if (!boost::filesystem::exists(layoutdir)) { boost::filesystem::create_directory(layoutdir); }
 
-    std::vector<std::string> pixelxmlfilenames,trackerxmlfilenames;
+    std::vector<std::string> xmlMetadataFileNames, pixelxmlfilenames, trackerxmlfilenames;
     boost::filesystem::path xmlDirectory(xmldir);
     boost::filesystem::directory_iterator end_iter;
     if ( boost::filesystem::exists(xmlDirectory) && boost::filesystem::is_directory(xmlDirectory)) {
       for( boost::filesystem::directory_iterator dir_iter(xmlDirectory) ; dir_iter != end_iter ; ++dir_iter) {
-         if ( boost::filesystem::is_regular_file( dir_iter->path() ) ) {
-            // assign current file name to current_file and echo it out to the console.
-            std::string current_file =dir_iter->path().filename().string();
-            std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
-	    if( current_file.find(".xml") != std::string::npos ) {
-              boost::filesystem::copy_file( dir_iter->path(),
-                                            layoutdir + current_file,
-                                            boost::filesystem::copy_option::overwrite_if_exists);
-              if( current_file.find("pixel") != std::string::npos )
-                pixelxmlfilenames.push_back(current_file);
-              else 
-                trackerxmlfilenames.push_back(current_file);
-             }
-        }
+	if ( boost::filesystem::is_regular_file( dir_iter->path() ) ) {
+	  // assign current file name to current_file and echo it out to the console.
+	  std::string current_file =dir_iter->path().filename().string();
+	  //std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
+	  if ((current_file.find(".cfg") != std::string::npos) || (current_file.find(".xml") != std::string::npos)) {
+	    boost::filesystem::copy_file( dir_iter->path(),
+					  layoutdir + current_file,
+					  boost::filesystem::copy_option::overwrite_if_exists);  //TO FIX !! the copy of files should be done by RootWBinaryFileList::dump, and not before !!
+	    if (current_file.find(".cfg") != std::string::npos ) {
+	      xmlMetadataFileNames.push_back(current_file);
+	    }
+	    else {
+	      if (current_file.find("pixel") != std::string::npos ) pixelxmlfilenames.push_back(current_file);
+	      else trackerxmlfilenames.push_back(current_file);
+	    }
+	  }
+	}
       }
     }
     else std::cerr << "XML directory does not exist" << std::endl;
 
-    RootWContent* content = new RootWContent("xml files");
+    RootWContent* content = new RootWContent("XML files");
+    if (!xmlMetadataFileNames.empty()) {
+      RootWBinaryFileList* xmlMetadataFileList = new RootWBinaryFileList(xmlMetadataFileNames.begin(), xmlMetadataFileNames.end(), 
+									 "XML generation Metadata", xmlMetadataFileNames.begin(), xmlMetadataFileNames.end());
+      content->addItem(xmlMetadataFileList);
+    }
     if (!pixelxmlfilenames.empty()) {
       RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
-								"xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
+								"XML for Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
       content->addItem(pxFileList);
     }
- 
     if (!trackerxmlfilenames.empty()) {
       RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
-								"xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
+								"XML for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
       content->addItem(tkFileList);
     }
     myPage->addContent(content);
-    
-    }
+  }
 
 }
