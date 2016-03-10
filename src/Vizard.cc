@@ -5328,7 +5328,7 @@ namespace insur {
             // assign current file name to current_file and echo it out to the console.
             std::string current_file =dir_iter->path().filename().string();
             std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
-             if( current_file.find(".xml") != std::string::npos ) {
+	    if( current_file.find(".xml") != std::string::npos ) {
               boost::filesystem::copy_file( dir_iter->path(),
                                             layoutdir + current_file,
                                             boost::filesystem::copy_option::overwrite_if_exists);
@@ -5342,16 +5342,20 @@ namespace insur {
     }
     else std::cerr << "XML directory does not exist" << std::endl;
 
-    RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
-                                          "xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
- 
-    RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
-                                          "xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
     RootWContent* content = new RootWContent("xml files");
-    content->addItem(pxFileList);
-    content->addItem(tkFileList);
+    if (!pixelxmlfilenames.empty()) {
+      RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
+								"xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
+      content->addItem(pxFileList);
+    }
+ 
+    if (!trackerxmlfilenames.empty()) {
+      RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
+								"xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
+      content->addItem(tkFileList);
+    }
     myPage->addContent(content);
     
-  }
+    }
 
 }
