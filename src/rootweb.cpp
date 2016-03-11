@@ -1165,12 +1165,13 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
     catch (boost::filesystem::filesystem_error e) {
       cerr << e.what() << endl;
       return output;
-    }
-    
+    }   
   }
+
   std::vector<std::string> cleanedUpFileNames;
   std::transform(originalFileNames_.begin(), originalFileNames_.end(), std::back_inserter(cleanedUpFileNames), [](const std::string& s) {
       auto pos = s.find("stdinclude");
+      if (s.find("xml") != string::npos) pos = s.rfind("/") + 1;
       return pos != string::npos ? s.substr(pos) : s;
     });
   output << "<b>" << description_ << ":</b>";
