@@ -1158,22 +1158,21 @@ ostream& RootWBinaryFileList::dump(ostream& output) {
     //  if (!boost::filesystem::exists(destinationFileName)) boost::filesystem::create_directory(destinationFileName);
     //});
     destinationFileName += "/" + fn; //path.back();
-    if (boost::filesystem::exists(*it) && *it != destinationFileName) { // CUIDADO: naive control on copy on itself. 
-      try {
-        if (boost::filesystem::exists(destinationFileName))
-          boost::filesystem::remove(destinationFileName);
-        boost::filesystem::copy_file(*it++, destinationFileName);
-      } catch (boost::filesystem::filesystem_error e) {
-        cerr << e.what() << endl;
-        return output;
-      }
+    try {
+      if (boost::filesystem::exists(destinationFileName)) boost::filesystem::remove(destinationFileName);
+      boost::filesystem::copy_file(*it++, destinationFileName);
     }
+    catch (boost::filesystem::filesystem_error e) {
+      cerr << e.what() << endl;
+      return output;
+    }
+    
   }
   std::vector<std::string> cleanedUpFileNames;
   std::transform(originalFileNames_.begin(), originalFileNames_.end(), std::back_inserter(cleanedUpFileNames), [](const std::string& s) {
-    auto pos = s.find("stdinclude");
-    return pos != string::npos ? s.substr(pos) : s;
-  });
+      auto pos = s.find("stdinclude");
+      return pos != string::npos ? s.substr(pos) : s;
+    });
   output << "<b>" << description_ << ":</b>";
   auto dfn = fileNames_.begin();
   for (auto cfn : cleanedUpFileNames) {

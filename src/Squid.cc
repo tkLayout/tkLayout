@@ -747,9 +747,9 @@ namespace insur {
   }
    
   void Squid::createAdditionalXmlSite(std::string xmlout) {
-    std::string xmlpath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
-    std::string layoutpath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
-    v.createXmlSite(site,xmlpath,layoutpath);
+    std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
+    std::string layoutPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
+    v.createXmlSite(site, xmlPath, layoutPath);
   }
 }
 
