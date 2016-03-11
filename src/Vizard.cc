@@ -5334,7 +5334,7 @@ namespace insur {
 	    origMetadataXmlFiles.push_back(origFile);
 	    metadataXmlFileNames.push_back(fileName);
 	  }
-	  else {
+	  else if (fileName.find(".xml") != std::string::npos ) {
 	    if (fileName.find("pixel") != std::string::npos ) {
 	      origPixelXmlFiles.push_back(origFile);
 	      pixelXmlFileNames.push_back(fileName);
