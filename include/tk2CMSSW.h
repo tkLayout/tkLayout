@@ -61,9 +61,9 @@ namespace insur {
     private:
         std::vector<ConfigFile> configFiles_;
         void print();
-        void writeSimpleHeader(std::ostream& os);
-        void writeExtendedHeader(std::ostream& os);
-        std::string currentDateTime() const;
+        void writeSimpleHeader(std::ostream& os, std::string& metadataFileName);
+	void writeMetadata(std::ofstream& out);
+        std::string currentDateTime(bool withTime) const;
         std::string fullUserName() const;
         const std::vector<ConfigFile>& getConfigFiles() const { return configFiles_; }
     };
