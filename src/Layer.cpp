@@ -3,15 +3,16 @@
 #include "messageLogger.h"
 #include "ConversionStation.h"
 
-Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner_REAL, double flatPartzEndInner_REAL, double flatPartrEndOuter_REAL, double flatPartzEndOuter_REAL,TiltedRingsTemplate tiltedRingsGeometry) {
+Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
   for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
 
     if (i == (numModulesFlat + 1)) {
+      deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - flatPartzEnd;
 
-      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - flatPartrEndInner_REAL) / (tiltedRingsGeometry[i]->zStartInner_REAL() - flatPartzEndInner_REAL) );
+      double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - flatPartrEndInner) / (tiltedRingsGeometry[i]->zStartInner_REAL() - flatPartzEnd_REAL) );
       zErrorInner_[i] = tiltedRingsGeometry[i]->zStartInner_REAL() - tiltedRingsGeometry[i]->rStartInner_REAL() / tan(zErrorInnerAngle);
 
-      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - flatPartrEndOuter_REAL) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - flatPartzEndOuter_REAL) );
+      double zErrorOuterAngle = atan( (tiltedRingsGeometry[i]->rStartOuter_REAL() - flatPartrEndOuter) / (tiltedRingsGeometry[i]->zStartOuter_REAL() - flatPartzEnd_REAL) );
       zErrorOuter_[i] = tiltedRingsGeometry[i]->zStartOuter_REAL() - tiltedRingsGeometry[i]->rStartOuter_REAL() / tan(zErrorOuterAngle);
 
     }
@@ -262,10 +263,10 @@ void Layer::buildTilted() {
   else {
 
     double flatPartThetaEnd = M_PI / 2.;
-    double flatPartrEndInner_REAL = 0;
-    double flatPartzEndInner_REAL = 0;
-    double flatPartrEndOuter_REAL = 0;
-    double flatPartzEndOuter_REAL = 0;
+    double flatPartrEndInner = 0;
+    double flatPartrEndOuter = 0;
+    double flatPartzEnd = 0;
+    double flatPartzEnd_REAL = 0;
 
     if (buildNumModulesFlat() != 0) {
 
@@ -290,12 +291,11 @@ void Layer::buildTilted() {
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
 	auto lastMod1 = zPlusModules1.back();
-	auto lastMod2 = zPlusModules2.back();
-	flatPartrEndInner_REAL = (bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());
-	flatPartzEndInner_REAL = (bigParity() > 0 ? lastMod2.planarMaxZ() : lastMod1.planarMaxZ());
-	flatPartrEndOuter_REAL = (bigParity() > 0 ? lastMod1.center().Rho() + 0.5* lastMod1.dsDistance() : lastMod2.center().Rho() + 0.5* lastMod2.dsDistance());
-	flatPartzEndOuter_REAL = (bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());
-	
+	auto lastMod2 = zPlusModules2.back();	
+	flatPartrEndInner = (bigParity() > 0 ? lastMod2.center().Rho() + 0.5* lastMod2.dsDistance() : lastMod1.center().Rho() + 0.5* lastMod1.dsDistance());
+	flatPartrEndOuter = (bigParity() > 0 ? lastMod1.center().Rho() + 0.5* lastMod1.dsDistance() : lastMod2.center().Rho() + 0.5* lastMod2.dsDistance());
+	flatPartzEnd = (bigParity() > 0 ? lastMod2.center().Z() : lastMod1.center().Z());	
+	flatPartzEnd_REAL = (bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());	//TAKE CAREEEEEE : REMOVE FLAT PART OVERLAP ?
 
 
       }
@@ -347,7 +347,7 @@ void Layer::buildTilted() {
 	if (ti.valid()) tmspecsi.push_back(ti);
 	if (to.valid()) tmspecso.push_back(to);
       }
-      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), flatPartrEndInner_REAL, flatPartzEndInner_REAL, flatPartrEndOuter_REAL, flatPartzEndOuter_REAL, tiltedRingsGeometry_);
+      tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(buildNumModulesFlat(), flatPartrEndInner, flatPartrEndOuter, flatPartzEnd,  flatPartzEnd_REAL, tiltedRingsGeometry_);
     } 
     else {
       logERROR("numModulesTilted = " + to_string(buildNumModulesTilted()) + " but tilted rings geometry template has " + to_string(tiltedRingsGeometry_.size()) + " elements.");
