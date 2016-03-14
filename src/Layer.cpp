@@ -7,6 +7,7 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
   for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
 
     if (i == (numModulesFlat + 1)) {
+      deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - flatPartzEnd;
       deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - flatPartzEnd;
 
       double zErrorInnerAngle = atan( (tiltedRingsGeometry[i]->rStartInner_REAL() - flatPartrEndInner) / (tiltedRingsGeometry[i]->zStartInner_REAL() - flatPartzEnd_REAL) );
@@ -18,6 +19,7 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
     }
 
     else {
+      deltaZInner_[i] = tiltedRingsGeometry[i]->zInner() - tiltedRingsGeometry[i-1]->zInner();
       deltaZOuter_[i] = tiltedRingsGeometry[i]->zOuter() - tiltedRingsGeometry[i-1]->zOuter();
 
       //covInner_[i] = (tiltedRingsGeometry[i]->thetaStartInner() - tiltedRingsGeometry[i-1]->thetaEndInner());
