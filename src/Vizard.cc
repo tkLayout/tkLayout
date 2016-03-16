@@ -2059,11 +2059,12 @@ namespace insur {
     RootWImage* myImage;
     TCanvas *summaryCanvas = NULL;
     TCanvas *RZCanvas = NULL;
+    TCanvas *RZCanvasBarrel = NULL;
     TCanvas *XYCanvas = NULL;
     TCanvas *XYCanvasEC = NULL;
     TCanvas *myCanvas = NULL;
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-    createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
       logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
@@ -2098,7 +2099,12 @@ namespace insur {
 
     if (RZCanvas) {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ position of the modules");
+      myImage->setComment("RZ positions of the modules");
+      myContent->addItem(myImage);
+    }
+    if ((RZCanvasBarrel) && (name == "pixel")) {
+      myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("RZ positions of the barrel modules");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
@@ -5074,7 +5080,7 @@ namespace insur {
   }    
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
@@ -5084,12 +5090,18 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RZCanvasBarrel->cd();
+    PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
+    yzDrawerBarrel.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
+    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
