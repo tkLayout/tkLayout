@@ -423,8 +423,13 @@ template<class CoordType, class ValueGetterType, class StatType>
 template<class InputIterator>
 void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
   for (InputIterator it = begin; it != end; ++it) {
-      int subDet = (*it)->subdet();
-      if (subDet & moduleTypes) add(**it);
+    int subDet = (*it)->subdet();
+    if (subDet & moduleTypes) {
+      if ((30 < (*it)->center().Rho() ) && ((*it)->center().Rho() < 55)) {
+	std::cout << "Rho = " << (*it)->center().Rho() << std::endl; 
+      }
+      add(**it); 
+    }
   }
 }
 
