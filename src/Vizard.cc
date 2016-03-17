@@ -2078,7 +2078,10 @@ namespace insur {
       drawCircle(22.5, true, 18); // "grey18"
       RZCanvas->cd();
       beampipe->Draw("same");
+      RZCanvasBarrel->cd();
+      beampipe->Draw("same");
 
+      RZCanvas->cd();
       TPolyLine* etafour  = new TPolyLine();
       etafour->SetPoint(0, 0, 0);
       etafour->SetPoint(1, 2700, 98.9376398798);
