@@ -36,12 +36,13 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
 void Layer::check() {
   PropertyObject::check();
 
-  if (!isTilted() && buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  else if (!isTilted() && buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+  //if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  //else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
 
-  //if (isTilted() && buildNumModules.state()) throw PathfulException("Tilted layer : numModules should not be specified. For automatic placement, use numModulesFlat and numModulesTilted.");
 
   if (!isTilted()) {
+    if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+    if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
     if (!phiOverlap.state()) throw PathfulException("Straight layer : phiOverlap must be specified.");
     if (numRods.state()) throw PathfulException("Straight layer : numRods should not be specified.");
     if (isTiltedAuto.state()) logERROR("Layer " + std::to_string(myid()) + " : doesn't make sense to specify isTiltedAuto. Not used.");
@@ -53,6 +54,8 @@ void Layer::check() {
   }
 
   if (isTilted()) {
+    //if (!maxZ.state()) throw PathfulException("Tilted layer : maxZ should be specified. It will be used for material routing.");
+    //if (buildNumModules() > 0) throw PathfulException("Tilted layer : numModules should not be specified. For automatic placement, please specify numModulesFlat and numModulesTilted and that s it :).");
     if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
     if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
     if (isTiltedAuto()) {    
