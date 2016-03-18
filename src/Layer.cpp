@@ -36,8 +36,10 @@ Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, doub
 void Layer::check() {
   PropertyObject::check();
 
-  if (buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
-  else if (buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+  if (!isTilted() && buildNumModules() > 0 && maxZ.state()) throw PathfulException("Only one between numModules and maxZ can be specified");
+  else if (!isTilted() && buildNumModules() == 0 && !maxZ.state()) throw PathfulException("At least one between numModules and maxZ must be specified");
+
+  //if (isTilted() && buildNumModules.state()) throw PathfulException("Tilted layer : numModules should not be specified. For automatic placement, use numModulesFlat and numModulesTilted.");
 
   if (!isTilted()) {
     if (!phiOverlap.state()) throw PathfulException("Straight layer : phiOverlap must be specified.");

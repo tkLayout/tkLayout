@@ -404,6 +404,10 @@ void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<Tilt
     check();
     buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
     buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
+    //maxZ(zPlusModules_.back().maxZ());
+    //if (!zPlusModules_.empty()) {
+    //std::cout << "zPlusModules_.back().maxZ() = " << zPlusModules_.back().maxZ() << std::endl;
+    //}
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();

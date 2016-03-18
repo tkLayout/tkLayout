@@ -425,9 +425,21 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputItera
   for (InputIterator it = begin; it != end; ++it) {
     int subDet = (*it)->subdet();
     if (subDet & moduleTypes) {
-      if ((30 < (*it)->center().Rho() ) && ((*it)->center().Rho() < 55)) {
+      /*if ((*it)->center().Rho() == 33) {
 	std::cout << "Rho = " << (*it)->center().Rho() << std::endl; 
+
+
+for (int i=0; i<4; i++) {
+        std::cout << "i = " << i << std::endl;
+        std::cout << " (*it)->basePoly().getVertex(i).Z() = " <<  (*it)->basePoly().getVertex(i).Z() << std::endl;
+/*std::cout << " (*it)->basePoly().getVertex(i).X() = " <<  (*it)->basePoly().getVertex(i).X() << std::endl;
+       std::cout << " (*it)->basePoly().getVertex(i).Y() = " <<  (*it)->basePoly().getVertex(i).Y() << std::endl;
+        std::cout << " sqrt = " <<  sqrt(pow((*it)->basePoly().getVertex(i).X(),2.) + pow((*it)->basePoly().getVertex(i).Y(),2.)) << std::endl;
+        std::cout << " (*it)->basePoly().getVertex(i).Rho() = " <<  (*it)->basePoly().getVertex(i).Rho() << std::endl;
       }
+      }*/
+
+
       add(**it); 
     }
   }
