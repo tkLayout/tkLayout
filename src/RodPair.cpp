@@ -310,9 +310,12 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     BarrelModule* mod;
     if (!mezzanine() && (startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) { // skips the central module information.
       mod = GeometryFactory::make<BarrelModule>(i < (rodTemplate.size() - 1) ? *rodTemplate[i+1].get() : *rodTemplate.rbegin()->get());
+      mod->myid(i+2);
     }
-    else mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
-    mod->myid(i+1);
+    else {
+      mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
+      mod->myid(i+1);
+    }
     mod->side(side);
     //mod->store(propertyTree());
     //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
