@@ -232,7 +232,7 @@ template<typename Iterator> vector<double> StraightRodPair::computeZList(Iterato
   double targetZ = maxZ.state() ? maxZ() : std::numeric_limits<double>::max(); // unreachable target in case maxZ not set
   int targetMods = buildNumModules.state() ? buildNumModules() : std::numeric_limits<int>::max(); // unreachable target in case numModules not set
   // If we rely on numModules and we start from the center, then the number of modules on the left side of the rod must be lower
-  if ((startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) targetMods--; 
+  if (!mezzanine() && (startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) targetMods--; 
 
   double newZ = startZ; // + lengthOffset/2;
 
@@ -307,7 +307,11 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
 
 void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
-    BarrelModule* mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
+    BarrelModule* mod;
+    if (!mezzanine() && (startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) { // skips the central module information.
+      mod = GeometryFactory::make<BarrelModule>(i < (rodTemplate.size() - 1) ? *rodTemplate[i+1].get() : *rodTemplate.rbegin()->get());
+    }
+    else mod = GeometryFactory::make<BarrelModule>(i < rodTemplate.size() ? *rodTemplate[i].get() : *rodTemplate.rbegin()->get());
     mod->myid(i+1);
     mod->side(side);
     //mod->store(propertyTree());
@@ -353,6 +357,13 @@ void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
   buildModules(zMinusModules_, rodTemplate, zListNeg, BuildDir::RIGHT, zPlusParity(), -1);
 }
 
+void StraightRodPair::check() {
+  PropertyObject::check();
+
+  if (mezzanine()) {
+    if (startZMode.state()) logERROR("startZMode cannot be taken into account for a mezzanine.");
+  }
+}
 
 void StraightRodPair::build(const RodTemplate& rodTemplate) {
   materialObject_.store(propertyTree());
@@ -373,7 +384,8 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   auto it = rodTemplate.begin();
   int side = (direction == BuildDir::RIGHT ? 1 : -1);
   if (tmspecs.empty()) return;
-  int i = (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5); // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
+  int i = 0;
+  if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < tmspecs.size(); i++, ++it) {
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
