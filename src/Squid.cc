@@ -519,13 +519,15 @@ namespace insur {
 				false,
 				debugResolution,
                                 tracks, pm);
-	pixelAnalyzer.analyzeTaggedTracking(*pm,
-					    mainConfiguration.getMomenta(),
-					    mainConfiguration.getTriggerMomenta(),
-					    mainConfiguration.getThresholdProbabilities(),
-					    true,
-					    debugResolution,
-					    tracks, NULL);
+	if (pm) {
+	  pixelAnalyzer.analyzeTaggedTracking(*pm,
+					      mainConfiguration.getMomenta(),
+					      mainConfiguration.getTriggerMomenta(),
+					      mainConfiguration.getThresholdProbabilities(),
+					      true,
+					      debugResolution,
+					      tracks, NULL);
+	}
         stopTaskClock();
       }
       return true;
@@ -745,9 +747,9 @@ namespace insur {
   }
    
   void Squid::createAdditionalXmlSite(std::string xmlout) {
-    std::string xmlpath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
-    std::string layoutpath = mainConfiguration.getLayoutDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
-    v.createXmlSite(site,xmlpath,layoutpath);
+    std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
+    std::string layoutPath = mainConfiguration.getLayoutDirectory() + "/" + baseName_ +  "/";
+    v.createXmlSite(site, xmlPath, layoutPath);
   }
 }
 
