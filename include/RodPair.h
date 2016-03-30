@@ -184,6 +184,7 @@ class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
 
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   bool isTilted() const override { return true; }
+  void check() override;
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
   

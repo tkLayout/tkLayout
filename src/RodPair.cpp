@@ -368,7 +368,7 @@ void StraightRodPair::check() {
   PropertyObject::check();
 
   if (mezzanine()) {
-    if (startZMode.state()) logERROR("startZMode cannot be taken into account for a mezzanine.");
+    if (startZMode.state()) logWARNING("Ignoring startZMode (set to modulecenter by default) for a mezzanine.");
   }
 }
 
@@ -407,6 +407,12 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
     mod->translateZ(side * tmspecs[i].z);
     modules.push_back(mod);
   }
+}
+
+void TiltedRodPair::check() {
+  PropertyObject::check();
+
+  if (startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
 }
 
 
