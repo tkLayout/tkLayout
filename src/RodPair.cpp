@@ -364,7 +364,7 @@ void StraightRodPair::check() {
   PropertyObject::check();
 
   if (mezzanine()) {
-    if (startZMode.state()) logERROR("startZMode cannot be taken into account for a mezzanine.");
+    if (startZMode.state()) logWARNING("Ignoring startZMode (set to modulecenter by default) for a mezzanine.");
   }
 }
 
