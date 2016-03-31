@@ -64,7 +64,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double, NoDefault> smallDelta, bigDelta;
   Property<int, Default> bigParity;
   Property<double, NoDefault> phiOverlap;
-  Property<int, Default> phiSegments;
+  Property<int, NoDefault> phiSegments;
 
   PropertyNode<int> ringNode; // to grab properties for specific rod modules
   PropertyNodeUnique<std::string> stationsNode;
@@ -101,8 +101,8 @@ public:
             smallDelta     ("smallDelta"     , parsedAndChecked()),
             bigDelta       ("bigDelta"       , parsedAndChecked()),
             bigParity      ("bigParity"      , parsedOnly(), -1),
-	    phiOverlap     ("phiOverlap"     , parsedOnly()),
-            phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
+	    phiOverlap     ("phiOverlap"     , parsedOnly()), // used to be parsedAndChecked()
+	    phiSegments    ("phiSegments"    , parsedOnly()), // used to be parsedAndChecked(), and default value = 4
 	    numRods        ("numRods"        , parsedOnly()),
             ringNode       ("Ring"           , parsedOnly()),
             stationsNode   ("Station"        , parsedOnly()),
