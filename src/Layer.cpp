@@ -55,14 +55,18 @@ void Layer::check() {
   }
 
   if (isTilted()) {
-    //if (!maxZ.state()) throw PathfulException("Tilted layer : maxZ should be specified. It will be used for material routing.");
-    //if (buildNumModules() > 0) throw PathfulException("Tilted layer : numModules should not be specified. For automatic placement, please specify numModulesFlat and numModulesTilted and that s it :).");
+    //if (!maxZ.state()) throw PathfulException("Tilted layer : maxZ should be specified. NB : Feature to be modified ?");
     if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
     if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Tilted layer : phiSegments should not be specified.");
     if (isTiltedAuto()) {    
       if (!buildNumModulesFlat.state()) throw PathfulException("Tilted layer with automatic placement : numModulesFlat must be specified.");
       if (!buildNumModulesTilted.state()) throw PathfulException("Tilted layer with automatic placement : numModulesTilted must be specified.");
+      if (buildNumModules() > 0 && buildNumModulesFlat.state() && buildNumModulesTilted.state()) {
+	if (buildNumModules() !=  (buildNumModulesFlat() + buildNumModulesTilted())) {
+	  throw PathfulException("Tilted layer : numModules != numModulesFlat + numModulesTilted. Anyway, for automatic placement, please specify numModulesFlat and numModulesTilted, and that is enough !");
+	}
+      }
       if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
     }
   }
