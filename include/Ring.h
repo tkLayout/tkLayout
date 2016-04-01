@@ -46,7 +46,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
   Property<double, NoDefault> outerRadius;
   Property<double, NoDefault> tiltAngle;
   Property<double, NoDefault> theta_g;
-  Property<double, Default> zOverlap;
+  Property<double, NoDefault> zOverlap;
 
   const Container& modules() const { return modules_; }
 
@@ -56,7 +56,7 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
     outerRadius           ("outerRadius"           , parsedAndChecked()),
     tiltAngle             ("tiltAngle"             , parsedAndChecked()),
     theta_g               ("theta_g"               , parsedAndChecked()),
-    zOverlap              ("zOverlap"              , parsedAndChecked(), 1.)
+    zOverlap              ("zOverlap"              , parsedAndChecked())
       {}
 
   void build(double lastThetaEnd);
