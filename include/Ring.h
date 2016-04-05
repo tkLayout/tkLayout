@@ -58,6 +58,7 @@ public:
   Property<double, NoDefault> buildStartRadius;
   Property<double, NoDefault> buildCropRadius;
   Property<double, Computable> minZ, maxZ;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   Property<int   , NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
 
   Property<double, Default> zRotation;
@@ -99,6 +100,13 @@ public:
       } 
       return max; 
     });
+
+
+    minZwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZwithHybrids()); return min; });
+    maxZwithHybrids.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZwithHybrids()); return max; });
+    minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minRwithHybrids()); return min; });
+    maxRwithHybrids.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxRwithHybrids()); return max; });
+
   }
   
   void build();
