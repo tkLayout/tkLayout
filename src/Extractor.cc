@@ -1741,16 +1741,26 @@ namespace insur {
           logic.material_tag = nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
-          pos.child_tag = logic.shape_tag;
-          pos.trans.dz = iter->getZOffset() + shape.dz;
-          p.push_back(pos);
-	  pos.copy = 2;
-	  pos.trans.dz = -pos.trans.dz;
-	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
-	  p.push_back(pos);
+	  if ((iter->getZOffset() + iter->getZLength()) < 1250. ) {
+	    pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
+	    pos.child_tag = logic.shape_tag;
+	    pos.trans.dz = iter->getZOffset() + shape.dz;
+	    p.push_back(pos);
+	    pos.copy = 2;
+	    pos.trans.dz = -pos.trans.dz;
+	    pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	    p.push_back(pos);
+	  }
+	  else {
+	    pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
+	    pos.child_tag = logic.shape_tag;
+	    pos.trans.dz = iter->getZOffset() + shape.dz;
+	    p.push_back(pos);
+	  }
+
 	  pos.copy = 1;
 	  pos.rotref.clear();
+
         } 
 	else {
           std::stringstream msg;
