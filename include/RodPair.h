@@ -56,7 +56,8 @@ public:
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
 
 
-    maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(maxZ(), max); });
+    //maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(maxZ(), max); });
+    maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(1150., max); });
     minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZwithHybrids); });
     minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minRwithHybrids); });
     maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxRwithHybrids); });
