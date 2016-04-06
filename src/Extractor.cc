@@ -1754,7 +1754,7 @@ namespace insur {
 	  else {
 	    pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
 	    pos.child_tag = logic.shape_tag;
-	    pos.trans.dz = iter->getZOffset() + shape.dz;
+	    pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	    p.push_back(pos);
 	  }
 
@@ -1830,7 +1830,7 @@ namespace insur {
 
           pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
           pos.child_tag = logic.shape_tag;
-          pos.trans.dz = iter->getZOffset() + shape.dz;
+          pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
           p.push_back(pos);
 	  pos.copy = 2;
 	  pos.trans.dz = -pos.trans.dz;
