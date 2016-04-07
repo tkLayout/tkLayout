@@ -57,7 +57,13 @@ public:
 
 
     //maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(maxZ(), max); });
-    maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(1150., max); });
+    maxZwithHybrids       .setup([&]() {
+	double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); 
+	if ((zPlusModules_.front().readoutType() == ReadoutType::READOUT_PIXEL) && (zPlusModules_.front().maxRwithHybrids() > 200.)) {
+	  max =  MAX(1150., max);
+	}
+	return max;
+      });
     minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZwithHybrids); });
     minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minRwithHybrids); });
     maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxRwithHybrids); });

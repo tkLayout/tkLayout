@@ -1,5 +1,9 @@
 moduleType pixel
 
+serviceHybridWidth 0.0
+frontEndHybridWidth 0.0
+hybridThickness 0.0
+
 numSensors 1
 
 Sensor 1 {
