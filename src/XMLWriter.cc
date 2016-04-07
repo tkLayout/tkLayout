@@ -167,17 +167,27 @@ namespace insur {
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_layer;
         out << xml_spec_par_close;
 
-
-        // Add Rods (straight or tilted)
-        out << xml_spec_par_open << "OuterTracker" << xml_subdet_straight_or_tilted_rod << xml_par_tail << xml_general_inter;
-        pos = findEntry(t, xml_subdet_straight_or_tilted_rod + xml_par_tail);
+        // Add straight rods
+        out << xml_spec_par_open << "OuterTracker" << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
+        pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
                 out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_or_tilted_rod;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
         out << xml_spec_par_close;
+
+	// Add tilted rings (if any)
+        pos = findEntry(t, xml_subdet_tilted_ring + xml_par_tail);
+        if (pos != -1) {
+	  out << xml_spec_par_open << "OuterTracker" << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
+	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second <<  xml_subdet_2OT_tilted_ring;
+	  out << xml_spec_par_close;
+	}
 
 	// Add BarrelStack
 	out << xml_spec_par_open << "OuterTracker" << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;

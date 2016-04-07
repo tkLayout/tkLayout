@@ -479,15 +479,23 @@ namespace insur {
 
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={};
-    SpecParInfo rocdims, lspec, rspec, sspec, mspec;
+    SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, mspec;
     // Layer
     lspec.name = xml_subdet_layer + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
     lspec.parameter.second = xml_det_layer;
-    // Rod
+    // Rod (straight or tilted)
     rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_straight_or_tilted_rod;
+    // Straight Rod
+    srspec.name = xml_subdet_straight_rod + xml_par_tail;
+    srspec.parameter.first = xml_tkddd_structure;
+    srspec.parameter.second = xml_det_straight_rod;
+    // Tilted Ring (if any)
+    trspec.name = xml_subdet_tilted_ring + xml_par_tail;
+    trspec.parameter.first = xml_tkddd_structure;
+    trspec.parameter.second = xml_det_tilted_ring;
     // Module stack
     sspec.name = xml_subdet_barrel_stack + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
@@ -936,6 +944,8 @@ namespace insur {
       l.push_back(logic);
       rspec.partselectors.push_back(rodname.str());
       rspec.moduletypes.push_back(minfo_zero);
+      srspec.partselectors.push_back(rodname.str());
+      srspec.moduletypes.push_back(minfo_zero);
         
 
       // rods in layer algorithm(s)
@@ -1044,6 +1054,8 @@ namespace insur {
 	      
 	      rspec.partselectors.push_back(rinfo.name);
 	      //rspec.moduletypes.push_back(minfo_zero);
+	      trspec.partselectors.push_back(rinfo.name);
+	      //trspec.moduletypes.push_back(minfo_zero);
 	      
 	      // backward part of the ring
 	      alg.name = xml_trackerring_algo;
@@ -1131,7 +1143,9 @@ namespace insur {
       layer++;
     }
     if (!lspec.partselectors.empty()) t.push_back(lspec);
-    if (!rspec.partselectors.empty()) t.push_back(rspec);
+    if (!rspec.partselectors.empty()) t.push_back(rspec); 
+    if (!srspec.partselectors.empty()) t.push_back(srspec);
+    if (!trspec.partselectors.empty()) t.push_back(trspec);
     if (!sspec.partselectors.empty()) t.push_back(sspec);
     if (!mspec.partselectors.empty()) t.push_back(mspec);
   }
