@@ -1035,45 +1035,15 @@ namespace material {
   //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
-  
-
-
-
   const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
-  const int Materialway::boundaryPrincipalPadding = discretize(15.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
+  const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
+  const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(15.0);
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
   const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
-
-
-
-
-
-
-
-
-
-  //const int Materialway::boundaryPadding = discretize(32.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
-  //const int Materialway::boundaryPrincipalPadding = discretize(37.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
-  //const int Materialway::globalMaxZPadding = discretize(122.0);          /**< the space between the tracker and the right limit (for routing services) */
-  //const int Materialway::globalMaxRPadding = discretize(52.0);          /**< the space between the tracker and the upper limit (for routing services) */
-  //const int Materialway::layerSectionMargin = discretize(24.0);          /**< the space between the layer and the service sections over it */
-  //const int Materialway::diskSectionMargin = discretize(24.0);          /**< the space between the disk and the service sections right of it */
-  //const int Materialway::layerSectionRightMargin = discretize(27.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
-  //const int Materialway::diskSectionUpMargin = discretize(27.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
-
-
-
-
-
-
-
-
-
-
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
   const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
   const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
@@ -1187,7 +1157,7 @@ namespace material {
       void visit(const Barrel& barrel) {
         int boundMinZ = discretize(barrel.minZwithHybrids()) - boundaryPadding;
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPadding;
-        int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPadding;
+        int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPadding;
         Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
@@ -1199,7 +1169,7 @@ namespace material {
         int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPadding;
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPadding;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPadding;
-        int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPadding;
+        int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
         Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);

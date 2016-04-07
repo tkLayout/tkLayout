@@ -281,7 +281,8 @@ namespace material {
     //static const int globalMaxZ;
     //static const int globalMaxR;
     static const int boundaryPadding;
-    static const int boundaryPrincipalPadding;
+    static const int boundaryPrincipalPaddingBarrel;
+    static const int boundaryPrincipalPaddingEndcaps;
     static const int globalMaxZPadding;
     static const int globalMaxRPadding;
     static const int layerSectionMargin;
