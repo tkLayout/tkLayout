@@ -52,7 +52,8 @@
 </ConstantsSection>
 <SolidSection label="pixfwd.xml">
  <Polycone name="Forward" startPhi="0*deg" deltaPhi="360*deg" >
-   <ZSection z="[RootStartZ]" rMin="[cms:TrackBeamR1]" rMax="18.0*cm"/>
+
+   <!--<ZSection z="[RootStartZ]" rMin="[cms:TrackBeamR1]" rMax="18.0*cm"/>
    <ZSection z="0.02*cm" rMin="[cms:TrackBeamR1]" rMax="18.0*cm"/>
    <ZSection z="0.02*cm" rMin="[cms:TrackBeamR1]" rMax="19.0*cm"/>
    <ZSection z="89.9*cm" rMin="[cms:TrackBeamR1]" rMax="19.0*cm"/>
@@ -64,7 +65,23 @@
    <ZSection z="[RootMidZ2]"   rMin="[cms:TrackLumiR1]" rMax="111.105*cm"/>
    <ZSection z="[RootMidZ2]"   rMin="[cms:TrackLumiR2Min]" rMax="111.105*cm"/>
    <ZSection z="[RootEndZ]"    rMin="[cms:TrackBeamR2]" rMax="111.105*cm"/>
-   <ZSection z="[RootEndZ]+[ZextensionCables]"    rMin="[cms:TrackBeamR2]" rMax="111.105*cm"/>
+   <ZSection z="[RootEndZ]+[ZextensionCables]"    rMin="[cms:TrackBeamR2]" rMax="111.105*cm"/>-->
+
+
+   <ZSection z="[RootStartZ]" rMin="[cms:TrackBeamR1]" rMax="18.0*cm"/>
+   <ZSection z="0.02*cm" rMin="[cms:TrackBeamR1]" rMax="18.0*cm"/>
+   <ZSection z="0.02*cm" rMin="[cms:TrackBeamR1]" rMax="19.0*cm"/>
+   <ZSection z="89.9*cm" rMin="[cms:TrackBeamR1]" rMax="19.0*cm"/>
+   <ZSection z="89.9*cm" rMin="[cms:TrackBeamR1]" rMax="21.6*cm"/>
+   <ZSection z="99.00*cm" rMin="[cms:TrackBeamR1]" rMax="21.6*cm"/>
+   <ZSection z="99.00*cm" rMin="[cms:TrackBeamR1]" rMax="114.85*cm"/>
+   <ZSection z="[RootMidZ1]"   rMin="[cms:TrackLumiR1Min]" rMax="114.85*cm"/>
+   <ZSection z="[RootMidZ1]"   rMin="[cms:TrackLumiR1]" rMax="114.85*cm"/>
+   <ZSection z="[RootMidZ2]"   rMin="[cms:TrackLumiR1]" rMax="114.85*cm"/>
+   <ZSection z="[RootMidZ2]"   rMin="[cms:TrackLumiR2Min]" rMax="114.85*cm"/>
+   <ZSection z="[RootEndZ]"    rMin="[cms:TrackBeamR2]" rMax="114.85*cm"/>
+   <ZSection z="[RootEndZ]+[ZextensionCables]"    rMin="[cms:TrackBeamR2]" rMax="114.85*cm"/>
+
 </Polycone>
  <Polycone name="PixelForward" startPhi="0*deg" deltaPhi="360*deg" >
  <ZSection z="[RootStartZ]"  rMin="[cms:TrackBeamR1]" rMax="[RootRadius]"/>
