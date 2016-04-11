@@ -1732,7 +1732,7 @@ namespace insur {
 
 	  double startEndcaps = 1281.;
           
-	  // barrel
+	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
 	    shape.name_tag = shapename.str();
 	    shape.dz = iter->getZLength() / 2.0;
@@ -1755,15 +1755,15 @@ namespace insur {
 	    p.push_back(pos);
 	  }
 
-	  // endcaps
+	  // ENDCAPS services
 	  else {
-	    // cut the services that belong both to Barrel and Endcaps in 2
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
 	    if (iter->getZOffset() < startEndcaps) {
 	      std::ostringstream shapenameBarrel, shapenameEndcaps;
-	      shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "Barrel";
-	      shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "Endcaps";
+	      shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
+	      shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
 
-
+	      // Barrel part
 	      shape.name_tag = shapenameBarrel.str();
 	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0;
 	      shape.rmin = iter->getInnerRadius();
@@ -1788,6 +1788,7 @@ namespace insur {
 	      pos.copy = 1;
 	      pos.rotref.clear();
 
+	      // Endcaps part
 	      shape.name_tag = shapenameEndcaps.str();
 	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0;
 	      shape.rmin = iter->getInnerRadius();
@@ -1806,6 +1807,8 @@ namespace insur {
 
 
 	    }
+
+	    // ENDCAPS-only services
 	    else {
 	      shape.name_tag = shapename.str();
 	      shape.dz = iter->getZLength() / 2.0;
