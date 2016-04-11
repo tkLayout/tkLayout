@@ -1035,7 +1035,8 @@ namespace material {
   //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
-  const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
+  const int Materialway::boundaryPaddingBarrel = discretize(12.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
+  const int Materialway::boundaryPaddingEndcaps = discretize(10.0); 
   const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
   const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(15.0);
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
@@ -1155,10 +1156,10 @@ namespace material {
       virtual ~BarrelVisitor() {}
 
       void visit(const Barrel& barrel) {
-        int boundMinZ = discretize(barrel.minZwithHybrids()) - boundaryPadding;
-        int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPadding;
+        int boundMinZ = discretize(barrel.minZwithHybrids()) - boundaryPaddingBarrel;
+        int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
-        int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPadding;
+        int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
         Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
@@ -1166,9 +1167,9 @@ namespace material {
       }
 
       void visit(const Endcap& endcap) {
-        int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPadding;
-        int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPadding;
-        int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPadding;
+        int boundMinZ = discretize(endcap.minZwithHybrids()) - boundaryPaddingEndcaps;
+        int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
+        int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
         Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
