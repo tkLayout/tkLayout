@@ -2368,6 +2368,13 @@ namespace insur {
     //*                              *//
     //********************************//
 
+    RootWTextFile* myTextFile;
+
+    // Summary file with all root plots
+    myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
+    myBinaryFile->setNoCopy(true);
+    summaryContent->addItem(myBinaryFile);
+
     // Summary of layout and performance
     myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
     myTextFile->addText(getSummaryLabelString()+"\n");
