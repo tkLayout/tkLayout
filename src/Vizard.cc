@@ -2350,8 +2350,6 @@ namespace insur {
     //*                              *//
     //********************************//
 
-    RootWTextFile* myTextFile;
-
     // Summary file with all root plots
     myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
     myBinaryFile->setNoCopy(true);
