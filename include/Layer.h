@@ -53,6 +53,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   ConversionStation* flangeConversionStation_;
   std::vector<ConversionStation*> secondConversionStations_;
   std::vector<StraightRodPair*> flatPartRods_;
+  double flatPartPhiOverlapSmallDeltaMinus_;
+  double flatPartPhiOverlapSmallDeltaPlus_;
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
  
@@ -61,8 +63,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   RodTemplate makeRodTemplate();
   TiltedRingsTemplate makeTiltedRingsTemplate(double flatPartThetaEnd);
 
-  Property<double, NoDefault> smallDelta, bigDelta;
-  Property<int, Default> bigParity;
+  //Property<double, NoDefault> smallDelta, bigDelta;
+  //Property<int, Default> bigParity;
   Property<double, NoDefault> phiOverlap;
   Property<int, NoDefault> phiSegments;
 
@@ -74,6 +76,9 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   void buildStraight(bool isFlatPart);
   void buildTilted();
 public:
+  Property<double, NoDefault> smallDelta, bigDelta;
+  Property<int, Default> bigParity;
+
   Property<int, AutoDefault> buildNumModules;
   ReadonlyProperty<double, UncachedComputable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
@@ -143,6 +148,8 @@ public:
 
   const Container& rods() const { return rods_; }
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
+  double flatPartPhiOverlapSmallDeltaMinus() const { return flatPartPhiOverlapSmallDeltaMinus_; }
+  double flatPartPhiOverlapSmallDeltaPlus() const { return flatPartPhiOverlapSmallDeltaPlus_; }
   TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 

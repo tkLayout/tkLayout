@@ -281,6 +281,11 @@ void Layer::buildTilted() {
     double flatPartzEnd = 0;
     double flatPartzEnd_REAL = 0;
 
+    double flatPartrInnerSmall = std::numeric_limits<double>::max();
+    double flatPartrOuterSmall = std::numeric_limits<double>::max();
+    double flatPartrInnerBig = 0;
+    double flatPartrOuterBig = 0;
+
     if (buildNumModulesFlat() != 0) {
 
       buildNumModules(buildNumModulesFlat());
@@ -293,6 +298,8 @@ void Layer::buildTilted() {
 	for (const auto& m : zPlusModules1) {
 	  TiltedModuleSpecs t1{m.center().Rho(), m.center().Z(), 0.0};
 	  if (t1.valid()) (bigParity() > 0 ? tmspecso.push_back(t1) : tmspecsi.push_back(t1));
+	  (bigParity() > 0 ? flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()));
+	  (bigParity() > 0 ? flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()));
 	}
 
 	StraightRodPair* flatPartRod2 = flatPartRods_.at(1);
@@ -300,6 +307,8 @@ void Layer::buildTilted() {
 	for (const auto& m : zPlusModules2) {
 	  TiltedModuleSpecs t2{m.center().Rho(), m.center().Z(), 0.0};
 	  if (t2.valid()) (bigParity() > 0 ? tmspecsi.push_back(t2) : tmspecso.push_back(t2));
+	  (bigParity() > 0 ? flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()));
+	  (bigParity() > 0 ? flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()));
 	}
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
@@ -309,6 +318,27 @@ void Layer::buildTilted() {
 	flatPartrEndOuter = (bigParity() > 0 ? lastMod1.center().Rho() + 0.5* lastMod1.dsDistance() : lastMod2.center().Rho() + 0.5* lastMod2.dsDistance());
 	flatPartzEnd = (bigParity() > 0 ? lastMod2.center().Z() : lastMod1.center().Z());	
 	flatPartzEnd_REAL = (bigParity() > 0 ? lastMod1.planarMaxZ() : lastMod2.planarMaxZ());	//TAKE CAREEEEEE : REMOVE FLAT PART OVERLAP ?
+
+
+	RectangularModule* flatPartrmod = GeometryFactory::make<RectangularModule>();
+	flatPartrmod->store(propertyTree());
+	flatPartrmod->build();
+	double width = flatPartrmod->width();
+	double T = tan(2.*M_PI / numRods());
+	double A = 1. / (2. * flatPartrInnerSmall);
+	double B = 1. / (2. * flatPartrOuterSmall);
+	double a = T * A * B;
+	double b = - (A + B);
+	double c = - T;
+	double s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+	flatPartPhiOverlapSmallDeltaMinus_ = width + s;
+	A = 1. / (2. * flatPartrInnerBig);
+	B = 1. / (2. * flatPartrOuterBig);
+	a = T * A * B;
+	b = - (A + B);
+	c = - T;
+	s = (-b - sqrt(b*b - 4*a*c))/(2*a);
+	flatPartPhiOverlapSmallDeltaPlus_ = width + s;
 
 
       }
