@@ -16,13 +16,15 @@ namespace insur {
     static const int xml_roc_rows = 128;
     static const int xml_roc_cols = 1;
     static const int xml_reco_material_disc_offset = 3;
-    static const double xml_z_pixfwd = 325.0;
+    //static const double xml_z_pixfwd = 325.0;
+    static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
     static const double xml_epsilon = 0.01;
     /**
      * XML tags and attributes
      */
     static const std::string xml_preamble_concise = "<?xml ";
-    static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";
+    static const std::string xml_preamble = "<?xml version=\"1.0\"?>\n";
+    static const std::string xml_definition = "<DDDefinition xmlns=\"http://www.cern.ch/cms/DDL\" xmlns:xsi=\"http://www.cern.ch/www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd\">\n";  
     static const std::string xml_defclose = "</DDDefinition>\n";
     static const std::string xml_general_inter = "\">\n";
     static const std::string xml_general_endline = "\"/>\n";

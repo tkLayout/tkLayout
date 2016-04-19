@@ -5296,45 +5296,60 @@ namespace insur {
     myContent.addItem(myTextFile);
 
   }
-  //create an extra tab for xml file linking
-    bool Vizard::createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir) {
+
+
+  // Create an extra tab for XML files linking
+  bool Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);
 
-    std::vector<std::string> pixelxmlfilenames,trackerxmlfilenames;
-    boost::filesystem::path xmlDirectory(xmldir);
-    boost::filesystem::directory_iterator end_iter;
-    if ( boost::filesystem::exists(xmlDirectory) && boost::filesystem::is_directory(xmlDirectory)) {
-      for( boost::filesystem::directory_iterator dir_iter(xmlDirectory) ; dir_iter != end_iter ; ++dir_iter) {
-         if ( boost::filesystem::is_regular_file( dir_iter->path() ) ) {
-            // assign current file name to current_file and echo it out to the console.
-            std::string current_file =dir_iter->path().filename().string();
-            std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
-             if( current_file.find(".xml") != std::string::npos ) {
-              boost::filesystem::copy_file( dir_iter->path(),
-                                            layoutdir + current_file,
-                                            boost::filesystem::copy_option::overwrite_if_exists);
-              if( current_file.find("pixel") != std::string::npos )
-                pixelxmlfilenames.push_back(current_file);
-              else 
-                trackerxmlfilenames.push_back(current_file);
-             }
-        }
+    std::vector<std::string> origMetadataXmlFiles, origPixelXmlFiles, origOuterTrackerXmlFiles;
+    std::vector<std::string> metadataXmlFileNames, pixelXmlFileNames, outerTrackerXmlFileNames;
+    
+    try {
+      boost::filesystem::directory_iterator end_iter;
+      for (boost::filesystem::directory_iterator dir_iter(xmlDir); dir_iter != end_iter; dir_iter++) {
+	if (boost::filesystem::is_regular_file(dir_iter->path())) {
+	  std::string origFile = dir_iter->path().string();
+	  std::string fileName = dir_iter->path().filename().string();
+	 
+	  if (fileName.find(".cfg") != std::string::npos ) {
+	    origMetadataXmlFiles.push_back(origFile);
+	    metadataXmlFileNames.push_back(fileName);
+	  }
+	  else if (fileName.find(".xml") != std::string::npos ) {
+	    if (fileName.find("pixel") != std::string::npos ) {
+	      origPixelXmlFiles.push_back(origFile);
+	      pixelXmlFileNames.push_back(fileName);
+	    }
+	    else {
+	      origOuterTrackerXmlFiles.push_back(origFile);
+	      outerTrackerXmlFileNames.push_back(fileName);
+	    }
+	  }
+	}
       }
     }
-    else std::cerr << "XML directory does not exist" << std::endl;
+    catch (boost::filesystem::filesystem_error e) {
+      cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
+    }
 
-    RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
-                                          "xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
- 
-    RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
-                                          "xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
-    RootWContent* content = new RootWContent("xml files");
-    content->addItem(pxFileList);
-    content->addItem(tkFileList);
+    RootWContent* content = new RootWContent("XML files");
+    if (!metadataXmlFileNames.empty()) {
+      RootWBinaryFileList* metadataXmlFileList = new RootWBinaryFileList(metadataXmlFileNames.begin(), metadataXmlFileNames.end(), "XML generation Metadata", origMetadataXmlFiles.begin(), origMetadataXmlFiles.end());
+      content->addItem(metadataXmlFileList);
+    }
+    if (!pixelXmlFileNames.empty()) {
+      RootWBinaryFileList* pixelXmlFileList = new RootWBinaryFileList(pixelXmlFileNames.begin(), pixelXmlFileNames.end(), "XML for Pixel", origPixelXmlFiles.begin(), origPixelXmlFiles.end());
+      content->addItem(pixelXmlFileList);
+    }
+    if (!outerTrackerXmlFileNames.empty()) {
+      RootWBinaryFileList* outerTrackerXmlFileList = new RootWBinaryFileList(outerTrackerXmlFileNames.begin(), outerTrackerXmlFileNames.end(), "XML for Outer Tracker", origOuterTrackerXmlFiles.begin(), origOuterTrackerXmlFiles.end());
+      content->addItem(outerTrackerXmlFileList);
+    }
     myPage->addContent(content);
-    
   }
+  // NB : XML files are copied from the XML directory to the www/layout directory with RootWBinaryFileList::dump.
 
 }

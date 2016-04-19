@@ -280,8 +280,10 @@ namespace material {
     //static const double globalMaxR_mm;                   /**< the rho coordinate of the end point of the sections */
     //static const int globalMaxZ;
     //static const int globalMaxR;
-    static const int boundaryPadding;
-    static const int boundaryPrincipalPadding;
+    static const int boundaryPaddingBarrel;
+    static const int boundaryPaddingEndcaps;
+    static const int boundaryPrincipalPaddingBarrel;
+    static const int boundaryPrincipalPaddingEndcaps;
     static const int globalMaxZPadding;
     static const int globalMaxRPadding;
     static const int layerSectionMargin;

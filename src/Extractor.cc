@@ -1730,27 +1730,109 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
-          shape.name_tag = shapename.str();
-          shape.dz = iter->getZLength() / 2.0;
-          shape.rmin = iter->getInnerRadius();
-          shape.rmax = shape.rmin + iter->getRWidth();
-          s.push_back(shape);
+	  double startEndcaps = 1281.;
+          
+	  // BARREL services
+	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
+	    shape.name_tag = shapename.str();
+	    shape.dz = iter->getZLength() / 2.0;
+	    shape.rmin = iter->getInnerRadius();
+	    shape.rmax = shape.rmin + iter->getRWidth();
+	    s.push_back(shape);
 
-          logic.name_tag = shapename.str();
-          logic.shape_tag = nspace + ":" + shapename.str();
-          logic.material_tag = nspace + ":" + matname.str();
-          l.push_back(logic);
+	    logic.name_tag = shapename.str();
+	    logic.shape_tag = nspace + ":" + shapename.str();
+	    logic.material_tag = nspace + ":" + matname.str();
+	    l.push_back(logic);
 
-          pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
-          pos.child_tag = logic.shape_tag;
-          pos.trans.dz = iter->getZOffset() + shape.dz;
-          p.push_back(pos);
-	  pos.copy = 2;
-	  pos.trans.dz = -pos.trans.dz;
-	  pos.rotref = nspace + ":" + xml_flip_mod_rot;
-	  p.push_back(pos);
+	    pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
+	    pos.child_tag = logic.shape_tag;
+	    pos.trans.dz = iter->getZOffset() + shape.dz;
+	    p.push_back(pos);
+	    pos.copy = 2;
+	    pos.trans.dz = -pos.trans.dz;
+	    pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	    p.push_back(pos);
+	  }
+
+	  // ENDCAPS services
+	  else {
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	    if (iter->getZOffset() < startEndcaps) {
+	      std::ostringstream shapenameBarrel, shapenameEndcaps;
+	      shapenameBarrel << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "BarrelPart";
+	      shapenameEndcaps << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0)) << "EndcapsPart";
+
+	      // Barrel part
+	      shape.name_tag = shapenameBarrel.str();
+	      shape.dz = (startEndcaps - iter->getZOffset()) / 2.0;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+
+	      logic.name_tag = shapenameBarrel.str();
+	      logic.shape_tag = nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz;
+	      p.push_back(pos);
+	      pos.copy = 2;
+	      pos.trans.dz = -pos.trans.dz;
+	      pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	      p.push_back(pos);
+	      
+
+	      pos.copy = 1;
+	      pos.rotref.clear();
+
+	      // Endcaps part
+	      shape.name_tag = shapenameEndcaps.str();
+	      shape.dz = (iter->getZOffset() + iter->getZLength() - startEndcaps) / 2.0;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);    
+
+	      logic.name_tag = shapenameEndcaps.str();
+	      logic.shape_tag = nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = startEndcaps + shape.dz - xml_z_pixfwd;
+	      p.push_back(pos);
+
+
+	    }
+
+	    // ENDCAPS-only services
+	    else {
+	      shape.name_tag = shapename.str();
+	      shape.dz = iter->getZLength() / 2.0;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+
+	      logic.name_tag = shapename.str();
+	      logic.shape_tag = nspace + ":" + shapename.str();
+	      logic.material_tag = nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
+	      p.push_back(pos);
+	    }
+	  }
+
+
+
 	  pos.copy = 1;
 	  pos.rotref.clear();
+
         } 
 	else {
           std::stringstream msg;
@@ -1820,7 +1902,7 @@ namespace insur {
 
           pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
           pos.child_tag = logic.shape_tag;
-          pos.trans.dz = iter->getZOffset() + shape.dz;
+          pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
           p.push_back(pos);
 	  pos.copy = 2;
 	  pos.trans.dz = -pos.trans.dz;
@@ -1873,6 +1955,9 @@ namespace insur {
     std::set<MaterialProperties::Category>::iterator fres;
     std::vector<InactiveElement>::iterator iter, guard;
     std::vector<InactiveElement>& sp = is.getSupports();
+
+    std::cout << "sp.size() = " << sp.size() << std::endl;
+
     guard = sp.end();
     // support volume loop
     for (iter = sp.begin(); iter != guard; iter++) {
@@ -1882,9 +1967,13 @@ namespace insur {
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
 #else
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
+      std::cout << shapename.str() << std::endl;
+      std::cout << iter->getCategory() << std::endl;
 #endif
 
-      fres = found.find(iter->getCategory());
+      //fres = found.find(iter->getCategory());
+
+      /*
 #if 0
       if (fres == found.end()) {
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
@@ -1927,9 +2016,11 @@ namespace insur {
       pos.copy = 1;
       pos.rotref.clear();
 #else
-      if (fres == found.end() && iter->getLocalMasses().size() ) { 
+      
+      //if (fres == found.end() && iter->getLocalMasses().size() ) {
+      if (iter->getLocalMasses().size() ) {
         c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-        found.insert(iter->getCategory());
+        //found.insert(iter->getCategory());
 
         shape.name_tag = shapename.str();
         shape.dz = iter->getZLength() / 2.0;
@@ -1966,8 +2057,82 @@ namespace insur {
 	p.push_back(pos);
 	pos.copy = 1;
 	pos.rotref.clear();
+	}
+	#endif*/
+
+
+
+
+
+
+      if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
+        if ( iter->getLocalMasses().size() ) {
+          c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
+
+	  double startEndcaps = 1281.;
+          
+	  // BARREL supports
+	  if (iter->getZOffset() < startEndcaps ) {
+	    shape.name_tag = shapename.str();
+	    shape.dz = iter->getZLength() / 2.0;
+	    shape.rmin = iter->getInnerRadius();
+	    shape.rmax = shape.rmin + iter->getRWidth();
+	    s.push_back(shape);
+
+	    logic.name_tag = shapename.str();
+	    logic.shape_tag = nspace + ":" + shapename.str();
+	    logic.material_tag = nspace + ":" + matname.str();
+	    l.push_back(logic);
+
+	    pos.parent_tag = xml_pixbarident + ":" + xml_2OTbar; //xml_tracker;
+	    pos.child_tag = logic.shape_tag;
+	    pos.trans.dz = iter->getZOffset() + shape.dz;
+	    p.push_back(pos);
+	    pos.copy = 2;
+	    pos.trans.dz = -pos.trans.dz;
+	    pos.rotref = nspace + ":" + xml_flip_mod_rot;
+	    p.push_back(pos);
+	  }
+
+	  // ENDCAPS supports
+	  else {
+	      shape.name_tag = shapename.str();
+	      shape.dz = iter->getZLength() / 2.0;
+	      shape.rmin = iter->getInnerRadius();
+	      shape.rmax = shape.rmin + iter->getRWidth();
+	      s.push_back(shape);
+
+	      logic.name_tag = shapename.str();
+	      logic.shape_tag = nspace + ":" + shapename.str();
+	      logic.material_tag = nspace + ":" + matname.str();
+	      l.push_back(logic);
+
+	      pos.parent_tag = xml_pixfwdident + ":" + xml_2OTfwd; // xml_tracker;
+	      pos.child_tag = logic.shape_tag;
+	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
+	      p.push_back(pos);
+	  }
+
+
+	  pos.copy = 1;
+	  pos.rotref.clear();
+
+        } 
+	else {
+          std::stringstream msg;
+          msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
+          logWARNING( msg.str() ); 
+        }
       }
-#endif
+
+
+
+
+
+
+
+
+
     }
   }
 

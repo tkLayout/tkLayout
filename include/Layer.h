@@ -54,6 +54,7 @@ public:
   Property<int, AutoDefault> buildNumModules;
   ReadonlyProperty<double, UncachedComputable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
 
   enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
   Property<RadiusMode, Default> radiusMode;
@@ -88,10 +89,15 @@ public:
   { setup(); }
 
   void setup() {
-    maxZ.setup([this]() { return rods_.front().maxZ(); });
-    minZ.setup([this]() { return rods_.front().minZ(); });
+    maxZ.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxZ()); } return max; });
+    minZ.setup([this]()  { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minZ()); } return min; });
     maxR.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
     minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
+
+    maxZwithHybrids.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxZwithHybrids()); } return max; });
+    minZwithHybrids.setup([this]()  { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minZwithHybrids()); } return min; });
+    maxRwithHybrids.setup([this]() { double max = 0; for (const auto& r : rods_) { max = MAX(max, r.maxRwithHybrids()); } return max; });
+    minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minRwithHybrids()); } return min; });
   }
 
   double placeRadius() const { return placeRadius_; }

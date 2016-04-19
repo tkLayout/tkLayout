@@ -5,6 +5,10 @@ moduleType pixel_1x3_25x100
 width 17
 length 57
 
+serviceHybridWidth 0.0
+frontEndHybridWidth 0.0
+hybridThickness 0.0
+
 numSensors 1
 
 powerStripChip 0
