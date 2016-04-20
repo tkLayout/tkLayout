@@ -3,6 +3,56 @@
 #include "messageLogger.h"
 #include "ConversionStation.h"
 
+FlatRingsGeometryInfo::FlatRingsGeometryInfo() {}
+
+void FlatRingsGeometryInfo::calculateFlatRingsGeometryInfo(std::vector<StraightRodPair*> flatPartRods, double bigParity) {
+ 
+  StraightRodPair* minusBigDeltaRod = (bigParity > 0 ? flatPartRods.at(1) : flatPartRods.front());
+  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
+  StraightRodPair* plusBigDeltaRod = (bigParity > 0 ? flatPartRods.front() : flatPartRods.at(1));
+  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
+
+  int i = 0;
+  double rStartInner;
+  double zStartInner_REAL;
+  double rEndInner;
+  double zEndInner_REAL;
+  for (const auto& m : minusBigDeltaModules) {
+    if (i > 0) {
+      rStartInner = m.center().Rho() - 0.5 * m.dsDistance();
+      zStartInner_REAL = m.planarMinZ();
+
+      double zErrorInnerAngle = atan( (rStartInner - rEndInner) / (zStartInner_REAL - zEndInner_REAL) );
+      double fact = (((rStartInner - rEndInner) > 0) ? 1. : -1.);
+      zErrorInner_[i] = fact * (zStartInner_REAL - rStartInner / tan(zErrorInnerAngle));
+    }
+
+    rEndInner = m.center().Rho() + 0.5 * m.dsDistance();
+    zEndInner_REAL = m.planarMaxZ();
+    i++;
+  }
+
+  i = 0;
+  double rStartOuter;
+  double zStartOuter_REAL;
+  double rEndOuter;
+  double zEndOuter_REAL;
+  for (const auto& m : plusBigDeltaModules) {
+    if (i > 0) {
+      rStartOuter = m.center().Rho() - 0.5 * m.dsDistance();
+      zStartOuter_REAL = m.planarMinZ();
+
+      double zErrorOuterAngle = atan( (rStartOuter - rEndOuter) / (zStartOuter_REAL - zEndOuter_REAL) );
+      double fact = (((rStartOuter - rEndOuter) > 0) ? 1. : -1.);
+      zErrorOuter_[i] = fact * (zStartOuter_REAL - rStartOuter / tan(zErrorOuterAngle));
+    }
+
+    rEndOuter = m.center().Rho() + 0.5 * m.dsDistance();
+    zEndOuter_REAL = m.planarMaxZ();
+    i++;
+  }  
+}
+
 Layer::TiltedRingsGeometryInfo::TiltedRingsGeometryInfo(int numModulesFlat, double flatPartrEndInner, double flatPartrEndOuter, double flatPartzEnd,  double flatPartzEnd_REAL, TiltedRingsTemplate tiltedRingsGeometry) {
   for (int i = (numModulesFlat + 1); i < (numModulesFlat + tiltedRingsGeometry.size() + 1); i++) {
 
@@ -339,6 +389,8 @@ void Layer::buildTilted() {
 	c = - T;
 	s = (-b - sqrt(b*b - 4*a*c))/(2*a);
 	flatPartPhiOverlapSmallDeltaPlus_ = width + s;
+
+	flatRingsGeometryInfo_.calculateFlatRingsGeometryInfo(flatPartRods_, bigParity());
 
 
       }

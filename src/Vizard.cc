@@ -1432,34 +1432,38 @@ namespace insur {
 
 	  RootWTable* flatPartTable = new RootWTable();
 
-	  StraightRodPair* bigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
-	  const auto& bigDeltaModules = bigDeltaRod->modules().first;
-	  StraightRodPair* smallDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
-	  const auto& smallDeltaModules = smallDeltaRod->modules().first;
+	  StraightRodPair* minusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
+	  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
+	  StraightRodPair* plusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
+	  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
 	  
 	  int i = 0;
-	  for (const auto& m : bigDeltaModules) {
+	  for (const auto& m : minusBigDeltaModules) {
 	    int ringNumber = i + 1;
 	    flatPartTable->setContent(0, 0, "Ring");
-	    flatPartTable->setContent(0, i+1, ringNumber);	    
-	    flatPartTable->setContent(2, 0, "r" + subStart + "Outer" + subEnd);
-	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision);
+	    flatPartTable->setContent(0, i+1, ringNumber);
+	    flatPartTable->setContent(1, 0, "r" + subStart + "Inner" + subEnd);
+	    flatPartTable->setContent(1, i+1, m.center().Rho(), coordPrecision);
 	    flatPartTable->setContent(3, 0, "bigDelta");
 	    flatPartTable->setContent(3, i+1, l.bigDelta(), coordPrecision);
 	    flatPartTable->setContent(4, 0, "smallDelta");
 	    flatPartTable->setContent(4, i+1, l.smallDelta(), coordPrecision);
 	    flatPartTable->setContent(5, 0, "z");
 	    flatPartTable->setContent(5, i+1, m.center().Z(), coordPrecision);
+	    flatPartTable->setContent(6, 0, "phiOverlap");
+	    flatPartTable->setContent(6, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    if (i > 0) {
+	      flatPartTable->setContent(7, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(7, i+1, l.flatRingsGeometryInfo().zErrorInner()[i], coordPrecision);
+	      flatPartTable->setContent(8, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(8, i+1, l.flatRingsGeometryInfo().zErrorOuter()[i], coordPrecision);
+	    }
 	    i++;
 	  }
 	  i = 0;
-	  for (const auto& m : smallDeltaModules) {
-	    flatPartTable->setContent(1, 0, "r" + subStart + "Inner" + subEnd);
-	    flatPartTable->setContent(1, i+1, m.center().Rho(), coordPrecision);
-	    flatPartTable->setContent(6, 0, "phiOverlap");
-	    flatPartTable->setContent(6, i+1, (((smallDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
-	    flatPartTable->setContent(7, 0, "zOverlap");
-	    flatPartTable->setContent(7, i+1, smallDeltaRod->zOverlap(), coordPrecision);
+	  for (const auto& m : plusBigDeltaModules) {	    
+	    flatPartTable->setContent(2, 0, "r" + subStart + "Outer" + subEnd);
+	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision); 
 	    i++;
 	  }
 	  flatPartTables.push_back(flatPartTable);

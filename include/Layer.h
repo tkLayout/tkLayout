@@ -27,6 +27,21 @@ using material::ConversionStation;
 
 typedef std::map<int, TiltedRing*> TiltedRingsTemplate;
 
+class FlatRingsGeometryInfo {
+ private:
+  //std::map<int, double> deltaZInner_;
+  //std::map<int, double> deltaZOuter_;
+  std::map<int, double> zErrorInner_;
+  std::map<int, double> zErrorOuter_;
+ public:
+  FlatRingsGeometryInfo();
+  void calculateFlatRingsGeometryInfo(std::vector<StraightRodPair*> flatPartRods, double bigParity);
+  //std::map<int, double> deltaZInner() const { return deltaZInner_; }
+  //std::map<int, double> deltaZOuter() const { return deltaZOuter_; }
+  std::map<int, double> zErrorInner() const { return zErrorInner_; }
+  std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
+};
+
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
  public:
   typedef PtrVector<RodPair> Container;
@@ -46,7 +61,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
     std::map<int, double> zErrorInner() const { return zErrorInner_; }
     std::map<int, double> zErrorOuter() const { return zErrorOuter_; }
   };
-
  private:
   Container rods_;
   MaterialObject materialObject_;
@@ -55,6 +69,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   std::vector<StraightRodPair*> flatPartRods_;
   double flatPartPhiOverlapSmallDeltaMinus_;
   double flatPartPhiOverlapSmallDeltaPlus_;
+  FlatRingsGeometryInfo flatRingsGeometryInfo_;
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
  
@@ -150,6 +165,7 @@ public:
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
   double flatPartPhiOverlapSmallDeltaMinus() const { return flatPartPhiOverlapSmallDeltaMinus_; }
   double flatPartPhiOverlapSmallDeltaPlus() const { return flatPartPhiOverlapSmallDeltaPlus_; }
+  FlatRingsGeometryInfo flatRingsGeometryInfo() const { return flatRingsGeometryInfo_; }
   TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }
 
