@@ -390,6 +390,8 @@ void Layer::buildTilted() {
 	s = (-b - sqrt(b*b - 4*a*c))/(2*a);
 	flatPartPhiOverlapSmallDeltaPlus_ = width + s;
 
+	flatPartAverageR_ = (flatPartrInnerSmall + flatPartrOuterSmall + flatPartrInnerBig + flatPartrOuterBig) / 4.;
+
 	flatRingsGeometryInfo_.calculateFlatRingsGeometryInfo(flatPartRods_, bigParity());
 
 

@@ -69,6 +69,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   std::vector<StraightRodPair*> flatPartRods_;
   double flatPartPhiOverlapSmallDeltaMinus_;
   double flatPartPhiOverlapSmallDeltaPlus_;
+  double flatPartAverageR_;
   FlatRingsGeometryInfo flatRingsGeometryInfo_;
   TiltedRingsTemplate tiltedRingsGeometry_;
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo_ = TiltedRingsGeometryInfo(0,0,0,0,0, tiltedRingsGeometry_);
@@ -165,6 +166,7 @@ public:
   std::vector<StraightRodPair*> flatPartRods() const { return flatPartRods_; }
   double flatPartPhiOverlapSmallDeltaMinus() const { return flatPartPhiOverlapSmallDeltaMinus_; }
   double flatPartPhiOverlapSmallDeltaPlus() const { return flatPartPhiOverlapSmallDeltaPlus_; }
+  double flatPartAverageR() const { return flatPartAverageR_; }
   FlatRingsGeometryInfo flatRingsGeometryInfo() const { return flatRingsGeometryInfo_; }
   TiltedRingsTemplate tiltedRingsGeometry() const { return tiltedRingsGeometry_; }
   TiltedRingsGeometryInfo tiltedRingsGeometryInfo() const { return tiltedRingsGeometryInfo_; }

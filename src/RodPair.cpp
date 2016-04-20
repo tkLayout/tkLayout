@@ -173,16 +173,21 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   double maxr = maxBuildRadius();
   double minr = minBuildRadius();
  
-  double newR = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
-  double lastR = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
+  // Case A : zOverlap is considered for computing next Z
+  double newRA = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
+  double lastRA = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
+
+  // Case B : zError is considered for computing next Z
+  double newRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr + d : minr + d) : minr - d) - newDsDistance/2;
+  double lastRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr - d : minr - d) : minr + d) + lastDsDistance/2;
 
   double newZ = lastZ;
   if (!beamSpotCover()) dz = 0;
   if (direction == BuildDir::RIGHT) {
     double originZ = parity > 0 ? dz : -dz;
-    double newZorigin = (newZ - ov) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
+    double newZorigin = (newZ - ov) * newRA/lastRA;
+    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
+    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted); // Take the most stringent of cases A and B
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end; 
@@ -201,9 +206,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   } 
   else {
     double originZ = parity > 0 ? -dz : dz;
-    double newZorigin = (newZ + ov) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
+    double newZorigin = (newZ + ov) * newRA/lastRA;
+    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
+    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted); // Take the most stringent of cases A and B
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end;              
