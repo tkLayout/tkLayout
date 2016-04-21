@@ -337,8 +337,8 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
 
 void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
-  std::cout << "startZ = " << startZ << std::endl;
-  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
+  /*std::cout << "startZ = " << startZ << std::endl;
+  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;*/
   auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation

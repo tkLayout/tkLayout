@@ -205,7 +205,7 @@ std::pair<float, int> Layer::calculateOptimalLayerParms(const RodTemplate& rodTe
 
 RodTemplate Layer::makeRodTemplate() {
   RodTemplate rodTemplate(buildNumModules() > 0 ? buildNumModules() : (!ringNode.empty() ? ringNode.rbegin()->first + 1 : 1)); // + 1 to make room for a default constructed module to use when building rods in case the rodTemplate vector doesn't have enough elements
-  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
+  //std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;
   for (int i = 0; i < rodTemplate.size(); i++) {
     rodTemplate[i] = std::move(unique_ptr<BarrelModule>(GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>())));
     rodTemplate[i]->store(propertyTree());
