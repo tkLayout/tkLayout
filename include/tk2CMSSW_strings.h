@@ -19,6 +19,7 @@ namespace insur {
     //static const double xml_z_pixfwd = 325.0;
     static const double xml_z_pixfwd = 291.0; // should be equal to ZPixelForward defined statically in pixfwd.xml !!
     static const double xml_epsilon = 0.01;
+    static const double xml_pixel_layeroffset = 1.65;
     /**
      * XML tags and attributes
      */
@@ -258,6 +259,11 @@ namespace insur {
     /**
     *Constants required by Pixel Extractor
     */
+    static const std::string xml_phaseII_Pixelnamespace = "pixel_test:";//the colon is required
+    static const std::string xml_phaseII_pixmotherVolume = "Pixels"; 
+    static const std::string xml_phaseII_pixecapsubdet = "PixelPhase2EndcapSubDet"; 
+    static const std::string xml_phaseII_pixfulldisk = "PixelPhase2EndcapFullDisk";
+    static const std::string xml_phaseII_pixhalfdisk = "PixelPhase2EndcapReducedDisk";
     static const std::string xml_phaseII_pixbar = "Phase1PixelBarrel";
     static const std::string xml_phaseII_pixecap = "Phase2PixelEndcap";
     static const std::string xml_phaseII_pixbardet = "Phase1PixelBarrelDet";
