@@ -1,4 +1,4 @@
-/**
+**
  * @file Vizard.cc
  * @brief This class takes care of visualisation for both geometry and analysis results
  */
@@ -2253,15 +2253,15 @@ namespace insur {
     myPage->addContent(filesContent);
     RootWTextFile* myTextFile;
     // Barrel coordinates
-    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinate file");
+    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinates file");
     myTextFile->addText(createBarrelModulesCsv(tracker));
     filesContent->addItem(myTextFile);
     // Endcap coordinates
-    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
+    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinates file");
     myTextFile->addText(createEndcapModulesCsv(tracker));
     filesContent->addItem(myTextFile);
     // All coordinates
-    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
+    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinates file");
     myTextFile->addText(createAllModulesCsv(tracker));
     filesContent->addItem(myTextFile);
 
