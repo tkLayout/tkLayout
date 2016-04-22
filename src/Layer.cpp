@@ -269,7 +269,7 @@ void Layer::buildStraight(bool isFlatPart) {
   else if (maxZ.state()) first->maxZ(maxZ());
   first->smallDelta(smallDelta());
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
-  if (isFlatPart) { first->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
+  if (isFlatPart) { first->isFlatPart(true); first->zPlusParity( pow(-1, buildNumModulesFlat()) ); }
   first->store(propertyTree());
   first->build(rodTemplate);
 

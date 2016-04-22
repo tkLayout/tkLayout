@@ -118,18 +118,21 @@ public:
   Property<bool, Default> compressed;
   Property<bool, Default> allowCompressionCuts;
 
+  Property<bool, Default> isFlatPart;
+
   PropertyNode<int> ringNode;
   
   StraightRodPair() :
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
-              zError              ("zError"              , parsedAndChecked()),
-              zPlusParity         ("smallParity"         , parsedAndChecked()),
+	      zError              ("zError"              , parsedAndChecked()),
+	      zPlusParity         ("smallParity"         , parsedOnly()),
               mezzanine           ("mezzanine"           , parsedOnly(), false),
               startZ              ("startZ"              , parsedOnly()),
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
-	      ringNode            ("Ring"                , parsedOnly())
+	      ringNode            ("Ring"                , parsedOnly()),
+	      isFlatPart          ("isFlatPart"          , parsedOnly(), false)
   {}
 
 

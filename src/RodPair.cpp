@@ -375,6 +375,7 @@ void StraightRodPair::check() {
   if (mezzanine()) {
     if (startZMode.state()) logWARNING("Ignoring startZMode (set to modulecenter by default) for a mezzanine.");
   }
+  if (!isFlatPart() && !zPlusParity.state()) throw PathfulException("Straight rod : smallParity must be specified.");
 }
 
 void StraightRodPair::build(const RodTemplate& rodTemplate) {
