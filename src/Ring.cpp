@@ -457,7 +457,11 @@ void TiltedRing::build(double lastThetaEnd) {
     check();
     buildLeftRight(lastThetaEnd);
 
-  } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
+  } catch (PathfulException& pe) {
+    std::cout << pe.what() << std::endl; // TO DO : should not be necessary to specify pe.what() !! Problem in fullid from capabilities.h ?
+    pe.pushPath(fullid(*this)); 
+    throw;
+  }
 
   cleanup();
   builtok(true);
