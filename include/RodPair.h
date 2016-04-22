@@ -46,7 +46,8 @@ protected:
 private:
   void clearComputables();
 public:
-  Property<double, NoDefault> maxZ;
+  //Property<double, NoDefault> maxZ;
+  Property<double, Computable> maxZ;
   Property<double, Computable> minZ, maxR, minR;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<bool, Default> beamSpotCover;
@@ -59,6 +60,7 @@ public:
 
   void setup() {
     minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
+    maxZ .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZ); });
     minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
