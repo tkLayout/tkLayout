@@ -52,8 +52,8 @@ class TiltedRing : public PropertyObject, public Buildable, public Identifiable<
 
  TiltedRing() :
   //materialObject_(MaterialObject::ROD),
-    innerRadius           ("innerRadius"           , parsedAndChecked()),
-    outerRadius           ("outerRadius"           , parsedAndChecked()),
+    innerRadius           ("ringInnerRadius"       , parsedAndChecked()),
+    outerRadius           ("ringOuterRadius"       , parsedAndChecked()),
     tiltAngle             ("tiltAngle"             , parsedAndChecked()),
     theta_g               ("theta_g"               , parsedAndChecked()),
     zOverlap              ("zOverlap"              , parsedAndChecked())

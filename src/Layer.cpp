@@ -114,7 +114,7 @@ void Layer::check() {
       if (!buildNumModulesTilted.state()) throw PathfulException("Tilted layer with automatic placement : numModulesTilted must be specified.");
       if (buildNumModules() > 0 && buildNumModulesFlat.state() && buildNumModulesTilted.state()) {
 	if (buildNumModules() !=  (buildNumModulesFlat() + buildNumModulesTilted())) {
-	  throw PathfulException("Tilted layer : numModules != numModulesFlat + numModulesTilted. Anyway, for automatic placement, please specify numModulesFlat and numModulesTilted, and that is enough !");
+	  throw PathfulException("Tilted layer : numModules != (numModulesFlat + numModulesTilted). Anyway, for automatic placement, it is not needed to specify numModules. Please specify numModulesFlat and numModulesTilted only.");
 	}
       }
       if (!numRods.state()) throw PathfulException("Tilted layer with automatic placement : numRods must be specified.");
