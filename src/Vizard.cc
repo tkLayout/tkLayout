@@ -64,6 +64,7 @@ namespace insur {
     Int_t colorIndex = TColor::CreateGradientColorTable(numberOfSteps, stops, red, green, blue, vis_temperature_levels);
     for (int i=0;i<vis_temperature_levels;i++) myPalette[i] = colorIndex+i;
     gStyle->SetPalette(vis_temperature_levels, myPalette);
+
   }
 
   /**
@@ -420,7 +421,7 @@ namespace insur {
    * @param site the RootWSite object for the output
    * @param name a qualifier that goes in parenthesis in the title (outer or strip, for example)
    */
-  void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string name) {
+  void Vizard::materialSummary(Analyzer& analyzer, std::vector<MaterialBudget*> materialBudgets, bool debugServices, RootWSite& site, std::string name) {
   
       // Initialize the page with the material budget
       RootWPage*    myPage = nullptr;
@@ -441,8 +442,10 @@ namespace insur {
       // Add page with relevance, the lower, the less relevant
       if      (name=="INNER") site.addPage(myPage,70);
       else if (name=="OUTER") site.addPage(myPage,69);
-      else if (name=="TRK")   site.addPage(myPage,68);
-      else                    site.addPage(myPage,67);
+      else if (name=="FWDIN") site.addPage(myPage,68);
+      else if (name=="FWD")   site.addPage(myPage,67);
+      else if (name=="TRK")   site.addPage(myPage,66);
+      else                    site.addPage(myPage,65);
   
       std::string name_overviewMaterial         = std::string("OverviewMaterial")         + name ;
       std::string name_materialInTrackingVolume = std::string("MaterialInTrackingVolume") + name ;
@@ -895,8 +898,17 @@ namespace insur {
       myCanvas->cd();
 
       // Calculate final plot range, increase by safety factor
-      double maxZ = materialBudget.getTracker().maxZ() * vis_safety_factor;
-      double maxR = materialBudget.getTracker().maxR() * vis_safety_factor;
+      double maxZ = 0;
+      double maxR = 0;
+      for (auto materialBudget : materialBudgets) {
+
+        double currentMaxZ = materialBudget->getTracker().maxZ() * vis_safety_factor;
+        if (currentMaxZ>maxZ) maxZ = currentMaxZ;
+
+        double currentMaxR = materialBudget->getTracker().maxR() * vis_safety_factor;
+        if (currentMaxR>maxR) maxR = currentMaxR;
+      }
+
       mapRad = (TH2D*)analyzer.getHistoMapRadiation().Clone();
       mapRad->GetXaxis()->SetRangeUser(0, maxZ);
       mapRad->GetYaxis()->SetRangeUser(0, maxR);
@@ -1023,8 +1035,10 @@ namespace insur {
       }
 
       // Calculate material bill
-      if (!m_materialBillCsv.existCsvText(materialBudget.getTracker().myid())) m_materialBillCsv.inspectTracker(materialBudget);
-  
+      for (auto materialBudget : materialBudgets) {
+        if (!m_materialBillCsv.existCsvText(materialBudget->getTracker().myid())) m_materialBillCsv.inspectTracker(*materialBudget);
+      }
+
   /*    // Whatever table ?
       //RootWTable&   hitsTable = summaryContent.addTable();
       //hitsTable.setContent(0,0,"Clean pions");
@@ -1052,11 +1066,11 @@ namespace insur {
       summaryContent.addItem(materialSummaryTable);
   
     if (debugServices) {
-        drawInactiveSurfacesSummary(materialBudget, *myPage);
+      for (auto materialBudget : materialBudgets) drawInactiveSurfacesSummary(*materialBudget, *myPage);
     }
   }
-  void Vizard::materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site) {
-    materialSummary(analyzer, materialBudget, debugServices, site, "outer");
+  void Vizard::materialSummary(Analyzer& analyzer, std::vector<MaterialBudget*> materialBudgets, bool debugServices, RootWSite& site) {
+    materialSummary(analyzer, materialBudgets, debugServices, site, "outer");
   }
 
 // private
@@ -1199,13 +1213,11 @@ namespace insur {
    * @param analyzer A reference to the analysing class that examined the material budget and filled the histograms
    * @param site the RootWSite object for the output
    */
-  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
-
-    trackers_.push_back(&tracker);
+  bool Vizard::geometrySummary(Analyzer& analyzer, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, std::string name) {
 
     std::map<std::string, double>& tagMapWeight = analyzer.getTagWeigth();
-    std::string pageTitle = "Geometry";
 
+    std::string pageTitle = "Geometry";
     if (name!="") pageTitle+=" (" + name + ")";
     
     RootWPage* myPage = new RootWPage(pageTitle);
@@ -1218,6 +1230,9 @@ namespace insur {
 
     if      (name=="INNER" ) site.addPage(myPage,100);
     else if (name=="OUTER")  site.addPage(myPage, 99);
+    else if (name=="FWDIN")  site.addPage(myPage, 98);
+    else if (name=="FWD")    site.addPage(myPage, 97);
+    else if (name=="TRK")    site.addPage(myPage, 96);
     else                     site.addPage(myPage);
     RootWContent* myContent;
 
@@ -1248,6 +1263,7 @@ namespace insur {
 
     class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
     public:
+      virtual ~LayerDiskSummaryVisitor() {};
       RootWTable* layerTable = new RootWTable();
       RootWTable* diskTable  = new RootWTable();
       RootWTable* ringTable  = new RootWTable();
@@ -1397,7 +1413,7 @@ namespace insur {
     // Fill in all information directly from Tracker geometry object
     LayerDiskSummaryVisitor geometryVisitor;
     geometryVisitor.preVisit();
-    simparms.accept(geometryVisitor);
+    SimParms::getInstance()->accept(geometryVisitor);
     tracker.accept(geometryVisitor);
     geometryVisitor.postVisit();
 
@@ -1682,13 +1698,13 @@ namespace insur {
 
       // Cost
       aCost.str("");
-      aCost  << std::fixed << std::setprecision(costPrecision) <<
-        (*tagMapIt).second->area() * 1e-2 *          // area in cm^2
-        (*tagMapIt).second->numSensors() *               // number of faces
-        simparms.calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
-        1e-6 *                                           // conversion CHF-> MCHF
-        geometryVisitor.tagMapCount[(*tagMapIt).first];                // Number of modules
-      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * simparms.calcCost((*tagMapIt).second->readoutType()) * 1e-6 * geometryVisitor.tagMapCount[(*tagMapIt).first];
+//      aCost  << std::fixed << std::setprecision(costPrecision) <<
+//        (*tagMapIt).second->area() * 1e-2 *          // area in cm^2
+//        (*tagMapIt).second->numSensors() *               // number of faces
+//        SimParms::getInstance()->calcCost((*tagMapIt).second->readoutType()) * // price in CHF*cm^-2
+//        1e-6 *                                           // conversion CHF-> MCHF
+//        geometryVisitor.tagMapCount[(*tagMapIt).first];                // Number of modules
+//      totalCost +=(*tagMapIt).second->area() * 1e-2 * (*tagMapIt).second->numSensors() * SimParms::getInstance()->calcCost((*tagMapIt).second->readoutType()) * 1e-6 * geometryVisitor.tagMapCount[(*tagMapIt).first];
 
       // Weight
       aWeight.str("");
@@ -1843,30 +1859,30 @@ namespace insur {
     //*                              *//
     //********************************//
     RootWImage* myImage;
-    TCanvas *summaryCanvas = NULL;
-    TCanvas *RZCanvas = NULL;
-    TCanvas *XYCanvas = NULL;
-    TCanvas *XYCanvasEC = NULL;
-    TCanvas *myCanvas = NULL;
+    TCanvas*    summaryCanvas = nullptr;
+    TCanvas*    RZCanvas      = nullptr;
+    TCanvas*    XYCanvas      = nullptr;
+    TCanvas*    XYCanvasEC    = nullptr;
+    TCanvas*    myCanvas      = nullptr;
+
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
     createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
 
     if (name=="INNER") {
       logINFO("Drawing beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
-      beampipe->SetPoint(0, 0                               , (simparms.bpRadius()+simparms.bpThickness())/2.);
-      beampipe->SetPoint(1, tracker.maxZ()*vis_safety_factor, (simparms.bpRadius()+simparms.bpThickness())/2.);
+      beampipe->SetPoint(0, 0                               , (SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness())/2.);
+      beampipe->SetPoint(1, tracker.maxZ()*vis_safety_factor, (SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness())/2.);
       beampipe->SetLineColor(14);
       beampipe->SetLineWidth(2);
       XYCanvasEC->cd();
-      drawCircle(simparms.bpRadius()+simparms.bpThickness(), true, 18); // "grey18"
+      drawCircle(SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness(), true, 18); // "grey18"
       XYCanvas->cd();
-      drawCircle(simparms.bpRadius(), true, 18); // "grey18"
+      drawCircle(SimParms::getInstance()->bpRadius(), true, 18); // "grey18"
       RZCanvas->cd();
       beampipe->Draw("same");
     }
     // createColorPlotCanvas(tracker, 1, RZCanvas);
-
 
     //TVirtualPad* myPad;
     myContent = new RootWContent("Plots");
@@ -2067,7 +2083,7 @@ namespace insur {
     return true;
   }
 
-  TCanvas* Vizard::drawFullLayout() {
+  TCanvas* Vizard::drawFullLayout(std::vector<Tracker*> trackers) {
 
     TCanvas* result = nullptr;
     std::string aClass;
@@ -2076,8 +2092,8 @@ namespace insur {
     //double maxL = 2800;
     //double scaleFactor = maxR / 600;
     
-    for (unsigned int i=0; i< trackers_.size(); ++i) {
-      Tracker& tracker = *(trackers_[i]);
+    for (unsigned int i=0; i< trackers.size(); ++i) {
+      Tracker& tracker = *(trackers[i]);
       yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end());
     }
 
@@ -2093,7 +2109,8 @@ namespace insur {
   
 
   bool Vizard::additionalInfoSite(const std::set<std::string>& includeSet, const std::string& settingsfile,
-                                  Analyzer& pixelAnalyzer, Analyzer& stripAnalyzer, std::vector<Tracker *> trackers, SimParms& simparms, RootWSite& site) {
+                                  Analyzer& pixelAnalyzer, Analyzer& stripAnalyzer, Analyzer& fwdAnalyzer,
+                                  std::vector<Tracker *> trackers, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Info");
     myPage->setAddress("info.html");
     site.addPage(myPage);
@@ -2110,7 +2127,7 @@ namespace insur {
     else                                                                              geometryTracksUsed = stripAnalyzer.getGeometryTracksUsed();
 
     // Detector full layout
-    TCanvas* aLayout = drawFullLayout();
+    TCanvas* aLayout = drawFullLayout(trackers);
     if (aLayout) {
       fullLayoutContent = new RootWContent("Full layout", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
@@ -2142,6 +2159,7 @@ namespace insur {
     // add profile for types here...##### 
     drawEtaProfilesSensors(*totalEtaProfileFull, stripAnalyzer, false);
     drawEtaProfilesSensors(*totalEtaProfileFull, pixelAnalyzer, false);
+    drawEtaProfilesSensors(*totalEtaProfileFull, fwdAnalyzer,   false);
     totalEtaStack->GetStack()->Last()->Draw("same");
     RootWImage* myImage = new RootWImage(totalEtaProfileFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImage->setComment("Full hit coverage across "+etaLetter);
@@ -2167,7 +2185,7 @@ namespace insur {
 
     RootWInfo* myInfo;
     myInfo = new RootWInfo("Minimum bias per bunch crossing");
-    myInfo->setValue(simparms.numMinBiasEvents(), minimumBiasPrecision);
+    myInfo->setValue(SimParms::getInstance()->numMinBiasEvents(), minimumBiasPrecision);
     simulationContent->addItem(myInfo);
     myInfo = new RootWInfo("Number of tracks used for material");
     myInfo->setValue(materialTracksUsed);
@@ -2182,8 +2200,8 @@ namespace insur {
     ////myTable->setContent(2, 0, "mW/channel");
     //myTable->setContent(0, 1, "Pt modules");
     //myTable->setContent(0, 2, "Strip modules");
-    //myTable->setContent(1, 1, simparms.calcCost(READOUT_PT)   , costPerUnitPrecision);
-    //myTable->setContent(1, 2, simparms.calcCost(READOUT_STRIP), costPerUnitPrecision);
+    //myTable->setContent(1, 1, SimParms::getInstance().calcCost(READOUT_PT)   , costPerUnitPrecision);
+    //myTable->setContent(1, 2, SimParms::getInstance().calcCost(READOUT_STRIP), costPerUnitPrecision);
     //simulationContent->addItem(myTable);
 
     // Output data in csv output for all trackers
@@ -2197,7 +2215,7 @@ namespace insur {
 
     for (int iTracker=0; iTracker<trackers.size(); iTracker++) {
 
-      const Tracker * trk = trackers_[iTracker];
+      const Tracker * trk = trackers[iTracker];
       RootWTextFile * myTextFile = nullptr;
       std::string     myTextFileName;
       std::string     myWebFileName;
@@ -2346,7 +2364,7 @@ namespace insur {
     return true; // TODO: make this meaningful
   }
 
-  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site) {
+  bool Vizard::bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site) {
     RootWPage* myPage = new RootWPage("Bandwidth");
     myPage->setAddress("bandwidth.html");
     site.addPage(myPage);
@@ -2391,7 +2409,7 @@ namespace insur {
     myDescription->addText( "(Pt modules: ignored)<br/>");
     myDescription->addText( "Sparsified (binary) bits/event: 23 bits/chip + 9 bit/hit<br/>");
     myDescription->addText( "Unsparsified (binary) bits/event: 16 bits/chip + 1 bit/channel<br/>");
-    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << simparms.numMinBiasEvents();
+    ostringstream aStringStream; aStringStream.str("100 kHz trigger, "); aStringStream << SimParms::getInstance()->numMinBiasEvents();
     aStringStream <<" minimum bias events assumed</br>";
     myDescription->addText( aStringStream.str() );
 
@@ -3099,11 +3117,13 @@ namespace insur {
       else                      site.addPage(myPage);
   
       // Create the contents
-      RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution (central only) for const Pt across "  +etaLetter+" (active+pasive material)");
-      RootWContent& resolutionDipoleContent_Pt= myPage->addContent("Track resolution (central+dipole) for const Pt across "+etaLetter+" (active+pasive material)");
-      RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution (central only) for const Pt across "  +etaLetter+" (ideal - no material)"   , false);
-      RootWContent& resolutionContent_P       = myPage->addContent("Track resolution (central only) for const P  across "  +etaLetter+" (active+pasive material)", false);
-      RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution (central only) for const P across "   +etaLetter+" (ideal - no material)"   , false);
+      RootWContent& resolutionContent_Pt      = myPage->addContent("Track resolution for const Pt across "  +etaLetter+" (active+pasive material)");
+      RootWContent& resolutionDipoleContent_Pt= resolutionContent_Pt;
+      if (SimParms::getInstance()->dipoleMagneticField()!=0.0)
+                    resolutionDipoleContent_Pt= myPage->addContent("Track resolution (central+dipole) for const Pt across "+etaLetter+" (active+pasive material)");
+      RootWContent& idealResolutionContent_Pt = myPage->addContent("Track resolution for const Pt across "  +etaLetter+" (ideal - no material)"   , false);
+      RootWContent& resolutionContent_P       = myPage->addContent("Track resolution for const P  across "  +etaLetter+" (active+pasive material)", false);
+      RootWContent& idealResolutionContent_P  = myPage->addContent("Track resolution for const P across "   +etaLetter+" (ideal - no material)"   , false);
   
       // Create a page for the errors - scenarios with/without multiple scattering (active+pasive or just active material), extra scenario includes dipole magnet
       std::string scenarioStr="";
@@ -3372,7 +3392,8 @@ namespace insur {
   
         // Draw extra case with const Pt across eta and dipole in the forward region
         if (!gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraphDipole_Pt , tag).empty() &&
-            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraphTotal_Pt  , tag).empty() && (scenario==0)) {
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraphTotal_Pt  , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::RhoGraph_Pt     , tag).empty() && (scenario==0)) {
   
           // Set link to myContent
           idealMaterial=GraphBag::RealGraph;
@@ -3430,13 +3451,17 @@ namespace insur {
           // Draw total (central+dipole) pt
           plotOption = "";
           myColor    = 0;
-          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::PGraphTotal_Pt | idealMaterial, tag)) {
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::RhoGraph_Pt | idealMaterial, tag)) { //GraphBag::PGraphTotal_Pt | idealMaterial, tag)) {
   
-            const TGraph& momentumGraph = mapel.second;
-            TProfile& momentumProfile   = newProfile(momentumGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+            const TGraph& momentumGraph  = mapel.second;
+            TProfile& momentumProfile    = newProfile(momentumGraph , 0, analyzer.getEtaMaxTracker(), 1, nBins);
+            const TGraph& momentumGraph2 = gb.getTaggedGraph(GraphBag::PGraphTotal_Pt | idealMaterial, tag, mapel.first);
+            TProfile& momentumProfile2   = newProfile(momentumGraph2, 0, analyzer.getEtaMaxTracker(), 1, nBins);
   
             momentumProfile.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
             momentumProfile.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
+            momentumProfile2.SetMinimum(insur::vis_min_dPtOverPt); //1E-5*100);
+            momentumProfile2.SetMaximum(insur::vis_max_dPtOverPt); //.11*100*verticalScale);
   
             linMomCanvasTot_Pt.SetLogy(0);
             logMomCanvasTot_Pt.SetLogy(1);
@@ -3446,16 +3471,23 @@ namespace insur {
             momentumProfile.SetLineColor(momentumColor(myColor));
             momentumProfile.SetMarkerColor(momentumColor(myColor));
             momentumProfile.SetLineWidth(lineWidth);
+            momentumProfile2.SetLineColor(momentumColor(myColor));
+            momentumProfile2.SetMarkerColor(momentumColor(myColor));
+            momentumProfile2.SetLineWidth(lineWidth);
             myColor++;
             momentumProfile.SetMarkerStyle(markerStyle);
             momentumProfile.SetMarkerSize(markerSize);
+            momentumProfile2.SetMarkerStyle(markerStyle);
+            momentumProfile2.SetMarkerSize(markerSize/5);
   
             if (momentumGraph.GetN()>0) {
   
               linMomCanvasTot_Pt.cd();
               momentumProfile.Draw(plotOption.c_str());
+              momentumProfile2.Draw("L same");
               logMomCanvasTot_Pt.cd();
               momentumProfile.Draw(plotOption.c_str());
+              momentumProfile2.Draw("L same");
               plotOption = "same";
             }
           }
@@ -3739,7 +3771,7 @@ namespace insur {
       // Set Summary content - case I
       //  check that the ideal and real have the same pts
       //  otherwise the table cannot be prepared
-      RootWContent& summaryContent_Pt = myPage->addContent("Summary (central only) - const Pt across "+etaLetter);
+      RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+etaLetter);
       RootWTable&   cutsSummaryTable  = summaryContent_Pt.addTable();
       RootWTable&   momSummaryTable   = summaryContent_Pt.addTable();
   
@@ -3783,7 +3815,6 @@ namespace insur {
       cutsSummaryTable.setContent(0,0,"Region: ");
       cutsSummaryTable.setContent(1,0,"Min "+etaLetter+":");
       cutsSummaryTable.setContent(2,0,"Max "+etaLetter+":");
-  
       myTable = &cutsSummaryTable;
       for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
         myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
@@ -3800,8 +3831,10 @@ namespace insur {
           m_resolutionPCsv.addCsvElement("Label", label.str());
         }
       }
-      m_resolutionPtCsv.addCsvEOL("Label");
-      m_resolutionPCsv.addCsvEOL("Label");
+      if (tag == *(gb.getTagSet().begin())) {
+        m_resolutionPtCsv.addCsvEOL("Label");
+        m_resolutionPCsv.addCsvEOL("Label");
+      }
   
       // Table explaining momenta
       std::vector<double> momentum;
@@ -3931,7 +3964,7 @@ namespace insur {
   
       //
       // Set Summary content - case II
-      RootWContent& summaryContent_P = myPage->addContent("Summary (central only) - const P across "+etaLetter, false);
+      RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+etaLetter, false);
   
       std::map<std::string, RootWTable*> tableMap_P;
   
@@ -5104,38 +5137,48 @@ namespace insur {
   }    
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+                                        TCanvas *&RZCanvas,
+                                        TCanvas *&XYCanvasBRL,
                                         TCanvas *&XYCanvasEC) {
 
-    double scaleFactor = tracker.maxR()/600;
     bool   isPixelType = tracker.isPixelType();
+    double scaleFactor = tracker.maxR()/600;
 
     int rzCanvasX = insur::vis_max_canvas_sizeX; //int(tracker.maxZ()/scaleFactor);
     int rzCanvasY = insur::vis_min_canvas_sizeY; //int(tracker.maxR()/scaleFactor);
 
-    RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
-    RZCanvas->cd();
-
+    // R-Z view - avoid drawing canvas if barrel and endcap missing
     PlotDrawer<YZ, Type> yzDrawer;
-    yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
-    yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas, isPixelType);
-    yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    bool foundModules = yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
 
+    if (foundModules) {
 
-    XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
-    XYCanvas->cd();
+      RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
+      RZCanvas->cd();
+      yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas, isPixelType);
+      yzDrawer.drawModules<ContourStyle>(*RZCanvas);
+    }
+
+    // Projections - avoid drawing canvas if barrel or endcap missing
     PlotDrawer<XY, Type> xyBarrelDrawer;
-    xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
-    xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvas);
-    xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvas);
+    foundModules = xyBarrelDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    if (foundModules) {
 
-    XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
-    XYCanvasEC->cd();
+      XYCanvasBRL = new TCanvas("XYCanvas", "XYView Canvas", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
+      XYCanvasBRL->cd();
+      xyBarrelDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasBRL);
+      xyBarrelDrawer.drawModules<ContourStyle>(*XYCanvasBRL);
+    }
+
     PlotDrawer<XY, Type> xyEndcapDrawer; 
-    xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
-    xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
-    xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+    foundModules = xyEndcapDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), ENDCAP);
+    if (foundModules) {
 
+      XYCanvasEC = new TCanvas("XYCanvasEC", "XYView Canvas (Endcap)", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
+      XYCanvasEC->cd();
+      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(*XYCanvasEC);
+      xyEndcapDrawer.drawModules<ContourStyle>(*XYCanvasEC);
+    }
   }
 
   /* Returns always the same color for a given momentum index
@@ -5339,7 +5382,8 @@ namespace insur {
     Tracker& myTracker = materialBudget.getTracker();
     std::string myTrackerName = myTracker.myid();
 
-    RootWContent& myContent = myPage.addContent("Service details");
+    std::string name = myTrackerName+" services";
+    RootWContent& myContent = myPage.addContent(name.c_str());
 
     auto& barrelServices = materialBudget.getInactiveSurfaces().getBarrelServices();
     auto& endcapServices = materialBudget.getInactiveSurfaces().getEndcapServices();

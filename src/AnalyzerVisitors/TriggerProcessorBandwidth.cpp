@@ -54,7 +54,7 @@ double AnalyzerHelpers::calculatePetalAreaMC(const Tracker& tracker, const SimPa
 
 
 double AnalyzerHelpers::calculatePetalAreaModules(const Tracker& tracker, const SimParms& simParms, double crossoverR) {
-  double curvatureR = simParms.particleCurvatureR(simParms.triggerPtCut()); // curvature radius of particles with the minimum accepted pt
+  double curvatureR = pt2radius(SimParms::getInstance()->triggerPtCut(), SimParms::getInstance()->magneticField()); // curvature radius of particles with the minimum accepted pt
   int numTriggerProcessorsPhi = simParms.numTriggerTowersPhi();
 
   struct PetalAreaVisitor : public ConstGeometryVisitor {
@@ -221,7 +221,8 @@ void TriggerProcessorBandwidthVisitor::visit(const SimParms& sp) {
 void TriggerProcessorBandwidthVisitor::visit(const Tracker& t) { 
   tracker_ = &t; 
   crossoverR = AnalyzerHelpers::calculatePetalCrossover(*tracker_, *simParms_);
-  sampleTriggerPetal = findCirclesTwoPoints((Point){0., 0.}, (Point){crossoverR, 0.}, simParms_->particleCurvatureR(simParms_->triggerPtCut()));
+  double curvatureR = pt2radius(SimParms::getInstance()->triggerPtCut(), SimParms::getInstance()->magneticField());
+  sampleTriggerPetal = findCirclesTwoPoints((Point){0., 0.}, (Point){crossoverR, 0.}, curvatureR);
   int totalProcs = numProcEta * numProcPhi;
   processorCommonConnectionMap.SetBins(totalProcs, 0, totalProcs, totalProcs, 0, totalProcs);
   processorCommonConnectionMap.SetXTitle("TT");

@@ -6,6 +6,7 @@
  */
 
 #include <AnalyzerOccupancy.h>
+
 #include <BFieldMap.h>
 #include <rootweb.hh>
 #include <Tracker.h>
@@ -100,7 +101,7 @@ bool AnalyzerOccupancy::analyze()
   return true;
 }
 
-bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
+bool AnalyzerOccupancy::visualize(RootWSite& webSite)
 {
   RootWPage* myPage = new RootWPage("Occupancy");
   myPage->setAddress("occupancy.html");
@@ -135,6 +136,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite, const SimParms* simParms)
   TCanvas* canvasPhotonsBOnMatOff  = nullptr;
   TCanvas* canvasPhotonsBOffMatOff = nullptr;
   TCanvas* canvasPhotonsBOffTrkOff = nullptr;
+
+  SimParms * simParms = SimParms::getInstance();
 
   if (drawHistogram(canvasPhotonsBOffMatOff, m_hisPhotonsFluxBOffMatOff, m_photonsMapBOffMatOff, simParms, "PhotonsCanvasBOffMatOff", "RZ view of photons flux")) {
     canvasPhotonsBOffMatOff->SetLogz();

@@ -83,13 +83,13 @@ public:
 
   static string makePosTag(const BarrelModule& m) {
     stringstream ss;
-    ss << m.cntName() << "L" << setfill('0') << setw(2) << m.layer() /*<< "R" << m.ring() */;
+    ss << m.cntName() << "_L" << setfill('0') << setw(2) << m.layer() /*<< "R" << m.ring() */;
     return ss.str();
   }
 
   static string makePosTag(const EndcapModule& m) {
     stringstream ss;
-    ss << m.cntName() << "R" << setfill('0') << setw(2) << m.ring();
+    ss << m.cntName() << "_R" << setfill('0') << setw(2) << m.ring();
     //<< "D" << m.disk();
     return ss.str();
   }

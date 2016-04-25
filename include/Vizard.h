@@ -169,12 +169,12 @@ namespace insur {
 
     // TODO: all these functions should check if the corresponding data is present
     // and return true or false, depending if they created the output or not
-    void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site);
-    void materialSummary(Analyzer& analyzer, MaterialBudget& materialBudget, bool debugServices, RootWSite& site, std::string alternativeName);
+    void materialSummary(Analyzer& analyzer, std::vector<MaterialBudget*> materialBudgets, bool debugServices, RootWSite& site);
+    void materialSummary(Analyzer& analyzer, std::vector<MaterialBudget*> materialBudgets, bool debugServices, RootWSite& site, std::string alternativeName);
 
     void weigthSummart(Analyzer& analyzer, WeightDistributionGrid& weightGrid, RootWSite& site, std::string alternativeName);
-    bool geometrySummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
-    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, SimParms& simparms, RootWSite& site);
+    bool geometrySummary(Analyzer& analyzer, Tracker& tracker, InactiveSurfaces* inactive, RootWSite& site, std::string alternativeName = "");
+    bool bandwidthSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool triggerProcessorsSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     bool irradiatedPowerSummary(Analyzer& analyzer, Tracker& tracker, RootWSite& site);
     //bool errorSummary(Analyzer& analyzer, RootWSite& site, std::string additionalTag, bool isTrigger);
@@ -183,9 +183,15 @@ namespace insur {
     bool neighbourGraphSummary(InactiveSurfaces& is, RootWSite& site, std::string name = "");
     void drawInactiveSurfacesSummary(MaterialBudget& mb, RootWPage& page); 
     bool additionalInfoSite(const std::set<string>& includeSet, const std::string& settingsfile,
-                            Analyzer& pixelAnalyzer, Analyzer& stripAnalyzer, std::vector<Tracker*> tracker, SimParms& simparms, RootWSite& site);
+                            Analyzer& pixelAnalyzer,
+                            Analyzer& stripAnalyzer,
+                            Analyzer& fwdAnalyzer,
+                            std::vector<Tracker*> tracker, RootWSite& site);
     bool makeLogPage(RootWSite& site);
     void setCommandLine(std::string commandLine) { commandLine_ = commandLine; }
+
+    //void simParms(SimParms* sp) { m_simParms = sp; }
+    //const SimParms& simParms() const { return *m_simParms; }
 
   protected:
     //TGeoManager* gm;
@@ -270,8 +276,7 @@ namespace insur {
     TProfile* newProfile(TH1D* nn);
     TProfile& newProfile(const TGraph& sourceGraph, double xlow, double xup, int nrebin = 1, int nBins = 0);
     // int getNiceColor(unsigned int plotIndex);
-    std::vector<Tracker*> trackers_;
-    TCanvas* drawFullLayout();
+    TCanvas* drawFullLayout(std::vector<Tracker*> trackers);
 
     void drawCircle(double radius, bool full, int color=kBlack);
   };

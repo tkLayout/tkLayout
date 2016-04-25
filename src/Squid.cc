@@ -10,13 +10,15 @@
 #include "StopWatch.h"
 #include <boost/algorithm/string/split.hpp>
 
+#include <AnalyzerGeometry.h>
+
 namespace insur {
 
   // public
   const std::string Squid::err_no_geomfile           = "There is no recorded name for the geometry configuration file. Initialise the tracker first.";
   const std::string Squid::err_no_matfile            = "The provided material configuration file does not exist.";
   const std::string Squid::err_no_matfile_pixel      = "The material configuration file for the pixels does not exist.";
-  const std::string Squid::err_init_failed           = "Initialisation of the material calculator failed.";
+  const std::string Squid::err_init_failed           = "Initialisation failed.";
   const std::string Squid::err_no_tracker            = "The tracker object does not exist. The tracker must be created before calling this function.";
   const std::string Squid::err_no_inacsurf           = "The collection of inactive surfaces does not exist. It must be created before calling this function";
   const std::string Squid::err_no_matbudget          = "The material budget does not exist. It must be created before calling this function.";
@@ -33,36 +35,36 @@ namespace insur {
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
   Squid::Squid() :
-      mainConfig_(mainConfigHandler::instance()),
-      t2c(mainConfig_),
-      weightDistributionTracker(0.1),
-      weightDistributionPixel(0.1) {
+      t2c(mainConfigHandler::instance()),
+      m_weightDistCtrlStd(0.1),
+      m_weightDistFwdStd(0.1),
+      m_weightDistCtrlPxd(0.1),
+      m_weightDistFwdPxd(0.1) {
 
-    //bp_      = nullptr;
-    pxd_      = nullptr;
-    std_      = nullptr;
-    fwdpxd_   = nullptr;
-    fwdstd_   = nullptr;
+    m_ctrlPxd        = nullptr;
+    m_ctrlStd        = nullptr;
+    m_fwdPxd         = nullptr;
+    m_fwdStd         = nullptr;
 
-    pxdPasive_= nullptr;
-    stdPasive_= nullptr;
+    m_pasiveCtrlPxd  = nullptr;
+    m_pasiveFwdPxd   = nullptr;
+    m_pasiveCtrlStd  = nullptr;
+    m_pasiveFwdStd   = nullptr;
 
-    bpMb_     = nullptr;
-    pxdMb_    = nullptr;
-    stdMb_    = nullptr;
-    fwdpxdMb_ = nullptr;
-    fwdstdMb_ = nullptr;
+    m_mbBP           = nullptr;
+    m_mbCtrlPxd      = nullptr;
+    m_mbCtrlStd      = nullptr;
+    m_mbFwdPxd       = nullptr;
+    m_mbFwdStd       = nullptr;
 
-    simParms_                = nullptr;
-    sitePrepared_            = false;
-    myGeometryFile_          = "";
-    mySettingsFile_          = "";
-    myMaterialFile_          = "";
-    myPixelMaterialFile_     = "";
-    defaultMaterialFile      = false;
-    defaultPixelMaterialFile = false;
+    m_geomAnalyzer   = nullptr;
 
-    htmlDir_ = "";
+    //m_simParms       = nullptr;
+    m_sitePrepared   = false;
+    m_myGeometryFile = "";
+    m_mySettingsFile = "";
+
+    m_htmlDir        = "";
   }
 
   /**
@@ -70,23 +72,22 @@ namespace insur {
    */
   Squid::~Squid() {
 
-    //if (bp_) delete bp_;
-    if (pxd_)    delete pxd_;
-    if (std_)    delete std_;
-    if (fwdpxd_) delete fwdpxd_;
-    if (fwdstd_) delete fwdstd_;
+    if (m_ctrlPxd) delete m_ctrlPxd;
+    if (m_ctrlStd) delete m_ctrlStd;
+    if (m_fwdPxd)  delete m_fwdPxd;
+    if (m_fwdStd)  delete m_fwdStd;
 
-    if (pxdPasive_) delete pxdPasive_;
-    if (stdPasive_) delete stdPasive_;
+    if (m_pasiveCtrlPxd) delete m_pasiveCtrlPxd;
+    if (m_pasiveCtrlStd) delete m_pasiveCtrlStd;
 
-    if (bpMb_)  delete bpMb_;
-    if (pxdMb_) delete pxdMb_;
-    if (stdMb_) delete stdMb_;
-    if (fwdpxdMb_) delete fwdpxdMb_;
-    if (fwdstdMb_) delete fwdstdMb_;
+    if (m_mbBP)      delete m_mbBP;
+    if (m_mbCtrlPxd) delete m_mbCtrlPxd;
+    if (m_mbCtrlStd) delete m_mbCtrlStd;
+    if (m_mbFwdPxd)  delete m_mbFwdPxd;
+    if (m_mbFwdStd)  delete m_mbFwdStd;
 
-    if (simParms_) delete simParms_;
-    //if (pixelAnalyzer_) delete pixelAnalyzer_;
+    //if (m_simParms)  delete m_simParms;
+
     StopWatch::destroy();
   }
 
@@ -96,26 +97,25 @@ namespace insur {
    * to this function or by another one that creates a new tracker object. If the geometry file contains a
    * description of a pixel detector, that is created as well. It is treated exactly like the tracker with respect
    * to replacement and persistence.
-   * @param geomfile The name and - if necessary - path of the geometry configuration file
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::buildTracker() {
+  bool Squid::buildActiveTracker() {
 
-    if (pxd_) {
-      delete pxd_;
-      pxd_ = nullptr;
+    if (m_ctrlPxd) {
+      delete m_ctrlPxd;
+      m_ctrlPxd = nullptr;
     }
-    if (std_) {
-      delete std_;
-      std_ = nullptr;
+    if (m_ctrlStd) {
+      delete m_ctrlStd;
+      m_ctrlStd = nullptr;
     }
-    if (fwdpxd_) {
-      delete fwdpxd_;
-      fwdpxd_ = nullptr;
+    if (m_fwdPxd) {
+      delete m_fwdPxd;
+      m_fwdPxd = nullptr;
     }
-    if (fwdstd_) {
-      delete fwdstd_;
-      fwdstd_ = nullptr;
+    if (m_fwdStd) {
+      delete m_fwdStd;
+      m_fwdStd = nullptr;
     }
 
     // Geometry/config file not defined
@@ -130,8 +130,9 @@ namespace insur {
 
     // Parse config file & save everything in mainConfig
     std::stringstream ss;
-    includeSet_ = mainConfig_.preprocessConfiguration(ifs, ss, getGeometryFile());
+    m_includeSet = mainConfigHandler::instance().preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
+
     using namespace boost::property_tree;
     ptree pTree;
     info_parser::read_info(ss, pTree);
@@ -181,36 +182,52 @@ namespace insur {
         trk->build();
 
         // Distinguish between individual trackers
-        if      (trk->myid()=="Inner"          || trk->myid()=="BRL_Inner" ) {
+        if      (trk->myid()=="Inner"    || trk->myid()=="CtrlInner" ) {
           trk->setIsPixelType(true);
-          trackers_.push_back(trk);
-          pxd_    = trk;
+          m_trackers.push_back(trk);
+          m_ctrlPxd    = trk;
         }
-        else if (trk->myid()=="ForwardPixels"  || trk->myid()=="FWDPXD" || trk->myid()=="ForwarddPixel") {
+        else if (trk->myid()=="FwdInner" || trk->myid()=="FwdInner" || trk->myid()=="ForwardPixel") {
           trk->setIsPixelType(true);
           trk->setIsForwardType(true);
-          trackers_.push_back(trk);
-          fwdpxd_ = trk;
+          m_trackers.push_back(trk);
+          m_fwdPxd = trk;
         }
-        else if (trk->myid()=="Outer"          || trk->myid()=="BRL_Outer" ) {
+        else if (trk->myid()=="Outer"    || trk->myid()=="CtrlOuter" ) {
           trk->setIsStripType(true);
-          trackers_.push_back(trk);
-          std_    = trk;
+          m_trackers.push_back(trk);
+          m_ctrlStd    = trk;
         }
-        else if (trk->myid()=="ForwardOuter"   || trk->myid()=="FWDSTD" || trk->myid()=="ForwardStrip" ) {
+        else if (trk->myid()=="FwdOuter" || trk->myid()=="FwdOuter" || trk->myid()=="ForwardStrip" ) {
           trk->setIsStripType(true);
           trk->setIsForwardType(true);
-          trackers_.push_back(trk);
-          fwdstd_ = trk;
+          m_trackers.push_back(trk);
+          m_fwdStd = trk;
         }
-        else std_ = trk; // General sollution
+        else {
+
+          if (m_ctrlStd==nullptr) {
+
+            std::string message = std::string("Squid::buildTracker: The following tracker "+trk->myid()+" set as default strip tracker! Its specific name not recognized!");
+            logWARNING(message);
+            m_ctrlStd = trk; // General sollution
+          }
+          else {
+
+            std::string message = std::string("Squid::buildTracker: One tracker already assigned as a strip tracker! This one: "+trk->myid()+" will be thus omitted! Its specific name not recognized!");
+            logWARNING(message);
+            delete trk;
+          }
+        }
       });
 
       // Declare unmatched properties
       std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
       if (!unmatchedProperties.empty()) {
+
         std::ostringstream ss;
         ss << "The following unknown properties were ignored:" << std::endl;
+
         for (const string& s : unmatchedProperties) {
           ss << "  " << s << std::endl;
         }
@@ -225,26 +242,18 @@ namespace insur {
         support->myid(kv.second.get_value(0));
         support->store(kv.second);
         support->build();
-        supports_.push_back(support);
+        m_supports.push_back(support);
       });
 
-      // Read simulation parameters
-      simParms_ = new SimParms();
+      // Create instance of simulation parameters
+      SimParms* simParms = SimParms::getInstance();
 
-      // Add default irradiation files to simParm
-      for (auto singleIrradiationFile : insur::default_irradiationfiles) {
-        simParms_->addIrradiationMapFile(mainConfig_.getIrradiationDirectory() + "/" + singleIrradiationFile);
-      }
+      // Add default irradiation files to simParms
+      simParms->readIrradiationMaps();
 
-      // Read sim parameters file name from a general tree & build simParms
-      simParms_->store(getChild(pTree, "SimParms"));
-      simParms_->crosscheck();
-
-      // Set sim parameters to analysis
-      trackerAnalyzer_.simParms(simParms_);
-      stripAnalyzer_.simParms(simParms_);
-      pixelAnalyzer_.simParms(simParms_);
-
+      // Store data in a general tree & check
+      simParms->store(getChild(pTree, "SimParms"));
+      simParms->crosscheck();
     }
     catch (PathfulException& e) { 
       std::cerr << e.path() << " : " << e.what() << std::endl; 
@@ -253,7 +262,7 @@ namespace insur {
     }
 
     // Check that some tracker created
-    if (trackers_.size()==0) {
+    if (m_trackers.size()==0) {
 
       std::cerr << "ERROR: Detector can't be built!!! No trackers defined ..." << std::endl;
       stopTaskClock();
@@ -264,89 +273,35 @@ namespace insur {
     return true;
   }
 
-  /**
-   * Dress the previously created geometry with module options. The modified tracker object remains
-   * in the squid as the current tracker until it is overwritten by a call to another function that creates
-   * a new one. If the tracker object has not been created yet, the function fails. If a pixel detector was
-   * also created in a previous step, it is dressed here as well. Just like the tracker object, the modified
-   * pixel detector remains in the squid until it is replaced by a call to another function creating a new
-   * one.
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @return True if there was an existing tracker to dress, false otherwise
-   */
-  /*  bool Squid::dressTracker() {
-      if (tr) {
-        startTaskClock("Assigning module types to tracker and pixel");
-        cp.dressTracker(tr, getSettingsFile());
-        if (px) cp.dressPixels(px, getSettingsFile());
-        stopTaskClock();
-        return true;
-      }
-      else {
-        logERROR(err_no_tracker);
-        stopTaskClock();
-        return false;
-      }
-    }
-  */
-
-  /**
-   * Build up the inactive surfaces around the previously created tracker geometry. The resulting collection
-   * of inactive surfaces replaces the previously registered one, if such an object existed. It remains in the
-   * squid until it is overwritten by a second call to this function or by another one that creates a new
-   * collection of inactive surfaces. If a pixel detector was also created in a previous step, it gets a new set
-   * of inactive surfaces as well.
-   * @param verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
-   * @return True if there were no errors during processing, false otherwise
-   */
-/*  bool Squid::buildInactiveSurfaces(bool verbose) {
-    startTaskClock("Building inactive surfaces");
-    if (getGeometryFile()!="") {
-      if (std_) {
-        if (stdPasive_) delete stdPasive_;
-        is = new InactiveSurfaces();
-        u.arrange(*std_, *stdPasive_, supports_, verbose);
-    }
-    if (pxd_) {
-        if (pxdPasive_) delete pxdPasive_;
-          pxdPasive_ = new InactiveSurfaces();
-          u.arrangePixels(*pxd_, *pxdPasive_, verbose);
-        }
-        stopTaskClock();
-        return true;
-      }
-      else {
-        logERROR(err_no_tracker);
-        stopTaskClock();
-        return false;
-      }
-    }
-    else {
-      logERROR(err_no_geomfile);
-      stopTaskClock();
-      return false;
-    }
-  } */
-
   /*
-   *  Build database of overall material distribution in the tracker ...
+   *  Build all pasive components of tracker & create database of overall material distribution in the tracker ...
    */
-  bool Squid::buildMaterials(bool verbose) {
+  bool Squid::buildPasiveTracker(bool verbose) {
 
-    if (std_ || pxd_) {
+    if (m_ctrlStd || m_fwdStd || m_ctrlPxd || m_fwdPxd) {
 
       startTaskClock("Building inactive materials of defined trackers + beam pipe");
 
       // Building pxd & strip inactive materials
-      if (pxd_) {
-        if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
+      if (m_ctrlPxd) {
+        if (!m_pasiveCtrlPxd) m_pasiveCtrlPxd = new InactiveSurfaces();
         Materialway materialwayPixel;
-        materialwayPixel.build(*pxd_, *pxdPasive_, weightDistributionPixel);
+        materialwayPixel.build(*m_ctrlPxd, *m_pasiveCtrlPxd, m_weightDistCtrlPxd);
       }
-      if (std_) {
-        if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
+      if (m_fwdPxd) {
+        if (!m_pasiveFwdPxd) m_pasiveFwdPxd = new InactiveSurfaces();
+         Materialway materialwayFwdPixel;
+         materialwayFwdPixel.build(*m_fwdPxd, *m_pasiveFwdPxd, m_weightDistFwdPxd);
+      }
+      if (m_ctrlStd) {
+        if (!m_pasiveCtrlStd) m_pasiveCtrlStd = new InactiveSurfaces();
         Materialway materialwayStrip;
-        materialwayStrip.build(*std_, *stdPasive_, weightDistributionTracker);
+        materialwayStrip.build(*m_ctrlStd, *m_pasiveCtrlStd, m_weightDistCtrlStd);
+      }
+      if (m_fwdStd) {
+        if (!m_pasiveFwdStd) m_pasiveFwdStd = new InactiveSurfaces();
+        Materialway materialwayFwdStrip;
+        materialwayFwdStrip.build(*m_fwdStd, *m_pasiveFwdStd, m_weightDistFwdStd);
       }
     } else {
 
@@ -372,47 +327,33 @@ namespace insur {
    */
   bool Squid::createMaterialBudget(bool verbose) {
 
-    if (std_ || pxd_) {
+    if (m_ctrlStd || m_fwdStd || m_ctrlPxd || m_fwdPxd) {
 
       startTaskClock("Calculating material budget of the tracker");
-      if (std_) {
+      if (m_ctrlStd && m_pasiveCtrlStd) {
 
-        if (!stdPasive_) stdPasive_ = new InactiveSurfaces();
-        if (stdMb_) delete stdMb_;
-        stdMb_  = new MaterialBudget(*std_, *stdPasive_);
-
-        // Reset & calculate new
-        if (stripMaterialCalc_.initDone()) stripMaterialCalc_.reset();
-        if (matParser_.initMatCalc(stripMaterialCalc_, mainConfig_.getMattabDirectory())) {
-          //stdMb_->materialsAll(stripMaterialCalc_);
-          if (verbose) stdMb_->print();
-        }
+        if (m_mbCtrlStd) delete m_mbCtrlStd;
+        m_mbCtrlStd  = new MaterialBudget(*m_ctrlStd, *m_pasiveCtrlStd);
       }
-      if (pxd_) {
+      if (m_fwdStd && m_pasiveFwdStd) {
 
-        if (!pxdPasive_) pxdPasive_ = new InactiveSurfaces();
-        if (pxdMb_) delete pxdMb_;
-        pxdMb_ = new MaterialBudget(*pxd_, *pxdPasive_);
+        if (m_mbFwdStd) delete m_mbFwdStd;
+        m_mbFwdStd  = new MaterialBudget(*m_fwdStd, *m_pasiveFwdStd);
+      }
+      if (m_ctrlPxd && m_pasiveCtrlPxd) {
 
-        // Reset & calculate new
-        if (pixelMaterialCalc_.initDone()) pixelMaterialCalc_.reset();
-  	    if (matParser_.initMatCalc(pixelMaterialCalc_, mainConfig_.getMattabDirectory())) {
+        if (m_mbCtrlPxd) delete m_mbCtrlPxd;
+        m_mbCtrlPxd = new MaterialBudget(*m_ctrlPxd, *m_pasiveCtrlPxd);
+      }
+      if (m_fwdPxd && m_pasiveFwdPxd) {
 
-  	      //pxdMb_->materialsAll(pixelMaterialCalc_);
-  	      if (verbose) pxdMb_->print();
-  	    }
+        if (m_mbFwdPxd) delete m_mbFwdPxd;
+        m_mbFwdPxd = new MaterialBudget(*m_fwdPxd, *m_pasiveFwdPxd);
       }
       stopTaskClock();
       return true;
     } else {
-      if (stdMb_) {
-        delete stdMb_;
-        stdMb_ = nullptr;
-      }
-      if (pxdMb_) {
-        delete pxdMb_;
-        pxdMb_ = nullptr;
-      }
+
       std::string message = std::string("Squid::createMaterialBudget() :")+err_init_failed;
       logERROR(message);
       stopTaskClock();
@@ -421,48 +362,22 @@ namespace insur {
   }
 
   /**
-   * Build a full system consisting of tracker object, collection of inactive surfaces and material budget from the
-   * given configuration files. All three objects replace the previously registered ones, if they existed. They remain
-   * in the squid  until they are overwritten by a second call to this function or by another one that creates new
-   * instances of them.
-   * @param geomfile The name and - if necessary - path of the geometry configuration file
-   * @param settingsfile The name and - if necessary - path of the module settings configuration file
-   * @param usher_verbose A flag that turns the final status summary of the inactive surface placement algorithm on or off
-   * @param mat_verbose A flag that turns the final status summary of the material budget on or off
-   * @return True if there were no errors during processing, false otherwise
-   */
-   /*bool Squid::buildFullSystem(bool usher_verbose, bool mat_verbose) {
-     if (buildInactiveSurfaces(usher_verbose)) return createMaterialBudget(mat_verbose) && irradiateTracker();
-     return false;
-   }*/
-
-    /**
-     * Build the feeder/neighbour graph of the previously created collection of inactive surfaces and
-     * save the results in a plain text file.
-     * @param graphout The name - without path - of the designated output file
-     * @return True if there were no errors during processing, false otherwise
-     */
-    /*bool Squid::analyzeNeighbours(std::string graphout) {
-      if (is) {
-        startTaskClock("Creating inactive materials hierarchy");
-        v.writeNeighbourGraph(*is, graphout);
-        stopTaskClock();
-        return true;
-      }
-      else {
-        std::cout << "Squid::analyzeNeighbours(): " << err_no_inacsurf << std::endl;
-        return false;
-      }
-    }*/
-
-  /**
    * Translate an existing full tracker and material budget to a series of XML files that can be interpreted by CMSSW.
    * @param xmlout The name - without path - of the designated output subdirectory
    * @return True if there were no errors during processing, false otherwise
    */
   bool Squid::translateFullSystemToXML(std::string xmlout) {
-    if (stdMb_) {
-      t2c.translate(stripMaterialCalc_.getMaterialTable(), *stdMb_, xmlout.empty() ? baseName_ : xmlout, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
+
+    MatCalc   matCalc;
+    MatParser matParser;
+
+    if (m_mbCtrlStd) {
+
+      if (matCalc.initDone()) matCalc.reset();
+      if (matParser.initMatCalc(matCalc, mainConfigHandler::instance().getMattabDirectory())) {
+        m_mbCtrlStd->materialsAll(matCalc);
+      }
+      t2c.translate(matCalc.getMaterialTable(), *m_mbCtrlStd, xmlout.empty() ? m_baseName : xmlout, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
       return true;
     }
     else {
@@ -498,8 +413,8 @@ namespace insur {
   // private
   void Squid::resetVizard() {
 
-    vizard_.~Vizard();
-    new ((void*) &vizard_) Vizard();
+    m_vizard.~Vizard();
+    new ((void*) &m_vizard) Vizard();
   }
 
   /**
@@ -509,41 +424,22 @@ namespace insur {
    */
   bool Squid::prepareWebSite() {
 
-    if (sitePrepared_) return true;
+    if (m_sitePrepared) return true;
 
-    // Set html results output directory
-    //string trackerName;
-    //if (htmlDir_ != "") trackerName = htmlDir_;
-    //else {
-    //
-    //  if (std_) {
-    //
-    //    trackerName = baseName_;
-    //  }
-    //  else trackerName = default_trackername;
-    //}
-    //string layoutDirectory;
-    //styleDirectory=mainConfiguration.getStyleDirectory();
-    //layoutDirectory=mainConfig_.getLayoutDirectory();
-    //layoutDirectory+="/"+trackerName;
-
-    //if (layoutDirectory!="") webSite_.setTargetDirectory(layoutDirectory);
-    //else return false;
-
-    if (htmlDir_!="") webSite_.setTargetDirectory(htmlDir_);
+    if (m_htmlDir!="") m_webSite.setTargetDirectory(m_htmlDir);
     else return false;
 
     // Set layout title
-    if (layoutName_!="") webSite_.setTitle(layoutName_);
+    if (m_layoutName!="") m_webSite.setTitle(m_layoutName);
     else return false;
 
-    webSite_.setComment("Layouts");
-    webSite_.setCommentLink("../");
-    webSite_.addAuthor("Giovanni Bianchi");
-    webSite_.addAuthor("Nicoletta De Maio");
-    webSite_.addAuthor("Stefano Martina");
-    webSite_.addAuthor("Stefano Mersi");
-    webSite_.setRevision(SvnRevision::revisionNumber);
+    m_webSite.setComment("Layouts");
+    m_webSite.setCommentLink("../");
+    m_webSite.addAuthor("Giovanni Bianchi");
+    m_webSite.addAuthor("Nicoletta De Maio");
+    m_webSite.addAuthor("Stefano Martina");
+    m_webSite.addAuthor("Stefano Mersi");
+    m_webSite.setRevision(SvnRevision::revisionNumber);
     return true;
   }
 
@@ -554,7 +450,8 @@ namespace insur {
   bool Squid::makeWebSite(bool addLogPage /* = true */) {
 
     ostringstream message;
-    message << "Creating website in: " << htmlDir_;
+    message << "Creating website in: " << m_htmlDir;
+
     startTaskClock(message.str());
     if (!prepareWebSite()) {
 
@@ -565,51 +462,62 @@ namespace insur {
 
     // Add log webPage
     if (addLogPage) {
-      vizard_.makeLogPage(webSite_);
+      m_vizard.makeLogPage(m_webSite);
     }
 
-    bool result = webSite_.makeSite(false);
+    bool result = m_webSite.makeSite(false);
     stopTaskClock();
     return result;
   }
 
   /**
-   * Analyze the previously created geometry and without no output  through rootweb.
+   * Analyze tracker layout geometry with no output through rootweb.
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::pureAnalyzeGeometry(int tracks) {
+  bool Squid::analyzeGeometry(int nTracks) {
 
-    // Analyzing detector
-    if (pxd_ || std_) {
+    startTaskClock("Analyzing geometry");
 
-      startTaskClock("Analyzing geometry");
-      if (pxd_) pixelAnalyzer_.analyzeGeometry(*pxd_, tracks);
-      if (std_) stripAnalyzer_.analyzeGeometry(*std_, tracks);
-      stopTaskClock();
-      return true;
+    if (m_trackers.size()>0) {
+
+      m_geomAnalyzer = new AnalyzerGeometry(m_trackers, nTracks);
+
+      if (m_geomAnalyzer->init()) {
+
+        bool isOK = m_geomAnalyzer->analyze();
+        stopTaskClock();
+        return isOK;
+      }
+      else {
+
+        std::string message = std::string("Squid::analyzeGeometry(): ")+err_init_failed;
+        logERROR(message);
+        return false;
+      }
     }
     else {
-      std::string message = std::string("Squid::pureAnalyzeGeometry(): ")+err_no_tracker;
+
+      std::string message = std::string("Squid::analyzeGeometry(): ")+err_no_tracker;
       logERROR(message);
       return false;
     }
   }
 
-  bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
-    // Call this before analyzetrigger if you want to have the map of suggested spacings
-    if (detailed) {
-      startTaskClock("Creating distance tuning plots");
-      stripAnalyzer_.createTriggerDistanceTuningPlots(*std_, mainConfig_.getTriggerMomenta());
-      stopTaskClock();
-    }
-    startTaskClock("Creating trigger efficiency plots");
-    stripAnalyzer_.analyzeTriggerEfficiency(*std_,
-                               mainConfig_.getTriggerMomenta(),
-                               mainConfig_.getThresholdProbabilities(),
-                               tracks);
-    stopTaskClock();
-    return true;
-  }
+//  bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
+//    // Call this before analyzetrigger if you want to have the map of suggested spacings
+//    if (detailed) {
+//      startTaskClock("Creating distance tuning plots");
+//      m_stripAnalyzer.createTriggerDistanceTuningPlots(*m_ctrlStd, mainConfigHandler::instance().getTriggerMomenta());
+//      stopTaskClock();
+//    }
+//    startTaskClock("Creating trigger efficiency plots");
+//    m_stripAnalyzer.analyzeTriggerEfficiency(*m_ctrlStd,
+//                               mainConfigHandler::instance().getTriggerMomenta(),
+//                               mainConfigHandler::instance().getThresholdProbabilities(),
+//                               tracks);
+//    stopTaskClock();
+//    return true;
+//  }
 
   /**
    * Analyze the previously created material budget with no output.
@@ -618,31 +526,46 @@ namespace insur {
    */
   bool Squid::pureAnalyzeMaterialBudget(int nTracks) {
 
-    if (stdMb_ || pxdMb_) {
+    if (m_mbCtrlStd || m_mbFwdStd || m_mbCtrlPxd || m_mbFwdPxd) {
       // TODO: insert the creation of sample tracks here, to compute intersections only once
 
       startTaskClock("Analyzing material budget" );
       std::vector<MaterialBudget*> trkMb;
-      if (pxdMb_) {
+      if (m_mbCtrlPxd) {
         trkMb.clear();
-        trkMb.push_back(pxdMb_);
-        pixelAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+        trkMb.push_back(m_mbCtrlPxd);
+        m_pixelAnalyzer.analyzeMaterialBudget(trkMb, nTracks);
       }
-      if (stdMb_) {
+      if (m_mbCtrlStd) {
         trkMb.clear();
-        trkMb.push_back(stdMb_);
-        stripAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+        trkMb.push_back(m_mbCtrlStd);
+        m_stripAnalyzer.analyzeMaterialBudget(trkMb, nTracks);
       }
-      if (pxdMb_ && stdMb_) {
+      if (m_mbFwdPxd) {
         trkMb.clear();
-        trkMb.push_back(pxdMb_);
-        trkMb.push_back(stdMb_);
-        trackerAnalyzer_.analyzeMaterialBudget(trkMb, nTracks);
+        if (m_mbFwdPxd) trkMb.push_back(m_mbFwdPxd);
+        //if (m_mbFwdStd) trkMb.push_back(m_mbFwdStd);
+        m_fwdPxdAnalyzer.analyzeMaterialBudget(trkMb, nTracks);
       }
+      if (m_mbFwdStd) { //(m_mbFwdPxd || m_mbFwdStd) {
+        trkMb.clear();
+        //if (m_mbFwdPxd) trkMb.push_back(m_mbFwdPxd);
+        if (m_mbFwdStd) trkMb.push_back(m_mbFwdStd);
+        m_fwdAnalyzer.analyzeMaterialBudget(trkMb, nTracks);
+      }
+      if (m_mbCtrlPxd || m_mbFwdPxd || m_mbCtrlStd || m_mbFwdStd) {
+        trkMb.clear();
+        if (m_mbCtrlPxd) trkMb.push_back(m_mbCtrlPxd);
+        if (m_mbFwdPxd)  trkMb.push_back(m_mbFwdPxd);
+        if (m_mbCtrlStd) trkMb.push_back(m_mbCtrlStd);
+        if (m_mbFwdStd)  trkMb.push_back(m_mbFwdStd);
+        m_trackerAnalyzer.analyzeMaterialBudget(trkMb, nTracks);
+      }
+      trkMb.clear();
       stopTaskClock();
 
       //startTaskClock("Computing the weight summary");
-      //stripAnalyzer_.computeWeightSummary(*stdMb_);
+      //m_stripAnalyzer.computeWeightSummary(*m_mbCtrlStd);
       //stopTaskClock();
 
       return true;
@@ -661,16 +584,19 @@ namespace insur {
    */
   bool Squid::pureAnalyzeResolution(int nTracks) {
 
-    if (stdMb_ || pxdMb_) {
+    if (m_mbCtrlStd || m_mbFwdStd || m_mbCtrlPxd || m_mbFwdPxd) {
     // TODO: insert the creation of sample tracks here, to compute intersections only once
 
       startTaskClock("Analyzing tracking resolutions");
       std::vector<MaterialBudget*> trkMb;
       trkMb.clear();
-      if (pxdMb_) trkMb.push_back(pxdMb_);
-      if (stdMb_) trkMb.push_back(stdMb_);
-      trackerAnalyzer_.analyzeTaggedTracking(trkMb, mainConfig_.getMomenta(), nTracks);
+      if (m_mbCtrlPxd) trkMb.push_back(m_mbCtrlPxd);
+      if (m_mbFwdPxd)  trkMb.push_back(m_mbFwdPxd);
+      if (m_mbCtrlStd) trkMb.push_back(m_mbCtrlStd);
+      if (m_mbFwdStd)  trkMb.push_back(m_mbFwdStd);
+      m_trackerAnalyzer.analyzeTaggedTracking(trkMb, mainConfigHandler::instance().getMomenta(), nTracks);
 
+      trkMb.clear();
       stopTaskClock();
       return true;
     } else {
@@ -687,29 +613,18 @@ namespace insur {
    */
   bool Squid::reportGeometrySite() {
 
-    if (pxd_ || std_) {
-
-      startTaskClock("Creating geometry report");
-      if (pxd_) vizard_.geometrySummary(pixelAnalyzer_, *pxd_, *simParms_, pxdPasive_, webSite_,"INNER");
-      if (std_) vizard_.geometrySummary(stripAnalyzer_, *std_, *simParms_, stdPasive_, webSite_,"OUTER");
-      stopTaskClock();
-      return true;
-    } else {
-
-      std::string message = std::string("Squid::reportGeometrySite(): ")+err_no_tracker;
-      logERROR(message);
-      return false;
-    }
+    // Report geometry layout
+    return m_geomAnalyzer->visualize(m_webSite);
   }
 
   bool Squid::reportBandwidthSite() {
-    if (std_) {
+    if (m_ctrlStd) {
       startTaskClock("Computing bandwidth and rates");
-      stripAnalyzer_.computeBandwidth(*std_);
-      stripAnalyzer_.computeTriggerFrequency(*std_);
+      m_stripAnalyzer.computeBandwidth(*m_ctrlStd);
+      m_stripAnalyzer.computeTriggerFrequency(*m_ctrlStd);
       stopTaskClock();
       startTaskClock("Creating bandwidth and rates report");
-      vizard_.bandwidthSummary(stripAnalyzer_, *std_, *simParms_, webSite_);
+      m_vizard.bandwidthSummary(m_stripAnalyzer, *m_ctrlStd, m_webSite);
       stopTaskClock();
       return true;
     } else {
@@ -719,10 +634,10 @@ namespace insur {
   }
 
   bool Squid::reportTriggerProcessorsSite() {
-    if (std_) {
+    if (m_ctrlStd) {
       startTaskClock("Computing multiple trigger tower connections");
-      stripAnalyzer_.computeTriggerProcessorsBandwidth(*std_);
-      vizard_.triggerProcessorsSummary(stripAnalyzer_, *std_, webSite_);
+      m_stripAnalyzer.computeTriggerProcessorsBandwidth(*m_ctrlStd);
+      m_vizard.triggerProcessorsSummary(m_stripAnalyzer, *m_ctrlStd, m_webSite);
       stopTaskClock();
       return true;
     } else {
@@ -736,58 +651,58 @@ namespace insur {
    *  - photons map
    */
   bool Squid::reportOccupancySite() {
-    if (trackers_.size()!=0) {
-      if (simParms_->chargedMapFile()!="" && simParms_->photonsMapFile()!="") {
+    if (m_trackers.size()!=0) {
+      if (SimParms::getInstance()->chargedMapFile()!="" && SimParms::getInstance()->photonsMapFile()!="") {
 
         std::ostringstream message;
         startTaskClock("Computing occupancy");
 
         // Create occupancy analyzer & analyzer data
-        std::string chargedMapFile          = mainConfig_.getIrradiationDirectory() + "/" + simParms_->chargedMapFile();
-        std::string chargedMapLowThFile     = simParms_->chargedMapLowThFile();
-        std::string chargedMapBOffMatOnFile = simParms_->chargedMapBOffMatOnFile();
-        std::string chargedMapBOnMatOffFile = simParms_->chargedMapBOnMatOffFile();
-        std::string chargedMapBOffMatOffFile= simParms_->chargedMapBOffMatOffFile();
-        std::string chargedMapBOffTrkOffFile= simParms_->chargedMapBOffTrkOffFile();
-        std::string photonsMapFile          = mainConfig_.getIrradiationDirectory() + "/" + simParms_->photonsMapFile();
-        std::string photonsMapLowThFile     = simParms_->photonsMapLowThFile();
-        std::string photonsMapBOffMatOnFile = simParms_->photonsMapBOffMatOnFile();
-        std::string photonsMapBOnMatOffFile = simParms_->photonsMapBOnMatOffFile();
-        std::string photonsMapBOffMatOffFile= simParms_->photonsMapBOffMatOffFile();
-        std::string photonsMapBOffTrkOffFile= simParms_->photonsMapBOffTrkOffFile();
+        std::string chargedMapFile          = mainConfigHandler::instance().getIrradiationDirectory() + "/" + SimParms::getInstance()->chargedMapFile();
+        std::string chargedMapLowThFile     = SimParms::getInstance()->chargedMapLowThFile();
+        std::string chargedMapBOffMatOnFile = SimParms::getInstance()->chargedMapBOffMatOnFile();
+        std::string chargedMapBOnMatOffFile = SimParms::getInstance()->chargedMapBOnMatOffFile();
+        std::string chargedMapBOffMatOffFile= SimParms::getInstance()->chargedMapBOffMatOffFile();
+        std::string chargedMapBOffTrkOffFile= SimParms::getInstance()->chargedMapBOffTrkOffFile();
+        std::string photonsMapFile          = mainConfigHandler::instance().getIrradiationDirectory() + "/" + SimParms::getInstance()->photonsMapFile();
+        std::string photonsMapLowThFile     = SimParms::getInstance()->photonsMapLowThFile();
+        std::string photonsMapBOffMatOnFile = SimParms::getInstance()->photonsMapBOffMatOnFile();
+        std::string photonsMapBOnMatOffFile = SimParms::getInstance()->photonsMapBOnMatOffFile();
+        std::string photonsMapBOffMatOffFile= SimParms::getInstance()->photonsMapBOffMatOffFile();
+        std::string photonsMapBOffTrkOffFile= SimParms::getInstance()->photonsMapBOffTrkOffFile();
 
-        std::string bFieldMapFile           = simParms_->bFieldMapFile();
+        std::string bFieldMapFile           = SimParms::getInstance()->bFieldMapFile();
 
-        AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, trackers_);
+        AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, m_trackers);
 
         // File existence is tested within the Analyzer class
-        if (!analyzerOccupancy.readMagFieldMap(mainConfig_.getIrradiationDirectory(), bFieldMapFile)) {
+        if (!analyzerOccupancy.readMagFieldMap(mainConfigHandler::instance().getIrradiationDirectory(), bFieldMapFile)) {
           logINFO("Couldn't read the mag. field map!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+bFieldMapFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+bFieldMapFile));
         }
-        if (!analyzerOccupancy.readNoMagFieldIrradMap(mainConfig_.getIrradiationDirectory(),chargedMapBOffMatOnFile, photonsMapBOffMatOnFile)) {
+        if (!analyzerOccupancy.readNoMagFieldIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOffMatOnFile, photonsMapBOffMatOnFile)) {
           logINFO("Couldn't read the irradiation map with no mag. field!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffMatOnFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffMatOnFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOnFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOnFile));
         }
-        if (!analyzerOccupancy.readNoMaterialIrradMap(mainConfig_.getIrradiationDirectory(),chargedMapBOnMatOffFile, photonsMapBOnMatOffFile)) {
+        if (!analyzerOccupancy.readNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOnMatOffFile, photonsMapBOnMatOffFile)) {
           logINFO("Couldn't read the irradiation map with no material!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOnMatOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOnMatOffFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOnMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOnMatOffFile));
         }
-        if (!analyzerOccupancy.readNoMagFieldNoMaterialIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapBOffMatOffFile, photonsMapBOffMatOffFile)) {
+        if (!analyzerOccupancy.readNoMagFieldNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffMatOffFile, photonsMapBOffMatOffFile)) {
           logINFO("Couldn't read the irradiation map with no mag. field & no material!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffMatOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffMatOffFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOffFile));
         }
-        if (!analyzerOccupancy.readNoMagFieldNoTrackerIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapBOffTrkOffFile, photonsMapBOffTrkOffFile)) {
+        if (!analyzerOccupancy.readNoMagFieldNoTrackerIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffTrkOffFile, photonsMapBOffTrkOffFile)) {
           logINFO("Couldn't read the irradiation map with no mag. field & no tracker material!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapBOffTrkOffFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapBOffTrkOffFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffTrkOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffTrkOffFile));
         }
-        if (!analyzerOccupancy.readLowThresholdIrradMap(mainConfig_.getIrradiationDirectory(), chargedMapLowThFile, photonsMapLowThFile)) {
+        if (!analyzerOccupancy.readLowThresholdIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapLowThFile, photonsMapLowThFile)) {
           logINFO("Couldn't read the irradiation map with low thresholds set!");
-          logINFO(std::string(mainConfig_.getIrradiationDirectory()+"/"+chargedMapLowThFile+ " or "+mainConfig_.getIrradiationDirectory()+"/"+photonsMapLowThFile));
+          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapLowThFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapLowThFile));
         }
 
         bool outCalc = analyzerOccupancy.analyze();
-        bool outVis  = analyzerOccupancy.visualize(webSite_, simParms_);
+        bool outVis  = analyzerOccupancy.visualize(m_webSite);
 
         stopTaskClock();
         if (outCalc && outVis) return true;
@@ -808,12 +723,12 @@ namespace insur {
   }
 
   bool Squid::reportPowerSite() {
-    if (std_) {
+    if (m_ctrlStd) {
       startTaskClock("Computing dissipated power");
-      stripAnalyzer_.analyzePower(*std_);
+      m_stripAnalyzer.analyzePower(*m_ctrlStd);
       stopTaskClock();
       startTaskClock("Creating power report");
-      vizard_.irradiatedPowerSummary(stripAnalyzer_, *std_, webSite_);
+      m_vizard.irradiatedPowerSummary(m_stripAnalyzer, *m_ctrlStd, m_webSite);
       stopTaskClock();
       return true;
     } else {
@@ -828,16 +743,49 @@ namespace insur {
    */
   bool Squid::reportMaterialBudgetSite(bool debugServices) {
 
-    if (stdMb_ || pxdMb_) {
+    if (m_mbCtrlStd || m_mbCtrlPxd) {
 
       startTaskClock("Creating material budget report");
-      if (pxdMb_)           vizard_.materialSummary(pixelAnalyzer_  , *pxdMb_, debugServices, webSite_, "INNER");
-      if (stdMb_)           vizard_.materialSummary(stripAnalyzer_  , *stdMb_, debugServices, webSite_, "OUTER");
-      if (pxdMb_ && stdMb_) vizard_.materialSummary(trackerAnalyzer_, *stdMb_, debugServices, webSite_, "TRK");
-      //if (pxdMb_) vizard_.weigthSummart(pixelAnalyzer_, weightDistributionPixel  , webSite_, "INNER");
-      //if (stdMb_) vizard_.weigthSummart(stripAnalyzer_, weightDistributionTracker, webSite_, "OUTER");
+      std::vector<MaterialBudget*> materialBudgets;
 
+      if (m_mbCtrlPxd) {
 
+        materialBudgets.clear();
+        materialBudgets.push_back(m_mbCtrlPxd);
+        m_vizard.materialSummary(m_pixelAnalyzer, materialBudgets, false, m_webSite, "INNER");
+      }
+      if (m_mbCtrlStd) {
+
+        materialBudgets.clear();
+        materialBudgets.push_back(m_mbCtrlStd);
+        m_vizard.materialSummary(m_stripAnalyzer, materialBudgets, false, m_webSite, "OUTER");
+      }
+      if (m_mbFwdStd) { //(m_mbFwdPxd || m_mbFwdStd) {
+
+        materialBudgets.clear();
+        //if (m_mbFwdPxd) materialBudgets.push_back(m_mbFwdPxd);
+        if (m_mbFwdStd) materialBudgets.push_back(m_mbFwdStd);
+        m_vizard.materialSummary(m_fwdAnalyzer, materialBudgets, false, m_webSite, "FWD");
+      }
+      if (m_mbFwdPxd) {
+
+        materialBudgets.clear();
+        if (m_mbFwdPxd) materialBudgets.push_back(m_mbFwdPxd);
+        m_vizard.materialSummary(m_fwdPxdAnalyzer, materialBudgets, false, m_webSite, "FWDIN");
+      }
+      if (m_mbCtrlPxd || m_mbFwdPxd || m_mbCtrlStd || m_mbFwdStd) {
+
+        materialBudgets.clear();
+        if (m_mbCtrlPxd) materialBudgets.push_back(m_mbCtrlPxd);
+        if (m_mbFwdPxd)  materialBudgets.push_back(m_mbFwdPxd);
+        if (m_mbCtrlStd) materialBudgets.push_back(m_mbCtrlStd);
+        if (m_mbFwdStd)  materialBudgets.push_back(m_mbFwdStd);
+        m_vizard.materialSummary(m_trackerAnalyzer, materialBudgets, debugServices, m_webSite, "TRK");
+      }
+      //if (m_mbCtrlPxd) m_vizard.weigthSummart(m_pixelAnalyzer, weightDistributionPixel  , m_webSite, "INNER");
+      //if (m_mbCtrlStd) m_vizard.weigthSummart(m_stripAnalyzer, weightDistributionTracker, m_webSite, "OUTER");
+
+      materialBudgets.clear();
       stopTaskClock();
       return true;
     }
@@ -853,10 +801,10 @@ namespace insur {
    */
   bool Squid::reportResolutionSite() {
 
-    if (std_ || pxd_) {
+    if (m_ctrlStd || m_ctrlPxd) {
 
       startTaskClock("Creating resolution report");
-      vizard_.taggedErrorSummary(trackerAnalyzer_, webSite_);
+      m_vizard.taggedErrorSummary(m_trackerAnalyzer, m_webSite);
       stopTaskClock();
       return true;
     }
@@ -875,7 +823,7 @@ namespace insur {
    */
   bool Squid::reportTriggerPerformanceSite(bool extended) {
     startTaskClock("Creating trigger summary report");
-    if (vizard_.triggerSummary(stripAnalyzer_, *std_, webSite_, extended)) {
+    if (m_vizard.triggerSummary(m_stripAnalyzer, *m_ctrlStd, m_webSite, extended)) {
       stopTaskClock();
       return true;
     } else {
@@ -889,11 +837,11 @@ namespace insur {
     bool outputOK = false;
 
     // Report PXD & STD separately
-    if (pxd_) {
-      if (vizard_.neighbourGraphSummary(*pxdPasive_, webSite_, "INNER")) outputOK = true;
+    if (m_ctrlPxd) {
+      if (m_vizard.neighbourGraphSummary(*m_pasiveCtrlPxd, m_webSite, "INNER")) outputOK = true;
     }
-    if (std_) {
-      if (vizard_.neighbourGraphSummary(*stdPasive_, webSite_, "OUTER")) outputOK = true;
+    if (m_ctrlStd) {
+      if (m_vizard.neighbourGraphSummary(*m_pasiveCtrlStd, m_webSite, "OUTER")) outputOK = true;
     }
 
     // Return
@@ -908,12 +856,11 @@ namespace insur {
    */
   bool Squid::reportInfoSite() {
 
-    if (trackers_.size()!=0) {
+    if (m_trackers.size()!=0) {
 
       startTaskClock("Creating additional info report");
 
-      vizard_.additionalInfoSite(includeSet_, getSettingsFile(),
-                             pixelAnalyzer_, stripAnalyzer_, trackers_, *simParms_, webSite_);
+      //m_vizard.additionalInfoSite(m_includeSet, getSettingsFile(), m_pixelAnalyzer, m_stripAnalyzer, m_fwdAnalyzer, m_trackers, m_webSite);
       stopTaskClock();
       return true;
     }
@@ -926,49 +873,49 @@ namespace insur {
   }
 
   void Squid::setBasename(std::string newBasename) {
-    baseName_ = newBasename;
+    m_baseName = newBasename;
   }    
 
   void Squid::setGeometryFile(std::string geomFile) {
 
-    myGeometryFile_ = geomFile;
+    m_myGeometryFile = geomFile;
     size_t pos = geomFile.find_last_of('.');
     if (pos != string::npos) { geomFile.erase(pos); }
-    baseName_ = geomFile;
+    m_baseName = geomFile;
 
     // Set layout output htmlDir if not set explicite
-    if (htmlDir_=="") {
+    if (m_htmlDir=="") {
 
-      htmlDir_ = baseName_;
-      pos = htmlDir_.find_last_of('/');
-      if (pos != string::npos) { htmlDir_.erase(pos); }
-      htmlDir_+="/"+insur::default_htmldir;
+      m_htmlDir = m_baseName;
+      pos = m_htmlDir.find_last_of('/');
+      if (pos != string::npos) { m_htmlDir.erase(pos); }
+      m_htmlDir+="/"+insur::default_htmldir;
     }
 
     // Set layout name according to geometry config file
     std::vector<std::string> info;
     boost::algorithm::split(info, geomFile, boost::algorithm::is_any_of("/"));
-    if (info.size()!=0) layoutName_ = info[info.size()-1];
-    else                layoutName_ = "";
+    if (info.size()!=0) m_layoutName = info[info.size()-1];
+    else                m_layoutName = "";
   }
 
   void Squid::setHtmlDir(std::string htmlDir) {
-    htmlDir_ = htmlDir;
+    m_htmlDir = htmlDir;
   }
 
 
   std::string Squid::getGeometryFile() { 
-    if (myGeometryFile_ == "") {
-      myGeometryFile_ = baseName_ + suffix_geometry_file;
+    if (m_myGeometryFile == "") {
+      m_myGeometryFile = m_baseName + suffix_geometry_file;
     }
-    return myGeometryFile_;
+    return m_myGeometryFile;
   }
 
   std::string Squid::getSettingsFile() { 
-    if (mySettingsFile_ == "") {
-      mySettingsFile_ = baseName_ + suffix_types_file;
+    if (m_mySettingsFile == "") {
+      m_mySettingsFile = m_baseName + suffix_types_file;
     }
-    return mySettingsFile_;
+    return m_mySettingsFile;
   }
 
   void Squid::simulateTracks(const po::variables_map& varmap, int seed) { // CUIDADO not ported to coderev -- yet?
@@ -994,7 +941,7 @@ namespace insur {
     if (argc <= 1) return;
     std::string cmdLine(argv[1]);
     g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
-    vizard_.setCommandLine(cmdLine);
+    m_vizard.setCommandLine(cmdLine);
   }
 
 } // Namespace

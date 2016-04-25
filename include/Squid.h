@@ -3,6 +3,7 @@
 // Author: ndemaio
 //
 // Created on May 29, 2009, 12:09 PM
+// Rearranged in 2016 for FCC-hh project by Z. Drasal (CERN)
 //
 
 /**
@@ -35,6 +36,8 @@
 #include <Support.h>
 #include "Materialway.h"
 #include "WeightDistributionGrid.h"
+
+class AnalyzerGeometry;
 
 using material::Materialway;
 using material::WeightDistributionGrid;
@@ -78,20 +81,22 @@ namespace insur {
     Squid();
     virtual ~Squid();
 
-    bool buildTracker();
-    //bool dressTracker();
-    //bool buildTrackerSystem();
-    //bool irradiateTracker();
-    //bool buildInactiveSurfaces(bool verbose = false);
-    bool buildMaterials(bool verbose = false);
+    // Build a bare-bones geometry of active tracker, i.e. active modules
+    bool buildActiveTracker();
+    // Build all pasive components (inactive surfaces) of active tracker
+    bool buildPasiveTracker(bool verbose = false);
+
     bool createMaterialBudget(bool verbose = false);
-    //bool buildFullSystem(bool usher_verbose = false, bool mat_verbose = false);
     bool analyzeNeighbours(std::string graphout = "");
     bool translateFullSystemToXML(std::string xmlout = "");
 
     // Functions using rootweb
-    bool analyzeTriggerEfficiency(int tracks, bool detailed);
-    bool pureAnalyzeGeometry(int tracks);
+    //bool analyzeTriggerEfficiency(int tracks, bool detailed);
+
+    // Check that tracker exists & analyze its layout geometry (no output through rootweb)
+    bool analyzeGeometry(int tracks);
+
+
     bool pureAnalyzeMaterialBudget(int tracks);
     bool pureAnalyzeResolution(int tracks);
     bool reportGeometrySite();
@@ -109,73 +114,83 @@ namespace insur {
     void setGeometryFile(std::string geomFile);
     void setHtmlDir(std::string htmlDir);
 
+    // Other
     void simulateTracks(const po::variables_map& varmap, int seed);
     void setCommandLine(int argc, char* argv[]);
 
   private:
 
-    //Beampipe * bp;
-    Tracker  * pxd_;
-    Tracker  * std_;
-    Tracker  * fwdpxd_;
-    Tracker  * fwdstd_;
+    // Trackers
+    Tracker* m_ctrlPxd;
+    Tracker* m_ctrlStd;
+    Tracker* m_fwdPxd;
+    Tracker* m_fwdStd;
 
-    std::vector<Tracker*> trackers_;
+    std::vector<Tracker*> m_trackers;
 
+    // Inactive surfaces
+    InactiveSurfaces* m_pasiveCtrlPxd;
+    InactiveSurfaces* m_pasiveFwdPxd;
+    InactiveSurfaces* m_pasiveCtrlStd;
+    InactiveSurfaces* m_pasiveFwdStd;
 
-    InactiveSurfaces* pxdPasive_;
-    InactiveSurfaces* stdPasive_;
+    WeightDistributionGrid m_weightDistCtrlPxd;
+    WeightDistributionGrid m_weightDistFwdPxd;
+    WeightDistributionGrid m_weightDistCtrlStd;
+    WeightDistributionGrid m_weightDistFwdStd;
 
-    std::list<Support*> supports_;
+    // Support structures
+    std::list<Support*> m_supports;
 
-    MaterialBudget * bpMb_;
-    MaterialBudget * pxdMb_;
-    MaterialBudget * stdMb_;
-    MaterialBudget * fwdpxdMb_;
-    MaterialBudget * fwdstdMb_;
+    // Material budget containers
+    MaterialBudget* m_mbBP;
+    MaterialBudget* m_mbCtrlPxd;
+    MaterialBudget* m_mbFwdPxd;
+    MaterialBudget* m_mbCtrlStd;
+    MaterialBudget* m_mbFwdStd;
 
-    SimParms * simParms_;
+    // Tracker analyzers
+    Analyzer m_pixelAnalyzer;
+    Analyzer m_stripAnalyzer;
+    Analyzer m_fwdPxdAnalyzer;
+    Analyzer m_fwdAnalyzer;
+    Analyzer m_trackerAnalyzer;
 
-    Analyzer pixelAnalyzer_;
-    Analyzer stripAnalyzer_;
-    Analyzer trackerAnalyzer_;
+    // Geometry layout analyzer
+    AnalyzerGeometry* m_geomAnalyzer;
 
-    MatCalc pixelMaterialCalc_;
-    MatCalc stripMaterialCalc_;
+    // Visualization manager
+    Vizard m_vizard;
+    void   resetVizard();
 
-    MatParser          matParser_;
-    Vizard             vizard_;
-    mainConfigHandler& mainConfig_; // Instance of main configuration paramaters
-
-    RootWSite webSite_; // General web container
+    // Website container
+    RootWSite m_webSite;        // General web container
     bool      prepareWebSite();
-    bool      sitePrepared_;
+    bool      m_sitePrepared;
 
     Usher u;
 
+    // Transform tkLayout geometry to CMSSW
     tk2CMSSW t2c;
-    bool fileExists(std::string filename);
+
+    // File operations
+    bool        fileExists(std::string filename);
     std::string extractFileName(const std::string& full);
-    Squid(const Squid& s);
-    Squid& operator=(const Squid& s);
-    void resetVizard();
-    std::string baseName_;
-    std::string htmlDir_;
-    std::string layoutName_;
+
+    // tkLayout configuration & path variables
+    std::string m_baseName;
+    std::string m_htmlDir;
+    std::string m_layoutName;
+    std::string m_myGeometryFile;
+    std::string m_mySettingsFile;
+
     std::string getGeometryFile();
     std::string getSettingsFile();
     std::string getMaterialFile();
     std::string getPixelMaterialFile();
-    std::string myGeometryFile_;
-    std::string mySettingsFile_;
-    std::string myMaterialFile_;
-    std::string myPixelMaterialFile_;
-    std::set<std::string> includeSet_; // list of configuration files
-    bool defaultMaterialFile;
-    bool defaultPixelMaterialFile;
 
-    WeightDistributionGrid weightDistributionTracker;
-    WeightDistributionGrid weightDistributionPixel;
+    std::set<std::string> m_includeSet; // list of configuration files
+
   };
 }
 #endif	/* _SQUID_H */

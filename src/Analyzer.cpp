@@ -8,7 +8,7 @@
 #include <TProfile.h>
 #include <TLegend.h>
 #include <Palette.h>
-
+#include <SimParms.h>
 #include "AnalyzerVisitors/MaterialBillAnalyzer.h"
 
 #undef MATERIAL_SHADOW
@@ -68,7 +68,6 @@ namespace insur {
     geomLiteEC         = nullptr; geomLiteECCreated=false;
     geometryTracksUsed = 0;
     materialTracksUsed = 0;
-    simParms_          = nullptr;
   }
 
 
@@ -90,14 +89,20 @@ namespace insur {
     Material totalMaterial;
     //      active volumes, barrel
     totalMaterial  = findHitsModules(mb->getBarrelModuleCaps(), eta, theta, phi, track, isPixelType);
+    //std::cout << ">MB>> " << totalMaterial.radiation << std::endl;
     //      active volumes, endcap
     totalMaterial += findHitsModules(mb->getEndcapModuleCaps(), eta, theta, phi, track, isPixelType);
+    //std::cout << ">ME>> " << totalMaterial.radiation << std::endl;
     //      services, barrel
     totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getBarrelServices(), eta, theta, track, isPixelType);
+    //std::cout << ">MIB>> " << totalMaterial.radiation << std::endl;
     //      services, endcap
     totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getEndcapServices(), eta, theta, track, isPixelType);
+    //std::cout << ">MEB>> " << totalMaterial.radiation << std::endl;
     //      supports
     totalMaterial += findHitsInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, isPixelType);
+    //std::cout << ">MS>> " << totalMaterial.radiation << std::endl;
+    //std::cout << std::endl;
 
     return totalMaterial;
   }
@@ -132,7 +137,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
   
   // Initialize
   materialTracksUsed = nTracks;
-  double efficiency  = simParms().efficiency();
+  double efficiency  = SimParms::getInstance()->efficiency();
 
   // Prepare etaStep
   if (nTracks > 1) etaStep = getEtaMaxTracker() / (double)(nTracks); // / (double)(nTracks - 1);
@@ -144,6 +149,9 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
   std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMap;
   std::map<std::string, TrackCollectionMap> taggedTrackPCollectionMapIdeal;
   
+  // Tracks pruned
+  bool isPruned = false;
+
   for (int i_eta = 0; i_eta < nTracks; i_eta++) {
     
     // Define track
@@ -155,7 +163,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
 
     track.setTheta(theta);      
     track.setPhi(phi);
-    track.setMagField(simParms_->magneticField());
+    track.setMagField(SimParms::getInstance()->magneticField());
 
     // Go through all material budget contributors (pixel tracker, strip tracker, ...)
     Material tmpMat;
@@ -167,10 +175,10 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
       // TODO: BeamPipe --> needs to be finished,  Add the hit on the beam pipe - CURRENT WORKAROUND
       if (mb==*(mbVector.begin())) {
 
-        double outerRadius = simParms_->bpRadius()+simParms_->bpThickness();
-        double position    = (simParms_->bpRadius()+simParms_->bpThickness())/2.;
-        double radLength   = simParms_->bpRadLength()/100.;
-        double intLength   = simParms_->bpIntLength()/100.;
+        double outerRadius = SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness();
+        double position    = SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness()/2.;
+        double radLength   = SimParms::getInstance()->bpRadLength()/100.;
+        double intLength   = SimParms::getInstance()->bpIntLength()/100.;
         //double minRTracker = mb->getTracker().minR();
 
         //if (outerRadius>=minRTracker) {
@@ -213,7 +221,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
         track.keepTaggedOnly(tag);
 
         // Add IP constraint
-        if (simParms().useIPConstraint()) track.addIPConstraint(simParms().rError(), simParms().zErrorCollider());
+        if (SimParms::getInstance()->useIPConstraint()) track.addIPConstraint(SimParms::getInstance()->rError(), SimParms::getInstance()->zErrorCollider());
         track.sort();
         //track.print();
 
@@ -234,7 +242,9 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
           trackPt.setTransverseMomentum(pT);
 
           // Remove tracks with less than 3 hits
-          trackPt.pruneHits();
+          bool pruned = trackPt.pruneHits();
+          if (pruned) isPruned = true;
+
           if (trackPt.nActiveHits(true)>2) {
             trackPt.computeErrors();
             TrackCollectionMap &myMap     = taggedTrackPtCollectionMap[tag];
@@ -260,7 +270,9 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
           trackP.setTransverseMomentum(pT);
 
           // Remove tracks with less than 3 hits
-          trackP.pruneHits();
+          pruned = trackP.pruneHits();
+          if (pruned) isPruned = true;
+
           if (trackP.nActiveHits(true)>2) {
             trackP.computeErrors();
             TrackCollectionMap &myMapII     = taggedTrackPCollectionMap[tag];
@@ -282,6 +294,13 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
     }
   }
   
+  // Log pruning procedure -> no result mode might occur if starting momenta wrongly set
+  if (isPruned) {
+
+    std::string message = std::string("Resolution - some tracks pruned! Hits that don't follow the parabolic approximation removed. Check momenta if no result appears!");
+    logWARNING(message);
+  }
+
   // Momentum = Pt
   //
   // For each tracking system compute the resolution graphs // TODO: consts here
@@ -347,12 +366,12 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
                                           const std::vector<double>& thresholdProbabilities,
                                           int nTracks) {
 
-    double efficiency = simParms().efficiency();
+    double efficiency = SimParms::getInstance()->efficiency();
 
     materialTracksUsed = nTracks;
 
     double etaStep, z0, eta, theta, phi;
-    double zError = simParms().zErrorCollider();
+    double zError = SimParms::getInstance()->zErrorCollider();
 
     // prepare etaStep, phiStep, nTracks, nScans
     if (nTracks > 1) etaStep = getEtaMaxTracker() / (double)(nTracks);
@@ -373,7 +392,7 @@ void Analyzer::analyzeTaggedTracking(std::vector<MaterialBudget*> mbVector, cons
       theta = 2 * atan(exp(-eta));
       track.setTheta(theta);      
       track.setPhi(phi);
-      track.setMagField(simParms_->magneticField());
+      track.setMagField(SimParms::getInstance()->magneticField());
 
       nHits = findHitsModules(tracker, z0, eta, theta, phi, track);
 
@@ -427,7 +446,7 @@ void Analyzer::fillAvailableSpacing(Tracker& tracker, std::vector<double>& spaci
 void Analyzer::createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta) {
   TriggerDistanceTuningPlotsVisitor v(myProfileBag, 
                                       triggerMomenta);
-  simParms_->accept(v);
+  SimParms::getInstance()->accept(v);
   tracker.accept(v);
   v.postVisit();
   optimalSpacingDistribution = v.optimalSpacingDistribution;
@@ -496,7 +515,7 @@ void Analyzer::fillTriggerEfficiencyGraphs(const Tracker& tracker,
              curAvgFake += pterr.getTriggerFrequencyTruePerEventBelow(*itMomentum);
              // ... plus the combinatorial background from occupancy (can be reduced using ptPS modules)
              if (hitModule->reduceCombinatorialBackground()) bgReductionFactor = hitModule->geometricEfficiency(); else bgReductionFactor=1;
-             curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*simParms().numMinBiasEvents() * bgReductionFactor;
+             curAvgFake += pterr.getTriggerFrequencyFakePerEvent()*SimParms::getInstance()->numMinBiasEvents() * bgReductionFactor;
 
              std::string layerName = hitModule->uniRef().cnt + "_" + any2str(hitModule->uniRef().layer);
              if (modAndType.second == HitType::STUB) {
@@ -558,14 +577,14 @@ void Analyzer::analyzeMaterialBudget(std::vector<MaterialBudget*> mbVector, int 
     theta = 2 * atan(exp(-eta));
     track.setTheta(theta);
     track.setPhi(phi);
-    track.setMagField(simParms_->magneticField());
+    track.setMagField(SimParms::getInstance()->magneticField());
 
     // Go through all material budget contributors (pixel tracker, strip tracker, ...)
     for (auto & mb : mbVector) {
 
       Tracker& tracker       = mb->getTracker();
-      double stripEfficiency = simParms().efficiency();
-      double pixelEfficiency = simParms().pixelEfficiency();
+      double stripEfficiency = SimParms::getInstance()->efficiency();
+      double pixelEfficiency = SimParms::getInstance()->pixelEfficiency();
       bool   isPixelType     = tracker.isPixelType();
 
       //
@@ -722,10 +741,10 @@ void Analyzer::analyzeMaterialBudget(std::vector<MaterialBudget*> mbVector, int 
       //tmp = analyzeInactiveSurfaces(mb->getInactiveSurfaces().getSupports(), eta, theta, track, MaterialProperties::beam_pipe);
       if (mb==*(mbVector.begin())) {
 
-        double outerRadius = simParms_->bpRadius()+simParms_->bpThickness();
-        double position    = (simParms_->bpRadius()+simParms_->bpThickness())/2.;
-        double radLength   = simParms_->bpRadLength()/100.;
-        double intLength   = simParms_->bpIntLength()/100.;
+        double outerRadius = SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness();
+        double position    = SimParms::getInstance()->bpRadius()+SimParms::getInstance()->bpThickness()/2.;
+        double radLength   = SimParms::getInstance()->bpRadLength()/100.;
+        double intLength   = SimParms::getInstance()->bpIntLength()/100.;
         //double minRTracker = mb->getTracker().minR();
 
         //if (outerRadius>=minRTracker) {
@@ -845,7 +864,7 @@ void Analyzer::analyzePower(Tracker& tracker) {
 
 void Analyzer::computeTriggerFrequency(Tracker& tracker) {
   TriggerFrequencyVisitor v; 
-  simParms_->accept(v);
+  SimParms::getInstance()->accept(v);
   tracker.accept(v);
 
   triggerFrequencyTrueSummaries_ = v.triggerFrequencyTrueSummaries;
@@ -868,7 +887,7 @@ void Analyzer::computeTriggerFrequency(Tracker& tracker) {
 void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
   TriggerProcessorBandwidthVisitor v(triggerDataBandwidths_, triggerFrequenciesPerEvent_);
   v.preVisit();
-  simParms_->accept(v);
+  SimParms::getInstance()->accept(v);
   tracker.accept(v);
   v.postVisit();
 
@@ -887,7 +906,7 @@ void Analyzer::computeTriggerProcessorsBandwidth(Tracker& tracker) {
 
 void Analyzer::computeIrradiatedPowerConsumption(Tracker& tracker) {
   IrradiationPowerVisitor v;
-  simParms_->accept(v);
+  SimParms::getInstance()->accept(v);
   tracker.accept(v);
 
   irradiatedPowerConsumptionSummaries_ = v.irradiatedPowerConsumptionSummaries;
@@ -1358,11 +1377,13 @@ Material Analyzer::findHitsModuleLayer(std::vector<ModuleCap>& layer,
           tmp.interaction = iter->getInteractionLength();
           // radiation and interaction length scaling for barrels
           if (iter->getModule().subdet() == BARREL) {
+            //std::cout << ">B>> " << tmp.radiation << " " << cos(theta) << std::endl;
             tmp.radiation = tmp.radiation / sin(theta);
             tmp.interaction = tmp.interaction / sin(theta);
           }
           // radiation and interaction length scaling for endcaps
           else {
+            //std::cout << ">E>> " << tmp.radiation << " " << cos(theta) << std::endl;
             tmp.radiation = tmp.radiation / cos(theta);
             tmp.interaction = tmp.interaction / cos(theta);
           }
@@ -1719,7 +1740,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
 
   // Prepare plot for const pt across eta
   double momentum = double(parameter)/1000.;
-  double magField = simParms_->magneticField();
+  double magField = SimParms::getInstance()->magneticField();
 
   // Prepare plots: pt
   thisRhoGraph_Pt.SetTitle("p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
@@ -1749,16 +1770,16 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
   // Add analytical resolution in dipole region
   TGraph* thisPGraphDipole_Pt = nullptr;
   TGraph* thisPGraphTotal_Pt  = nullptr;
-  if (simParms_->dipoleMagneticField()!=0.0 && graphAttributes==GraphBag::RealGraph) {
+  if (SimParms::getInstance()->dipoleMagneticField()!=0.0 && graphAttributes==GraphBag::RealGraph) {
 
     thisPGraphDipole_Pt = &(graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraphDipole_Pt, parameter ) : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraphDipole_Pt, graphTag, parameter));
     thisPGraphTotal_Pt  = &(graphTag.empty() ? myGraphBag.getGraph(graphAttributes | GraphBag::PGraphTotal_Pt, parameter )  : myGraphBag.getTaggedGraph(graphAttributes | GraphBag::PGraphTotal_Pt, graphTag, parameter));
 
-    thisPGraphDipole_Pt->SetTitle("Dipole p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
+    thisPGraphDipole_Pt->SetTitle("Dipole p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
     aName.str(""); aName << "Dipole_pt_vs_eta" << momentum << graphTag;
     thisPGraphDipole_Pt->SetName(aName.str().c_str());
 
-    thisPGraphTotal_Pt->SetTitle("Total (Dipole+Central) p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p/p [%]");
+    thisPGraphTotal_Pt->SetTitle("Total (Dipole+Central) p_{T} resolution versus #eta - const P_{T} across #eta;#eta;#delta p_{T}/p_{T} [%]");
     aName.str(""); aName << "Total_pt_vs_eta" << momentum << graphTag;
     thisPGraphTotal_Pt->SetName(aName.str().c_str());
   }
@@ -1806,22 +1827,114 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       double centralValue = dp * 100.; // in percent
       thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, centralValue);
 
-      if (thisPGraphDipole_Pt) {
+      if (SimParms::getInstance()->dipoleMagneticField()!=0.0 && thisPGraphDipole_Pt) {
 
         // Dipole region value
         double momentum   = parameter/1000.; // internally in MeV -> convert
 
         // At 10TeV, let's require deltaPl/Pl resolution at 10TeV -> calculate dTheta deltaPl/Pl = Pl/0.3/(B.l) * dTheta
-        double deltaTheta = simParms_->dipoleDPlResAt10TeV()/10000*0.3*simParms_->dipoleMagneticField();
+        double deltaTheta = SimParms::getInstance()->dipoleDPlResAt10TeV()/10000*0.3*SimParms::getInstance()->dipoleMagneticField();
 
         // DeltaPt/Pt for multiple scattering
-        double deltaMS = 0.0136/0.3/simParms_->dipoleMagneticField()*sqrt(simParms_->dipoleXToX0());
+        double deltaMS = 0.0136/0.3/SimParms::getInstance()->dipoleMagneticField()*sqrt(SimParms::getInstance()->dipoleXToX0());
 
         // DeltaPt/Pt for tracking
-        double deltaTrack = deltaTheta/0.3/simParms_->dipoleMagneticField()*momentum*sinh(eta);
+        double deltaTrack = deltaTheta/0.3/SimParms::getInstance()->dipoleMagneticField()*momentum*sinh(eta);
 
+        // DeltaPt/Pt for cotg theta variance due to MS
+//        double matBudget[73] = {
+//        0.997153,
+//        0.891669,
+//        1.02299 ,
+//        1.17411 ,
+//        1.06964 ,
+//        1.0618  ,
+//        1.13002 ,
+//        1.2646  ,
+//        1.12848 ,
+//        1.29534 ,
+//        1.37321 ,
+//        1.14493 ,
+//        1.34557 ,
+//        1.2456  ,
+//        1.42435 ,
+//        1.56226 ,
+//        1.43541 ,
+//        0.902052,
+//        1.24526 ,
+//        0.998822,
+//        1.03633 ,
+//        1.24818 ,
+//        0.954545,
+//        1.04802 ,
+//        0.927624,
+//        1.12035 ,
+//        1.05374 ,
+//        0.95252 ,
+//        0.942077,
+//        0.820696,
+//        0.525223,
+//        0.587456,
+//        0.525377,
+//        0.566011,
+//        0.559251,
+//        0.603952,
+//        0.542715,
+//        0.547602,
+//        0.556393,
+//        0.558118,
+//        0.600371,
+//        0.580681,
+//        0.572266,
+//        0.611737,
+//        0.560034,
+//        0.596506,
+//        0.622353,
+//        0.549761,
+//        0.558072,
+//        0.574113,
+//        0.557646,
+//        0.54895 ,
+//        0.573662,
+//        0.543978,
+//        0.566047,
+//        0.577682,
+//        0.542319,
+//        0.536832,
+//        0.550271,
+//        0.549735,
+//        0.549892,
+//        0.565413,
+//        0.578039,
+//        0.565851,
+//        0.558163,
+//        0.576971,
+//        0.593044,
+//        0.591792,
+//        0.609854,
+//        0.632643,
+//        0.630939,
+//        0.667002,
+//        0.678685};
+//
+//        double currentMB = 0.0;
+//        double binWidth  = (6.000 - 2.496)/73;
+//        int    iBin      = (eta - 2.496)/binWidth;
+//        if (iBin>=0 && iBin<=72) currentMB = matBudget[iBin];
+//
+//        currentMB = 0.00286 + 2*0.03;
+//
+//        double deltaCTMS = 0.0136/momentum/cos(myTrack.getTheta())*sqrt(currentMB/sin(myTrack.getTheta()));
+//
+//        std::cout << "> " << deltaCTMS << " ";
+
+        double deltaCTMS = sin(myTrack.getTheta())/cos(myTrack.getTheta())*myTrack.getDeltaCtgTheta();
+
+        //std::cout << deltaCTMS << std::endl;
         // Dipole value
-        double dipoleValue = sqrt(deltaMS*deltaMS + deltaTrack*deltaTrack) * 100.;
+        double dipoleValue = sqrt(deltaMS*deltaMS + deltaTrack*deltaTrack + deltaCTMS*deltaCTMS) * 100.;
+
+        //std::cout << "Dipole calc --> Theta: " << myTrack.getTheta() << " DipoleValue:"  << sqrt(deltaMS*deltaMS + deltaTrack*deltaTrack)*100 << " CotgContrib: " << sqrt(deltaMS*deltaMS + deltaTrack*deltaTrack + deltaCTMS*deltaCTMS) * 100 << std::endl;
 
         // Final
         graphValue = dipoleValue;
@@ -1829,6 +1942,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
 
         // Beyond eta>=2.5 take advantage of both
         if (eta>=insur::geom_range_eta_regions[2]) graphValue = dipoleValue < centralValue ? dipoleValue : centralValue;
+        //if (eta>=insur::geom_range_eta_regions[2]) graphValue = dipoleValue;
         // Just central works
         else graphValue = centralValue;
 
@@ -1865,7 +1979,7 @@ void Analyzer::calculateGraphsConstP(const int& parameter,
 
   // Prepare plot for const pt across eta
   double momentum = double(parameter)/1000.;
-  double magField = simParms_->magneticField();
+  double magField = SimParms::getInstance()->magneticField();
 
   // Prepare plots: pt
   thisRhoGraph_P.SetTitle("p_{T} resolution versus #eta - const P across #eta;#eta;#delta p_{T}/p_{T} [%]");
@@ -2103,7 +2217,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 
     TriggerEfficiencyMapVisitor temv(myMap, myPt);
-    simParms_->accept(temv);
+    SimParms::getInstance()->accept(temv);
     tracker.accept(temv);
     temv.postVisit();
   }
@@ -2122,7 +2236,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
 
 
     PtThresholdMapVisitor ptmv(myMap, myEfficiency);
-    simParms_->accept(ptmv);
+    SimParms::getInstance()->accept(ptmv);
     tracker.accept(ptmv);
     ptmv.postVisit();
 
@@ -2139,7 +2253,7 @@ void Analyzer::fillTriggerPerformanceMaps(Tracker& tracker) {
   }
 
   SpacingCutVisitor scv(suggestedSpacingMap, suggestedSpacingMapAW, nominalCutMap, moduleOptimalSpacings);
-  simParms_->accept(scv);
+  SimParms::getInstance()->accept(scv);
   tracker.accept(scv);
   scv.postVisit();
 }
@@ -2157,7 +2271,7 @@ void Analyzer::fillPowerMap(Tracker& tracker) {
   }
 
   IrradiatedPowerMapVisitor v(irradiatedPowerConsumptionMap, totalPowerConsumptionMap);
-  simParms_->accept(v);
+  SimParms::getInstance()->accept(v);
   tracker.accept(v);
   v.postVisit();
 
@@ -2691,8 +2805,8 @@ int Analyzer::findCellIndexEta(double eta) {
 
 std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) const {
   std::pair <double, double> etaMinMax = t.computeMinMaxEta();
-  if (simParms().maxTracksEta.state()) etaMinMax.second = simParms().maxTracksEta();
-  if (simParms().minTracksEta.state()) etaMinMax.first  = simParms().minTracksEta();
+  if (SimParms::getInstance()->maxTracksEta.state()) etaMinMax.second = SimParms::getInstance()->maxTracksEta();
+  if (SimParms::getInstance()->minTracksEta.state()) etaMinMax.first  = SimParms::getInstance()->minTracksEta();
 
   // TODO: DIRTY HACK TO SET ETA
   etaMinMax.first  = -1*geom_max_eta_coverage;
@@ -2707,68 +2821,78 @@ std::pair<double, double> Analyzer::computeMinMaxTracksEta(const Tracker& t) con
  * @param tracker the tracker to be analyzed
  * @param nTracker the number of tracks to be used to analyze the coverage (defaults to 1000)
  */
-void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
+void Analyzer::analyzeGeometry(std::vector<Tracker*> trackers, int nTracks /*=1000*/ ) {
   
   geometryTracksUsed = nTracks;
   savingGeometryV.clear();
   clearGeometryHistograms();
 
-  // A bunch of pointers
-  std::map <std::string, int> moduleTypeCount; // counts hit per module type -- if any of the sensors (or both) are hit, it counts 1
-  std::map <std::string, int> sensorTypeCount; // counts hit per sensor on module type -- if one sensor is hit, it counts 1, if both sensors are hit, it counts 2
-  std::map <std::string, int> moduleTypeCountStubs; // counts stubs per module type -- if both sensors are hit and a stub is formed, it counts 1
+  // Initialize
+  std::map <std::string, int>      moduleTypeCount;      // counts hit per module type -- if any of the sensors (or both) are hit, it counts 1
+  std::map <std::string, int>      sensorTypeCount;      // counts hit per sensor on module type -- if one sensor is hit, it counts 1, if both sensors are hit, it counts 2
+  std::map <std::string, int>      moduleTypeCountStubs; // counts stubs per module type -- if both sensors are hit and a stub is formed, it counts 1
   std::map <std::string, TProfile> etaProfileByType;
   std::map <std::string, TProfile> etaProfileByTypeSensors;
   std::map <std::string, TProfile> etaProfileByTypeStubs;
-//  TH2D* aPlot;
   std::string aType;
 
-
-  double randomPercentMargin = 0.04;
   // Optimize the track creation on the real tracker
-  auto etaMinMax = computeMinMaxTracksEta(tracker);
+  double etaMin = std::numeric_limits<double>::max();
+  double etaMax = 0;
+
+  for (auto tracker : trackers) {
+
+    auto etaMinMax = computeMinMaxTracksEta(*tracker);
+    if (etaMinMax.first <etaMin) etaMin = etaMinMax.first;
+    if (etaMinMax.second>etaMax) etaMax = etaMinMax.second;
+  }
   // Computing the margin of the tracks to shoot
-  double randomSpan = (etaMinMax.second - etaMinMax.first)*(1. + randomPercentMargin);
-  double randomBase = etaMinMax.first - (etaMinMax.second - etaMinMax.first)*(randomPercentMargin)/2.;
-  double maxEta = etaMinMax.second *= (1 + randomPercentMargin);
+  double randomPercentMargin = 0.04;
+  double randomSpan = (etaMax - etaMin)*(1. + randomPercentMargin);
+  double randomBase = etaMin - (etaMax - etaMin)*(randomPercentMargin)/2.;
+  double maxEta     = etaMax * (1 + randomPercentMargin);
 
   // Initialize random number generator, counters and histograms
   myDice.SetSeed(MY_RANDOM_SEED);
-  createResetCounters(tracker, moduleTypeCount);
-  createResetCounters(tracker, sensorTypeCount);
-  createResetCounters(tracker, moduleTypeCountStubs);
+  for (auto tracker : trackers) {
+
+    createResetCounters(*tracker, moduleTypeCount);
+    createResetCounters(*tracker, sensorTypeCount);
+    createResetCounters(*tracker, moduleTypeCountStubs);
+  }
+
   class LayerNameVisitor : public ConstGeometryVisitor {
-    string id_;
+    string m_id;
   public:
     std::set<string> data;
-    LayerNameVisitor(const Tracker& t) { t.accept(*this); }
-    void visit(const Barrel& b) { id_ = b.myid(); }
-    void visit(const Endcap& e) { id_ = e.myid(); }
-    void visit(const Layer& l) { data.insert(id_ + " " + any2str(l.myid())); }
-    void visit(const Disk& d) { data.insert(id_ + " " + any2str(d.myid())); }
+    LayerNameVisitor(const std::vector<Tracker*>& trackers) { for (auto tracker : trackers) tracker->accept(*this); }
+    virtual ~LayerNameVisitor() {};
+    void visit(const Barrel& b) { m_id = b.myid(); }
+    void visit(const Endcap& e) { m_id = e.myid(); }
+    void visit(const Layer& l)  { data.insert(m_id + " " + any2str(l.myid())); }
+    void visit(const Disk& d)   { data.insert(m_id + " " + any2str(d.myid())); }
   };
 
-  LayerNameVisitor layerNames(tracker);
+  LayerNameVisitor layerNames(trackers);
 
   // Creating the layer hit coverage profiles
   layerEtaCoverageProfile.clear();
   layerEtaCoverageProfileStubs.clear();
   for (auto it = layerNames.data.begin(); it!=layerNames.data.end(); ++it) { // CUIDADO this is horrible code (not mine). refactor!
-    TProfile* aProfile = new TProfile(Form("layerEtaCoverageProfileHits%s", it->c_str()), it->c_str(), 200, maxEta, maxEta);
+    TProfile* aProfile      = new TProfile(Form("layerEtaCoverageProfileHits%s" , it->c_str()), it->c_str(), 200, maxEta, maxEta);
     TProfile* aProfileStubs = new TProfile(Form("layerEtaCoverageProfileStubs%s", it->c_str()), it->c_str(), 200, maxEta, maxEta);
-    layerEtaCoverageProfile[*it] = (*aProfile);
+    layerEtaCoverageProfile[*it]      = (*aProfile);
     layerEtaCoverageProfileStubs[*it] = (*aProfileStubs);
     delete aProfile;
     delete aProfileStubs;
   }
 
-
   etaProfileByType.clear();
   etaProfileByTypeSensors.clear();
   etaProfileByTypeStubs.clear();
 
-  for (std::map <std::string, int>::iterator it = moduleTypeCount.begin();
-       it!=moduleTypeCount.end(); it++) {
+  for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
+
     TProfile& aProfile = etaProfileByType[(*it).first];
     aProfile.SetBins(100, 0, maxEta);
     aProfile.SetName((*it).first.c_str());
@@ -2790,15 +2914,15 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
   //  ModuleVector allModules;
-  double zError = simParms().zErrorCollider();
+  double zError = SimParms::getInstance()->zErrorCollider();
 
   // The real simulation
   std::pair <XYZVector, double> aLine;
 
-
   int nTracksPerSide = int(pow(nTracks, 0.5));
-  int nBlocks = int(nTracksPerSide/2.);
-  nTracks = nTracksPerSide*nTracksPerSide;
+  int nBlocks        = int(nTracksPerSide/2.);
+  nTracks            = nTracksPerSide*nTracksPerSide;
+
   mapPhiEta.SetBins(nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   TH2I mapPhiEtaCount("mapPhiEtaCount ", "phi Eta hit count", nBlocks, -1*M_PI, M_PI, nBlocks, -maxEta, maxEta);
   totalEtaProfile.Reset();
@@ -2830,34 +2954,38 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   //XYZVector dir(0, 1, 0);
   // Shoot nTracksPerSide^2 tracks
   double angle = M_PI/2/(double)nTracksPerSide;
+
   for (int i=0; i<nTracksPerSide; i++) {
     for (int j=0; j<nTracksPerSide; j++) {
-      // Reset the hit counter
+
       // Generate a straight track and collect the list of hit modules
       aLine = shootDirection(randomBase, randomSpan);
-      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, tracker.modules());
+      std::vector<std::pair<Module*, HitType>> hitModules = trackHit( XYZVector(0, 0, ((myDice.Rndm()*2)-1)* zError), aLine.first, trackers);
+
       // Reset the per-type hit counter and fill it
       resetTypeCounter(moduleTypeCount);
       resetTypeCounter(sensorTypeCount);
       resetTypeCounter(moduleTypeCountStubs);
       int numStubs = 0;
-      int numHits = 0;
-      for (auto& mh : hitModules) {
-        moduleTypeCount[mh.first->moduleType()]++;
-        if (mh.second & HitType::INNER) {
-          sensorTypeCount[mh.first->moduleType()]++;
+      int numHits  = 0;
+
+      for (auto& hitModule : hitModules) {
+        moduleTypeCount[hitModule.first->moduleType()]++;
+        if (hitModule.second & HitType::INNER) {
+          sensorTypeCount[hitModule.first->moduleType()]++;
           numHits++;
         }
-        if (mh.second & HitType::OUTER) {
-          sensorTypeCount[mh.first->moduleType()]++;
+        if (hitModule.second & HitType::OUTER) {
+          sensorTypeCount[hitModule.first->moduleType()]++;
           numHits++;
         }
-        if (mh.second == HitType::STUB) {
-          moduleTypeCountStubs[mh.first->moduleType()]++;
+        if (hitModule.second == HitType::STUB) {
+          moduleTypeCountStubs[hitModule.first->moduleType()]++;
           numStubs++;
         }
-        modulePlotColors[mh.first->moduleType()] = mh.first->plotColor();
+        modulePlotColors[hitModule.first->moduleType()] = hitModule.first->plotColor();
       }
+
       // Fill the module type hit plot
       for (std::map <std::string, int>::iterator it = moduleTypeCount.begin(); it!=moduleTypeCount.end(); it++) {
         etaProfileByType[(*it).first].Fill(fabs(aLine.second), (*it).second);
@@ -2870,11 +2998,12 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       for (auto& mel : moduleTypeCountStubs) {
         etaProfileByTypeStubs[mel.first].Fill(fabs(aLine.second), mel.second);
       }
+
       // Fill other plots
       mapPhiEta.Fill(aLine.first.Phi(), aLine.second, hitModules.size()); // phi, eta 2d plot
       mapPhiEtaCount.Fill(aLine.first.Phi(), aLine.second);               // Number of shot tracks
 
-      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());                // Total number of hits
+      totalEtaProfile.Fill(fabs(aLine.second), hitModules.size());        // Total number of hits
       totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubs); 
 
@@ -2911,9 +3040,6 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
 
   savingGeometryV.push_back(mapPhiEta);
 
-  // Eta profile compute
-  //TProfile *myProfile;
-
   etaProfileCanvas.cd();
   savingGeometryV.push_back(etaProfileCanvas);
 
@@ -2922,9 +3048,9 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   sprintf(profileName_, "etaProfileTotal%d", bsCounter++);
   // totalEtaProfile = TProfile(*total2D.ProfileX(profileName_));
   savingGeometryV.push_back(totalEtaProfile);
-  if (totalEtaProfile.GetMaximum()<maximum_n_planes) totalEtaProfile.SetMaximum(maximum_n_planes);
+  if (totalEtaProfile.GetMaximum()<maximum_n_planes)        totalEtaProfile.SetMaximum(maximum_n_planes);
   if (totalEtaProfileSensors.GetMaximum()<maximum_n_planes) totalEtaProfileSensors.SetMaximum(maximum_n_planes);
-  if (totalEtaProfileStubs.GetMaximum()<maximum_n_planes) totalEtaProfileStubs.SetMaximum(maximum_n_planes);
+  if (totalEtaProfileStubs.GetMaximum()<maximum_n_planes)   totalEtaProfileStubs.SetMaximum(maximum_n_planes);
   totalEtaProfile.Draw();
   totalEtaProfileSensors.Draw();
   totalEtaProfileStubs.Draw();
@@ -2975,23 +3101,24 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   }
 
 
-  // Record the fraction of hits per module
+  // Record the fraction of hits per module, power, ...
   hitDistribution.SetBins(nTracks, 0 , 1);
   savingGeometryV.push_back(hitDistribution);
-  for (auto m : tracker.modules()) {
-    hitDistribution.Fill(m->numHits()/double(nTracks));
-  }
 
-
-  std::map<std::string, int> typeToCount;
+  std::map<std::string, int>    typeToCount;
   std::map<std::string, double> typeToPower;
   std::map<std::string, double> typeToSurface;
 
-  for (auto aModule : tracker.modules()) {
-    string aSensorType = aModule->moduleType();
-    typeToCount[aSensorType] ++;
-    typeToSurface[aSensorType] += aModule->area() / 1e6; // in mq
-    typeToPower[aSensorType] += aModule->sensorPowerConsumption() / 1e3; // in kW
+  for (auto tracker : trackers) {
+    for (auto module : tracker->modules()) {
+
+      hitDistribution.Fill(module->numHits()/double(nTracks));
+
+      string aSensorType          = module->moduleType();
+      typeToCount[aSensorType]++;
+      typeToSurface[aSensorType] += module->area() / 1e6; // in mq
+      typeToPower[aSensorType]   += module->sensorPowerConsumption() / 1e3; // in kW
+    }
   }
 
   int iPoints = 0;
@@ -3092,23 +3219,26 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
      * @param moduleV vector of modules to be checked
      * @return the vector of hit modules
      */
-    std::vector<std::pair<Module*, HitType>> Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& moduleV) {
+    std::vector<std::pair<Module*, HitType>> Analyzer::trackHit(const XYZVector& origin, const XYZVector& direction, const std::vector<Tracker*>& trackers) {
+
       std::vector<std::pair<Module*, HitType>> result;
+
       double distance;
-      static const double BoundaryEtaSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
+      static const double zErrorSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
-      //static std::ofstream ofs("hits.txt");
+      // Go through all trackers and their modules and save only those that were hit
+      for (auto tracker : trackers) {
+        for (auto& module : tracker->modules()) {
 
-      // Go through all modules and save only those that were hit
-      for (auto& m : moduleV) {
+          // CouldHit -> save CPU time by calculating a cross-section of hit and given module within track phi and eta
+          // (assuming origin error within +-5 sigma). Beware that module phi extends from -pi to +3*pi to avoid troubles
+          // with -pi & +pi cross-line
+          if (module->couldHit(direction, SimParms::getInstance()->zErrorCollider()*zErrorSafetyMargin)) {
 
-        // CouldHit -> save CPU time by calculating a cross-section of hit and given module within track phi and eta
-        // (assuming origin error within +-5 sigma). Beware that module phi extends from -pi to +3*pi to avoid troubles
-        // with -pi & +pi cross-line
-        if (m->couldHit(direction, simParms().zErrorCollider()*BoundaryEtaSafetyMargin)) {
-
-          auto h = m->checkTrackHits(origin, direction); 
-          if (h.second != HitType::NONE) result.push_back(std::make_pair(m,h.second));
+            // Get hit
+            auto hit = module->checkTrackHits(origin, direction);
+            if (hit.second != HitType::NONE) result.push_back(std::make_pair(module,hit.second));
+          }
         }
       }
       return result;
@@ -3145,7 +3275,7 @@ void Analyzer::createGeometryLite(Tracker& tracker) {
 
     void Analyzer::computeBandwidth(Tracker& tracker) {
       BandwidthVisitor bv(chanHitDistribution, bandwidthDistribution, bandwidthDistributionSparsified);
-      simParms_->accept(bv);
+      SimParms::getInstance()->accept(bv);
       tracker.accept(bv);
     }
 

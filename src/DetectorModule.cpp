@@ -186,19 +186,25 @@ double DetectorModule::effectiveDsDistance() const {
 }
 
 std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
+
   HitType ht = HitType::NONE;
   XYZVector gc; // global coordinates of the hit
+
   if (numSensors() == 1) {
+
     auto segm = innerSensor().checkHitSegment(trackOrig, trackDir);
     // <SMe>The following line used to return HitType::BOTH. Changing to INNER in order to avoid double hit counting</SMe>
     if (segm.second > -1) { gc = segm.first; ht = HitType::INNER; } 
-  } else {
-    auto inSegm = innerSensor().checkHitSegment(trackOrig, trackDir);
+  }
+  else {
+
+    auto inSegm  = innerSensor().checkHitSegment(trackOrig, trackDir);
     auto outSegm = outerSensor().checkHitSegment(trackOrig, trackDir);
     if (inSegm.second > -1 && outSegm.second > -1) { 
       gc = inSegm.first; // in case of both sensors are hit, the inner sensor hit coordinate is returned
       ht = ((zCorrelation() == SAMESEGMENT && (inSegm.second / (maxSegments()/minSegments()) == outSegm.second)) || zCorrelation() == MULTISEGMENT) ? HitType::STUB : HitType::BOTH;
-    } else if (inSegm.second > -1) { gc = inSegm.first; ht = HitType::INNER; }
+    }
+    else if (inSegm.second > -1)  { gc = inSegm.first;  ht = HitType::INNER; }
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
   //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug

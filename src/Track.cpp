@@ -253,15 +253,20 @@ double Track::getMagField() const {
   }
   else return magField_;
 }
-void Track::pruneHits() {
 
-  double R = getRadius();
+bool Track::pruneHits() {
+
+  double helixRadius = getRadius();
+  bool   isPruned    = false;
 
   std::vector<Hit*> hitN;
   for (auto hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
-    if (((*hitIt)->getRadius()) > 2*R) {  hitN.push_back(*hitIt); }
+    if (((*hitIt)->getRadius()) < 2*helixRadius) hitN.push_back(*hitIt);
+    else isPruned = true;
   }
+
   hitV_ = hitN;
+  return isPruned;
 }
 
 
@@ -329,9 +334,11 @@ void Track::computeCorrelationMatrix() {
     //#ifdef HIT_DEBUG
     //	    std::cerr << "material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << std::endl;
     //#endif
-    if (th>0)
+    //std::cout << std::fixed << std::setprecision(4) << "Material (" << i << ") = " << th << "\t at r=" << hitV_.at(i)->getRadius() << "\t of type=" << hitV_.at(i)->getObjectKind() << std::endl;
+    if (th>0) {
       th = (13.6 * 13.6) / (1000 * 1000 * transverseMomentum_ * transverseMomentum_) * th * (1 + 0.038 * log(th)) * (1 + 0.038 * log(th));
-    else
+    //std::cout << std::scientific << "thMS^2: " << (13.6 * 13.6) / (1000 * 1000 * transverseMomentum_ * transverseMomentum_) * hitV_.at(i)->getCorrectedMaterial().radiation << " " << (13.6 * 13.6) / (1000 * 1000 * transverseMomentum_ * transverseMomentum_) * hitV_.at(i)->getCorrectedMaterial().radiation * (1 + 0.038 * log(hitV_.at(i)->getCorrectedMaterial().radiation)) * (1 + 0.038 * log(hitV_.at(i)->getCorrectedMaterial().radiation)) << std::endl;
+    } else
       th = 0;
     thetasq.push_back(th);
   }
@@ -349,11 +356,14 @@ void Track::computeCorrelationMatrix() {
         // correlations between two active surfaces
         else {
           double sum = 0.0;
-          for (int i = 0; i < r; i++)
+          for (int i = 0; i < r; i++) {
             sum = sum + (hitV_.at(c)->getRadius() - hitV_.at(i)->getRadius()) * (hitV_.at(r)->getRadius() - hitV_.at(i)->getRadius()) * thetasq.at(i);
+          //std::cout << ">> " << std::fixed << std::setprecision(4) << i << " " << c << " : " << hitV_.at(c)->getRadius() << " " << hitV_.at(i)->getRadius() << " " << thetasq.at(i) << " " << sum << std::endl;
+          }
           if (r == c) {
             double prec = hitV_.at(r)->getResolutionRphi(pt2radius(transverseMomentum_, getMagField())); // if Bmod = getResoX natural
             sum = sum + prec * prec;
+            //std::cout << ">>> " << sum << std::endl;
           }
           correlations_(r, c) = sum;
           if (r != c) correlations_(c, r) = sum;
@@ -361,7 +371,7 @@ void Track::computeCorrelationMatrix() {
       }
     }
   }
-    
+
   // remove zero rows and columns
   int ia = -1;
   bool look_for_active = false;
@@ -381,7 +391,16 @@ void Track::computeCorrelationMatrix() {
   }
   // resize matrix if necessary
   if (ia != -1) correlations_.ResizeTo(ia, ia);
-  
+//  std::cout << std::endl;
+//  for (int i = 0; i<ia; i++) {
+//    std::cout << "(";
+//    for (int j=0; j<ia;j++) {
+//
+//      std::cout << " " << std::fixed << std::setprecision(4) << correlations_(i,j);
+//    }
+//    std::cout << ")" << std::endl;
+//  }
+//  std::cout << std::endl;
   // check if matrix is sane and worth keeping
   if (!((correlations_.GetNoElements() > 0) && (correlations_.Determinant() != 0.0))) {
     std::cerr << "WARNING: This is embarassing and it should be handled somehow" << std::endl;

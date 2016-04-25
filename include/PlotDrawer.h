@@ -364,7 +364,7 @@ public:
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
   void add(const Module& m);
-  template<class InputIterator> void addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
+  template<class InputIterator> bool addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
   template<class ModuleValidator, class InputIterator> void addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid = ModuleValidator());
 
 };
@@ -425,11 +425,16 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
 
 template<class CoordType, class ValueGetterType, class StatType>
 template<class InputIterator>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
+bool PlotDrawer<CoordType, ValueGetterType, StatType>::addModulesType(InputIterator begin, InputIterator end, int moduleTypes) {
+  bool foundModule = false;
   for (InputIterator it = begin; it != end; ++it) {
-      int subDet = (*it)->subdet();
-      if (subDet & moduleTypes) add(**it);
+    int subDet = (*it)->subdet();
+    if (subDet & moduleTypes) {
+      foundModule = true;
+      add(**it);
+    }
   }
+  return foundModule;
 }
 
 template<class CoordType, class ValueGetterType, class StatType>

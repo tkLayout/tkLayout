@@ -32,10 +32,13 @@ class AnalyzerOccupancy : AnalyzerModule {
   // Destructor
   ~AnalyzerOccupancy();
 
+  // Init variables
+  bool init() {return true;};
+
   // Calculate occupancy & ideal pitch size
   bool analyze();
   // Visualize - add html page with all calculations & results
-  bool visualize(RootWSite& webSite, const SimParms* simParms);
+  bool visualize(RootWSite& webSite);
 
   // Read magnetic field map - just to display
   bool readMagFieldMap(std::string directory, std::string bFieldFileName);

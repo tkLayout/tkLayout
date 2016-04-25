@@ -374,93 +374,112 @@ public:
     minPhi.setup([&](){
 
       double min = 0;
-      // Module corners arranged normally:
-      // 0 |-----|3
-      //   |     |
-      // 1 |-----|2
-      //
-      //      x (inter. point)
-      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
-          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
-          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
 
-        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module corners flipped:
-      // 3 |-----|0
-      //   |     |
-      // 2 |-----|1
-      //
-      //      x (inter. point)
-      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
-               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
-               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+      // Rectangular end-cap modules
+      if (this->shape()==ModuleShape::RECTANGULAR) {
 
-        min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
-      else {
+        // Module corners arranged normally:
+        // 0 |-----|3
+        //   |     |
+        // 1 |-----|2
+        //
+        //      x (inter. point)
+        if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+            basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+            basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
 
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
-
-        // Normal arrangement or flipped arrangement
-        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
-
-          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-          min += M_PI;
+          min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
         }
-        else logERROR("Endcap module min calculation failed - algorithm problem. Check algorithm!");
+        // Module corners flipped:
+        // 3 |-----|0
+        //   |     |
+        // 2 |-----|1
+        //
+        //      x (inter. point)
+        else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+                 basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+                 basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
 
+          min=minget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+        }
+        // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate min
+        else {
+
+          Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+          polygon.rotateZ(M_PI);
+
+          min=minget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+          // Normal arrangement or flipped arrangement
+          if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+            // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+            min += M_PI;
+          }
+          else logERROR("Endcap module min calculation failed - algorithm problem. Check algorithm!");
+        }
       }
+
+      // Wedge-shaped modules
+      //else {
+      //}
+
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return min;
     });
     maxPhi.setup([&](){
 
       double max = 0;
-      // Module corners arranged normally:
-      // 0 |-----|3
-      //   |     |
-      // 1 |-----|2
-      //
-      //      x (inter. point)
-      if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
-          basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
-          basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
 
-        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module corners flipped:
-      // 3 |-----|0
-      //   |     |
-      // 2 |-----|1
-      //
-      //      x (inter. point)
-      else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
-               basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
-               basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+      // Rectangular end-cap modules
+      if (this->shape()==ModuleShape::RECTANGULAR) {
 
-        max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
-      }
-      // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
-      else {
+        // Module corners arranged normally:
+        // 0 |-----|3
+        //   |     |
+        // 1 |-----|2
+        //
+        //      x (inter. point)
+        if (basePoly().getVertex(1).Phi()<=basePoly().getVertex(0).Phi() &&
+            basePoly().getVertex(0).Phi()<=basePoly().getVertex(3).Phi() &&
+            basePoly().getVertex(3).Phi()<=basePoly().getVertex(2).Phi()) {
 
-        Polygon3d<4> polygon = Polygon3d<4>(basePoly());
-        polygon.rotateZ(M_PI);
-
-        max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
-
-        // Normal arrangement or flipped arrangement
-        if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
-
-          // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
-          max += M_PI;
+          max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
         }
-        else logERROR("Endcap module max calculation failed - algorithm problem. Check algorithm!");
+        // Module corners flipped:
+        // 3 |-----|0
+        //   |     |
+        // 2 |-----|1
+        //
+        //      x (inter. point)
+        else if (basePoly().getVertex(2).Phi()<=basePoly().getVertex(3).Phi() &&
+                 basePoly().getVertex(3).Phi()<=basePoly().getVertex(0).Phi() &&
+                 basePoly().getVertex(0).Phi()<=basePoly().getVertex(1).Phi()){
+
+          max=maxget2(basePoly().begin(), basePoly().end(), &XYZVector::Phi);
+        }
+        // Module overlaps the crossline between -pi/2 & +pi/2 -> rotate by 180deg to calculate max.
+        else {
+
+          Polygon3d<4> polygon = Polygon3d<4>(basePoly());
+          polygon.rotateZ(M_PI);
+
+          max=maxget2(polygon.begin(), polygon.end(), &XYZVector::Phi);
+
+          // Normal arrangement or flipped arrangement
+          if (polygon.getVertex(1).Phi()<0 || polygon.getVertex(2).Phi()<0) {
+
+            // Shift by extra 180deg to get back to its original position (i.e. +2*pi with respect to the nominal position)
+            max += M_PI;
+          }
+          else logERROR("Endcap module max calculation failed - algorithm problem. Check algorithm!");
+        }
       }
+
+      // Wedge-shaped modules
+      //else {
+      //}
+
       // Return value in interval <-pi;+3*pi> instead of <-pi;+pi> to take into account the crossline at pi/2.
       return max;
     });

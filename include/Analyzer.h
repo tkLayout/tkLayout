@@ -155,7 +155,7 @@ namespace insur {
                                           const std::vector<double>& thresholdProbabilities,
                                           int etaSteps = 50);
     void createTriggerDistanceTuningPlots(Tracker& tracker, const std::vector<double>& triggerMomenta);
-    void analyzeGeometry(Tracker& tracker, int nTracks = 1000);
+    void analyzeGeometry(std::vector<Tracker*> trackers, int nTracks=1000);
     void computeBandwidth(Tracker& tracker);
     void computeTriggerFrequency(Tracker& tracker);
     void computeIrradiatedPowerConsumption(Tracker& tracker);
@@ -239,8 +239,6 @@ namespace insur {
     inline double getEtaMaxGeometry() const { return insur::geom_range_eta_regions[insur::geom_range_eta_regions.size()-1];}
     inline double getEtaMaxTracker()  const { return insur::geom_range_eta_regions[insur::geom_range_eta_regions.size()-1];}
 
-    void simParms(SimParms* sp) { simParms_ = sp; }
-    const SimParms& simParms() const { return *simParms_; }
   protected:
     /**
      * @struct Cell
@@ -401,7 +399,7 @@ namespace insur {
     int findCellIndexEta(double eta);
     int createResetCounters(Tracker& tracker, std::map <std::string, int> &modTypes);
     std::pair <XYZVector, double > shootDirection(double minEta, double maxEta);
-    std::vector<std::pair<Module*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, Tracker::Modules& properModules);
+    std::vector<std::pair<Module*, HitType>> trackHit(const XYZVector& origin, const XYZVector& direction, const std::vector<Tracker*>& trackers);
     void resetTypeCounter(std::map<std::string, int> &modTypes);
     double diffclock(clock_t clock1, clock_t clock2);
     Color_t colorPicker(std::string);
@@ -429,7 +427,6 @@ namespace insur {
 
     static int bsCounter;
     
-    SimParms* simParms_;
   };
 }
 #endif  /* _ANALYZER_H */

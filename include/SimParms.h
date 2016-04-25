@@ -17,9 +17,31 @@
 //typedef std::map<std::pair<int,int>, double> IrradiationMap;
 
 class SimParms : public PropertyObject, public Buildable, public Visitable {
-  IrradiationMapsManager irradiationMapsManager_;
+
 public:
+
+  //! SimParms access method -> get instance of singleton class SimParms
+  static SimParms* getInstance();
   
+  //! Destructor
+  ~SimParms() {};
+
+  //! SimParms visitable -> implemented accept method to call visitor pattern
+  void accept(GeometryVisitor& v) { v.visit(*this); }
+
+  //! SimParms visitable -> implememented const accept method to call visitor pattern
+  void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
+
+  //! Cross-check that Sim parameters correctly read-in from the file
+  void crosscheck();
+
+  //! Read-in irradiation maps
+  void readIrradiationMaps();
+
+  //! Get reference to irradiation maps manager
+  const IrradiationMapsManager& irradiationMapsManager() const { return m_irradiationMapsManager;}
+
+  // Variables to be read in by SimParms class from a configuration file
   ReadonlyProperty<int   , NoDefault> numMinBiasEvents;
   ReadonlyProperty<int   , NoDefault> zErrorCollider;
   ReadonlyProperty<int   , NoDefault> rError;
@@ -41,7 +63,7 @@ public:
   ReadonlyProperty<double, Default>   alphaParm;
   ReadonlyProperty<double, Default>   referenceTemp;
 
-  ReadonlyProperty<double, Default>   magneticField;
+  ReadonlyProperty<double, Default>   magneticField;      // Magnetic field in Tesla
 
   // To include dipole region in a quick way
   ReadonlyProperty<double, Default>   dipoleMagneticField;// Integral magnetic field in [Tm]
@@ -51,8 +73,8 @@ public:
   // Beam pipe radius, thickness, thickness in rad. length, in int. length
   ReadonlyProperty<double, Default>   bpRadius;
   ReadonlyProperty<double, Default>   bpThickness;
-  ReadonlyProperty<double, Default>   bpRadLength; // [%]
-  ReadonlyProperty<double, Default>   bpIntLength; // [%]
+  ReadonlyProperty<double, Default>   bpRadLength;        // [%]
+  ReadonlyProperty<double, Default>   bpIntLength;        // [%]
 
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
@@ -74,8 +96,12 @@ public:
   Property<        double, NoDefault> minTracksEta, maxTracksEta;
   PropertyNode<std::string>           taggedTracking;
 
+private:
 
+  //! An instance of SimParms class - singleton pattern
+  static SimParms * s_instance;
 
+  //! Singleton private constructor -> initialize all variables to be read-out from configuration file & define if checker should be called after parsing
   SimParms() : 
       numMinBiasEvents(        "numMinBiasEvents"        , parsedAndChecked()),
       zErrorCollider(          "zErrorCollider"          , parsedAndChecked()),
@@ -104,7 +130,6 @@ public:
       bpRadLength(             "beamPipeRadLength"       , parsedOnly(), 0.0),
       bpIntLength(             "beamPipeIntLength"       , parsedOnly(), 0.0),
       irradiationMapFiles(     "irradiationMapFiles"     , parsedAndChecked()),
-      //irradiationMapFile(    "irradiationMapFile"      , parsedAndChecked()),
       bFieldMapFile(           "bFieldMapFile"           , parsedOnly(), std::string("")),
       chargedMapFile(          "chargedMapFile"          , parsedOnly(), std::string("")),
       chargedMapLowThFile(     "chargedMapLowThFile"     , parsedOnly(), std::string("")),
@@ -123,18 +148,9 @@ public:
       taggedTracking(          "TaggedTracking"          , parsedOnly())
   {}
 
-  void crosscheck();
+  // Irradiation maps manager
+  IrradiationMapsManager m_irradiationMapsManager;
 
-  void addIrradiationMapFile(std::string path);
-
-  const IrradiationMapsManager& irradiationMapsManager() const { return irradiationMapsManager_; }
-
-  void accept(GeometryVisitor& v) { v.visit(*this); }
-  void accept(ConstGeometryVisitor& v) const { v.visit(*this); }
-
-  double calcCost(int) { return 0.; } // CUIDADO FIX THIS does nothing
-
-  double particleCurvatureR(double pt) const { return pt/(0.3*magneticField()) * 1e3; }
 };
 
 #endif

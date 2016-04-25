@@ -16,22 +16,31 @@
 
 class RootWSite;
 class Tracker;
-class SimParms;
+class MaterialBudget;
 
 class AnalyzerModule
 {
  public:
   AnalyzerModule(std::vector<Tracker*> trackers);
+  AnalyzerModule(std::vector<Tracker*> trackers, std::vector<MaterialBudget*> materialBudgets);
   virtual ~AnalyzerModule();
+
+  // Pure virtual initialization method -> use to initialize various variables, histograms, ...
+  virtual bool init() = 0;
 
   // Pure virtual analysis method -> analyzes data
   virtual bool analyze() = 0;
+
   // Pure virtual visualization method -> visualizes output
-  virtual bool visualize(RootWSite& webSite, const SimParms* simParms) = 0;
+  virtual bool visualize(RootWSite& webSite) = 0;
 
  protected:
   // Vector of trackers -> const pointer, one can't and shouldn't change its content
   std::vector<const Tracker*> m_trackers;
+
+  // Vector of material budgets assigned to individual trackers and beam pipe -> const pointer
+  std::vector<const MaterialBudget*> m_materialBudgets;
+
 
 };
 

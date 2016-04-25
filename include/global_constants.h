@@ -16,6 +16,7 @@ namespace insur {
   static const std::vector<signed int> trk_pile_up        = {200,1000};// Considered pile-up scenarios
   static const double                  collision_freq     = 40000000;  // Collision frequency
   static const double                  trigger_freq       = 1000000;   // Trigger frequency
+  static const long                    random_seed        = 0xcaffe;   // Random seed
 
   /**
    * Geometry constants; all length measurements are in mm
@@ -125,6 +126,20 @@ namespace insur {
   static const std::string web_program_site          = "https://github.com/drasal/tkLayout/tree/fcc"; // "https://github.com/alkemyst/tkLayout"
   static const std::string web_program_branch_name   = "FCC-hh";
   static const std::string web_program_branch_author = "Z.Drasal";
+
+  static const std::string web_subStart   = "<sub>";      // These only should be needed
+  static const std::string web_subEnd     = "</sub>";
+  static const std::string web_superStart = "<sup>";
+  static const std::string web_superEnd   = "</sup>";
+  static const std::string web_smallStart = "<small>";
+  static const std::string web_smallEnd   = "</small>";
+  static const std::string web_emphStart  = "<b>";
+  static const std::string web_emphEnd    = "</b>";
+  static const std::string web_muLetter   = "&mu;";
+  static const std::string web_etaLetter  = "&eta;";
+  static const std::string web_phiLetter  = "&phi;";
+  static const std::string web_thetaLetter= "&theta;";
+  static const std::string web_deltaLetter= "&delta;";
 
   /**
    * Filename and path constants

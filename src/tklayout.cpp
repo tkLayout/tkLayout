@@ -143,23 +143,24 @@ int main(int argc, char* argv[]) {
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build tracker: pixel & strip in barrel & forward region
-  if (!squid.buildTracker()) return EXIT_FAILURE;
+  // Build active tracker: pixel & strip in barrel & forward region
+  // Read configuration files etc.
+  if (!squid.buildActiveTracker()) return EXIT_FAILURE;
 
   // Do general analysis
   if (!vm.count("tracksim")) {
 
-    // Analyze geometry
-    if (!squid.pureAnalyzeGeometry(geomTracks)) return EXIT_FAILURE;
+    // Analyze geometry layout
+    if (!squid.analyzeGeometry(geomTracks)) return EXIT_FAILURE;
 
     if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite())         return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("bandwidth-cpu"))                          && !squid.reportTriggerProcessorsSite()) return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("power"))                                  && !squid.reportPowerSite())             return EXIT_FAILURE;
     if ((vm.count("all") || vm.count("occupancy"))                              && !squid.reportOccupancySite())         return EXIT_FAILURE;
 
-    // If needed build material model & perform resolution simulation
+    // If needed build material model (pasive tracker) & perform resolution simulation
     if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
-      if (squid.buildMaterials(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
+      if (squid.buildPasiveTracker(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
 
         // Perform material budget analysis & report it
         if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.pureAnalyzeMaterialBudget(matTracks))                 return EXIT_FAILURE;
@@ -195,7 +196,7 @@ int main(int argc, char* argv[]) {
     //  std::cerr << "                                    --tracksim \"key1 = value1; key2 = value2 ...\"" << std::endl;
     //  return EXIT_FAILURE;
    // }
-    if (!squid.pureAnalyzeGeometry(geomTracks)) return EXIT_FAILURE;
+    if (!squid.analyzeGeometry(geomTracks)) return EXIT_FAILURE;
   
 //    if (tracksim.size() == 2) {
 //      vmtracks.insert(std::make_pair("num-events", po::variable_value(boost::any(tracksim[0]), false)));
