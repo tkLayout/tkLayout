@@ -105,7 +105,7 @@ void Layer::check() {
   }
 
   if (isTilted()) {
-    //if (!maxZ.state()) throw PathfulException("Tilted layer : maxZ should be specified. NB : Feature to be modified ?");
+    if (maxZ.state()) logERROR("Tilted layer : maxZ was specified. Routing of services will be forced to be at Z = maxZ.");
     if (!isTiltedAuto.state()) throw PathfulException("Tilted layer : isTiltedAuto must be specified.");
     if (phiOverlap.state()) throw PathfulException("Tilted layer : phiOverlap should not be specified.");
     if (phiSegments.state()) throw PathfulException("Tilted layer : phiSegments should not be specified.");
