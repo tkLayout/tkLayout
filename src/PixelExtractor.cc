@@ -84,8 +84,8 @@ namespace insur {
       ShapeInfo layer_shape;
       layer_shape.type = tb;
       layer_shape.name_tag = stemp.str();
-      layer_shape.rmin=bLayers->at(i)->minR();
-      layer_shape.rmax=bLayers->at(i)->maxR();
+      //layer_shape.rmin=bLayers->at(i)->minR();
+      //layer_shape.rmax=bLayers->at(i)->maxR();
       layer_shape.dz=bLayers->at(i)->maxZ();
       layer_shape.dx=0.;
       layer_shape.dy=0.;
@@ -95,8 +95,6 @@ namespace insur {
       layer_shape.rzup=temp;
       layer_shape.rzdown=temp;
 
-      layerRadii.push_back(layer_shape.rmin);
-      layerRadii.push_back(layer_shape.rmax);
 
       LogicalInfo layer_logic;
       layer_logic.name_tag = layer_shape.name_tag;
@@ -144,8 +142,11 @@ namespace insur {
       layer_shape.rmin = bLayers->at(i)->minR() - rod_shape.dx - xml_pixel_layeroffset - xml_epsilon;
       layer_shape.rmax = bLayers->at(i)->maxR() + rod_shape.dx + xml_pixel_layeroffset + xml_epsilon;
       layer_shape.dz = rod_shape.dz + xml_epsilon;
-      std::cout << "LayerRmin=" << bLayers->at(i)->minR() - rod_shape.dx
-                << "\tLayerRmax=" << bLayers->at(i)->maxR() + rod_shape.dx
+      layerRadii.push_back(layer_shape.rmin);
+      layerRadii.push_back(layer_shape.rmax);
+
+      std::cout << "LayerRmin=" << layer_shape.rmin
+                << "\tLayerRmax=" << layer_shape.rmax
                 << "\tModCenter=" << zplusmod.center().Rho() /2.
                 << "\tminR=" << rodRMin
                 << "\tmaxR=" << rodRMax
@@ -506,14 +507,127 @@ namespace insur {
 
     for( auto& bs: bser ) {
 
-      std::stringstream sname,matname;
-      sname << xml_phaseII_pixbar << xml_base_serf << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(bs.getZOffset());
-
+      std::stringstream shapename,matname;
+      shapename << xml_phaseII_pixbar << xml_base_serf << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(abs(bs.getZOffset() + bs.getZLength() / 2.0));
+      matname << xml_base_serfcomp << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(fabs(bs.getZOffset() + bs.getZLength() / 2.0));
       if (!bs.getLocalMasses().size()) {
-        logWARNING ("Composite material " + sname.str() + " has no constituents! Skipping.");
+        logWARNING ("Composite material " + shapename.str() + " has no constituents! Skipping.");
         continue;
       }
+           comp.name =  xml_phaseII_Pixelnamespace + matname.str();;
+           comp.density = compositeDensity(bs);
+           analyseCompositeElements( comp.name, comp.density,bs, false);
 
+      double startEndcaps = 290.;//safety 1mm margin
+           
+          std::cout << "Service name::" << shapename.str() << std::endl;
+          std::cout << "ZOffset///getZLength>>>>" << bs.getZOffset() << "///" <<  bs.getZLength() << std::endl;           
+          
+	  // BARREL services
+	  if (fabs( bs.getZOffset() +  bs.getZLength() / 2.0) < startEndcaps ) {
+	     bser_shape.name_tag = shapename.str();
+	     bser_shape.dz =  bs.getZLength() / 2.0;
+	     bser_shape.rmin =  bs.getInnerRadius();
+	     bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	    cmsswXmlInfo.shapes.push_back(bser_shape);
+
+	     bser_logic.name_tag = shapename.str();
+	     bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
+	     bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	    cmsswXmlInfo.logic.push_back(bser_logic);
+             
+             //if()
+	     bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
+	     bser_pos.child_tag =  bser_logic.shape_tag;
+	     bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
+	    cmsswXmlInfo.positions.push_back(bser_pos);
+	     bser_pos.copy = 2;
+	     bser_pos.trans.dz = - bser_pos.trans.dz;
+	     bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
+	    cmsswXmlInfo.positions.push_back(bser_pos);
+             std::cout << "Type 1 Service::" << bser_shape.name_tag << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
+                        << "////Parent=" << bser_pos.parent_tag << std::endl;
+	  }
+          else {//Endcap Services
+	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
+	    if ( fabs(bs.getZOffset()) < startEndcaps) {
+              std::cout << "Type 2 Service::" << bser_shape.name_tag << std::endl;
+	      std::ostringstream shapenameBarrel, shapenameEndcaps;
+	      shapenameBarrel << xml_base_serf << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "BarrelPart";
+	      shapenameEndcaps << xml_base_serf << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "EndcapsPart";
+
+	      // Barrel part
+	       bser_shape.name_tag = shapenameBarrel.str();
+	       bser_shape.dz = (startEndcaps -  bs.getZOffset()) / 2.0;
+	       bser_shape.rmin =  bs.getInnerRadius();
+	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      cmsswXmlInfo.shapes.push_back(bser_shape);
+
+	       bser_logic.name_tag = shapenameBarrel.str();
+	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameBarrel.str();
+	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      cmsswXmlInfo.logic.push_back(bser_logic);
+
+	       bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
+	       bser_pos.child_tag =  bser_logic.shape_tag;
+	       bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
+	      cmsswXmlInfo.positions.push_back(bser_pos);
+	       bser_pos.copy = 2;
+	       bser_pos.trans.dz = - bser_pos.trans.dz;
+	       bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
+	     cmsswXmlInfo.positions.push_back(bser_pos);
+	      std::cout << "Type 2a Service::" << shapenameBarrel.str() << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
+                        << "////Parent=" << bser_pos.parent_tag << std::endl;
+
+	       bser_pos.copy = 1;
+	       bser_pos.rotref.clear();
+
+	      // Endcaps part
+	       bser_shape.name_tag = shapenameEndcaps.str();
+	       bser_shape.dz = ( bs.getZOffset() +  bs.getZLength() - startEndcaps) / 2.0;
+	       bser_shape.rmin =  bs.getInnerRadius();
+	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      cmsswXmlInfo.shapes.push_back(bser_shape);    
+
+	       bser_logic.name_tag = shapenameEndcaps.str();
+	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameEndcaps.str();
+	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      cmsswXmlInfo.logic.push_back(bser_logic);
+
+	       bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap + "s"; 
+	       bser_pos.child_tag =  bser_logic.shape_tag;
+	       bser_pos.trans.dz = startEndcaps +  bser_shape.dz - xml_z_pixfwd;
+	      cmsswXmlInfo.positions.push_back(bser_pos);
+               std::cout << "Type 2b Service::" << shapenameEndcaps.str() << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
+                         << "////Parent=" << bser_pos.parent_tag <<std::endl;
+
+	    }
+
+	    // ENDCAPS-only services
+	    else {
+	       bser_shape.name_tag = shapename.str();
+	       bser_shape.dz =  bs.getZLength() / 2.0;
+	       bser_shape.rmin =  bs.getInnerRadius();
+	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      cmsswXmlInfo.shapes.push_back(bser_shape);
+
+	       bser_logic.name_tag = shapename.str();
+	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
+	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      cmsswXmlInfo.logic.push_back(bser_logic);
+
+	       bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap + "s"; 
+	       bser_pos.child_tag =  bser_logic.shape_tag;
+	       bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
+               if(bs.getZOffset() < 0) bser_pos.trans.dz += xml_z_pixfwd; 
+               else bser_pos.trans.dz -= xml_z_pixfwd;
+	      cmsswXmlInfo.positions.push_back(bser_pos);
+               std::cout << "Type 3 Service::" << bser_shape.name_tag << ">>>>>" <<  bser_shape.dz 
+                         << "////" << bser_pos.trans.dz 
+                         << "////Parent=" << bser_pos.parent_tag << std::endl;
+	    }
+	  }
+      /*
       bser_shape.name_tag = sname.str();
       bser_shape.rmin = bs.getInnerRadius();
       bser_shape.rmax = bs.getInnerRadius() + bs.getRWidth();
@@ -523,7 +637,7 @@ namespace insur {
 
       matname << xml_base_serfcomp
         << "R" << (int)(bs.getInnerRadius())
-        << "Z" << (int)(bs.getZLength());
+        << "Z" << (int)(bs.getZOffset() + bs.getZLength() / 2.0);
       bser_logic.name_tag = sname.str();
       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + sname.str();
       bser_logic.material_tag = matname.str();
@@ -539,9 +653,31 @@ namespace insur {
       std::stringstream bsermod;
 
       comp.name = bser_logic.material_tag;
-
       comp.density = compositeDensity(bs);
       analyseCompositeElements( bser_logic.material_tag, comp.density,bs, false);
+      */
+
+
+     /*
+      if(bser_shape.rmin < 25 ) {
+        std::cout << bser_shape.name_tag  << " has inner radius < PixelBarrelRmin!!" << std::endl;
+      }
+      if(bser_shape.rmax > 203.5 ) {
+        std::cout << bser_shape.name_tag  << " has outer radius > PixelBarrelRmax!!" << std::endl;
+      }
+      if(bser_pos.trans.dz + bser_shape.dz > 291.0 ) {
+        std::cout << bser_shape.name_tag  << " goes outside PixelBarrel!!" << std::endl;
+        std::cout << "Shape:" << bser_shape.rmin << "////" << bser_shape.rmax << "////" << bser_shape.dz << std::endl;
+        std::cout << "ZOffset=" << bs.getZOffset() << "////zpos=" << bser_pos.trans.dz << std::endl;
+
+      }
+      if(bser_pos.trans.dz + bser_shape.dz > 2650.0 ) {
+        std::cout << bser_shape.name_tag  << " goes outside Pixel!!" << std::endl;
+        std::cout << "Shape:" << bser_shape.rmin << "////" << bser_shape.rmax << "////" << bser_shape.dz << std::endl;
+        std::cout << "ZOffset=" << bs.getZOffset() << "////zpos=" << bser_pos.trans.dz << std::endl;
+      }
+      */
+
     }
  }
  
