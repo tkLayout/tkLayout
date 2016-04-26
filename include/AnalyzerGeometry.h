@@ -25,6 +25,7 @@ class Endcap;
 class EndcapModule;
 class Layer;
 class DetectorModule;
+class TCanvas;
 class Tracker;
 class TH2D;
 class TH2I;
@@ -37,14 +38,18 @@ class RootWTable;
  */
 class LayerNameVisitor : public ConstGeometryVisitor {
 
-  std::string m_id; //!< Barrel/Endcap id number
+  std::string m_idBRLorEC; //!< Barrel/Endcap id number
+  std::string m_idTRK;     //!< Tracker name
+
+  std::map<std::string, std::set<std::string>> m_data; //!< Layer/Disk names for given tracker
 
  public:
 
-  std::set<std::string> m_data; //!< Layer/Disk name
-
   LayerNameVisitor(const std::vector<Tracker*>& trackers);
   virtual ~LayerNameVisitor() {};
+
+  //! Fill container with layer names for defined tracker if tracker exists
+  bool getLayerNames(std::string trkName, std::set<std::string>& layerNames);
 
   void visit(const Barrel& b);
   void visit(const Endcap& e);
@@ -65,19 +70,26 @@ class AnalyzerGeometry : AnalyzerModule {
   //! Destructor
   ~AnalyzerGeometry() {};
 
-  //! Initialize
+  //! Initialize - mostly histograms & other containers
   //! @return True if OK
   bool init();
 
-  //! Calculate track resolution
+  //! Inspect geometry layout -> collect data to histograms & tables
   //! @return True if OK
   bool analyze();
 
-  //! Visualize - add html page with all calculations & results
+  //! Visualize geometry layout -> add html page with collected tables & created histograms
   //! @return True if OK
   bool visualize(RootWSite& webSite);
 
  private:
+
+  //! Draw beam-pipe in RZ to given canvas
+  void drawBeamPipeRZ(TCanvas& canvas, double maxZ);
+  //! Draw beam-pipe in XY to given canvas
+  void drawBeamPipeXY(TCanvas& canvas);
+  //! Set canvas standard properties - background color, border mode, ...
+  void setCanvasProperties(TCanvas& canvas);
 
   int    m_nTracks;     //!< Number of geometry tracks to be used in the analysis
   double m_etaSpan;     //!< Eta interval to be analyzed
@@ -85,8 +97,9 @@ class AnalyzerGeometry : AnalyzerModule {
   double m_etaMax;      //!< Maximum eta value
 
   const float c_etaSafetyMargin = 0.01;
+  const int   c_nBinsProfile    = 100;
 
-  LayerNameVisitor m_layerNames; //! Visitor pattern to be used to find layer names
+  LayerNameVisitor m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
 
   // Histogram output
   std::map<std::string,TH2D>      m_hitMapPhiEta;            //!< Number of hits - map in phi & eta for each tracker with given name
@@ -96,9 +109,10 @@ class AnalyzerGeometry : AnalyzerModule {
   std::map<std::string,TProfile>  m_sensorHitEtaProfile;     //!< Number of hits in sensors versus eta for each tracker with given name
   std::map<std::string,TProfile>  m_stubHitEtaProfile;       //!< Number of hits in stubs versus eta for each tracker with given name
 
-  std::map<std::string,std::vector<TProfile>> m_typeModuleHitEtaProfile;  //!< For each tracker: Number of hits in modules versus eta for different types of modules
-  std::map<std::string,std::vector<TProfile>> m_typeSensorHitEtaProfile;  //!< For each tracker: Number of hits in sensors versus eta for different types of modules
-  std::map<std::string,std::vector<TProfile>> m_typeStubHitEtaProfile;    //!< For each tracker: Number of hits in stubs versus eta for different types of modules
+  std::map<std::string,std::set<std::string>>           m_moduleTypes;             //!< List of module types in a given tracker
+  std::map<std::string,std::map<std::string,int>>       m_moduleTypeColor;         //!< Find color to given module type for a given tracker
+  std::map<std::string,std::map<std::string,TProfile>>  m_moduleTypeHitEtaProfile; //!< Number of hits in various types of modules versus eta for each tracker with given name
+  std::map<std::string,std::map<std::string,TProfile>>  m_moduleTypeStubEtaProfile;//!< Number of stubs in various types of modules versus eta for each tracker with given name
 
   std::map<std::string,std::map<std::string, TProfile>> m_layerEtaCoverProfile;    //!< For each tracker: Eta coverage profile of individual layers defined by unique name
   std::map<std::string,std::map<std::string, TProfile>> m_layerStubEtaCoverProfile;//!< For each tracker: Eta coverage profile of individual stub layers defined by unique name

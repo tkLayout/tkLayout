@@ -20,6 +20,7 @@
 #include <TagMaker.h>
 #include <TColor.h>
 #include <TEllipse.h>
+#include <TH1D.h>
 #include <TH2D.h>
 #include <TH2I.h>
 #include <TPad.h>
@@ -36,7 +37,7 @@ using namespace insur;
 //
 AnalyzerGeometry::AnalyzerGeometry(std::vector<Tracker*> trackers, int nTracks) : AnalyzerModule(trackers),
  m_nTracks(nTracks),
- m_layerNames(trackers),
+ m_layerNamesVisitor(trackers),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
  m_etaMax(+1*geom_max_eta_coverage)
@@ -59,7 +60,7 @@ bool AnalyzerGeometry::init()
     // Number of tracks needs to be expressed as int * int for proper binning
     int sqrtNTracks  = int(sqrt(m_nTracks));
     int nBins        = int(sqrtNTracks/2.);
-    int nBinsProfile = 100;
+    int nBinsProfile = c_nBinsProfile;
     m_nTracks        = sqrtNTracks*sqrtNTracks;
 
     // Compute shooting intervals to analyze geometry
@@ -112,26 +113,63 @@ bool AnalyzerGeometry::init()
       m_stubHitEtaProfile[trkName].SetMarkerSize(1.5);
       m_stubHitEtaProfile[trkName].SetMinimum(0);
 
+      // Set hit profile histograms for different module types
+      for (auto iModule : iTracker->modules()) {
+
+        m_moduleTypes[trkName].insert(iModule->moduleType());
+        m_moduleTypeColor[trkName][iModule->moduleType()] = iModule->plotColor();
+      }
+
+      if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName] ) {
+
+        if (m_moduleTypeHitEtaProfile.find(trkName)!=m_moduleTypeHitEtaProfile.end()) {
+          if (m_moduleTypeHitEtaProfile[trkName].find(iType)==m_moduleTypeHitEtaProfile[trkName].end()) m_moduleTypeHitEtaProfile[trkName][iType] = TProfile();
+        }
+        else m_moduleTypeHitEtaProfile[trkName][iType] = TProfile();
+        m_moduleTypeHitEtaProfile[trkName][iType].Reset();
+        m_moduleTypeHitEtaProfile[trkName][iType].SetNameTitle(std::string(trkName+"_"+iType+"_ModuleHitEtaProfile").c_str(), "Number of modules with at least one hit;#eta;Number of hit modules");
+        m_moduleTypeHitEtaProfile[trkName][iType].SetBins(nBinsProfile, 0, +m_etaMax);
+        m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerStyle(8);
+        m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerColor(1);
+        m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerSize(1.0);
+        m_moduleTypeHitEtaProfile[trkName][iType].SetMinimum(0);
+      }
+
+      if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName] ) {
+
+        if (m_moduleTypeStubEtaProfile.find(trkName)!=m_moduleTypeStubEtaProfile.end()) {
+          if (m_moduleTypeStubEtaProfile[trkName].find(iType)==m_moduleTypeStubEtaProfile[trkName].end()) m_moduleTypeStubEtaProfile[trkName][iType] = TProfile();
+        }
+        else m_moduleTypeStubEtaProfile[trkName][iType] = TProfile();
+        m_moduleTypeStubEtaProfile[trkName][iType].Reset();
+        m_moduleTypeStubEtaProfile[trkName][iType].SetNameTitle(std::string(trkName+"_"+iType+"_ModuleHitEtaProfile").c_str(), "Number of modules with at least one hit;#eta;Number of hit modules");
+        m_moduleTypeStubEtaProfile[trkName][iType].SetBins(nBinsProfile, 0, +m_etaMax);
+        m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerStyle(8);
+        m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerColor(1);
+        m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerSize(1.0);
+        m_moduleTypeStubEtaProfile[trkName][iType].SetMinimum(0);
+      }
+
       // Prepare eta coverage profiles for individual barrel layers & end-cap disks
       if (m_layerEtaCoverProfile.find(trkName)!=m_layerEtaCoverProfile.end()) m_layerEtaCoverProfile[trkName].clear();
       if (m_layerStubEtaCoverProfile.find(trkName)!=m_layerStubEtaCoverProfile.end()) m_layerStubEtaCoverProfile[trkName].clear();
 
-      for (auto layerName : m_layerNames.m_data) {
+      std::set<std::string> layerNames;
+
+      if (m_layerNamesVisitor.getLayerNames(trkName, layerNames)) for (auto layerName : layerNames) {
 
         // Set names, binning, etc.
-        TProfile layerProfile;
-        layerProfile.SetNameTitle("LayerEtaCoverage", std::string("Eta coverage of layer: "+layerName+";#eta;Coverage").c_str());
-        layerProfile.SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
-        if (m_layerEtaCoverProfile.find(trkName)!=m_layerEtaCoverProfile.end()) m_layerEtaCoverProfile[trkName].clear();
-        m_layerEtaCoverProfile[trkName][layerName] = layerProfile;
+        m_layerEtaCoverProfile[trkName][layerName] = TProfile();
+        m_layerEtaCoverProfile[trkName][layerName].SetNameTitle(std::string("LayerEtaCoverage_"+trkName+"_"+layerName).c_str(), std::string(trkName+": Eta coverage of "+layerName+";#eta;Coverage").c_str());
+        m_layerEtaCoverProfile[trkName][layerName].SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
         m_layerEtaCoverProfile[trkName][layerName].SetMinimum(0);
 
-        TProfile stubProfile;
-        stubProfile.SetNameTitle("LayerStubEtaCoverage", std::string("Eta coverage of layer stub: "+layerName+";#eta;Coverage").c_str());
-        stubProfile.SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
-        m_layerStubEtaCoverProfile[trkName][layerName] = stubProfile;
+        m_layerStubEtaCoverProfile[trkName][layerName] = TProfile();
+        m_layerStubEtaCoverProfile[trkName][layerName].SetNameTitle(std::string("LayerStubEtaCoverage_"+trkName+"_"+layerName).c_str(), std::string(trkName+": Eta coverage of "+layerName+" stub;#eta;Coverage").c_str());
+        m_layerStubEtaCoverProfile[trkName][layerName].SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
         m_layerStubEtaCoverProfile[trkName][layerName].SetMinimum(0);
       }
+
     } // For trackers
     return true;
   }
@@ -161,8 +199,6 @@ bool AnalyzerGeometry::analyze()
     std::map <std::string, int> moduleTypeCount;  // counts hit per module type -> if any of the sensors (or both) are hit, it counts 1
     std::map <std::string, int> sensorTypeCount;  // counts hit per sensor on module type -> if one sensor is hit, it counts 1, if both sensors are hit, it counts 2
     std::map <std::string, int> stubTypeCount;    // counts stubs per module type -> if both sensors are hit and a stub is formed, it counts 1
-
-    int color = -1;
 
     // Analyze geometry layout
     for (auto iTrack=0; iTrack<m_nTracks; iTrack++) {
@@ -202,22 +238,34 @@ bool AnalyzerGeometry::analyze()
       int numStubs = 0;
       int numHits  = 0;
 
+      std::map<std::string, int> typedNumHits;
+      std::map<std::string, int> typedNumStubs;
+      for (auto iType : m_moduleTypes[trkName]) {
+
+        typedNumHits[iType] = 0;
+        typedNumStubs[iType]= 0;
+      }
+
+      // Get number of hits/stubs
       for (auto& module : hitModules) {
 
+        auto modType = module.first->moduleType();
+
         // Inner
-        if (module.second & HitType::INNER) {
-          numHits++;
-        }
+        if (module.second & HitType::INNER) numHits++;
+
         // Outer
-        if (module.second & HitType::OUTER) {
-          numHits++;
-        }
+        if (module.second & HitType::OUTER) numHits++;
+
         // Stubs
         if (module.second == HitType::STUB) {
+
+          typedNumStubs[modType]++;
           numStubs++;
         }
-        // Set color only for the first run
-        if (color==-1) color = module.first->plotColor();
+
+        // Count module hits for given type
+        if ((module.second & HitType::INNER) || (module.second & HitType::OUTER)) typedNumHits[modType]++;
       }
 
       // Fill plots
@@ -228,7 +276,12 @@ bool AnalyzerGeometry::analyze()
       m_sensorHitEtaProfile[trkName].Fill(fabs(direction.Eta()), numHits);
       m_stubHitEtaProfile[trkName].Fill(fabs(direction.Eta()), numStubs);
 
-      for (auto layerName : m_layerNames.m_data) {
+      if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Fill(fabs(direction.Eta()), typedNumHits[iType]);
+      if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeStubEtaProfile[trkName][iType].Fill(fabs(direction.Eta()), typedNumStubs[iType]);
+
+      std::set<std::string> layerNames;
+
+      if (m_layerNamesVisitor.getLayerNames(trkName, layerNames)) for (auto layerName : layerNames) {
 
         int layerHit  = 0;
         int layerStub = 0;
@@ -236,7 +289,7 @@ bool AnalyzerGeometry::analyze()
 
           // Unique reference of module
           UniRef uniref = module.first->uniRef();
-          if (layerName == (uniref.cnt + " " + any2str(uniref.layer))) {
+          if (layerName == (uniref.cnt + "_" + any2str(uniref.layer))) {
 
             layerHit = 1;
             if (module.second == HitType::STUB) layerStub=1;
@@ -253,10 +306,15 @@ bool AnalyzerGeometry::analyze()
 
     } // For nTracks
 
-    // Set fill color
-    m_moduleHitEtaProfile[trkName].SetMarkerColor(Palette::color(color));
-    m_sensorHitEtaProfile[trkName].SetMarkerColor(Palette::color(color));
-    m_stubHitEtaProfile[trkName].SetMarkerColor(Palette::color(color));
+    // Set fill color - get first if several module types available
+    int color = 1;
+    if (m_moduleTypes[trkName].size()==1) color = Palette::color(m_moduleTypeColor[trkName].begin()->second);
+    m_moduleHitEtaProfile[trkName].SetMarkerColor(color);
+    m_sensorHitEtaProfile[trkName].SetMarkerColor(color);
+    m_stubHitEtaProfile[trkName].SetMarkerColor(color);
+
+    if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerColor(Palette::color(m_moduleTypeColor[trkName][iType]));
+    if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerColor(Palette::color(m_moduleTypeColor[trkName][iType]));
 
     // Normalize histograms
     for (auto xBin=0; xBin<=m_hitMapPhiEta[trkName].GetNbinsX()+1; xBin++) {
@@ -299,7 +357,6 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // Create dedicated web-page & its content
     std::string        pageTitle  = "Geometry";
     if (trkName != "") pageTitle +=" (" + trkName + ")";
-
     myPage = new RootWPage(pageTitle);
 
     // Page address
@@ -328,9 +385,8 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     //
     // Modules
     myContent = new RootWContent("Modules info", false);
-    myPage->addContent(myContent);
-
     myContent->addItem(geometryVisitor.m_moduleTable);
+    myPage->addContent(myContent);
 
     //
     // Plots
@@ -339,31 +395,18 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
     RootWImage* myImage;
 
-    // Beam pipe parameters
-    double bpRadius = SimParms::getInstance()->bpRadius();
-    double bpThick  = SimParms::getInstance()->bpThickness();
-
     // R-Z view - avoid drawing canvas if barrel and endcap missing
     PlotDrawer<YZ, Type> rzDrawer;
     bool foundModules = rzDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), BARREL | ENDCAP);
     if (foundModules) {
 
+      // View
       TCanvas RZCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
-      RZCanvas.cd();
+      setCanvasProperties(RZCanvas);
       rzDrawer.drawFrame<SummaryFrameStyle>(RZCanvas, iTracker->isPixelType());
       rzDrawer.drawModules<ContourStyle>(RZCanvas);
       fullRZDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end());
-
-      // Beam-pipe
-      TPolyLine beamPipeRZ;
-      beamPipeRZ.SetPoint(0, 0                                 , bpRadius + bpThick/2.);
-      beamPipeRZ.SetPoint(1, iTracker->maxZ()*vis_safety_factor, bpRadius + bpThick/2.);
-      beamPipeRZ.SetLineColor(14);
-      beamPipeRZ.SetLineWidth(2);
-      if (iTracker->isPixelType()) {
-        logINFO("Drawing beam pipe to RZ canvas");
-        beamPipeRZ.Draw("same");
-      }
+      drawBeamPipeRZ(RZCanvas, iTracker->maxZ());
 
       myImage = new RootWImage(RZCanvas, RZCanvas.GetWindowWidth(), RZCanvas.GetWindowHeight() );
       myImage->setComment("RZ plot of the tracker");
@@ -377,15 +420,10 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (foundModules) {
 
       TCanvas XYCanvasBRL("XYCanvasBRL", "XYView Barrel", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
-      XYCanvasBRL.cd();
+      setCanvasProperties(XYCanvasBRL);
       xyBarrelDrawer.drawFrame<SummaryFrameStyle>(XYCanvasBRL);
       xyBarrelDrawer.drawModules<ContourStyle>(XYCanvasBRL);
-
-      // Beam-pipe
-      TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
-      beamPipeXY.SetFillColor(18); // "grey18"
-      beamPipeXY.SetFillStyle(1001);
-      if (iTracker->isPixelType()) beamPipeXY.Draw("same");
+      drawBeamPipeXY(XYCanvasBRL);
 
       myImage = new RootWImage(XYCanvasBRL, XYCanvasBRL.GetWindowWidth(), XYCanvasBRL.GetWindowHeight() );
       myImage->setComment("XY cross section of barrel modules");
@@ -398,17 +436,10 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (foundModules) {
 
       TCanvas XYCanvasEC("XYCanvasEC", "XYView Endcap", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
-      XYCanvasEC.cd();
+      setCanvasProperties(XYCanvasEC);
       xyEndcapDrawer.drawFrame<SummaryFrameStyle>(XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(XYCanvasEC);
-
-      // Beam-pipe
-      TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
-      beamPipeXY.SetFillColor(18); // "grey18"
-      beamPipeXY.SetFillStyle(1001);
-      if (iTracker->isPixelType()) beamPipeXY.Draw("same");
-
-      //trackerXYProjEC[trkName] = (TCanvas*)XYCanvasEC->Clone();
+      drawBeamPipeXY(XYCanvasEC);
 
       myImage = new RootWImage(XYCanvasEC, XYCanvasEC.GetWindowWidth(), XYCanvasEC.GetWindowHeight() );
       myImage->setComment("XY projection of endcap(s) modules");
@@ -422,10 +453,8 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // Sensor hit map
     if (m_sensorHitEtaProfile.find(trkName)!=m_sensorHitEtaProfile.end()) {
 
-      TCanvas etaCanvasHitSensors("NumberOfHitSensorEtaProfile", "Number of hit sensors versus #eta");
-      etaCanvasHitSensors.SetFillColor(kWhite);
-      etaCanvasHitSensors.SetBorderMode(0);
-      etaCanvasHitSensors.SetBorderSize(0);
+      TCanvas etaCanvasHitSensors("NumberOfHitSensorEtaProfile", "Number of hit sensors versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      setCanvasProperties(etaCanvasHitSensors);
       m_sensorHitEtaProfile[trkName].Draw();
 
       myImage = new RootWImage(etaCanvasHitSensors, etaCanvasHitSensors.GetWindowWidth(), etaCanvasHitSensors.GetWindowHeight());
@@ -436,11 +465,11 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // Module hit map
     if (m_moduleHitEtaProfile.find(trkName)!=m_moduleHitEtaProfile.end()) {
 
-      TCanvas etaCanvasHitModules("NumberOfHitModulesEtaProfile", "Number of hit modules versus #eta");
-      etaCanvasHitModules.SetFillColor(kWhite);
-      etaCanvasHitModules.SetBorderMode(0);
-      etaCanvasHitModules.SetBorderSize(0);
+      TCanvas etaCanvasHitModules("NumberOfHitModulesEtaProfile", "Number of hit modules versus #eta", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      setCanvasProperties(etaCanvasHitModules);
       m_moduleHitEtaProfile[trkName].Draw();
+
+      if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Draw("same");
 
       myImage = new RootWImage(etaCanvasHitModules, etaCanvasHitModules.GetWindowWidth(), etaCanvasHitModules.GetWindowHeight());
       myImage->setComment("Number of hit modules versus "+insur::web_etaLetter);
@@ -450,10 +479,8 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     // 2D hit map
     if (m_hitMapPhiEta.find(trkName)!=m_hitMapPhiEta.end()) {
 
-      TCanvas etaCanvasHitMap("HitMap2D", "Hit map - #eta versus #phi");
-      etaCanvasHitMap.SetFillColor(kWhite);
-      etaCanvasHitMap.SetBorderMode(0);
-      etaCanvasHitMap.SetBorderSize(0);
+      TCanvas etaCanvasHitMap("HitMap2D", "Hit map - #eta versus #phi", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      setCanvasProperties(etaCanvasHitMap);
       m_hitMapPhiEta[trkName].Draw("colz");
 
       myImage = new RootWImage(etaCanvasHitMap, etaCanvasHitMap.GetWindowWidth(), etaCanvasHitMap.GetWindowHeight());
@@ -474,17 +501,17 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
         layerCount++;
 
         TCanvas coverageCanvas(Form("LayerCoverage%s%s", iter.first.c_str(), "Hits"), "Layer eta coverage (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-        coverageCanvas.cd();
+        setCanvasProperties(coverageCanvas);
 
         std::string upperName = std::string(coverageCanvas.GetName())+"_upper";
-        TPad upperPad(upperName.c_str(), "upperPad", 0, 0.4, 1, 1);
-        std::string lowerName = std::string(coverageCanvas.GetName())+"_lower";
-        TPad lowerPad(lowerName.c_str(), "lowerPad", 0, 0, 1, 0.4);
+        TPad upperPad(upperName.c_str(), "upperPad", 0, 0.3, 1, 1);
         upperPad.Draw();
+        std::string lowerName = std::string(coverageCanvas.GetName())+"_lower";
+        TPad lowerPad(lowerName.c_str(), "lowerPad", 0, 0.0, 1, 0.3);
         lowerPad.Draw();
 
         plot.SetMinimum(0);
-        plot.SetMaximum(1.05);
+        plot.SetMaximum(1.01);
         plot.SetMarkerColor(Palette::color(1));
         plot.SetLineColor(Palette::color(1));
         plot.SetMarkerStyle(1);
@@ -499,7 +526,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
         zoomedPlot->Draw();
 
         RootWImage* myImage = new RootWImage(coverageCanvas, coverageCanvas.GetWindowWidth(), coverageCanvas.GetWindowHeight());
-        myImage->setComment("Layer coverage in "+insur::web_etaLetter+" for hits (multiple occurrence in a layer counted just once)");
+        myImage->setComment("Layer coverage in "+insur::web_etaLetter+" (efficiency)");
         myContent->addItem(myImage);
       }
     }
@@ -519,10 +546,38 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   myPage->addContent(myContent);
 
   TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
+  setCanvasProperties(fullRZCanvas);
   fullRZDrawer.drawFrame<SummaryFrameStyle>(fullRZCanvas);
   fullRZDrawer.drawModules<ContourStyle>(fullRZCanvas);
 
   RootWImage* myImage = new RootWImage(fullRZCanvas, fullRZCanvas.GetWindowWidth(), fullRZCanvas.GetWindowHeight());
+  myContent->addItem(myImage);
+
+  // Hits
+  TCanvas hitCanvas("HitCanvas", "Number of modules with at least one hit;#eta;Number of hit modules", insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
+  setCanvasProperties(hitCanvas);
+
+  TH1D moduleTotHitsEtaHis;
+  moduleTotHitsEtaHis.SetNameTitle("ModuleHitEtaProfile","Number of modules with at least one hit;#eta;Number of hit modules");
+  moduleTotHitsEtaHis.SetBins(c_nBinsProfile, 0, +m_etaMax);
+  moduleTotHitsEtaHis.SetMarkerStyle(8);
+  moduleTotHitsEtaHis.SetMarkerColor(1);
+  moduleTotHitsEtaHis.SetMarkerSize(1.5);
+  moduleTotHitsEtaHis.SetMinimum(0);
+
+  for (auto iTracker : m_trackers) {
+    std::string trkName = iTracker->myid();
+    moduleTotHitsEtaHis.Add(&m_moduleHitEtaProfile[trkName]);
+  }
+  moduleTotHitsEtaHis.SetMinimum(0);
+  moduleTotHitsEtaHis.Draw();
+
+  for (auto iTracker : m_trackers) {
+    std::string trkName = iTracker->myid();
+    if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Draw("same");
+  }
+
+  myImage = new RootWImage(hitCanvas, hitCanvas.GetWindowWidth(), hitCanvas.GetWindowHeight());
   myContent->addItem(myImage);
 
   // All subdetectors
@@ -538,30 +593,51 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   }
 
   return true;
+}
 
-
-//  //
-//  // Inactive surfaces
-//  double inactiveSurfacesTotalMass;
-//  if (inactive) {
-//    std::vector<InactiveElement>& inactiveBarrelServices = inactive->getBarrelServices();
-//    std::vector<InactiveElement>& inactiveEndcapServices = inactive->getEndcapServices();
-//    std::vector<InactiveElement>& inactiveSupports       = inactive->getSupports();
-//    std::vector<InactiveElement> allInactives;
 //
-//    allInactives.reserve( inactiveBarrelServices.size() + inactiveEndcapServices.size() + inactiveSupports.size() );
-//    allInactives.insert(allInactives.end(), inactiveBarrelServices.begin(), inactiveBarrelServices.end() );
-//    allInactives.insert(allInactives.end(), inactiveEndcapServices.begin(), inactiveEndcapServices.end() );
-//    allInactives.insert(allInactives.end(), inactiveSupports.begin(), inactiveSupports.end() );
+// Draw beam-pipe in RZ to given canvas
 //
-//    inactiveSurfacesTotalMass = 0;
-//    for (const auto elem : allInactives ) {
-//      if (elem.getTotalMass()>0) inactiveSurfacesTotalMass += elem.getTotalMass();
-//    }
-//  }
+void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
+{
+  double bpRadius = SimParms::getInstance()->bpRadius();
+  double bpThick  = SimParms::getInstance()->bpThickness();
 
+  // Beam-pipe in RZ
+  TPolyLine beamPipeRZ;
+  beamPipeRZ.SetPoint(0, 0                    , bpRadius + bpThick/2.);
+  beamPipeRZ.SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
+  beamPipeRZ.SetLineColor(14);
+  beamPipeRZ.SetLineWidth(2);
+  logINFO("Drawing beam pipe to RZ canvas");
+  canvas.cd();
+  beamPipeRZ.Draw("same");
+}
 
+//
+// Draw beam-pipe in XY to given canvas
+//
+void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
+{
+  double bpRadius = SimParms::getInstance()->bpRadius();
+  double bpThick  = SimParms::getInstance()->bpThickness();
 
+  // Beam-pipe in XY
+  TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
+  beamPipeXY.SetFillColor(18); // "grey18"
+  beamPipeXY.SetFillStyle(1001);
+  canvas.cd();
+  beamPipeXY.Draw("same");
+}
+
+//
+// Set canvas standard properties
+//
+void AnalyzerGeometry::setCanvasProperties(TCanvas& canvas)
+{
+  canvas.SetFillColor(kWhite);
+  canvas.SetBorderMode(0);
+  canvas.SetBorderSize(0);
 }
 
 //
@@ -569,28 +645,45 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 //
 LayerNameVisitor::LayerNameVisitor(const std::vector<Tracker*>& trackers)
 {
-  for (auto tracker : trackers) tracker->accept(*this);
+  for (auto tracker : trackers) {
+
+    m_idTRK = tracker->myid();
+    tracker->accept(*this);
+  }
+}
+
+//
+// LayerNameVisitor - fill container with layer names for defined tracker if tracker exists
+//
+bool LayerNameVisitor::getLayerNames(string trkName, std::set<std::string>& layerNames)
+{
+  if (m_data.find(trkName) != m_data.end()) {
+
+    for (auto iter : m_data[trkName]) layerNames.insert(iter);
+    return true;
+  }
+  else return false;
 }
 
 //
 // LayerNameVisitor - visit barrel
 //
-void LayerNameVisitor::visit(const Barrel& b) { m_id = b.myid(); }
+void LayerNameVisitor::visit(const Barrel& b) { m_idBRLorEC = b.myid(); }
 
 //
 // LayerNameVisitor - visit endcap
 //
-void LayerNameVisitor::visit(const Endcap& e) { m_id = e.myid(); }
+void LayerNameVisitor::visit(const Endcap& e) { m_idBRLorEC = e.myid(); }
 
 //
 // LayerNameVisitor - visit layer
 //
-void LayerNameVisitor::visit(const Layer& l)  { m_data.insert(m_id + " " + any2str(l.myid())); }
+void LayerNameVisitor::visit(const Layer& l)  { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(l.myid())); }
 
 //
 // LayerNameVisitor - visit disk
 //
-void LayerNameVisitor::visit(const Disk& d)   { m_data.insert(m_id + " " + any2str(d.myid())); }
+void LayerNameVisitor::visit(const Disk& d)   { m_data[m_idTRK].insert(m_idBRLorEC + "_" + any2str(d.myid())); }
 
 //
 // LayerDiskSummaryVisitor preVisit method - initialize
@@ -814,78 +907,63 @@ void LayerDiskSummaryVisitor::postVisit() {
     tag << insur::web_smallEnd;
 
     // Type
-    std::ostringstream type(module->moduleType());
+    std::string type = module->moduleType();
 
     // Thickness
-    std::ostringstream thickness("");
-    thickness << module->dsDistance();
+    std::string thickness = any2str(module->dsDistance());
 
     // Area
-    std::ostringstream sensorArea("");
-    std::ostringstream totalArea("");
-    sensorArea << std::dec << std::fixed << std::setprecision(c_areaPrecision) << module->area();
-    totalArea  << std::dec << std::fixed << std::setprecision(c_areaPrecision) << module->area()*module->numSensors()*m_moduleCount[moduleType]* 1e-6;
+    std::string sensorArea = any2str(module->area(), c_areaPrecision);
+    std::string totalArea  = any2str(module->area()*module->numSensors()*m_moduleCount[moduleType]* 1e-6, c_areaPrecision);
     trkTotArea += module->area()*module->numSensors()*m_moduleCount[moduleType]* 1e-6;
 
     // Occupancy (in percent)
-    std::ostringstream stripOccupancy("");
-    std::ostringstream hitOccupancy("");
-    stripOccupancy << std::dec << std::fixed << std::setprecision(c_occupancyPrecision) <<  m_moduleMaxStripOccupancy[moduleType]*100 << "/" << m_moduleAvgStripOccupancy[moduleType]*100; // PercenmoduleTypee
-    hitOccupancy   << std::dec << std::fixed << std::setprecision(c_occupancyPrecision) <<  m_moduleMaxHitOccupancy[moduleType]*100   << "/" << m_moduleAvgHitOccupancy[moduleType]*100; // PercenmoduleTypee
+    std::string stripOccupancy = any2str(m_moduleMaxStripOccupancy[moduleType]*100, c_occupancyPrecision) + "/" + any2str(m_moduleAvgStripOccupancy[moduleType]*100, c_occupancyPrecision); // Percent
+    std::string hitOccupancy   = any2str(m_moduleMaxHitOccupancy[moduleType]*100  , c_occupancyPrecision) + "/" + any2str(m_moduleAvgHitOccupancy[moduleType]*100  , c_occupancyPrecision); // Percent
 
     // Resolution (in um)
-    std::ostringstream rphiResolution("");
-    std::ostringstream zResolution("");
-    rphiResolution << std::dec << std::fixed << std::setprecision(c_resolutionPrecision) << m_moduleMinRphiResolution[moduleType]*1000<< "-" << m_moduleMaxRphiResolution[moduleType]*1000; // mm -> um
-    zResolution    << std::dec << std::fixed << std::setprecision(c_resolutionPrecision) << m_moduleMinZResolution[moduleType]*1000   << "-" << m_moduleMaxZResolution[moduleType]*1000; // mm -> um
+    std::string rphiResolution = any2str(m_moduleMinRphiResolution[moduleType]*1000, c_resolutionPrecision) + "-" + any2str(m_moduleMaxRphiResolution[moduleType]*1000, c_resolutionPrecision); // mm -> um
+    std::string zResolution    = any2str(m_moduleMinZResolution[moduleType]*1000   , c_resolutionPrecision) + "-" + any2str(m_moduleMaxZResolution[moduleType]*1000   , c_resolutionPrecision); // mm -> um
 
     // Number of modules
-    std::ostringstream numberMod("");
-    numberMod << std::dec << m_moduleCount[moduleType];
+    std::string numberMod = any2str(m_moduleCount[moduleType]);
     trkTotNumModules += m_moduleCount[moduleType];
 
     // Number of sensors
-    std::ostringstream numberSens("");
-    numberSens << std::dec << m_moduleCount[moduleType] * module->numSensors();
+    std::string numberSens = any2str(m_moduleCount[moduleType] * module->numSensors());
 
     // Number of channels (in millions)
-    std::ostringstream numberChan("");
-    numberChan << std::fixed << std::setprecision(c_channelPrecision) << m_moduleChannels[moduleType]/ 1e6 ;
+    std::string numberChan = any2str(m_moduleChannels[moduleType]/ 1e6, c_channelPrecision);
     trkTotNumChannels += m_moduleChannels[moduleType]/ 1e6 ;
 
     // Fill
     m_moduleTable->setContent(0, iType, position.str());
     m_moduleTable->setContent(1, iType, tag.str());
-    m_moduleTable->setContent(2, iType, type.str());
-    m_moduleTable->setContent(3, iType, sensorArea.str());
-    m_moduleTable->setContent(4, iType, totalArea.str());
-    m_moduleTable->setContent(5, iType, numberMod.str());
-    m_moduleTable->setContent(6, iType, numberSens.str());
-    m_moduleTable->setContent(7, iType, numberChan.str());
-    m_moduleTable->setContent(8, iType, rphiResolution.str());
-    m_moduleTable->setContent(9, iType, zResolution.str());
+    m_moduleTable->setContent(2, iType, type);
+    m_moduleTable->setContent(3, iType, sensorArea);
+    m_moduleTable->setContent(4, iType, totalArea);
+    m_moduleTable->setContent(5, iType, numberMod);
+    m_moduleTable->setContent(6, iType, numberSens);
+    m_moduleTable->setContent(7, iType, numberChan);
+    m_moduleTable->setContent(8, iType, rphiResolution);
+    m_moduleTable->setContent(9, iType, zResolution);
   }
 
   // Finalize tables
-  std::ostringstream sTotBarrelModule;
-  sTotBarrelModule   << insur::web_emphStart << m_totalBarrelModules << insur::web_emphEnd;
-  std::ostringstream sTotEndcapModule;
-  sTotEndcapModule   << insur::web_emphStart << m_totalEndcapModules << insur::web_emphEnd;
-  std::ostringstream sTrkTotArea;
-  sTrkTotArea        << insur::web_emphStart << std::dec << std::fixed << std::setprecision(c_areaPrecision) << trkTotArea << insur::web_emphEnd;
-  std::ostringstream sTrkTotModules;
-  sTrkTotModules     << insur::web_emphStart << trkTotNumModules << insur::web_emphEnd;
-  std::ostringstream sTrkTotNumChannels;
-  sTrkTotNumChannels << insur::web_emphStart << std::dec << std::fixed << std::setprecision(c_channelPrecision) << trkTotNumChannels << insur::web_emphEnd;
+  std::string sTotBarrelModules = insur::web_emphStart + any2str(m_totalBarrelModules)        + insur::web_emphEnd;
+  std::string sTotEndcapModules = insur::web_emphStart + any2str(m_totalEndcapModules)        + insur::web_emphEnd;
+  std::string sTrkTotArea       = insur::web_emphStart + any2str(trkTotArea, c_areaPrecision) + insur::web_emphEnd;;
+  std::string sTrkTotModules    = insur::web_emphStart + any2str(trkTotNumModules)            + insur::web_emphEnd;
+  std::string sTrkTotNumChannels= insur::web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + insur::web_emphEnd;
 
   m_layerTable->setContent( 0, m_nBarrelLayers+1, "Total");
-  m_layerTable->setContent( 6, m_nBarrelLayers+1, sTotBarrelModule.str());
+  m_layerTable->setContent( 6, m_nBarrelLayers+1, sTotBarrelModules);
   m_diskTable->setContent(  0, m_nDisks+1       , "Total");
-  m_diskTable->setContent(  5, m_nDisks+1       , sTotEndcapModule.str());
+  m_diskTable->setContent(  5, m_nDisks+1       , sTotEndcapModules);
   m_moduleTable->setContent(0, iType+1          , "Total");
-  m_moduleTable->setContent(4, iType+1          , sTrkTotArea.str());
-  m_moduleTable->setContent(5, iType+1          , sTrkTotModules.str());
-  m_moduleTable->setContent(7, iType+1          , sTrkTotNumChannels.str());
+  m_moduleTable->setContent(4, iType+1          , sTrkTotArea);
+  m_moduleTable->setContent(5, iType+1          , sTrkTotModules);
+  m_moduleTable->setContent(7, iType+1          , sTrkTotNumChannels);
 
   // Ring table
   for (auto& iterMap : m_ringModuleMap) {
