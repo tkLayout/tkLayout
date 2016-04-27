@@ -111,6 +111,8 @@ public:
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
 
+  Property<bool, Default> removeModule;
+
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
@@ -145,7 +147,8 @@ public:
       serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
-      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1),
+      removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;
