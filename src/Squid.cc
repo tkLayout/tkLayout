@@ -480,9 +480,9 @@ namespace insur {
 
     if (m_trackers.size()>0) {
 
-      m_geomAnalyzer = new AnalyzerGeometry(m_trackers, nTracks);
+      m_geomAnalyzer = new AnalyzerGeometry(m_trackers);
 
-      if (m_geomAnalyzer->init()) {
+      if (m_geomAnalyzer->init(nTracks)) {
 
         bool isOK = m_geomAnalyzer->analyze();
         stopTaskClock();

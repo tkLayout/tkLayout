@@ -20,7 +20,7 @@
 
 using namespace insur;
 
-AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<Tracker*> trackers) : AnalyzerModule(trackers)
+AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<Tracker*> trackers) : AnalyzerModule("AnalyzerOccupancy", trackers)
 {
   // Set geometry, i.e. individual trackers
   //for (auto it : trackers) m_trackers.push_back(it);

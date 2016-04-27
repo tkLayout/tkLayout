@@ -23,6 +23,8 @@ class AnalyzerResolution : AnalyzerModule {
   // Destructor
   ~AnalyzerResolution() {};
 
+  bool init(int nTracks) {return true;}
+
   // Calculate track resolution
   bool analyze();
 

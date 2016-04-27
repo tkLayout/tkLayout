@@ -35,8 +35,8 @@ using namespace insur;
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<Tracker*> trackers, int nTracks) : AnalyzerModule(trackers),
- m_nTracks(nTracks),
+AnalyzerGeometry::AnalyzerGeometry(std::vector<Tracker*> trackers) : AnalyzerModule("AnalyzerGeometry", trackers),
+ m_nTracks(0),
  m_layerNamesVisitor(trackers),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
@@ -46,8 +46,11 @@ AnalyzerGeometry::AnalyzerGeometry(std::vector<Tracker*> trackers, int nTracks) 
 //
 // AnalyzerGeometry init method
 //
-bool AnalyzerGeometry::init()
+bool AnalyzerGeometry::init(int nTracks)
 {
+  // Set nTracks
+  m_nTracks = nTracks;
+
   if (m_nTracks<=0 || m_trackers.size()==0) {
 
     std::ostringstream message;
@@ -171,7 +174,9 @@ bool AnalyzerGeometry::init()
       }
 
     } // For trackers
-    return true;
+
+    m_isAnalysisOK = true;
+    return m_isAnalysisOK;
   }
 }
 
@@ -180,6 +185,9 @@ bool AnalyzerGeometry::init()
 //
 bool AnalyzerGeometry::analyze()
 {
+  // Check that initialization OK
+  if (!m_isInitOK) return false;
+
   // Initialize random number generator, counters and histograms
   TRandom3 myDice;
   myDice.SetSeed(random_seed);
@@ -338,6 +346,9 @@ bool AnalyzerGeometry::analyze()
 //
 bool AnalyzerGeometry::visualize(RootWSite& webSite)
 {
+  // Check that initialization & analysis OK
+  if (!m_isInitOK || !m_isAnalysisOK) return false;
+
   // Go through all trackers & prepare web content
   int webPriority         = 99;
   RootWPage*    myPage    = nullptr;

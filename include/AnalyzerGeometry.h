@@ -59,26 +59,27 @@ class LayerNameVisitor : public ConstGeometryVisitor {
 
 /*
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
+ * Unique name defined as "AnalyzerGeometry".
  */
 class AnalyzerGeometry : AnalyzerModule {
 
  public:
 
   //! Constructor
-  AnalyzerGeometry(std::vector<Tracker*> trackers, int nTracks);
+  AnalyzerGeometry(std::vector<Tracker*> trackers);
 
   //! Destructor
   ~AnalyzerGeometry() {};
 
   //! Initialize - mostly histograms & other containers
   //! @return True if OK
-  bool init();
+  bool init(int nTracks);
 
-  //! Inspect geometry layout -> collect data to histograms & tables
+  //! Inspect geometry layout (if init OK) -> collect data to histograms & tables
   //! @return True if OK
   bool analyze();
 
-  //! Visualize geometry layout -> add html page with collected tables & created histograms
+  //! Visualize geometry layout (if init & analysis OK) -> add html page with collected tables & created histograms
   //! @return True if OK
   bool visualize(RootWSite& webSite);
 

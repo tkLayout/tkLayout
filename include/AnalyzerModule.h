@@ -13,35 +13,53 @@
 #define INCLUDE_ANALYZERMODULE_H_
 
 #include <vector>
+#include <string>
 
 class RootWSite;
 class Tracker;
 class MaterialBudget;
 
+/*
+ * Pure virtual class to be used for Analyzer modules.
+ * Call init method to initialized variables, histograms, ...
+ * Call analyze method to perform calculations. Apply analyze method only if init didn't fail.
+ * Call visualize method to perform visualization. Apply visualize method only if init & analyze didn't fail.
+ */
 class AnalyzerModule
 {
  public:
-  AnalyzerModule(std::vector<Tracker*> trackers);
-  AnalyzerModule(std::vector<Tracker*> trackers, std::vector<MaterialBudget*> materialBudgets);
+
+  //! Constructor - set active trackers to be analyzed
+  AnalyzerModule(std::string name, std::vector<Tracker*> trackers);
+
+  //! Virtual destructor
   virtual ~AnalyzerModule();
 
-  // Pure virtual initialization method -> use to initialize various variables, histograms, ...
-  virtual bool init() = 0;
+  //! Pure virtual initialization method -> use to initialize various variables, histograms, ...
+  virtual bool init(int nTracks) = 0;
 
-  // Pure virtual analysis method -> analyzes data
+  //! Pure virtual analysis method -> analyzes data
   virtual bool analyze() = 0;
 
-  // Pure virtual visualization method -> visualizes output
+  //! Pure virtual visualization method -> visualizes output
   virtual bool visualize(RootWSite& webSite) = 0;
 
+  //! Pure virtual get name
+  virtual std::string getName() final {return m_name;}
+
  protected:
-  // Vector of trackers -> const pointer, one can't and shouldn't change its content
+
+  //! Is correctly initialized
+  bool m_isInitOK;
+
+  //! Is correctly analyzed
+  bool m_isAnalysisOK;
+
+  //! Unique name
+  std::string m_name;
+
+  //! Vector of active trackers -> const pointer, one can't and shouldn't change its content
   std::vector<const Tracker*> m_trackers;
-
-  // Vector of material budgets assigned to individual trackers and beam pipe -> const pointer
-  std::vector<const MaterialBudget*> m_materialBudgets;
-
-
 };
 
 #endif /* INCLUDE_ANALYZERMODULE_H_ */

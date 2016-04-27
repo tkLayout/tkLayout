@@ -33,7 +33,7 @@ class AnalyzerOccupancy : AnalyzerModule {
   ~AnalyzerOccupancy();
 
   // Init variables
-  bool init() {return true;};
+  bool init(int nTracks) {return true;};
 
   // Calculate occupancy & ideal pitch size
   bool analyze();
