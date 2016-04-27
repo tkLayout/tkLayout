@@ -15,6 +15,8 @@
 #include "messageLogger.h"
 #include "Visitable.h"
 
+#include <iostream>
+
 using std::string;
 using std::vector;
 using std::pair;
@@ -68,6 +70,8 @@ public:
   void cutAtEta(double eta);
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
+
+  void removeModules() { zMinusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); zPlusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); }
   
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
@@ -127,7 +131,7 @@ public:
   double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
   bool isTilted() const override { return false; }
 
-  
+  void check() override;
   void build(const RodTemplate& rodTemplate);
 
   std::set<int> solveCollisionsZPlus();

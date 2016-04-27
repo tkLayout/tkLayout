@@ -2,9 +2,11 @@
 #include <ModuleCap.h>
 #include<iomanip>
 
+#include <boost/version.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <string>
+
 using boost::property_tree::ptree;
 using boost::property_tree::write_xml;
 using boost::property_tree::xml_writer_settings;
@@ -1320,8 +1322,12 @@ namespace insur {
 
       }
     }
-    //xml_writer_settings<std::string> settings(' ', 1);//for new boost version
+
+#if BOOST_VERSION >= 105600
+    xml_writer_settings<std::string> settings(' ', 1);
+#else
     xml_writer_settings<char> settings(' ', 1);
+#endif
     write_xml(xmlpath+"pixel_test.xml", tree, std::locale(), settings);
  
     ///////////////writing pixel structure Topology////////////////////

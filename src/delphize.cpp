@@ -169,6 +169,8 @@ int main(int argc, char* argv[]) {
 
         TCanvas* aCanvas = (TCanvas*) myObject;
         TList* aList=aCanvas->GetListOfPrimitives();
+        char buffer[1024];
+        char buffer2[1024];
         for (int i=0; i<aList->GetSize(); ++i) {
 
           // TProfile
@@ -185,7 +187,10 @@ int main(int argc, char* argv[]) {
             else if (sscanf(myProfile->GetName(), "Total_pt_vs_eta%lftracker_profile", &aMomentum)==1) {
               //std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
               ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
-
+            }
+            else if (sscanf(myProfile->GetName(), "Resolution_(%[^)]).ptres_tracker_%[^_]_Pt.pt_vs_eta%lftracker_profile", buffer, buffer2, &aMomentum)==3) {
+              std::cerr << "Momentum [GeV]: " << aMomentum << std::endl;
+              ptProfiles[aMomentum]=(TProfile*) myProfile->Clone();
             }
           }
         }

@@ -109,6 +109,8 @@ public:
   double averageZ() const { return averageZ_; }
   void cutAtEta(double eta);
 
+  void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); }
+
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
     for (auto& m : modules_) { m.accept(v); }
