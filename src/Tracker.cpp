@@ -42,6 +42,13 @@ void Tracker::build() {
       endcaps_.push_back(e);
     }
 
+    class ModuleRemover : public GeometryVisitor {
+      void visit(RodPair& m_rodPair) { m_rodPair.removeModules(); }
+      void visit(Ring& m_ring) { m_ring.removeModules(); }
+    };
+    ModuleRemover m_moduleRemover;
+    accept(m_moduleRemover);
+
     // Build support structures within tracker
     for (auto& mapel : supportNode) {
       SupportStructure* s = new SupportStructure();
