@@ -2355,6 +2355,8 @@ namespace insur {
     myBinaryFile->setNoCopy(true);
     summaryContent->addItem(myBinaryFile);
 
+    RootWTextFile* myTextFile;
+
     // Summary of layout and performance
     myTextFile = new RootWTextFile("summary.csv", "Summary variables csv file");
     myTextFile->addText(getSummaryLabelString()+"\n");
@@ -2771,6 +2773,7 @@ namespace insur {
         TCanvas distanceCanvas;
         TCanvas angleCanvas;
         TCanvas ctgThetaCanvas;
+        TCanvas etaCanvas;
         TCanvas z0Canvas;
         TCanvas pCanvas;
 
@@ -2785,6 +2788,7 @@ namespace insur {
         distanceCanvas.SetGrid(1,1);
         angleCanvas.SetGrid(1,1);
         ctgThetaCanvas.SetGrid(1,1);
+        etaCanvas.SetGrid(1,1);
         z0Canvas.SetGrid(1,1);
         pCanvas.SetGrid(1,1);
         std::string plotOption = "";
@@ -2880,23 +2884,35 @@ namespace insur {
         }
         plotOption = "";
         myColor=0;
-        // ctgTheta canvas loop
+        // ctgTheta and eta canvas loop
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
           TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
-          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
-          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
+	  TProfile& etaProfile = newProfile_timesSin(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
+	  etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
+          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
           ctgThetaCanvas.SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          etaProfile.SetMinimum(vis_min_dCtgTheta);
+          etaProfile.SetMaximum(vis_max_dCtgTheta);
+          etaCanvas.SetLogy();
+          etaProfile.SetLineColor(momentumColor(myColor));
+          etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
           ctgThetaCanvas.SetFillColor(color_plot_background);
+          etaProfile.SetMarkerStyle(markerStyle);
+          etaProfile.SetMarkerSize(markerSize);
+          etaCanvas.SetFillColor(color_plot_background);
           if (ctgThetaGraph.GetN() > 0) {
             ctgThetaCanvas.cd();
             ctgThetaProfile.Draw(plotOption.c_str());
+            etaCanvas.cd();
+            etaProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
         }
@@ -2960,11 +2976,14 @@ namespace insur {
         distanceImage.setName(Form("dxyres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& angleImage = myContent->addImage(angleCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         angleImage.setComment("Angle resolution vs. eta");
-        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
+        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str())); 
         RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage.setComment("CtgTheta resolution vs. eta");
         ctgThetaImage.setName(Form("cotThetares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& z0Image = myContent->addImage(z0Canvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& etaImage = myContent->addImage(etaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        etaImage.setComment("Eta resolution vs. eta");
+        etaImage.setName(Form("etares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
+	RootWImage& z0Image = myContent->addImage(z0Canvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         z0Image.setComment("z0 resolution vs. eta");
         z0Image.setName(Form("dzres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& pImage = myContent->addImage(pCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -3167,6 +3186,7 @@ namespace insur {
           TCanvas d0Canvas_Pt;
           TCanvas phiCanvas_Pt;
           TCanvas ctgThetaCanvas_Pt;
+          TCanvas etaCanvas_Pt;
           TCanvas z0Canvas_Pt;
           TCanvas pCanvas_Pt;
           TCanvas lCanvas_Pt;
@@ -3186,6 +3206,7 @@ namespace insur {
           d0Canvas_Pt.SetGrid(1,1);
           phiCanvas_Pt.SetGrid(1,1);
           ctgThetaCanvas_Pt.SetGrid(1,1);
+          etaCanvas_Pt.SetGrid(1,1);
           z0Canvas_Pt.SetGrid(1,1);
           pCanvas_Pt.SetGrid(1,1);
           lCanvas_Pt.SetGrid(1,1);
@@ -3323,29 +3344,42 @@ namespace insur {
               plotOption = "same";
             }
           }
-          // Draw ctgTheta
+          // Draw ctgTheta and eta
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_Pt | idealMaterial, tag)) {
   
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+	    TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+	    etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
+
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
-            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
+            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
             ctgThetaCanvas_Pt.SetLogy();
             ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
+            etaProfile.SetMinimum(vis_min_dCtgTheta);
+            etaProfile.SetMaximum(vis_max_dCtgTheta);
+            etaCanvas_Pt.SetLogy();
+            etaCanvas_Pt.SetFillColor(color_plot_background);
   
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
+            etaProfile.SetLineColor(momentumColor(myColor));
+            etaProfile.SetMarkerColor(momentumColor(myColor));
+            etaProfile.SetLineWidth(lineWidth);
             myColor++;
             ctgThetaProfile.SetMarkerStyle(markerStyle);
             ctgThetaProfile.SetMarkerSize(markerSize);
+            etaProfile.SetMarkerStyle(markerStyle);
+            etaProfile.SetMarkerSize(markerSize);
   
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_Pt.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
+              etaCanvas_Pt.cd();
+              etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
           }
@@ -3500,6 +3534,10 @@ namespace insur {
           RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& etaImage_Pt = myContent->addImage(etaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          etaImage_Pt.setComment(etaLetter+" resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
+          etaImage_Pt.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
 
         // Draw case II with const P across eta
@@ -3529,6 +3567,7 @@ namespace insur {
           TCanvas d0Canvas_P;
           TCanvas phiCanvas_P;
           TCanvas ctgThetaCanvas_P;
+          TCanvas etaCanvas_P;
           TCanvas z0Canvas_P;
           TCanvas pCanvas_P;
           TCanvas lCanvas_P;
@@ -3548,6 +3587,7 @@ namespace insur {
           d0Canvas_P.SetGrid(1,1);
           phiCanvas_P.SetGrid(1,1);
           ctgThetaCanvas_P.SetGrid(1,1);
+          etaCanvas_P.SetGrid(1,1);
           z0Canvas_P.SetGrid(1,1);
           pCanvas_P.SetGrid(1,1);
           lCanvas_P.SetGrid(1,1);
@@ -3685,29 +3725,42 @@ namespace insur {
               plotOption = "same";
             }
           }
-          // Draw ctgTheta
+          // Draw ctgTheta and eta
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_P | idealMaterial, tag)) {
   
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+            TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+	    etaProfile.SetTitle("Pseudorapidity error - const P across #eta;#eta;#delta #eta");
+
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
-            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
+            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
             ctgThetaCanvas_P.SetLogy();
             ctgThetaCanvas_P.SetFillColor(color_plot_background);
+            etaProfile.SetMinimum(vis_min_dCtgTheta);
+            etaProfile.SetMaximum(vis_max_dCtgTheta);
+            etaCanvas_P.SetLogy();
+            etaCanvas_P.SetFillColor(color_plot_background);
   
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
+            etaProfile.SetLineColor(momentumColor(myColor));
+            etaProfile.SetMarkerColor(momentumColor(myColor));
+            etaProfile.SetLineWidth(lineWidth);
             myColor++;
             ctgThetaProfile.SetMarkerStyle(markerStyle);
             ctgThetaProfile.SetMarkerSize(markerSize);
+            etaProfile.SetMarkerStyle(markerStyle);
+            etaProfile.SetMarkerSize(markerSize);
   
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_P.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
+              etaCanvas_P.cd();
+              etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
           }
@@ -3864,6 +3917,10 @@ namespace insur {
           RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
           ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& etaImage_P = myContent->addImage(etaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          etaImage_P.setComment(etaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
+          etaImage_P.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
       } // Scenarios
  
@@ -5268,7 +5325,24 @@ namespace insur {
 
     return (*resultProfile);
   }
-  
+
+  TProfile& Vizard::newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */, int nBins) {
+    TProfile* resultProfile;
+    int nPoints = sourceGraph.GetN();
+    // Rebin by factor 1 or user defined factor
+    if (nBins==0) nPoints /= rebin;
+    // Or set new number of bins
+    else if (nBins <= nPoints) nPoints = nBins;
+    resultProfile = new TProfile(Form("%s_timesSin_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
+    double x, y;
+    double sintheta;
+    for (int i=0; i<sourceGraph.GetN(); ++i) {
+      sourceGraph.GetPoint(i, x, y);
+      resultProfile->Fill(x, y/cosh(x));
+    }
+    return (*resultProfile);
+  }
+
   void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
     triggerSectorMapCsv_.clear();
     triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol; 
