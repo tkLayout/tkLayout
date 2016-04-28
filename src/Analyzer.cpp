@@ -1695,7 +1695,7 @@ void Analyzer::calculateGraphsConstPt(const int& parameter,
       thisZ0Graph_Pt.SetPoint(thisZ0Graph_Pt.GetN(), eta, graphValue);
     }
     if ((dp>0)||true) {
-      double centralValue = dp * 100.; // in percent
+      graphValue = dp * 100.; // in percent
       thisPGraph_Pt.SetPoint(thisPGraph_Pt.GetN(), eta, graphValue);
     }
   }
