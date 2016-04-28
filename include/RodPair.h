@@ -127,7 +127,7 @@ public:
   double thickness() const override { return smallDelta()*2. + maxModuleThickness(); }
   bool isTilted() const override { return false; }
 
-  
+  void check() override;
   void build(const RodTemplate& rodTemplate);
 
   std::set<int> solveCollisionsZPlus();
