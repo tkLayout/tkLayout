@@ -218,7 +218,7 @@ struct YZFull : public YZ {
 TPolyLine* drawMod();
 
 template<class CoordType> class LineGetter {
-  typedef typename CoordType::first_type CoordTypeX; 
+  typedef typename CoordType::first_type CoordTypeX;
   typedef typename CoordType::first_type CoordTypeY;
   CoordTypeX maxx_, minx_;
   CoordTypeY maxy_, miny_;
@@ -237,17 +237,19 @@ public:
       if (xy.insert(c).second == true) {
         x[j] = double(c.first)/Rounder::mmFraction;
         y[j++] = double(c.second)/Rounder::mmFraction;
-      } 
+      }
       maxx_ = MAX(c.first, maxx_);
       minx_ = MIN(c.first, minx_);
       maxy_ = MAX(c.second, maxy_);
       miny_ = MIN(c.second, miny_);
     }
     if (j==4) { // close the poly line in case it's made of 4 distinct points, to get the closing line drawn
-      x[j] = x[0]; 
+      x[j] = x[0];
       y[j++] = y[0];
     }
-    return !g ? new TPolyLine(j, x, y) : drawMod();
+    // TODO: Rework the global constant g, that's terrible approach!!!
+    return (new TPolyLine(j, x, y));
+    //return !g ? new TPolyLine(j, x, y) : drawMod();
   }
 };
 

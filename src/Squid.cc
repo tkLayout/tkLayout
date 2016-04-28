@@ -476,31 +476,31 @@ namespace insur {
    */
   bool Squid::analyzeGeometry(int nTracks) {
 
-    startTaskClock("Analyzing geometry");
-
-    if (m_trackers.size()>0) {
-
-      m_geomAnalyzer = new AnalyzerGeometry(m_trackers);
-
-      if (m_geomAnalyzer->init(nTracks)) {
-
-        bool isOK = m_geomAnalyzer->analyze();
-        stopTaskClock();
-        return isOK;
-      }
-      else {
-
-        std::string message = std::string("Squid::analyzeGeometry(): ")+err_init_failed;
-        logERROR(message);
-        return false;
-      }
-    }
-    else {
-
-      std::string message = std::string("Squid::analyzeGeometry(): ")+err_no_tracker;
-      logERROR(message);
-      return false;
-    }
+//    startTaskClock("Analyzing geometry");
+//
+//    if (m_trackers.size()>0) {
+//
+//      m_geomAnalyzer = new AnalyzerGeometry(m_trackers);
+//
+//      if (m_geomAnalyzer->init(nTracks)) {
+//
+//        bool isOK = m_geomAnalyzer->analyze();
+//        stopTaskClock();
+//        return isOK;
+//      }
+//      else {
+//
+//        std::string message = std::string("Squid::analyzeGeometry(): ")+err_init_failed;
+//        logERROR(message);
+//        return false;
+//      }
+//    }
+//    else {
+//
+//      std::string message = std::string("Squid::analyzeGeometry(): ")+err_no_tracker;
+//      logERROR(message);
+//      return false;
+//    }
   }
 
 //  bool Squid::analyzeTriggerEfficiency(int tracks, bool detailed) {
@@ -673,43 +673,43 @@ namespace insur {
 
         std::string bFieldMapFile           = SimParms::getInstance()->bFieldMapFile();
 
-        AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, m_trackers);
-
-        // File existence is tested within the Analyzer class
-        if (!analyzerOccupancy.readMagFieldMap(mainConfigHandler::instance().getIrradiationDirectory(), bFieldMapFile)) {
-          logINFO("Couldn't read the mag. field map!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+bFieldMapFile));
-        }
-        if (!analyzerOccupancy.readNoMagFieldIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOffMatOnFile, photonsMapBOffMatOnFile)) {
-          logINFO("Couldn't read the irradiation map with no mag. field!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOnFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOnFile));
-        }
-        if (!analyzerOccupancy.readNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOnMatOffFile, photonsMapBOnMatOffFile)) {
-          logINFO("Couldn't read the irradiation map with no material!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOnMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOnMatOffFile));
-        }
-        if (!analyzerOccupancy.readNoMagFieldNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffMatOffFile, photonsMapBOffMatOffFile)) {
-          logINFO("Couldn't read the irradiation map with no mag. field & no material!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOffFile));
-        }
-        if (!analyzerOccupancy.readNoMagFieldNoTrackerIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffTrkOffFile, photonsMapBOffTrkOffFile)) {
-          logINFO("Couldn't read the irradiation map with no mag. field & no tracker material!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffTrkOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffTrkOffFile));
-        }
-        if (!analyzerOccupancy.readLowThresholdIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapLowThFile, photonsMapLowThFile)) {
-          logINFO("Couldn't read the irradiation map with low thresholds set!");
-          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapLowThFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapLowThFile));
-        }
-
-        bool outCalc = analyzerOccupancy.analyze();
-        bool outVis  = analyzerOccupancy.visualize(m_webSite);
+//        AnalyzerOccupancy analyzerOccupancy(chargedMapFile, photonsMapFile, m_trackers);
+//
+//        // File existence is tested within the Analyzer class
+//        if (!analyzerOccupancy.readMagFieldMap(mainConfigHandler::instance().getIrradiationDirectory(), bFieldMapFile)) {
+//          logINFO("Couldn't read the mag. field map!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+bFieldMapFile));
+//        }
+//        if (!analyzerOccupancy.readNoMagFieldIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOffMatOnFile, photonsMapBOffMatOnFile)) {
+//          logINFO("Couldn't read the irradiation map with no mag. field!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOnFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOnFile));
+//        }
+//        if (!analyzerOccupancy.readNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(),chargedMapBOnMatOffFile, photonsMapBOnMatOffFile)) {
+//          logINFO("Couldn't read the irradiation map with no material!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOnMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOnMatOffFile));
+//        }
+//        if (!analyzerOccupancy.readNoMagFieldNoMaterialIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffMatOffFile, photonsMapBOffMatOffFile)) {
+//          logINFO("Couldn't read the irradiation map with no mag. field & no material!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffMatOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffMatOffFile));
+//        }
+//        if (!analyzerOccupancy.readNoMagFieldNoTrackerIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapBOffTrkOffFile, photonsMapBOffTrkOffFile)) {
+//          logINFO("Couldn't read the irradiation map with no mag. field & no tracker material!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapBOffTrkOffFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapBOffTrkOffFile));
+//        }
+//        if (!analyzerOccupancy.readLowThresholdIrradMap(mainConfigHandler::instance().getIrradiationDirectory(), chargedMapLowThFile, photonsMapLowThFile)) {
+//          logINFO("Couldn't read the irradiation map with low thresholds set!");
+//          logINFO(std::string(mainConfigHandler::instance().getIrradiationDirectory()+"/"+chargedMapLowThFile+ " or "+mainConfigHandler::instance().getIrradiationDirectory()+"/"+photonsMapLowThFile));
+//        }
+//
+//        bool outCalc = analyzerOccupancy.analyze();
+//        bool outVis  = analyzerOccupancy.visualize(m_webSite);
 
         stopTaskClock();
-        if (outCalc && outVis) return true;
-        else {
-          logERROR(err_no_flukafile);
-          return false;
-        }
+//        if (outCalc && outVis) return true;
+//        else {
+//          logERROR(err_no_flukafile);
+//          return false;
+//        }
         return true;
       }
       else {
@@ -937,11 +937,12 @@ namespace insur {
     stopTaskClock();
   }
 
+  //! TODO: Rework the global constant g!!! That's horrible approach
   void Squid::setCommandLine(int argc, char* argv[]) {
-    if (argc <= 1) return;
-    std::string cmdLine(argv[1]);
-    g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
-    m_vizard.setCommandLine(cmdLine);
+//    if (argc <= 1) return;
+//    std::string cmdLine(argv[1]);
+//    g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
+//    m_vizard.setCommandLine(cmdLine);
   }
 
 } // Namespace

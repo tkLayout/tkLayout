@@ -9,6 +9,7 @@ template<> TH2C* FrameGetter<YZFull>::operator()(double viewportX, double viewpo
   std::string name = std::string("frameYZ") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
+  frame->SetStats(kFALSE);
   return frame;
 }
 
@@ -18,6 +19,7 @@ template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   std::string name = std::string("frameYZ") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0, viewportX, nBinsZoom, 0, viewportY);
   frame->GetXaxis()->SetTitleOffset(1.3);
+  frame->SetStats(kFALSE);
   //    frame->GetXaxis()->SetTickLength(-0.03);
   //    frame->GetXaxis()->SetLabelOffset(0.03);
   //    frame->GetXaxis()->SetNdivisions(10);
@@ -30,13 +32,13 @@ template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY)
   return frame;
 }
 
-int g
-;
+//int g; // TODO: What the hell is this???
 
 template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
   TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
+  frame->SetStats(kFALSE);
   return frame;
 }
 
