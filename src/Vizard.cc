@@ -2255,6 +2255,7 @@ namespace insur {
       fullLayoutContent = new RootWContent("Full layout", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
       anImage->setComment("RZ position of the modules (full layout)");
+      anImage->setName("fullLayout");
       fullLayoutContent->addItem(anImage);
     }
 
@@ -2354,6 +2355,7 @@ namespace insur {
     myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
     myBinaryFile->setNoCopy(true);
     summaryContent->addItem(myBinaryFile);
+
     RootWTextFile* myTextFile;
 
     // Summary of layout and performance
