@@ -35,7 +35,7 @@ using namespace insur;
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<Tracker*> trackers) : AnalyzerModule("AnalyzerGeometry", trackers),
+AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers) : AnalyzerModule("AnalyzerGeometry", trackers),
  m_nTracks(0),
  m_layerNamesVisitor(trackers),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
@@ -83,11 +83,13 @@ bool AnalyzerGeometry::init(int nTracks)
       m_hitMapPhiEta[trkName].Reset();
       m_hitMapPhiEta[trkName].SetNameTitle("HitMapPhiEta", "Number of hits;#phi;#eta");
       m_hitMapPhiEta[trkName].SetBins(nBins, -M_PI, M_PI, nBins, -m_etaMax, +m_etaMax);
+      m_hitMapPhiEta[trkName].SetStats(kFALSE);
 
       if (m_trackMapPhiEta.find(trkName)==m_trackMapPhiEta.end()) m_trackMapPhiEta[trkName] = TH2I();
       m_trackMapPhiEta[trkName].Reset();
       m_trackMapPhiEta[trkName].SetNameTitle("TrackMapPhiEta", "Number of tracks;#phi;#eta");
       m_trackMapPhiEta[trkName].SetBins(nBins, -M_PI, M_PI, nBins, -m_etaMax, +m_etaMax);
+      m_trackMapPhiEta[trkName].SetStats(kFALSE);
 
       if (m_moduleHitEtaProfile.find(trkName)==m_moduleHitEtaProfile.end()) m_moduleHitEtaProfile[trkName] = TProfile();
       m_moduleHitEtaProfile[trkName].Reset();
@@ -97,6 +99,7 @@ bool AnalyzerGeometry::init(int nTracks)
       m_moduleHitEtaProfile[trkName].SetMarkerColor(1);
       m_moduleHitEtaProfile[trkName].SetMarkerSize(1.5);
       m_moduleHitEtaProfile[trkName].SetMinimum(0);
+      m_moduleHitEtaProfile[trkName].SetStats(kFALSE);
 
       if (m_sensorHitEtaProfile.find(trkName)==m_sensorHitEtaProfile.end()) m_sensorHitEtaProfile[trkName] = TProfile();
       m_sensorHitEtaProfile[trkName].Reset();
@@ -106,6 +109,7 @@ bool AnalyzerGeometry::init(int nTracks)
       m_sensorHitEtaProfile[trkName].SetMarkerColor(1);
       m_sensorHitEtaProfile[trkName].SetMarkerSize(1.5);
       m_sensorHitEtaProfile[trkName].SetMinimum(0);
+      m_sensorHitEtaProfile[trkName].SetStats(kFALSE);
 
       if (m_stubHitEtaProfile.find(trkName)==m_stubHitEtaProfile.end()) m_stubHitEtaProfile[trkName] = TProfile();
       m_stubHitEtaProfile[trkName].Reset();
@@ -115,6 +119,7 @@ bool AnalyzerGeometry::init(int nTracks)
       m_stubHitEtaProfile[trkName].SetMarkerColor(1);
       m_stubHitEtaProfile[trkName].SetMarkerSize(1.5);
       m_stubHitEtaProfile[trkName].SetMinimum(0);
+      m_stubHitEtaProfile[trkName].SetStats(kFALSE);
 
       // Set hit profile histograms for different module types
       for (auto iModule : iTracker->modules()) {
@@ -136,6 +141,7 @@ bool AnalyzerGeometry::init(int nTracks)
         m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerColor(1);
         m_moduleTypeHitEtaProfile[trkName][iType].SetMarkerSize(1.0);
         m_moduleTypeHitEtaProfile[trkName][iType].SetMinimum(0);
+        m_moduleTypeHitEtaProfile[trkName][iType].SetStats(kFALSE);
       }
 
       if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName] ) {
@@ -151,6 +157,7 @@ bool AnalyzerGeometry::init(int nTracks)
         m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerColor(1);
         m_moduleTypeStubEtaProfile[trkName][iType].SetMarkerSize(1.0);
         m_moduleTypeStubEtaProfile[trkName][iType].SetMinimum(0);
+        m_moduleTypeStubEtaProfile[trkName][iType].SetStats(kFALSE);
       }
 
       // Prepare eta coverage profiles for individual barrel layers & end-cap disks
@@ -166,17 +173,19 @@ bool AnalyzerGeometry::init(int nTracks)
         m_layerEtaCoverProfile[trkName][layerName].SetNameTitle(std::string("LayerEtaCoverage_"+trkName+"_"+layerName).c_str(), std::string(trkName+": Eta coverage of "+layerName+";#eta;Coverage").c_str());
         m_layerEtaCoverProfile[trkName][layerName].SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
         m_layerEtaCoverProfile[trkName][layerName].SetMinimum(0);
+        m_layerEtaCoverProfile[trkName][layerName].SetStats(kFALSE);
 
         m_layerStubEtaCoverProfile[trkName][layerName] = TProfile();
         m_layerStubEtaCoverProfile[trkName][layerName].SetNameTitle(std::string("LayerStubEtaCoverage_"+trkName+"_"+layerName).c_str(), std::string(trkName+": Eta coverage of "+layerName+" stub;#eta;Coverage").c_str());
         m_layerStubEtaCoverProfile[trkName][layerName].SetBins(2*nBinsProfile, -m_etaMax, +m_etaMax);
         m_layerStubEtaCoverProfile[trkName][layerName].SetMinimum(0);
+        m_layerStubEtaCoverProfile[trkName][layerName].SetStats(kFALSE);
       }
 
     } // For trackers
 
-    m_isAnalysisOK = true;
-    return m_isAnalysisOK;
+    m_isInitOK = true;
+    return m_isInitOK;
   }
 }
 
@@ -201,7 +210,7 @@ bool AnalyzerGeometry::analyze()
     std::string trkName =  iTracker->myid();
 
     // Print
-    std::cout << " " << iTracker->myid() << " tracker ..."<< std::endl;
+    std::cout << " " << iTracker->myid() << " tracker"<< std::endl;
 
     // Counters
     std::map <std::string, int> moduleTypeCount;  // counts hit per module type -> if any of the sensors (or both) are hit, it counts 1
@@ -338,7 +347,9 @@ bool AnalyzerGeometry::analyze()
     }
 
   } // For trackers
-  return true;
+
+  m_isAnalysisOK = true;
+  return m_isAnalysisOK;
 }
 
 //
@@ -575,6 +586,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   moduleTotHitsEtaHis.SetMarkerColor(1);
   moduleTotHitsEtaHis.SetMarkerSize(1.5);
   moduleTotHitsEtaHis.SetMinimum(0);
+  moduleTotHitsEtaHis.SetStats(kFALSE);
 
   for (auto iTracker : m_trackers) {
     std::string trkName = iTracker->myid();
@@ -615,14 +627,13 @@ void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
   double bpThick  = SimParms::getInstance()->bpThickness();
 
   // Beam-pipe in RZ
-  TPolyLine beamPipeRZ;
-  beamPipeRZ.SetPoint(0, 0                    , bpRadius + bpThick/2.);
-  beamPipeRZ.SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
-  beamPipeRZ.SetLineColor(14);
-  beamPipeRZ.SetLineWidth(2);
-  logINFO("Drawing beam pipe to RZ canvas");
+  TPolyLine* beamPipeRZ = new TPolyLine();
+  beamPipeRZ->SetPoint(0, 0                     , bpRadius + bpThick/2.);
+  beamPipeRZ->SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
+  beamPipeRZ->SetLineColor(14);
+  beamPipeRZ->SetLineWidth(2);
   canvas.cd();
-  beamPipeRZ.Draw("same");
+  beamPipeRZ->Draw("same");
 }
 
 //
@@ -634,11 +645,11 @@ void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
   double bpThick  = SimParms::getInstance()->bpThickness();
 
   // Beam-pipe in XY
-  TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
-  beamPipeXY.SetFillColor(18); // "grey18"
-  beamPipeXY.SetFillStyle(1001);
+  TEllipse* beamPipeXY = new TEllipse(0, 0, bpRadius + bpThick/2.);
+  beamPipeXY->SetFillColor(18); // "grey18"
+  beamPipeXY->SetFillStyle(1001);
   canvas.cd();
-  beamPipeXY.Draw("same");
+  beamPipeXY->Draw("same");
 }
 
 //
@@ -654,7 +665,7 @@ void AnalyzerGeometry::setCanvasProperties(TCanvas& canvas)
 //
 // LayerNameVisitor constructor method
 //
-LayerNameVisitor::LayerNameVisitor(const std::vector<Tracker*>& trackers)
+LayerNameVisitor::LayerNameVisitor(std::vector<const Tracker*>& trackers)
 {
   for (auto tracker : trackers) {
 

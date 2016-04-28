@@ -7,7 +7,7 @@
 
 #include "AnalyzerModule.h"
 
-AnalyzerModule::AnalyzerModule(std::string name, std::vector<Tracker*> trackers)
+AnalyzerModule::AnalyzerModule(std::string name, std::vector<const Tracker*> trackers)
 {
   // Initialization by default false
   m_isInitOK = false;

@@ -35,6 +35,8 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
   // Geometry/config file not defined
   std::ifstream inputFile(baseGeomFile);
   if (inputFile.fail()) {
+
+    std::cerr << any2str("n\ERROR: GeometryManager::GeometryManager -> Cannot open geometry file: "+baseGeomFile) << std::endl;
     logERROR(any2str("GeometryManager::GeometryManager: Cannot open geometry file: "+baseGeomFile));
   }
   else {
@@ -98,6 +100,7 @@ bool GeometryManager::buildActiveTracker()
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
+    std::cerr << any2str("\nERROR: GeometryManager::buildActiveTracker() -> Can't built active tracker if GeometryManager not properly initialized in constructor");
     logERROR(any2str("GeometryManager::buildActiveTracker(): Can't built active tracker if GeometryManager not properly initialized in constructor"));
     return false;
   }
@@ -132,14 +135,18 @@ bool GeometryManager::buildActiveTracker()
       for (const string& property  : unmatchedProperties) {
         message << "  " << property << std::endl;
       }
+      std::cerr << any2str("\nERROR: "+message.str()) << std::endl;
       logERROR(message);
     }
   } // Try
   catch (PathfulException& e) {
 
+    std::cerr << any2str("\nERROR: " +e.path()+ " : " +e.what()) << std::endl;
     logERROR(e.path()+ " : " +e.what());
+    stopTaskClock();
     return false;
   }
+
   stopTaskClock();
   return true;
 }
@@ -154,7 +161,8 @@ bool GeometryManager::buildTrackerSupport()
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
-    logERROR(any2str("GeometryManager::buildTrackerSupport(): Can't built tracker supports if GeometryManager not properly initialized in constructor"));
+    std::cerr <<
+    logERROR(any2str("\nERROR: GeometryManager::buildTrackerSupport() -> Can't built tracker supports if GeometryManager not properly initialized in constructor"));
     return false;
   }
 
@@ -184,7 +192,9 @@ bool GeometryManager::buildTrackerSupport()
   }// Try
   catch (PathfulException& e) {
 
+    std::cerr << any2str("\nERROR: " +e.path()+ " : " +e.what()) << std::endl;
     logERROR(e.path()+ " : " +e.what());
+    stopTaskClock();
     return false;
   }
   stopTaskClock();
@@ -280,9 +290,7 @@ void GeometryManager::setGeometryFile(std::string baseGeomFile)
 
   // Config directory
   m_geomDir = baseGeomFile;
-  size_t pos = m_geomFile.find_last_of('.');
-  if (pos != string::npos) { m_geomDir.erase(pos); }
-  pos = m_geomFile.find_last_of('/');
+  size_t pos = m_geomDir.find_last_of('/');
   if (pos != string::npos) { m_geomDir.erase(pos); }
 
   // Html directory

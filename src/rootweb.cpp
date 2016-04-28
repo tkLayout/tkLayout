@@ -684,24 +684,28 @@ RootWSite::RootWSite() {
 }
 
 RootWSite::RootWSite(string title) {
-  title_           = title;
-  comment_         = "";
-  commentLink_     = "";
-  programName_     = insur::web_program_name;
-  programSite_     = insur::web_program_site;
-  revision_        = "";
-  targetDirectory_ = ".";
+  title_                = title;
+  comment_              = "";
+  commentLink_          = "";
+  programName_          = insur::web_program_name;
+  programSite_          = insur::web_program_site;
+  revision_             = "";
+  targetDirectory_      = ".";
+  tkLayoutBranchName_   = insur::web_program_branch_name;
+  tkLayoutBranchAuthor_ = insur::web_program_branch_author;
   //styleDirectory_ = ".";
 }
 
 RootWSite::RootWSite(string title, string comment) {
-  title_           = title;
-  comment_         = comment;
-  commentLink_     = "";
-  programName_     = insur::web_program_name;
-  programSite_     = insur::web_program_site;
-  revision_        = "";
-  targetDirectory_ = ".";
+  title_                = title;
+  comment_              = comment;
+  commentLink_          = "";
+  programName_          = insur::web_program_name;
+  programSite_          = insur::web_program_site;
+  revision_             = "";
+  targetDirectory_      = ".";
+  tkLayoutBranchName_   = insur::web_program_branch_name;
+  tkLayoutBranchAuthor_ = insur::web_program_branch_author;
   //styleDirectory_ = ".";
 }
 

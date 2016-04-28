@@ -21,8 +21,8 @@ class MaterialBudget;
 
 /*
  * Pure virtual class to be used for Analyzer modules.
- * Call init method to initialized variables, histograms, ...
- * Call analyze method to perform calculations. Apply analyze method only if init didn't fail.
+ * Call init method to initialized variables, histograms, ... -> update m_isInitOK if OK
+ * Call analyze method to perform calculations. Apply analyze method only if init didn't fail -> update m_isAnalysisOK if OK
  * Call visualize method to perform visualization. Apply visualize method only if init & analyze didn't fail.
  */
 class AnalyzerModule
@@ -30,7 +30,7 @@ class AnalyzerModule
  public:
 
   //! Constructor - set active trackers to be analyzed
-  AnalyzerModule(std::string name, std::vector<Tracker*> trackers);
+  AnalyzerModule(std::string name, std::vector<const Tracker*> trackers);
 
   //! Virtual destructor
   virtual ~AnalyzerModule();

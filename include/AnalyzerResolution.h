@@ -19,7 +19,7 @@ class AnalyzerResolution : AnalyzerModule {
 
  public:
   // Constructor
-  AnalyzerResolution(std::vector<Tracker*> trackers);
+  AnalyzerResolution(std::vector<const Tracker*> trackers);
   // Destructor
   ~AnalyzerResolution() {};
 

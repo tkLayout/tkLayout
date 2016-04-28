@@ -45,7 +45,7 @@ class LayerNameVisitor : public ConstGeometryVisitor {
 
  public:
 
-  LayerNameVisitor(const std::vector<Tracker*>& trackers);
+  LayerNameVisitor(std::vector<const Tracker*>& trackers);
   virtual ~LayerNameVisitor() {};
 
   //! Fill container with layer names for defined tracker if tracker exists
@@ -66,7 +66,7 @@ class AnalyzerGeometry : AnalyzerModule {
  public:
 
   //! Constructor
-  AnalyzerGeometry(std::vector<Tracker*> trackers);
+  AnalyzerGeometry(std::vector<const Tracker*> trackers);
 
   //! Destructor
   ~AnalyzerGeometry() {};

@@ -21,9 +21,15 @@ class Support;
 class Tracker;
 
 /*
- * The core analysis class, containing all analyzers to be used. Each analyzer is identified by its unique name.
- * Call analyzer init, analyze or visuzualize methods ...
- * The result are collected in html format in a web container and printed-out using makeWebSite method.
+ * The core analysis class, containing all analyzers to be used. Each analyzer is identified by its unique name
+ * and is called through initModule, analyzeModule & visualizeModule methods. Init method initializes parameters,
+ * histograms etc. of given module, analyze method performs the analysis and visualization outputs the results
+ * to html format. All html web pages created by different modules are collected in html format in a common web
+ * container (main html page) and printed-out using makeWebSite() method. There are two other html methods called
+ * by makeWebSite(). One to print out the log info: makeWebLogPage(). The other to collect and print out information
+ * obtained by different modules: makeWebInfoPage(). A user is responsible to implement/change implementation of the
+ * latter method only if extra infor web page is required. Finally, once a new AnalyzerModule is created, user is
+ * responsible for updating the Manager constructor and creating an instance of the module in there.
  */
 class AnalysisManager {
 
@@ -35,7 +41,10 @@ class AnalysisManager {
   //! @param[in] activeTrackers List of all active sub-trackers
   //! @param[in] pasiveTrackers List of pasives related to active sub-trackers
   //! @param[in] supports       List of independent support structures not directly related to active sub-trackers
-  AnalysisManager(std::string layoutName, std::string webDir, std::vector<Tracker*> activeTrackers, std::vector<insur::InactiveSurfaces*> pasiveTrackers, std::vector<Support*> supports);
+  AnalysisManager(std::string layoutName, std::string webDir,
+                  std::vector<const Tracker*> activeTrackers,
+                  std::vector<const insur::InactiveSurfaces*> pasiveTrackers,
+                  std::vector<const Support*> supports);
 
   //! Destructor -
   ~AnalysisManager();
@@ -57,9 +66,14 @@ class AnalysisManager {
   bool visualizeModule(std::string analyzerName);
 
   //! Make web site - publish all results in a html format using the results of visualize method of all used modules
-  //! @param[in] addLogPage Print out the log page?
+  //! @param[in] addInfoPage Print out the info page?
+  //! @param[in] addLogPage  Print out the log page?
   //! @return True if there were no errors during processing, false otherwise
-  bool makeWebSite(bool addLogPage);
+  bool makeWebSite(bool addInfoPage, bool addLogPage);
+
+  //! Set command line options passed over to program to analyze data
+  //! @param[in] commandLine    Content of command line
+  void setCommandLine(int argc, char* argv[]);
 
  private:
 
@@ -69,6 +83,10 @@ class AnalysisManager {
   //! @return True if there were no errors during processing, false otherwise
   bool prepareWebSite(std::string layoutName, std::string webDir);
 
+  //! Prepare extra info web page
+  //! @return True if here were no errors during processing, false otherwise
+  bool makeWebInfoPage();
+
   //! Prepare web log page for information
   //! @return True if any logs found
   bool makeWebLogPage();
@@ -77,6 +95,8 @@ class AnalysisManager {
   bool        m_webSitePrepared; //!< Web container correctly prepared
   std::string m_webSiteDir;      //!< Web container directory
   std::string m_webLayoutName;   //!< Web layout name
+
+  std::string m_commandLine;     //!< Command line options passed over to program to analyze data
 
   std::map<std::string, AnalyzerModule*> m_modules; //!< List of all available analyzer modules
 

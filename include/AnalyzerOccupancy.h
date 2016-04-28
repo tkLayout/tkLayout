@@ -28,7 +28,7 @@ class AnalyzerOccupancy : AnalyzerModule {
 
  public:
   // Constructor
-  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<Tracker*> trackers);
+  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers);
   // Destructor
   ~AnalyzerOccupancy();
 

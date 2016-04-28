@@ -53,16 +53,24 @@ class GeometryManager {
   bool buildPasiveTracker();
 
   //! Get active sub-trackers
-  //! @return std::vector<Tracker*>
+  //! @return vector of pointers to active trackers
   std::vector<const Tracker*> getActiveTrackers() const;
 
   //! Get tracker supports, which are independent on individual sub-trackers
-  //! @return std::vector<Support*>
+  //! @return vector of pointers to supports
   std::vector<const Support*> getTrackerSupports() const;
 
   //! Get pasive components related to active sub-trackers
-  //! @return std::vector<InactiveSurfaces*>
+  //! @return vector of pointers to pasive parts of trackers
   std::vector<const insur::InactiveSurfaces*> getPasiveTrackers() const;
+
+  //! Get geometry layout name
+  //! @return layout name
+  std::string getLayoutName() const {return m_layoutName;}
+
+  //! Get default html directory, where all results are saved
+  //! @return directory address
+  std::string getWebDir() const {return m_htmlDir;}
 
  private:
 

@@ -1,10 +1,16 @@
+// System includes
 #include <boost/program_options.hpp> 
 #include <stdlib.h>
+#include <fstream>
 #include <iostream>
 #include <string>
-#include <Squid.h>
+
+// tkLayout includes
 #include <global_constants.h>
-#include "SvnRevision.h"
+#include <AnalysisManager.h>
+#include <GeometryManager.h>
+#include <StopWatch.h>
+#include <SvnRevision.h>
 
 namespace po = boost::program_options;
 
@@ -16,51 +22,24 @@ int main(int argc, char* argv[]) {
 
   int geomTracks, matTracks;
   int verbosity;
-  int randseed; 
 
-  std::string geomFile, optFile, xmlDir, htmlDir;
+  std::string geomFile, optFile;
 
   // Program options - analysis
   po::options_description shown("Analysis options");
   shown.add_options()
-    ("help,h"           , "Display this help message.")
-    ("opt-file"         , po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse program options from, in addition to the command line")
-    ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(insur::default_n_tracks), "N. of tracks for geometry calculations.")
-    ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "N. of tracks for material & resolution calculations.")
-    ("occupancy,o"      , "Report occupancy analysis based on Fluka simulations")
-    ("power,p"          , "Report irradiated power analysis.")
-    ("bandwidth,b"      , "Report base bandwidth analysis.")
-    ("bandwidth-cpu,B"  , "Report multi-cpu bandwidth analysis.\n\t(implies 'b')")
-    ("material,m"       , "Report materials and weights analyses.")
-    ("resolution,r"     , "Report resolution analysis.")
-    ("trigger,t"        , "Report base trigger analysis.")
-    ("trigger-ext,T"    , "Report extended trigger analysis.\n\t(implies 't')")
-    ("debug-services,d" , "Service additional debug info")
-    ("all,a"            , "Report all analyses, except extended\ntrigger and debug page. (implies all other relevant\nreport options)")
-    ("graph,g"          , "Build and report feeder/neighbour relations graph.")
-    ("xml"              , po::value<std::string>(&xmlDir)->implicit_value(""), "Produce XML output files for materials.\nOptional arg specifies the subdirectory\nof the output directory (chosen via inst\nscript) where to create XML files.\nIf not supplied, the config file name (minus extension)\nwill be used as subdir.")
-    ("html-dir"         , po::value<std::string>(&htmlDir), "Override the default html output dir\n(equal to the tracker name in the main\ncfg file) with the one specified.")
-    ("verbosity"        , po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
-    ("quiet"            , "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
-    ("performance"      , "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
-    ("randseed"         , po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
-    ;
-
-  // Program options - simulation
-  po::options_description trackopt("Track simulation options");
-  trackopt.add_options()
-    ("tracksim"     , "Switch to track sim mode, normal analysis disabled")
-    ("num-events"   , po::value<std::string>(), "N. of events to simulate")
-    ("num-tracks-ev", po::value<std::string>(), "N. of tracks per event")
-    ("event-offset" , po::value<std::string>(), "Start the event numbering from an offset value.")
-    ("eta"          , po::value<std::string>(), "Particle eta")
-    ("phi0"         , po::value<std::string>(), "Particle phi0")
-    ("z0"           , po::value<std::string>(), "Particle z0")
-    ("pt"           , po::value<std::string>(), "Particle transverse momentum, alternative to --invPt")
-    ("invPt"        , po::value<std::string>(), "Specify pt in terms of its inverse, alternative to --pt")
-    ("charge"       , po::value<std::string>(), "Particle charge")
-    ("instance-id"  , po::value<std::string>(), "Id of the program instance, to tag the output file with")
-    ("tracks-dir"   , po::value<std::string>(), "Override the default tracksim output dir.\nIf not supplied, the files will be saved in\nthe working dir")
+    ("help,h"           , "Display help info.")
+    ("opt-file"         , po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse the program options from (in addition to command line).")
+    ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(insur::default_n_tracks), "Number of tracks for geometry calculations.")
+    ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "Number of tracks for material & resolution calculations.")
+    ("occupancy,o"      , "Report occupancy studies based on Fluka data.")
+    ("geometry,g"       , "Report geometry layout.")
+    ("material,m"       , "Report material buget.")
+    ("resolution,r"     , "Report resolution studies.")
+    ("all,a"            , "Report all studies.")
+    ("verbosity"        , po::value<int>(&verbosity)->default_value(1), "Verbosity level (Overridden by the option 'quiet').")
+    ("quiet"            , "No output produced (Equivalent to verbosity 0, overrides the 'verbosity' option).")
+    ("performance"      , "Outputs the CPU time needed for each computing step (Overrides the option 'quiet').")
     ;
 
   // Program options - other
@@ -75,141 +54,124 @@ int main(int argc, char* argv[]) {
   posopt.add("geom-file", 1);
 
   po::options_description mainopt;
-  mainopt.add(shown).add(hidden).add(trackopt).add(otheropt);
+  mainopt.add(shown).add(hidden).add(otheropt);
   
-  // Read user input
-  po::variables_map vm;
+  // Read user selected options
+  po::variables_map progOptions;
   try {
 
     // Find all options including positional options
-    po::store(po::command_line_parser(argc, argv).options(mainopt).positional(posopt).run(), vm);
-    po::notify(vm);
+    po::store(po::command_line_parser(argc, argv).options(mainopt).positional(posopt).run(), progOptions);
+    po::notify(progOptions);
     if (!optFile.empty()) {
-      std::ifstream ifs(optFile.c_str());
-      if (!ifs) throw po::error(("Options file \"" + optFile + "\" not found").c_str());
+      std::ifstream inFile(optFile.c_str());
+      if (!inFile) throw po::error(("Options file \"" + optFile + "\" not found").c_str());
 
       // Parse also the optional input file
-      po::store(po::parse_config_file(ifs, mainopt, true), vm);
-      ifs.close();
+      po::store(po::parse_config_file(inFile, mainopt, true), progOptions);
+      inFile.close();
     }
-    po::notify(vm);
+    po::notify(progOptions);
 
     // Check number of tracks
     if (geomTracks < 1) throw po::invalid_option_value("geometry-tracks");
     if (matTracks < 1)  throw po::invalid_option_value("material-tracks");
-    if (!vm.count("geom-file") && !vm.count("help") && !vm.count("version")) throw po::error("Missing configuration/geometry file");
+    if (!progOptions.count("geom-file") && !progOptions.count("help") && !progOptions.count("version")) throw po::error("Missing configuration/geometry file");
 
   } catch(po::error& e) {
 
     // Display the following options after program starts without configuration
     std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
-    std::cout << usage << std::endl << shown << trackopt << std::endl;
+    std::cout << usage << std::endl << shown << std::endl;
     return EXIT_FAILURE;
   }
 
-  if (vm.count("help")) {
-    std::cout << usage << std::endl << shown << trackopt << otheropt << std::endl;
-    return 0;
+  // Print help
+  if (progOptions.count("help")) {
+    std::cout << usage << std::endl << shown << otheropt << std::endl;
+    return EXIT_SUCCESS;
   }
 
-  if (vm.count("version")) {
+  // Print version
+  if (progOptions.count("version")) {
     std::cout << "tklayout revision " << SvnRevision::revisionNumber << std::endl;
-    return 0;
+    return EXIT_SUCCESS;
   }
 
-  if (vm.count("geom-file")) std::cout << "Reading configuration/geometry from: " << geomFile << std::endl;
+  // Print geometry configuration file to be used
+  if (progOptions.count("geom-file")) std::cout << "Reading configuration/geometry from: " << geomFile << std::endl;
 
   //
-  // Start program using squid multi-interface
-  insur::Squid squid;
-
-  // Set configuration & other options
-  squid.setCommandLine(argc, argv);
-
-  // Set html directory
-  if (htmlDir != "") squid.setHtmlDir(htmlDir);
-
-  // Set geometry/configuration file
-  squid.setGeometryFile(geomFile);
-
   // Set verbosity
   bool         verboseMaterial  = false;
   unsigned int verboseWatch     = verbosity;
   bool         performanceWatch = false ;
-  if (vm.count("quiet")) verboseWatch = 0;
-  if (vm.count("performance")) {
-    if (verboseWatch==0) verboseWatch = 1;
-  }
+
+  if (progOptions.count("quiet"))       verboseWatch = 0;
+  if (progOptions.count("performance")) verboseWatch = 1;
+
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build active tracker: pixel & strip in barrel & forward region
-  // Read configuration files etc.
-  if (!squid.buildActiveTracker()) return EXIT_FAILURE;
+  // Build full tracker
+  GeometryManager gManager(geomFile);
+  bool activeTrackerOK = gManager.buildActiveTracker();
 
-  // Do general analysis
-  if (!vm.count("tracksim")) {
+  //
+  // Analyze tracker - create analysis manager
+  AnalysisManager aManager(gManager.getLayoutName(), gManager.getWebDir(), gManager.getActiveTrackers(), gManager.getPasiveTrackers(), gManager.getTrackerSupports());
+  aManager.setCommandLine(argc, argv);
 
-    // Analyze geometry layout
-    if (!squid.analyzeGeometry(geomTracks)) return EXIT_FAILURE;
+  // Call individual analyzer modules
+  bool isAnalysisOK      = false;
+  bool isVisualizationOK = false;
+  if (activeTrackerOK) {
 
-    if ((vm.count("all") || vm.count("bandwidth") || vm.count("bandwidth-cpu")) && !squid.reportBandwidthSite())         return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("bandwidth-cpu"))                          && !squid.reportTriggerProcessorsSite()) return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("power"))                                  && !squid.reportPowerSite())             return EXIT_FAILURE;
-    if ((vm.count("all") || vm.count("occupancy"))                              && !squid.reportOccupancySite())         return EXIT_FAILURE;
+    // Geometry layout study
+    if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
 
-    // If needed build material model (pasive tracker) & perform resolution simulation
-    if ( vm.count("all") || vm.count("material") || vm.count("resolution") || vm.count("graph") || vm.count("xml") ) {
-      if (squid.buildPasiveTracker(verboseMaterial) && squid.createMaterialBudget(verboseMaterial)) {
-
-        // Perform material budget analysis & report it
-        if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.pureAnalyzeMaterialBudget(matTracks))                 return EXIT_FAILURE;
-        if ((vm.count("all") || vm.count("resolution") || vm.count("material")) && !squid.reportMaterialBudgetSite(vm.count("debug-services"))) return EXIT_FAILURE;
-
-        // Perform resolution analysis & report it
-        if ((vm.count("all") || vm.count("resolution")) && !squid.pureAnalyzeResolution(matTracks)) return EXIT_FAILURE;
-        if ((vm.count("all") || vm.count("resolution")) && !squid.reportResolutionSite())           return EXIT_FAILURE;
-
-        //TODO: Writes the feeder/neighbour relations in a collection of inactive surfaces to a file
-        if (vm.count("graph") && !squid.reportNeighbourGraphSite())     return EXIT_FAILURE;
-
-        // Produce XML output files for materials
-        if (vm.count("xml") && !squid.translateFullSystemToXML(xmlDir)) return EXIT_FAILURE;
-      }
+      startTaskClock("Analyzing tracker geometry");
+      aManager.initModule(geomTracks, "AnalyzerGeometry");
+      isAnalysisOK      = aManager.analyzeModule("AnalyzerGeometry");
+      isVisualizationOK = aManager.visualizeModule("AnalyzerGeometry");
+      stopTaskClock();
+      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerGeometry -> analysis failed!"      << std::endl;
+      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerGeometry -> visualization failed!" << std::endl;
     }
 
-//    if ((vm.count("all") || vm.count("trigger") || vm.count("trigger-ext")) &&
-//        ( !squid.analyzeTriggerEfficiency(matTracks, vm.count("trigger-ext")) || !squid.reportTriggerPerformanceSite(vm.count("trigger-ext"))) ) return EXIT_FAILURE;
+    // Material budget study
+    if (progOptions.count("all") || progOptions.count("material")) {
 
+      startTaskClock("Analyzing material budget");
+      aManager.initModule(matTracks, "AnalyzerMatBudget");
+      isAnalysisOK      = aManager.analyzeModule("AnalyzerMatBudget");
+      isVisualizationOK = aManager.visualizeModule("AnalyzerMatBudget");
+      stopTaskClock();
+      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerMatBudget -> analysis failed!"      << std::endl;
+      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerMatBudget -> visualization failed!" << std::endl;
+    }
 
-    // Report tracker geometry
-    if (!squid.reportGeometrySite()) return EXIT_FAILURE;
-    if (!squid.reportInfoSite())     return EXIT_FAILURE;
-    if (!squid.makeWebSite())        return EXIT_FAILURE;
+    // Resolution study
+    if (progOptions.count("all") || progOptions.count("resolution")) {
 
+      startTaskClock("Analyzing resolution");
+      aManager.initModule(matTracks, "AnalyzerResolution");
+      isAnalysisOK      = aManager.analyzeModule("AnalyzerResolution");
+      isVisualizationOK = aManager.visualizeModule("AnalyzerResolution");
+      stopTaskClock();
+      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerResolution -> analysis failed!"      << std::endl;
+      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerResolution -> visualization failed!" << std::endl;
+    }
   }
-  // Do specific simulated tracks analysis
-  else {
-    //if (tracksim.size() < 1 || tracksim.size > 2) {
-    //  std::cerr << "Wrong number of parameters. Syntax: --tracksim <num events> <num tracks/ev>" << std::endl;
-    //  std::cerr << "                                    --tracksim parameterfile" << std::endl;
-    //  std::cerr << "                                    --tracksim \"key1 = value1; key2 = value2 ...\"" << std::endl;
-    //  return EXIT_FAILURE;
-   // }
-    if (!squid.analyzeGeometry(geomTracks)) return EXIT_FAILURE;
-  
-//    if (tracksim.size() == 2) {
-//      vmtracks.insert(std::make_pair("num-events", po::variable_value(boost::any(tracksim[0]), false)));
-//      vmtracks.insert(std::make_pair("num-tracks", po::variable_value(boost::any(tracksim[1]), false)));
-//    }
-    squid.simulateTracks(vm, randseed);
 
-    //if (tracksim.size() == 2) { squid.simulateTracks(str2any<long int>(tracksim[0]), str2any<long int>(tracksim[1]), randseed, "", ""); }
-    //else if (tracksim.size() == 1 && tracksim[0].at(0)=="\"") { squid.simulateTracks(0, 0, randseed, "", trim(tracksim[0], " \"")); }
-    //else { squid.simulateTracks(0, 0, randseed, tracksim[0], ""); }
-  }
+  //
+  // Create html output with all results
+  bool addInfoPage = false;
+  bool addLogPage  = true;
+  aManager.makeWebSite(addInfoPage, addLogPage);
 
   // Finish
+  std::cout << std::endl;
   return EXIT_SUCCESS;
 }
 
