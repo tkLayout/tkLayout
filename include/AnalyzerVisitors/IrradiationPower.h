@@ -8,6 +8,7 @@
 
 #include "Tracker.h"
 #include "SimParms.h"
+#include "IrradiationMapsManager.h"
 
 #include "Visitor.h"
 #include "SummaryTable.h"

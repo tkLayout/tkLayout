@@ -9,6 +9,7 @@
 #include <global_constants.h>
 #include <AnalysisManager.h>
 #include <GeometryManager.h>
+#include <SimParms.h>
 #include <StopWatch.h>
 #include <SvnRevision.h>
 
@@ -118,9 +119,18 @@ int main(int argc, char* argv[]) {
   bool activeTrackerOK = gManager.buildActiveTracker();
 
   //
+  // Set simulation generic parameters
+  auto simParms = SimParms::getInstance();
+  simParms->setCommandLine(argc, argv);
+  simParms->setLayoutName(gManager.getLayoutName());
+  simParms->setBaseGeomFileName(gManager.getBaseGeomFileName());
+  simParms->setRunDirPath(gManager.getRunDirPath());
+  simParms->setWebDir(gManager.getWebDir());
+  simParms->setListOfConfFiles(gManager.getListOfConfFiles());
+
+  //
   // Analyze tracker - create analysis manager
-  AnalysisManager aManager(gManager.getLayoutName(), gManager.getWebDir(), gManager.getActiveTrackers(), gManager.getPasiveTrackers(), gManager.getTrackerSupports());
-  aManager.setCommandLine(argc, argv);
+  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPasiveTrackers(), gManager.getTrackerSupports());
 
   // Call individual analyzer modules
   bool isAnalysisOK      = false;
@@ -166,7 +176,7 @@ int main(int argc, char* argv[]) {
 
   //
   // Create html output with all results
-  bool addInfoPage = false;
+  bool addInfoPage = true;
   bool addLogPage  = true;
   aManager.makeWebSite(addInfoPage, addLogPage);
 

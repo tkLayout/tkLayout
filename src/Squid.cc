@@ -248,9 +248,6 @@ namespace insur {
       // Create instance of simulation parameters
       SimParms* simParms = SimParms::getInstance();
 
-      // Add default irradiation files to simParms
-      simParms->readIrradiationMaps();
-
       // Store data in a general tree & check
       simParms->store(getChild(pTree, "SimParms"));
       simParms->crosscheck();

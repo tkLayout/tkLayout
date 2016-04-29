@@ -20,9 +20,11 @@ namespace insur {
 class Support;
 
 /*
- * The core geometry class, building the overall tracker with its inactive components. The tracker consists of individual sub-trackers and corresponding
- * inactive parts. In addition various support structures, services, etc. are built as well. For the analysis, it provides several get methods to provide
- * a vector of built active trackers, their pasive parts (pasive trackers) etc. This class takes over the role of previous Squid methods related to geometry.
+ * The core geometry class, building the overall tracker with its inactive components. The tracker consists of individual
+ * sub-trackers and corresponding inactive parts. In addition various support structures, services, etc. are built as well.
+ * As an interface for analysis, it provides several get methods to obtain geometrical info: vector of built active trackers,
+ * their pasive parts (pasive trackers), supports etc. This class takes over the role of previous Squid class and its
+ * geometry related methods ...
  */
 class GeometryManager {
 
@@ -72,6 +74,18 @@ class GeometryManager {
   //! @return directory address
   std::string getWebDir() const {return m_htmlDir;}
 
+  //! Get name of main geometry config file
+  //! @return file name
+  std::string getBaseGeomFileName() const {return m_geomFile;}
+
+  //! Get path of tkLayout run directory
+  //! @return run directory path
+  std::string getRunDirPath() const {return m_baseDir;}
+
+  //! Get list of all configuration files obtained from the base geometry file using @include command
+  //! @return set of all include files (strings)
+  std::set<std::string> getListOfConfFiles() const {return m_includeSet;}
+
  private:
 
   //! Set base geometry file, directory, layout name, ...
@@ -79,8 +93,8 @@ class GeometryManager {
 
   bool        m_initOK;      //!< Initialization OK
 
-  std::string m_geomFile;    //!< Base geometry file name
-  std::string m_geomDir;     //!< Base geometry directory
+  std::string m_geomFile;    //!< Name of main geometry config file
+  std::string m_baseDir;     //!< Base tkLayout run directory
   std::string m_htmlDir;     //!< Default html directory, where all results are saved
   std::string m_layoutName;  //!< Geometry layout name
 

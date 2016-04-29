@@ -9,8 +9,9 @@
 #define INCLUDE_ANALYSISMANAGER_H_
 
 #include <map>
-#include <vector>
+#include <set>
 #include <string>
+#include <vector>
 
 class AnalyzerModule;
 class RootWSite;
@@ -28,21 +29,19 @@ class Tracker;
  * container (main html page) and printed-out using makeWebSite() method. There are two other html methods called
  * by makeWebSite(). One to print out the log info: makeWebLogPage(). The other to collect and print out information
  * obtained by different modules: makeWebInfoPage(). A user is responsible to implement/change implementation of the
- * latter method only if extra infor web page is required. Finally, once a new AnalyzerModule is created, user is
- * responsible for updating the Manager constructor and creating an instance of the module in there.
+ * latter method only if extra info web page is required. Finally, once a new AnalyzerModule (derived from pure
+ * virtual AnalyzerModule class) is created, user is responsible for updating the Manager constructor and creating
+ * an instance of the module in there.
  */
 class AnalysisManager {
 
  public:
 
   //! Constructor - create instances of all available analyzer modules & prepare web container
-  //! @param[in] layoutName     Layout name
-  //! @param[in] webDir         Directory in which the web content will be saved
   //! @param[in] activeTrackers List of all active sub-trackers
   //! @param[in] pasiveTrackers List of pasives related to active sub-trackers
   //! @param[in] supports       List of independent support structures not directly related to active sub-trackers
-  AnalysisManager(std::string layoutName, std::string webDir,
-                  std::vector<const Tracker*> activeTrackers,
+  AnalysisManager(std::vector<const Tracker*> activeTrackers,
                   std::vector<const insur::InactiveSurfaces*> pasiveTrackers,
                   std::vector<const Support*> supports);
 
@@ -71,10 +70,6 @@ class AnalysisManager {
   //! @return True if there were no errors during processing, false otherwise
   bool makeWebSite(bool addInfoPage, bool addLogPage);
 
-  //! Set command line options passed over to program to analyze data
-  //! @param[in] commandLine    Content of command line
-  void setCommandLine(int argc, char* argv[]);
-
  private:
 
   //! Prepare web site (html container for all results)
@@ -93,10 +88,6 @@ class AnalysisManager {
 
   RootWSite*  m_webSite;         //!< Web container, where all analysis results will be available
   bool        m_webSitePrepared; //!< Web container correctly prepared
-  std::string m_webSiteDir;      //!< Web container directory
-  std::string m_webLayoutName;   //!< Web layout name
-
-  std::string m_commandLine;     //!< Command line options passed over to program to analyze data
 
   std::map<std::string, AnalyzerModule*> m_modules; //!< List of all available analyzer modules
 

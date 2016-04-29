@@ -20,8 +20,8 @@ class Tracker;
 class MaterialBudget;
 
 /*
- * Pure virtual class to be used for Analyzer modules.
- * Call init method to initialized variables, histograms, ... -> update m_isInitOK if OK
+ * Pure virtual class to be used as a base class for concrete implementation of analyzer modules.
+ * Call init method to initialize variables, histograms, ... -> update m_isInitOK if OK
  * Call analyze method to perform calculations. Apply analyze method only if init didn't fail -> update m_isAnalysisOK if OK
  * Call visualize method to perform visualization. Apply visualize method only if init & analyze didn't fail.
  */
@@ -44,7 +44,7 @@ class AnalyzerModule
   //! Pure virtual visualization method -> visualizes output
   virtual bool visualize(RootWSite& webSite) = 0;
 
-  //! Pure virtual get name
+  //! Pure virtual get name -> provides module unique name
   virtual std::string getName() final {return m_name;}
 
  protected:

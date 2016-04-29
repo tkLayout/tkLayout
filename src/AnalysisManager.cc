@@ -9,12 +9,14 @@
 // List of modules
 #include <AnalyzerModule.h>
 #include <AnalyzerGeometry.h>
+#include <AnalyzerResolution.h>
 #include <InactiveSurfaces.h>
 #include <Support.h>
 #include <Tracker.h>
 #include <TH2D.h>
 #include <TProfile.h>
 #include <TH2I.h>
+#include <SimParms.h>
 #include <StopWatch.h>
 #include <SvnRevision.h>
 #include <rootweb.hh>
@@ -22,22 +24,19 @@
 //
 // Constructor - create instances of all available analyzer modules & prepare web container
 //
-AnalysisManager::AnalysisManager(std::string layoutName, std::string webDir,
-                                 std::vector<const Tracker*> activeTrackers,
+AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
                                  std::vector<const insur::InactiveSurfaces*> pasiveTrackers,
                                  std::vector<const Support*> supports) :
  m_webSite(nullptr),
- m_webSitePrepared(false),
- m_webSiteDir(""),
- m_webLayoutName(""),
- m_commandLine("")
+ m_webSitePrepared(false)
 {
   // Create AnalyzerGeometry
-  AnalyzerModule* module = (AnalyzerModule*)(new AnalyzerGeometry(activeTrackers));
+  AnalyzerGeometry* module = new AnalyzerGeometry(activeTrackers);
   m_modules[module->getName()] = module;
 
   // Prepare Web site
-  m_webSitePrepared = prepareWebSite(layoutName, webDir);
+  auto simParms = SimParms::getInstance();
+  m_webSitePrepared = prepareWebSite(simParms->getLayoutName(), simParms->getWebDir());
 }
 
 //
@@ -106,15 +105,6 @@ bool AnalysisManager::visualizeModule(std::string analyzerName)
 }
 
 //
-// Set command line options passed over to program to analyze data
-//
-void AnalysisManager::setCommandLine(int argc, char* argv[])
-{
-  m_commandLine = argv[1];
-  for (auto i=2; i<argc; i++) m_commandLine += std::string(" ") + argv[i];
-}
-
-//
 // Make web site - publish all results in a html format using the results of visualize method of all used modules
 //
 bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
@@ -122,7 +112,7 @@ bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
   if (!m_webSitePrepared) return false;
   else {
 
-    startTaskClock(any2str("Creating website in: "+ m_webSiteDir));
+    startTaskClock(any2str("Creating website in: "+ SimParms::getInstance()->getWebDir()) );
 
     // Add info webPage
     if (addInfoPage) makeWebInfoPage();
@@ -145,11 +135,7 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   m_webSite = new RootWSite("TkLayout results");
 
   // Set directory
-  if (webDir!="") {
-
-    m_webSiteDir = webDir;
-    m_webSite->setTargetDirectory(m_webSiteDir);
-  }
+  if (webDir!="") m_webSite->setTargetDirectory(webDir);
   else {
 
     std::cerr << any2str("\nERROR: AnalysisManager::prepareWebSite -> Web site directory not set!") << std::endl;
@@ -158,11 +144,7 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   }
 
   // Set layout title
-  if (layoutName!="") {
-
-    m_webLayoutName = layoutName;
-    m_webSite->setTitle(m_webLayoutName);
-  }
+  if (layoutName!="") m_webSite->setTitle(layoutName);
   else {
 
     std::cerr << any2str("\nERROR: AnalysisManager::prepareWebSite -> Layout name not set!") << std::endl;
@@ -187,7 +169,49 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
 bool AnalysisManager::makeWebInfoPage()
 {
   // Create web page: Log info
-  RootWPage& myPage = m_webSite->addPage("Info");
+  RootWPage& myPage       = m_webSite->addPage("Info");
+  RootWContent* myContent = nullptr;
+
+  // Summary of parameters
+  myContent = new RootWContent("Summary of tkLayout parameters");
+  myPage.addContent(myContent);
+
+  RootWInfo* myInfo;
+  myInfo = new RootWInfo("Command line arguments");
+  myInfo->setValue(SimParms::getInstance()->getCommandLine());
+  myContent->addItem(myInfo);
+
+  // Summary of used geometry & simulation tracks
+  if (m_modules.find("AnalyzerGeometry")!=m_modules.end()) {
+
+    AnalyzerGeometry* module = dynamic_cast<AnalyzerGeometry*>(m_modules["AnalyzerGeometry"]);
+    myInfo = new RootWInfo("Number of tracks - geometry studies: ");
+    myInfo->setValue(module->getNGeomTracks());
+    myContent->addItem(myInfo);
+  }
+  if (m_modules.find("AnalyzerResolution")!=m_modules.end()) {
+
+    AnalyzerResolution* module = dynamic_cast<AnalyzerResolution*>(m_modules["AnalyzerResolution"]);
+    myInfo = new RootWInfo("Number of tracks - resolution studies: ");
+    myInfo->setValue(module->getNSimTracks());
+    myContent->addItem(myInfo);
+  }
+
+  // Summary of geometry config files
+  auto simParms   = SimParms::getInstance();
+  auto includeSet = simParms->getListOfConfFiles();
+  if (!includeSet.empty()) {
+    std::vector<std::string> includeNameSet;
+    std::transform(includeSet.begin(), includeSet.end(), std::back_inserter(includeNameSet), [](const std::string& s) {
+
+      auto pos = s.find_last_of('/');
+      return (pos != string::npos ? s.substr(pos+1) : s);
+    });
+    RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(includeNameSet.begin(), includeNameSet.end(),
+                                                                    "Geometry configuration file(s)",
+                                                                    includeSet.begin(), includeSet.end());
+    myContent->addItem(myBinaryFileList);
+  }
 
   return true;
 }

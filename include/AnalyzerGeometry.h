@@ -61,7 +61,7 @@ class LayerNameVisitor : public ConstGeometryVisitor {
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
  * Unique name defined as "AnalyzerGeometry".
  */
-class AnalyzerGeometry : AnalyzerModule {
+class AnalyzerGeometry : public AnalyzerModule {
 
  public:
 
@@ -82,6 +82,9 @@ class AnalyzerGeometry : AnalyzerModule {
   //! Visualize geometry layout (if init & analysis OK) -> add html page with collected tables & created histograms
   //! @return True if OK
   bool visualize(RootWSite& webSite);
+
+  //! Get number of used tracks
+  int getNGeomTracks() const { return m_nTracks;}
 
  private:
 

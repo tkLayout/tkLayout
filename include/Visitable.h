@@ -8,6 +8,9 @@
 #ifndef VISITABLE_H_
 #define VISITABLE_H_
 
+class GeometryVisitor;
+class ConstGeometryVisitor;
+
 class Visitable {
 public:
   Visitable(){};

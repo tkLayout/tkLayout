@@ -15,21 +15,34 @@
 
 class Tracker;
 
-class AnalyzerResolution : AnalyzerModule {
+class AnalyzerResolution : public AnalyzerModule {
 
  public:
-  // Constructor
+
+  //! Constructor
   AnalyzerResolution(std::vector<const Tracker*> trackers);
-  // Destructor
+
+  //! Destructor
   ~AnalyzerResolution() {};
 
-  bool init(int nTracks) {return true;}
+  //! Initialize - mostly histograms & other containers
+  //! @return True if OK
+  bool init(int nTracks);
 
-  // Calculate track resolution
+  //! Inspect geometry layout (if init OK) -> collect data to histograms & tables
+  //! @return True if OK
   bool analyze();
 
-  // Visualize - add html page with all calculations & results
+  //! Visualize geometry layout (if init & analysis OK) -> add html page with collected tables & created histograms
+  //! @return True if OK
   bool visualize(RootWSite& webSite);
+
+  //! Get number of used tracks
+  int getNSimTracks() const { return m_nTracks;}
+
+ private:
+
+  int m_nTracks; //!< Number of simulation tracks to be used in the analysis
 
 }; // Class
 

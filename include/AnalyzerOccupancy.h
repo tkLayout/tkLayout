@@ -24,7 +24,7 @@ class SimParms;
  * Analyze Fluka simulated fluxes of charged hadrons & photons and calculate occupancies, optimal pitch etc.
  * Vizualize data and print them out in a html formatted output.
  */
-class AnalyzerOccupancy : AnalyzerModule {
+class AnalyzerOccupancy : public AnalyzerModule {
 
  public:
   // Constructor
