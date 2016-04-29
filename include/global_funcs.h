@@ -11,11 +11,15 @@
 #include <iterator>
 #include <type_traits>
 
+/**
+ * @file global_functions.h
+ * @brief This header file lists the global functions of the application.
+ */
+
 template<typename T>
 struct EnumTraits {
   static const std::vector<std::string> data;
 };
-
 
 #define define_enum_strings(E) template<> const std::vector<std::string> EnumTraits<E>::data
 #define _STRING_ENUM true

@@ -1,5 +1,5 @@
 #include "Endcap.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 #include "SupportStructure.h"
 
 using material::SupportStructure;

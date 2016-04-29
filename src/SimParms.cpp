@@ -1,6 +1,6 @@
 #include "SimParms.h"
 
-#include <mainConfigHandler.h>
+#include <MainConfigHandler.h>
 #include "global_constants.h"
 #include "Visitor.h"
 #include "IrradiationMapsManager.h"
@@ -76,7 +76,7 @@ SimParms::SimParms() :
   m_irradiationMapsManager = new IrradiationMapsManager();
   for (auto file : insur::default_irradiationfiles) {
 
-    std::string path = mainConfigHandler::instance().getIrradiationDirectory() + "/" + file;
+    std::string path = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + file;
     irradiationMapFiles.appendString(path);
     m_irradiationMapsManager->addIrradiationMap(path.c_str());
   }

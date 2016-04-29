@@ -3,7 +3,7 @@
  * @brief called by the install.sh script, use mainConfigHandler for reading config file
  */
 #include <global_constants.h>
-#include <mainConfigHandler.h>
+#include <MainConfigHandler.h>
 #include <iostream>
 #include <string>
 
@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
   bool result = false;
-  mainConfigHandler& m = mainConfigHandler::instance();
+  MainConfigHandler& m = MainConfigHandler::getInstance();
   // No arguments: just read the configuration file
   // or create it if necessary
   if (argc==1) {

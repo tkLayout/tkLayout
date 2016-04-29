@@ -10,8 +10,8 @@
 #include <sstream>
 #include "MaterialTab.h"
 #include "global_constants.h"
-#include "mainConfigHandler.h"
-#include <messageLogger.h>
+#include "MainConfigHandler.h"
+#include <MessageLogger.h>
 #include <stdexcept>
 
 namespace material {
@@ -21,8 +21,8 @@ namespace material {
   const std::string MaterialTab::msg_no_mat_file_entry2 = "' not found in Material tab file.";
 
   MaterialTab::MaterialTab() {
-    std::string mattabFile(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_mattabfile);
-    std::ifstream mattabStream(mainConfigHandler::instance().getMattabDirectory() + "/" + insur::default_mattabfile);
+    std::string mattabFile(MainConfigHandler::getInstance().getMattabDirectory() + "/" + insur::default_mattabfile);
+    std::ifstream mattabStream(MainConfigHandler::getInstance().getMattabDirectory() + "/" + insur::default_mattabfile);
     std::string line;
     std::string material;
     std::istringstream lineStream;

@@ -21,6 +21,7 @@ class TCanvas;
 class SimParms;
 
 /*
+ * @class AnalyzerOccupancy
  * Analyze Fluka simulated fluxes of charged hadrons & photons and calculate occupancies, optimal pitch etc.
  * Vizualize data and print them out in a html formatted output.
  */

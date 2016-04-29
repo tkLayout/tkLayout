@@ -9,7 +9,7 @@
 #include "ConversionStation.h"
 //#include "MaterialObject.h"
 #include "InactiveElement.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 
 namespace material {
 

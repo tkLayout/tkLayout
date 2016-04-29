@@ -8,7 +8,7 @@
 #include"BFieldMap.h"
 #include <algorithm>
 #include <Units.h>
-#include "messageLogger.h"
+#include "MessageLogger.h"
 #include "TH2D.h"
 #include "TCanvas.h"
 #include "TArrow.h"

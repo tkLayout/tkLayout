@@ -15,7 +15,9 @@ class ConstGeometryVisitor;
 class IrradiationMapsManager;
 
 /*
- * A singleton class containing generic information needed across the tkLayout toolkit. Various generic
+ * @class SimParms
+ * @brief A singleton class containing generic information needed across the tkLayout toolkit.
+ * @details A singleton class containing generic information needed across the tkLayout toolkit. Various generic
  * parameters (geometry layout name, main geometry config file, etc) as well as generic environment/geometry
  * parameters (not directly related to individual sub-trackers) are held here. Two mechanisms are used to
  * fill-in the SimParms container: the environment variables are read-in from SimParms config file, the rest

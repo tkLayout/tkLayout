@@ -9,7 +9,7 @@
 #include "CoordinateOperations.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 
 using material::MaterialObject;
 

@@ -1,7 +1,9 @@
 /**
- * @file mainConfigHandler.cpp
+ * @file MainConfigHandler.cpp
  * @brief implementation of class that take care of creating and reading the configuration file .tkgeometryrc
  */
+#include <MainConfigHandler.h>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -13,10 +15,10 @@
 #include <stdlib.h>
 
 #include <boost/filesystem/operations.hpp>
+#include <global_constants.h>
+#include <global_funcs.h>
 
 #include <sys/types.h>
-
-#include <mainConfigHandler.h>
 
 using namespace std;
 using namespace boost;
@@ -27,7 +29,7 @@ template <class T> bool from_string(T& t, const std::string& s,
   return !(iss >> f >> t).fail();
 }
 
-mainConfigHandler::mainConfigHandler() {
+MainConfigHandler::MainConfigHandler() {
   goodConfigurationRead_ = false;
   //styleDirectory_ = "";
   binDirectory_ = "";
@@ -35,12 +37,13 @@ mainConfigHandler::mainConfigHandler() {
   standardDirectory_ = "";
 }
 
-mainConfigHandler& mainConfigHandler::instance() {
-  static mainConfigHandler instance_;
-  return instance_;
+MainConfigHandler& MainConfigHandler::getInstance() {
+
+  static MainConfigHandler s_instance;
+  return s_instance;
 }
 
-bool mainConfigHandler::checkDirectory(string dirName) {
+bool MainConfigHandler::checkDirectory(string dirName) {
   if (! filesystem::exists(dirName)) {
     cout << "Directory '" << dirName << "' does not exist!" << endl;
     return false;
@@ -53,28 +56,28 @@ bool mainConfigHandler::checkDirectory(string dirName) {
   return true;
 }
 
-void mainConfigHandler::askBinDirectory() {
+void MainConfigHandler::askBinDirectory() {
   cout << "*** What is the bin directory where you want to" << endl
       << "    place your executables?" << endl
       << "    Example: " << getenv(HOMEDIRECTORY) << "/bin : ";
   cin >> binDirectory_;
 }
 
-void mainConfigHandler::askLayoutDirectory() {
+void MainConfigHandler::askLayoutDirectory() {
   cout << "*** What is the web server directory where you want to" << endl
     << "    place your output?" << endl
     << "    Example: " << getenv(HOMEDIRECTORY) << "/www/layouts : ";
   cin >> layoutDirectory_;
 }
 
-void mainConfigHandler::askStandardDirectory() {
+void MainConfigHandler::askStandardDirectory() {
   cout << "*** What is the standard output directory?" << endl
       << "    xml files and other various output will be put here" << endl
       << "    Example: " << getenv(HOMEDIRECTORY) << "/tkgeometry : ";
   cin >> standardDirectory_;
 }
 
-void mainConfigHandler::askMomenta() {
+void MainConfigHandler::askMomenta() {
   string tempString = "";
   string tempString2 = "";
 
@@ -88,7 +91,7 @@ void mainConfigHandler::askMomenta() {
   momenta_ = parseDoubleList(tempString);
 }
 
-void mainConfigHandler::askTriggerMomenta() {
+void MainConfigHandler::askTriggerMomenta() {
   string tempString = "";
   string tempString2 = "";
 
@@ -101,7 +104,7 @@ void mainConfigHandler::askTriggerMomenta() {
   triggerMomenta_ = parseDoubleList(tempString);
 }
 
-void mainConfigHandler::askThresholdProbabilities() {
+void MainConfigHandler::askThresholdProbabilities() {
   string tempString = "";
   string tempString2 = "";
 
@@ -117,7 +120,7 @@ void mainConfigHandler::askThresholdProbabilities() {
 }
 
 
-bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
+bool MainConfigHandler::createConfigurationFileFromQuestions(string& configFileName) {
 
   // Clear screen
   //cout << "\033[2J"; // Clears the screen
@@ -186,7 +189,7 @@ bool mainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
 }
 
 
-bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, string& value) {
+bool MainConfigHandler::parseLine(const char* codeLine, string& parameter, string& value) {
   std::vector<string> tokens = split(codeLine, "=");
   if (tokens.empty()) {
     parameter = "";
@@ -202,11 +205,11 @@ bool mainConfigHandler::parseLine(const char* codeLine, string& parameter, strin
   }
 }
 
-vector<double> mainConfigHandler::parseDoubleList(string inString) {
+vector<double> MainConfigHandler::parseDoubleList(string inString) {
   return split<double>(inString, ",");
 }
 
-bool mainConfigHandler::readConfigurationFile(string& configFileName) {
+bool MainConfigHandler::readConfigurationFile(string& configFileName) {
   char myLine[1024];
   string parameter, value;
   //bool styleFound=false;
@@ -280,11 +283,11 @@ bool mainConfigHandler::readConfigurationFile(string& configFileName) {
   return (binFound&&layoutFound&&xmlFound&&momentaFound&&triggerMomentaFound&&thresholdProbabilitiesFound);
 }
 
-bool mainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
+bool MainConfigHandler::getConfiguration(bool checkDirExists /* = true */) {
   return readConfiguration(checkDirExists);
 }
 
-bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
+bool MainConfigHandler::getConfiguration(string& layoutDirectory) {
   bool result = readConfiguration(true);
   if (result) {
     //styleDirectory = styleDirectory_;
@@ -293,14 +296,14 @@ bool mainConfigHandler::getConfiguration(string& layoutDirectory) {
   return result;
 }
 
-string mainConfigHandler::getConfigFileName() {
+string MainConfigHandler::getConfigFileName() {
   char* specialConfigFile = getenv(CONFIGURATIONFILENAMEDEFINITION);
   if (specialConfigFile) return string(specialConfigFile);
   string homeDirectory = string(getenv(HOMEDIRECTORY));
   return homeDirectory+"/"+CONFIGURATIONFILENAME;
 }
 
-bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
+bool MainConfigHandler::readConfiguration( bool checkDirExists ) {
   if (goodConfigurationRead_) return true;
 
   ifstream configFile;
@@ -341,84 +344,84 @@ bool mainConfigHandler::readConfiguration( bool checkDirExists ) {
   return goodConfig;
 }
 
-vector<double>& mainConfigHandler::getMomenta() {
+vector<double>& MainConfigHandler::getMomenta() {
   getConfiguration();
   return momenta_;
 }
 
-vector<double>& mainConfigHandler::getTriggerMomenta() {
+vector<double>& MainConfigHandler::getTriggerMomenta() {
   getConfiguration();
   return triggerMomenta_;
 }
 
-vector<double>& mainConfigHandler::getThresholdProbabilities() {
+vector<double>& MainConfigHandler::getThresholdProbabilities() {
   getConfiguration();
   return thresholdProbabilities_;
 }
 
-string mainConfigHandler::getBinDirectory() {
+string MainConfigHandler::getBinDirectory() {
   getConfiguration();
   return getBinDirectory_();
 }
 
-string mainConfigHandler::getLayoutDirectory() {
+string MainConfigHandler::getLayoutDirectory() {
   getConfiguration();
   return getLayoutDirectory_();
 }
 
-string mainConfigHandler::getStandardDirectory() {
+string MainConfigHandler::getStandardDirectory() {
   getConfiguration();
   return getStandardDirectory_();
 }
 
-string mainConfigHandler::getStyleDirectory() {
+string MainConfigHandler::getStyleDirectory() {
   getConfiguration();
   return getStyleDirectory_();
 }
 
-string mainConfigHandler::getXmlDirectory() {
+string MainConfigHandler::getXmlDirectory() {
   getConfiguration();
   return getXmlDirectory_();
 }
 
-string mainConfigHandler::getMattabDirectory() {
+string MainConfigHandler::getMattabDirectory() {
   getConfiguration();
   return getMattabDirectory_();
 }
 
-string mainConfigHandler::getIrradiationDirectory() {
+string MainConfigHandler::getIrradiationDirectory() {
   getConfiguration();
   return getIrradiationDirectory_();
 }
 
-string mainConfigHandler::getDefaultMaterialsDirectory() {
+string MainConfigHandler::getDefaultMaterialsDirectory() {
   getConfiguration();
   return getDefaultMaterialsDirectory_();
 }
 
-string mainConfigHandler::getStandardIncludeDirectory() {
+string MainConfigHandler::getStandardIncludeDirectory() {
   getConfiguration();
   return getStandardIncludeDirectory_();
 }
 
-string mainConfigHandler::getGeometriesDirectory() {
+string MainConfigHandler::getGeometriesDirectory() {
   getConfiguration();
   return getGeometriesDirectory_();
 }
 
-string mainConfigHandler::getBinDirectory_() { return binDirectory_; }
-string mainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
-string mainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
-string mainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
-string mainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; }
-string mainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
-string mainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
-string mainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
-string mainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
-string mainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
+string MainConfigHandler::getBinDirectory_() { return binDirectory_; }
+string MainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
+string MainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
+string MainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
+string MainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; }
+string MainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
+string MainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
+string MainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
+string MainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
+string MainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
 
 
-std::set<string> mainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
+std::set<string> MainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {
   using namespace std;
   string line;
   int numLine = 1;

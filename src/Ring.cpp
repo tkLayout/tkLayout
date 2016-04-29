@@ -1,5 +1,5 @@
 #include "Ring.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 
 inline void Ring::check() {
   PropertyObject::check();

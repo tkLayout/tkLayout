@@ -14,8 +14,8 @@
 #include <fstream>
 #include <InactiveSurfaces.h>
 #include <Materialway.h>
-#include <mainConfigHandler.h>
-#include <messageLogger.h>
+#include <MainConfigHandler.h>
+#include <MessageLogger.h>
 #include <SimParms.h>
 #include <StopWatch.h>
 #include <Support.h>
@@ -47,16 +47,15 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
     //
     // Parse config file & build property tree
     std::stringstream outputConfig;
-    m_includeSet = mainConfigHandler::instance().preprocessConfiguration(inputFile, outputConfig, baseGeomFile);
+    m_includeSet = MainConfigHandler::getInstance().preprocessConfiguration(inputFile, outputConfig, baseGeomFile);
 
     m_geomTree = new boost::property_tree::ptree();
     boost::property_tree::info_parser::read_info(outputConfig, *m_geomTree);
 
     //
-    // Fill SimParms singleton class, store data to property tree
+    // Fill SimParms singleton class (container for generic info necessary for simulation), store data to property tree
     auto simParms = SimParms::getInstance();
 
-    simParms->readIrradiationMaps();
     simParms->store(getChild(*m_geomTree, "SimParms"));
     simParms->crosscheck();
   }
@@ -289,12 +288,12 @@ void GeometryManager::setGeometryFile(std::string baseGeomFile)
   if (info.size()!=0) m_geomFile = info[info.size()-1];
 
   // Config directory
-  m_geomDir = baseGeomFile;
-  size_t pos = m_geomDir.find_last_of('/');
-  if (pos != string::npos) { m_geomDir.erase(pos); }
+  m_baseDir = baseGeomFile;
+  size_t pos = m_baseDir.find_last_of('/');
+  if (pos != string::npos) { m_baseDir.erase(pos); }
 
   // Html directory
-  m_htmlDir = m_geomDir + "/" + c_defaultHtmlDir;
+  m_htmlDir = m_baseDir + "/" + c_defaultHtmlDir;
 
   // Layout name
   m_layoutName = m_geomFile;

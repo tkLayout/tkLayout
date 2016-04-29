@@ -15,6 +15,9 @@
 
 class Tracker;
 
+/*
+ * @class AnalyzerResolution
+ */
 class AnalyzerResolution : public AnalyzerModule {
 
  public:

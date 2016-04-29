@@ -58,6 +58,7 @@ class LayerNameVisitor : public ConstGeometryVisitor {
 }; // Class
 
 /*
+ * @class AnalyzerGeometry
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
  * Unique name defined as "AnalyzerGeometry".
  */

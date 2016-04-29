@@ -22,8 +22,10 @@ class Support;
 class Tracker;
 
 /*
- * The core analysis class, containing all analyzers to be used. Each analyzer is identified by its unique name
- * and is called through initModule, analyzeModule & visualizeModule methods. Init method initializes parameters,
+ * @class AnalysisManager
+ * @brief The core analysis class, processing all analyzers to be used.
+ * @details The core analysis class, processing all analyzers to be used. Each analyzer is identified by its unique
+ * name and is called through initModule, analyzeModule & visualizeModule methods. Init method initializes parameters,
  * histograms etc. of given module, analyze method performs the analysis and visualization outputs the results
  * to html format. All html web pages created by different modules are collected in html format in a common web
  * container (main html page) and printed-out using makeWebSite() method. There are two other html methods called

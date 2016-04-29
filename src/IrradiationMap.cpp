@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <Units.h>
 #include <cmath>
-#include "messageLogger.h"
+#include "MessageLogger.h"
 
 IrradiationMap::IrradiationMap(std::string irradiationMapFile) :
       m_fileName(irradiationMapFile),

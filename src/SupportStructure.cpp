@@ -8,7 +8,7 @@
 #include <set>
 #include "SupportStructure.h"
 #include "MaterialTab.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 #include "MaterialProperties.h"
 #include "InactiveElement.h"
 #include "InactiveTube.h"

@@ -20,11 +20,13 @@ namespace insur {
 class Support;
 
 /*
- * The core geometry class, building the overall tracker with its inactive components. The tracker consists of individual
- * sub-trackers and corresponding inactive parts. In addition various support structures, services, etc. are built as well.
- * As an interface for analysis, it provides several get methods to obtain geometrical info: vector of built active trackers,
- * their pasive parts (pasive trackers), supports etc. This class takes over the role of previous Squid class and its
- * geometry related methods ...
+ * @class GeometryManager
+ * @brief The core geometry class, building the overall tracker with its inactive components.
+ * @details The core geometry class, building the overall tracker with its inactive components. The tracker consists of
+ * individual sub-trackers and corresponding inactive parts. In addition various support structures, services, etc. are built
+ * as well. As an interface for analysis, it provides several get methods to obtain geometrical info: vector of built active
+ * trackers, their pasive parts (pasive trackers), supports etc. This class takes over the role of previous Squid class and
+ * its geometry related methods ...
  */
 class GeometryManager {
 

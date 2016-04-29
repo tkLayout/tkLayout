@@ -4836,7 +4836,7 @@ namespace insur {
         if (iLevel<=MessageLogger::WARNING) defaultOpen=true;
         anythingFound=true;
         RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
-        newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
+        newContent.addText("<pre>"+MessageLogger::getSummaryLog(iLevel)+"</pre>");
         //MessageLogger::getLatestLog(iLevel);
       }
     }

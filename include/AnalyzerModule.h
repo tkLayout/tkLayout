@@ -20,7 +20,9 @@ class Tracker;
 class MaterialBudget;
 
 /*
- * Pure virtual class to be used as a base class for concrete implementation of analyzer modules.
+ * @class AnalyzerModule
+ * @brief Pure virtual class to be used as a base class for concrete implementation of analyzer modules.
+ * @details Pure virtual class to be used as a base class for concrete implementation of analyzer modules.
  * Call init method to initialize variables, histograms, ... -> update m_isInitOK if OK
  * Call analyze method to perform calculations. Apply analyze method only if init didn't fail -> update m_isAnalysisOK if OK
  * Call visualize method to perform visualization. Apply visualize method only if init & analyze didn't fail.

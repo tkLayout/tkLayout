@@ -11,9 +11,11 @@
 #include <string>
 
 /*
- * Build a named list of csv formatted blocks of text. Each block is identified with a unique id. For example, the first block
- * may be a "label", the second an "information about inner tracker", ... Use EOL method to add end-of-lign character and
- * start writing text to a new line.
+ * @class CsvTextBuilder
+ * @brief Build a named list of csv formatted blocks of text.
+ * @details Build a named list of csv formatted blocks of text. Each block is identified with a unique id. For example,
+ * the first block may be a "label", the second an "information about inner tracker", ... Use EOL method to add end-of-lign
+ * character and start writing text to a new line.
  */
 class CsvTextBuilder {
 

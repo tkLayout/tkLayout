@@ -15,6 +15,9 @@
 
 namespace po = boost::program_options;
 
+/*
+ * \mainpage The tkLayout software
+ */
 int main(int argc, char* argv[]) {
 
   std::string usage("Usage: ");

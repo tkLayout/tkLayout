@@ -231,6 +231,7 @@ bool AnalysisManager::makeWebLogPage()
   if (!MessageLogger::hasEmptyLog(MessageLogger::ERROR))        myPage.setAlert(1);
   else if (!MessageLogger::hasEmptyLog(MessageLogger::WARNING)) myPage.setAlert(0.5);
 
+  // Print summary logs for each verbosity level
   for (auto iLevel=0; iLevel < MessageLogger::NumberOfLevels; ++iLevel) {
 
     if (!MessageLogger::hasEmptyLog(iLevel)) {
@@ -240,7 +241,7 @@ bool AnalysisManager::makeWebLogPage()
 
       anyLogFound = true;
       RootWContent& newContent = myPage.addContent(MessageLogger::getLevelName(iLevel), defaultOpen);
-      newContent.addText("<pre>"+MessageLogger::getLatestLog(iLevel)+"</pre>");
+      newContent.addText("<pre>"+MessageLogger::getSummaryLog(iLevel)+"</pre>");
     }
   }
 

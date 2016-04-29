@@ -35,7 +35,7 @@ namespace insur {
    * The constructor sets the internal pointers to <i>NULL</i>.
    */
   Squid::Squid() :
-      t2c(mainConfigHandler::instance()),
+      t2c(MainConfigHandler::getInstance()),
       m_weightDistCtrlStd(0.1),
       m_weightDistFwdStd(0.1),
       m_weightDistCtrlPxd(0.1),
@@ -130,7 +130,7 @@ namespace insur {
 
     // Parse config file & save everything in mainConfig
     std::stringstream ss;
-    m_includeSet = mainConfigHandler::instance().preprocessConfiguration(ifs, ss, getGeometryFile());
+    m_includeSet = MainConfigHandler::getInstance().preprocessConfiguration(ifs, ss, getGeometryFile());
     t2c.addConfigFile(tk2CMSSW::ConfigFile{getGeometryFile(), ss.str()});
 
     using namespace boost::property_tree;
@@ -371,7 +371,7 @@ namespace insur {
     if (m_mbCtrlStd) {
 
       if (matCalc.initDone()) matCalc.reset();
-      if (matParser.initMatCalc(matCalc, mainConfigHandler::instance().getMattabDirectory())) {
+      if (matParser.initMatCalc(matCalc, MainConfigHandler::getInstance().getMattabDirectory())) {
         m_mbCtrlStd->materialsAll(matCalc);
       }
       t2c.translate(matCalc.getMaterialTable(), *m_mbCtrlStd, xmlout.empty() ? m_baseName : xmlout, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
@@ -591,7 +591,7 @@ namespace insur {
       if (m_mbFwdPxd)  trkMb.push_back(m_mbFwdPxd);
       if (m_mbCtrlStd) trkMb.push_back(m_mbCtrlStd);
       if (m_mbFwdStd)  trkMb.push_back(m_mbFwdStd);
-      m_trackerAnalyzer.analyzeTaggedTracking(trkMb, mainConfigHandler::instance().getMomenta(), nTracks);
+      m_trackerAnalyzer.analyzeTaggedTracking(trkMb, MainConfigHandler::getInstance().getMomenta(), nTracks);
 
       trkMb.clear();
       stopTaskClock();
@@ -655,13 +655,13 @@ namespace insur {
         startTaskClock("Computing occupancy");
 
         // Create occupancy analyzer & analyzer data
-        std::string chargedMapFile          = mainConfigHandler::instance().getIrradiationDirectory() + "/" + SimParms::getInstance()->chargedMapFile();
+        std::string chargedMapFile          = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + SimParms::getInstance()->chargedMapFile();
         std::string chargedMapLowThFile     = SimParms::getInstance()->chargedMapLowThFile();
         std::string chargedMapBOffMatOnFile = SimParms::getInstance()->chargedMapBOffMatOnFile();
         std::string chargedMapBOnMatOffFile = SimParms::getInstance()->chargedMapBOnMatOffFile();
         std::string chargedMapBOffMatOffFile= SimParms::getInstance()->chargedMapBOffMatOffFile();
         std::string chargedMapBOffTrkOffFile= SimParms::getInstance()->chargedMapBOffTrkOffFile();
-        std::string photonsMapFile          = mainConfigHandler::instance().getIrradiationDirectory() + "/" + SimParms::getInstance()->photonsMapFile();
+        std::string photonsMapFile          = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + SimParms::getInstance()->photonsMapFile();
         std::string photonsMapLowThFile     = SimParms::getInstance()->photonsMapLowThFile();
         std::string photonsMapBOffMatOnFile = SimParms::getInstance()->photonsMapBOffMatOnFile();
         std::string photonsMapBOnMatOffFile = SimParms::getInstance()->photonsMapBOnMatOffFile();

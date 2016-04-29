@@ -12,7 +12,7 @@
 #include "global_funcs.h"
 #include "Property.h"
 #include "Module.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 #include "Visitable.h"
 
 using std::string;

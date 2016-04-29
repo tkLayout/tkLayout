@@ -22,7 +22,7 @@
 #include "Module.h"
 #include "SimParms.h"
 #include "PtErrorAdapter.h"
-#include "messageLogger.h"
+#include "MessageLogger.h"
 
 #include "Visitor.h"
 
