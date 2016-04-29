@@ -2255,6 +2255,7 @@ namespace insur {
       fullLayoutContent = new RootWContent("Full layout", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
       anImage->setComment("RZ position of the modules (full layout)");
+      anImage->setName("fullLayout");
       fullLayoutContent->addItem(anImage);
     }
 
