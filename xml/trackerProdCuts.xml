@@ -14,29 +14,6 @@
       <Parameter name="ProdCutsForPositrons" value="0.01*mm"/>
       <Parameter name="ProdCutsForGamma" value="0.01*mm"/>
     </SpecPar>
-    <SpecPar name="tracker-dead-pixel">
-      <PartSelector path="//PixelBarrel"/>
-      <PartSelector path="//PixelForward"/>
-      <Parameter name="CMSCutsRegion" value="TrackerPixelDeadRegion" eval="false"/>
-      <Parameter name="ProdCutsForElectrons" value="1*mm"/>
-      <Parameter name="ProdCutsForPositrons" value="1*mm"/>
-      <Parameter name="ProdCutsForGamma" value="1*mm"/>
-    </SpecPar>
-    <SpecPar name="tracker-sens-pixel">
-      <PartSelector path="//PixelBarrelActiveFull0"/>
-      <PartSelector path="//PixelBarrelActiveFull1"/>
-      <PartSelector path="//PixelBarrelActiveFull2"/>
-      <PartSelector path="//PixelBarrelActiveFull3"/>
-      <PartSelector path="//PixelForwardSensor1"/>
-      <PartSelector path="//PixelForwardSensor2"/>
-      <PartSelector path="//PixelForwardSensor3"/>
-      <PartSelector path="//PixelForwardSensor4"/>
-      <PartSelector path="//PixelForwardSensor5"/>
-      <PartSelector path="//PixelForwardSensor6"/>
-      <PartSelector path="//PixelForwardSensor7"/>
-      <PartSelector path="//PixelForwardSensor8"/>
-      <PartSelector path="//PixelForwardSensor9"/>
-      <PartSelector path="//PixelForwardSensor10"/>
     <!--mid point marker-->
     <Parameter name="CMSCutsRegion" value="TrackerPixelSensRegion" eval="false"/>
     <Parameter name="ProdCutsForElectrons" value="0.01*mm"/>

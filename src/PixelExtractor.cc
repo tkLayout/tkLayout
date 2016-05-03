@@ -23,11 +23,11 @@ namespace insur {
 
     createPixelBarrelActive(pix);
 
-    createPixelBarrelServices(inatvser); //ok
+    //createPixelBarrelServices(inatvser); //ok
 
     createPixelEndcapActive(pix);
 
-    createPixelEndcapServices(inatvser);//
+    //createPixelEndcapServices(inatvser);//
 
     analyseElements(mt);
 

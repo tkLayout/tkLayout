@@ -161,7 +161,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_layer + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_layer;
@@ -173,7 +173,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_straight_or_tilted_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_or_tilted_rod;
@@ -202,7 +202,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
@@ -213,7 +213,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_ring + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
@@ -929,8 +929,8 @@ namespace insur {
 	  if (lnumber == compstr) {
 	    spname = xml_tob_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    prefix = xml_pixbar + "/" + xml_layer + lnumber + "/";
-	    prefix = prefix + rcurrent;
+	    prefix = xml_pixbar + "/" + xml_fileident + ":" + xml_layer + lnumber + "/";
+	    prefix = prefix + xml_fileident + ":" + rcurrent;
 
 	    // module loop
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
@@ -1007,7 +1007,7 @@ namespace insur {
 	prefix = xml_pixfwd;
 	//if (plus) prefix = xml_pixfwd_plus;
 	//else prefix = xml_pixfwd_minus;
-	prefix = prefix + "/" + dcurrent; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
+	prefix = prefix + "/" + xml_fileident + ":" + dcurrent + "/" + xml_fileident + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
 	// ring loop
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
@@ -1042,8 +1042,8 @@ namespace insur {
         
 		postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-		if (plus) paths.push_back(prefix + "/" + postfix);
-		else tpaths.push_back(prefix + "/" + postfix);
+		if (plus) paths.push_back(prefix + postfix);
+		else tpaths.push_back(prefix + postfix);
         
 		postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
