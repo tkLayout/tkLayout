@@ -42,7 +42,7 @@ Component {
     targetVolume 1
   }
   Element {
-    elementName SenSi
+    elementName Si
     quantity 0.15
     unit mm
     targetVolume 3
