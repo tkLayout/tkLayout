@@ -262,7 +262,7 @@
     </Polycone>
     -->
     <Tubs name="PixelBarrelSuppTub" rMin="[SupportRin]" rMax="[Rout1]" dz="[SupportL]/2" startPhi="0*deg" deltaPhi="360*deg"/>
-    <Box name="PixelBarrelSuppBox_full" dx="[SupportW]/2 - 3.7*cm" dy="[SupportT]/2" dz="[SupportL]/2"/>
+    <Box name="PixelBarrelSuppBox_full" dx="[SupportW]/2 - 4.202*cm" dy="[SupportT]/2" dz="[SupportL]/2"/>
     <Box name="PixelBarrelSuppBox_cut" dx="[SupportW_cut]/2" dy="[SupportT]/2" dz="[SupportL_cut]/2"/>
     <SubtractionSolid name="PixelBarrelSuppBox_1">
       <rSolid name="PixelBarrelSuppBox_full"/>
