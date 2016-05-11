@@ -929,7 +929,7 @@ namespace insur {
 	  if (lnumber == compstr) {
 	    spname = xml_tob_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    prefix = xml_pixbar + "/" + xml_fileident + ":" + xml_layer + lnumber + "/";
+	    prefix = xml_2OTbar + "/" + xml_fileident + ":" + xml_layer + lnumber + "/";
 	    prefix = prefix + xml_fileident + ":" + rcurrent;
 
 	    // module loop
@@ -1004,7 +1004,7 @@ namespace insur {
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;
 
-	prefix = xml_pixfwd;
+	prefix = xml_2OTfwd;
 	//if (plus) prefix = xml_pixfwd_plus;
 	//else prefix = xml_pixfwd_minus;
 	prefix = prefix + "/" + xml_fileident + ":" + dcurrent + "/" + xml_fileident + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";

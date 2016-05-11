@@ -22,11 +22,9 @@ namespace insur {
     InactiveSurfaces& inatvser = mb.getInactiveSurfaces();
 
     createPixelBarrelActive(pix);
-
-    //createPixelBarrelServices(inatvser); //ok
-
     createPixelEndcapActive(pix);
 
+    createPixelBarrelServices(inatvser); //ok.single function takes care of barrel and endcaps
     //createPixelEndcapServices(inatvser);//
 
     analyseElements(mt);
@@ -182,11 +180,11 @@ namespace insur {
 
       //not correct !chk extractor.cc//use rod minR,maxR
 
-      parmap << rodRMin;
+      parmap << rodRMin << "*mm";
       rod_alg.parameter_map["RadiusIn"] = {parmap.str(),AlgoPartype::num};
       parmap.str("");
 
-      parmap << rodRMax;
+      parmap << rodRMax << "*mm";
       rod_alg.parameter_map["RadiusOut"] = {parmap.str(),AlgoPartype::num};
       parmap.str("");
 
@@ -487,7 +485,9 @@ namespace insur {
   void PixelExtractor::createPixelBarrelServices(InactiveSurfaces& inatcvser) {
     //Inactive elements part
     //InactiveSurfaces& inatvser = pix.getInactiveSurfaces();
+
     std::vector<InactiveElement>& bser = inatcvser.getBarrelServices();
+    bser.insert(bser.end(),inatcvser.getEndcapServices().begin(),inatcvser.getEndcapServices().end());
     ShapeInfo bser_shape;
     bser_shape.type = tb;
     bser_shape.dx = 0.0;
@@ -505,10 +505,11 @@ namespace insur {
 
     comp.method = wt;
 
+    double bSerRmax = 0., eSerRmax = 0.;
     for( auto& bs: bser ) {
 
       std::stringstream shapename,matname;
-      shapename << xml_phaseII_pixbar << xml_base_serf << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(abs(bs.getZOffset() + bs.getZLength() / 2.0));
+      shapename << xml_base_serf << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(abs(bs.getZOffset() + bs.getZLength() / 2.0));
       matname << xml_base_serfcomp << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(fabs(bs.getZOffset() + bs.getZLength() / 2.0));
       if (!bs.getLocalMasses().size()) {
         logWARNING ("Composite material " + shapename.str() + " has no constituents! Skipping.");
@@ -518,8 +519,9 @@ namespace insur {
            comp.density = compositeDensity(bs);
            analyseCompositeElements( comp.name, comp.density,bs, false);
 
-      double startEndcaps = 290.;//safety 1mm margin
-           
+      double startEndcaps = 119.;//safety 1mm margin
+      
+      double endBarrel = 119.;     
           std::cout << "Service name::" << shapename.str() << std::endl;
           std::cout << "ZOffset///getZLength>>>>" << bs.getZOffset() << "///" <<  bs.getZLength() << std::endl;           
           
@@ -530,7 +532,8 @@ namespace insur {
 	     bser_shape.rmin =  bs.getInnerRadius();
 	     bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	    cmsswXmlInfo.shapes.push_back(bser_shape);
-
+            if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
+  
 	     bser_logic.name_tag = shapename.str();
 	     bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
 	     bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
@@ -562,6 +565,7 @@ namespace insur {
 	       bser_shape.rmin =  bs.getInnerRadius();
 	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);
+            if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
 
 	       bser_logic.name_tag = shapenameBarrel.str();
 	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameBarrel.str();
@@ -588,6 +592,7 @@ namespace insur {
 	       bser_shape.rmin =  bs.getInnerRadius();
 	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);    
+            if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
 
 	       bser_logic.name_tag = shapenameEndcaps.str();
 	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameEndcaps.str();
@@ -610,6 +615,7 @@ namespace insur {
 	       bser_shape.rmin =  bs.getInnerRadius();
 	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);
+            if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
 
 	       bser_logic.name_tag = shapename.str();
 	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
@@ -656,29 +662,9 @@ namespace insur {
       comp.density = compositeDensity(bs);
       analyseCompositeElements( bser_logic.material_tag, comp.density,bs, false);
       */
-
-
-     /*
-      if(bser_shape.rmin < 25 ) {
-        std::cout << bser_shape.name_tag  << " has inner radius < PixelBarrelRmin!!" << std::endl;
-      }
-      if(bser_shape.rmax > 203.5 ) {
-        std::cout << bser_shape.name_tag  << " has outer radius > PixelBarrelRmax!!" << std::endl;
-      }
-      if(bser_pos.trans.dz + bser_shape.dz > 291.0 ) {
-        std::cout << bser_shape.name_tag  << " goes outside PixelBarrel!!" << std::endl;
-        std::cout << "Shape:" << bser_shape.rmin << "////" << bser_shape.rmax << "////" << bser_shape.dz << std::endl;
-        std::cout << "ZOffset=" << bs.getZOffset() << "////zpos=" << bser_pos.trans.dz << std::endl;
-
-      }
-      if(bser_pos.trans.dz + bser_shape.dz > 2650.0 ) {
-        std::cout << bser_shape.name_tag  << " goes outside Pixel!!" << std::endl;
-        std::cout << "Shape:" << bser_shape.rmin << "////" << bser_shape.rmax << "////" << bser_shape.dz << std::endl;
-        std::cout << "ZOffset=" << bs.getZOffset() << "////zpos=" << bser_pos.trans.dz << std::endl;
-      }
-      */
-
     }
+     std::cout << "Max radius barrel service=" << bSerRmax << std::endl;
+     std::cout << "Max radius endcap service=" << eSerRmax << std::endl;
  }
  
  //Functions for endcap
@@ -827,7 +813,7 @@ namespace insur {
         ring_algo.parameter_map[xml_startangle]={algopar.str(),AlgoPartype::num};
 
         algopar.str("");
-        algopar << emodules.at(0).center().Rho();
+        algopar << emodules.at(0).center().Rho() << "*mm";
         ring_algo.parameter_map[xml_radius]={algopar.str(),AlgoPartype::num};
 
         algopar.str("");
@@ -867,7 +853,7 @@ namespace insur {
         ring_algo.parameter_map[xml_startangle]={algopar.str(),AlgoPartype::num};
 
         algopar.str("");
-        algopar << emodules.at(0).center().Rho();
+        algopar << emodules.at(0).center().Rho() << "*mm";
 
         ring_algo.parameter_map[xml_radius]={algopar.str(),AlgoPartype::num};
 

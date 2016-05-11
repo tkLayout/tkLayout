@@ -4,7 +4,8 @@
 
 <ConstantsSection label="pixfwd.xml" eval="true">
  <Constant name="zero" value="0.0*fm"/>
- <Constant name="RootRadius"     value="[pixfwdCylinder:CylindersOuterRmax]"/>
+ <!-- <Constant name="RootRadius"     value="[pixfwdCylinder:CylindersOuterRmax]"/>-->
+ <Constant name="RootRadius"     value="20.1*cm"/>
  <Constant name="RootHalfLength" value="[pixfwdCylinder:CylindersOuterLength]/2.+ [pixfwdCylinder:CylindersEndFlangeLength]/2.+[Zextension]/2."/>
 
  <Constant name="AnchorZ"        value="0.*mm"/>
@@ -17,20 +18,6 @@
  <Constant name="Zextension"      value="273.11*mm"/>
  <Constant name="ZextensionCables"      value="203.5*mm"/>
 
- <Constant name="Disk1Z"         value="[pixfwdDisks:DiskHalfWidth]+[RootStartZ]"/> <!-- 35.75*mm-->
- <Constant name="Disk2Z"         value="[Disk1Z]+75.0*mm"/>
- <Constant name="Disk3Z"         value="[Disk2Z]+95.0*mm"/>
- <Constant name="Disk4Z"         value="[Disk3Z]+147.0*mm"/>
- <Constant name="Disk5Z"         value="[Disk4Z]+188.0*mm"/> 
- <Constant name="Disk6Z"         value="[Disk5Z]+242.0*mm"/> 
- <Constant name="Disk7Z"         value="[Disk6Z]+311.0*mm"/> 
- <Constant name="Disk8Z"         value="[Disk7Z]+600.0*mm"/> 
- <Constant name="Disk9Z"         value="[Disk8Z]+302.0*mm"/>
- <Constant name="Disk10Z"         value="[Disk9Z]+348.0*mm"/>
- <!--
- <Constant name="Disk11Z"         value="[Disk10Z]+391.0*mm"/> 
- <Constant name="Disk12Z"         value="[Disk11Z]+477.0*mm"/>
--->
  <Constant name="ZCylinder"      value="[AnchorZ]"/>
  
     <Constant name="Conn3Rout" value="19.0*cm"/>
@@ -98,7 +85,7 @@
  </UnionSolid>
     <SubtractionSolid name="Phase2OTForward">
       <rSolid name="Forward"/>
-      <rSolid name="PixelForward"/>
+      <rSolid name="Phase2PixelEndcap"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid>
 </SolidSection>
