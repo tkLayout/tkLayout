@@ -156,16 +156,20 @@
       <ZSection z="-120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
       <ZSection z="-120.2*cm" rMin="28.0*cm" rMax="120.0*cm"/>
       <ZSection z="-119.0*cm" rMin="28.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-119.0*cm" rMin="19.0*cm" rMax="120.0*cm"/>
-      <ZSection z="-29.12*cm" rMin="19.0*cm" rMax="120.0*cm"/>
+      <!--<ZSection z="-119.0*cm" rMin="19.0*cm" rMax="120.0*cm"/>
+      <ZSection z="-29.12*cm" rMin="19.0*cm" rMax="120.0*cm"/>-->
+<ZSection z="-119.0*cm" rMin="20.1*cm" rMax="120.0*cm"/>
+      <ZSection z="-29.12*cm" rMin="20.1*cm" rMax="120.0*cm"/>
       <ZSection z="-29.12*cm" rMin="[Rin2]" rMax="120.0*cm"/>
       <ZSection z="-28.70*cm" rMin="[Rin2]" rMax="120.0*cm"/>
       <ZSection z="-28.70*cm" rMin="[Rin1]" rMax="120.0*cm"/>
       <ZSection z="28.70*cm" rMin="[Rin1]" rMax="120.0*cm"/>
       <ZSection z="28.70*cm" rMin="[Rin2]" rMax="120.0*cm"/>
       <ZSection z="29.12*cm" rMin="[Rin2]" rMax="120.0*cm"/>
-      <ZSection z="29.12*cm" rMin="19.0*cm" rMax="120.0*cm"/>
-      <ZSection z="119.0*cm" rMin="19.0*cm" rMax="120.0*cm"/>
+      <!--<ZSection z="29.12*cm" rMin="19.0*cm" rMax="120.0*cm"/>
+      <ZSection z="119.0*cm" rMin="19.0*cm" rMax="120.0*cm"/>-->
+      <ZSection z="29.12*cm" rMin="20.1*cm" rMax="120.0*cm"/>
+      <ZSection z="119.0*cm" rMin="20.1*cm" rMax="120.0*cm"/>
       <ZSection z="119.0*cm" rMin="28.0*cm" rMax="120.0*cm"/>
       <ZSection z="120.2*cm" rMin="28.0*cm" rMax="120.0*cm"/>
       <ZSection z="120.2*cm" rMin="53.0*cm" rMax="120.0*cm"/>
@@ -176,16 +180,20 @@
       <ZSection z="291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
     </Polycone>
     <Polycone name="Phase1PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
-      <ZSection z="-119.0*cm" rMin="19.0*cm" rMax="[Rout1]"/>
-      <ZSection z="-29.12*cm" rMin="19.0*cm" rMax="[Rout1]"/>
+      <!--<ZSection z="-119.0*cm" rMin="19.0*cm" rMax="[Rout1]"/>
+      <ZSection z="-29.12*cm" rMin="19.0*cm" rMax="[Rout1]"/>-->
+      <ZSection z="-119.0*cm" rMin="20.1*cm" rMax="[Rout1]"/>
+      <ZSection z="-29.12*cm" rMin="20.1*cm" rMax="[Rout1]"/>
       <ZSection z="-29.12*cm" rMin="[Rin2]" rMax="[Rout1]"/>
       <ZSection z="-[Zv1]"         rMin="[Rin2]"          rMax="[Rout1]" />
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
       <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
       <ZSection z="[Zv1]"          rMin="[Rin2]"          rMax="[Rout1]" />
       <ZSection z="29.12*cm" rMin="[Rin2]" rMax="[Rout1]"/>
-      <ZSection z="29.12*cm" rMin="19.0*cm" rMax="[Rout1]"/>
-      <ZSection z="119.0*cm" rMin="19.0*cm" rMax="[Rout1]"/>
+      <!--<ZSection z="29.12*cm" rMin="19.0*cm" rMax="[Rout1]"/>
+      <ZSection z="119.0*cm" rMin="19.0*cm" rMax="[Rout1]"/>-->
+      <ZSection z="29.12*cm" rMin="20.1*cm" rMax="[Rout1]"/>
+      <ZSection z="119.0*cm" rMin="20.1*cm" rMax="[Rout1]"/>
     </Polycone>
     <SubtractionSolid name="Phase2OTBarrel">
       <rSolid name="Barrel"/>
