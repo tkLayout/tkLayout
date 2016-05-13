@@ -19,12 +19,13 @@ namespace insur {
     std::string xml_rod ="Rod_";
 
     Tracker& pix = mb.getTracker();
-    InactiveSurfaces& inatvser = mb.getInactiveSurfaces();
+    InactiveSurfaces& is = mb.getInactiveSurfaces();
 
     createPixelBarrelActive(pix);
     createPixelEndcapActive(pix);
 
-    createPixelBarrelServices(inatvser); //ok.single function takes care of barrel and endcaps
+    createPixelBarrelServices(is); //ok.single function takes care of barrel and endcaps
+    //createPixelSupports(is); 
     //createPixelEndcapServices(inatvser);//
 
     analyseElements(mt);
@@ -482,12 +483,17 @@ namespace insur {
 
     cmsswXmlInfo.lrilength.push_back (ril);
   }
-  void PixelExtractor::createPixelBarrelServices(InactiveSurfaces& inatcvser) {
+
+
+
+  void PixelExtractor::createPixelBarrelServices(InactiveSurfaces& is) {
     //Inactive elements part
     //InactiveSurfaces& inatvser = pix.getInactiveSurfaces();
 
-    std::vector<InactiveElement>& bser = inatcvser.getBarrelServices();
-    bser.insert(bser.end(),inatcvser.getEndcapServices().begin(),inatcvser.getEndcapServices().end());
+    std::vector<InactiveElement>& bser = is.getBarrelServices();
+    bser.insert(bser.end(),is.getEndcapServices().begin(),is.getEndcapServices().end());
+    bser.insert(bser.end(),is.getSupports().begin(),is.getSupports().end());
+
     ShapeInfo bser_shape;
     bser_shape.type = tb;
     bser_shape.dx = 0.0;
@@ -506,167 +512,164 @@ namespace insur {
     comp.method = wt;
 
     double bSerRmax = 0., eSerRmax = 0.;
+
     for( auto& bs: bser ) {
 
       std::stringstream shapename,matname;
-      shapename << xml_base_serf << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(abs(bs.getZOffset() + bs.getZLength() / 2.0));
-      matname << xml_base_serfcomp << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(fabs(bs.getZOffset() + bs.getZLength() / 2.0));
-      if (!bs.getLocalMasses().size()) {
-        logWARNING ("Composite material " + shapename.str() + " has no constituents! Skipping.");
-        continue;
-      }
-           comp.name =  xml_phaseII_Pixelnamespace + matname.str();;
-           comp.density = compositeDensity(bs);
-           analyseCompositeElements( comp.name, comp.density,bs, false);
 
-      double startEndcaps = 119.;//safety 1mm margin
-      
-      double endBarrel = 119.;     
-          std::cout << "Service name::" << shapename.str() << std::endl;
-          std::cout << "ZOffset///getZLength>>>>" << bs.getZOffset() << "///" <<  bs.getZLength() << std::endl;           
+      if (bs.getCategory() == 5) { shapename << xml_base_lazy; matname << xml_base_lazycomp; }
+      else { shapename << xml_base_serf; matname << xml_base_serfcomp; }
+
+      shapename << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(abs(bs.getZOffset() + bs.getZLength() / 2.0));
+      matname << "R" << (int)(bs.getInnerRadius()) << "Z" << (int)(fabs(bs.getZOffset() + bs.getZLength() / 2.0));
+
+
+      if ((bs.getZOffset() + bs.getZLength()) > 0 ) {
+        if (bs.getLocalMasses().size() ) {
+
+
+	  std::cout << shapename.str() << std::endl;
+	  std::cout << bs.getCategory() << std::endl;
+
+	  comp.name =  xml_phaseII_Pixelnamespace + matname.str();;
+	  comp.density = compositeDensity(bs);
+	  analyseCompositeElements( comp.name, comp.density,bs, false); // is it done properly ? CHECK !!!
+
+
+	  double startEndcaps = 301.;
+     
+	  std::cout << "Service name = " << shapename.str() << std::endl;
+	  std::cout << "ZOffset =" << bs.getZOffset() << " service Length = " <<  bs.getZLength() << std::endl;           
           
 	  // BARREL services
-	  if (fabs( bs.getZOffset() +  bs.getZLength() / 2.0) < startEndcaps ) {
-	     bser_shape.name_tag = shapename.str();
-	     bser_shape.dz =  bs.getZLength() / 2.0;
-	     bser_shape.rmin =  bs.getInnerRadius();
-	     bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	  if ((bs.getZOffset() +  bs.getZLength() / 2.0) < startEndcaps ) {
+	    bser_shape.name_tag = shapename.str();
+	    bser_shape.dz =  bs.getZLength() / 2.0;
+	    bser_shape.rmin =  bs.getInnerRadius();
+	    bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	    cmsswXmlInfo.shapes.push_back(bser_shape);
-            if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
+	    if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
   
-	     bser_logic.name_tag = shapename.str();
-	     bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
-	     bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	    bser_logic.name_tag = shapename.str();
+	    bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
+	    bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
 	    cmsswXmlInfo.logic.push_back(bser_logic);
              
-             //if()
-	     bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
-	     bser_pos.child_tag =  bser_logic.shape_tag;
-	     bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
+
+	    bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
+	    bser_pos.child_tag =  bser_logic.shape_tag;
+	    bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
 	    cmsswXmlInfo.positions.push_back(bser_pos);
-	     bser_pos.copy = 2;
-	     bser_pos.trans.dz = - bser_pos.trans.dz;
-	     bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
+	    bser_pos.copy = 2;
+	    bser_pos.trans.dz = - bser_pos.trans.dz;
+	    bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
 	    cmsswXmlInfo.positions.push_back(bser_pos);
-             std::cout << "Type 1 Service::" << bser_shape.name_tag << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
-                        << "////Parent=" << bser_pos.parent_tag << std::endl;
 	  }
-          else {//Endcap Services
+
+	  // ENDCAPS services
+	  else {
 	    // cut in 2 the services that belong to both Barrel and Endcaps mother volumes
-	    if ( fabs(bs.getZOffset()) < startEndcaps) {
-              std::cout << "Type 2 Service::" << bser_shape.name_tag << std::endl;
+	    if ( bs.getZOffset() < startEndcaps) {
+	      
 	      std::ostringstream shapenameBarrel, shapenameEndcaps;
-	      shapenameBarrel << xml_base_serf << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "BarrelPart";
-	      shapenameEndcaps << xml_base_serf << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "EndcapsPart";
+	      if (bs.getCategory() == 5) { shapenameBarrel << xml_base_lazy; shapenameEndcaps << xml_base_lazy;  }
+	      else { shapenameBarrel << xml_base_serf; shapenameEndcaps << xml_base_serf; }
+	      shapenameBarrel << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "BarrelPart";
+	      shapenameEndcaps << "R" << (int)( bs.getInnerRadius()) << "Z" << (int)(fabs( bs.getZOffset() +  bs.getZLength() / 2.0)) << "EndcapsPart";
 
 	      // Barrel part
-	       bser_shape.name_tag = shapenameBarrel.str();
-	       bser_shape.dz = (startEndcaps -  bs.getZOffset()) / 2.0;
-	       bser_shape.rmin =  bs.getInnerRadius();
-	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      bser_shape.name_tag = shapenameBarrel.str();
+	      bser_shape.dz = (startEndcaps - bs.getZOffset()) / 2.0;
+	      bser_shape.rmin =  bs.getInnerRadius();
+	      bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);
-            if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
+	      if(bser_shape.rmax > bSerRmax)    bSerRmax = bser_shape.rmax;
 
-	       bser_logic.name_tag = shapenameBarrel.str();
-	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameBarrel.str();
-	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      bser_logic.name_tag = shapenameBarrel.str();
+	      bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameBarrel.str();
+	      bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
 	      cmsswXmlInfo.logic.push_back(bser_logic);
 
-	       bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
-	       bser_pos.child_tag =  bser_logic.shape_tag;
-	       bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
+	      bser_pos.parent_tag = xml_pixbarident + ":" + xml_phaseII_pixbar; //xml_tracker;
+	      bser_pos.child_tag =  bser_logic.shape_tag;
+	      bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
 	      cmsswXmlInfo.positions.push_back(bser_pos);
-	       bser_pos.copy = 2;
-	       bser_pos.trans.dz = - bser_pos.trans.dz;
-	       bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
-	     cmsswXmlInfo.positions.push_back(bser_pos);
-	      std::cout << "Type 2a Service::" << shapenameBarrel.str() << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
-                        << "////Parent=" << bser_pos.parent_tag << std::endl;
+	      bser_pos.copy = 2;
+	      bser_pos.trans.dz = - bser_pos.trans.dz;
+	      bser_pos.rotref = xml_phaseII_Pixelnamespace + xml_flip_mod_rot;
+	      cmsswXmlInfo.positions.push_back(bser_pos);
 
-	       bser_pos.copy = 1;
-	       bser_pos.rotref.clear();
+
+	      bser_pos.copy = 1;
+	      bser_pos.rotref.clear();
 
 	      // Endcaps part
-	       bser_shape.name_tag = shapenameEndcaps.str();
-	       bser_shape.dz = ( bs.getZOffset() +  bs.getZLength() - startEndcaps) / 2.0;
-	       bser_shape.rmin =  bs.getInnerRadius();
-	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      bser_shape.name_tag = shapenameEndcaps.str();
+	      bser_shape.dz = ( bs.getZOffset() +  bs.getZLength() - startEndcaps) / 2.0;
+	      bser_shape.rmin =  bs.getInnerRadius();
+	      bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);    
-            if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
+	      if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
 
-	       bser_logic.name_tag = shapenameEndcaps.str();
-	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameEndcaps.str();
-	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      bser_logic.name_tag = shapenameEndcaps.str();
+	      bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapenameEndcaps.str();
+	      bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
 	      cmsswXmlInfo.logic.push_back(bser_logic);
 
-	       bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap + "s"; 
-	       bser_pos.child_tag =  bser_logic.shape_tag;
-	       bser_pos.trans.dz = startEndcaps +  bser_shape.dz - xml_z_pixfwd;
+	      bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap; 
+	      bser_pos.child_tag =  bser_logic.shape_tag;
+	      bser_pos.trans.dz = startEndcaps +  bser_shape.dz - xml_z_pixfwd;
 	      cmsswXmlInfo.positions.push_back(bser_pos);
-               std::cout << "Type 2b Service::" << shapenameEndcaps.str() << ">>>>>" <<  bser_shape.dz << "////" << bser_pos.trans.dz 
-                         << "////Parent=" << bser_pos.parent_tag <<std::endl;
-
 	    }
 
 	    // ENDCAPS-only services
 	    else {
-	       bser_shape.name_tag = shapename.str();
-	       bser_shape.dz =  bs.getZLength() / 2.0;
-	       bser_shape.rmin =  bs.getInnerRadius();
-	       bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
+	      bser_shape.name_tag = shapename.str();
+	      bser_shape.dz =  bs.getZLength() / 2.0;
+	      bser_shape.rmin =  bs.getInnerRadius();
+	      bser_shape.rmax =  bser_shape.rmin +  bs.getRWidth();
 	      cmsswXmlInfo.shapes.push_back(bser_shape);
-            if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
+	      if(bser_shape.rmax > eSerRmax)    eSerRmax = bser_shape.rmax;
 
-	       bser_logic.name_tag = shapename.str();
-	       bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
-	       bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
+	      bser_logic.name_tag = shapename.str();
+	      bser_logic.shape_tag = xml_phaseII_Pixelnamespace + shapename.str();
+	      bser_logic.material_tag = xml_phaseII_Pixelnamespace + matname.str();
 	      cmsswXmlInfo.logic.push_back(bser_logic);
 
-	       bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap + "s"; 
-	       bser_pos.child_tag =  bser_logic.shape_tag;
-	       bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz;
-               if(bs.getZOffset() < 0) bser_pos.trans.dz += xml_z_pixfwd; 
-               else bser_pos.trans.dz -= xml_z_pixfwd;
+	      bser_pos.parent_tag = xml_pixfwdident + ":" + xml_phaseII_pixecap; 
+	      bser_pos.child_tag =  bser_logic.shape_tag;
+	      bser_pos.trans.dz =  bs.getZOffset() +  bser_shape.dz - xml_z_pixfwd;     
 	      cmsswXmlInfo.positions.push_back(bser_pos);
-               std::cout << "Type 3 Service::" << bser_shape.name_tag << ">>>>>" <<  bser_shape.dz 
-                         << "////" << bser_pos.trans.dz 
-                         << "////Parent=" << bser_pos.parent_tag << std::endl;
 	    }
 	  }
-      /*
-      bser_shape.name_tag = sname.str();
-      bser_shape.rmin = bs.getInnerRadius();
-      bser_shape.rmax = bs.getInnerRadius() + bs.getRWidth();
-      bser_shape.dz = bs.getZLength() / 2.0;
 
-      cmsswXmlInfo.shapes.push_back(bser_shape);
 
-      matname << xml_base_serfcomp
-        << "R" << (int)(bs.getInnerRadius())
-        << "Z" << (int)(bs.getZOffset() + bs.getZLength() / 2.0);
-      bser_logic.name_tag = sname.str();
-      bser_logic.shape_tag = xml_phaseII_Pixelnamespace + sname.str();
-      bser_logic.material_tag = matname.str();
 
-      cmsswXmlInfo.logic.push_back(bser_logic);
+	  bser_pos.copy = 1;
+	  bser_pos.rotref.clear();
 
-      bser_pos.parent_tag = xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume;
-      bser_pos.child_tag = bser_logic.shape_tag;
-      bser_pos.trans.dz = bs.getZOffset() + bser_shape.dz;
+        } 
+	else {
+          std::stringstream msg;
+          msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
+          logWARNING( msg.str() ); 
+        }
+      }
 
-      cmsswXmlInfo.positions.push_back(bser_pos);
-
-      std::stringstream bsermod;
-
-      comp.name = bser_logic.material_tag;
-      comp.density = compositeDensity(bs);
-      analyseCompositeElements( bser_logic.material_tag, comp.density,bs, false);
-      */
     }
-     std::cout << "Max radius barrel service=" << bSerRmax << std::endl;
-     std::cout << "Max radius endcap service=" << eSerRmax << std::endl;
- }
+
+    std::cout << "Max radius barrel service=" << bSerRmax << std::endl;
+    std::cout << "Max radius endcap service=" << eSerRmax << std::endl;
+
+
+  }
  
+
+
+
+
+
+
  //Functions for endcap
   void PixelExtractor::createPixelEndcapActive(Tracker& pix) {
     LayerAggregator lagg;
@@ -692,12 +695,17 @@ namespace insur {
     ring_spec.parameter.first = xml_tkddd_structure;
     ring_spec.parameter.second = xml_subdet_ring;
 
+    int discNumber = 1;
+
     //have to implement pixel mother volume!!!
-    for( int i = 0; i<eDisks->size(); i++ ) {
+    for( int i = 0; i <eDisks->size(); i++ ) {
+      
       if( ( eDisks->at(i)->maxZ() + eDisks->at(i)->minZ() ) / 2.0 < 0.) continue;
       //Layer
+      
       std::stringstream stemp;
-      stemp << "Disc" << i+1;
+      stemp << "Disc" << discNumber;
+    
       ShapeInfo disc_shape;
 
       disc_shape.type = tb;
@@ -870,7 +878,7 @@ namespace insur {
   
         cmsswXmlInfo.algos.push_back(ring_algo);
       }
-      
+      discNumber++;
     }
     //endcap
     cmsswXmlInfo.specs.push_back(endcap_spec);
@@ -1167,10 +1175,10 @@ namespace insur {
                             (8.*chip_shape.dx*chip_shape.dy*chip_shape.dz/1000.));
 
   }
-  void PixelExtractor::createPixelEndcapServices(InactiveSurfaces& inatcvser) {
+  void PixelExtractor::createPixelEndcapServices(InactiveSurfaces& is) {
     //Inactive elements part
     //InactiveSurfaces& inatvser = pix.getInactiveSurfaces();
-    std::vector<InactiveElement>& bser = inatcvser.getEndcapServices();
+    std::vector<InactiveElement>& bser = is.getEndcapServices();
     ShapeInfo bser_shape;
     bser_shape.type = tb;
     bser_shape.dx = 0.0;
