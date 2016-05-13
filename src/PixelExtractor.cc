@@ -1258,7 +1258,6 @@ namespace insur {
       e.density = r.density;
       e.atomic_weight = pow((r.ilength / 35.), 3); // magic!
       e.atomic_number = getAtomicNumber(r.rlength, e.atomic_weight);
-      //elems.push_back(e);
       cmsswXmlInfo.elements.push_back(e);
     }
   }
@@ -1391,7 +1390,7 @@ namespace insur {
 
     ptree& solidSec = tree.add("DDDefinition.SolidSection", "");
     solidSec.add("<xmlattr>.label", "pixel.xml");
-    //Defining the pixel mother volume
+    /*//Defining the pixel mother volume
     ptree& mSolid = solidSec.add("UnionSolid", "");
     mSolid.add("<xmlattr>.name",xml_phaseII_pixmotherVolume);
     mSolid.add("<xmlattr>.firstSolid",xml_pixfwdident + ":" + xml_phaseII_pixecap);
@@ -1399,7 +1398,7 @@ namespace insur {
     ptree& mTranslation = mSolid.add("Translation","");
     mTranslation.add("<xmlattr>.x","0*cm");
     mTranslation.add("<xmlattr>.y","0*cm");
-    mTranslation.add("<xmlattr>.z","0*cm");
+    mTranslation.add("<xmlattr>.z","0*cm");*/
     
     for( auto& s: shapes) {
         if( s.type == ShapeType::bx ) {
@@ -1464,13 +1463,13 @@ namespace insur {
     ptree& logicSec = tree.add("DDDefinition.LogicalPartSection", "");
     logicSec.add("<xmlattr>.label", "pixel.xml");
     
-    ptree& mLogic = logicSec.add("LogicalPart", "");
+    /*ptree& mLogic = logicSec.add("LogicalPart", "");
     mLogic.add("<xmlattr>.name", xml_phaseII_pixmotherVolume);
     mLogic.add("<xmlattr>.category", "unspecified");
     ptree& mRsolid = mLogic.add("rSolid","");
     mRsolid.add("<xmlattr>.name", xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume);
     ptree& mRmat = mLogic.add("rMaterial","");
-    mRmat.add("<xmlattr>.name","materials:Air");
+    mRmat.add("<xmlattr>.name","materials:Air");*/
 
     for( auto& l: logic) {
       ptree& logical = logicSec.add("LogicalPart","");
@@ -1488,14 +1487,14 @@ namespace insur {
     ptree& posSec = tree.add("DDDefinition.PosPartSection", "");
     posSec.add("<xmlattr>.label", "pixel.xml");
     
-    ptree& mPosition = posSec.add("PosPart","");
+    /*ptree& mPosition = posSec.add("PosPart","");
     mPosition.add("<xmlattr>.copyNumber","1");
       
     ptree& mParent = mPosition.add("rParent","");
     mParent.add("<xmlattr>.name","tracker:Tracker");
       
     ptree& mChild = mPosition.add("rChild","");
-    mChild.add("<xmlattr>.name",xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume);
+    mChild.add("<xmlattr>.name",xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume);*/
 
     for( auto& p: positions) {
 
