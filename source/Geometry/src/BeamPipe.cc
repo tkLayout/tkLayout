@@ -43,7 +43,7 @@ void BeamPipe::build()
   try {
     check();
 
-    // Check that not yet defined
+    // Check that not yet defined. If exists, rebuild ...
     if (m_tube!=nullptr) delete m_tube;
 
     // Build beam pipe as inactive material
