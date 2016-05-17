@@ -10,6 +10,7 @@
 #include <AnalyzerModule.h>
 #include <AnalyzerGeometry.h>
 #include <AnalyzerResolution.h>
+#include <BeamPipe.h>
 #include <InactiveSurfaces.h>
 #include <Support.h>
 #include <Tracker.h>
@@ -25,13 +26,14 @@
 // Constructor - create instances of all available analyzer modules & prepare web container
 //
 AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
-                                 std::vector<const insur::InactiveSurfaces*> pasiveTrackers,
-                                 std::vector<const Support*> supports) :
+                                 std::vector<const insur::InactiveSurfaces*> passiveTrackers,
+                                 std::vector<const Support*> supports,
+                                 const BeamPipe* beamPipe) :
  m_webSite(nullptr),
  m_webSitePrepared(false)
 {
   // Create AnalyzerGeometry
-  AnalyzerGeometry* module = new AnalyzerGeometry(activeTrackers);
+  AnalyzerGeometry* module = new AnalyzerGeometry(activeTrackers, beamPipe);
   m_modules[module->getName()] = module;
 
   // Prepare Web site
@@ -62,7 +64,6 @@ bool AnalysisManager::initModule(int nTracks, std::string analyzerName)
   }
   else {
 
-    std::cerr << any2str("\nERROR: AnalysisManager::initModule -> Module ("+analyzerName+") failed, no such module.") << std::endl;
     logERROR("AnalysisManager::initModule: Module ("+analyzerName+") failed, no such module.");
     return false;
   }
@@ -80,7 +81,6 @@ bool AnalysisManager::analyzeModule(std::string analyzerName)
   }
   else {
 
-    std::cerr << any2str("\nERROR: AnalysisManager::analyzeModule -> Module ("+analyzerName+") failed, no such module.") << std::endl;
     logERROR("AnalysisManager::analyzerModule: Module ("+analyzerName+") failed, no such module.");
     return false;
   }
@@ -98,7 +98,6 @@ bool AnalysisManager::visualizeModule(std::string analyzerName)
   }
   else {
 
-    std::cerr << any2str("\nERROR: AnalysisManager::visualizeModule -> Module ("+analyzerName+") failed, no such module.") << std::endl;
     logERROR("AnalysisManager::visualizeModule: Module ("+analyzerName+") failed, no such module.");
     return false;
   }
@@ -138,7 +137,6 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   if (webDir!="") m_webSite->setTargetDirectory(webDir);
   else {
 
-    std::cerr << any2str("\nERROR: AnalysisManager::prepareWebSite -> Web site directory not set!") << std::endl;
     logERROR("AnalysisManager::prepareWebSite -> Web site directory not set!");
     return false;
   }
@@ -147,7 +145,6 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   if (layoutName!="") m_webSite->setTitle(layoutName);
   else {
 
-    std::cerr << any2str("\nERROR: AnalysisManager::prepareWebSite -> Layout name not set!") << std::endl;
     logERROR("AnalysisManager: Layout name not set!");
     return false;
   }

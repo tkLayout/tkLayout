@@ -19,6 +19,7 @@
 
 // Forward declaration
 class Barrel;
+class BeamPipe;
 class ConstGeometryVisitor;
 class Disk;
 class Endcap;
@@ -67,7 +68,7 @@ class AnalyzerGeometry : public AnalyzerModule {
  public:
 
   //! Constructor
-  AnalyzerGeometry(std::vector<const Tracker*> trackers);
+  AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
 
   //! Destructor
   ~AnalyzerGeometry() {};

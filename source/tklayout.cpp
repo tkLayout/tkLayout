@@ -117,9 +117,11 @@ int main(int argc, char* argv[]) {
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build full tracker
+  // Build full tracker + beam pipe
   GeometryManager gManager(geomFile);
-  bool activeTrackerOK = gManager.buildActiveTracker();
+  bool activeTrackerOK  = gManager.buildActiveTracker();
+  bool passiveTrackerOK = gManager.buildPassiveTracker();
+  bool beamPipeOK       = gManager.buildBeamPipe();
 
   //
   // Set simulation generic parameters
@@ -133,7 +135,7 @@ int main(int argc, char* argv[]) {
 
   //
   // Analyze tracker - create analysis manager
-  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPasiveTrackers(), gManager.getTrackerSupports());
+  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getTrackerSupports(), gManager.getBeamPipe());
 
   // Call individual analyzer modules
   bool isAnalysisOK      = false;

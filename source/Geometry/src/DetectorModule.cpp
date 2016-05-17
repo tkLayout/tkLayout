@@ -1,6 +1,7 @@
 
 #include "DetectorModule.h"
 #include "ModuleCap.h"
+#include "Module.h"
 
 /*
 DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m) {
@@ -24,6 +25,50 @@ DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m
   return tmod;
 }
 */
+
+DetectorModule::DetectorModule(Decorated* decorated) :
+ Decorator<GeometricModule>(decorated),
+ materialObject_(MaterialObject::MODULE),
+ sensorNode               ("Sensor"                   , parsedOnly()),
+ moduleType               ("moduleType"               , parsedOnly() , string("notype")),
+ numSensors               ("numSensors"               , parsedOnly()),
+ sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
+ readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP),
+ readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
+ zCorrelation             ("zCorrelation"             , parsedOnly()),
+ numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),
+ numSparsifiedPayloadBits ("numSparsifiedPayloadBits" , parsedOnly()),
+ numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
+ numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
+ triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
+ powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
+ powerModuleChip          ("powerModuleChip"          , parsedOnly()),
+ powerStripOptical        ("powerStripOptical"        , parsedOnly()),
+ powerStripChip           ("powerStripChip"           , parsedOnly()),
+ triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
+ triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
+ stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
+ reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
+ trackingTags             ("trackingTags"             , parsedOnly()),
+ resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
+ resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
+ plotColor                ("plotColor"                , parsedOnly(), 0),
+ serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
+ frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
+ hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
+ supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+{}
+
+DetectorModule::~DetectorModule()
+{
+  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
+}
+
+void DetectorModule::setModuleCap(ModuleCap* newCap)
+{
+  if (m_myModuleCap!=nullptr) delete m_myModuleCap;
+  m_myModuleCap = newCap ;
+}
 
 void DetectorModule::build() {
   check();

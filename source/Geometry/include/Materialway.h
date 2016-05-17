@@ -270,7 +270,7 @@ namespace material {
     Materialway();
     virtual ~Materialway();
 
-    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid& weightDistribution);
+    bool build(Tracker& tracker, InactiveSurfaces& inactiveSurface); //, WeightDistributionGrid& weightDistribution);
 
     static const double gridFactor;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                             actually transforms millimiters in microns */
@@ -316,7 +316,7 @@ namespace material {
     void secondStepConversions();
     void createModuleCaps(Tracker& tracker);
     void duplicateSections();
-    void populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution);
+    void populateAllMaterialProperties(Tracker& tracker); //, WeightDistributionGrid& weightDistribution);
     //void calculateMaterialValues(Tracker& tracker);
     void buildInactiveSurface(Tracker& tracker, InactiveSurfaces& inactiveSurface);
     void calculateMaterialValues(InactiveSurfaces& inactiveSurface, Tracker& tracker);

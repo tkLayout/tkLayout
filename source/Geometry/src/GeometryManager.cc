@@ -6,6 +6,7 @@
  */
 #include <GeometryManager.h>
 
+#include <BeamPipe.h>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/property_tree/info_parser.hpp>
@@ -20,14 +21,14 @@
 #include <StopWatch.h>
 #include <Support.h>
 #include <Tracker.h>
-#include <WeightDistributionGrid.h> // TODO: Dummy for now
 
 //
 // Constructor - initializes manager -> reads-in all geometry configuration files (using the mainConfigHandler)
 //
 GeometryManager::GeometryManager(std::string baseGeomFile) :
  m_initOK(false),
- m_geomTree(nullptr)
+ m_geomTree(nullptr),
+ m_beamPipe(nullptr)
 {
   // Set geometry file, directory, layout name ...
   setGeometryFile(baseGeomFile);
@@ -36,7 +37,6 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
   std::ifstream inputFile(baseGeomFile);
   if (inputFile.fail()) {
 
-    std::cerr << any2str("n\ERROR: GeometryManager::GeometryManager -> Cannot open geometry file: "+baseGeomFile) << std::endl;
     logERROR(any2str("GeometryManager::GeometryManager: Cannot open geometry file: "+baseGeomFile));
   }
   else {
@@ -81,11 +81,14 @@ GeometryManager::~GeometryManager()
     if (iSupport==nullptr) delete iSupport;
   }
 
-  // Pasive components related to active sub-trackers
-  for (auto iPasive : m_pasiveTrackers) {
+  // Passive components related to active sub-trackers
+  for (auto iPassive : m_passiveTrackers) {
 
-    if (iPasive==nullptr) delete iPasive;
+    if (iPassive==nullptr) delete iPassive;
   }
+
+  // Beam pipe
+  if (m_beamPipe!=nullptr) delete m_beamPipe;
 }
 
 //
@@ -99,7 +102,6 @@ bool GeometryManager::buildActiveTracker()
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
-    std::cerr << any2str("\nERROR: GeometryManager::buildActiveTracker() -> Can't built active tracker if GeometryManager not properly initialized in constructor");
     logERROR(any2str("GeometryManager::buildActiveTracker(): Can't built active tracker if GeometryManager not properly initialized in constructor"));
     return false;
   }
@@ -134,13 +136,11 @@ bool GeometryManager::buildActiveTracker()
       for (const string& property  : unmatchedProperties) {
         message << "  " << property << std::endl;
       }
-      std::cerr << any2str("\nERROR: "+message.str()) << std::endl;
       logERROR(message);
     }
   } // Try
   catch (PathfulException& e) {
 
-    std::cerr << any2str("\nERROR: " +e.path()+ " : " +e.what()) << std::endl;
     logERROR(e.path()+ " : " +e.what());
     stopTaskClock();
     return false;
@@ -151,7 +151,7 @@ bool GeometryManager::buildActiveTracker()
 }
 
 //
-// Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as pasive
+// Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as passive
 // components of active sub-tracker). This procedure replaces the previously registered support (applying correct memory managment), if such an object
 // existed.
 //
@@ -160,7 +160,6 @@ bool GeometryManager::buildTrackerSupport()
   // Check that GeometryManager properly initialized
   if (!m_initOK) {
 
-    std::cerr <<
     logERROR(any2str("\nERROR: GeometryManager::buildTrackerSupport() -> Can't built tracker supports if GeometryManager not properly initialized in constructor"));
     return false;
   }
@@ -191,7 +190,6 @@ bool GeometryManager::buildTrackerSupport()
   }// Try
   catch (PathfulException& e) {
 
-    std::cerr << any2str("\nERROR: " +e.path()+ " : " +e.what()) << std::endl;
     logERROR(e.path()+ " : " +e.what());
     stopTaskClock();
     return false;
@@ -201,31 +199,94 @@ bool GeometryManager::buildTrackerSupport()
 }
 
 //
-// Build all pasive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
+// Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
 // memory managment), if such an object existed.
 //
-bool GeometryManager::buildPasiveTracker()
+bool GeometryManager::buildPassiveTracker()
 {
   if (m_activeTrackers.size()>0) {
 
-    startTaskClock("Building pasive materials of active trackers");
+    startTaskClock("Building passive materials of active trackers");
 
     for (auto iTracker : m_activeTrackers) {
 
       // Build new inactive surface
-      insur::InactiveSurfaces*         iPasive = new insur::InactiveSurfaces();
-      material::WeightDistributionGrid wdGrid(0.1); // TODO: Dummy for now
-
+      insur::InactiveSurfaces* iPassive = new insur::InactiveSurfaces();
 
       // Get all materials in the way for given tracker
       material::Materialway materialway;
-      materialway.build(*iTracker, *iPasive, wdGrid);
+      materialway.build(*iTracker, *iPassive);
     }
 
     stopTaskClock();
     return true;
   }
   else return false;
+}
+
+//
+// Build beam pipe. This procedure replaces the previously registered beam pipe
+//
+bool GeometryManager::buildBeamPipe()
+{
+  // Check that GeometryManager properly initialized
+  if (!m_initOK) {
+
+    logERROR(any2str("GeometryManager::buildBeamPipe(): Can't built beam pipe if GeometryManager not properly initialized in constructor"));
+    return false;
+  }
+
+  // Clear out memory if beam pipe built before
+  if (m_beamPipe!=nullptr) {
+
+    delete m_beamPipe;
+    m_beamPipe = nullptr;
+  }
+
+  // Build beam pipe -> look for tag "BeamPipe"
+  startTaskClock("Building beam pipe");
+  try {
+
+    auto childRange = getChildRange(*m_geomTree, "BeamPipe");
+    std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+
+      // Declare if more than one beam pipes defined
+      if (m_beamPipe!=nullptr) {
+
+        std::ostringstream message;
+        message << "GeometryManager::buildBeamPipe(): More than one beam pipe defined -> only first one found used!" << std::endl;
+        logERROR(message);
+      }
+      else {
+
+        std::cout << "Building new beam pipe" << std::endl;
+        m_beamPipe = new BeamPipe(kv.second);
+        m_beamPipe->build();
+      }
+
+    }); // Beam pipes
+
+    // Declare unmatched properties
+    std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();
+    if (!unmatchedProperties.empty()) {
+
+      std::ostringstream message;
+      message << "GeometryManager::buildBeamPipe(): The following unknown properties were ignored:" << std::endl;
+
+      for (const string& property  : unmatchedProperties) {
+        message << "  " << property << std::endl;
+      }
+      logERROR(message);
+    }
+  } // Try
+  catch (PathfulException& e) {
+
+    logERROR(e.path()+ " : " +e.what());
+    stopTaskClock();
+    return false;
+  }
+  stopTaskClock();
+  return true;
 }
 
 //
@@ -261,19 +322,28 @@ std::vector<const Support*> GeometryManager::getTrackerSupports() const
 }
 
 //
-// Get pasive components related to active sub-trackers
+// Get passive components related to active sub-trackers
 //
-std::vector<const insur::InactiveSurfaces*> GeometryManager::getPasiveTrackers() const
+std::vector<const insur::InactiveSurfaces*> GeometryManager::getPassiveTrackers() const
 {
-  std::vector<const insur::InactiveSurfaces*> pasiveTrackers;
+  std::vector<const insur::InactiveSurfaces*> passiveTrackers;
 
-  for (auto iPasive : m_pasiveTrackers) {
+  for (auto iPassive : m_passiveTrackers) {
 
-    const insur::InactiveSurfaces* pasive = iPasive;
-    pasiveTrackers.push_back(pasive);
+    const insur::InactiveSurfaces* passive = iPassive;
+    passiveTrackers.push_back(passive);
   }
 
-  return pasiveTrackers;
+  return passiveTrackers;
+}
+
+//
+// Get beam pipe
+//
+const BeamPipe* GeometryManager::getBeamPipe() const
+{
+  const BeamPipe* beamPipe = m_beamPipe;
+  return beamPipe;
 }
 
 //

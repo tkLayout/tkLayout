@@ -4,14 +4,20 @@
  */
 
 #include <InactiveSurfaces.h>
+#include <InactiveElement.h>
+
 namespace insur {
+
+  InactiveSurfaces::InactiveSurfaces() : m_isUp(false) {}
+  InactiveSurfaces::~InactiveSurfaces() {}
+
     /*===== services =====*/
     /**
      * Add a single inactive element to the list of barrel services by copying it.
      * @param service The element that is appended to the list of barrel service parts
      */
     void InactiveSurfaces::addBarrelServicePart(InactiveElement service) {
-        barrelservices.push_back(service);
+        m_barrelServices.push_back(service);
     }
     
     /**
@@ -21,7 +27,7 @@ namespace insur {
      * @return A reference to the requested barrel service part
      */
     InactiveElement& InactiveSurfaces::getBarrelServicePart(int index) {
-        return barrelservices.at(index);
+        return m_barrelServices.at(index);
     }
     
     /**
@@ -31,8 +37,8 @@ namespace insur {
      * @return An interator to the barrel element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeBarrelServicePart(int index) {
-        if ((index >= 0) && ((unsigned int)index < barrelservices.size())) return barrelservices.erase(barrelservices.begin() + index);
-        return barrelservices.end();
+        if ((index >= 0) && ((unsigned int)index < m_barrelServices.size())) return m_barrelServices.erase(m_barrelServices.begin() + index);
+        return m_barrelServices.end();
     }
     
     /**
@@ -40,7 +46,7 @@ namespace insur {
      * @return A reference to the internal barrel service vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getBarrelServices() {
-        return barrelservices;
+        return m_barrelServices;
     }
     
     /**
@@ -48,7 +54,7 @@ namespace insur {
      * @param service The element that is appended to the list of endcap service parts
      */
     void InactiveSurfaces::addEndcapServicePart(InactiveElement service) {
-        endcapservices.push_back(service);
+        m_endcapServices.push_back(service);
     }
     
     /**
@@ -58,7 +64,7 @@ namespace insur {
      * @return A reference to the requested endcap service part
      */
     InactiveElement& InactiveSurfaces::getEndcapServicePart(int index) {
-        return endcapservices.at(index);
+        return m_endcapServices.at(index);
     }
     
     /**
@@ -68,8 +74,8 @@ namespace insur {
      * @return An interator to the endcap element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeEndcapServicePart(int index) {
-        if ((index >= 0) && ((unsigned int)index < endcapservices.size())) return endcapservices.erase(endcapservices.begin() + index);
-        return endcapservices.end();
+        if ((index >= 0) && ((unsigned int)index < m_endcapServices.size())) return m_endcapServices.erase(m_endcapServices.begin() + index);
+        return m_endcapServices.end();
     }
     
     /**
@@ -77,7 +83,7 @@ namespace insur {
      * @return A reference to the internal endcap services vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getEndcapServices() {
-        return endcapservices;
+        return m_endcapServices;
     }
     /*===== supports =====*/
     /**
@@ -85,7 +91,7 @@ namespace insur {
      * @param support The element that is appended to the list of support parts
      */
     void InactiveSurfaces::addSupportPart(InactiveElement support) {
-        supports.push_back(support);
+        m_supports.push_back(support);
     }
     
     /**
@@ -95,7 +101,7 @@ namespace insur {
      * @return A reference to the requested support part
      */
     InactiveElement& InactiveSurfaces::getSupportPart(int index) { // throws exception
-        return supports.at(index);
+        return m_supports.at(index);
     }
     
     /**
@@ -105,8 +111,8 @@ namespace insur {
      * @return An interator to the element immediately after the removed one
      */
     std::vector<InactiveElement>::iterator InactiveSurfaces::removeSupportPart(int index) {
-        if ((index >= 0) && ((unsigned int)index < supports.size())) return supports.erase(supports.begin() + index);
-        return supports.end();
+        if ((index >= 0) && ((unsigned int)index < m_supports.size())) return m_supports.erase(m_supports.begin() + index);
+        return m_supports.end();
     }
     
     /**
@@ -114,7 +120,7 @@ namespace insur {
      * @return A reference to the internal supports vector
      */
     std::vector<InactiveElement>& InactiveSurfaces::getSupports() { // may return empty vector
-        return supports;
+        return m_supports;
     }
     
     /*===== Flag and printing =====*/
@@ -122,40 +128,40 @@ namespace insur {
      * Query the UP/DOWN flag.
      * @return True if the configuration is of type UP, false otherwise
      */
-    bool InactiveSurfaces::isUp() { return is_up; }
+    bool InactiveSurfaces::isUp() { return m_isUp; }
     
     /**
      * Set the UP/DOWN flag.
      * @param up The new state of the flag
      */
-    void InactiveSurfaces::setUp(bool up) { is_up = up; }
+    void InactiveSurfaces::setUp(bool up) { m_isUp = up; }
     
     /**
      * Print the contents of the collection.
      * @param full_summary A flag to switch verbose output on or off
      */
     void InactiveSurfaces::print(bool full_summary = true) {
-        std::cout << "Number of barrel service elements: " << barrelservices.size() << std::endl;
+        std::cout << "Number of barrel service elements: " << m_barrelServices.size() << std::endl;
         if (full_summary) {
-            for (unsigned int i = 0; i < barrelservices.size(); i++) {
+            for (unsigned int i = 0; i < m_barrelServices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
-                barrelservices.at(i).print();
+                m_barrelServices.at(i).print();
                 std::cout << std::endl;
             }
         }
-        std::cout << "Number of endcap service elements: " << endcapservices.size() << std::endl;
+        std::cout << "Number of endcap service elements: " << m_endcapServices.size() << std::endl;
         if (full_summary) {
-            for (unsigned int i = 0; i < endcapservices.size(); i++) {
+            for (unsigned int i = 0; i < m_endcapServices.size(); i++) {
                 std::cout << "Service element " << i << ":" << std::endl;
-                endcapservices.at(i).print();
+                m_endcapServices.at(i).print();
                 std::cout << std::endl;
             }
         }
-        std::cout << "Number of support elements: " << supports.size() << std::endl;
+        std::cout << "Number of support elements: " << m_supports.size() << std::endl;
         if (full_summary) {
-            for (unsigned int i = 0; i < supports.size(); i++) {
+            for (unsigned int i = 0; i < m_supports.size(); i++) {
                 std::cout << "Support element " << i << ":" << std::endl;
-                supports.at(i).print();
+                m_supports.at(i).print();
                 std::cout << std::endl;
             }
         }

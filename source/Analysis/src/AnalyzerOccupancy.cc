@@ -7,6 +7,7 @@
 
 #include <AnalyzerOccupancy.h>
 
+#include <BeamPipe.h>
 #include <BFieldMap.h>
 #include <rootweb.hh>
 #include <Tracker.h>
@@ -15,12 +16,12 @@
 #include <TCanvas.h>
 #include <global_constants.h>
 #include <Units.h>
-#include <SimParms.h>
 #include <TLegend.h>
 
 using namespace insur;
 
-AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers) : AnalyzerModule("AnalyzerOccupancy", trackers)
+AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) :
+ AnalyzerModule("AnalyzerOccupancy", trackers, beamPipe)
 {
   // Set geometry, i.e. individual trackers
   //for (auto it : trackers) m_trackers.push_back(it);
@@ -137,9 +138,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
   TCanvas* canvasPhotonsBOffMatOff = nullptr;
   TCanvas* canvasPhotonsBOffTrkOff = nullptr;
 
-  SimParms * simParms = SimParms::getInstance();
-
-  if (drawHistogram(canvasPhotonsBOffMatOff, m_hisPhotonsFluxBOffMatOff, m_photonsMapBOffMatOff, simParms, "PhotonsCanvasBOffMatOff", "RZ view of photons flux")) {
+  if (drawHistogram(canvasPhotonsBOffMatOff, m_hisPhotonsFluxBOffMatOff, m_photonsMapBOffMatOff, "PhotonsCanvasBOffMatOff", "RZ view of photons flux")) {
     canvasPhotonsBOffMatOff->SetLogz();
     m_hisPhotonsFluxBOffMatOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffMatOff->SetMaximum(c_fluxMax);
@@ -147,7 +146,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImagePhotonsBOffMatOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  material off");
     plotsPhotonsContent->addItem(anImagePhotonsBOffMatOff);
   }
-  if (drawHistogram(canvasPhotonsBOnMatOff, m_hisPhotonsFluxBOnMatOff, m_photonsMapBOnMatOff, simParms, "PhotonsCanvasBOnMatOff", "RZ view of photons flux")) {
+  if (drawHistogram(canvasPhotonsBOnMatOff, m_hisPhotonsFluxBOnMatOff, m_photonsMapBOnMatOff, "PhotonsCanvasBOnMatOff", "RZ view of photons flux")) {
     canvasPhotonsBOnMatOff->SetLogz();
     m_hisPhotonsFluxBOnMatOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOnMatOff->SetMaximum(c_fluxMax);
@@ -155,7 +154,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImagePhotonsBOnMatOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B on,  material off");
     plotsPhotonsContent->addItem(anImagePhotonsBOnMatOff);
   }
-  if (drawHistogram(canvasPhotonsBOffTrkOff, m_hisPhotonsFluxBOffTrkOff, m_photonsMapBOffTrkOff, simParms, "PhotonsCanvasBOffTrkOff", "RZ view of photons flux")) {
+  if (drawHistogram(canvasPhotonsBOffTrkOff, m_hisPhotonsFluxBOffTrkOff, m_photonsMapBOffTrkOff, "PhotonsCanvasBOffTrkOff", "RZ view of photons flux")) {
     canvasPhotonsBOffTrkOff->SetLogz();
     m_hisPhotonsFluxBOffTrkOff->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffTrkOff->SetMaximum(c_fluxMax);
@@ -163,7 +162,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImagePhotonsBOffTrkOff->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  tracker material off (calorimeter on)");
     plotsPhotonsContent->addItem(anImagePhotonsBOffTrkOff);
   }
-  if (drawHistogram(canvasPhotonsBOffMatOn, m_hisPhotonsFluxBOffMatOn, m_photonsMapBOffMatOn, simParms, "PhotonsCanvasBOffMatOn", "RZ view of photonsflux")) {
+  if (drawHistogram(canvasPhotonsBOffMatOn, m_hisPhotonsFluxBOffMatOn, m_photonsMapBOffMatOn, "PhotonsCanvasBOffMatOn", "RZ view of photonsflux")) {
     canvasPhotonsBOffMatOn->SetLogz();
     m_hisPhotonsFluxBOffMatOn->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOffMatOn->SetMaximum(c_fluxMax);
@@ -171,7 +170,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImagePhotonsBOffMatOn->setComment("RZ view of photons flux [cm^-2] in a tracker - B off,  all material on");
     plotsPhotonsContent->addItem(anImagePhotonsBOffMatOn);
   }
-  if (drawHistogram(canvasPhotonsBOnMatOn, m_hisPhotonsFluxBOnMatOn, m_photonsMapBOnMatOn, simParms, "PhotonsCanvasBOnMatOn", "RZ view of photons flux")) {
+  if (drawHistogram(canvasPhotonsBOnMatOn, m_hisPhotonsFluxBOnMatOn, m_photonsMapBOnMatOn, "PhotonsCanvasBOnMatOn", "RZ view of photons flux")) {
     canvasPhotonsBOnMatOn->SetLogz();
     m_hisPhotonsFluxBOnMatOn->SetMinimum(c_fluxMin);
     m_hisPhotonsFluxBOnMatOn->SetMaximum(c_fluxMax);
@@ -191,7 +190,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
   TCanvas* canvasChargedBOffMatOff = nullptr;
   TCanvas* canvasChargedBOffTrkOff = nullptr;
 
-  if (drawHistogram(canvasChargedBOffMatOff, m_hisChargedFluxBOffMatOff, m_chargedMapBOffMatOff, simParms, "ChargedCanvasBOffMatOff", "RZ view of charged particles flux")) {
+  if (drawHistogram(canvasChargedBOffMatOff, m_hisChargedFluxBOffMatOff, m_chargedMapBOffMatOff, "ChargedCanvasBOffMatOff", "RZ view of charged particles flux")) {
     canvasChargedBOffMatOff->SetLogz();
     m_hisChargedFluxBOffMatOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffMatOff->SetMaximum(c_fluxMax);
@@ -199,7 +198,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageChargedBOffMatOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  material off");
     plotsChargedContent->addItem(anImageChargedBOffMatOff);
   }
-  if (drawHistogram(canvasChargedBOnMatOff, m_hisChargedFluxBOnMatOff, m_chargedMapBOnMatOff, simParms, "ChargedCanvasBOnMatOff", "RZ view of charged particles flux")) {
+  if (drawHistogram(canvasChargedBOnMatOff, m_hisChargedFluxBOnMatOff, m_chargedMapBOnMatOff, "ChargedCanvasBOnMatOff", "RZ view of charged particles flux")) {
     canvasChargedBOnMatOff->SetLogz();
     m_hisChargedFluxBOnMatOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOnMatOff->SetMaximum(c_fluxMax);
@@ -207,7 +206,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageChargedBOnMatOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B on,  material off");
     plotsChargedContent->addItem(anImageChargedBOnMatOff);
   }
-  if (drawHistogram(canvasChargedBOffTrkOff, m_hisChargedFluxBOffTrkOff, m_chargedMapBOffTrkOff, simParms, "ChargedCanvasBOffTrkOff", "RZ view of charged particles flux")) {
+  if (drawHistogram(canvasChargedBOffTrkOff, m_hisChargedFluxBOffTrkOff, m_chargedMapBOffTrkOff, "ChargedCanvasBOffTrkOff", "RZ view of charged particles flux")) {
     canvasChargedBOffTrkOff->SetLogz();
     m_hisChargedFluxBOffTrkOff->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffTrkOff->SetMaximum(c_fluxMax);
@@ -215,7 +214,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageChargedBOffTrkOff->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  tracker material off");
     plotsChargedContent->addItem(anImageChargedBOffTrkOff);
   }
-  if (drawHistogram(canvasChargedBOffMatOn, m_hisChargedFluxBOffMatOn, m_chargedMapBOffMatOn, simParms, "ChargedCanvasBOffMatOn", "RZ view of charged particles flux")) {
+  if (drawHistogram(canvasChargedBOffMatOn, m_hisChargedFluxBOffMatOn, m_chargedMapBOffMatOn, "ChargedCanvasBOffMatOn", "RZ view of charged particles flux")) {
     canvasChargedBOffMatOn->SetLogz();
     m_hisChargedFluxBOffMatOn->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOffMatOn->SetMaximum(c_fluxMax);
@@ -223,7 +222,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     anImageChargedBOffMatOn->setComment("RZ view of charged particles flux [cm^-2] in a tracker - B off,  all material on");
     plotsChargedContent->addItem(anImageChargedBOffMatOn);
   }
-  if (drawHistogram(canvasChargedBOnMatOn, m_hisChargedFluxBOnMatOn, m_chargedMapBOnMatOn, simParms, "ChargedCanvasBOnMatOn", "RZ view of charged particles flux")) {
+  if (drawHistogram(canvasChargedBOnMatOn, m_hisChargedFluxBOnMatOn, m_chargedMapBOnMatOn, "ChargedCanvasBOnMatOn", "RZ view of charged particles flux")) {
     canvasChargedBOnMatOn->SetLogz();
     m_hisChargedFluxBOnMatOn->SetMinimum(c_fluxMin);
     m_hisChargedFluxBOnMatOn->SetMaximum(c_fluxMax);
@@ -265,7 +264,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioB->SetTitle("Ratio of photon flux - (Mag.field)/(No material+No mag.field)");
     m_hisPhotonsRatioB->SetMaximum(5);
 
-    if (drawHistogram(canvasPhotonsRatioB, m_hisPhotonsRatioB, m_photonsMapBOnMatOff, simParms, "PhotonsRatioB", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioB, m_hisPhotonsRatioB, m_photonsMapBOnMatOff, "PhotonsRatioB", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioB = new RootWImage(canvasPhotonsRatioB, canvasPhotonsRatioB->GetWindowWidth(), canvasPhotonsRatioB->GetWindowHeight());
       anImagePhotonsRatioB->setComment("RZ ratio of photons fluxes - (Mag.field)/(No material+No mag.field)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioB);
@@ -277,7 +276,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioECalMat->SetTitle("Ratio of photon flux - (ECal Material)/(No material+No mag.field)");
     m_hisPhotonsRatioECalMat->SetMaximum(100);
 
-    if (drawHistogram(canvasPhotonsRatioECalMat, m_hisPhotonsRatioECalMat, m_photonsMapBOffTrkOff, simParms, "PhotonsRatioECalMat", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioECalMat, m_hisPhotonsRatioECalMat, m_photonsMapBOffTrkOff, "PhotonsRatioECalMat", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioECalMat = new RootWImage(canvasPhotonsRatioECalMat, canvasPhotonsRatioECalMat->GetWindowWidth(), canvasPhotonsRatioECalMat->GetWindowHeight());
       anImagePhotonsRatioECalMat->setComment("RZ ratio of photons fluxes - (ECal Material)/(No material+No mag.field)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioECalMat);
@@ -289,7 +288,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioMat->SetTitle("Ratio of photon flux - (All Material)/(No material+No mag.field)");
     m_hisPhotonsRatioMat->SetMaximum(100);
 
-    if (drawHistogram(canvasPhotonsRatioMat, m_hisPhotonsRatioMat, m_photonsMapBOffMatOn, simParms, "PhotonsRatioMat", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioMat, m_hisPhotonsRatioMat, m_photonsMapBOffMatOn, "PhotonsRatioMat", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioMat = new RootWImage(canvasPhotonsRatioMat, canvasPhotonsRatioMat->GetWindowWidth(), canvasPhotonsRatioMat->GetWindowHeight());
       anImagePhotonsRatioMat->setComment("RZ ratio of photons fluxes - (Material)/(No material+No mag.field)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioMat);
@@ -301,7 +300,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioTrkB->SetTitle("Ratio of photon flux - (All Material+Mag.field)/(No Tracker+No mag.field)");
     m_hisPhotonsRatioTrkB->SetMaximum(5);
 
-    if (drawHistogram(canvasPhotonsRatioTrkB, m_hisPhotonsRatioTrkB, m_photonsMapBOnMatOn, simParms, "PhotonsRatioTrkB", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioTrkB, m_hisPhotonsRatioTrkB, m_photonsMapBOnMatOn, "PhotonsRatioTrkB", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioTrkB = new RootWImage(canvasPhotonsRatioTrkB, canvasPhotonsRatioTrkB->GetWindowWidth(), canvasPhotonsRatioTrkB->GetWindowHeight());
       anImagePhotonsRatioTrkB->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioTrkB);
@@ -313,7 +312,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioMatB->SetTitle("Ratio of photon flux - (All Material+Mag.field)/(No material+No mag.field)");
     m_hisPhotonsRatioMatB->SetMaximum(100);
 
-    if (drawHistogram(canvasPhotonsRatioMatB, m_hisPhotonsRatioMatB, m_photonsMapBOnMatOn, simParms, "PhotonsRatioMatB", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioMatB, m_hisPhotonsRatioMatB, m_photonsMapBOnMatOn, "PhotonsRatioMatB", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioMatB = new RootWImage(canvasPhotonsRatioMatB, canvasPhotonsRatioMatB->GetWindowWidth(), canvasPhotonsRatioMatB->GetWindowHeight());
       anImagePhotonsRatioMatB->setComment("RZ ratio of photons fluxes - (Material+Mag.field)/(No material+No mag.field)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioMatB);
@@ -345,7 +344,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisPhotonsRatioLTh->Divide(m_hisPhotonsFluxBOnMatOn);
     m_hisPhotonsRatioLTh->SetTitle("Ratio of photon flux - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
 
-    if (drawHistogram(canvasPhotonsRatioLTh, m_hisPhotonsRatioLTh, m_photonsMapBOnMatOn, simParms, "PhotonsRatioLTh", "RZ ratio of photons fluxes")) {
+    if (drawHistogram(canvasPhotonsRatioLTh, m_hisPhotonsRatioLTh, m_photonsMapBOnMatOn, "PhotonsRatioLTh", "RZ ratio of photons fluxes")) {
       RootWImage* anImagePhotonsRatioLTh = new RootWImage(canvasPhotonsRatioLTh, canvasPhotonsRatioLTh->GetWindowWidth(), canvasPhotonsRatioLTh->GetWindowHeight());
       anImagePhotonsRatioLTh->setComment("RZ ratio of photons fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
       plotsPhotonsRatioContent->addItem(anImagePhotonsRatioLTh);
@@ -359,7 +358,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioB->SetTitle("Ratio of charged particles flux - (Mag.field)/(No material+No mag.field)");
     m_hisChargedRatioB->SetMaximum(5);
 
-    if (drawHistogram(canvasChargedRatioB, m_hisChargedRatioB, m_chargedMapBOnMatOff, simParms, "ChargedRatioB", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioB, m_hisChargedRatioB, m_chargedMapBOnMatOff, "ChargedRatioB", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioB = new RootWImage(canvasChargedRatioB, canvasChargedRatioB->GetWindowWidth(), canvasChargedRatioB->GetWindowHeight());
       anImageChargedRatioB->setComment("RZ ratio of charged particles fluxes - (Mag.field)/(No material+No mag.field)");
       plotsChargedRatioContent->addItem(anImageChargedRatioB);
@@ -371,7 +370,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioECalMat->SetTitle("Ratio of charged particles flux - (ECal Material)/(No material+No mag.field)");
     m_hisChargedRatioECalMat->SetMaximum(5);
 
-    if (drawHistogram(canvasChargedRatioECalMat, m_hisChargedRatioECalMat, m_chargedMapBOffTrkOff, simParms, "ChargedRatioECalMat", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioECalMat, m_hisChargedRatioECalMat, m_chargedMapBOffTrkOff, "ChargedRatioECalMat", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioECalMat = new RootWImage(canvasChargedRatioECalMat, canvasChargedRatioECalMat->GetWindowWidth(), canvasChargedRatioECalMat->GetWindowHeight());
       anImageChargedRatioECalMat->setComment("RZ ratio of charged particles fluxes - (ECal Material)/(No material+No mag.field)");
       plotsChargedRatioContent->addItem(anImageChargedRatioECalMat);
@@ -383,7 +382,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioMat->SetTitle("Ratio of charged particles flux - (All Material)/(No material+No mag.field)");
     m_hisChargedRatioMat->SetMaximum(10);
 
-    if (drawHistogram(canvasChargedRatioMat, m_hisChargedRatioMat, m_chargedMapBOffMatOn, simParms, "ChargedRatioMat", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioMat, m_hisChargedRatioMat, m_chargedMapBOffMatOn, "ChargedRatioMat", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioMat = new RootWImage(canvasChargedRatioMat, canvasChargedRatioMat->GetWindowWidth(), canvasChargedRatioMat->GetWindowHeight());
       anImageChargedRatioMat->setComment("RZ ratio of charged particles fluxes - (Material)/(No material+No mag.field)");
       plotsChargedRatioContent->addItem(anImageChargedRatioMat);
@@ -395,7 +394,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioTrkB->SetTitle("Ratio of charged particles flux - (All Material+Mag.field)/(No Tracker+No mag.field)");
     m_hisChargedRatioTrkB->SetMaximum(10);
 
-    if (drawHistogram(canvasChargedRatioTrkB, m_hisChargedRatioTrkB, m_chargedMapBOnMatOn, simParms, "ChargedRatioTrkB", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioTrkB, m_hisChargedRatioTrkB, m_chargedMapBOnMatOn, "ChargedRatioTrkB", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioTrkB = new RootWImage(canvasChargedRatioTrkB, canvasChargedRatioTrkB->GetWindowWidth(), canvasChargedRatioTrkB->GetWindowHeight());
       anImageChargedRatioTrkB->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No Tracker+No mag.field)");
       plotsChargedRatioContent->addItem(anImageChargedRatioTrkB);
@@ -407,7 +406,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioMatB->SetTitle("Ratio of charged particles flux - (All Material+Mag.field)/(No material+No mag.field)");
     m_hisChargedRatioMatB->SetMaximum(10);
 
-    if (drawHistogram(canvasChargedRatioMatB, m_hisChargedRatioMatB, m_chargedMapBOnMatOn, simParms, "ChargedRatioMatB", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioMatB, m_hisChargedRatioMatB, m_chargedMapBOnMatOn, "ChargedRatioMatB", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioMatB = new RootWImage(canvasChargedRatioMatB, canvasChargedRatioMatB->GetWindowWidth(), canvasChargedRatioMatB->GetWindowHeight());
       anImageChargedRatioMatB->setComment("RZ ratio of charged particles fluxes - (Material+Mag.field)/(No material+No mag.field)");
       plotsChargedRatioContent->addItem(anImageChargedRatioMatB);
@@ -439,7 +438,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     m_hisChargedRatioLTh->Divide(m_hisChargedFluxBOnMatOn);
     m_hisChargedRatioLTh->SetTitle("Ratio of charged particles flux - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
 
-    if (drawHistogram(canvasChargedRatioLTh, m_hisChargedRatioLTh, m_chargedMapBOnMatOn, simParms, "ChargedRatioLTh", "RZ ratio of charged particle fluxes")) {
+    if (drawHistogram(canvasChargedRatioLTh, m_hisChargedRatioLTh, m_chargedMapBOnMatOn, "ChargedRatioLTh", "RZ ratio of charged particle fluxes")) {
       RootWImage* anImageChargedRatioLTh = new RootWImage(canvasChargedRatioLTh, canvasChargedRatioLTh->GetWindowWidth(), canvasChargedRatioLTh->GetWindowHeight());
       anImageChargedRatioLTh->setComment("RZ ratio of charged particles fluxes - (Cut_{e prod}=10keV, Cut_{#gamma prod}=1keV)/(Cut_{e prod}=1MeV, Cut_{#gamma prod}=100keV)");
       plotsChargedRatioContent->addItem(anImageChargedRatioLTh);
@@ -1196,7 +1195,7 @@ bool AnalyzerOccupancy::fillHistogram(const IrradiationMap* map, TH2D*& his, std
   else return false;
 }
 
-bool AnalyzerOccupancy::drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, const SimParms* simParms, std::string name, std::string title)
+bool AnalyzerOccupancy::drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, std::string name, std::string title)
 {
   if (his!=nullptr) {
 
@@ -1210,7 +1209,7 @@ bool AnalyzerOccupancy::drawHistogram(TCanvas*& canvas, TH2D* his, const Irradia
     his->GetXaxis()->SetTitleOffset(1.2);
     his->GetYaxis()->SetTitle(std::string("R ["+map->getRUnit()+"]").c_str());
     his->GetYaxis()->SetTitleOffset(1.2);
-    his->GetYaxis()->SetRangeUser(simParms->bpRadius(), his->GetYaxis()->GetXmax());
+    his->GetYaxis()->SetRangeUser(m_beamPipe->radius(), his->GetYaxis()->GetXmax());
     return true;
   }
   else return false;

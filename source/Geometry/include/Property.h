@@ -218,7 +218,7 @@ public:
   void fromString(const string& s) { 
     string seq = trim(s);
     if (seq.front() != Sep) values_.clear(); // an append is only done when the first character is the separator, in other cases we overwrite (example: if Sep is ',' this is an append: ",X,Y")
-    auto values = split<T>(seq, string(1, Sep));
+    std::vector<T> values = split<T>(seq, string(1, Sep));
     for (const auto& v : values) values_.push_back(v);
   }
   void appendString(const string& s) {

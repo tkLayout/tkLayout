@@ -12,13 +12,13 @@
 
 #include "AnalyzerModule.h"
 
+class BeamPipe;
 class BFieldMap;
 class IrradiationMap;
 class RootWSite;
 class Tracker;
 class TH2D;
 class TCanvas;
-class SimParms;
 
 /*
  * @class AnalyzerOccupancy
@@ -29,7 +29,7 @@ class AnalyzerOccupancy : public AnalyzerModule {
 
  public:
   // Constructor
-  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers);
+  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
   // Destructor
   ~AnalyzerOccupancy();
 
@@ -64,7 +64,7 @@ class AnalyzerOccupancy : public AnalyzerModule {
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);
 
   // Draw histogram
-  bool drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, const SimParms* simParms, std::string nameType, std::string nameParticles);
+  bool drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
 
   // Analyzed geometry
   //std::vector<Tracker*> m_trackers;

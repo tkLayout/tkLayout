@@ -122,12 +122,6 @@ class SimParms : public PropertyObject, public Buildable, public Visitable {
   ReadonlyProperty<double, Default>   dipoleDPlResAt10TeV;//!< Dipole deltaPl/Pl resolution of dipole tracker at 10 TeV
   ReadonlyProperty<double, Default>   dipoleXToX0;        //  [%]
 
-  // Beam pipe radius, thickness, thickness in rad. length, in int. length
-  ReadonlyProperty<double, Default>   bpRadius;           //!< Beam pipe radius
-  ReadonlyProperty<double, Default>   bpThickness;        //!< Beam pipe thickness
-  ReadonlyProperty<double, Default>   bpRadLength;        //!< Beam pipe rad. length in [%] @ 90 deg
-  ReadonlyProperty<double, Default>   bpIntLength;        //!< Beam pipe int. lenght in [%] @ 90 deg
-
   PropertyVector<std::string, ','>    irradiationMapFiles;
   //std::vector<Property<std::string, NoDefault>> irradiationMapFiles;
 

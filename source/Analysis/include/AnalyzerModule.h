@@ -16,6 +16,7 @@
 #include <string>
 
 class RootWSite;
+class BeamPipe;
 class Tracker;
 class MaterialBudget;
 
@@ -31,8 +32,11 @@ class AnalyzerModule
 {
  public:
 
-  //! Constructor - set active trackers to be analyzed
+  //! Constructor - set active trackers only
   AnalyzerModule(std::string name, std::vector<const Tracker*> trackers);
+
+  //! Constructor - set active trackers & beam pipe to be analyzed
+  AnalyzerModule(std::string name, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
 
   //! Virtual destructor
   virtual ~AnalyzerModule();
@@ -62,6 +66,9 @@ class AnalyzerModule
 
   //! Vector of active trackers -> const pointer, one can't and shouldn't change its content
   std::vector<const Tracker*> m_trackers;
+
+  //! Beam pipe
+  const BeamPipe* m_beamPipe;
 };
 
 #endif /* INCLUDE_ANALYZERMODULE_H_ */

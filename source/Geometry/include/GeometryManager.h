@@ -13,6 +13,8 @@
 #include <string>
 #include <boost/property_tree/ptree_fwd.hpp>
 
+// Forward declarations
+class BeamPipe;
 class Tracker;
 namespace insur {
   class InactiveSurfaces;
@@ -25,7 +27,7 @@ class Support;
  * @details The core geometry class, building the overall tracker with its inactive components. The tracker consists of
  * individual sub-trackers and corresponding inactive parts. In addition various support structures, services, etc. are built
  * as well. As an interface for analysis, it provides several get methods to obtain geometrical info: vector of built active
- * trackers, their pasive parts (pasive trackers), supports etc. This class takes over the role of previous Squid class and
+ * trackers, their passive parts (passive trackers), supports etc. This class takes over the role of previous Squid class and
  * its geometry related methods ...
  */
 class GeometryManager {
@@ -45,16 +47,20 @@ class GeometryManager {
   //! @return True if there were no errors during processing, false otherwise
   bool buildActiveTracker();
 
-  //! Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as pasive
+  //! Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as passive
   //! components of active sub-tracker). This procedure replaces the previously registered support (applying correct memory managment), if such an object
   //! existed.
   //! @return True if there were no errors during processing, false otherwise
   bool buildTrackerSupport();
 
-  //! Build all pasive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
+  //! Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
   //! memory managment), if such an object existed.
   //! @return True if there were no errors during processing, false otherwise
-  bool buildPasiveTracker();
+  bool buildPassiveTracker();
+
+  //! Build beam pipe. This procedure replaces the previously registered beam pipe
+  //! @return True if there were no errors during processing, false otherwise
+  bool buildBeamPipe();
 
   //! Get active sub-trackers
   //! @return vector of pointers to active trackers
@@ -64,9 +70,13 @@ class GeometryManager {
   //! @return vector of pointers to supports
   std::vector<const Support*> getTrackerSupports() const;
 
-  //! Get pasive components related to active sub-trackers
-  //! @return vector of pointers to pasive parts of trackers
-  std::vector<const insur::InactiveSurfaces*> getPasiveTrackers() const;
+  //! Get passive components related to active sub-trackers
+  //! @return vector of pointers to passive parts of trackers
+  std::vector<const insur::InactiveSurfaces*> getPassiveTrackers() const;
+
+  //! Get beam pipe
+  //! @return InactiveTube
+  const BeamPipe* getBeamPipe() const;
 
   //! Get geometry layout name
   //! @return layout name
@@ -105,7 +115,8 @@ class GeometryManager {
 
   std::vector<Tracker*>                 m_activeTrackers; //!< Vector of active sub-trackers
   std::vector<Support*>                 m_supports;       //!< Vector of independent support structures not directly related to active sub-trackers
-  std::vector<insur::InactiveSurfaces*> m_pasiveTrackers; //!< Vector of pasive sub-trackers
+  std::vector<insur::InactiveSurfaces*> m_passiveTrackers;//!< Vector of passive sub-trackers
+  BeamPipe*                             m_beamPipe;       //!< Passive surface (tube) simulating beam pipe
 
   // Constants
   const std::string c_defaultHtmlDir = "results";

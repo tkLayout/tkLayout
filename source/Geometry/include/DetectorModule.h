@@ -34,9 +34,15 @@ struct UniRef { string cnt; int layer, ring, phi, side; };
 namespace insur {
   class ModuleCap;
 }
+
+class DetectorModule;
+
 using insur::ModuleCap;
 using material::ElementsVector;
 
+/*
+ * Detector module class - base to Barrel & Endcap classes
+ */
 class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
 
@@ -44,6 +50,7 @@ class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// 
   double stripOccupancyPerEventBarrel() const;
   double stripOccupancyPerEventEndcap() const;
 protected:
+
   MaterialObject materialObject_;
   Sensors sensors_;
   std::string cntName_;
@@ -56,10 +63,16 @@ protected:
   int numHits_ = 0;
 
   void clearSensorPolys() { for (auto& s : sensors_) s.clearPolys(); }
-  ModuleCap* myModuleCap_ = NULL;
+
+  ModuleCap* m_myModuleCap = nullptr; //!< Module materials assigned to its active part
+
 public:
-  void setModuleCap(ModuleCap* newCap) { myModuleCap_ = newCap ; }
-  ModuleCap* getModuleCap() { return myModuleCap_ ; }
+
+  //! Set materials, so called module-cap to a module
+  void setModuleCap(ModuleCap* newCap);
+
+  //! Get materials, i.e. module-cap
+  ModuleCap* getModuleCap() { return m_myModuleCap;}
 
   Property<int16_t, AutoDefault> side;
   
@@ -104,38 +117,11 @@ public:
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
   
- DetectorModule(Decorated* decorated) : 
-    Decorator<GeometricModule>(decorated),
-      materialObject_(MaterialObject::MODULE),
-      sensorNode               ("Sensor"                   , parsedOnly()),
-      moduleType               ("moduleType"               , parsedOnly() , string("notype")),
-      numSensors               ("numSensors"               , parsedOnly()),
-      sensorLayout             ("sensorLayout"             , parsedOnly() , NOSENSORS),
-      readoutType              ("readoutType"              , parsedOnly() , READOUT_STRIP), 
-      readoutMode              ("readoutMode"              , parsedOnly() , BINARY),
-      zCorrelation             ("zCorrelation"             , parsedOnly()),
-      numSparsifiedHeaderBits  ("numSparsifiedHeaderBits"  , parsedOnly()),
-      numSparsifiedPayloadBits ("numSparsifiedPayloadBits" , parsedOnly()),
-      numTriggerDataHeaderBits ("numTriggerDataHeaderBits" , parsedOnly()),
-      numTriggerDataPayloadBits("numTriggerDataPayloadBits", parsedOnly()),
-      triggerWindow            ("triggerWindow"            , parsedOnly() , 1),
-      powerModuleOptical       ("powerModuleOptical"       , parsedOnly()),
-      powerModuleChip          ("powerModuleChip"          , parsedOnly()),
-      powerStripOptical        ("powerStripOptical"        , parsedOnly()),
-      powerStripChip           ("powerStripChip"           , parsedOnly()),
-      triggerErrorX            ("triggerErrorX"            , parsedOnly() , 1.),
-      triggerErrorY            ("triggerErrorY"            , parsedOnly() , 1.),
-      stereoRotation           ("stereoRotation"           , parsedOnly() , 0.),
-      reduceCombinatorialBackground("reduceCombinatorialBackground", parsedOnly(), false),
-      trackingTags             ("trackingTags"             , parsedOnly()),
-      resolutionLocalX         ("resolutionLocalX"         , parsedOnly()),
-      resolutionLocalY         ("resolutionLocalY"         , parsedOnly()),
-      plotColor                ("plotColor"                , parsedOnly(), 0),
-      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
-      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
-      hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
-      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
-  { }
+  //! Constructor
+  DetectorModule(Decorated* decorated);
+
+  //! Destructor
+  ~DetectorModule();
 
   virtual void setup();
 

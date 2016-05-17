@@ -1061,7 +1061,7 @@ namespace material {
     return double(input / gridFactor);
   }
 
-  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface, WeightDistributionGrid& weightDistribution) {
+  bool Materialway::build(Tracker& tracker, InactiveSurfaces& inactiveSurface) {//, WeightDistributionGrid& weightDistribution) {
     /*
     std::cout<<endl<<"tracker: > "<<tracker.maxZ()<<"; v "<<tracker.minR()<<"; ^ "<<tracker.maxR()<<endl;
     std::cout<<"endcap: < "<<tracker.endcaps()[0].minZ()<<"; > "<<tracker.endcaps()[0].maxZ()<<"; v "<<tracker.endcaps()[0].minR()<<"; ^ "<<tracker.endcaps()[0].maxR()<<endl;
@@ -1131,12 +1131,12 @@ namespace material {
     } else stopTaskClock();
 
     startTaskClock("Building inactive elements");    buildInactiveElements(); stopTaskClock();
-    startTaskClock("Rounting services");             routeServices(tracker); stopTaskClock();
+    startTaskClock("Routing services");              routeServices(tracker); stopTaskClock();
     startTaskClock("First step conversions");        firstStepConversions(); stopTaskClock();
     startTaskClock("Second step conversions");       secondStepConversions(); stopTaskClock();
     startTaskClock("Creating ModuleCaps");           createModuleCaps(tracker); stopTaskClock();
     startTaskClock("Duplicating sections");          duplicateSections(); stopTaskClock();
-    startTaskClock("Populating MaterialProperties"); populateAllMaterialProperties(tracker, weightDistribution); stopTaskClock();
+    startTaskClock("Populating MaterialProperties"); populateAllMaterialProperties(tracker); stopTaskClock(); //, weightDistribution); stopTaskClock();
     startTaskClock("Building inactive surfaces");    buildInactiveSurface(tracker, inactiveSurface); stopTaskClock();
     startTaskClock("Computing material amounts");    calculateMaterialValues(inactiveSurface, tracker); stopTaskClock();
     return retValue;
@@ -1594,7 +1594,7 @@ namespace material {
     sectionsList_.insert(sectionsList_.end(), negativeSections.begin(), negativeSections.end());
   }
 
-  void Materialway::populateAllMaterialProperties(Tracker& tracker, WeightDistributionGrid& weightDistribution) {
+  void Materialway::populateAllMaterialProperties(Tracker& tracker) {//, WeightDistributionGrid& weightDistribution) {
     //sections
     for(Section* section : sectionsList_) {
       if(section->inactiveElement() != nullptr) {
@@ -1619,10 +1619,10 @@ namespace material {
     //modules
     class ModuleVisitor : public GeometryVisitor {
     private:
-      WeightDistributionGrid& weightDistribution_;
+      //WeightDistributionGrid& weightDistribution_;
     public:
-      ModuleVisitor(WeightDistributionGrid& weightDistribution) :
-        weightDistribution_(weightDistribution) {}
+      ModuleVisitor() {} //: WeightDistributionGrid& weightDistribution) :
+        //weightDistribution_(weightDistribution) {}
       virtual ~ModuleVisitor() {}
 
       void visit(DetectorModule& module) {
@@ -1635,7 +1635,7 @@ namespace material {
       }
     };
 
-    ModuleVisitor visitor(weightDistribution);
+    ModuleVisitor visitor; //(weightDistribution);
     tracker.accept(visitor);
   }
 

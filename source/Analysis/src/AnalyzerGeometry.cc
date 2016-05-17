@@ -8,6 +8,7 @@
 
 // Include files
 #include <Barrel.h>
+#include <BeamPipe.h>
 #include <DetectorModule.h>
 #include <Disk.h>
 #include <global_constants.h>
@@ -35,7 +36,7 @@ using namespace insur;
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers) : AnalyzerModule("AnalyzerGeometry", trackers),
+AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerModule("AnalyzerGeometry", trackers, beamPipe),
  m_nTracks(0),
  m_layerNamesVisitor(trackers),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
@@ -623,8 +624,8 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 //
 void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
 {
-  double bpRadius = SimParms::getInstance()->bpRadius();
-  double bpThick  = SimParms::getInstance()->bpThickness();
+  double bpRadius = m_beamPipe->radius();
+  double bpThick  = m_beamPipe->thickness();
 
   // Beam-pipe in RZ
   TPolyLine* beamPipeRZ = new TPolyLine();
@@ -641,8 +642,8 @@ void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
 //
 void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
 {
-  double bpRadius = SimParms::getInstance()->bpRadius();
-  double bpThick  = SimParms::getInstance()->bpThickness();
+  double bpRadius = m_beamPipe->radius();
+  double bpThick  = m_beamPipe->thickness();
 
   // Beam-pipe in XY
   TEllipse* beamPipeXY = new TEllipse(0, 0, bpRadius + bpThick/2.);

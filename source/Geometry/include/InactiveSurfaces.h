@@ -17,7 +17,12 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <InactiveElement.h>
+
+// Forward declarations
+namespace insur {
+ class InactiveElement;
+}
+
 namespace insur {
   /**
    * @class InactiveSurfaces
@@ -29,36 +34,49 @@ namespace insur {
    * configuration (UP or DOWN) in a boolean flag. Some of the access functions to individual elements
    * may throw an exception if the requested index is out of range.
    */
-  class InactiveSurfaces {
-  public:
-    InactiveSurfaces() {}
-    virtual ~InactiveSurfaces() {}
-    // services
-    void addBarrelServicePart(InactiveElement service);
-    InactiveElement& getBarrelServicePart(int index); // throws exception
-    std::vector<InactiveElement>::iterator removeBarrelServicePart(int index);
-    std::vector<InactiveElement>& getBarrelServices(); // may return empty vector
-    void addEndcapServicePart(InactiveElement service);
-    InactiveElement& getEndcapServicePart(int index); // throws exception
-    std::vector<InactiveElement>::iterator removeEndcapServicePart(int index);
-    std::vector<InactiveElement>& getEndcapServices(); // may return empty vector
-    // supports
-    void addSupportPart(InactiveElement support);
-    InactiveElement& getSupportPart(int index); // throws exception
-    std::vector<InactiveElement>::iterator removeSupportPart(int index);
-    std::vector<InactiveElement>& getSupports(); // may return empty vector
-    // layout flag
-    bool isUp();
-    void setUp(bool up);
-    void print(bool full_summary);
-  protected:
-    //layout flag
-    bool is_up;
-    // element collections
-    std::vector<InactiveElement> barrelservices, endcapservices, supports;
-  private:
+class InactiveSurfaces {
 
-  };
-}
+ public:
+
+  InactiveSurfaces();
+  virtual ~InactiveSurfaces();
+
+  // module caps
+
+  // services
+  void addBarrelServicePart(InactiveElement service);
+  InactiveElement& getBarrelServicePart(int index); // throws exception
+  std::vector<InactiveElement>::iterator removeBarrelServicePart(int index);
+  std::vector<InactiveElement>& getBarrelServices(); // may return empty vector
+
+  void addEndcapServicePart(InactiveElement service);
+  InactiveElement& getEndcapServicePart(int index); // throws exception
+  std::vector<InactiveElement>::iterator removeEndcapServicePart(int index);
+  std::vector<InactiveElement>& getEndcapServices(); // may return empty vector
+
+  // supports
+  void addSupportPart(InactiveElement support);
+  InactiveElement& getSupportPart(int index); // throws exception
+  std::vector<InactiveElement>::iterator removeSupportPart(int index);
+  std::vector<InactiveElement>& getSupports(); // may return empty vector
+
+  // layout flag
+  bool isUp();
+  void setUp(bool up);
+  void print(bool full_summary);
+
+ protected:
+
+  //layout flag
+ bool m_isUp;
+
+ // element collections
+ std::vector<InactiveElement> m_barrelServices, m_endcapServices, m_supports;
+
+ private:
+
+}; // Class
+
+} // Namespace
 #endif	/* _INACTIVESURFACES_H */
 

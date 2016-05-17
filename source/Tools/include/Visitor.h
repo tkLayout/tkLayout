@@ -2,6 +2,7 @@
 #define VISITOR_H
 
 
+class BeamPipe;
 class Tracker;
 class Barrel;
 class Endcap;
@@ -19,6 +20,7 @@ class SimParms;
 
 class GeometryVisitor { 
 public:
+  virtual void visit(BeamPipe&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
   virtual void visit(Endcap&) {}
@@ -38,6 +40,7 @@ public:
 class ConstGeometryVisitor {
 public:
   //virtual ~ConstGeometryVisitor = 0;
+  virtual void visit(const BeamPipe&) {}
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
   virtual void visit(const Endcap&) {}
