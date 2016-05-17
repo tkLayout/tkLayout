@@ -29,7 +29,11 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
 //
 // Destructor
 //
-BeamPipe::~BeamPipe() {}
+BeamPipe::~BeamPipe()
+{
+  // Clear memory;
+  if (m_tube!=nullptr) delete m_tube;
+}
 
 //
 // Buidl method - setting all parameters
@@ -39,7 +43,10 @@ void BeamPipe::build()
   try {
     check();
 
-    // Beam pipe as inactive material
+    // Check that not yet defined
+    if (m_tube!=nullptr) delete m_tube;
+
+    // Build beam pipe as inactive material
     double zLength = 2*maxZ();
     double zOffset = 0.0;
 

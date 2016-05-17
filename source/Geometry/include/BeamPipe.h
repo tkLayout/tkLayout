@@ -18,6 +18,10 @@ namespace insur {
   class InactiveTube;
 }
 
+/*
+ * @class BeamPipe
+ * @brief Geometry & material object holding information about the beam pipe
+ */
 class BeamPipe : public PropertyObject, public Identifiable<string>, public Buildable, Visitable {
 
  public:
@@ -37,7 +41,8 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   //! GeometryVisitor pattern -> beam pipe visitable (const. option)
   void accept(ConstGeometryVisitor& v) const;
 
-  //! Get beam pipe as inactive tube
+  //! Get beam pipe material information
+  //! @return InactiveTube, i.e. returns beam pipe as inactive element
   const insur::InactiveTube* getMaterial() const;
 
   // Beam pipe radius, thickness, thickness in rad. length, in int. length
