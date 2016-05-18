@@ -18,12 +18,15 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
  thickness("thickness", parsedAndChecked(), 0.0),
  maxZ(     "maxZ"     , parsedAndChecked(), 0.0),
  radLength("radLength", parsedAndChecked(), 0.0),
- intLength("intLength", parsedAndChecked(), 0.0)
+ intLength("intLength", parsedAndChecked(), 0.0),
+ m_tube(nullptr)
 {
+  // Set the geometry config parameters
   this->myid(treeProperty.data());
   this->store(treeProperty);
 
-  m_tube = nullptr;
+  // Build & setup tracker
+  this->build();
 }
 
 //
@@ -42,9 +45,6 @@ void BeamPipe::build()
 {
   try {
     check();
-
-    // Check that not yet defined. If exists, rebuild ...
-    if (m_tube!=nullptr) delete m_tube;
 
     // Build beam pipe as inactive material
     double zLength = 2*maxZ();

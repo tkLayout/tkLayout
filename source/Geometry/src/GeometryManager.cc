@@ -260,7 +260,6 @@ bool GeometryManager::buildBeamPipe()
 
         std::cout << "Building new beam pipe" << std::endl;
         m_beamPipe = new BeamPipe(kv.second);
-        m_beamPipe->build();
       }
 
     }); // Beam pipes
