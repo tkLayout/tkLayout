@@ -46,7 +46,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   //! GeometryVisitor pattern -> barrel visitable
   void accept(GeometryVisitor& v);
 
-  //! GeometryVisitor pattern -> tracker visitable (const. option)
+  //! GeometryVisitor pattern -> barrel visitable (const. option)
   void accept(ConstGeometryVisitor& v) const;
 
   Property<        int   , NoDefault>  numLayers;   //!< Number of layers in a barrel
@@ -64,8 +64,8 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   //! Calculate various barrel related properties -> private method called by constructor
   void setup();
 
-  Layers                  m_layers;
-  BarrelSupportStructures m_supportStructures;
+  Layers                  m_layers;                 //!< Layers of given barrel
+  BarrelSupportStructures m_supportStructures;      //!< Barrel supports
 
   Property<double, NoDefault> m_innerRadius;        //!< Starting barrel inner radius (algorithm may optimize its value)
   Property<double, NoDefault> m_outerRadius;        //!< Starting barrel outer radius (algorithm may optimize its value)

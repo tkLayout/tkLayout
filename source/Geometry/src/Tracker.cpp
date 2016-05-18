@@ -31,14 +31,14 @@ void HierarchicalNameVisitor::visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
 // Constructor - parse geometry config file using boost property tree & read-in Barrel, Endcap & Support nodes
 //
 Tracker::Tracker(const PropertyTree& treeProperty) :
- m_barrelNode(    "Barrel"          , parsedOnly()),
- m_endcapNode(    "Endcap"          , parsedOnly()),
- m_supportNode(   "Support"         , parsedOnly()),
  etaCut(          "etaCut"          , parsedOnly(), insur::geom_max_eta_coverage),
  isPixelType(     "isPixelType"     , parsedOnly(), true),
  servicesForcedUp("servicesForcedUp", parsedOnly(), true),
  skipAllServices( "skipAllServices" , parsedOnly(), false),
  skipAllSupports( "skipAllSupports" , parsedOnly(), false),
+ m_barrelNode(    "Barrel"          , parsedOnly()),
+ m_endcapNode(    "Endcap"          , parsedOnly()),
+ m_supportNode(   "Support"         , parsedOnly()),
  m_containsOnly(  "containsOnly"    , parsedOnly())
 {
   // Set the geometry config parameters
@@ -75,12 +75,7 @@ void Tracker::build() {
     // Build end-cap tracker
     for (auto& mapel : m_endcapNode) {
       if (!m_containsOnly.empty() && m_containsOnly.count(mapel.first) == 0) continue;
-      Endcap* e = GeometryFactory::make<Endcap>();
-      e->myid(mapel.first);
-      e->barrelMaxZ(barrelMaxZ);
-      e->store(propertyTree());
-      e->store(mapel.second);
-      e->build();
+      Endcap* e = GeometryFactory::make<Endcap>(barrelMaxZ, mapel.first, mapel.second, propertyTree());
       e->cutAtEta(etaCut());
       m_endcaps.push_back(e);
     }

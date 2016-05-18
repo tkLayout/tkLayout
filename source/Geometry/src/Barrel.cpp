@@ -11,6 +11,7 @@ using material::SupportStructure;
 //
 Barrel::Barrel(const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty) :
  numLayers(           "numLayers"         , parsedAndChecked()),
+ skipServices(        "skipServices"      , parsedOnly(), false), // broken, do not use
  m_innerRadius(       "innerRadius"       , parsedAndChecked()),
  m_outerRadius(       "outerRadius"       , parsedAndChecked()),
  m_innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
@@ -19,7 +20,6 @@ Barrel::Barrel(const std::string& name, const PropertyTree& nodeProperty, const 
  m_barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
  m_supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
  m_supportMarginInner("supportMarginInner", parsedOnly(), 2.),
- skipServices(        "skipServices"      , parsedOnly(), false), // broken, do not use
  m_layerNode(         "Layer"             , parsedOnly()),
  m_supportNode(       "Support"           , parsedOnly())
 {
@@ -36,7 +36,8 @@ Barrel::Barrel(const std::string& name, const PropertyTree& nodeProperty, const 
 //
 // Limit barrel geometry by eta cut
 //
-void Barrel::cutAtEta(double eta) {
+void Barrel::cutAtEta(double eta)
+{
 
   for (auto& l : m_layers) l.cutAtEta(eta);
   m_layers.erase_if([](const Layer& l) { return l.numRods() == 0; });
@@ -46,8 +47,8 @@ void Barrel::cutAtEta(double eta) {
 //
 // Build recursively individual subdetector systems: Layers -> rods -> modules -> private method called by constructor
 //
-void Barrel::build() {
-
+void Barrel::build()
+{
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
@@ -92,12 +93,12 @@ void Barrel::build() {
 //
 // Calculate various barrel related properties -> private method called by constructor
 //
-void Barrel::setup() {
-
-  maxZ.setup([this]() { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); } return max; });
-  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); } return min; });
+void Barrel::setup()
+{
   maxR.setup([this]() { double max = 0;                                  for (const auto& l : m_layers) { max = MAX(max, l.maxR()); } return max; });
   minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); } return min; });
+  maxZ.setup([this]() { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); } return max; });
+  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); } return min; });
 }
 
 //
