@@ -13,6 +13,11 @@ powerModuleOptical 0
 
 sensorThickness 0.150
 
+serviceHybridWidth 0.0
+frontEndHybridWidth 0.0
+hybridThickness 0.5
+supportPlateThickness 0.5
+
 Sensor 1 {
   sensorType pixel
   pitchEstimate 0.050

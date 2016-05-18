@@ -294,6 +294,12 @@ namespace insur {
       module_spec.partselectors.clear();
       module_spec.moduletypes.clear();
 
+
+      std::cout << "module.dsDistance() = " << module.dsDistance() << std::endl;
+      std::cout << "module.thickness() = " << module.thickness() << std::endl;
+      std::cout << "module.sensorThickness() = " << module.sensorThickness() << std::endl;
+      std::cout << "module.hybridThickness() = " << module.hybridThickness() << std::endl;
+
       //Module part
       stemp_mod << xml_bmodbox << i+1 << xml_layer << LayerNum ;
 
@@ -301,7 +307,7 @@ namespace insur {
       modbox_shape.dx = module.area() /module.length() / 2.0;
       modbox_shape.dy = module.length() / 2.0;//mod0Thick;
       //explicitly added module thickness twice to remind that chip thickness = module thickness
-      modbox_shape.dz = module.thickness()/ 2.0 + module.hybridThickness()/2. + module.thickness()/ 2.0;
+      modbox_shape.dz = module.thickness()/ 2.0 + module.hybridThickness()/2. + module.supportPlateThickness()/ 2.0;
 
 
       stemp_mod.str("");
@@ -320,7 +326,7 @@ namespace insur {
       chip_shape.name_tag = mod_shape.name_tag + xml_phaseII_pixelChipTag;
       chip_shape.dx = module.area() /module.length() / 2.0;
       chip_shape.dy = module.length() / 2.0;//mod0Thick;
-      chip_shape.dz = module.thickness()/ 2.0;
+      chip_shape.dz = module.supportPlateThickness()/ 2.0;
 
 
       modbox_logic.name_tag = modbox_shape.name_tag;
@@ -329,7 +335,7 @@ namespace insur {
 
       mod_logic.name_tag = mod_shape.name_tag;
       mod_logic.shape_tag = xml_phaseII_Pixelnamespace + mod_shape.name_tag;
-      mod_logic.material_tag = "materials:Air";
+      mod_logic.material_tag = "materials:Air";   // contains wafer which contains Active made of Silicon (!!)
 
 
       hybrid_logic.name_tag = hybrid_shape.name_tag;
@@ -337,7 +343,7 @@ namespace insur {
       stringstream hybrid_logic_mat;
       hybrid_logic_mat << xml_phaseII_Pixelnamespace << "topInactiveComposite" << xml_barrel_module << i+1 << xml_layer << LayerNum ;
       hybrid_logic.material_tag = hybrid_logic_mat.str();
-
+                                                   
       chip_logic.name_tag = chip_shape.name_tag;
       chip_logic.shape_tag = xml_phaseII_Pixelnamespace + chip_shape.name_tag;
       stringstream chip_logic_mat;
@@ -412,7 +418,7 @@ namespace insur {
 
       modwafer_logic.name_tag = modwafer_shape.name_tag;
       modwafer_logic.shape_tag = xml_phaseII_Pixelnamespace + modwafer_shape.name_tag;
-      modwafer_logic.material_tag = xml_phaseII_Pixelnamespace + "SenSi";//??or air
+      modwafer_logic.material_tag = xml_material_air;
 
       modwafer_pos.copy = 1;
       modwafer_pos.trans.dx = 0.;
@@ -432,7 +438,7 @@ namespace insur {
 
       modactive_logic.name_tag = modactive_shape.name_tag;
       modactive_logic.shape_tag = xml_phaseII_Pixelnamespace + modactive_shape.name_tag;
-      modactive_logic.material_tag = xml_phaseII_Pixelnamespace + "SenSi";
+      modactive_logic.material_tag = xml_phaseII_Pixelnamespace + xml_sensor_silicon;
 
       modactive_pos.copy = 1;
       modactive_pos.trans.dx = 0.;
@@ -533,7 +539,7 @@ namespace insur {
 
 	  comp.name =  xml_phaseII_Pixelnamespace + matname.str();;
 	  comp.density = compositeDensity(bs);
-	  analyseCompositeElements( comp.name, comp.density,bs, false); // is it done properly ? CHECK !!!
+	  analyseCompositeElements( comp.name, comp.density,bs, false);
 
 
 	  double startEndcaps = 301.;
@@ -917,7 +923,7 @@ namespace insur {
     emodbox_shape.dy = emodule.length() / 2.0;
     emodbox_shape.dyy = emodule.length() / 2.0;
     //chip thickness = module thickness
-    emodbox_shape.dz = emodule.thickness() / 2.0 + emodule.hybridThickness()/2. + emodule.thickness() / 2.0;
+    emodbox_shape.dz = emodule.thickness() / 2.0 + emodule.hybridThickness()/2. + emodule.supportPlateThickness() / 2.0;
     emodbox_shape.rmin = 0.;
     emodbox_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(emodbox_shape);//no flip module
@@ -961,7 +967,7 @@ namespace insur {
     chip_shape.dxx = emodbox_shape.dxx;
     chip_shape.dy = emodbox_shape.dy;
     chip_shape.dyy = emodbox_shape.dyy;
-    chip_shape.dz = emodule.thickness() / 2.0;
+    chip_shape.dz = emodule.supportPlateThickness() / 2.0;
     chip_shape.rmin = 0.;
     chip_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(chip_shape);
@@ -1085,7 +1091,7 @@ namespace insur {
 
     emodwafer_logic.name_tag = emodwafer_shape.name_tag;
     emodwafer_logic.shape_tag = xml_phaseII_Pixelnamespace + emodwafer_shape.name_tag;
-    emodwafer_logic.material_tag = xml_phaseII_Pixelnamespace + "SenSi";//??or air
+    emodwafer_logic.material_tag = xml_material_air;
     cmsswXmlInfo.logic.push_back(emodwafer_logic);
     //flip_logic = emodwafer_logic;
     //flip_logic.name_tag = emodwafer_logic.name_tag + "FLIPPED";
