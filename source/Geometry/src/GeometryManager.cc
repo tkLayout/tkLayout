@@ -121,7 +121,6 @@ bool GeometryManager::buildActiveTracker()
     std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
 
       Tracker* trk = new Tracker(kv.second);
-      trk->build();
       m_activeTrackers.push_back(trk);
 
     }); // Trackers

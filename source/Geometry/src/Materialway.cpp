@@ -20,10 +20,11 @@
 #include "Endcap.h"
 #include "Disk.h"
 #include "Layer.h"
-#include "WeightDistributionGrid.h"
+#include "SupportStructure.h"
 #include "StopWatch.h"
 
 #include <ctime>
+#include "../../../include/WeightDistributionGrid.h"
 
 
 namespace material {

@@ -1,6 +1,7 @@
-#ifndef TRACKER_H
-#define TRACKER_H
+#ifndef INCLUDE_TRACKER_H_
+#define INCLUDE_TRACKER_H_
 
+// System include files
 #include <vector>
 #include <string>
 #include <memory>
@@ -8,163 +9,149 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include <TCanvas.h>
-
 #include "global_funcs.h"
-#include "global_constants.h"
 #include "Property.h"
-#include "Barrel.h"
-#include "Endcap.h"
-#include "SupportStructure.h"
 #include "Visitor.h"
 #include "Visitable.h"
 
+#include <Barrel.h>
+#include <DetectorModule.h>
+#include <Endcap.h>
+#include <SupportStructure.h>
+
+// Using namespaces
 using std::set;
 using material::SupportStructure;
 
 /*
- * Tracker class - holding information about individual detection systems: pixel tracker, strip tracker, forward tracker, etc...
- *                 information read in from an xml tree (boost property tree), important methods: build() -> build recursively
- *                 individual subdetectors
+ * Helper class: Module visitor -> get all tracker modules
  */
+class ModulesSetVisitor : public GeometryVisitor {
 
+ public:
+
+  // Typedef
+  typedef set<DetectorModule*> Modules;
+
+  // Destructor
+  virtual ~ModulesSetVisitor() {};
+
+  // Visit pattern - main method
+  void visit(DetectorModule& m) override { m_modules.insert(&m); }
+
+  // Return modules
+  Modules& modules()             { return m_modules; }
+  const Modules& modules() const { return m_modules; }
+
+  // Iterators
+  Modules::iterator begin() { return m_modules.begin(); }
+  Modules::iterator end()   { return m_modules.end(); }
+  Modules::const_iterator begin() const { return m_modules.begin(); }
+  Modules::const_iterator end()   const { return m_modules.end(); }
+
+ private:
+  Modules m_modules;
+}; // Helper class
+
+/*
+ * Helper class: Name visitor -> get names of all tracker components
+ */
+class HierarchicalNameVisitor : public GeometryVisitor {
+
+ public:
+
+  virtual ~HierarchicalNameVisitor() {}
+  void visit(Barrel& b);
+  void visit(Endcap& e);
+  void visit(Layer& l);
+  void visit(Disk& d);
+  void visit(RodPair& r);
+  void visit(Ring& r);
+  void visit(DetectorModule& m);
+  void visit(BarrelModule& m);
+  void visit(EndcapModule& m);
+
+ private:
+
+  int cntId = 0;
+  string cnt;
+  int c1, c2;
+}; // Helper class
+
+// Typedefs
+typedef PtrVector<Barrel>           Barrels;
+typedef PtrVector<Endcap>           Endcaps;
+typedef PtrVector<SupportStructure> SupportStructures;
+typedef ModulesSetVisitor::Modules  Modules;
+
+/*
+ * @class Tracker
+ * @details Tracker class holds information about individual detection systems - trackers: pixel tracker, strip tracker,
+ * forward tracker, etc... Information read in from an xml tree (boost property tree) via GeometryManager class.
+ * Important methods: build() -> build recursively individual subdetectors
+ */
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
 
-  class ModuleSetVisitor : public GeometryVisitor {
-  public:
-    typedef set<Module*> Modules;
-  private:
-    Modules modules_;
-  public:
-    void visit(Module& m) override { modules_.insert(&m); }
-    Modules& modules() { return modules_; }
-    const Modules& modules() const { return modules_; }
-    Modules::iterator begin() { return modules_.begin(); }
-    Modules::iterator end() { return modules_.end(); }
-    Modules::const_iterator begin() const { return modules_.begin(); }
-    Modules::const_iterator end() const { return modules_.end(); }
-  };
+ public:
+  
+  //! Constructor - parse geometry config file using boost property tree & read-in Barrel, Endcap & Support nodes
+  Tracker(const PropertyTree& treeProperty);
 
-public:
-  typedef PtrVector<Barrel> Barrels;
-  typedef PtrVector<Endcap> Endcaps;
-  typedef PtrVector<SupportStructure> SupportStructures;
-  typedef ModuleSetVisitor::Modules Modules;
+  //! Return tracker barrels
+  const Barrels& barrels() const { return m_barrels; }
 
-  ReadonlyProperty<double, Computable> maxR, minR;
-  ReadonlyProperty<double, Computable> maxZ;
-  ReadonlyProperty<double, Default> etaCut;
-  ReadonlyProperty<bool, Default> servicesForcedUp;
-  ReadonlyProperty<bool, Default> skipAllServices;
-  ReadonlyProperty<bool, Default> skipAllSupports;
+  //! Return tracker endcaps
+  const Endcaps& endcaps() const { return m_endcaps; }
 
-private:
-  Barrels barrels_;
-  Endcaps endcaps_;
-  SupportStructures supportStructures_;
+  //! Return tracker supports which can be updated
+  SupportStructures& supportStructures() {return m_supportStructures;}
 
-  bool pixelTypeTracker_;
-  bool stripTypeTracker_;
-  bool combinedTracker_;
-  bool fwdTypeTracker_;
+  //! Return all tracker modules
+  const Modules& modules() const { return m_modulesSetVisitor.modules(); }
 
-  ModuleSetVisitor moduleSetVisitor_;
+  //Modules& modules() { return modulesSetVisitor_.modules(); }
 
-  PropertyNode<string> barrelNode;
-  PropertyNode<string> endcapNode;
-  PropertyNodeUnique<string> supportNode;
+  //! GeometryVisitor pattern -> tracker visitable
+  void accept(GeometryVisitor& v);
 
-  MultiProperty<set<string>, ','> containsOnly;
+  //! GeometryVisitor pattern -> tracker visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
 
+  ReadonlyProperty<double, Computable> minR;        //!< Minimum radius of a tracker
+  ReadonlyProperty<double, Computable> maxR;        //!< Maximum radius of a tracker
+  ReadonlyProperty<double, Computable> maxZ;        //!< Maximum Z position of a tracker
+  ReadonlyProperty<double, Computable> minEta;      //!< Minimum tracker eta
+  ReadonlyProperty<double, Computable> maxEta;      //!< Maximum tracker eta
+  ReadonlyProperty<double, Default>    etaCut;      //!< Eta cut @ which automated building of a tracker is stopped
+  ReadonlyProperty<bool,   Default>    isPixelType; //!< Is tracker built of pixels
+  ReadonlyProperty<bool,   Default>    servicesForcedUp;
+  ReadonlyProperty<bool,   Default>    skipAllServices;
+  ReadonlyProperty<bool,   Default>    skipAllSupports;
+
+ private:
+
+  //! Copy constructor
   Tracker(const Tracker&) = default;
 
-  
-public:
-
-  Tracker(const PropertyTree& treeProperty) :
-      barrelNode("Barrel", parsedOnly()),
-      endcapNode("Endcap", parsedOnly()),
-      supportNode("Support", parsedOnly()),
-      etaCut("etaCut", parsedOnly(), 7.),
-      servicesForcedUp("servicesForcedUp", parsedOnly(), true),
-      skipAllServices("skipAllServices", parsedOnly(), false),
-      skipAllSupports("skipAllSupports", parsedOnly(), false),
-      containsOnly("containsOnly", parsedOnly()),
-      pixelTypeTracker_(false),
-      stripTypeTracker_(false),
-      combinedTracker_(false),
-      fwdTypeTracker_(false)
-  {
-    this->setup();
-    this->myid(treeProperty.data());
-    this->store(treeProperty);
-  }
-
-  // Set & get tracker type: pixel or strip
-  inline void setIsPixelType(bool pixelType) { pixelTypeTracker_ = pixelType;}
-  inline bool isPixelType() const {return pixelTypeTracker_;};
-  
-  inline void setIsStripType(bool stripType) { stripTypeTracker_ = stripType;}
-  inline bool isStripType() const {return stripTypeTracker_;};
-  
-  inline void setIsCombinedType(bool combinedType) { combinedTracker_ = combinedType;}
-  inline bool isCombinedType() const {return combinedTracker_;};
-
-  inline void setIsForwardType(bool fwdType) { fwdTypeTracker_ = fwdType;}
-  inline bool isForwardType() const {return fwdTypeTracker_;};
- 
- 
- 
-  void setup() {
-      maxR.setup([this]() { 
-        double max = 0; 
-        for (const auto& b : barrels_) max = MAX(max, b.maxR());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxR());
-        return max;
-      });
-      minR.setup([this]() {
-        double min = 999999; 
-        for (const auto& b : barrels_) min = MIN(min, b.minR());
-        for (const auto& e : endcaps_) min = MIN(min, e.minR());
-        return min;
-      });
-      maxZ.setup([this]() {
-        double max = 0;
-        for (const auto& b : barrels_) max = MAX(max, b.maxZ());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
-        return max;
-     });
-  }
-
+  //! Build recursively individual subdetector systems: Barrels, Endcaps -> private method called by constructor
   void build();
 
-  const Barrels& barrels() const { return barrels_; }
-  const Endcaps& endcaps() const { return endcaps_; }
+  //! Calculate various tracker related properties -> private method called by constructor
+  void setup();
 
-  const Modules& modules() const { return moduleSetVisitor_.modules(); }
-  Modules& modules() { return moduleSetVisitor_.modules(); }
+  Barrels           m_barrels;              //!< Barrel components of tracker
+  Endcaps           m_endcaps;              //!< Endcap components of tracker
+  SupportStructures m_supportStructures;    //!< Tracker supports
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& b : barrels_) { b.accept(v); }
-    for (auto& e : endcaps_) { e.accept(v); }
-  }
-  void accept(ConstGeometryVisitor& v) const {
-    v.visit(*this); 
-    for (const auto& b : barrels_) { b.accept(v); }
-    for (const auto& e : endcaps_) { e.accept(v); }
-  }
+  ModulesSetVisitor  m_modulesSetVisitor;   //!< Visitor pattern setting all modules assigned to the tracker
+  HierarchicalNameVisitor m_cntNameVisitor; //!< Visitor pattern getting names of all tracker components
 
-  std::pair<double, double> computeMinMaxEta() const; // pair.first = minEta, pair.second = maxEta (reversed with respect to the previous tkLayout geometry model)
+  PropertyNode<string>       m_barrelNode;  //!< Property tree nodes for barrel (included geometry config file)
+  PropertyNode<string>       m_endcapNode;  //!< Property tree nodes for endcap (included geometry config file)
+  PropertyNodeUnique<string> m_supportNode; //!< Property tree nodes for support (included geometry config file)
 
-  void createGeometry(bool) {}
-  TCanvas* getGeomLite()   { return NULL; }
-  TCanvas* getGeomLiteXY() { return NULL; }
-  TCanvas* getGeomLiteYZ() { return NULL; }
-  TCanvas* getGeomLiteEC() { return NULL; }
-  
-  SupportStructures& supportStructures() {return supportStructures_;}
-};
+  MultiProperty<set<string>, ','> m_containsOnly;
 
+}; // Class
 
-#endif
+#endif /* INCLUDE_TRACKER_H_ */

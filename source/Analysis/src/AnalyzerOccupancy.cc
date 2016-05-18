@@ -7,14 +7,18 @@
 
 #include <AnalyzerOccupancy.h>
 
+#include <global_constants.h>
+
 #include <BeamPipe.h>
 #include <BFieldMap.h>
+#include <Disk.h>
+#include <IrradiationMap.h>
+#include <Layer.h>
+#include <Ring.h>
 #include <rootweb.hh>
 #include <Tracker.h>
-#include <IrradiationMap.h>
 #include <TH2D.h>
 #include <TCanvas.h>
-#include <global_constants.h>
 #include <Units.h>
 #include <TLegend.h>
 
