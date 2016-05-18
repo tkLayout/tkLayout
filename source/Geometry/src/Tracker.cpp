@@ -1,5 +1,6 @@
 #include "Tracker.h"
 #include "global_constants.h"
+#include "global_funcs.h"
 
 #include <Barrel.h>
 #include <DetectorModule.h>
@@ -9,6 +10,9 @@
 #include <Ring.h>
 #include <RodPair.h>
 #include <SupportStructure.h>
+
+// Using namespaces
+using material::SupportStructure;
 
 //
 // Helper class: Name visitor - methods
@@ -59,14 +63,13 @@ void Tracker::build() {
     // Build barrel tracker
     for (auto& mapel : m_barrelNode) {
       if (!m_containsOnly.empty() && m_containsOnly.count(mapel.first) == 0) continue;
-      Barrel* b = GeometryFactory::make<Barrel>();
-      b->myid(mapel.first);
-      b->store(propertyTree());
-      b->store(mapel.second);
-      b->build();
-      b->cutAtEta(etaCut());
-      barrelMaxZ = MAX(b->maxZ(), barrelMaxZ);
-      m_barrels.push_back(b);
+
+      Barrel* barrel = GeometryFactory::make<Barrel>(mapel.first, mapel.second, propertyTree());
+      barrel->cutAtEta(etaCut());
+      m_barrels.push_back(barrel);
+
+      // Calculate barrel maxZ position
+      barrelMaxZ = MAX(barrel->maxZ(), barrelMaxZ);
     }
 
     // Build end-cap tracker

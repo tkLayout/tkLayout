@@ -9,7 +9,6 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "global_funcs.h"
 #include "Property.h"
 #include "Visitor.h"
 #include "Visitable.h"
@@ -21,7 +20,6 @@
 
 // Using namespaces
 using std::set;
-using material::SupportStructure;
 
 /*
  * Helper class: Module visitor -> get all tracker modules
@@ -79,16 +77,17 @@ class HierarchicalNameVisitor : public GeometryVisitor {
 }; // Helper class
 
 // Typedefs
-typedef PtrVector<Barrel>           Barrels;
-typedef PtrVector<Endcap>           Endcaps;
-typedef PtrVector<SupportStructure> SupportStructures;
-typedef ModulesSetVisitor::Modules  Modules;
+typedef PtrVector<Barrel>                     Barrels;
+typedef PtrVector<Endcap>                     Endcaps;
+typedef PtrVector<material::SupportStructure> SupportStructures;
+typedef ModulesSetVisitor::Modules            Modules;
 
 /*
  * @class Tracker
  * @details Tracker class holds information about individual detection systems - trackers: pixel tracker, strip tracker,
  * forward tracker, etc... Information read in from an xml tree (boost property tree) via GeometryManager class.
- * Important methods: build() -> build recursively individual subdetectors
+ * The whole tracker structure is built via Tracker constructor using build() method. This method builds recursively all
+ * individual subdetectors: barrels -> layers -> rods -> modules, endcaps -> disks -> rings -> modules, etc.
  */
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
 

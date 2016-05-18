@@ -7,75 +7,78 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 
-#include "global_funcs.h"
 #include "Property.h"
-#include "Layer.h"
 #include "Visitable.h"
 
+#include "Layer.h"
+
+// Forward declaration
 namespace material {
   class SupportStructure;
 }
 
+// Typedefs
+typedef PtrVector<Layer>                      Layers;
+typedef PtrVector<material::SupportStructure> BarrelSupportStructures;
+
+/*
+ * @class Barrel
+ * @details Barrel class holds information about tracker barrel system. It's building procedure is executed automatically via
+ * Tracker class. Similarly, all its components (layers -> rods -> modules) are recursively called through private build()
+ * method.
+ */
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 
- private:
-  typedef boost::ptr_vector<Layer>                      Container;
-  typedef boost::ptr_vector<material::SupportStructure> SupportStructures;
-
-  Container         layers_;
-  SupportStructures supportStructures_;
-
-  Property<double, NoDefault> innerRadius;
-  Property<double, NoDefault> outerRadius;
-  Property<bool  , Default>   sameRods;
-  Property<double, Default>   barrelRotation;
-  Property<double, Default>   supportMarginOuter;
-  Property<double, Default>   supportMarginInner;
-  Property<bool  , Default>   innerRadiusFixed;
-  Property<bool  , Default>   outerRadiusFixed;
-  
-  PropertyNode<int>               layerNode;
-  PropertyNodeUnique<std::string> supportNode;
-
  public:
-  Barrel() : 
-      numLayers(         "numLayers"         , parsedAndChecked()),
-      innerRadius(       "innerRadius"       , parsedAndChecked()),
-      outerRadius(       "outerRadius"       , parsedAndChecked()),
-      innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
-      outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
-      sameRods(          "sameRods"          , parsedAndChecked(), false),
-      barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
-      supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
-      supportMarginInner("supportMarginInner", parsedOnly(), 2.),
-      skipServices(      "skipServices"      , parsedOnly(), false), // broken, do not use
-      layerNode(         "Layer"             , parsedOnly()),
-      supportNode(       "Support"           , parsedOnly())
-      {}
-  void setup() {
-    maxZ.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxZ()); } return max; });
-    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
-    maxR.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
-    minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
-  }
-  void build(); 
+  
+  //! Constructor - parse geometry config file using boost property tree & read-in Layer, Support nodes
+  Barrel(const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty);
+
+  //! Limit barrel geometry by eta cut
   void cutAtEta(double eta);
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& l : layers_) { l.accept(v); }
-  }
-  void accept(ConstGeometryVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& l : layers_) { l.accept(v); }
-  }
 
-  const Container& layers() const        { return layers_; }
-  SupportStructures& supportStructures() { return supportStructures_; }
+  //! Return barrel layers
+  const Layers& layers() const { return m_layers; }
 
-  Property<        int   , NoDefault>  numLayers;
-  ReadonlyProperty<double, Computable> maxZ, minZ;
-  ReadonlyProperty<double, Computable> maxR, minR;
-  ReadonlyProperty<bool  , Default>    skipServices;
-};
+  //! Return barrel supports which can be updated
+  BarrelSupportStructures& supportStructures() { return m_supportStructures; }
+
+  //! GeometryVisitor pattern -> barrel visitable
+  void accept(GeometryVisitor& v);
+
+  //! GeometryVisitor pattern -> tracker visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
+
+  Property<        int   , NoDefault>  numLayers;   //!< Number of layers in a barrel
+  ReadonlyProperty<double, Computable> minZ;        //!< Minimum Z position of a barrel
+  ReadonlyProperty<double, Computable> maxZ;        //!< Maximum Z position of a barrel
+  ReadonlyProperty<double, Computable> minR;        //!< Minimum radius of a barrel
+  ReadonlyProperty<double, Computable> maxR;        //!< Maximum radius of a barrel
+  ReadonlyProperty<bool  , Default>    skipServices;// TODO: Comment
+
+ private:
+
+  //! Build recursively individual subdetector systems: Layers -> rods -> modules -> private method called by constructor
+  void build();
+
+  //! Calculate various barrel related properties -> private method called by constructor
+  void setup();
+
+  Layers                  m_layers;
+  BarrelSupportStructures m_supportStructures;
+
+  Property<double, NoDefault> m_innerRadius;        //!< Starting barrel inner radius (algorithm may optimize its value)
+  Property<double, NoDefault> m_outerRadius;        //!< Starting barrel outer radius (algorithm may optimize its value)
+  Property<bool  , Default>   m_sameRods;           //!< Use the same rods (ladders) in all barrel layers? Implicitly being false.
+  Property<double, Default>   m_barrelRotation;     //!< Start rod (ladder) positioning in R-Phi at Phi=barrelRotation [rad]
+  Property<double, Default>   m_supportMarginOuter; // TODO: Comment
+  Property<double, Default>   m_supportMarginInner; // TODO: Comment
+  Property<bool  , Default>   m_innerRadiusFixed;   //!< Is inner radius fixed or floating -> internal algorithm finds optimal radius
+  Property<bool  , Default>   m_outerRadiusFixed;   //!< Is outer radius fixed or floating -> internal algorithm finds optimal radius
+
+  PropertyNode<int>               m_layerNode;      //!< Property tree nodes for layers (included geometry config file)
+  PropertyNodeUnique<std::string> m_supportNode;    //!< Property tree nodes for barrel supports (included geometry config file)
+
+}; // Class
 
 #endif
