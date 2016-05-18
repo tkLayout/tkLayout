@@ -20,6 +20,7 @@ class SimParms;
 
 class GeometryVisitor { 
 public:
+  virtual ~GeometryVisitor() {}
   virtual void visit(BeamPipe&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
@@ -39,7 +40,7 @@ public:
 
 class ConstGeometryVisitor {
 public:
-  //virtual ~ConstGeometryVisitor = 0;
+  virtual ~ConstGeometryVisitor() {}
   virtual void visit(const BeamPipe&) {}
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}

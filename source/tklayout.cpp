@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
 
   //
   // Analyze tracker - create analysis manager
-  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getTrackerSupports(), gManager.getBeamPipe());
+  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getBeamPipe());
 
   // Call individual analyzer units
   bool isAnalysisOK      = false;

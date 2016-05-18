@@ -43,11 +43,9 @@ class AnalysisManager {
   //! Constructor - create instances of all available analyzer units & prepare web container
   //! @param[in] activeTrackers  List of all active sub-trackers
   //! @param[in] passiveTrackers List of passives related to active sub-trackers
-  //! @param[in] supports        List of independent support structures not directly related to active sub-trackers
   //! @param[in] beamPipe        Passive surface (tube) simulating beam pipe
   AnalysisManager(std::vector<const Tracker*> activeTrackers,
                   std::vector<const insur::InactiveSurfaces*> passiveTrackers,
-                  std::vector<const Support*> supports,
                   const BeamPipe* beamPipe);
 
   //! Destructor -

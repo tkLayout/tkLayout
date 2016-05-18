@@ -19,7 +19,6 @@ class Tracker;
 namespace insur {
   class InactiveSurfaces;
 }
-class Support;
 
 /*
  * @class GeometryManager
@@ -47,12 +46,6 @@ class GeometryManager {
   //! @return True if there were no errors during processing, false otherwise
   bool buildActiveTracker();
 
-  //! Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as passive
-  //! components of active sub-tracker). This procedure replaces the previously registered support (applying correct memory managment), if such an object
-  //! existed.
-  //! @return True if there were no errors during processing, false otherwise
-  bool buildTrackerSupport();
-
   //! Build all passive components related to individual active sub-trackers. This procedure replaces the previously registered support (applying correct
   //! memory managment), if such an object existed.
   //! @return True if there were no errors during processing, false otherwise
@@ -65,10 +58,6 @@ class GeometryManager {
   //! Get active sub-trackers
   //! @return vector of pointers to active trackers
   std::vector<const Tracker*> getActiveTrackers() const;
-
-  //! Get tracker supports, which are independent on individual sub-trackers
-  //! @return vector of pointers to supports
-  std::vector<const Support*> getTrackerSupports() const;
 
   //! Get passive components related to active sub-trackers
   //! @return vector of pointers to passive parts of trackers
@@ -114,7 +103,6 @@ class GeometryManager {
   std::set<std::string>          m_includeSet;     //!< List of all configuration files obtained from the base geometry file using @include command
 
   std::vector<Tracker*>                 m_activeTrackers; //!< Vector of active sub-trackers
-  std::vector<Support*>                 m_supports;       //!< Vector of independent support structures not directly related to active sub-trackers
   std::vector<insur::InactiveSurfaces*> m_passiveTrackers;//!< Vector of passive sub-trackers
   BeamPipe*                             m_beamPipe;       //!< Passive surface (tube) simulating beam pipe
 

@@ -14,7 +14,6 @@
 // Other include files
 #include <BeamPipe.h>
 #include <InactiveSurfaces.h>
-#include <Support.h>
 #include <Tracker.h>
 #include <TH2D.h>
 #include <TProfile.h>
@@ -29,7 +28,6 @@
 //
 AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
                                  std::vector<const insur::InactiveSurfaces*> passiveTrackers,
-                                 std::vector<const Support*> supports,
                                  const BeamPipe* beamPipe) :
  m_webSite(nullptr),
  m_webSitePrepared(false)

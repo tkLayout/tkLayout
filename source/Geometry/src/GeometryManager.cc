@@ -19,7 +19,6 @@
 #include <MessageLogger.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <Support.h>
 #include <Tracker.h>
 
 //
@@ -73,12 +72,6 @@ GeometryManager::~GeometryManager()
   for (auto iTracker : m_activeTrackers) {
 
     if (iTracker==nullptr) delete iTracker;
-  }
-
-  // Standalone support
-  for (auto iSupport : m_supports) {
-
-    if (iSupport==nullptr) delete iSupport;
   }
 
   // Passive components related to active sub-trackers
@@ -145,54 +138,6 @@ bool GeometryManager::buildActiveTracker()
     return false;
   }
 
-  stopTaskClock();
-  return true;
-}
-
-//
-// Build tracker support structures, which are independent on individual sub-trackers (the supports directly related to sub-trackers are built as passive
-// components of active sub-tracker). This procedure replaces the previously registered support (applying correct memory managment), if such an object
-// existed.
-//
-bool GeometryManager::buildTrackerSupport()
-{
-  // Check that GeometryManager properly initialized
-  if (!m_initOK) {
-
-    logERROR(any2str("\nERROR: GeometryManager::buildTrackerSupport() -> Can't built tracker supports if GeometryManager not properly initialized in constructor"));
-    return false;
-  }
-
-  // Clear out content of supports container
-  for (auto iSupport : m_supports) {
-
-    if (iSupport!=nullptr) delete iSupport;
-  }
-  m_supports.clear();
-
-  // Build tracker support -> look for tag "Support"
-  startTaskClock("Building tracker support");
-  try {
-
-    // Look for tag "Support" not associated with a concrete Tracker and build supports
-    auto childRange = getChildRange(*m_geomTree, "Support");
-    std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
-
-      Support* support = new Support();
-      support->myid(kv.second.get_value(0));
-      support->store(kv.second);
-      support->build();
-      m_supports.push_back(support);
-
-    }); // Supports
-
-  }// Try
-  catch (PathfulException& e) {
-
-    logERROR(e.path()+ " : " +e.what());
-    stopTaskClock();
-    return false;
-  }
   stopTaskClock();
   return true;
 }
@@ -301,22 +246,6 @@ std::vector<const Tracker*> GeometryManager::getActiveTrackers() const
   }
 
   return activeTrackers;
-}
-
-//
-// Get tracker supports, which are independent on individual sub-trackers
-//
-std::vector<const Support*> GeometryManager::getTrackerSupports() const
-{
-  std::vector<const Support*> trackerSupports;
-
-  for (auto iSupport : m_supports) {
-
-    const Support* support = iSupport;
-    trackerSupports.push_back(support);
-  }
-
-  return trackerSupports;
 }
 
 //
