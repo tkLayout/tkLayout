@@ -21,7 +21,7 @@
 using namespace insur;
 
 AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) :
- AnalyzerModule("AnalyzerOccupancy", trackers, beamPipe)
+ AnalyzerUnit("AnalyzerOccupancy", trackers, beamPipe)
 {
   // Set geometry, i.e. individual trackers
   //for (auto it : trackers) m_trackers.push_back(it);

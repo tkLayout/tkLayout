@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-class AnalyzerModule;
+class AnalyzerUnit;
 class BeamPipe;
 class RootWSite;
 namespace insur {
@@ -27,20 +27,20 @@ class Tracker;
  * @brief The core analysis class, processing all analyzers to be used.
  * @details The core analysis class, processing all analyzers to be used. Each analyzer is identified by its unique
  * name and is called through initModule, analyzeModule & visualizeModule methods. Init method initializes parameters,
- * histograms etc. of given module, analyze method performs the analysis and visualization outputs the results
- * to html format. All html web pages created by different modules are collected in html format in a common web
+ * histograms etc. of given module (unit), analyze method performs the analysis and visualization outputs the results
+ * to html format. All html web pages created by different modules (units) are collected in html format in a common web
  * container (main html page) and printed-out using makeWebSite() method. There are two other html methods called
  * by makeWebSite(). One to print out the log info: makeWebLogPage(). The other to collect and print out information
- * obtained by different modules: makeWebInfoPage(). A user is responsible to implement/change implementation of the
- * latter method only if extra info web page is required. Finally, once a new AnalyzerModule (derived from pure
- * virtual AnalyzerModule class) is created, user is responsible for updating the Manager constructor and creating
- * an instance of the module in there.
+ * obtained by different modules (units): makeWebInfoPage(). A user is responsible to implement/change implementation of the
+ * latter method only if extra info web page is required. Finally, once a new AnalyzerUnit (derived from pure
+ * virtual AnalyzerUnit class) is created, user is responsible for updating the Manager constructor and creating
+ * an instance of the module (unit) in there.
  */
 class AnalysisManager {
 
  public:
 
-  //! Constructor - create instances of all available analyzer modules & prepare web container
+  //! Constructor - create instances of all available analyzer units & prepare web container
   //! @param[in] activeTrackers  List of all active sub-trackers
   //! @param[in] passiveTrackers List of passives related to active sub-trackers
   //! @param[in] supports        List of independent support structures not directly related to active sub-trackers
@@ -53,23 +53,23 @@ class AnalysisManager {
   //! Destructor -
   ~AnalysisManager();
 
-  //! Initialize required analyzer module
+  //! Initialize required analyzer unit
   //! @param[in] nTracks Number of tracks to be simulated (if needed by module)
-  //! @param[in] analyzerName Name of the module to be used
+  //! @param[in] analyzerName Name of the unit to be used
   //! @return True if there were no errors during processing, false otherwise
-  bool initModule(int nTracks, std::string analyzerName);
+  bool initUnit(int nTracks, std::string analyzerName);
 
-  //! Analyze required analyzer module
-  //! @param[in] analyzerName Name of the module to be used
+  //! Analyze required analyzer unit
+  //! @param[in] analyzerName Name of the unit to be used
   //! @return True if there were no errors during processing, false otherwise
-  bool analyzeModule(std::string analyzerName);
+  bool analyzeUnit(std::string analyzerName);
 
-  //! Visualize required analyzer module
-  //! @param[in] analyzerName Name of the module to be used
+  //! Visualize required analyzer unit
+  //! @param[in] analyzerName Name of the unit to be used
   //! @return True if there were no errors during processing, false otherwise
-  bool visualizeModule(std::string analyzerName);
+  bool visualizeUnit(std::string analyzerName);
 
-  //! Make web site - publish all results in a html format using the results of visualize method of all used modules
+  //! Make web site - publish all results in a html format using the results of visualize method of all used units
   //! @param[in] addInfoPage Print out the info page?
   //! @param[in] addLogPage  Print out the log page?
   //! @return True if there were no errors during processing, false otherwise
@@ -94,7 +94,7 @@ class AnalysisManager {
   RootWSite*  m_webSite;         //!< Web container, where all analysis results will be available
   bool        m_webSitePrepared; //!< Web container correctly prepared
 
-  std::map<std::string, AnalyzerModule*> m_modules; //!< List of all available analyzer modules
+  std::map<std::string, AnalyzerUnit*> m_units; //!< List of all available analyzer units
 
 }; // Class
 

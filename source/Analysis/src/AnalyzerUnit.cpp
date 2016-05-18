@@ -1,16 +1,16 @@
 /*
- * AnalyzerModule.cpp
+ * AnalyzerUnit.cpp
  *
  *  Created on: 27. 11. 2015
  *      Author: drasal
  */
 
-#include "AnalyzerModule.h"
+#include "../include/AnalyzerUnit.h"
 
 //
 // Constructor - set active trackers only
 //
-AnalyzerModule::AnalyzerModule(std::string name, std::vector<const Tracker*> trackers)
+AnalyzerUnit::AnalyzerUnit(std::string name, std::vector<const Tracker*> trackers)
 {
   // Initialization by default false
   m_isInitOK = false;
@@ -31,7 +31,7 @@ AnalyzerModule::AnalyzerModule(std::string name, std::vector<const Tracker*> tra
 //
 // Constructor - set active trackers & beam pipe to be analyzed
 //
-AnalyzerModule::AnalyzerModule(std::string name, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe)
+AnalyzerUnit::AnalyzerUnit(std::string name, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe)
 {
   // Initialization by default false
   m_isInitOK = false;
@@ -49,5 +49,8 @@ AnalyzerModule::AnalyzerModule(std::string name, std::vector<const Tracker*> tra
   m_beamPipe = beamPipe;
 }
 
-AnalyzerModule::~AnalyzerModule() {}
+//
+// Destructor
+//
+AnalyzerUnit::~AnalyzerUnit() {}
 

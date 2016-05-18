@@ -6,10 +6,12 @@
  */
 #include <AnalysisManager.h>
 
-// List of modules
-#include <AnalyzerModule.h>
+// List of units
+#include <AnalyzerUnit.h>
 #include <AnalyzerGeometry.h>
 #include <AnalyzerResolution.h>
+
+// Other include files
 #include <BeamPipe.h>
 #include <InactiveSurfaces.h>
 #include <Support.h>
@@ -23,7 +25,7 @@
 #include <rootweb.hh>
 
 //
-// Constructor - create instances of all available analyzer modules & prepare web container
+// Constructor - create instances of all available analyzer units & prepare web container
 //
 AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
                                  std::vector<const insur::InactiveSurfaces*> passiveTrackers,
@@ -33,8 +35,8 @@ AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
  m_webSitePrepared(false)
 {
   // Create AnalyzerGeometry
-  AnalyzerGeometry* module = new AnalyzerGeometry(activeTrackers, beamPipe);
-  m_modules[module->getName()] = module;
+  AnalyzerGeometry* unit = new AnalyzerGeometry(activeTrackers, beamPipe);
+  m_units[unit->getName()] = unit;
 
   // Prepare Web site
   auto simParms = SimParms::getInstance();
@@ -46,65 +48,65 @@ AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
 //
 AnalysisManager::~AnalysisManager()
 {
-  for (auto iModule : m_modules) {
+  for (auto iModule : m_units) {
 
-    if (iModule.second==nullptr) delete m_modules[iModule.first];
+    if (iModule.second==nullptr) delete m_units[iModule.first];
   }
 }
 
 //
-// Initialize required analyzer module
+// Initialize required analyzer unit
 //
-bool AnalysisManager::initModule(int nTracks, std::string analyzerName)
+bool AnalysisManager::initUnit(int nTracks, std::string analyzerName)
 {
-  if (m_modules.find(analyzerName)!=m_modules.end()) {
+  if (m_units.find(analyzerName)!=m_units.end()) {
 
-    logINFO("Initializing " + analyzerName + " module");
-    return m_modules[analyzerName]->init(nTracks);
+    logINFO("Initializing " + analyzerName + " unit");
+    return m_units[analyzerName]->init(nTracks);
   }
   else {
 
-    logERROR("AnalysisManager::initModule: Module ("+analyzerName+") failed, no such module.");
+    logERROR("AnalysisManager::initModule: Module ("+analyzerName+") failed, no such unit.");
     return false;
   }
 }
 
 //
-// Analyze required analyzer module
+// Analyze required analyzer unit
 //
-bool AnalysisManager::analyzeModule(std::string analyzerName)
+bool AnalysisManager::analyzeUnit(std::string analyzerName)
 {
-  if (m_modules.find(analyzerName)!=m_modules.end()) {
+  if (m_units.find(analyzerName)!=m_units.end()) {
 
-    logINFO("Analyzing tracker by " + analyzerName + " module");
-    return m_modules[analyzerName]->analyze();
+    logINFO("Analyzing tracker by " + analyzerName + " unit");
+    return m_units[analyzerName]->analyze();
   }
   else {
 
-    logERROR("AnalysisManager::analyzerModule: Module ("+analyzerName+") failed, no such module.");
+    logERROR("AnalysisManager::analyzerModule: Module ("+analyzerName+") failed, no such unit.");
     return false;
   }
 }
 
 //
-// Visualize required analyzer module
+// Visualize required analyzer unit
 //
-bool AnalysisManager::visualizeModule(std::string analyzerName)
+bool AnalysisManager::visualizeUnit(std::string analyzerName)
 {
-  if (m_modules.find(analyzerName)!=m_modules.end()) {
+  if (m_units.find(analyzerName)!=m_units.end()) {
 
-    logINFO("Visualizing output from " + analyzerName + " module");
-    return m_modules[analyzerName]->visualize(*m_webSite);
+    logINFO("Visualizing output from " + analyzerName + " unit");
+    return m_units[analyzerName]->visualize(*m_webSite);
   }
   else {
 
-    logERROR("AnalysisManager::visualizeModule: Module ("+analyzerName+") failed, no such module.");
+    logERROR("AnalysisManager::visualizeModule: Module ("+analyzerName+") failed, no such unit.");
     return false;
   }
 }
 
 //
-// Make web site - publish all results in a html format using the results of visualize method of all used modules
+// Make web site - publish all results in a html format using the results of visualize method of all used units
 //
 bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
 
@@ -179,18 +181,18 @@ bool AnalysisManager::makeWebInfoPage()
   myContent->addItem(myInfo);
 
   // Summary of used geometry & simulation tracks
-  if (m_modules.find("AnalyzerGeometry")!=m_modules.end()) {
+  if (m_units.find("AnalyzerGeometry")!=m_units.end()) {
 
-    AnalyzerGeometry* module = dynamic_cast<AnalyzerGeometry*>(m_modules["AnalyzerGeometry"]);
+    AnalyzerGeometry* unit = dynamic_cast<AnalyzerGeometry*>(m_units["AnalyzerGeometry"]);
     myInfo = new RootWInfo("Number of tracks - geometry studies: ");
-    myInfo->setValue(module->getNGeomTracks());
+    myInfo->setValue(unit->getNGeomTracks());
     myContent->addItem(myInfo);
   }
-  if (m_modules.find("AnalyzerResolution")!=m_modules.end()) {
+  if (m_units.find("AnalyzerResolution")!=m_units.end()) {
 
-    AnalyzerResolution* module = dynamic_cast<AnalyzerResolution*>(m_modules["AnalyzerResolution"]);
+    AnalyzerResolution* unit = dynamic_cast<AnalyzerResolution*>(m_units["AnalyzerResolution"]);
     myInfo = new RootWInfo("Number of tracks - resolution studies: ");
-    myInfo->setValue(module->getNSimTracks());
+    myInfo->setValue(unit->getNSimTracks());
     myContent->addItem(myInfo);
   }
 

@@ -36,7 +36,7 @@ using namespace insur;
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerModule("AnalyzerGeometry", trackers, beamPipe),
+AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerGeometry", trackers, beamPipe),
  m_nTracks(0),
  m_layerNamesVisitor(trackers),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),

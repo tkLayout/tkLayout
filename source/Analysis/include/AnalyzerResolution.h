@@ -11,14 +11,14 @@
 #include <string>
 #include <vector>
 
-#include "AnalyzerModule.h"
+#include <AnalyzerUnit.h>
 
 class Tracker;
 
 /*
  * @class AnalyzerResolution
  */
-class AnalyzerResolution : public AnalyzerModule {
+class AnalyzerResolution : public AnalyzerUnit {
 
  public:
 
@@ -26,7 +26,7 @@ class AnalyzerResolution : public AnalyzerModule {
   AnalyzerResolution(std::vector<const Tracker*> trackers);
 
   //! Destructor
-  ~AnalyzerResolution() {};
+  virtual ~AnalyzerResolution() {};
 
   //! Initialize - mostly histograms & other containers
   //! @return True if OK

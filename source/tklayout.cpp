@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
   // Analyze tracker - create analysis manager
   AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getTrackerSupports(), gManager.getBeamPipe());
 
-  // Call individual analyzer modules
+  // Call individual analyzer units
   bool isAnalysisOK      = false;
   bool isVisualizationOK = false;
   if (activeTrackerOK) {
@@ -146,9 +146,9 @@ int main(int argc, char* argv[]) {
     if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
 
       startTaskClock("Analyzing tracker geometry");
-      aManager.initModule(geomTracks, "AnalyzerGeometry");
-      isAnalysisOK      = aManager.analyzeModule("AnalyzerGeometry");
-      isVisualizationOK = aManager.visualizeModule("AnalyzerGeometry");
+      aManager.initUnit(geomTracks, "AnalyzerGeometry");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerGeometry");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerGeometry");
       stopTaskClock();
       if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerGeometry -> analysis failed!"      << std::endl;
       if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerGeometry -> visualization failed!" << std::endl;
@@ -158,9 +158,9 @@ int main(int argc, char* argv[]) {
     if (progOptions.count("all") || progOptions.count("material")) {
 
       startTaskClock("Analyzing material budget");
-      aManager.initModule(matTracks, "AnalyzerMatBudget");
-      isAnalysisOK      = aManager.analyzeModule("AnalyzerMatBudget");
-      isVisualizationOK = aManager.visualizeModule("AnalyzerMatBudget");
+      aManager.initUnit(matTracks, "AnalyzerMatBudget");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerMatBudget");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerMatBudget");
       stopTaskClock();
       if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerMatBudget -> analysis failed!"      << std::endl;
       if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerMatBudget -> visualization failed!" << std::endl;
@@ -170,9 +170,9 @@ int main(int argc, char* argv[]) {
     if (progOptions.count("all") || progOptions.count("resolution")) {
 
       startTaskClock("Analyzing resolution");
-      aManager.initModule(matTracks, "AnalyzerResolution");
-      isAnalysisOK      = aManager.analyzeModule("AnalyzerResolution");
-      isVisualizationOK = aManager.visualizeModule("AnalyzerResolution");
+      aManager.initUnit(matTracks, "AnalyzerResolution");
+      isAnalysisOK      = aManager.analyzeUnit("AnalyzerResolution");
+      isVisualizationOK = aManager.visualizeUnit("AnalyzerResolution");
       stopTaskClock();
       if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerResolution -> analysis failed!"      << std::endl;
       if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerResolution -> visualization failed!" << std::endl;

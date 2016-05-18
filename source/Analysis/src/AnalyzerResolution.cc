@@ -10,7 +10,7 @@
 #include <Tracker.h>
 
 
-AnalyzerResolution::AnalyzerResolution(std::vector<const Tracker*> trackers) : AnalyzerModule("AnalyzerResolution", trackers),
+AnalyzerResolution::AnalyzerResolution(std::vector<const Tracker*> trackers) : AnalyzerUnit("AnalyzerResolution", trackers),
  m_nTracks(0)
 {};
 

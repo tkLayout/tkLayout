@@ -8,14 +8,14 @@
 #ifndef INCLUDE_ANALYZERGEOMETRY_H_
 #define INCLUDE_ANALYZERGEOMETRY_H_
 
-#include <AnalyzerModule.h>
-#include <Visitor.h>
-
 // System libraries
 #include <string>
 #include <vector>
 #include <map>
 #include <set>
+
+#include <Visitor.h>
+#include <AnalyzerUnit.h>
 
 // Forward declaration
 class Barrel;
@@ -63,7 +63,7 @@ class LayerNameVisitor : public ConstGeometryVisitor {
  * Analyze geometry layout, vizualize data and print them out in a html formatted output.
  * Unique name defined as "AnalyzerGeometry".
  */
-class AnalyzerGeometry : public AnalyzerModule {
+class AnalyzerGeometry : public AnalyzerUnit {
 
  public:
 
@@ -71,7 +71,7 @@ class AnalyzerGeometry : public AnalyzerModule {
   AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
 
   //! Destructor
-  ~AnalyzerGeometry() {};
+  virtual ~AnalyzerGeometry() {};
 
   //! Initialize - mostly histograms & other containers
   //! @return True if OK
