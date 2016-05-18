@@ -1217,6 +1217,13 @@ namespace material {
         innerRadius = undiscretize(section->minR());
         rWidth = undiscretize(section->maxR() - section->minR());
 
+	if (zOffset > 295. & zOffset < 500. && innerRadius > 150. && innerRadius < 220.) {
+	  std::cout << "MATERIAL BUILDING" << std::endl;
+	  std::cout << "zOffset = " << zOffset << std::endl;
+	  std::cout << "zLength = " << zLength << std::endl;
+	  std::cout << "innerRadius = " << innerRadius << std::endl;
+	  std::cout << "rWidth = " << rWidth << std::endl;
+	}
         if (section->bearing() == HORIZONTAL) {
           InactiveTube* tube = new InactiveTube;
           tube->setZLength(zLength);

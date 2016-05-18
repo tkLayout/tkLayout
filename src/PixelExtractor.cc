@@ -534,18 +534,18 @@ namespace insur {
         if (bs.getLocalMasses().size() ) {
 
 
-	  std::cout << shapename.str() << std::endl;
+	  
 	  std::cout << bs.getCategory() << std::endl;
+	  std::cout << "Service name = " << shapename.str() << std::endl;
+	  std::cout << "ZOffset =" << bs.getZOffset() << " service Length = " <<  bs.getZLength() << std::endl;      
+	  std::cout << "rMin =" << bs.getInnerRadius() << " service Width = " <<  bs.getRWidth() << std::endl;      
 
 	  comp.name =  xml_phaseII_Pixelnamespace + matname.str();;
 	  comp.density = compositeDensity(bs);
 	  analyseCompositeElements( comp.name, comp.density,bs, false);
 
 
-	  double startEndcaps = 301.;
-     
-	  std::cout << "Service name = " << shapename.str() << std::endl;
-	  std::cout << "ZOffset =" << bs.getZOffset() << " service Length = " <<  bs.getZLength() << std::endl;           
+	  double startEndcaps = 300.;     
           
 	  // BARREL services
 	  if ((bs.getZOffset() +  bs.getZLength() / 2.0) < startEndcaps ) {
