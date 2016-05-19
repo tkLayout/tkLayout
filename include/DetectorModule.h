@@ -311,13 +311,13 @@ public:
 
 
 
-
-    double expandedModWidth = area()/length() + 2*serviceHybridWidth();
+    double width = area() / length();
+    double expandedModWidth = width + 2*serviceHybridWidth();
     double expandedModLength = length() + 2*frontEndHybridWidth();
     double expandedModThickness = dsDistance() + 2*(supportPlateThickness()+sensorThickness());
+    //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
 
-
-    // 
+    
     vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
     vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
     vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
@@ -332,18 +332,18 @@ public:
     // new vertexes after expansion due to hybrid volumes
     const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
     XYZVector v[npoints-1];
-    v[0] = center() - (expandedModWidth/ (area()/length()) )*mx - (expandedModLength/length())*my;
-    v[1] = center() - (expandedModWidth/ (area()/length()) )*mx + (expandedModLength/length())*my;
-    v[2] = center() + (expandedModWidth/ (area()/length()) )*mx + (expandedModLength/length())*my;
-    v[3] = center() + (expandedModWidth/ (area()/length()) )*mx - (expandedModLength/length())*my;
+    v[0] = center() - (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+    v[1] = center() - (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[2] = center() + (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[3] = center() + (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
 
     // Calculate all vertex candidates (8 points)
     XYZVector v_top[npoints];    // module's top surface
     XYZVector v_bottom[npoints]; // module's bottom surface
 
     for (int ip = 0; ip < npoints-1; ip++) {
-      v_top[ip]    = v[ip] + 0.5*expandedModThickness*normal();
-      v_bottom[ip] = v[ip] - 0.5*expandedModThickness*normal();
+      v_top[ip]    = v[ip] + 0.5*expandedModThickness * normal();
+      v_bottom[ip] = v[ip] - 0.5*expandedModThickness * normal();
 
       // for debuging
       vertex.push_back(v_top[ip]);

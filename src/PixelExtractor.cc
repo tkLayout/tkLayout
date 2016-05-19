@@ -799,7 +799,7 @@ namespace insur {
           << xml_phaseII_Pixelnamespace <<  disc_shape.name_tag << "/"
           << xml_phaseII_Pixelnamespace <<  ring_shape.name_tag << "/";
         std::stringstream mboxname;
-        mboxname << xml_emodbox << ri +1  << "Disc" << i+1;
+        mboxname << xml_emodbox << ri +1  << "Disc" << disc_shape.name_tag;
         ring_spec.partselectors.push_back(xml_phaseII_Pixelnamespace + mboxname.str());
         getPixelEndcapModuleInfo( emodules.at(0) ,ri+1, i+1,ring_shape.name_tag, ring_shape.dz, 0.,ecapRmatpathCommon.str());
 
