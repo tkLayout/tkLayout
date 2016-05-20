@@ -88,6 +88,205 @@ void DetectorModule::setup() {
 
 
 
+
+
+std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
+
+    std::map<std::string, double> extrema;
+
+    //  Top View
+    //  ------------------------------
+    //  |            L(5)            |  
+    //  |----------------------------|     y
+    //  |     |                |     |     ^
+    //  |B(4) |     Between    | F(3)|     |
+    //  |     |       (7)      |     |     +----> x
+    //  |----------------------------|
+    //  |            R(6)            |     
+    //  ------------------------------     
+    //                                            z
+    //  Side View                                 ^
+    //         ---------------- OuterSensor(2)    |
+    //  ====== ================ ====== Hybrids    +----> x
+    //         ---------------- InnerSensor(1)
+    //  ============================== 
+    //          SupportPlate(8)                      
+    //
+    //  R(6) and L(5) are Front-End Hybrids
+    //  B(4) and F(3) are Service Hybdrids
+    //
+    //
+
+    // =========================================================================================================
+    // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
+    // =========================================================================================================
+    //
+    // Module polygon
+    //   top view
+    //   v1                v2
+    //    *---------------*
+    //    |       ^ my    |
+    //    |       |   mx  |
+    //    |       *------>|
+    //    |     center    |
+    //    |               |
+    //    *---------------*
+    //   v0                v3
+    //  (v4)
+    //
+    //   side view
+    //    ----------------- top
+    //    ----------------- bottom
+
+
+    double         rmin;
+    double         rmax;
+    double         xmin;
+    double         xmax;
+    double         ymin;
+    double         ymax;
+    double         zmin;
+    double         zmax;
+    double         rminatzmin;
+    double         rmaxatzmax;
+    std::vector<XYZVector> vertex; 
+
+
+
+
+
+    double width = area() / length();
+    double expandedModWidth = width + 2*serviceHybridWidth();
+    double expandedModLength = length() + 2*frontEndHybridWidth();
+    double expandedModThickness = dsDistance() + 2*(supportPlateThickness()+sensorThickness());
+    //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
+
+    
+    vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
+    vector<double> yv; // y list (in global frame of reference) from which we will find min/max.
+    vector<double> zv; // z (in global frame of reference) list from which we will find min/max.
+    vector<double> rv; // radius list (in global frame of reference) from which we will find min/max.
+    vector<double> ratzminv; // radius list (in global frame of reference) at zmin from which we will find min/max.
+    vector<double> ratzmaxv; // radius list (in global frame of reference) at zmax from which we will find min/max.
+
+    // mx: (v2+v3)/2 - center(), my: (v1+v2)/2 - center()
+    XYZVector mx = 0.5*( basePoly().getVertex(2) + basePoly().getVertex(3) ) - center() ;
+    XYZVector my = 0.5*( basePoly().getVertex(1) + basePoly().getVertex(2) ) - center() ;
+
+    // new vertexes after expansion due to hybrid volumes
+    const int npoints = 5; // v0,v1,v2,v3,v4(=v0)
+    XYZVector v[npoints-1];
+    v[0] = center() - (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+    v[1] = center() - (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[2] = center() + (expandedModWidth / width ) * mx + (expandedModLength / length()) * my;
+    v[3] = center() + (expandedModWidth / width ) * mx - (expandedModLength / length()) * my;
+
+    // Calculate all vertex candidates (8 points)
+    XYZVector v_top[npoints];    // module's top surface
+    XYZVector v_bottom[npoints]; // module's bottom surface
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_top[ip]    = v[ip] + 0.5*expandedModThickness * normal();
+      v_bottom[ip] = v[ip] - 0.5*expandedModThickness * normal();
+
+      // for debuging
+      vertex.push_back(v_top[ip]);
+      vertex.push_back(v_bottom[ip]);
+
+      // Calculate xmin, xmax, ymin, ymax, zmin, zmax
+      xv.push_back(v_top[ip].X());
+      xv.push_back(v_bottom[ip].X());
+      yv.push_back(v_top[ip].Y());
+      yv.push_back(v_bottom[ip].Y());
+      zv.push_back(v_top[ip].Z());
+      zv.push_back(v_bottom[ip].Z());
+    }
+    // Find min and max
+    xmin = *std::min_element(xv.begin(), xv.end());
+    xmax = *std::max_element(xv.begin(), xv.end());
+    ymin = *std::min_element(yv.begin(), yv.end());
+    ymax = *std::max_element(yv.begin(), yv.end());
+    zmin = *std::min_element(zv.begin(), zv.end());
+    zmax = *std::max_element(zv.begin(), zv.end());
+
+
+    // Calculate module's mid-points (8 points)
+    XYZVector v_mid_top[npoints]; // module's top surface mid-points
+    XYZVector v_mid_bottom[npoints]; // module's bottom surface mid-points
+
+    v_top[npoints-1] = v_top[0]; // copy v0 as v4 for convenience
+    v_bottom[npoints-1] = v_bottom[0]; // copy v0 as v4 for convenience
+
+    for (int ip = 0; ip < npoints-1; ip++) {
+      v_mid_top[ip] = (v_top[ip] + v_top[ip+1]) / 2.0;
+      v_mid_bottom[ip] = (v_bottom[ip] + v_bottom[ip+1]) / 2.0;
+    }
+
+    // Calculate rmin, rmax, rminatzmin, rmaxatzmax...
+    for (int ip = 0; ip < npoints-1; ip++) {
+
+      // module's bottom surface
+      if (fabs(v_bottom[ip].Z() - zmin) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_bottom[ip].R());
+      }
+      if (fabs(v_bottom[ip].Z() - zmax) < 0.001) {
+	v_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_bottom[ip].R());
+      }
+      v_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_bottom[ip].R());
+
+      // module's top surface
+      if (fabs(v_top[ip].Z() - zmin) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_top[ip].R());
+      }
+      if (fabs(v_top[ip].Z() - zmax) < 0.001) {
+	v_top[ip].SetZ(0.); // projection to xy plan.
+	ratzmaxv.push_back(v_top[ip].R());
+      }
+      v_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_top[ip].R());
+    
+      // module's bottom surface mid-points
+      if (fabs(v_mid_bottom[ip].Z() - zmin) < 0.001) {
+	v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_bottom[ip].R());
+      }
+      v_mid_bottom[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_bottom[ip].R());
+    
+      // module's top surface mid-points
+      if (fabs(v_mid_top[ip].Z() - zmin) < 0.001) {
+	v_mid_top[ip].SetZ(0.); // projection to xy plan.
+	ratzminv.push_back(v_mid_top[ip].R());
+      }
+      v_mid_top[ip].SetZ(0.); // projection to xy plan.
+      rv.push_back(v_mid_top[ip].R());
+    }
+    // Find min and max
+    rmin = *std::min_element(rv.begin(), rv.end());
+    rmax = *std::max_element(rv.begin(), rv.end());
+    rminatzmin = *std::min_element(ratzminv.begin(), ratzminv.end());
+    rmaxatzmax = *std::max_element(ratzmaxv.begin(), ratzmaxv.end());
+
+
+    extrema["minZ"] = zmin;
+    extrema["maxZ"] = zmax;
+    extrema["minR"] = rmin;
+    extrema["maxR"] = rmax;
+
+    return extrema;
+
+  }
+
+
+
+
+
+
+
 std::pair<double, double> DetectorModule::minMaxEtaWithError(double zError) const {
   if (cachedZError_ != zError) {
     cachedZError_ = zError;
