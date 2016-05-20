@@ -305,7 +305,7 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
   }
 }
 
-void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side) {
+void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, bool isPlusBigDeltaRod, int parity, int side) {
   for (int i=0; i<(int)posList.size(); i++, parity = -parity) {
     BarrelModule* mod;
     if (!mezzanine() && (startZMode() == StartZMode::MODULECENTER) && (direction == BuildDir::LEFT)) { // skips the central module information.
@@ -321,23 +321,24 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
     //if (ringNode.count(i+1) > 0) mod->store(ringNode.at(i+1)); 
     //mod->build();
     mod->translateR(parity > 0 ? smallDelta() : -smallDelta());
-    mod->flipped(parity != 1); // Attaching the correct flipped() value to the module
+    if (smallDelta() != 0) { mod->flipped(parity != 1); } // When smallDelta() != 0, the flip is alternated.
+    else { mod->flipped(!isPlusBigDeltaRod); } // When smallDelta() == 0, the flip only depends whether the rod is located at + BigDelta or at - BigDelta.
     mod->translateZ(posList[i] + (direction == BuildDir::RIGHT ? mod->length()/2 : -mod->length()/2));
-   // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
+    // mod->translate(XYZVector(parity > 0 ? smallDelta() : -smallDelta(), 0, posList[i])); // CUIDADO: we are now translating the center instead of an edge as before
     modules.push_back(mod);
   }
 }
 
-void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
+void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
   auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation
     // CUIDADO log rod balancing effort
-  buildModules(zPlusModules_, rodTemplate, zListPair.first, BuildDir::RIGHT, zPlusParity(), 1);
+  buildModules(zPlusModules_, rodTemplate, zListPair.first, BuildDir::RIGHT, isPlusBigDeltaRod, zPlusParity(), 1);
   double currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.); 
   // CUIDADO this only checks the positive side... the negative side might actually have a higher fabs(maxZ) if the barrel is long enough and there's an inversion
-  buildModules(zMinusModules_, rodTemplate, zListPair.second, BuildDir::LEFT, -zPlusParity(), -1);
+  buildModules(zMinusModules_, rodTemplate, zListPair.second, BuildDir::LEFT, isPlusBigDeltaRod, -zPlusParity(), -1);
 
   auto collisionsZPlus = solveCollisionsZPlus();
   auto collisionsZMinus = solveCollisionsZMinus();
@@ -348,16 +349,16 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate) {
   maxZ(currMaxZ);
 }
 
-void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate) {
+void StraightRodPair::buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   // compute Z list (only once since the second mezzanine has just inverted signs for z) 
   vector<double> zList = computeZList(rodTemplate.rbegin(), rodTemplate.rend(), startZ(), BuildDir::LEFT, zPlusParity(), false);
   vector<double> zListNeg;
   std::transform(zList.begin(), zList.end(), std::back_inserter(zListNeg), std::negate<double>());
 
-  buildModules(zPlusModules_, rodTemplate, zList, BuildDir::LEFT, zPlusParity(), 1); // CUIDADO mezzanine layer rings in reverse order????
+  buildModules(zPlusModules_, rodTemplate, zList, BuildDir::LEFT, isPlusBigDeltaRod, zPlusParity(), 1); // CUIDADO mezzanine layer rings in reverse order????
   maxZ(startZ());
 
-  buildModules(zMinusModules_, rodTemplate, zListNeg, BuildDir::RIGHT, zPlusParity(), -1);
+  buildModules(zMinusModules_, rodTemplate, zListNeg, BuildDir::RIGHT, isPlusBigDeltaRod, zPlusParity(), -1);
 }
 
 void StraightRodPair::check() {
@@ -368,15 +369,15 @@ void StraightRodPair::check() {
   }
 }
 
-void StraightRodPair::build(const RodTemplate& rodTemplate) {
+void StraightRodPair::build(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   materialObject_.store(propertyTree());
   materialObject_.build();
 
   try {
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
-    if (!mezzanine()) buildFull(rodTemplate);
-    else buildMezzanine(rodTemplate);
+    if (!mezzanine()) buildFull(rodTemplate, isPlusBigDeltaRod);
+    else buildMezzanine(rodTemplate, isPlusBigDeltaRod);
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
 
   cleanup();
