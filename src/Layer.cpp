@@ -118,6 +118,7 @@ void Layer::buildStraight() {
 
   float rodPhiRotation = 2*M_PI/numRods_;
 
+  // FIRST ROD : assign common properties
   StraightRodPair* first = GeometryFactory::make<StraightRodPair>();
   first->myid(1);
   first->minBuildRadius(minBuildRadius()-bigDelta());
@@ -127,22 +128,26 @@ void Layer::buildStraight() {
   first->smallDelta(smallDelta());
   //first->ringNode = ringNode; // we need to pass on the contents of the ringNode to allow the RodPair to build the module decorators
   first->store(propertyTree());
-  first->build(rodTemplate);
-
+  // SECOND ROD : copy first rod
   logINFO(Form("Copying rod %s", fullid(*this).c_str()));
   StraightRodPair* second = GeometryFactory::clone(*first);
   second->myid(2);
-  if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
 
-  first->translateR(placeRadius_ + (bigParity() > 0 ? bigDelta() : -bigDelta()));
-  //first->translate(XYZVector(placeRadius_+bigDelta(), 0, 0));
+  // FIRST ROD : build and store
+  bool isPlusBigDeltaRod = (bigParity() > 0);
+  first->build(rodTemplate, isPlusBigDeltaRod);
+  first->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
   rods_.push_back(first);
 
-  second->translateR(placeRadius_ + (bigParity() > 0 ? -bigDelta() : bigDelta()));
-  //second->translate(XYZVector(placeRadius_-bigDelta(), 0, 0));
+  // SECOND ROD : assign other properties, build and store 
+  if (!sameParityRods()) second->zPlusParity(first->zPlusParity()*-1);
+  isPlusBigDeltaRod = (bigParity() < 0);
+  second->build(rodTemplate, isPlusBigDeltaRod);
+  second->translateR(placeRadius_ + (isPlusBigDeltaRod ? bigDelta() : -bigDelta()));
   second->rotateZ(rodPhiRotation);
   rods_.push_back(second);
 
+  // All other Rods
   for (int i = 2; i < numRods_; i++) {
     RodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);

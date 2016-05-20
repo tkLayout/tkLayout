@@ -103,9 +103,9 @@ class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
   double computeNextZ(double newDsLength, double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
   template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side);
-  void buildFull(const RodTemplate& rodTemplate); 
-  void buildMezzanine(const RodTemplate& rodTemplate); 
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, bool isPlusBigDeltaRod, int parity, int side);
+  void buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
+  void buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
 
 public:
  
@@ -142,7 +142,7 @@ public:
   bool isTilted() const override { return false; }
 
   void check() override;
-  void build(const RodTemplate& rodTemplate);
+  void build(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod);
 
   std::set<int> solveCollisionsZPlus();
   std::set<int> solveCollisionsZMinus();

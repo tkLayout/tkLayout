@@ -84,7 +84,7 @@ public:
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
             layerRotation  ("layerRotation",   parsedOnly(), 0.),
-            sameParityRods ("sameParityRods" , parsedAndChecked(), false),
+            sameParityRods ("sameParityRods" , parsedAndChecked(), true),
             tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
   { setup(); }
 
@@ -125,7 +125,7 @@ public:
     for (auto& r : rods_) { r.accept(v); }
   }
   void accept(ConstGeometryVisitor& v) const { 
-    v.visit(*this); 
+    v.visit(*this);
     for (const auto& r : rods_) { r.accept(v); }
   }
   const MaterialObject& materialObject() const;

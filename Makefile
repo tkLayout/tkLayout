@@ -415,6 +415,9 @@ $(BINDIR)/houghtrack: $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/modu
 tklayout: $(BINDIR)/tklayout
 	@echo "tklayout built"
 
+delphize: $(BINDIR)/delphize
+	@echo "delphize built"
+
 tunePtParam: $(BINDIR)/tunePtParam
 	@echo "tunePtParam built"
 
@@ -452,8 +455,17 @@ $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBD
 	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
 	-o $(BINDIR)/tklayout
 
+$(BINDIR)/delphize: $(LIBDIR)/delphize.o
+	# And compile the executable by linking the revision too
+	$(LINK)	$(LIBDIR)/delphize.o \
+	$(ROOTLIBFLAGS) $(GLIBFLAGS) $(BOOSTLIBFLAGS) $(GEOMLIBFLAG) \
+	-o $(BINDIR)/delphize
+
 $(LIBDIR)/tklayout.o: $(SRCDIR)/tklayout.cpp
 	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/tklayout.o $(SRCDIR)/tklayout.cpp
+
+$(LIBDIR)/delphize.o: $(SRCDIR)/delphize.cpp
+	$(COMP) $(ROOTFLAGS) -c -o $(LIBDIR)/delphize.o $(SRCDIR)/delphize.cpp
 
 testObjects: $(TESTDIR)/testObjects
 $(TESTDIR)/testObjects: $(TESTDIR)/testObjects.cpp $(LIBDIR)/module.o $(LIBDIR)/layer.o
