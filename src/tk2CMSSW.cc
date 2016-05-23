@@ -22,6 +22,8 @@ namespace insur {
      */
     void tk2CMSSW::translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir, bool wt) {
 
+      bool isPixelTracker = (mb.getTracker().myid() == "Pixels");
+
         // this prepares the path of the directory where to save the xml files
         std::string xmlpath = mainConfiguration.getXmlDirectory();
         std::string outpath = xmlpath + "/" + outsubdir;

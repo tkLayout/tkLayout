@@ -200,6 +200,35 @@
       <rSolid name="Phase1PixelBarrel"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid> 
+
+    <!--
+    <Polycone name="PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
+      <RZPoint r="[Rin1]" z="-[Zv1]"/>
+      <RZPoint r="[Rin2]" z="-[Zv1]"/>
+      <RZPoint r="[Rin2]" z="-[ZvSupTubCab]"/>
+      <RZPoint r="[RinSupTubCab]" z="-[ZvSupTubCab]"/>
+      <RZPoint r="[Rout2]" z="-[Zv4]"/>
+      <RZPoint r="[Rout2]" z="-[Zv3]"/>
+      <RZPoint r="[Rout1]" z="-[Zv3]"/>
+      <RZPoint r="218*mm" z="0*mm"/>
+      <RZPoint r="218*mm" z="-1170*mm"/>
+      <RZPoint r="670*mm" z="-1170*mm"/>
+      <RZPoint r="1094.95*mm" z="-1189.44*mm"/>
+      
+      <RZPoint r="1094.95*mm" z="1189.44*mm"/>
+      <RZPoint r="670*mm" z="1189.44*mm"/>
+      <RZPoint r="670*mm" z="1170*mm"/>
+      <RZPoint r="218*mm" z="1170*mm"/>
+      <RZPoint r="[Rout1]" z="[Zv3]"/>
+      <RZPoint r="[Rout2]" z="[Zv3]"/>
+      <RZPoint r="[Rout2]" z="[Zv4]"/>
+      <RZPoint r="[RinSupTubCab]" z="[ZvSupTubCab]"/>
+      <RZPoint r="[Rin2]" z="[ZvSupTubCab]"/>
+      <RZPoint r="[Rin2]" z="[Zv1]"/>
+      <RZPoint r="[Rin1]" z="[Zv1]"/>
+    </Polycone>
+    -->
+
   </SolidSection>
   <LogicalPartSection label="pixbar.xml">
     <LogicalPart name="Phase1PixelBarrel" category="unspecified">

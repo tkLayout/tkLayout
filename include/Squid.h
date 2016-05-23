@@ -111,7 +111,7 @@ namespace insur {
 
     void simulateTracks(const po::variables_map& varmap, int seed);
     void setCommandLine(int argc, char* argv[]);
-    void pixelExtraction(std::string xmlout);
+    //void pixelExtraction(std::string xmlout);
     void createAdditionalXmlSite(std::string xmlout);
   private:
     //std::string g;

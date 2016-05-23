@@ -362,6 +362,9 @@ namespace insur {
   bool Squid::translateFullSystemToXML(std::string xmlout) {
     if (mb) {
       t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlout.empty() ? baseName_ : xmlout, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
+      if (pm) {
+	t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, xmlout.empty() ? baseName_ : xmlout, false);
+      }
       return true;
     }
     else {
@@ -735,7 +738,7 @@ namespace insur {
     v.setCommandLine(cmdLine);
   }
 
-  //pixel extractor part
+  /*//pixel extractor part
   void Squid::pixelExtraction(std::string xmlout) {
     if (!px) {
       logERROR("PixelExtractor could not find the pixel");
@@ -744,7 +747,7 @@ namespace insur {
       pxt.analyse(pxMaterialCalc.getMaterialTable(),*pm);
       pxt.printXml(mainConfiguration, xmlout.empty() ? baseName_ : xmlout);
     }
-  }
+    }*/
    
   void Squid::createAdditionalXmlSite(std::string xmlout) {
     std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";
