@@ -134,7 +134,7 @@ namespace insur {
       rod_shape.type = bx;
       rod_shape.name_tag = stemp_Rod.str();
       //explicitly added module thickness twice to remind that chip thickness = module thickness
-      rod_shape.dx = mods.first.at(0).thickness()/2. + mods.first.at(0).hybridThickness()/2. + mods.first.at(0).thickness()/2.;
+      rod_shape.dx = mods.first.at(0).thickness()/2. + mods.first.at(0).hybridThickness()/2. + mods.first.at(0).chipThickness()/2.;
       rod_shape.dy = zplusmod.area() /zplusmod.length() / 2.0;//mod0Thick;
       rod_shape.dz = r.maxZ();
       rod_shape.rmin = 0.;
@@ -208,7 +208,7 @@ namespace insur {
       //double rod_dR = r.thickness();//
       //explicitly added module thickness twice to remind that chip thickness = module thickness
       //rod_dR = mod thickness + hybrid thickness + chip thickness(= mod thickness)
-      double rod_dR = mods.first.at(0).thickness() + mods.first.at(0).hybridThickness() + mods.first.at(0).thickness();
+      double rod_dR = mods.first.at(0).thickness() + mods.first.at(0).hybridThickness() + mods.first.at(0).chipThickness();
       //creating a vector of BModules in sorted Z position(- to +)
       std::vector<BarrelModule> rod_modules;
       for( int j = mods.second.size() - 1 ; j >= 0 ; j--) {
