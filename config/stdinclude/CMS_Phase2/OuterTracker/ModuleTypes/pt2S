@@ -18,7 +18,8 @@ sensorThickness 0.2
 
 serviceHybridWidth 16.78   // 15.4085 hybrid + 1.3715 inactive silicon // OK
 frontEndHybridWidth 21.725 // 20.625 hybrid  + 1.1    inactive silicon // OK
-//supportPlateThickness 0.0
+hybridThickness 1.0
+supportPlateThickness 1.0  //SHOULD BE supportPlateThickness 0.0 !!!! TO MODIFY AT THE END OF THE DEV !!!!!!!!!!!!!!!!!
 
 Sensor 1 {
   sensorType strip

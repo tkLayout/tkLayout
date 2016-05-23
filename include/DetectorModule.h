@@ -110,6 +110,7 @@ public:
   Property<double, Default> frontEndHybridWidth;
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
+  Property<double, Default> chipThickness;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -142,10 +143,11 @@ public:
       nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
       nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
-      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
-      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
-      hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
-      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
+      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
+      hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
+      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
+      chipThickness            ("chipThickness"            , parsedOnly(), 0)
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;

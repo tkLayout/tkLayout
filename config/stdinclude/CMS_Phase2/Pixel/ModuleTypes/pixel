@@ -12,7 +12,6 @@ Sensor 1 {
 
 plotColor 4
 
-serviceHybridWidth 0.0
-frontEndHybridWidth 0.0
+
 hybridThickness 0.5
-supportPlateThickness 0.5
+chipThickness 0.5

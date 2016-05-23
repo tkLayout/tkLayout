@@ -309,7 +309,7 @@ namespace insur {
       modbox_shape.dx = module.area() /module.length() / 2.0;
       modbox_shape.dy = module.length() / 2.0;//mod0Thick;
       //explicitly added module thickness twice to remind that chip thickness = module thickness
-      modbox_shape.dz = module.thickness()/ 2.0 + module.hybridThickness()/2. + module.supportPlateThickness()/ 2.0;
+      modbox_shape.dz = module.thickness()/ 2.0 + module.hybridThickness()/2. + module.chipThickness()/ 2.0;
 
 
       stemp_mod.str("");
@@ -328,7 +328,7 @@ namespace insur {
       chip_shape.name_tag = mod_shape.name_tag + xml_phaseII_pixelChipTag;
       chip_shape.dx = module.area() /module.length() / 2.0;
       chip_shape.dy = module.length() / 2.0;//mod0Thick;
-      chip_shape.dz = module.supportPlateThickness()/ 2.0;
+      chip_shape.dz = module.chipThickness()/ 2.0;
 
 
       modbox_logic.name_tag = modbox_shape.name_tag;
@@ -925,7 +925,7 @@ namespace insur {
     emodbox_shape.dy = emodule.length() / 2.0;
     emodbox_shape.dyy = emodule.length() / 2.0;
     //chip thickness = module thickness
-    emodbox_shape.dz = emodule.thickness() / 2.0 + emodule.hybridThickness()/2. + emodule.supportPlateThickness() / 2.0;
+    emodbox_shape.dz = emodule.thickness() / 2.0 + emodule.hybridThickness()/2. + emodule.chipThickness() / 2.0;
     emodbox_shape.rmin = 0.;
     emodbox_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(emodbox_shape);//no flip module
@@ -969,7 +969,7 @@ namespace insur {
     chip_shape.dxx = emodbox_shape.dxx;
     chip_shape.dy = emodbox_shape.dy;
     chip_shape.dyy = emodbox_shape.dyy;
-    chip_shape.dz = emodule.supportPlateThickness() / 2.0;
+    chip_shape.dz = emodule.chipThickness() / 2.0;
     chip_shape.rmin = 0.;
     chip_shape.rmax = 0.;
     cmsswXmlInfo.shapes.push_back(chip_shape);

@@ -94,6 +94,8 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
     std::map<std::string, double> extrema;
 
+    //                                                   OUTER TRACKER MODULE
+    //
     //  Top View
     //  ------------------------------
     //  |            L(5)            |  
@@ -112,10 +114,30 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     //  ============================== 
     //          SupportPlate(8)                      
     //
-    //  R(6) and L(5) are Front-End Hybrids
-    //  B(4) and F(3) are Service Hybdrids
+    //  R(6) and L(5) are Front-End Hybrids.
+    //  B(4) and F(3) are Service Hybdrids.
     //
+    //  SupportPlate(8) thickness is of course null for 2S modules.
+
+
+    //                                                      PIXEL MODULE
     //
+    //  Top View 
+    //        ------------------           y
+    //        |                |           ^
+    //        |     Hybrids    |           |
+    //        |       (1)      |           +----> x
+    //        ------------------    
+    //                                             z
+    //                                             ^
+    //  Side View                                  |
+    //         ================ Hybrids (1)        +----> x
+    //         ---------------- Sensor  (2)
+    //         ================ Chip    (3)
+    //
+    // Chip(3) volume can contain Bumps and any other material for simplification.
+
+
 
     // =========================================================================================================
     // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
@@ -153,13 +175,13 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
 
 
 
-
-
     double width = area() / length();
-    double expandedModWidth = width + 2*serviceHybridWidth();
-    double expandedModLength = length() + 2*frontEndHybridWidth();
-    double expandedModThickness = dsDistance() + 2*(supportPlateThickness()+sensorThickness());
+    double expandedModWidth = width + 2 * serviceHybridWidth();
+    double expandedModLength = length() + 2 * frontEndHybridWidth();
+    double expandedModThickness;
+    if (!isPixelModule()) { expandedModThickness = dsDistance() + 2.0 * (supportPlateThickness() + sensorThickness()); }
     //double expandedModThickness = dsDistance() + supportPlateThickness()+sensorThickness(); SHOULD BE THIS !!!!
+    else { expandedModThickness = sensorThickness() + 2.0 * MAX(chipThickness(), hybridThickness()); }
 
     
     vector<double> xv; // x list (in global frame of reference) from which we will find min/max.
