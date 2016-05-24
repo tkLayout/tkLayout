@@ -181,6 +181,7 @@ namespace insur {
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
+    static const std::string xml_PX_fileident = "pixel_test";
     static const std::string xml_pixbar = "PixelBarrel";
     static const std::string xml_2OTbar = "Phase2OTBarrel";
     static const std::string xml_pixfwd = "PixelForward"; 
@@ -273,10 +274,13 @@ namespace insur {
     static const std::string xml_phaseII_pixecap = "Phase2PixelEndcap";
     static const std::string xml_phaseII_pixbardet = "Phase1PixelBarrelDet";
     static const std::string xml_phaseII_pixecapdet = "Phase2PixelEndcapDet";
-    static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
+   
     static const std::string xml_bmodbox = "BModuleBox";
     static const std::string xml_emodbox = "EModuleBox";
     static const std::string xml_phaseII_pixelHybridTag = "TopInactive";
     static const std::string xml_phaseII_pixelChipTag = "BottomInactive";
+    static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
+
+    static const std::string xml_PX = "InnerPixel";
 }
 #endif /* _TK2CMSSW_STRINGS_H */

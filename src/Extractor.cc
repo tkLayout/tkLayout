@@ -23,7 +23,7 @@ namespace insur {
    * @param mb A reference to the material budget that is to be analysed; used as input
    * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
    */
-  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt) {
+  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool& isPixelTracker, bool wt) {
 
     std::cout << "Starting analysis..." << std::endl;
 
@@ -145,12 +145,12 @@ namespace insur {
       shape.name_tag = xml_tob;
 
       // Barrel
-      analyseBarrelContainer(tr, shape.rzup, shape.rzdown);
+      analyseBarrelContainer(tr, shape.rzup, shape.rzdown, isPixelTracker);
       s.push_back(shape);
       std::cout << "Barrel container done." << std::endl;
 
       // Endcap
-      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown);
+      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown, isPixelTracker);
       if (!(shape.rzup.empty() || shape.rzdown.empty())) {
         shape.name_tag = xml_tid;
         s.push_back(shape);
@@ -162,19 +162,19 @@ namespace insur {
     analyseElements(mt, e);
     std::cout << "Elementary materials done." << std::endl;
     // Analyse barrel
-    analyseLayers(mt, tr, c, l, s, so, p, a, r, t, ri, wt);
+    analyseLayers(mt, tr, c, l, s, so, p, a, r, t, ri, isPixelTracker, wt);
     std::cout << "Barrel layers done." << std::endl;
     // Analyse endcaps
-    analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, wt);
+    analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, isPixelTracker, wt);
     std::cout << "Endcap discs done." << std::endl;
     // Barrel services
-    analyseBarrelServices(is, c, l, s, p, t);
+    analyseBarrelServices(is, c, l, s, p, t, isPixelTracker);
     std::cout << "Barrel services done." << std::endl;
     // Endcap services
-    analyseEndcapServices(is, c, l, s, p, t);
-    std::cout << "Endcap services done." << std::endl;
+    //analyseEndcapServices(is, c, l, s, p, t, isPixelTracker);
+    //std::cout << "Endcap services done." << std::endl;
     // Supports
-    analyseSupports(is, c, l, s, p, t);
+    analyseSupports(is, c, l, s, p, t, isPixelTracker);
     std::cout << "Support structures done." << std::endl;
     std::cout << "Analysis done." << std::endl;
   }
@@ -213,7 +213,7 @@ namespace insur {
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
   void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                         std::vector<std::pair<double, double> >& down) {
+                                         std::vector<std::pair<double, double> >& down, bool& isPixelTracker) {
     std::pair<double, double> rz;
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
@@ -312,7 +312,7 @@ namespace insur {
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
   void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t,
-                                         std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
+                                         std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down, bool& isPixelTracker) {
     int first, last;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
@@ -446,11 +446,14 @@ namespace insur {
   void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr,
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, 
 				std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, 
-				std::vector<RILengthInfo>& ri, bool wt) {
+				std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt) {
 
     std::string nspace;
-    if (wt) nspace = xml_newfileident;
-    else nspace = xml_fileident;
+    if (!isPixelTracker) {
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
+    }
+    else { nspace = xml_PX_fileident; }
 
 
     // Container inits
@@ -479,7 +482,7 @@ namespace insur {
 
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={};
-    SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, mspec;
+    SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, mspec;    
     // Layer
     lspec.name = xml_subdet_layer + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
@@ -504,6 +507,25 @@ namespace insur {
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tobdet;
+    
+    /*if (isPixelTracker) {
+      SpecParInfo barrel_spec;
+      //Barrel
+      barrel_spec.name = xml_phaseII_pixbar + xml_par_tail;
+      barrel_spec.parameter.first = xml_tkddd_structure;
+      barrel_spec.parameter.second = "PixelPhase1Barrel";
+      barrel_spec.partselectors.push_back("pixbar:" + xml_phaseII_pixbar);
+      barrel_spec.moduletypes.push_back(minfo_zero);
+      // Rod (straight or tilted)
+      rsspec.name = xml_phaseII_pixbar + xml_rod + xml_par_tail;
+      // Straight Rod
+      srspec.name = xml_phaseII_pixbar + xml_rod + xml_par_tail;  
+      //Module
+      
+      mspec.parameter.second = xml_subdet_tobdet_1;
+      
+      }*/
+   
 
 
     // material properties
@@ -717,24 +739,28 @@ namespace insur {
 
             // WAFER
             string xml_base_lowerupper = "";
-            if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
+            if (iiter->getModule().numSensors() == 2) {
+	      xml_base_lowerupper = xml_base_lower;
+	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	    }	    
+	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;
 
 	    // SolidSection
-            shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+            shape.name_tag = shape.name_tag;
 	    shape.dx = iiter->getModule().area() / iiter->getModule().length() / 2.0;
 	    shape.dy = iiter->getModule().length() / 2.0;
             shape.dz = iiter->getModule().sensorThickness() / 2.0;
             s.push_back(shape);   
 
 	    // LogicalPartSection
-            logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+            logic.name_tag = shape.name_tag;
             logic.shape_tag = nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
 	    // PosPart section
             pos.parent_tag = nspace + ":" + mname.str();
-            pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+            pos.child_tag = nspace + ":" + shape.name_tag;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
@@ -748,12 +774,12 @@ namespace insur {
               s.push_back(shape);
 
 	      // LogicalPartSection
-              logic.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+              logic.name_tag = shape.name_tag;
               logic.shape_tag = nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
 	      // PosPart section
-              pos.child_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+              pos.child_tag = nspace + ":" + shape.name_tag;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
@@ -785,6 +811,7 @@ namespace insur {
 
 	    if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	    else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	    else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_act;
 	    else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
 
 	    // SolidSection
@@ -800,7 +827,8 @@ namespace insur {
             l.push_back(logic);
 
 	    // PosPart section
-            pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	    else pos.parent_tag = nspace + ":" + mname.str() + xml_PX + xml_base_waf;
             pos.child_tag = nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
@@ -1173,11 +1201,14 @@ namespace insur {
    */
   void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt) {
 
     std::string nspace;
-    if (wt) nspace = xml_newfileident;
-    else nspace = xml_fileident;
+    if (!isPixelTracker) {
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
+    }
+    else { nspace = xml_PX_fileident; }
 
 
     // Container inits
@@ -1221,6 +1252,28 @@ namespace insur {
     mspec.name = xml_subdet_tiddet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tiddet;
+
+
+    /* //PIXEL 
+       Endcap
+    endcap_spec.name = xml_phaseII_pixecapsubdet + xml_par_tail;
+    endcap_spec.parameter.first = xml_tkddd_structure;
+    endcap_spec.parameter.second = xml_phaseII_pixecapsubdet;
+    endcap_spec.partselectors.push_back(xml_pixfwdident + ":" + xml_phaseII_pixecap);
+    endcap_spec.moduletypes.push_back(minfo_zero);
+    // Disk
+    disc_spec.name = xml_subdet_wheel + xml_par_tail;
+    disc_spec.parameter.first = xml_tkddd_structure;
+    disc_spec.parameter.second = xml_phaseII_pixfulldisk;
+    // Ring
+    ring_spec.name = xml_subdet_ring + xml_par_tail;
+    ring_spec.parameter.first = xml_tkddd_structure;
+    ring_spec.parameter.second = xml_subdet_ring;
+    //Module
+    SpecParInfo module_spec;//, flip_spec;
+    module_spec.parameter.first = xml_tkddd_structure;
+    module_spec.parameter.second = xml_subdet_tiddet;
+    */
 
 
     // material properties
@@ -1380,12 +1433,13 @@ namespace insur {
 
 
 	      // WAFER -- same x and y size of parent shape, but different thickness
-	      string xml_base_lowerupper = "";
-	      if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
+	    string xml_base_lowerupper = "";
+            if (iiter->getModule().numSensors() == 2) {
+	      xml_base_lowerupper = xml_base_lower;
+	      shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_waf;
+	    }	    
+	    else shape.name_tag = mname.str() + xml_PX + xml_base_waf;	     
 
-	      pos.parent_tag = logic.shape_tag;
-
-	      shape.name_tag = mname.str() + xml_base_lowerupper+ xml_base_waf;
 	      shape.dz = iiter->getModule().sensorThickness() / 2.0; // CUIDADO WAS calculateSensorThickness(*iiter, mt) / 2.0;
 	      //if (iiter->getModule().numSensors() == 2) shape.dz = shape.dz / 2.0; // CUIDADO calcSensThick returned 2x what getSensThick returns, it means that now one-sided sensors are half as thick if not compensated for in the config files
 	      s.push_back(shape);
@@ -1395,11 +1449,12 @@ namespace insur {
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 
-	      pos.child_tag = logic.shape_tag;
-
+	      pos.parent_tag = nspace + ":" + mname.str();
+	      pos.child_tag = nspace + ":" + shape.name_tag;
 	      if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
 	      else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
 	      p.push_back(pos);
+
 	      if (iiter->getModule().numSensors() == 2) {
 
 		xml_base_lowerupper = xml_base_upper;
@@ -1443,13 +1498,11 @@ namespace insur {
 
 	      // ACTIVE SURFACE
 	      xml_base_lowerupper = "";
-	      if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower;
-
-	      //pos.parent_tag = logic.shape_tag;
-	      pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-
+	      if (iiter->getModule().numSensors() == 2) xml_base_lowerupper = xml_base_lower; 
+	      
 	      if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_pixel + xml_base_act;
 	      else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
+	      else if (iiter->getModule().isPixelModule()) shape.name_tag = mname.str() + xml_PX + xml_base_act;
 	      else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
 	      s.push_back(shape);
 
@@ -1458,6 +1511,8 @@ namespace insur {
 	      logic.material_tag = nspace + ":" + xml_sensor_silicon;
 	      l.push_back(logic);
 
+	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	      else pos.parent_tag = nspace + ":" + mname.str() + xml_PX + xml_base_waf;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
@@ -1480,9 +1535,6 @@ namespace insur {
 
 		xml_base_lowerupper = xml_base_upper;
 
-		//pos.parent_tag = logic.shape_tag;
-		pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-
 		if (iiter->getModule().moduleType() == "ptPS") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_ps + xml_base_strip + xml_base_act;
 		else if (iiter->getModule().moduleType() == "pt2S") shape.name_tag = mname.str() + xml_base_lowerupper + xml_base_2s+ xml_base_act;
 		else { std::cerr << "Unknown module type : " << iiter->getModule().moduleType() << " ." << std::endl; }
@@ -1493,6 +1545,7 @@ namespace insur {
 		logic.material_tag = nspace + ":" + xml_sensor_silicon;
 		l.push_back(logic);
 
+		pos.parent_tag = nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		pos.child_tag = logic.shape_tag;
 		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
@@ -1702,10 +1755,13 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    */
   void Extractor::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
     std::string nspace;
-    if (wt) nspace = xml_newfileident;
-    else nspace = xml_fileident;
+    if (!isPixelTracker) {
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
+    }
+    else { nspace = xml_PX_fileident; }
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1744,7 +1800,9 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
-	  double startEndcaps = 1281.;
+	  double startEndcaps;
+	  if (!isPixelTracker) startEndcaps = 1281.;
+	  else startEndcaps = 300.;
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -1871,10 +1929,13 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    */
   void Extractor::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
     std::string nspace;
-    if (wt) nspace = xml_newfileident;
-    else nspace = xml_fileident;
+    if (!isPixelTracker) {
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
+    }
+    else { nspace = xml_PX_fileident; }
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1948,10 +2009,13 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    */
   void Extractor::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
+                                  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
     std::string nspace;
-    if (wt) nspace = xml_newfileident;
-    else nspace = xml_fileident;
+    if (!isPixelTracker) {
+      if (wt) nspace = xml_newfileident;
+      else nspace = xml_fileident;
+    }
+    else { nspace = xml_PX_fileident; }
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2083,8 +2147,10 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
-	  double startEndcaps = 1281.;
-          
+	  double startEndcaps;
+	  if (!isPixelTracker) startEndcaps = 1281.;
+	  else startEndcaps = 300.;          
+
 	  // BARREL supports
 	  if (iter->getZOffset() < startEndcaps ) {
 	    shape.name_tag = shapename.str();

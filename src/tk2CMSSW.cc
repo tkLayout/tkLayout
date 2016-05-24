@@ -32,7 +32,7 @@ namespace insur {
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
-        ex.analyse(mt, mb, data, wt);
+        ex.analyse(mt, mb, data, isPixelTracker, wt);
 
         std::stringstream simpleHeaderStream;
 	std::string metdataFileName = outsubdir + "_" + currentDateTime(false) + ".cfg";

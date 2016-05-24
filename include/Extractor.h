@@ -76,26 +76,26 @@ namespace insur {
       }
     };
   public:
-    void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool wt = false);
+    void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool& isPixelTracker, bool wt = false);
   protected:
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
     void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                std::vector<std::pair<double, double> >& down);
+                                std::vector<std::pair<double, double> >& down, bool& isPixelTracker);
     void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, std::vector<std::pair<double, double> >& up,
-                                std::vector<std::pair<double, double> >& down);
+                                std::vector<std::pair<double, double> >& down, bool& isPixelTracker);
     void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p, 
 		       std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, 
-		       bool wt = false);
+		       bool& isPixelTracker, bool wt = false);
     void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
+                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt = false);
     void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
     void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
     void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
   private:
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
