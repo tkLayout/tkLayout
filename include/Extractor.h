@@ -148,6 +148,7 @@ namespace insur {
      void   setHybridTotalVolume_mm3( double v ) { hybridTotalVolume_mm3 = v; }
 
     private :
+      static const double kmm3Tocm3;
       static const int HybridFBLR_0; // Front Back Left Right
       static const int InnerSensor;
       static const int OuterSensor;
@@ -157,12 +158,14 @@ namespace insur {
       static const int HybridRight;
       static const int HybridBetween;
       static const int SupportPlate;
-      static const int nTypes;
       static const int HybridFB;
       static const int HybridLR;
       static const int HybridFBLR_3456; // Front Back Left Right (ailias of HybridFBLR_0)
-      static const double kmm3Tocm3;
-
+      static const int PixelModuleNull;
+      static const int PixelModuleHybrid;
+      static const int PixelModuleSensor;
+      static const int PixelModuleChip;    
+      
       class Volume {
         public :
           Volume(std::string name, const int type, std::string pname, 
@@ -230,6 +233,7 @@ namespace insur {
       const double         serviceHybridWidth;
       const double         hybridThickness;
       const double         supportPlateThickness;
+      const double         chipThickness;
             double         hybridTotalMass;
             double         hybridTotalVolume_mm3;
             double         hybridFrontAndBackVolume_mm3;
@@ -247,11 +251,12 @@ namespace insur {
 	    double         rmaxatzmax;
 	    const double         expandedModWidth;
 	    const double         expandedModLength;
-	    const double         expandedModThickness; 
+	    double               expandedModThickness; 
 	    const XYZVector      center; 
 	    const XYZVector      normal; 
+	    int                  nTypes;
       std::vector<XYZVector> vertex; 
-      const std::string    prefix_xmlfile;
+      std::string    prefix_xmlfile;
       const std::string    prefix_material;
   };
 }

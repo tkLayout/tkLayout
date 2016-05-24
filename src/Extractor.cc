@@ -2420,8 +2420,11 @@ namespace insur {
   }
 
 
-  // These value should be consistent with 
-  // the configuration file
+  const double ModuleComplex::kmm3Tocm3 = 1e-3;
+
+// These value should be consistent with 
+// the configuration file
+           // OUTER TRACKER MODULE
   const int ModuleComplex::HybridFBLR_0  = 0; // Front + Back + Right + Left
   const int ModuleComplex::InnerSensor   = 1; 
   const int ModuleComplex::OuterSensor   = 2; 
@@ -2430,14 +2433,19 @@ namespace insur {
   const int ModuleComplex::HybridLeft    = 5; 
   const int ModuleComplex::HybridRight   = 6; 
   const int ModuleComplex::HybridBetween = 7; 
-  const int ModuleComplex::SupportPlate  = 8; // Support Plate 
-  const int ModuleComplex::nTypes        = 9; 
+  const int ModuleComplex::SupportPlate  = 8; // Support Plate
   // extras
   const int ModuleComplex::HybridFB        = 34; 
   const int ModuleComplex::HybridLR        = 56; 
-  const int ModuleComplex::HybridFBLR_3456 = 3456; 
+  const int ModuleComplex::HybridFBLR_3456 = 3456;
 
-  const double ModuleComplex::kmm3Tocm3 = 1e-3; 
+           // PIXEL MODULE
+  const int ModuleComplex::PixelModuleNull   = 0;
+  const int ModuleComplex::PixelModuleHybrid   = 1; 
+  const int ModuleComplex::PixelModuleSensor   = 2; 
+  const int ModuleComplex::PixelModuleChip     = 3; 
+
+  
 
   ModuleComplex::ModuleComplex(std::string moduleName,
                                std::string parentName,
@@ -2454,6 +2462,7 @@ namespace insur {
                                                              serviceHybridWidth(module.serviceHybridWidth()),
                                                              hybridThickness(module.hybridThickness()),
                                                              supportPlateThickness(module.supportPlateThickness()),
+                                                             chipThickness(module.chipThickness()),
                                                              hybridTotalMass(0.),
                                                              hybridTotalVolume_mm3(-1.),
                                                              hybridFrontAndBackVolume_mm3(-1.),
@@ -2461,11 +2470,19 @@ namespace insur {
                                                              moduleMassWithoutSensors_expected(0.),
                                                              expandedModWidth(modWidth+2*serviceHybridWidth),
                                                              expandedModLength(modLength+2*frontEndHybridWidth),
-                                                             expandedModThickness(sensorDistance+2*(supportPlateThickness+sensorThickness)),
                                                              center(module.center()),
                                                              normal(module.normal()),
-                                                             prefix_xmlfile("tracker:"),
                                                              prefix_material("hybridcomposite") {
+    if (!module.isPixelModule()) {
+      expandedModThickness = sensorDistance + 2.0 * (supportPlateThickness + sensorThickness);
+      prefix_xmlfile = "tracker:";
+      nTypes = 9;
+    }
+    else {
+      expandedModThickness = sensorThickness + 2.0 * MAX(chipThickness, hybridThickness);
+      prefix_xmlfile = "pixel_test:";
+      nTypes = 4;
+    }
   }
 
   ModuleComplex::~ModuleComplex() {
@@ -2474,79 +2491,121 @@ namespace insur {
   }
 
   void ModuleComplex::buildSubVolumes() {
-  //  Top View
-  //  ------------------------------
-  //  |            L(5)            |  
-  //  |----------------------------|     y
-  //  |     |                |     |     ^
-  //  |B(4) |     Between    | F(3)|     |
-  //  |     |       (7)      |     |     +----> x
-  //  |----------------------------|
-  //  |            R(6)            |     
-  //  ------------------------------     
-  //                                            z
-  //  Side View                                 ^
-  //         ---------------- OuterSensor(2)    |
-  //  ====== ================ ====== Hybrids    +----> x
-  //         ---------------- InnerSensor(1)
-  //  ============================== 
-  //          SupportPlate(8)                      
-  //
-  //  R(6) and L(5) are Front-End Hybrids
-  //  B(4) and F(3) are Service Hybdrids
-  //
-  //
     Volume* vol[nTypes];
-    //Unused pointers
-    vol[HybridFBLR_0] = 0;
-    vol[InnerSensor]  = 0;
-    vol[OuterSensor]  = 0;
+    if (!module.isPixelModule()) {
+      //                                                   OUTER TRACKER MODULE
+      //
+      //  Top View
+      //  ------------------------------
+      //  |            L(5)            |  
+      //  |----------------------------|     y
+      //  |     |                |     |     ^
+      //  |B(4) |     Between    | F(3)|     |
+      //  |     |       (7)      |     |     +----> x
+      //  |----------------------------|
+      //  |            R(6)            |     
+      //  ------------------------------     
+      //                                            z
+      //  Side View                                 ^
+      //         ---------------- OuterSensor(2)    |
+      //  ====== ================ ====== Hybrids    +----> x
+      //         ---------------- InnerSensor(1)
+      //  ============================== 
+      //          SupportPlate(8)                      
+      //
+      //  R(6) and L(5) are Front-End Hybrids.
+      //  B(4) and F(3) are Service Hybdrids.
+      //
+      //  SupportPlate(8) thickness is of course null for 2S modules
+    
+      //Unused pointers
+      vol[HybridFBLR_0] = 0;
+      vol[InnerSensor]  = 0;
+      vol[OuterSensor]  = 0;
 
-    double dx = serviceHybridWidth;              
-    double dy = modLength; 
-    double dz = hybridThickness;  
-    double posx = (modWidth+serviceHybridWidth)/2.;
-    double posy = 0.;
-    double posz = 0.;
-    // Hybrid FrontSide Volume
-    vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
+      double dx = serviceHybridWidth;              
+      double dy = modLength; 
+      double dz = hybridThickness;  
+      double posx = (modWidth+serviceHybridWidth)/2.;
+      double posy = 0.;
+      double posz = 0.;
+      // Hybrid FrontSide Volume
+      vol[HybridFront] = new Volume(moduleId+"FSide",HybridFront,parentId,dx,dy,dz,posx,posy,posz);
 
-    posx = -(modWidth+serviceHybridWidth)/2.;
-    posy = 0.;
-    posz = 0.;
-    // Hybrid BackSide Volume
-    vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
+      posx = -(modWidth+serviceHybridWidth)/2.;
+      posy = 0.;
+      posz = 0.;
+      // Hybrid BackSide Volume
+      vol[HybridBack] = new Volume(moduleId+"BSide",HybridBack,parentId,dx,dy,dz,posx,posy,posz);
 
-    dx = modWidth+2*serviceHybridWidth;  
-    dy = frontEndHybridWidth;
-    posx = 0.;
-    posy = (modLength+frontEndHybridWidth)/2.;
-    posz = 0.;
-    // Hybrid LeftSide Volume
-    vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
+      dx = modWidth+2*serviceHybridWidth;  
+      dy = frontEndHybridWidth;
+      posx = 0.;
+      posy = (modLength+frontEndHybridWidth)/2.;
+      posz = 0.;
+      // Hybrid LeftSide Volume
+      vol[HybridLeft] = new Volume(moduleId+"LSide",HybridLeft,parentId,dx,dy,dz,posx,posy,posz);
 
-    posx = 0.;
-    posy = -(modLength+frontEndHybridWidth)/2.;
-    posz = 0.;
-    // Hybrid RightSide Volume
-    vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
+      posx = 0.;
+      posy = -(modLength+frontEndHybridWidth)/2.;
+      posz = 0.;
+      // Hybrid RightSide Volume
+      vol[HybridRight] = new Volume(moduleId+"RSide",HybridRight,parentId,dx,dy,dz,posx,posy,posz);
 
-    dx = modWidth; 
-    dy = modLength; 
-    posx = 0.;
-    posy = 0.;
-    posz = 0.;
-    // Hybrid Between Volume
-    vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
+      dx = modWidth; 
+      dy = modLength; 
+      posx = 0.;
+      posy = 0.;
+      posz = 0.;
+      // Hybrid Between Volume
+      vol[HybridBetween] = new Volume(moduleId+"Between",HybridBetween,parentId,dx,dy,dz,posx,posy,posz);
 
-    dx = expandedModWidth;  
-    dy = expandedModLength; 
-    dz = supportPlateThickness;
-    posx = 0.;
-    posy = 0.;
-    posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
-    // SupportPlate
-    vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+      dx = expandedModWidth;  
+      dy = expandedModLength; 
+      dz = supportPlateThickness;
+      posx = 0.;
+      posy = 0.;
+      posz = - ( ( sensorDistance + supportPlateThickness )/2. + sensorThickness ); 
+      // SupportPlate
+      vol[SupportPlate] = new Volume(moduleId+"SupportPlate",SupportPlate,parentId,dx,dy,dz,posx,posy,posz);
+    }
+
+    else {
+      //                                                      PIXEL MODULE
+      //
+      //  Top View 
+      //        ------------------           y
+      //        |                |           ^
+      //        |     Hybrid     |           |
+      //        |       (1)      |           +----> x
+      //        ------------------    
+      //                                             z
+      //                                             ^
+      //  Side View                                  |
+      //         ================ Hybrid  (1)        +----> x
+      //         ---------------- Sensor  (2)
+      //         ================ Chip    (3)
+      //
+      // Chip(3) volume can contain Bumps and any other material for simplification.
+
+      //Unused pointers
+      vol[PixelModuleNull] = 0;
+
+      double dx = modWidth;              
+      double dy = modLength; 
+      double dz = hybridThickness;  
+      double posx = 0.;
+      double posy = 0.;
+      double posz = sensorThickness / 2. + hybridThickness / 2.; 
+      // Hybrid Volume (Top Inactive)
+      vol[PixelModuleHybrid] = new Volume(moduleId + "Hybrid", PixelModuleHybrid, parentId, dx, dy, dz, posx, posy, posz);
+
+      dz = chipThickness;
+      posz = - sensorThickness / 2. - chipThickness / 2.; 
+      // Chip Volume (Bottom Inactive)
+      vol[PixelModuleChip] = new Volume(moduleId + "Chip", PixelModuleChip, parentId, dx, dy, dz, posx, posy, posz);
+    }
+
 
     // =========================================================================================================
     // Finding Xmin/Xmax/Ymin/Ymax/Zmin/Zmax/Rmin/Rmax/RminatZmin/RmaxatZmax, taking hybrid volumes into account
@@ -2694,51 +2753,55 @@ namespace insur {
 	   el->componentName() == "PS Sensor"   ||
 	   el->componentName() == "PS Sensors"  ||
 	   el->componentName() == "2S Sensor"   ||
-	   el->componentName() == "2S Sensors"    ) {
-	continue; // We will not handle sensors in this class
-      } else if ( el->targetVolume() == InnerSensor ||
-		  el->targetVolume() == OuterSensor   ) { // Unexpected targetVolume ID 
-	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-	std::cerr << "targetVolume " << el->targetVolume() << " is only for sensors. Exit." << std::endl;
-	std::exit(1);
-      } else if ( el->targetVolume() >= nTypes   &&
-		  el->targetVolume() != HybridFB &&
-		  el->targetVolume() != HybridLR &&
-		  el->targetVolume() != HybridFBLR_3456  ) {
-	std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
-	std::cerr << "targetVolume " << el->targetVolume() << " is not supported. Exit." << std::endl;
-	std::exit(1);
-      }
+	   el->componentName() == "2S Sensors"     ) {
+	continue; // We will not handle sensors in this class.
+	          // Indeed, only Sensi is assigned to the Sensor volume. There is no addition of different materials.
+	          // Sensi is directly assigned to the sensor volume within Extractor::analyseLayers and Extractor::analyseDiscs.
+      } 
 
-       moduleMassWithoutSensors_expected += el->quantityInGrams(module);
+      // OUTER TRACKER MODULE
+      if (!module.isPixelModule()) {
+	if ( el->targetVolume() == InnerSensor  ||
+	     el->targetVolume() == OuterSensor     ) {
+	  continue; // Still to skip sensors, in case not detected by the component name.
+	} else if ( el->targetVolume() >= nTypes   &&
+		    el->targetVolume() != HybridFB &&
+		    el->targetVolume() != HybridLR &&
+		    el->targetVolume() != HybridFBLR_3456  ) {
+	  std::cerr << "!!!! ERROR !!!! : Found unexpected targetVolume." << std::endl;
+	  std::cerr << "targetVolume " << el->targetVolume() << " is not supported for Outer Barrel modules. Exit." << std::endl;
+	  std::exit(1);
+	}
 
-       if ( el->targetVolume() == HybridFront   ||
-            el->targetVolume() == HybridBack    ||
-            el->targetVolume() == HybridLeft    ||
-            el->targetVolume() == HybridRight   ||
-            el->targetVolume() == HybridBetween ||
-            el->targetVolume() == SupportPlate     ) {
+	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
+
+	if ( el->targetVolume() == HybridFront   ||
+	     el->targetVolume() == HybridBack    ||
+	     el->targetVolume() == HybridLeft    ||
+	     el->targetVolume() == HybridRight   ||
+	     el->targetVolume() == HybridBetween ||
+	     el->targetVolume() == SupportPlate     ) {
           vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
-       } else if ( el->targetVolume() == HybridFB ) { 
+	} else if ( el->targetVolume() == HybridFB ) { 
           if (hybridFrontAndBackVolume_mm3 < 0) { // Need only once
             hybridFrontAndBackVolume_mm3 = vol[HybridFront]->getVolume()
-                                         + vol[HybridBack]->getVolume();
+	      + vol[HybridBack]->getVolume();
           }
           vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridFront]->addMass(el->quantityInGrams(module)*vol[HybridFront]->getVolume()/hybridFrontAndBackVolume_mm3);
           vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridFrontAndBackVolume_mm3);
-       } else if ( el->targetVolume() == HybridLR ) {
+	} else if ( el->targetVolume() == HybridLR ) {
           if (hybridLeftAndRightVolume_mm3 < 0) { // Need only once
             hybridLeftAndRightVolume_mm3 = vol[HybridLeft]->getVolume()
-                                         + vol[HybridRight]->getVolume();
+	      + vol[HybridRight]->getVolume();
           }
           vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridRight]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridLeftAndRightVolume_mm3);
           vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridLeftAndRightVolume_mm3);
-       } else if ( el->targetVolume() == HybridFBLR_0 || el->targetVolume() == HybridFBLR_3456 ) { // Uniformly Distribute
+	} else if ( el->targetVolume() == HybridFBLR_0 || el->targetVolume() == HybridFBLR_3456 ) { // Uniformly Distribute
           vol[HybridFront]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridBack]->addMaterial(el->elementName(),el->quantityInGrams(module));
           vol[HybridLeft]->addMaterial(el->elementName(),el->quantityInGrams(module));
@@ -2746,9 +2809,9 @@ namespace insur {
 
           if (hybridTotalVolume_mm3 < 0) { // Need only once
             hybridTotalVolume_mm3 = vol[HybridFront]->getVolume()
-                                  + vol[HybridBack]->getVolume()
-                                  + vol[HybridLeft]->getVolume()
-                                  + vol[HybridRight]->getVolume();
+	      + vol[HybridBack]->getVolume()
+	      + vol[HybridLeft]->getVolume()
+	      + vol[HybridRight]->getVolume();
           }
 
           // Uniform density distribution and consistent with total mass
@@ -2756,15 +2819,40 @@ namespace insur {
           vol[HybridBack]->addMass(el->quantityInGrams(module)*vol[HybridBack]->getVolume()/hybridTotalVolume_mm3);   
           vol[HybridLeft]->addMass(el->quantityInGrams(module)*vol[HybridLeft]->getVolume()/hybridTotalVolume_mm3);   
           vol[HybridRight]->addMass(el->quantityInGrams(module)*vol[HybridRight]->getVolume()/hybridTotalVolume_mm3);
-       }
+  	}
+      }
+
+      // PIXEL MODULE
+      else {
+	if ( el->targetVolume() == PixelModuleSensor ) {
+	  continue; // Still to skip sensors, in case not detected by the component name.
+	}
+
+	moduleMassWithoutSensors_expected += el->quantityInGrams(module);
+
+	if ( el->targetVolume() == PixelModuleHybrid   ||
+	     el->targetVolume() == PixelModuleChip        ) {
+          vol[el->targetVolume()]->addMaterial(el->elementName(),el->quantityInGrams(module));
+          vol[el->targetVolume()]->addMass(el->quantityInGrams(module));
+	}
+      }
+
     }
 
-    volumes.push_back(vol[HybridFront]);
-    volumes.push_back(vol[HybridBack]);
-    volumes.push_back(vol[HybridLeft]);
-    volumes.push_back(vol[HybridRight]);
-    volumes.push_back(vol[HybridBetween]);
-    volumes.push_back(vol[SupportPlate]);
+    // OUTER TRACKER MODULE
+    if (!module.isPixelModule()) {
+      volumes.push_back(vol[HybridFront]);
+      volumes.push_back(vol[HybridBack]);
+      volumes.push_back(vol[HybridLeft]);
+      volumes.push_back(vol[HybridRight]);
+      volumes.push_back(vol[HybridBetween]);
+      volumes.push_back(vol[SupportPlate]);
+    }
+    // PIXEL MODULE
+    else {
+      volumes.push_back(vol[PixelModuleHybrid]);
+      volumes.push_back(vol[PixelModuleChip]);
+    }
 
   }
 

@@ -125,13 +125,13 @@ std::map<std::string, double> DetectorModule::extremaWithHybrids() const {
     //  Top View 
     //        ------------------           y
     //        |                |           ^
-    //        |     Hybrids    |           |
+    //        |     Hybrid     |           |
     //        |       (1)      |           +----> x
     //        ------------------    
     //                                             z
     //                                             ^
     //  Side View                                  |
-    //         ================ Hybrids (1)        +----> x
+    //         ================ Hybrid  (1)        +----> x
     //         ---------------- Sensor  (2)
     //         ================ Chip    (3)
     //
