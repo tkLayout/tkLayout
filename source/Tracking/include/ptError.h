@@ -1,7 +1,7 @@
 #ifndef PTERROR_H
 #define PTERROR_H
 
-#include "Module.h"
+#include "DetectorModule.h"
 
 #include <MaterialProperties.h>
 

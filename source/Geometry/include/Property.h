@@ -18,7 +18,7 @@
 
 #include "global_funcs.h"
 #include "Decorator.h"
-#include "capabilities.h"
+#include "GeometryCapability.h"
 #include "StringSet.h"
 
 using std::string;
@@ -374,8 +374,8 @@ public:
         pt_.add_child(propElem.first, propElem.second); 
       } // merging trees in a careless manner, appending children without ever checking if an entry with the same key is already present. the duplicates thus formed will be all grabbed at parsing time by the properties (each duplicate entry overwrites the previous)
     }
-//    std::cout << "============ " << pt_.data() << " ===========" << std::endl;
-//    printAll(pt_);
+    //std::cout << "============ " << pt_.data() << " ===========" << std::endl;
+    //printAll(pt_);
     processProperties(parsedCheckedProperties_);
     processProperties(parsedProperties_);
     recordMatchedProperties();
@@ -393,7 +393,14 @@ public:
       if (v.second->state() && !v.second->valid()) throw InvalidPropertyValue(v.first);
     }
   }
+  virtual void evaluateProperty(Parsable& propElem) {
 
+    //printAll(pt_);
+    auto childRange = pt_.equal_range(propElem.name());
+    std::for_each(childRange.first, childRange.second, [&propElem](const ptree::value_type& treeElem) {
+        propElem.fromPtree(treeElem.second); // takes care of duplicate entries (by overwriting the property value as many times as there are entries with the same key) and of node entries (in that case the PropertyNodes differentiates based on the value)      });
+    });
+  }
   virtual void cleanup() { pt_.clear(); parsedCheckedProperties_.clear(); parsedProperties_.clear(); }
   virtual void cleanupTree() { pt_.clear(); }
 

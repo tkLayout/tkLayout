@@ -85,9 +85,10 @@ typedef ModulesSetVisitor::Modules            Modules;
 /*
  * @class Tracker
  * @details Tracker class holds information about individual detection systems - trackers: pixel tracker, strip tracker,
- * forward tracker, etc... Information read in from an xml tree (boost property tree) via GeometryManager class.
- * The whole tracker structure is built via Tracker constructor using build() method. This method builds recursively all
- * individual subdetectors: barrels -> layers -> rods -> modules, endcaps -> disks -> rings -> modules, etc.
+ * forward tracker, etc... Information read in from an xml tree (boost property tree) passed as an argument to a constructor.
+ * The whole tracker structure is built via Tracker build() method. This method builds recursively all individual
+ * subdetectors: barrels -> layers -> rods -> modules, endcaps -> disks -> rings -> modules, etc. After build() method,
+ * call setup() method to assign lambda functions to various tracker related Computable variables (properties).
  */
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
 
@@ -95,6 +96,12 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
   
   //! Constructor - parse geometry config file using boost property tree & read-in Barrel, Endcap & Support nodes
   Tracker(const PropertyTree& treeProperty);
+
+  //! Build recursively individual subdetector systems: Barrels, Endcaps
+  void build();
+
+  //! Setup: link functions to various tracker related properties (use setup functions for ReadOnly Computable properties)
+  void setup();
 
   //! Return tracker barrels
   const Barrels& barrels() const { return m_barrels; }
@@ -131,12 +138,6 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
 
   //! Copy constructor
   Tracker(const Tracker&) = default;
-
-  //! Build recursively individual subdetector systems: Barrels, Endcaps -> private method called by constructor
-  void build();
-
-  //! Calculate various tracker related properties -> private method called by constructor
-  void setup();
 
   Barrels           m_barrels;              //!< Barrel components of tracker
   Endcaps           m_endcaps;              //!< Endcap components of tracker

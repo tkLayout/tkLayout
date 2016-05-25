@@ -22,7 +22,7 @@
 #include <ModuleCap.h>
 #include <MaterialTable.h>
 #include <InactiveElement.h>
-#include <Module.h>
+#include <DetectorModule.h>
 namespace insur {
   /**
    * Messages that may appear during the calculations

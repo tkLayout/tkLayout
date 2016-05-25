@@ -7,17 +7,21 @@ using material::SupportStructure;
 //
 // Constructor - parse geometry config file using boost property tree & read-in Disk, Support nodes
 //
-Endcap::Endcap(double brlMaxZ, const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty) :
+Endcap::Endcap(double barrelOuterZ, const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty) :
  numDisks(     "numDisks"    , parsedAndChecked()),
- innerZ(       "minZ"        , parsedOnly()),
- outerZ(       "maxZ"        , parsedAndChecked()),
+ innerZ(       "innerZ"      , parsedOnly()),
+ outerZ(       "outerZ"      , parsedAndChecked()),
+ minZ(  string("minZ")       ),
+ maxZ(  string("maxZ")       ),
+ minR(  string("minR")       ),
+ maxR(  string("maxR")       ),
  skipServices( "skipServices", parsedOnly(), false), // broken, do not use
  m_barrelGap(  "barrelGap"   , parsedOnly()),
  m_diskNode(   "Disk"        , parsedOnly()),
  m_supportNode("Support"     , parsedOnly())
 {
-  // Set barrel maxZ
-  barrelMaxZ(brlMaxZ);
+  // Set barrel outerZ
+  this->m_barrelOuterZ(barrelOuterZ);
 
   // Set the geometry config parameters
   this->myid(name);
@@ -48,13 +52,18 @@ void Endcap::build()
     logINFO(Form("Building %s", fullid(*this).c_str()));
     check();
 
-    if (!innerZ.state()) innerZ(barrelMaxZ() + m_barrelGap());
+    // Calculate parameters
+    if     (!innerZ.state())     innerZ(m_barrelOuterZ() + m_barrelGap());
     else if(m_barrelGap.state()) logWARNING("'innerZ' was set, ignoring 'barrelGap'");
+    else                         logWARNING("'innerZ' was set, ignoring 'barrelGap' & 'barrelOuterZ'");
+
+    if (innerZ() > outerZ()) throw PathfulException("Endcap innerZ higher than outerZ!");
 
     vector<double> maxDsDistances = findMaxDsDistances();
-    vector<Disk*> tdisks;
+    double         alpha          = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
 
-    double alpha = pow(outerZ()/innerZ(), 1/double(numDisks()-1)); // geometric progression factor
+    // Build disks
+    vector<Disk*> tdisks;
 
     for (int i = 1; i <= numDisks(); i++) {
       Disk* diskp = GeometryFactory::make<Disk>();
@@ -81,6 +90,8 @@ void Endcap::build()
       Disk* diskn = GeometryFactory::clone(*diskp);
       diskn->mirrorZ();
 
+      diskp->setup();
+      diskn->setup();
       tdisks.push_back(diskp);
       tdisks.push_back(diskn);
     }
@@ -107,10 +118,10 @@ void Endcap::build()
 //
 void Endcap::setup()
 {
-  maxR.setup([&]() { double max = 0;                                  for (const auto& d : m_disks) { max = MAX(max, d.maxR()); } return max; });
-  minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { min = MIN(min, d.minR()); } return min; });
-  maxZ.setup([&]() { double max =-std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
-  minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
+  maxR.setup([this]() { double max = 0;                                  for (const auto& d : m_disks) { max = MAX(max, d.maxR()); } return max; });
+  minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { min = MIN(min, d.minR()); } return min; });
+  maxZ.setup([this]() { double max =-std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
+  minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& d : m_disks) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
 }
 
 //

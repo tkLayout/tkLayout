@@ -95,7 +95,7 @@ Hit::Hit(double myDistance) {
  * @param myDistance distance from the origin
  * @param myModule pointer to the module with the hit 
  */
-Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
+Hit::Hit(double myDistance, DetectorModule* myModule, HitType activeHitType) {
     distance_    = myDistance;
     objectKind_  = Active;
     orientation_ = Undefined; 
@@ -112,7 +112,7 @@ Hit::Hit(double myDistance, Module* myModule, HitType activeHitType) {
  * Setter for the pointer to the active surface that caused the hit.
  * @param myModule A pointer to a barrel or endcap module; may be <i>NULL</i>
  */
-void Hit::setHitModule(Module* myModule) {
+void Hit::setHitModule(DetectorModule* myModule) {
     if (myModule) {
         hitModule_ = myModule;
         if (myModule->subdet() == BARREL) {

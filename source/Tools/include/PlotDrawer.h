@@ -17,7 +17,7 @@
 #include <TCanvas.h>
 
 #include <Palette.h>
-#include <Module.h>
+#include <DetectorModule.h>
 
 
 
@@ -80,16 +80,16 @@ public:
 // ==============================================================================================
 
 
-template<class RetType, RetType (Module::*ModuleMethod)() const>
+template<class RetType, RetType (DetectorModule::*ModuleMethod)() const>
 struct Method {
-  double operator()(const Module& m) const { return (double)(m.*ModuleMethod)(); }
+  double operator()(const DetectorModule& m) const { return (double)(m.*ModuleMethod)(); }
 };
 
 
 
 struct TypeAutoColor { // Auto-assign colors
   std::set<std::string> colorSet_;
-  double operator()(const Module& m) { 
+  double operator()(const DetectorModule& m) {
     std::pair<std::set<std::string>::iterator, bool> it = colorSet_.insert(m.moduleType());
     return Palette::color(std::distance(colorSet_.begin(), it.first)+1);
   }
@@ -97,14 +97,14 @@ struct TypeAutoColor { // Auto-assign colors
 
 
 struct Type { // Module-maintained color
-  double operator()(const Module& m) { 
+  double operator()(const DetectorModule& m) {
     return Palette::color(m.plotColor());
   }
 };
 
 
 struct CoordZ {
-  double operator()(const Module& m) { return m.center().Z(); }
+  double operator()(const DetectorModule& m) { return m.center().Z(); }
 };
 
 
@@ -170,12 +170,12 @@ public:
 
 template<const int SubdetType>
 struct CheckType {
-  bool operator()(const Module& m) const { return m.subdet() & SubdetType; }
+  bool operator()(const DetectorModule& m) const { return m.subdet() & SubdetType; }
 };
 
 template<const int PhiIndex>
 struct CheckPhiIndex {
-  bool operator()(const Module& m) const { return m.posRef().phi == PhiIndex; }
+  bool operator()(const DetectorModule& m) const { return m.posRef().phi == PhiIndex; }
 };
 
 // ===============================================================================================
@@ -192,7 +192,7 @@ struct Rounder {
 
 struct XY : public std::pair<int, int>, private Rounder {
   const bool valid;
-  XY(const Module& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
+  XY(const DetectorModule& m) : std::pair<int, int>(round(m.center().X()), round(m.center().Y())), valid(m.center().Z() >= 0) {}
   XY(const XYZVector& v) : std::pair<int, int>(round(v.X()), round(v.Y())), valid(v.Z() >= 0) {}
   // bool operator<(const XY& other) const { return (x() < other.x()) || (x() == other.x() && y() < other.y()); }
   int x() const { return this->first; }
@@ -202,7 +202,7 @@ struct XY : public std::pair<int, int>, private Rounder {
 
 struct YZ : public std::pair<int, int>, private Rounder {
   const bool valid;
-  YZ(const Module& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
+  YZ(const DetectorModule& m) : std::pair<int,int>(round(m.center().Z()), round(m.center().Rho())), valid(m.center().Z() >= 0) {}
   YZ(const XYZVector& v) : std::pair<int, int>(round(v.Z()), round(v.Rho())), valid(v.Z() >= 0) {}
   //  bool operator<(const YZ& other) const { return (y() < other.y()) || (y() == other.y() && z() < other.z()); }
   int y() const { return this->second; }
@@ -211,7 +211,7 @@ struct YZ : public std::pair<int, int>, private Rounder {
 
 struct YZFull : public YZ {
   const bool valid;
-  YZFull(const Module& m) : YZ(m), valid(true) {}
+  YZFull(const DetectorModule& m) : YZ(m), valid(true) {}
   YZFull(const XYZVector& v) : YZ(v), valid(true) {}
 };
 
@@ -228,7 +228,7 @@ public:
   CoordTypeX minx() const { return double(minx_)/Rounder::mmFraction; }
   CoordTypeY maxy() const { return double(maxy_)/Rounder::mmFraction; }
   CoordTypeY miny() const { return double(miny_)/Rounder::mmFraction; }
-  TPolyLine* operator()(const Module& m) {
+  TPolyLine* operator()(const DetectorModule& m) {
     std::set<CoordType> xy; // duplicate detection
     double x[] = {0., 0., 0., 0., 0.}, y[] = {0., 0., 0., 0., 0.};
     int j=0;
@@ -248,8 +248,8 @@ public:
       y[j++] = y[0];
     }
     // TODO: Rework the global constant g, that's terrible approach!!!
-    return (new TPolyLine(j, x, y));
     //return !g ? new TPolyLine(j, x, y) : drawMod();
+    return (new TPolyLine(j, x, y));
   }
 };
 
@@ -323,7 +323,7 @@ struct HistogramFrameStyle {
 /// Usage:
 /// 1) Construct a PlotDrawer object: PlotDrawer<CoordType, ValueGetterType, StatType> drawer(viewportMaxX, viewportMaxY, valueGetter);
 ///    - CoordType is the coordinate class: XY, YZ or YZFull (for Z- and Z+ sections together)
-///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a Module& and returning a double can be used here. 
+///    - ValueGetterType obtains a value from modules to decide their color. Any functor or lambda taking a DetectorModule& and returning a double can be used here.
 ///      Some ValueGetters are pre-defined. In case of user-defined ValueGetters, if possible use lambda or classes local to the instantiation of your PlotDrawer to avoid polluting this header with additional declarations
 ///    - StatType is the type of statistic to do on the module values obtained with the ValueGetters, in case two modules occupy the same map bin.
 ///      Default is NoStat, where values overwrite each other and the last one counts. Average, Max, Min, Sum are also available and custom statistics can be defined by the user.
@@ -332,7 +332,7 @@ struct HistogramFrameStyle {
 /// 2) Add modules to the internal maps, using either:
 ///    - void addModulesType(begin, end, moduleTypes); where the last argument moduleTypes can be the constants BARREL, ENDCAP or BARREL | ENDCAP, to restrict to one subdetector or both
 ///    - void addModules<ModuleValidator>(begin, end, isValid);  where the last argument isValid is of ModuleValidator type. 
-///      A ModuleValidator is a lambda or functor taking a const Module& and returning a bool, used to decide whether a module should be included or not in the plot
+///      A ModuleValidator is a lambda or functor taking a const DetectorModule& and returning a bool, used to decide whether a module should be included or not in the plot
 /// 3) Draw the plot frame: void drawFrame<FrameStyleType>(canvas, frameStyle)
 ///   - FrameStyleType is the type of frame to draw. The predefined classes are SummaryFrameStyle (which draws eta lines) or HistogramFrameStyle (which draws the legend colour bar)
 ///   - canvas is the TCanvas to draw on. cd() is called automatically by the PlotDrawer
@@ -365,7 +365,7 @@ public:
   template<template<class> class FrameStyleType> void drawFrame(TCanvas& canvas, bool isPixelType=false, const FrameStyleType<CoordType>& frameStyle = FrameStyleType<CoordType>());
   template<class DrawStyleType> void drawModules(TCanvas& canvas, const DrawStyleType& drawStyle = DrawStyleType());
 
-  void add(const Module& m);
+  void add(const DetectorModule& m);
   template<class InputIterator> bool addModulesType(InputIterator begin, InputIterator end, int moduleTypes = BARREL | ENDCAP);
   template<class ModuleValidator, class InputIterator> void addModules(InputIterator begin, InputIterator end, const ModuleValidator& isValid = ModuleValidator());
 
@@ -414,7 +414,7 @@ void PlotDrawer<CoordType, ValueGetterType, StatType>::drawModules(TCanvas& canv
 }
 
 template<class CoordType, class ValueGetterType, class StatType>
-void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const Module& m) {
+void PlotDrawer<CoordType, ValueGetterType, StatType>::add(const DetectorModule& m) {
   CoordType c(m);
   if (!c.valid) return;
   if (bins_[c] == NULL) {

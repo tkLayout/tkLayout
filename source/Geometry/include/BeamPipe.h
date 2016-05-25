@@ -54,8 +54,11 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   //! Copy constructor
   BeamPipe(const BeamPipe&) = default;
 
-  //! Buidl method - setting all parameters -> private method called by constructor
+  //! Build method - setting all parameters -> private method called by constructor
   void build();
+
+  //! Calculate various beam-pipe related properties -> private method called by constructor
+  void setup() {};
 
   insur::InactiveTube* m_tube; //!< Beam pipe as inactive tube;
 

@@ -4,10 +4,12 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 #include "Sensor.h"
-#include "ModuleBase.h"
 #include "GeometricModule.h"
+#include "GeometryFactory.h"
 #include "CoordinateOperations.h"
+#include "Property.h"
 #include "Visitable.h"
+#include "Visitor.h"
 #include "MaterialObject.h"
 #include "MessageLogger.h"
 
@@ -43,7 +45,8 @@ using material::ElementsVector;
 /*
  * Detector module class - base to Barrel & Endcap classes
  */
-class DetectorModule : public Decorator<GeometricModule>, public ModuleBase {// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
+class DetectorModule : public Decorator<GeometricModule>, public PropertyObject, public Buildable, public Placeable, public Identifiable<int>, public Visitable
+{// implementors of the DetectorModuleInterface must take care of rotating the module based on which part of the subdetector it will be used in (Barrel, EC)
   PropertyNode<int> sensorNode;
 
   typedef PtrVector<Sensor> Sensors;

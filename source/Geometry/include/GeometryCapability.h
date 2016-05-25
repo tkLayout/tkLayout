@@ -1,64 +1,66 @@
-#ifndef CAPABILITIES_H
-#define CAPABILITIES_H
+#ifndef INCLUDE_GEOMETRY_CAPABILITY_H_
+#define INCLUDE_GEOMETRY_CAPABILITY_H_
 
 #include <typeinfo>
 #include <string>
 
-#include "GeometryFactory.h"
-
-using std::string;
-
-
-class Buildable {
-protected:
-  bool built_;
-public:
-  Buildable() : built_(false) {}
-  bool builtok() const { return built_; }
-  void builtok(bool state) { built_ = state; }
-};
-
-class Placeable {
-protected:
-  bool placed_;
-public:
-  Placeable() : placed_(false) {}
-  bool placed() const { return placed_; }
-  void placed(bool state) { placed_ = state; }
-};
 /*
-typedef string IdentifiableType;
+ * Set that object has unique identifier that built properly
+ */
+class Buildable
+{
 
-template<class T>
-class Identifiable {
-  const string base_;
-  T::IdType myid_;
-public:
-  Identifiable() : base_(typeid(T).name()), myid_("NOID") {}
-  //template<class U> void myid(U id) { myid_ = any2str(id); }
-  void myid(T::IdType id) { myid_ = id; }
-  T::IdType myid() const { return myid_; }
-  IdentifiableType fullid() const { return base_ + "(" + any2str(myid()) + ")"; }
-};
-*/
-template<class T>
-class Identifiable {
-  T myid_;
-public:
-  void myid(const T& id) { myid_ = id; }
-  const T& myid() const { return myid_; }
-};
+ public:
+  Buildable() : m_built(false) {}
+  bool    builtok() const     { return m_built; }
+  void    builtok(bool state) { m_built = state; }
 
-template<class T> string fullid(const T& o) { return string(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
+ protected:
+  bool m_built;
+}; // Class
+
+/*
+ * Set that object has unique identifier that placed in space
+ */
+class Placeable
+{
+
+ public:
+  Placeable() : m_placed(false) {}
+  bool placed() const     { return m_placed; }
+  void placed(bool state) { m_placed = state; }
+
+ protected:
+  bool m_placed;
+}; // Class
+
+/*
+ * Set that object has unique id
+ */
+template<class T> class Identifiable
+{
+
+ public:
+  const T& myid() const      { return m_myid; }
+  void     myid(const T& id) { m_myid = id; }
 
 
-template<class T>
-class Clonable {
-  template<class U> static void conditionalSetup(U* t, typename std::enable_if<std::is_void<decltype(t->setup())>::value>::type* = 0) { t->setup(); } 
-  static void conditionalSetup(...) {}
-protected:
-  Clonable(const Clonable&) {}
-public:
+ private:
+  T m_myid;
+}; // Class
+
+/*
+ * General method returning object type & its unique id (template object T must be identifiable)
+ */
+template<class T> std::string fullid(const T& o) { return std::string(typeid(T).name()) + "(" + any2str(o.myid()) + ")"; }
+
+/*
+ * Set that object clonable (currently GeometryFactory used instead)
+ */
+template<class T> class Clonable
+{
+
+ public:
   Clonable() {}
   T* clone() const {
     T* t = new T(static_cast<const T&>(*this));
@@ -71,8 +73,12 @@ public:
     conditionalSetup(t);
     return t;
   }
-};
 
+  template<class U> static void conditionalSetup(U* t, typename std::enable_if<std::is_void<decltype(t->setup())>::value>::type* = 0) { t->setup(); }
+  static void conditionalSetup(...) {}
 
+ protected:
+  Clonable(const Clonable&) {}
+}; // Class
 
-#endif
+#endif /* INCLUDE_GEOMETRY_CAPABILITY_H_ */

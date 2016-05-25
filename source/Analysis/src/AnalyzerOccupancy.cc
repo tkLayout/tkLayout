@@ -537,7 +537,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           // Correction not needed - calculated already on surface
           //if (c_assumeFlowsFromIP && layer.placeRadius()!=0) cosTheta = cos(atan(zPos/layer.placeRadius()));
 
-          double flux  = m_chargedMap->calculateIrradiationZR(zPos, layer.placeRadius());//*cosTheta;
+          double flux  = m_chargedMap->calculateIrradiationZR(zPos, layer.avgBuildRadius());//*cosTheta;
                  //flux += m_photonsMap->calculateIrradiationZR(zPos, layer.placeRadius());
 
           if (flux>maxFlux) {
@@ -552,7 +552,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
         std::vector<long> vecNHits, vecNChannels;
         m_layerNHits.push_back(vecNHits);
         m_layerNChannels.push_back(vecNChannels);
-        m_layerRadii.push_back(layer.placeRadius());
+        m_layerRadii.push_back(layer.avgBuildRadius());
         m_layerMinFluxes.push_back(minFlux);
         m_layerMaxFluxes.push_back(maxFlux);
         m_layerMaxFluxZ.push_back(maxZPos);

@@ -1,5 +1,5 @@
-#ifndef ENDCAP_H
-#define ENDCAP_H
+#ifndef INCLUDE_ENDCAP_H_
+#define INCLUDE_ENDCAP_H_
 
 #include <vector>
 #include <string>
@@ -31,7 +31,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
  public:
 
   //! Constructor - parse geometry config file using boost property tree & read-in Disk, Support nodes
-  Endcap(double brlMaxZ, const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty);
+  Endcap(double barrelOuterZ, const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty);
 
   //! Limit endcap geometry by eta cut
   void cutAtEta(double eta);
@@ -48,10 +48,9 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   //! GeometryVisitor pattern -> endcap visitable (const. option)
   void accept(ConstGeometryVisitor& v) const;
 
-  Property<        int   , NoDefault>  numDisks;     //!< Total number of discs to be built between minZ (innerZ) and maxZ (outerZ) positions
-  Property<        double, NoDefault>  barrelMaxZ;   //!< Start building disks in Z given by maximum Z distance of all barrels + m_barrelGap
-  Property<        double, NoDefault>  innerZ;       //!< Start building disks at innerZ (i.e. minimum Z)
-  Property<        double, NoDefault>  outerZ;       //!< End building disks at outerZ (i.e. maximum Z)
+  Property<        int   , NoDefault>  numDisks;     //!< Total number of discs to be built between innerZ and outerZ positions
+  Property<        double, NoDefault>  innerZ;       //!< Start building disks at innerZ
+  Property<        double, NoDefault>  outerZ;       //!< End building disks at outerZ
   ReadonlyProperty<double, Computable> minZ;         //!< Minimum Z position of an endcap
   ReadonlyProperty<double, Computable> maxZ;         //!< Maximum Z position of an endcap
   ReadonlyProperty<double, Computable> minR;         //!< Minimum radius of an endcap
@@ -72,13 +71,12 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   Disks                   m_disks;              //!< Disks of given endcap
   EndcapSupportStructures m_supportStructures;  //!< Endcap supports
 
-  Property<double, NoDefault>     m_barrelGap;  //!< Gap between the end-point in Z of barrel detector and starting point in Z of end-cap detector
+  Property<double, NoDefault>     m_barrelOuterZ; //!< Start building disks in Z given by maximum Z distance of all barrels + m_barrelGap
+  Property<double, NoDefault>     m_barrelGap;    //!< Gap between the end-point in Z of barrel detector and starting point in Z of end-cap detector
 
-  PropertyNode<int>               m_diskNode;   //!< Property tree nodes for disks (included geometry config file)
-  PropertyNodeUnique<std::string> m_supportNode;//!< Property tree nodes for endcap supports (included geometry config file)
+  PropertyNode<int>               m_diskNode;     //!< Property tree nodes for disks (included geometry config file)
+  PropertyNodeUnique<std::string> m_supportNode;  //!< Property tree nodes for endcap supports (included geometry config file)
 
-};
+}; // Class
 
-
-
-#endif
+#endif /* INCLUDE_ENDCAP_H_ */

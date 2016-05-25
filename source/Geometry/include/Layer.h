@@ -1,5 +1,5 @@
-#ifndef LAYER_H
-#define LAYER_H
+#ifndef INCLUDE_LAYER_H_
+#define INCLUDE_LAYER_H_
 
 #include <vector>
 #include <string>
@@ -7,15 +7,16 @@
 
 #include "global_funcs.h"
 #include "Property.h"
-#include "Module.h"
 #include "RodPair.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
 
+// Forward declaration
 namespace material {
   class ConversionStation;
 }
 
+// Used namespace in following classes
 using std::string;
 using std::vector;
 using std::pair;
@@ -23,108 +24,120 @@ using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
 
+// Typedefs
+typedef PtrVector<RodPair>              Rods;
+typedef std::vector<ConversionStation*> ConversionStations;
+enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
+
+/*
+ * @class Layer
+ * @details Layer class holds information about individual barrel layers. It's building procedure is executed automatically via
+ * Barrel class. Similarly, all its components (layer rods (ladders) -> modules) are recursively called through build()
+ * method. Depending on the configuration, either straight layers are built using buildStraight() method or tilted using
+ * buildTilted() method. Call setup() method after the geometry is built to assign (lambda) functions to various barrel
+ * related properties.
+ */
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
-public:
-  typedef PtrVector<RodPair> Container;
-private:
-  Container rods_;
-  MaterialObject materialObject_;
-  ConversionStation* flangeConversionStation_;
-  std::vector<ConversionStation*> secondConversionStations_;
- 
-  double calculatePlaceRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
-  pair<float, int> calculateOptimalLayerParms(const RodTemplate&);
-  RodTemplate makeRodTemplate();
 
-  Property<double, NoDefault> smallDelta, bigDelta;
-  Property<int, Default> bigParity;
-  Property<double, Default> phiOverlap;
-  Property<int, Default> phiSegments;
+ public:
 
-  PropertyNode<int> ringNode; // to grab properties for specific rod modules
-  PropertyNodeUnique<std::string> stationsNode;
+  //! Constructor - parse geometry config file using boost property tree & read-in Layer parameters
+  Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
+        const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
 
-  double placeRadius_;
-  int numRods_;
+  //! Build recursively individual subdetector systems: rods -> modules & conversion stations
+  void build(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
-  void buildStraight();
-  void buildTilted();
-public:
-  Property<int, AutoDefault> buildNumModules;
-  ReadonlyProperty<double, UncachedComputable> maxZ, minZ;
-  ReadonlyProperty<double, Computable> maxR, minR;
+  //! Setup: link lambda functions to various layer related properties (use setup functions for ReadOnly Computable properties)
+  void setup();
 
-  enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
-  Property<RadiusMode, Default> radiusMode;
-  Property<double, NoDefault> placeRadiusHint;
-
-  Property<double, NoDefault> minBuildRadius;
-  Property<double, NoDefault> maxBuildRadius;
-  Property<bool, Default> sameParityRods;
-  Property<double, Default> layerRotation;
-
-  Property<string, AutoDefault> tiltedLayerSpecFile;
-
-  Layer() :
-            materialObject_(MaterialObject::LAYER),
-            flangeConversionStation_(nullptr),
-            smallDelta     ("smallDelta"     , parsedAndChecked()),
-            bigDelta       ("bigDelta"       , parsedAndChecked()),
-            bigParity      ("bigParity"      , parsedOnly(), -1),
-            phiOverlap     ("phiOverlap"     , parsedAndChecked(), 1.),
-            phiSegments    ("phiSegments"    , parsedAndChecked(), 4),
-            ringNode       ("Ring"           , parsedOnly()),
-            stationsNode   ("Station"        , parsedOnly()),
-            buildNumModules("numModules"     , parsedOnly()),
-            maxZ           ("maxZ"           , parsedOnly()),
-            radiusMode     ("radiusMode"     , parsedAndChecked(), RadiusMode::AUTO),
-            placeRadiusHint("placeRadiusHint", parsedOnly()),
-            minBuildRadius ("minBuildRadius" , parsedOnly()),
-            maxBuildRadius ("maxBuildRadius" , parsedOnly()),
-            layerRotation  ("layerRotation",   parsedOnly(), 0.),
-            sameParityRods ("sameParityRods" , parsedAndChecked(), false),
-            tiltedLayerSpecFile("tiltedLayerSpecFile", parsedOnly())
-  { setup(); }
-
-  void setup() {
-    maxZ.setup([this]() { return rods_.front().maxZ(); });
-    minZ.setup([this]() { return rods_.front().minZ(); });
-    maxR.setup([this]() { double max = 0;                                  for (const auto& r : rods_) { max = MAX(max, r.maxR()); } return max; });
-    minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& r : rods_) { min = MIN(min, r.minR()); } return min; });
-  }
-
-  double placeRadius() const { return placeRadius_; }
-  int numRods() const { return rods_.size(); }
-  int numModulesPerRod() const { return rods_.front().numModules(); };
-  int numModulesPerRodSide(int side) const { return rods_.front().numModulesSide(side); }
-  int totalModules() const { return numModulesPerRod()*numRods(); };
-  double rodThickness() const { return rods_.front().thickness(); }
-  
-  double tilt() const { return 0.0; }
-  double startAngle() const { return 0.0; }
-
-  void check() override;
-  void build();
-
-  const Container& rods() const { return rods_; }
-
+  //! Limit layer geometry by eta cut
   void cutAtEta(double eta);
-  void rotateZ(double angle) { for (auto& r : rods_) r.rotateZ(angle); } 
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& r : rods_) { r.accept(v); }
-  }
-  void accept(ConstGeometryVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& r : rods_) { r.accept(v); }
-  }
-  const MaterialObject& materialObject() const;
+  //! Return layer rods
+  const Rods& rods() const { return m_rods; }
 
-  ConversionStation* flangeConversionStation() const;
-  const std::vector<ConversionStation*>& secondConversionStations() const;
-};
+  //! Return layer as a material object
+  const MaterialObject& materialObject() const { return m_materialObject; }
 
+  //! Return first order conversion station -> TODO: check if needed to be updatable, use PtrVector instead
+  ConversionStation* flangeConversionStation() const {return m_flangeConversionStation; }
 
+  //! Return vector of second order conversion stations -> TODO: check if needed to be updatable, use reference instead
+  ConversionStations secondConversionStations() const {return m_secondConversionStations; }
 
-#endif
+  //! GeometryVisitor pattern -> layer visitable
+  void accept(GeometryVisitor& v);
+
+  //! GeometryVisitor pattern -> layer visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
+
+  //! Get number of rods in a layer
+  int numRods() const { return m_rods.size(); }
+
+  //! Get number of modules per rod
+  int numModulesPerRod() const { return m_rods.front().numModules(); }
+
+  //! Get number of modules per rod side (side>0 <=> z+ side, side<0 <=> z- side)
+  int numModulesPerRodSide(int side) const { return m_rods.front().numModulesSide(side); }
+
+  //! Get total number of modules in a layer
+  int totalModules() const { return numModulesPerRod()*numRods(); };
+
+  //! Get rod thickness
+  double rodThickness() const { return m_rods.front().thickness(); }
+
+  ReadonlyProperty<double    , UncachedComputable> minZ;               //!< Minimum layer Z
+  ReadonlyProperty<double    , UncachedComputable> maxZ;               //!< Maximum layer Z
+  ReadonlyProperty<double    , Computable>         minR;               //!< Minimum layer radius (given by different positions of layer modules - big & smallDelta)
+  ReadonlyProperty<double    , Computable>         maxR;               //!< Maximum layer radius (given by different positions of layer modules - big & smallDelta)
+  Property<        double    , NoDefault>          outerZ;             //!< Outer Z position (maximum Z), if buildNumModules not defined, this variable used instead to define layer halfLength
+  Property<        int       , AutoDefault>        buildNumModules;    //!< Number of modules to be built in each layer, if not defined outerZ variable used instead
+
+  //! Defines which algorithm used to optimize layer radius for straight option: F (fixed), A (auto), E (expand) or S (shrink).
+  //! F stands for the positioning at a user-defined radii, i.e. fixed radii.
+  //! E stands for an expansion, i.e. optimal radius is bigger then the current one and detectors are positioned to an expanded radius.
+  //! S stands for shrinking, i.e. optimal position is lower then the current one and detectors are positioned to a shrunk radius.
+  //! A stands for an automatic mode, i.e. the closer configuration is chosen, either E or S. That's the implicit build mode.
+  //! In addition, modules are positioned such as all lines (at various eta) going from the primary vertex, defined as (0, 0, +-zErrorCollider), are always passing through edges of layer modules.
+  //! The positioning algorithm starts at Z=0 and takes then into consideration the extreme cases, taking into account all parameters: bigDelta, smallDelta, zError, z/phiOverlap
+  Property<RadiusMode, Default>            radiusMode;
+  Property<double    , NoDefault>          requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
+  Property<double    , Computable>         avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
+  Property<bool      , Default>            sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
+  Property<bool      , Default>            sameRods;            //!< Use the same zig-zag algorithm (+-small delta) for even & odd rods in a layer -> important from engineering point of view
+  Property<double    , Default>            layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
+  Property<string    , AutoDefault>        tiltedLayerSpecFile; //!< Configuration file for tilted option
+
+ private:
+
+  //! Cross-check parameters provdied from geometry configuration file
+  void check() override;
+
+  //! If straight layer required, build() method internally calls buildStraight()
+  void buildStraight(int barrelNumLayers, double barrelMinR, double barrelMaxR);
+
+  //! If tilted layer required, build() method internally calls buildTilted()
+  //void buildTilted();
+
+  //! Helper function calculating optimal layer radius for straight option
+  double calculateOptimalRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
+
+  Rods               m_rods;                     //!< Layer rods
+  MaterialObject     m_materialObject;
+  ConversionStation* m_flangeConversionStation;  //!< First order layer conversion unit
+  ConversionStations m_secondConversionStations; //!< Vector of second order layer conversion units
+
+  Property<double, NoDefault> m_smallDelta;      //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
+  Property<int   , Default>   m_smallParity;     //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
+  Property<double, NoDefault> m_bigDelta;        //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
+  Property<int   , Default>   m_bigParity;       //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
+  Property<double, Default>   m_phiOverlap;      //!< Required module overlap in R-Phi (in length units)
+  Property<int   , Default>   m_phiSegments;     //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+
+  PropertyNode<int>               m_ringNode;    // TODO: ??? (to grab properties for specific rod modules)
+  PropertyNodeUnique<std::string> m_stationsNode;//!< Property tree nodes for conversion stations (included geometry config file)
+
+}; // Class
+
+#endif /* INCLUDE_LAYER_H_ */

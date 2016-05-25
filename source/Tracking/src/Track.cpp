@@ -678,7 +678,7 @@ void Track::keepTriggerOnly() {
 	// if (debugRemoval) std::cerr << "pixel: removed";
 	(*it)->setObjectKind(Hit::Inactive);
       } else {
-	Module* myModule = (*it)->getHitModule();
+	DetectorModule* myModule = (*it)->getHitModule();
 	if (myModule) {
 	  // if (debugRemoval) std::cerr << "module ";
 	  if (myModule->sensorLayout() != PT) {
@@ -703,7 +703,7 @@ void Track::keepTriggerOnly() {
 
 void Track::keepTaggedOnly(const string& tag) {
   for (auto h : hitV_) {
-    Module* m = h->getHitModule();
+    DetectorModule* m = h->getHitModule();
     if (!m) continue;
     if (std::count_if(m->trackingTags.begin(), m->trackingTags.end(), [&tag](const string& s){ return s == tag; })) h->setObjectKind(Hit::Active);
     else h->setObjectKind(Hit::Inactive);
@@ -776,7 +776,7 @@ double Track::expectedTriggerPoints(const double& triggerMomentum) const {
 	(myHit->getObjectKind()==Hit::Active)) {
       // We've got a possible trigger here
       // Let's find the corresponding module
-      Module* myModule = myHit->getHitModule();
+      DetectorModule* myModule = myHit->getHitModule();
       if (myModule) {
 	result += PtErrorAdapter(*myModule).getTriggerProbability(triggerMomentum);
       } else {
@@ -789,10 +789,10 @@ double Track::expectedTriggerPoints(const double& triggerMomentum) const {
 }
 
 
-std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
+std::vector<std::pair<DetectorModule*, HitType>> Track::getHitModules() const {
   std::vector<Hit*>::const_iterator hitIt;
   Hit* myHit;
-  std::vector<std::pair<Module*, HitType>> result;
+  std::vector<std::pair<DetectorModule*, HitType>> result;
 
   for (hitIt=hitV_.begin(); hitIt!=hitV_.end(); ++hitIt) {
     myHit=(*hitIt);
@@ -802,7 +802,7 @@ std::vector<std::pair<Module*, HitType>> Track::getHitModules() const {
         (myHit->getObjectKind()==Hit::Active)) {
       // We've got a possible trigger here
       // Let's find the corresponding module
-      Module* myModule = myHit->getHitModule();
+      DetectorModule* myModule = myHit->getHitModule();
       if (myModule) {
         result.push_back(std::make_pair(myModule, myHit->getActiveHitType()));
       } else {

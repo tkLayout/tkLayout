@@ -17,20 +17,25 @@ using material::SupportStructure;
 //
 // Helper class: Name visitor - methods
 //
-void HierarchicalNameVisitor::visit(Barrel& b)       { cnt = b.myid(); cntId++; }
-void HierarchicalNameVisitor::visit(Endcap& e)       { cnt = e.myid(); cntId++; }
-void HierarchicalNameVisitor::visit(Layer& l)        { c1 = l.myid(); }
-void HierarchicalNameVisitor::visit(Disk& d)         { c1 = d.myid(); }
-void HierarchicalNameVisitor::visit(RodPair& r)      { c2 = r.myid(); }
-void HierarchicalNameVisitor::visit(Ring& r)         { c2 = r.myid(); }
-void HierarchicalNameVisitor::visit(Module& m)       { m.cntNameId(cnt, cntId); }
-void HierarchicalNameVisitor::visit(BarrelModule& m) { m.layer(c1); m.rod(c2); }
-void HierarchicalNameVisitor::visit(EndcapModule& m) { m.disk(c1); m.ring(c2); }
+void HierarchicalNameVisitor::visit(Barrel& b)        { cnt = b.myid(); cntId++; }
+void HierarchicalNameVisitor::visit(Endcap& e)        { cnt = e.myid(); cntId++; }
+void HierarchicalNameVisitor::visit(Layer& l)         { c1 = l.myid(); }
+void HierarchicalNameVisitor::visit(Disk& d)          { c1 = d.myid(); }
+void HierarchicalNameVisitor::visit(RodPair& r)       { c2 = r.myid(); }
+void HierarchicalNameVisitor::visit(Ring& r)          { c2 = r.myid(); }
+void HierarchicalNameVisitor::visit(DetectorModule& m){ m.cntNameId(cnt, cntId); }
+void HierarchicalNameVisitor::visit(BarrelModule& m)  { m.layer(c1); m.rod(c2); }
+void HierarchicalNameVisitor::visit(EndcapModule& m)  { m.disk(c1); m.ring(c2); }
 
 //
 // Constructor - parse geometry config file using boost property tree & read-in Barrel, Endcap & Support nodes
 //
 Tracker::Tracker(const PropertyTree& treeProperty) :
+ minR(     string("minR")           ),
+ maxR(     string("maxR")           ),
+ maxZ(     string("maxZ")           ),
+ minEta(   string("minEta")         ),
+ maxEta(   string("maxEta")         ),
  etaCut(          "etaCut"          , parsedOnly(), insur::geom_max_eta_coverage),
  isPixelType(     "isPixelType"     , parsedOnly(), true),
  servicesForcedUp("servicesForcedUp", parsedOnly(), true),
@@ -44,14 +49,10 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
   // Set the geometry config parameters
   this->myid(treeProperty.data());
   this->store(treeProperty);
-
-  // Build & setup tracker
-  this->build();
-  this->setup();
 }
 
 //
-// Build recursively individual subdetector systems: Barrels, Endcaps  -> private method called by constructor
+// Build recursively individual subdetector systems: Barrels, Endcaps
 //
 void Tracker::build() {
 
@@ -61,11 +62,15 @@ void Tracker::build() {
     double barrelMaxZ = 0;
 
     // Build barrel tracker
-    for (auto& mapel : m_barrelNode) {
-      if (!m_containsOnly.empty() && m_containsOnly.count(mapel.first) == 0) continue;
+    for (auto& iBarrel : m_barrelNode) {
+      if (!m_containsOnly.empty() && m_containsOnly.count(iBarrel.first) == 0) continue;
 
-      Barrel* barrel = GeometryFactory::make<Barrel>(mapel.first, mapel.second, propertyTree());
+      std::cout << "  " << iBarrel.first << std::endl;
+      Barrel* barrel = GeometryFactory::make<Barrel>(iBarrel.first, iBarrel.second, propertyTree());
+      barrel->build();
+      barrel->setup();
       barrel->cutAtEta(etaCut());
+
       m_barrels.push_back(barrel);
 
       // Calculate barrel maxZ position
@@ -73,18 +78,22 @@ void Tracker::build() {
     }
 
     // Build end-cap tracker
-    for (auto& mapel : m_endcapNode) {
-      if (!m_containsOnly.empty() && m_containsOnly.count(mapel.first) == 0) continue;
-      Endcap* e = GeometryFactory::make<Endcap>(barrelMaxZ, mapel.first, mapel.second, propertyTree());
+    for (auto& iEndcap : m_endcapNode) {
+      if (!m_containsOnly.empty() && m_containsOnly.count(iEndcap.first) == 0) continue;
+
+      std::cout << "  " << iEndcap.first << std::endl;
+      Endcap* e = GeometryFactory::make<Endcap>(barrelMaxZ, iEndcap.first, iEndcap.second, propertyTree());
       e->cutAtEta(etaCut());
       m_endcaps.push_back(e);
     }
 
     // Build support structures within tracker
-    for (auto& mapel : m_supportNode) {
+    for (auto& iSupport : m_supportNode) {
+
+      std::cout << "  " << iSupport.first << std::endl;
       SupportStructure* s = new SupportStructure();
       s->store(propertyTree());
-      s->store(mapel.second);
+      s->store(iSupport.second);
       s->buildInTracker();
       m_supportStructures.push_back(s);
     }
@@ -104,34 +113,34 @@ void Tracker::build() {
 }
 
 //
-// Calculate various tracker related properties -> private method called by constructor
+// Setup: link functions to various tracker related properties (use setup functions for ReadOnly Computable properties)
 //
 void Tracker::setup() {
 
-  maxR.setup([this]() {
+  maxR.setup([&]() {
     double max = 0;
     for (const auto& b : m_barrels) max = MAX(max, b.maxR());
     for (const auto& e : m_endcaps) max = MAX(max, e.maxR());
     return max;
   });
-  minR.setup([this]() {
+  minR.setup([&]() {
     double min = std::numeric_limits<double>::max();
     for (const auto& b : m_barrels) min = MIN(min, b.minR());
     for (const auto& e : m_endcaps) min = MIN(min, e.minR());
     return min;
   });
-  maxZ.setup([this]() {
+  maxZ.setup([&]() {
     double max = 0;
     for (const auto& b : m_barrels) max = MAX(max, b.maxZ());
     for (const auto& e : m_endcaps) max = MAX(max, e.maxZ());
     return max;
   });
-  minEta.setup([this]() {
+  minEta.setup([&]() {
     double min = std::numeric_limits<double>::max();
     for (const auto& m : m_modulesSetVisitor.modules()) min = MIN(min, m->minEta());
     return min;
   });
-  maxEta.setup([this]() {
+  maxEta.setup([&]() {
     double max = -std::numeric_limits<double>::max();
     for (const auto& m : m_modulesSetVisitor.modules()) max = MAX(max, m->maxEta());
     return max;
@@ -141,7 +150,8 @@ void Tracker::setup() {
 //
 // GeometryVisitor pattern -> tracker visitable
 //
-void Tracker::accept(GeometryVisitor& v) {
+void Tracker::accept(GeometryVisitor& v)
+{
   v.visit(*this);
   for (auto& b : m_barrels) { b.accept(v); }
   for (auto& e : m_endcaps) { e.accept(v); }

@@ -27,6 +27,7 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
 
   // Build & setup tracker
   this->build();
+  this->setup();
 }
 
 //

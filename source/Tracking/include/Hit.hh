@@ -7,7 +7,7 @@
 #ifndef _HIT_HH_
 #define _HIT_HH_
 
-#include "Module.h"
+#include "DetectorModule.h"
 #include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
 #include <cmath>
@@ -41,8 +41,8 @@ protected:
   int    orientation_;   // orientation of the surface
   int    objectKind_;    // kind of hit object
   
-  Module* hitModule_;    // Pointer to the hit module
-  Track*  myTrack_;      // Pointer to the track
+  DetectorModule* hitModule_;    // Pointer to the hit module
+  Track*          myTrack_;      // Pointer to the track
   
   RILength correctedMaterial_;
   
@@ -63,10 +63,10 @@ public:
   ~Hit();
   Hit(const Hit& h);
   Hit(double myDistance);
-  Hit(double myDistance, Module* myModule, HitType activeHitType);
+  Hit(double myDistance, DetectorModule* myModule, HitType activeHitType);
   
-  Module* getHitModule() { return hitModule_; };
-  void setHitModule(Module* myModule);
+  DetectorModule* getHitModule() { return hitModule_; };
+  void setHitModule(DetectorModule* myModule);
   
   /**
    * @enum An enumeration of the category and orientation constants used within the object

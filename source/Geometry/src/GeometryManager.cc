@@ -111,12 +111,20 @@ bool GeometryManager::buildActiveTracker()
   try {
 
     auto childRange = getChildRange(*m_geomTree, "Tracker");
-    std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+    for (auto it=childRange.first; it!=childRange.second; ++it) {
 
-      Tracker* trk = new Tracker(kv.second);
+      // Message
+      if (it==childRange.first) std::cout << std::endl;
+      std::cout << " " << it->second.data() << " tracker" << std::endl;
+
+      // Create tracker
+      Tracker* trk = new Tracker(it->second);
+      trk->build();
+      trk->setup();
+
       m_activeTrackers.push_back(trk);
 
-    }); // Trackers
+    } // Trackers
 
     // Declare unmatched properties
     std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();

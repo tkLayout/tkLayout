@@ -637,7 +637,7 @@ namespace material {
 
       void visit(Layer& layer) {
         ConversionStation* flangeConversionStation = layer.flangeConversionStation();
-        const std::vector<ConversionStation*>& secondConversionStations = layer.secondConversionStations();
+        std::vector<ConversionStation*> secondConversionStations = layer.secondConversionStations();
 
         currLayer_ = &layer;
         Section* section = nullptr;

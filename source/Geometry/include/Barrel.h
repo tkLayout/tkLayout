@@ -1,5 +1,5 @@
-#ifndef BARREL_H
-#define BARREL_H
+#ifndef INCLUDE_BARREL_H_
+#define INCLUDE_BARREL_H_
 
 #include <vector>
 #include <string>
@@ -23,9 +23,10 @@ typedef PtrVector<material::SupportStructure> BarrelSupportStructures;
 
 /*
  * @class Barrel
- * @details Barrel class holds information about tracker barrel system. It's building procedure is executed automatically via
- * Tracker class. Similarly, all its components (layers -> rods -> modules) are recursively called through private build()
- * method.
+ * @details Barrel class holds information about tracker barrel system. It's building procedure is expected to be executed
+ * automatically via Tracker class build() method. Similarly, all barrel components (layers -> rods -> modules) are
+ * recursively built through barrel build() method. Call setup() method after the geometry is built to assign (lambda)
+ * functions to various barrel related properties.
  */
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 
@@ -33,6 +34,12 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   
   //! Constructor - parse geometry config file using boost property tree & read-in Layer, Support nodes
   Barrel(const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty);
+
+  //! Build recursively individual subdetector systems: Layers -> rods -> modules
+  void build();
+
+  //! Setup: link lambda functions to various barrel related properties (use setup functions for ReadOnly Computable properties)
+  void setup();
 
   //! Limit barrel geometry by eta cut
   void cutAtEta(double eta);
@@ -58,18 +65,11 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
 
  private:
 
-  //! Build recursively individual subdetector systems: Layers -> rods -> modules -> private method called by constructor
-  void build();
-
-  //! Calculate various barrel related properties -> private method called by constructor
-  void setup();
-
   Layers                  m_layers;                 //!< Layers of given barrel
   BarrelSupportStructures m_supportStructures;      //!< Barrel supports
 
   Property<double, NoDefault> m_innerRadius;        //!< Starting barrel inner radius (algorithm may optimize its value)
   Property<double, NoDefault> m_outerRadius;        //!< Starting barrel outer radius (algorithm may optimize its value)
-  Property<bool  , Default>   m_sameRods;           //!< Use the same rods (ladders) in all barrel layers? Implicitly being false.
   Property<double, Default>   m_barrelRotation;     //!< Start rod (ladder) positioning in R-Phi at Phi=barrelRotation [rad]
   Property<double, Default>   m_supportMarginOuter; // TODO: Comment
   Property<double, Default>   m_supportMarginInner; // TODO: Comment
@@ -81,4 +81,4 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
 
 }; // Class
 
-#endif
+#endif /* INCLUDE_BARREL_H_ */

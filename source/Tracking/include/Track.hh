@@ -6,7 +6,7 @@
 #ifndef _TRACK_HH_
 #define _TRACK_HH_
 
-#include "Module.h"
+#include "DetectorModule.h"
 #include "PtErrorAdapter.h"
 #include <MaterialProperties.h>
 #include <cmath>
@@ -116,7 +116,7 @@ public:
 #endif
   void addIPConstraint(double dr, double dz);
   RILength getCorrectedMaterial();
-  std::vector<std::pair<Module*, HitType>> getHitModules() const;
+  std::vector<std::pair<DetectorModule*, HitType>> getHitModules() const;
 
 };
 #endif

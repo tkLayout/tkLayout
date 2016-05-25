@@ -234,7 +234,7 @@ bool AnalyzerGeometry::analyze()
       ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
 
       // Check whether generated track hits a module -> collect the list of hit modules
-      std::vector<std::pair<Module*, HitType>> hitModules;
+      std::vector<std::pair<DetectorModule*, HitType>> hitModules;
 
       static const double zErrorSafetyMargin = 5. ; // track origin shift in units of zError to compute boundaries
 
@@ -624,17 +624,22 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 //
 void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
 {
-  double bpRadius = m_beamPipe->radius();
-  double bpThick  = m_beamPipe->thickness();
+  if (m_beamPipe) {
+    double bpRadius = m_beamPipe->radius();
+    double bpThick  = m_beamPipe->thickness();
 
-  // Beam-pipe in RZ
-  TPolyLine* beamPipeRZ = new TPolyLine();
-  beamPipeRZ->SetPoint(0, 0                     , bpRadius + bpThick/2.);
-  beamPipeRZ->SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
-  beamPipeRZ->SetLineColor(14);
-  beamPipeRZ->SetLineWidth(2);
-  canvas.cd();
-  beamPipeRZ->Draw("same");
+    // Beam-pipe in RZ
+    TPolyLine* beamPipeRZ = new TPolyLine();
+    beamPipeRZ->SetPoint(0, 0                     , bpRadius + bpThick/2.);
+    beamPipeRZ->SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
+    beamPipeRZ->SetLineColor(14);
+    beamPipeRZ->SetLineWidth(2);
+    canvas.cd();
+    beamPipeRZ->Draw("same");
+  }
+  else {
+    logWARNING("DrawBeamPipeRZ failed: no beam pipe defined!");
+  }
 }
 
 //
@@ -642,15 +647,20 @@ void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
 //
 void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
 {
-  double bpRadius = m_beamPipe->radius();
-  double bpThick  = m_beamPipe->thickness();
+  if (m_beamPipe) {
+    double bpRadius = m_beamPipe->radius();
+    double bpThick  = m_beamPipe->thickness();
 
-  // Beam-pipe in XY
-  TEllipse* beamPipeXY = new TEllipse(0, 0, bpRadius + bpThick/2.);
-  beamPipeXY->SetFillColor(18); // "grey18"
-  beamPipeXY->SetFillStyle(1001);
-  canvas.cd();
-  beamPipeXY->Draw("same");
+    // Beam-pipe in XY
+    TEllipse* beamPipeXY = new TEllipse(0, 0, bpRadius + bpThick/2.);
+    beamPipeXY->SetFillColor(18); // "grey18"
+    beamPipeXY->SetFillStyle(1001);
+    canvas.cd();
+    beamPipeXY->Draw("same");
+  }
+  else {
+    logWARNING("DrawBeamPipeXY failed: no beam pipe defined!");
+  }
 }
 
 //
@@ -731,12 +741,13 @@ void LayerDiskSummaryVisitor::preVisit() {
   m_moduleTable= new RootWTable();
 
   m_layerTable->setContent(0, 0, "Layer no                    : ");
-  m_layerTable->setContent(1, 0, "Radius [mm]                 : ");
-  m_layerTable->setContent(2, 0, "Z-min [mm]                  : ");
-  m_layerTable->setContent(3, 0, "Z-max [mm]                  : ");
-  m_layerTable->setContent(4, 0, "Number of rods              : ");
-  m_layerTable->setContent(5, 0, "Number of modules per rod   : ");
-  m_layerTable->setContent(6, 0, "Number of modules           : ");
+  m_layerTable->setContent(1, 0, "Radius-min [mm]             : ");
+  m_layerTable->setContent(2, 0, "Radius-max [mm]             : ");
+  m_layerTable->setContent(3, 0, "Z-min [mm]                  : ");
+  m_layerTable->setContent(4, 0, "Z-max [mm]                  : ");
+  m_layerTable->setContent(5, 0, "Number of rods              : ");
+  m_layerTable->setContent(6, 0, "Number of modules per rod   : ");
+  m_layerTable->setContent(7, 0, "Number of modules           : ");
 
   m_diskTable->setContent(0, 0, "Disk no                      : ");
   m_diskTable->setContent(1, 0, "Radius-min [mm]              : ");
@@ -784,12 +795,13 @@ void LayerDiskSummaryVisitor::visit(const Layer& l) {
 
   // Set table
   m_layerTable->setContent(0, m_nBarrelLayers, m_nBarrelLayers);
-  m_layerTable->setContent(1, m_nBarrelLayers, l.placeRadius(), c_coordPrecision);
-  m_layerTable->setContent(2, m_nBarrelLayers, l.minZ(), c_coordPrecision);
-  m_layerTable->setContent(3, m_nBarrelLayers, l.maxZ(), c_coordPrecision);
-  m_layerTable->setContent(4, m_nBarrelLayers, l.numRods());
-  m_layerTable->setContent(5, m_nBarrelLayers, l.numModulesPerRod());
-  m_layerTable->setContent(6, m_nBarrelLayers, l.totalModules());
+  m_layerTable->setContent(1, m_nBarrelLayers, l.minR(), c_coordPrecision+1);
+  m_layerTable->setContent(2, m_nBarrelLayers, l.maxR(), c_coordPrecision+1);
+  m_layerTable->setContent(3, m_nBarrelLayers, l.minZ(), c_coordPrecision);
+  m_layerTable->setContent(4, m_nBarrelLayers, l.maxZ(), c_coordPrecision);
+  m_layerTable->setContent(5, m_nBarrelLayers, l.numRods());
+  m_layerTable->setContent(6, m_nBarrelLayers, l.numModulesPerRod());
+  m_layerTable->setContent(7, m_nBarrelLayers, l.totalModules());
 }
 
 //
@@ -829,7 +841,7 @@ void LayerDiskSummaryVisitor::visit(const Ring& r) {
 //
 // LayerDiskSummaryVisitor visit module (barrel + endcap)
 //
-void LayerDiskSummaryVisitor::visit(const Module& m) {
+void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
 
   // Get unique sensor tag
   TagMaker moduleTagMaker(m);

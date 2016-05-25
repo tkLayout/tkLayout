@@ -18,7 +18,8 @@
 #include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
-#include "ModuleBase.h"
+#include "Visitor.h"
+#include "Visitable.h"
 
 using std::vector;
 using std::string;
@@ -32,7 +33,8 @@ namespace ModuleHelpers {
 
 enum ModuleShape { RECTANGULAR, WEDGE };
 
-class GeometricModule : public ModuleDecorable {
+class GeometricModule : public PropertyObject, public Buildable, public Placeable, public Identifiable<int>, public Visitable, public Decorable
+{
 protected:
   int numHits_ = 0;
   int tiltAngle_ = 0., skewAngle_ = 0.;

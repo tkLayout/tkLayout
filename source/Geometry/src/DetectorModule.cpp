@@ -1,7 +1,6 @@
 
 #include "DetectorModule.h"
 #include "ModuleCap.h"
-#include "Module.h"
 
 /*
 DetectorModule* DetectorModule::assignType(const string& type, DetectorModule* m) {

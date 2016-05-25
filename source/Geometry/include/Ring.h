@@ -12,7 +12,7 @@ using std::string;
 
 #include "global_funcs.h"
 #include "Property.h"
-#include "Module.h"
+#include "DetectorModule.h"
 #include "Visitable.h"
 
 #define MAX_WEDGE_CALC_LOOPS 100

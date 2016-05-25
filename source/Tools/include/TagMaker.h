@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "Visitor.h"
-#include "Module.h"
+#include "DetectorModule.h"
 
 using std::string;
 using std::stringstream;
@@ -14,7 +14,7 @@ class TagMaker : public ConstGeometryVisitor {
 public:
   string sensorTag, sensorGeoTag, posTag;
 
-  TagMaker(const Module& m) { m.accept(*this); }
+  TagMaker(const DetectorModule& m) { m.accept(*this); }
 
   void visit(const BarrelModule& m) {
     sensorTag = makeSensorTag(m);
@@ -94,7 +94,6 @@ public:
     return ss.str();
   }
 
-  
 };
 
 

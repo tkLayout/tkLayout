@@ -5,7 +5,7 @@
 
 #include <ModuleCap.h>
 
-#include "Module.h"
+#include "DetectorModule.h"
 #include <global_constants.h>
 
 namespace insur {
@@ -14,7 +14,7 @@ namespace insur {
   /**
    * The constructor links the cap to an existing module.
    */
-  ModuleCap::ModuleCap(Module& mod) : module(mod) {
+  ModuleCap::ModuleCap(DetectorModule& mod) : module(mod) {
       mod.setModuleCap(this);
   }
 
@@ -27,7 +27,7 @@ namespace insur {
    * Get the module object that this cap refers to.
    * @return A reference to the registered module
    */
-  Module& ModuleCap::getModule() {
+  DetectorModule& ModuleCap::getModule() {
       return module;
   }
 
