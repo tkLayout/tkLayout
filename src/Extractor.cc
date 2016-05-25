@@ -636,9 +636,10 @@ namespace insur {
       ril.index = layer;
       
 
-      std::ostringstream lname, rodname, pconverter;
+      std::ostringstream lname, rodname, rodnameFlipped, pconverter;
       lname << xml_layer << layer; // e.g. Layer1
       rodname << xml_rod << layer; // e.g.Rod1
+      rodNextPhiName << xml_rod << xml_next_phi << layer; // e.g.RodNextPhi1
 
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
@@ -650,6 +651,9 @@ namespace insur {
         
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
+
+
+	  //std::cout << iiter->getModule().uniRef().phi << std::endl;
 
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
@@ -667,6 +671,8 @@ namespace insur {
 	  // parent module name
 	  std::string parentName = mname.str();
 
+	  std::vector<ModuleCap>::iterator partner;
+
 	  // build module volumes, with hybrids taken into account
 	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
 	  modcomplex.buildSubVolumes();
@@ -675,11 +681,9 @@ namespace insur {
 #endif
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
-	  if (iiter->getModule().uniRef().phi == 1) {
+	  if (iiter->getModule().uniRef().phi == 1) {           
 
-            std::vector<ModuleCap>::iterator partner;
-
-            std::ostringstream ringname, matname, specname;
+            std::ostringstream ringname;
 	    ringname << xml_ring << modRing << lname.str();
 
 
@@ -731,6 +735,38 @@ namespace insur {
 	      }
 	      pos.rotref = "";
 	    }
+	  }
+
+	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
+	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
+	      pos.parent_tag = nspace + ":" + rodNextPhiName.str();
+	      pos.child_tag = nspace + ":" + mname.str();
+	      partner = findPartnerModule(iiter, oiter->end(), modRing);
+
+	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
+	      pos.trans.dz = iiter->getModule().center().Z();
+	      if (!iiter->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      p.push_back(pos);
+	      
+	      // This is a copy of the BModule (FW/BW barrel half)
+	      if (partner != oiter->end()) {
+		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
+		pos.trans.dz = partner->getModule().center().Z();
+		if (!partner->getModule().flipped()) { pos.rotref = nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = nspace + ":" + xml_places_flipped_mod_in_rod; }
+		pos.copy = 2; 
+		p.push_back(pos);
+		pos.copy = 1;
+	      }
+	      pos.rotref = "";
+	    }
+	  }
+
+	  if (iiter->getModule().uniRef().phi == 1) {
+
+	    std::ostringstream ringname;
+	    ringname << xml_ring << modRing << lname.str();
 
 	    // Topology
 	    sspec.partselectors.push_back(mname.str());
@@ -967,39 +1003,106 @@ namespace insur {
       logic.shape_tag = nspace + ":" + logic.name_tag;
       logic.material_tag = xml_material_air;
       l.push_back(logic);
+
+      if (isPixelTracker) {
+	shape.name_tag = rodNextPhiName.str();
+	s.push_back(shape);
+	logic.name_tag = rodNextPhiName.str();
+	logic.shape_tag = nspace + ":" + logic.name_tag;
+	l.push_back(logic);
+      }
+
       rspec.partselectors.push_back(rodname.str());
       rspec.moduletypes.push_back(minfo_zero);
       srspec.partselectors.push_back(rodname.str());
       srspec.moduletypes.push_back(minfo_zero);
         
 
+      
       // rods in layer algorithm(s)
-      alg.name = xml_phialt_algo;
-      alg.parent = nspace + ":" + lname.str();
-      pconverter <<  nspace + ":" + rodname.str();
-      alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-      pconverter.str("");
-      pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
-      alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
-      pconverter.str("");
-      pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
-      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
-      pconverter.str("");
-      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-      pconverter << RadiusIn << "*mm";
-      alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
-      pconverter.str("");
-      pconverter << RadiusOut << "*mm";
-      alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
-      pconverter.str("");
-      alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
-      pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
-      alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
-      pconverter.str("");
-      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
-      alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
-      a.push_back(alg);
-      alg.parameters.clear();
+      if (!isPixelTracker) {
+	alg.name = xml_phialt_algo;
+	alg.parent = nspace + ":" + lname.str();
+	pconverter <<  nspace + ":" + rodname.str();
+	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	pconverter.str("");
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	pconverter.str("");
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
+	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << RadiusIn << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	pconverter.str("");
+	pconverter << RadiusOut << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods();
+	alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	alg.parameters.push_back(numericParam(xml_incrcopyno, "1"));
+	a.push_back(alg);
+	alg.parameters.clear();
+      }
+      else {
+	alg.name = xml_phialt_algo;
+	alg.parent = nspace + ":" + lname.str();
+	pconverter <<  nspace + ":" + rodname.str();
+	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	pconverter.str("");
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	pconverter.str("");
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
+	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << RadiusIn << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	pconverter.str("");
+	pconverter << RadiusIn << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
+	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	a.push_back(alg);
+	alg.parameters.clear();
+
+	alg.name = xml_phialt_algo;
+	alg.parent = nspace + ":" + lname.str();
+	pconverter <<  nspace + ":" + rodNextPhiName.str();
+	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
+	pconverter.str("");
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	pconverter.str("");
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() + 360. / lagg.getBarrelLayers()->at(layer - 1)->numRods() << "*deg";
+	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
+	pconverter << RadiusOut << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusin, pconverter.str()));
+	pconverter.str("");
+	pconverter << RadiusOut << "*mm";
+	alg.parameters.push_back(numericParam(xml_radiusout, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_zposition, "0.0*mm"));
+	pconverter << lagg.getBarrelLayers()->at(layer - 1)->numRods() / 2;
+	alg.parameters.push_back(numericParam(xml_number, pconverter.str()));
+	pconverter.str("");
+	alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
+	alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
+	a.push_back(alg);
+	alg.parameters.clear();
+      }
 
       // reset
       shape.dx = 0.0;

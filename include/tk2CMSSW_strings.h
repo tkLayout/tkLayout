@@ -167,6 +167,7 @@ namespace insur {
     static const std::string xml_layer = "Layer";
     static const std::string xml_disc = "Disc";
     static const std::string xml_rod = "Rod";
+    static const std::string xml_next_phi = "NextPhi";
     static const std::string xml_ring = "Ring";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
@@ -254,7 +255,7 @@ namespace insur {
     static const std::string xml_backward = "Bw";
     static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
     static const std::string xml_places_flipped_mod_in_rod = "FlippedHCZ2YX";
-    static const std::string xml_flip_mod_rot = "FLIP";
+    static const std::string xml_flip_mod_rot = "FLIP"; 
     static const std::string xml_endcap_rot = "EndcapRot";
     /**
      * CMSSW constants
