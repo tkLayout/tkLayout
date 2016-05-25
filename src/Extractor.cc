@@ -837,14 +837,12 @@ namespace insur {
             p.push_back(pos);
 
             // Topology
+	    minfo.name		= iiter->getModule().moduleType();
             mspec.partselectors.push_back(shape.name_tag);
-
-            minfo.name		= iiter->getModule().moduleType();
             minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());  // in case of single sensor module innerSensor() and outerSensor() point to the same sensor
             minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
             minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
             minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-
             mspec.moduletypes.push_back(minfo);
 
             if (iiter->getModule().numSensors() == 2) { 
@@ -872,22 +870,21 @@ namespace insur {
 
               // Topology
               mspec.partselectors.push_back(shape.name_tag);
-
               minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
               minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
               minfo.rocx	= any2str<int>(iiter->getModule().outerSensor().numROCX());
               minfo.rocy	= any2str<int>(iiter->getModule().outerSensor().numROCY());
-
               mspec.moduletypes.push_back(minfo);
-              modcomplex.addMaterialInfo(c);
-              modcomplex.addShapeInfo(s);
-              modcomplex.addLogicInfo(l);
-              modcomplex.addPositionInfo(p);
-#ifdef __DEBUGPRINT__
-              modcomplex.print();
-#endif
-            } // End of replica for Pt-modules
+	    } // End of replica for Pt-modules
 
+	    modcomplex.addMaterialInfo(c);
+	    modcomplex.addShapeInfo(s);
+	    modcomplex.addLogicInfo(l);
+	    modcomplex.addPositionInfo(p);
+#ifdef __DEBUGPRINT__
+	    modcomplex.print();
+#endif
+	    
 
 	    // collect tilted ring info
 	    if (isTilted && (tiltAngle != 0)) {
@@ -1296,7 +1293,11 @@ namespace insur {
 
       if (lagg.getEndcapLayers()->at(layer - 1)->minZ() > 0) {
    
-	int numRings = lagg.getEndcapLayers()->at(layer - 1)->numRings();
+	std::set<int> ringsIndexes; // VERY UGLY !! TO DO : IMPLEMENT ringsIndexes() IN CLASS DISK
+	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
+	  int modRing = iiter->getModule().uniRef().ring;
+	  if (ringsIndexes.find(modRing) == ringsIndexes.end()) ringsIndexes.insert(modRing);
+	}
 
 	// Calculate z extrema of the disk, and diskThickness
 	// r extrema of disk and ring
@@ -1306,8 +1307,11 @@ namespace insur {
 	double zmin = std::numeric_limits<double>::max();
 	double zmax = 0;
 	// z extrema of ring
-	std::vector<double> ringzmin (numRings, std::numeric_limits<double>::max());
-	std::vector<double> ringzmax (numRings, 0);
+	std::map<int,double> ringzmin, ringzmax;
+	for (const auto& i : ringsIndexes) {
+	  ringzmin.insert( {i, std::numeric_limits<double>::max()} );
+	  ringzmax.insert( {i, 0.} );
+	}
 
 	// loop on module caps
 	for (iiter = oiter->begin(); iiter != oiter->end(); iiter++) {
@@ -1328,8 +1332,8 @@ namespace insur {
 	    rmax = MAX(rmax, modcomplex.getRmax());
 	    zmin = MIN(zmin, modcomplex.getZmin());
 	    zmax = MAX(zmax, modcomplex.getZmax());
-	    ringzmin.at(modRing - 1) = MIN(ringzmin.at(modRing - 1), modcomplex.getZmin());  
-	    ringzmax.at(modRing - 1) = MAX(ringzmax.at(modRing - 1), modcomplex.getZmax());
+	    ringzmin.at(modRing) = MIN(ringzmin.at(modRing), modcomplex.getZmin());  
+	    ringzmax.at(modRing) = MAX(ringzmax.at(modRing), modcomplex.getZmax());
 	  }
 	}
 	double diskThickness = zmax - zmin;
@@ -1522,13 +1526,11 @@ namespace insur {
 
 	      // Topology
 	      mspec.partselectors.push_back(logic.name_tag);
-
 	      minfo.name		= iiter->getModule().moduleType();
 	      minfo.rocrows	= any2str<int>(iiter->getModule().innerSensor().numROCRows());
 	      minfo.roccols	= any2str<int>(iiter->getModule().innerSensor().numROCCols());
 	      minfo.rocx		= any2str<int>(iiter->getModule().innerSensor().numROCX());
 	      minfo.rocy		= any2str<int>(iiter->getModule().innerSensor().numROCY());
-
 	      mspec.moduletypes.push_back(minfo);
 
 	      if (iiter->getModule().numSensors() == 2) {
@@ -1555,22 +1557,21 @@ namespace insur {
 
 		// Topology
 		mspec.partselectors.push_back(logic.name_tag);
-
 		minfo.rocrows	= any2str<int>(iiter->getModule().outerSensor().numROCRows());
 		minfo.roccols	= any2str<int>(iiter->getModule().outerSensor().numROCCols());
 		minfo.rocx		= any2str<int>(iiter->getModule().outerSensor().numROCX());
 		minfo.rocy		= any2str<int>(iiter->getModule().outerSensor().numROCY());
-
 		mspec.moduletypes.push_back(minfo);
-		//mspec.moduletypes.push_back(iiter->getModule().getType());
-		modcomplex.addMaterialInfo(c);
-		modcomplex.addShapeInfo(s);
-		modcomplex.addLogicInfo(l);
-		modcomplex.addPositionInfo(p);
-#ifdef __DEBUGPRINT__
-		modcomplex.print();
-#endif
 	      }
+
+	      modcomplex.addMaterialInfo(c);
+	      modcomplex.addShapeInfo(s);
+	      modcomplex.addLogicInfo(l);
+	      modcomplex.addPositionInfo(p);
+#ifdef __DEBUGPRINT__
+	      modcomplex.print();
+#endif
+	      
 
 
 	      // collect ring info
@@ -1586,8 +1587,8 @@ namespace insur {
 	      rinf.rmin  = modcomplex.getRmin();
 	      rinf.rmid = iiter->getModule().center().Rho();
 	      rinf.rmax = modcomplex.getRmax();
-	      rinf.zmin = ringzmin.at(modRing - 1);
-	      rinf.zmax = ringzmax.at(modRing - 1);
+	      rinf.zmin = ringzmin.at(modRing);
+	      rinf.zmax = ringzmax.at(modRing);
 	      rinf.zfw = iiter->getModule().center().Z();
 	      rinfo.insert(std::pair<int, ERingInfo>(modRing, rinf));
 

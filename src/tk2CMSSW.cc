@@ -6,6 +6,23 @@
 #include <SvnRevision.h>
 #include <tk2CMSSW.h>
 
+
+
+
+
+#include<iomanip>
+#include <boost/version.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
+#include <string>
+using boost::property_tree::ptree;
+using boost::property_tree::write_xml;
+using boost::property_tree::xml_writer_settings;
+using boost::property_tree::xml_writer_make_settings;
+
+
+
+
 namespace insur {
     // public
     /**
@@ -54,6 +71,7 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW XML generation metadata has been written to " << outpath << metdataFileName << std::endl;
 
+	    //if (!isPixelTracker) {
             if (!wt) {
                 instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
                 outstream.open((outpath + xml_pixbarfile).c_str());
@@ -138,6 +156,13 @@ namespace insur {
             outstream.close();
             outstream.clear();
             std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
+
+	    //}
+
+	    //else {
+	    //printXml(data, outsubdir);
+	    //}
+
 
             bfs::remove_all(tmppath);
         }
@@ -286,5 +311,498 @@ namespace insur {
       gethostname(hn, 255); // if hostname is too long it gets truncated and the string might or might not contain a terminating null byte, therefore we force the last char to be null by construction
       return std::string(pwd->pw_gecos) + " (" + pwd->pw_name + " on " + hn + ")";
     }
+
+
+
+
+
+
+
+  void tk2CMSSW::printXml(CMSSWBundle pixelData, std::string outsubdir) {
+   
+    std::string xmlpath = mainConfiguration.getXmlDirectory() + "/" + outsubdir + "/";
+    std::cout<< "Xmls to be produced here=" << xmlpath<< std::endl;
+
+    std::vector<ShapeInfo>& shapes = pixelData.shapes;
+    std::vector<LogicalInfo>& logic = pixelData.logic;
+    std::vector<PosInfo>& positions = pixelData.positions;
+    std::vector<AlgoInfo>& algos = pixelData.algos;
+    std::vector<Composite>& composites = pixelData.composites;
+    std::vector<Element>& elements = pixelData.elements;
+
+    ptree tree;
+    tree.add("DDDefinition.<xmlattr>.xmlns", "http://www.cern.ch/cms/DDL");
+    tree.add("DDDefinition.<xmlattr>.xmlns:xsi", "http://www.cern.ch/www.w3.org/2001/XMLSchema-instance");
+    tree.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
+        "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
+
+    ptree& matSec = tree.add("DDDefinition.MaterialSection", "");
+    matSec.add("<xmlattr>.label", "pixel.xml");
+
+    for( auto& e: elements ) {
+      ptree& elem = matSec.add("ElementaryMaterial","");
+      elem.add("<xmlattr>.name",e.tag);
+      elem.add("<xmlattr>.symbol",e.tag);
+      elem.add("<xmlattr>.atomicNumber",e.atomic_number);
+      std::stringstream ss;
+      ss << e.atomic_weight << "*g/mole";
+      elem.add("<xmlattr>.atomicWeight",ss.str());
+      ss.str("");
+      ss << e.density << "*g/cm3";
+      elem.add("<xmlattr>.density",ss.str());
+    }
+
+    for( auto& c: composites ) {
+      ptree& comp = matSec.add("CompositeMaterial", "");
+      comp.add("<xmlattr>.name",c.name);
+      std::stringstream ss;
+      ss << std::setprecision(3) << c.density << "*g/cm3";
+      comp.add("<xmlattr>.density",ss.str());
+      ss.str("");
+      comp.add("<xmlattr>.method","mixture by weight");
+
+          for( auto& e: c.elements ) {
+          ptree& elem = comp.add("MaterialFraction", "");
+          elem.add("<xmlattr>.fraction",e.second);
+          ptree& m = elem.add("rMaterial", "");
+          m.add("<xmlattr>.name", xml_phaseII_Pixelnamespace + e.first);
+    
+          }
+    }
+
+    ptree& solidSec = tree.add("DDDefinition.SolidSection", "");
+    solidSec.add("<xmlattr>.label", "pixel.xml");
+    /*//Defining the pixel mother volume
+    ptree& mSolid = solidSec.add("UnionSolid", "");
+    mSolid.add("<xmlattr>.name",xml_phaseII_pixmotherVolume);
+    mSolid.add("<xmlattr>.firstSolid",xml_pixfwdident + ":" + xml_phaseII_pixecap);
+    mSolid.add("<xmlattr>.secondSolid",xml_pixbarident + ":" + xml_phaseII_pixbar);
+    ptree& mTranslation = mSolid.add("Translation","");
+    mTranslation.add("<xmlattr>.x","0*cm");
+    mTranslation.add("<xmlattr>.y","0*cm");
+    mTranslation.add("<xmlattr>.z","0*cm");*/
+    
+    for( auto& s: shapes) {
+        if( s.type == ShapeType::bx ) {
+        ptree& solid = solidSec.add("Box", "");
+        solid.add("<xmlattr>.name",s.name_tag);
+        std::stringstream ss;
+        ss << std::setprecision(3) << s.dx << "*mm";
+        solid.add("<xmlattr>.dx",ss.str());
+        ss.str("");
+        ss << std::setprecision(3) << s.dy << "*mm";
+        solid.add("<xmlattr>.dy",ss.str());
+        ss.str("");
+        ss << std::setprecision(3) << s.dz << "*mm";
+        solid.add("<xmlattr>.dz",ss.str());
+      } else  if( s.type == ShapeType::tb ) {
+        ptree& solid = solidSec.add("Tubs", "");
+        solid.add("<xmlattr>.name",s.name_tag);
+        std::stringstream ss;
+        ss << std::setprecision(4) << s.rmin << "*mm";
+        solid.add("<xmlattr>.rMin",ss.str());
+        ss.str("");
+        ss << std::setprecision(4) << s.rmax << "*mm";
+        solid.add("<xmlattr>.rMax",ss.str());
+        ss.str("");
+        ss << std::setprecision(4) << s.dz << "*mm";
+        solid.add("<xmlattr>.dz",ss.str());
+        solid.add("<xmlattr>.startPhi","0*deg");
+        solid.add("<xmlattr>.deltaPhi","360*deg");
+      }
+    }
+
+    ptree& rotSec = tree.add("DDDefinition.RotationSection", "");
+    rotSec.add("<xmlattr>.label", "pixel.xml");
+    
+    ptree& rotation1 = rotSec.add("Rotation","");
+    rotation1.add("<xmlattr>.name","HCZ2YX");
+    rotation1.add("<xmlattr>.thetaX","90*deg");
+    rotation1.add("<xmlattr>.phiX","270*deg");
+    rotation1.add("<xmlattr>.thetaY","180*deg");
+    rotation1.add("<xmlattr>.phiY","0*deg");
+    rotation1.add("<xmlattr>.thetaZ","90*deg");
+    rotation1.add("<xmlattr>.phiZ","0*deg");
+ 
+    ptree& rotation2 = rotSec.add("Rotation","");
+    rotation2.add("<xmlattr>.name","FlippedHCZ2YX");
+    rotation2.add("<xmlattr>.thetaX","90*deg");
+    rotation2.add("<xmlattr>.phiX","270*deg");
+    rotation2.add("<xmlattr>.thetaY","0*deg");
+    rotation2.add("<xmlattr>.phiY","0*deg");
+    rotation2.add("<xmlattr>.thetaZ","90*deg");
+    rotation2.add("<xmlattr>.phiZ","180*deg");
+
+    ptree& rotation3 = rotSec.add("Rotation","");
+    rotation3.add("<xmlattr>.name","FLIP");
+    rotation3.add("<xmlattr>.thetaX","90*deg");
+    rotation3.add("<xmlattr>.phiX","180*deg");
+    rotation3.add("<xmlattr>.thetaY","90*deg");
+    rotation3.add("<xmlattr>.phiY","90*deg");
+    rotation3.add("<xmlattr>.thetaZ","180*deg");
+    rotation3.add("<xmlattr>.phiZ","0*deg");
+      
+    ptree& logicSec = tree.add("DDDefinition.LogicalPartSection", "");
+    logicSec.add("<xmlattr>.label", "pixel.xml");
+    
+    /*ptree& mLogic = logicSec.add("LogicalPart", "");
+    mLogic.add("<xmlattr>.name", xml_phaseII_pixmotherVolume);
+    mLogic.add("<xmlattr>.category", "unspecified");
+    ptree& mRsolid = mLogic.add("rSolid","");
+    mRsolid.add("<xmlattr>.name", xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume);
+    ptree& mRmat = mLogic.add("rMaterial","");
+    mRmat.add("<xmlattr>.name","materials:Air");*/
+
+    for( auto& l: logic) {
+      ptree& logical = logicSec.add("LogicalPart","");
+      logical.add("<xmlattr>.name",l.name_tag);
+      logical.add("<xmlattr>.category", "unspecified");
+
+      ptree& rsolid = logical.add("rSolid","");
+      rsolid.add("<xmlattr>.name",l.shape_tag); 
+
+      ptree& rmat = logical.add("rMaterial","");
+      rmat.add("<xmlattr>.name",l.material_tag); 
+
+    }
+
+    ptree& posSec = tree.add("DDDefinition.PosPartSection", "");
+    posSec.add("<xmlattr>.label", "pixel.xml");
+    
+    /*ptree& mPosition = posSec.add("PosPart","");
+    mPosition.add("<xmlattr>.copyNumber","1");
+      
+    ptree& mParent = mPosition.add("rParent","");
+    mParent.add("<xmlattr>.name","tracker:Tracker");
+      
+    ptree& mChild = mPosition.add("rChild","");
+    mChild.add("<xmlattr>.name",xml_phaseII_Pixelnamespace + xml_phaseII_pixmotherVolume);*/
+
+    for( auto& p: positions) {
+
+      ptree& position = posSec.add("PosPart","");
+      position.add("<xmlattr>.copyNumber",p.copy);
+
+      ptree& parent = position.add("rParent","");
+      parent.add("<xmlattr>.name",p.parent_tag);
+
+      ptree& child = position.add("rChild","");
+      child.add("<xmlattr>.name",p.child_tag);
+
+      if( p.rotref != "" ) {
+        ptree& rot = position.add("rRotation","");
+        rot.add("<xmlattr>.name",p.rotref);
+      }
+
+      if( p.trans.dx != 0 || p.trans.dy != 0 || p.trans.dz != 0) {
+        ptree& translation = position.add("Translation","");
+        std::stringstream ss;
+        ss << std::setprecision(3) << p.trans.dx << "*mm";
+        translation.add("<xmlattr>.x",ss.str());
+        ss.str("");
+        ss << std::setprecision(3) << p.trans.dy << "*mm";
+        translation.add("<xmlattr>.y",ss.str());
+        ss.str("");
+        ss << std::setprecision(3) << p.trans.dz << "*mm";
+        translation.add("<xmlattr>.z",ss.str());
+      }
+    }
+
+    for( auto& a: algos ) {
+      ptree& algo = posSec.add("Algorithm","");
+      algo.add("<xmlattr>.name",a.name);
+
+      ptree& parent = algo.add("rParent","");
+      parent.add("<xmlattr>.name",a.parent);
+      if( !a.parameter_map.empty() ) {
+        for( auto& p: a.parameter_map ) { 
+          std::string ptype; 
+          if( p.second.second == AlgoPartype::st ) 
+            ptype = "String";
+          else if( p.second.second == AlgoPartype::num )
+            ptype = "Numeric";
+          ptree& algoPar = algo.add(ptype,"");
+          algoPar.add("<xmlattr>.name",p.first);
+          algoPar.add("<xmlattr>.value",p.second.first);
+        } 
+      }
+      if( a.vecpar.name != "" ) {
+        ptree& algovPar = algo.add("Vector","");
+        algovPar.add("<xmlattr>.name",a.vecpar.name);
+        algovPar.add("<xmlattr>.type",a.vecpar.type);
+        algovPar.add("<xmlattr>.nEntries",a.vecpar.nEntries);
+        std::stringstream ss;
+        for( unsigned int i = 0; i<a.vecpar.values.size() - 1; i++ )
+          ss << a.vecpar.values[i] << ",";
+        ss << a.vecpar.values[a.vecpar.values.size() - 1];
+        algovPar.add("<xmltext>",ss.str());
+
+      }
+    }
+
+#if BOOST_VERSION >= 105600
+    xml_writer_settings<std::string> settings(' ', 1);
+#else
+    xml_writer_settings<char> settings(' ', 1);
+#endif
+    write_xml(xmlpath+"pixel_test.xml", tree, std::locale(), settings);
+
+ 
+    ///////////////writing pixel structure Topology////////////////////
+    std::vector<SpecParInfo>& specs = pixelData.specs;
+    ptree tree_topo;
+    tree_topo.add("DDDefinition.<xmlattr>.xmlns", "http://www.cern.ch/cms/DDL");
+    tree_topo.add("DDDefinition.<xmlattr>.xmlns:xsi", "http://www.cern.ch/www.w3.org/2001/XMLSchema-instance");
+    tree_topo.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
+        "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
+    ptree& specParSec = tree_topo.add("DDDefinition.SpecParSection", "");
+    specParSec.add("<xmlattr>.label", xml_specpars_label);//xml_specpars_label=spec-p```ars2.xml
+
+    ptree& spec = specParSec.add("SpecPar","");
+    spec.add("<xmlattr>.name","FullTrackerPar");
+
+    ptree& partSel = spec.add("PartSelector","");
+    partSel.add("<xmlattr>.path","//Tracker");
+
+    ptree& param = spec.add("Parameter","");
+    param.add("<xmlattr>.name","TkDDDStructure");
+    param.add("<xmlattr>.value","FullTracker");
+
+    for( auto& s: specs ) {
+      if( s.name.find("Module") != std::string::npos )      continue;
+      // if( s.name.find("ROUHits") != std::string::npos)      continue;
+      ptree& spec = specParSec.add("SpecPar","");
+      spec.add("<xmlattr>.name",s.name);  
+      for( auto& p: s.partselectors ) {
+        ptree& partSel = spec.add("PartSelector","");
+        partSel.add("<xmlattr>.path","//"+ p);
+      }
+      ptree& param = spec.add("Parameter","");
+      param.add("<xmlattr>.name",s.parameter.first);
+      param.add("<xmlattr>.value",s.parameter.second);
+    }
+
+    std::vector<std::string> barrel_partselectors;
+    std::vector<std::string> endcap_partselectors;
+
+    for( auto& s: specs ) {
+      if( s.name.find("Module") == std::string::npos )                 continue;
+      else if( s.name.find("BModule") != std::string::npos )      
+        barrel_partselectors.push_back(xml_phaseII_Pixelnamespace + s.name);
+      else if( s.name.find("EModule") != std::string::npos )      
+        endcap_partselectors.push_back(xml_phaseII_Pixelnamespace + s.name);
+      ptree& spec = specParSec.add("SpecPar","");
+      spec.add("<xmlattr>.name",s.name);  
+      for( auto& p: s.partselectors ) {
+        ptree& partSel = spec.add("PartSelector","");
+        partSel.add("<xmlattr>.path","//"+ p);
+      }
+      ptree& param = spec.add("Parameter","");
+      param.add("<xmlattr>.name",s.parameter.first);
+      param.add("<xmlattr>.value",s.parameter.second);
+      for(auto m: s.moduletypes){
+        ptree& param1 = spec.add("Parameter","");
+        param1.add("<xmlattr>.name", "PixelROCRows");
+        param1.add("<xmlattr>.value", m.rocrows);
+        ptree& param2 = spec.add("Parameter","");
+        param2.add("<xmlattr>.name", "PixelROCCols");
+        param2.add("<xmlattr>.value", m.roccols);
+        ptree& param3 = spec.add("Parameter","");
+        param3.add("<xmlattr>.name", "PixelROC_X");
+        param3.add("<xmlattr>.value", m.rocx);
+        ptree& param4 = spec.add("Parameter","");
+        param4.add("<xmlattr>.name", "PixelROC_Y");
+        param4.add("<xmlattr>.value", m.rocy);
+      } 
+    }
+    write_xml(xmlpath+"pixelStructureTopology_test.xml", tree_topo, std::locale(), settings);
+
+    //sensor portion
+    ptree tree_sense;
+    tree_sense.add("DDDefinition.<xmlattr>.xmlns", "http://www.cern.ch/cms/DDL");
+    tree_sense.add("DDDefinition.<xmlattr>.xmlns:xsi", "http://www.cern.ch/www.w3.org/2001/XMLSchema-instance");
+    tree_sense.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
+        "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
+    ptree& specParSensorSec = tree_sense.add("DDDefinition.SpecParSection", "");
+    specParSensorSec.add("<xmlattr>.label", xml_specpars_label);//xml_specpars_label=spec-pars2.xml
+    //Barrel Part 
+    ptree& barrel_specSensor = specParSensorSec.add("SpecPar","");
+    barrel_specSensor.add("<xmlattr>.name","ROUHitsTracker" + xml_phaseII_pixbar);  
+    for( auto& p: barrel_partselectors ) {
+      ptree& partSel = barrel_specSensor.add("PartSelector","");
+      p.erase(p.end()-3,p.end());
+      partSel.add("<xmlattr>.path","//"+ p);
+    }
+    ptree& barrel_param1 = barrel_specSensor.add("Parameter","");
+    barrel_param1.add("<xmlattr>.name","SensitiveDetector");
+    barrel_param1.add("<xmlattr>.value","TkAccumulatingSensitiveDetector");
+
+    ptree& barrel_param2 = barrel_specSensor.add("Parameter","");
+    barrel_param2.add("<xmlattr>.name","ReadOutName");
+    //barrel_param2.add("<xmlattr>.value","TrackerHits" + xml_phaseII_pixbar);
+    barrel_param2.add("<xmlattr>.value","TrackerHits" + xml_pixbar);//to be consistent with OscarProducer
+   
+    //Endcap Part 
+    ptree& endcap_specSensor = specParSensorSec.add("SpecPar","");
+    endcap_specSensor.add("<xmlattr>.name","ROUHitsTracker" + xml_phaseII_pixecap);  
+    for( auto& p: endcap_partselectors ) {
+      ptree& partSel = endcap_specSensor.add("PartSelector","");
+      p.erase(p.end()-3,p.end());
+      partSel.add("<xmlattr>.path","//"+ p);
+    }
+    ptree& endcap_param1 = endcap_specSensor.add("Parameter","");
+    endcap_param1.add("<xmlattr>.name","SensitiveDetector");
+    endcap_param1.add("<xmlattr>.value","TkAccumulatingSensitiveDetector");
+
+    ptree& endcap_param2 = endcap_specSensor.add("Parameter","");
+    endcap_param2.add("<xmlattr>.name","ReadOutName");
+    endcap_param2.add("<xmlattr>.value","TrackerHitsPixelEndcap");////to be consistent with OscarProducer
+
+    write_xml(xmlpath+"pixelsens_test.xml", tree_sense, std::locale(), settings);
+    
+    //Prodcut portion
+    ptree tree_prodCut;
+    tree_prodCut.add("DDDefinition.<xmlattr>.xmlns", "http://www.cern.ch/cms/DDL");
+    tree_prodCut.add("DDDefinition.<xmlattr>.xmlns:xsi", "http://www.cern.ch/www.w3.org/2001/XMLSchema-instance");
+    tree_prodCut.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
+        "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
+    ptree& specParProdSec = tree_prodCut.add("DDDefinition.SpecParSection", "");
+    specParProdSec.add("<xmlattr>.label", "trackerProdCuts.xml");//xml_specpars_label=spec-pars2.xml
+    specParProdSec.add("<xmlattr>.eval","true");
+
+    ptree& dead_spec = specParProdSec.add("SpecPar","");
+    dead_spec.add("<xmlattr>.name","tracker-dead-pixel");
+
+    ptree& barrel_partSel = dead_spec.add("PartSelector","");
+    barrel_partSel.add("<xmlattr>.path","//pixbar:" + xml_phaseII_pixbar );
+
+    ptree& endcap_partSel = dead_spec.add("PartSelector","");
+    endcap_partSel.add("<xmlattr>.path","//pixfwd:" + xml_phaseII_pixecap);
+
+    ptree& dead_param1 = dead_spec.add("Parameter","");
+    dead_param1.add("<xmlattr>.name","CMSCutsRegion");
+    dead_param1.add("<xmlattr>.value","TrackerPixelDeadRegion");
+    dead_param1.add("<xmlattr>.eval","false");
+
+    ptree& dead_param2 = dead_spec.add("Parameter","");
+    dead_param2.add("<xmlattr>.name","ProdCutsForElectrons");
+    dead_param2.add("<xmlattr>.value","1*mm");
+
+    ptree& dead_param3 = dead_spec.add("Parameter","");
+    dead_param3.add("<xmlattr>.name","ProdCutsForPositrons");
+    dead_param3.add("<xmlattr>.value","1*mm");
+
+    ptree& dead_param4 = dead_spec.add("Parameter","");
+    dead_param4.add("<xmlattr>.name","ProdCutsForGamma");
+    dead_param4.add("<xmlattr>.value","1*mm");
+
+
+    ptree& sens_spec = specParProdSec.add("SpecPar","");
+    sens_spec.add("<xmlattr>.name","tracker-sens-pixel");
+    for( auto& p: barrel_partselectors ) {
+      ptree& partSel = sens_spec.add("PartSelector","");
+      partSel.add("<xmlattr>.path","//"+ p);
+    }
+    for( auto& p: endcap_partselectors ) {
+      ptree& partSel = sens_spec.add("PartSelector","");
+      partSel.add("<xmlattr>.path","//"+ p);
+    }
+    ptree& sens_param1 = sens_spec.add("Parameter","");
+    sens_param1.add("<xmlattr>.name","CMSCutsRegion");
+    sens_param1.add("<xmlattr>.value","TrackerPixelSensRegion");
+    sens_param1.add("<xmlattr>.eval","false");
+
+    ptree& sens_param2 = sens_spec.add("Parameter","");
+    sens_param2.add("<xmlattr>.name","ProdCutsForElectrons");
+    sens_param2.add("<xmlattr>.value","0.01*mm");
+
+    ptree& sens_param3 = sens_spec.add("Parameter","");
+    sens_param3.add("<xmlattr>.name","ProdCutsForPositrons");
+    sens_param3.add("<xmlattr>.value","0.01*mm");
+
+    ptree& sens_param4 = sens_spec.add("Parameter","");
+    sens_param4.add("<xmlattr>.name","ProdCutsForGamma");
+    sens_param4.add("<xmlattr>.value","0.01*mm");
+
+    write_xml(xmlpath+"pixelProdCuts_test.xml", tree_prodCut, std::locale(), settings);
+ 
+   //Reco Material
+    ptree tree_recoMat;
+    tree_recoMat.add("DDDefinition.<xmlattr>.xmlns", "http://www.cern.ch/cms/DDL");
+    tree_recoMat.add("DDDefinition.<xmlattr>.xmlns:xsi", "http://www.cern.ch/www.w3.org/2001/XMLSchema-instance");
+    tree_recoMat.add("DDDefinition.<xmlattr>.xsi:schemaLocation",
+        "http://www.cern.ch/cms/DDL ../../../DetectorDescription/Schema/DDLSchema.xsd");
+    ptree& specParRecoSec = tree_recoMat.add("DDDefinition.SpecParSection", "");
+    specParRecoSec.add("<xmlattr>.label", "spec-pars2.xml");//xml_specpars_label=spec-pars2.xml
+   
+      std::string pixbarRecoSpeccommon = "TrackerRecMaterial" + xml_phaseII_pixbar + xml_layer;
+      for( unsigned int l = 1; l<=3; l++){
+          std::stringstream stemp;
+          stemp << pixbarRecoSpeccommon << l;
+          ptree& specReco = specParRecoSec.add("SpecPar","");
+          specReco.add("<xmlattr>.name",stemp.str());
+          specReco.add("<xmlattr>.eval","true");
+	  /* for(auto& e:barrelRmatpath) {
+            std::stringstream sl;
+              sl << "Layer" << l;
+              if( e.find(sl.str()) != std::string::npos ){
+                 ptree& part = specReco.add("PartSelector","");
+                 part.add("<xmlattr>.path",e);
+              }
+	      }*/
+          for (const auto &rilength : pixelData.lrilength) {
+            if (!rilength.barrel || rilength.index != l)
+              continue;
+            ptree &parRLength = specReco.add("Parameter","");
+            parRLength.add("<xmlattr>.name",xml_recomat_radlength);
+            parRLength.add("<xmlattr>.value",rilength.rlength);
+            ptree &parILength = specReco.add("Parameter","");
+            parILength.add("<xmlattr>.name",xml_recomat_xi);
+            parILength.add("<xmlattr>.value",rilength.ilength);
+          }
+      }
+      
+      std::string pixfwdRecoSpeccommon = "TrackerRecMaterial" + xml_phaseII_pixecap + "Disk";
+      /*for( unsigned int d = 0; d<discRingpair.size(); d++){
+          std::stringstream stemp;
+          stemp << pixfwdRecoSpeccommon << discRingpair[d].first << "Fw";
+          ptree& specReco = specParRecoSec.add("SpecPar","");
+          specReco.add("<xmlattr>.name",stemp.str());
+          specReco.add("<xmlattr>.eval","true");
+          for( unsigned int r = 0; r<discRingpair[d].second; r++){
+            for(auto& e:ecapRmatpath) {
+                std::stringstream sl;
+                sl << "Ring" << r+1 << "Disc" << discRingpair[d].first;
+                if( e.find(sl.str()) != std::string::npos ){
+                    ptree& part = specReco.add("PartSelector","");
+                    part.add("<xmlattr>.path",e);
+                }
+		}
+          }
+          for (const auto &rilength : pixelData.lrilength) {
+            if (rilength.barrel || rilength.index != discRingpair[d].first)
+              continue;
+            ptree &parRLength = specReco.add("Parameter","");
+            parRLength.add("<xmlattr>.name",xml_recomat_radlength);
+            parRLength.add("<xmlattr>.value",rilength.rlength);
+            ptree &parILength = specReco.add("Parameter","");
+            parILength.add("<xmlattr>.name",xml_recomat_xi);
+            parILength.add("<xmlattr>.value",rilength.ilength);
+	    }
+      }*/
+      write_xml(xmlpath+"pixelRecoMaterial_test.xml", tree_recoMat, std::locale(), settings);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
     
 }

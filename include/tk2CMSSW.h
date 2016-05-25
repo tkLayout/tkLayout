@@ -54,6 +54,7 @@ namespace insur {
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string outsubdir = "", bool wt = false);
         struct ConfigFile { std::string name, content; };
         void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
+	void printXml(CMSSWBundle pixelData, std::string outsubdir);
     protected:
         CMSSWBundle data;
         Extractor ex;
