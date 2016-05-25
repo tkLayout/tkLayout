@@ -59,7 +59,7 @@ IF(GIT_FOUND)
                    "const std::string SvnRevision::revisionNumber = \"${GIT_REVISION}\"\;\n")
 
       FILE(WRITE SvnRevision.cpp.txt ${vstring} )
-      EXECUTE_PROCESS(COMMAND bash -c "if [ ! -e SvnRevision.orig.cpp ]; then cp -p ${CMAKE_CURRENT_SOURCE_DIR}/../src/SvnRevision.cpp SvnRevision.orig.cpp; fi" )
+      EXECUTE_PROCESS(COMMAND bash -c "if [ ! -e SvnRevision.orig.cpp ]; then cp -p ${CMAKE_CURRENT_SOURCE_DIR}/../source/Tools/src/SvnRevision.cpp SvnRevision.orig.cpp; fi" )
       EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
                               SvnRevision.cpp.txt ${CMAKE_CURRENT_SOURCE_DIR}/../src/SvnRevision.cpp)
     ENDIF()

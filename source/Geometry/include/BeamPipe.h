@@ -32,6 +32,12 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   //! Destructor
   virtual ~BeamPipe();
 
+  //! Build method - setting all parameters
+  void build();
+
+  //! Setup: link lambda functions to various beampipe related properties (use setup functions for ReadOnly Computable properties)
+  void setup() {};
+
   //! GeometryVisitor pattern -> beam pipe visitable
   void accept(GeometryVisitor& v);
 
@@ -53,12 +59,6 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
 
   //! Copy constructor
   BeamPipe(const BeamPipe&) = default;
-
-  //! Build method - setting all parameters -> private method called by constructor
-  void build();
-
-  //! Calculate various beam-pipe related properties -> private method called by constructor
-  void setup() {};
 
   insur::InactiveTube* m_tube; //!< Beam pipe as inactive tube;
 

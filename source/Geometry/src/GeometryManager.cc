@@ -200,7 +200,7 @@ bool GeometryManager::buildBeamPipe()
   try {
 
     auto childRange = getChildRange(*m_geomTree, "BeamPipe");
-    std::for_each(childRange.first, childRange.second, [&](const ptree::value_type& kv) {
+    for (auto it=childRange.first; it!=childRange.second; ++it) {
 
       // Declare if more than one beam pipes defined
       if (m_beamPipe!=nullptr) {
@@ -212,10 +212,12 @@ bool GeometryManager::buildBeamPipe()
       else {
 
         std::cout << "Building new beam pipe" << std::endl;
-        m_beamPipe = new BeamPipe(kv.second);
+        m_beamPipe = new BeamPipe(it->second);
+        m_beamPipe->build();
+        m_beamPipe->setup();
       }
 
-    }); // Beam pipes
+    }; // Beam pipes
 
     // Declare unmatched properties
     std::set<string> unmatchedProperties = PropertyObject::reportUnmatchedProperties();

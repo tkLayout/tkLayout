@@ -24,10 +24,6 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
   // Set the geometry config parameters
   this->myid(treeProperty.data());
   this->store(treeProperty);
-
-  // Build & setup tracker
-  this->build();
-  this->setup();
 }
 
 //
