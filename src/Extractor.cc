@@ -636,7 +636,7 @@ namespace insur {
       ril.index = layer;
       
 
-      std::ostringstream lname, rodname, rodnameFlipped, pconverter;
+      std::ostringstream lname, rodname, rodNextPhiName, pconverter;
       lname << xml_layer << layer; // e.g. Layer1
       rodname << xml_rod << layer; // e.g.Rod1
       rodNextPhiName << xml_rod << xml_next_phi << layer; // e.g.RodNextPhi1
@@ -653,7 +653,7 @@ namespace insur {
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
 
-	  //std::cout << iiter->getModule().uniRef().phi << std::endl;
+	  std::cout << "phi en DEG = " << iiter->getModule().posRef().phi * 180./M_PI << std::endl;
 
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
