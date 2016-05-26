@@ -641,6 +641,8 @@ namespace insur {
       rodname << xml_rod << layer; // e.g.Rod1
       rodNextPhiName << xml_rod << xml_next_phi << layer; // e.g.RodNextPhi1
 
+      double rodStartPhiAngle, rodNextPhiStartPhiAngle;
+
       // information on tilted rings, indexed by ring number
       std::map<int, BTiltedRingInfo> rinfoplus; // positive-z side
       std::map<int, BTiltedRingInfo> rinfominus; // negative-z side
@@ -652,17 +654,14 @@ namespace insur {
 	// ONLY POSITIVE SIDE, AND MODULES WITH UNIREF PHI == 1 OR 2
 	if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)) {
 
-
-	  std::cout << "phi en DEG = " << iiter->getModule().posRef().phi * 180./M_PI << std::endl;
-
 	  // ring number (position on rod, or tilted ring number)
 	  int modRing = iiter->getModule().uniRef().ring; 
     
 	  // tilt angle of the module
 	  double tiltAngle = 0;
-	  if (isTilted) { tiltAngle = iiter->getModule().tiltAngle() * 180 / M_PI; }
+	  if (isTilted) { tiltAngle = iiter->getModule().tiltAngle() * 180. / M_PI; }
 	    
-	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	  //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().posRef().phi = " << iiter->getModule().posRef().phi << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " tiltAngle = " << tiltAngle << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 	  // module name
 	  std::ostringstream mname;
@@ -682,6 +681,8 @@ namespace insur {
 
 	  // ROD 1 (STRAIGHT LAYER), OR ROD 1 + MODULES WITH UNIREF PHI == 1 OF THE TILTED RINGS (TILTED LAYER)
 	  if (iiter->getModule().uniRef().phi == 1) {           
+
+	    rodStartPhiAngle = iiter->getModule().center().Phi();
 
             std::ostringstream ringname;
 	    ringname << xml_ring << modRing << lname.str();
@@ -739,6 +740,7 @@ namespace insur {
 
 	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
+	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
 	      pos.parent_tag = nspace + ":" + rodNextPhiName.str();
 	      pos.child_tag = nspace + ":" + mname.str();
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
@@ -822,9 +824,9 @@ namespace insur {
               if (iiter->getModule().stereoRotation() != 0) {
                 rot.name = type_stereo + mname.str();
                 rot.thetax = 90.0;
-                rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
+                rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
                 rot.thetay = 90.0;
-                rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
+                rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
                 r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
                 pos.rotref = nspace + ":" + rot.name;
               }
@@ -931,10 +933,10 @@ namespace insur {
 	      rinf.isZPlus = 1;
 	      rinf.tiltAngle = tiltAngle;
 	      rinf.bw_flipped = iiter->getModule().flipped();
-	      rinf.phi = iiter->getModule().uniRef().phi;
 	      rinf.modules = lagg.getBarrelLayers()->at(layer - 1)->numRods();
 	      rinf.r1 = iiter->getModule().center().Rho();
-	      rinf.z1 = iiter->getModule().center().Z();      
+	      rinf.z1 = iiter->getModule().center().Z();
+	      rinf.startPhiAngle1 = iiter->getModule().center().Phi();     
 	      rinf.rmin = modcomplex.getRmin();
 	      rinf.zmin = modcomplex.getZmin();
 	      rinf.rminatzmin = modcomplex.getRminatZmin();      
@@ -965,6 +967,7 @@ namespace insur {
 	      it->second.fw_flipped = iiter->getModule().flipped();
 	      it->second.r2 = iiter->getModule().center().Rho();
 	      it->second.z2 = iiter->getModule().center().Z();
+	      it->second.startPhiAngle2 = iiter->getModule().center().Phi();
 	      it->second.rmax = modcomplex.getRmax();
 	      it->second.zmax = modcomplex.getZmax();
 	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
@@ -975,6 +978,7 @@ namespace insur {
 	      it->second.fw_flipped = iiter->getModule().flipped();
 	      it->second.r2 = iiter->getModule().center().Rho();
 	      it->second.z2 = - iiter->getModule().center().Z();
+	      it->second.startPhiAngle2 = iiter->getModule().center().Phi();
 	      it->second.rmax = modcomplex.getRmax();
 	      it->second.zmax = modcomplex.getZmax();
 	      it->second.rmaxatzmax = modcomplex.getRmaxatZmax();
@@ -1026,10 +1030,10 @@ namespace insur {
 	pconverter <<  nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
 	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
 	pconverter.str("");
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
+	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -1054,10 +1058,10 @@ namespace insur {
 	pconverter <<  nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
 	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
 	pconverter.str("");
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() << "*deg";
+	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -1081,10 +1085,10 @@ namespace insur {
 	pconverter <<  nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90) << "*deg";
+	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
 	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
 	pconverter.str("");
-	pconverter << lagg.getBarrelLayers()->at(layer - 1)->startAngle() + 360. / lagg.getBarrelLayers()->at(layer - 1)->numRods() << "*deg";
+	pconverter << rodNextPhiStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	pconverter.str("");
 	alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
@@ -1195,7 +1199,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi - 1) << "*deg";
+	      pconverter << rinfo.startPhiAngle1 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r1;
@@ -1224,7 +1228,7 @@ namespace insur {
 	      alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
 	      alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-	      pconverter << 90. + 360. / (double)(rinfo.modules) * (rinfo.phi) << "*deg";
+	      pconverter << rinfo.startPhiAngle2 * 180. / M_PI << "*deg";
 	      alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
 	      pconverter.str("");
 	      pconverter << rinfo.r2;
@@ -1470,8 +1474,10 @@ namespace insur {
 
 	    //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
 
-	    if (iiter->getModule().uniRef().phi == 1) {
+	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
+
+	    if (iiter->getModule().uniRef().phi == 1) {
 	      // new ring
 	      //if (ridx.find(modRing) == ridx.end()) {
 	      ridx.insert(modRing);
@@ -1583,9 +1589,9 @@ namespace insur {
 		if (iiter->getModule().stereoRotation() != 0) {
 		  rot.name = type_stereo + xml_endcap_module + mname.str();
 		  rot.thetax = 90.0;
-		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180;
+		  rot.phix = iiter->getModule().stereoRotation() / M_PI * 180.;
 		  rot.thetay = 90.0;
-		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180;
+		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
 		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
 		  pos.rotref = nspace + ":" + rot.name;
 		}
@@ -1683,8 +1689,7 @@ namespace insur {
 	      rinf.childname = mname.str();
 	      rinf.fw = (iiter->getModule().center().Z() > (zmin + zmax) / 2.0);
 	      rinf.isZPlus = iiter->getModule().uniRef().side;
-	      rinf.fw_flipped = iiter->getModule().flipped();
-	      rinf.phi = iiter->getModule().center().Phi();
+	      rinf.fw_flipped = iiter->getModule().flipped();	      
 	      rinf.modules = lagg.getEndcapLayers()->at(layer - 1)->ringsMap().at(modRing)->numModules();
 	      rinf.mthk = modcomplex.getExpandedModuleThickness();
 	      rinf.rmin  = modcomplex.getRmin();
@@ -1693,6 +1698,7 @@ namespace insur {
 	      rinf.zmin = ringzmin.at(modRing);
 	      rinf.zmax = ringzmax.at(modRing);
 	      rinf.zfw = iiter->getModule().center().Z();
+	      rinf.startPhiAnglefw = iiter->getModule().center().Phi();
 	      rinfo.insert(std::pair<int, ERingInfo>(modRing, rinf));
 
 
@@ -1708,6 +1714,7 @@ namespace insur {
 	      it = rinfo.find(modRing);
 	      if (it != rinfo.end()) {
 		it->second.zbw = iiter->getModule().center().Z();
+		it->second.startPhiAnglebw = iiter->getModule().center().Phi();
 	      }
 	    }
 	  }
@@ -1763,7 +1770,7 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "1"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << 360. / (double)(rinfo[*siter].modules) * rinfo[*siter].phi << "*deg";
+            pconverter << rinfo[*siter].startPhiAnglefw * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;
@@ -1789,7 +1796,7 @@ namespace insur {
             alg.parameters.push_back(numericParam(xml_startcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_incrcopyno, "2"));
             alg.parameters.push_back(numericParam(xml_rangeangle, "360*deg"));
-            pconverter << 360. / (double)(rinfo[*siter].modules) * (rinfo[*siter].phi + 1) << "*deg";
+            pconverter << rinfo[*siter].startPhiAnglebw * 180. / M_PI << "*deg";
             alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
             pconverter.str("");
             pconverter << rinfo[*siter].rmid;

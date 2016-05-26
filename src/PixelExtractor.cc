@@ -175,7 +175,7 @@ namespace insur {
 
       rod_alg.parameter_map["Tilt"] = {"90*deg",AlgoPartype::num};
 
-      parmap << bLayers->at(i)->startAngle();
+      parmap << 90.;
       rod_alg.parameter_map["StartAngle"] = {parmap.str(),AlgoPartype::num};
       parmap.str("");
 
