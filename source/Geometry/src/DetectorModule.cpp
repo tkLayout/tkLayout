@@ -112,7 +112,6 @@ void DetectorModule::build() {
     for (int iSensor=1; iSensor<=numSensors(); iSensor++) {
       Sensor* s = GeometryFactory::make<Sensor>(iSensor, this, sensorNode, propertyTree());
       s->build();
-      s->setup();
 
       m_sensors.push_back(s);
       m_materialObject.sensorChannels[iSensor+1]=s->numChannels();
@@ -122,7 +121,7 @@ void DetectorModule::build() {
     // Fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
     Sensor* s = GeometryFactory::make<Sensor>(1, this);
     s->build();
-    s->setup();
+
     m_sensors.push_back(s);
   }
 

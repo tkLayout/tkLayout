@@ -231,7 +231,6 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
       else                       rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
       rod->build();
-      rod->setup();
 
       firstRod = rod;
 
@@ -255,7 +254,6 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
         if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
         else                       rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
         rod->build();
-        rod->setup();
         secondRod = rod;
 
         m_rods.push_back(rod);

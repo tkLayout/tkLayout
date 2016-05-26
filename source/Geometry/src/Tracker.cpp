@@ -68,7 +68,6 @@ void Tracker::build() {
       std::cout << "  " << iBarrel.first << std::endl;
       Barrel* barrel = GeometryFactory::make<Barrel>(iBarrel.first, iBarrel.second, propertyTree());
       barrel->build();
-      barrel->setup();
       barrel->cutAtEta(etaCut());
 
       m_barrels.push_back(barrel);
@@ -84,7 +83,6 @@ void Tracker::build() {
       std::cout << "  " << iEndcap.first << std::endl;
       Endcap* endcap = GeometryFactory::make<Endcap>(barrelMaxZ, iEndcap.first, iEndcap.second, propertyTree());
       endcap->build();
-      endcap->setup();
       endcap->cutAtEta(etaCut());
       m_endcaps.push_back(endcap);
     }

@@ -86,8 +86,6 @@ void Endcap::build()
       Disk* diskn = GeometryFactory::clone(*diskp);
       diskn->mirrorZ();
 
-      diskp->setup();
-      diskn->setup();
       tdisks.push_back(diskp);
       tdisks.push_back(diskn);
     }

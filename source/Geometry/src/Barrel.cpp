@@ -56,7 +56,6 @@ void Barrel::build()
 
       Layer* layer = GeometryFactory::make<Layer>(i, numLayers(), m_innerRadiusFixed(), m_outerRadiusFixed(), m_barrelRotation(), m_layerNode, propertyTree());
       layer->build(numLayers(), m_innerRadius(), m_outerRadius());
-      layer->setup();
 
       m_layers.push_back(layer);
     }

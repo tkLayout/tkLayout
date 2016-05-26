@@ -180,7 +180,6 @@ void RodPairStraight::build()
 
       BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
-      mod->setup();
 
       // Translate
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
@@ -214,7 +213,6 @@ void RodPairStraight::build()
 
       BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
-      mod->setup();
 
       // Translate
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
@@ -248,7 +246,6 @@ void RodPairStraight::build()
 
       BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
-      mod->setup();
 
       // Translate & rotate (rotate after translation!)
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta); // Positioning algorithm starts from the centre of a previous module (real or virtual)
