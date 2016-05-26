@@ -27,10 +27,6 @@ Endcap::Endcap(double barrelOuterZ, const std::string& name, const PropertyTree&
   this->myid(name);
   this->store(treeProperty);
   this->store(nodeProperty);
-
-  // Build & setup tracker
-  this->build();
-  this->setup();
 }
 
 //

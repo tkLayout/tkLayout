@@ -100,27 +100,29 @@ DetectorModule::~DetectorModule()
 // Build detector module with its sensors
 //
 void DetectorModule::build() {
+
   check();
   if (!decorated().builtok()) {
+
     decorated().store(propertyTree());
     decorated().build();
   }
   if (numSensors() > 0) {
-    for (int i = 0; i < numSensors(); i++) {
-      Sensor* s = GeometryFactory::make<Sensor>();
-      s->parent(this);
-      s->myid(i+1);
-      s->store(propertyTree());
-      if (sensorNode.count(i+1) > 0) s->store(sensorNode.at(i+1));
+
+    for (int iSensor=1; iSensor<=numSensors(); iSensor++) {
+      Sensor* s = GeometryFactory::make<Sensor>(iSensor, this, sensorNode, propertyTree());
       s->build();
+      s->setup();
+
       m_sensors.push_back(s);
-      m_materialObject.sensorChannels[i+1]=s->numChannels();
+      m_materialObject.sensorChannels[iSensor+1]=s->numChannels();
     }
   } else {
-    Sensor* s = GeometryFactory::make<Sensor>();  // fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
-    s->parent(this);
-    s->myid(1);
+
+    // Fake sensor to avoid defensive programming when iterating over the sensors and the module is empty
+    Sensor* s = GeometryFactory::make<Sensor>(1, this);
     s->build();
+    s->setup();
     m_sensors.push_back(s);
   }
 
@@ -164,7 +166,8 @@ void DetectorModule::setup() {
   totalChannels.setup([&](){ int cnt  = 0;                               for (const auto& s : m_sensors) { cnt += s.numChannels(); } return cnt; });
 
 
-  for (Sensor& s : m_sensors) s.parent(this); // set the parent for the sensors once again (in case the module's been cloned)
+  // Set the parent for the sensors once again (in case the module's been cloned) -> setup method called after cloning!
+  for (Sensor& s : m_sensors) s.parent(this);
 }
 
 //

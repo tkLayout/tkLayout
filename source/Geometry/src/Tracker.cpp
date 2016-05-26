@@ -82,20 +82,22 @@ void Tracker::build() {
       if (!m_containsOnly.empty() && m_containsOnly.count(iEndcap.first) == 0) continue;
 
       std::cout << "  " << iEndcap.first << std::endl;
-      Endcap* e = GeometryFactory::make<Endcap>(barrelMaxZ, iEndcap.first, iEndcap.second, propertyTree());
-      e->cutAtEta(etaCut());
-      m_endcaps.push_back(e);
+      Endcap* endcap = GeometryFactory::make<Endcap>(barrelMaxZ, iEndcap.first, iEndcap.second, propertyTree());
+      endcap->build();
+      endcap->setup();
+      endcap->cutAtEta(etaCut());
+      m_endcaps.push_back(endcap);
     }
 
     // Build support structures within tracker
     for (auto& iSupport : m_supportNode) {
 
       std::cout << "  " << iSupport.first << std::endl;
-      SupportStructure* s = new SupportStructure();
-      s->store(propertyTree());
-      s->store(iSupport.second);
-      s->buildInTracker();
-      m_supportStructures.push_back(s);
+      SupportStructure* support = new SupportStructure();
+      support->store(propertyTree());
+      support->store(iSupport.second);
+      support->buildInTracker();
+      m_supportStructures.push_back(support);
     }
   }
   catch (PathfulException& pe) {

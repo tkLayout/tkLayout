@@ -33,6 +33,12 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   //! Constructor - parse geometry config file using boost property tree & read-in Disk, Support nodes
   Endcap(double barrelOuterZ, const std::string& name, const PropertyTree& nodeProperty, const PropertyTree& treeProperty);
 
+  //! Build recursively individual subdetector systems: Disks -> rings -> modules
+  void build();
+
+  //! Setup: link lambda functions to various endcap related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
+  void setup();
+
   //! Limit endcap geometry by eta cut
   void cutAtEta(double eta);
 
@@ -58,12 +64,6 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   ReadonlyProperty<bool  , Default>    skipServices; // TODO: Comment
 
  private:
-
-  //! Build recursively individual subdetector systems: Disks -> rings -> modules -> private method called by constructor
-  void build();
-
-  //! Setup: link lambda functions to various endcap related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
-  void setup();
 
   //! Drill down into the property tree to find the maximum dsDistances -> used by build algorithm to optimize disk positions
   vector<double> findMaxDsDistances();
