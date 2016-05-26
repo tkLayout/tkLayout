@@ -100,7 +100,7 @@ class Tracker : public PropertyObject, public Buildable, public Identifiable<str
   //! Build recursively individual subdetector systems: Barrels, Endcaps
   void build();
 
-  //! Setup: link functions to various tracker related properties (use setup functions for ReadOnly Computable properties)
+  //! Setup: link functions to various tracker related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
   //! Return tracker barrels

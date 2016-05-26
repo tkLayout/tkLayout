@@ -5,12 +5,14 @@
 #include <boost/ptr_container/ptr_map.hpp>
 
 /*
- * Factory class is meant to be used to build individual geometrical objects (barrels, layers, rods, ...) and
- * put them into boost::ptr_vector container, named as PtrVector. (PtrVector deals correctly with the memory
- * management if individual pointers get out of scope). Use either GeometryFactory::make<GeomObjectType>(constructor parameters)
- * method as new operator, or GeometryFactory::clone<GeomObjectType>(objectInstance) to clone the object. Both
- * methods call setup() method, which is meant to be set by each GeomObjectType classes. That's why the wrapper
- * around boost::ptr_vector allocation has been written.
+ * Factory class is meant to be used to build individual geometrical objects (barrels, layers, rods, ...)
+ * and put them into boost::ptr_vector container, named as PtrVector. (PtrVector deals correctly with the
+ * memory management if individual pointers get out of scope, one access vector objects by reference using
+ * at() instead of pointers, automatic copy of vector objects is guaranteed if cloned). Use either
+ * GeometryFactory::make<GeomObjectType>(constructor parameters) method as new operator, or
+ * GeometryFactory::clone<GeomObjectType>(objectInstance) to clone the object. Both methods call setup()
+ * method, which is meant to be set by each GeomObjectType classes. That's why the wrapper around
+ * boost::ptr_vector allocation has been written.
  */
 class GeometryFactory {
 

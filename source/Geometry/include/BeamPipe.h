@@ -35,7 +35,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   //! Build method - setting all parameters
   void build();
 
-  //! Setup: link lambda functions to various beampipe related properties (use setup functions for ReadOnly Computable properties)
+  //! Setup: link lambda functions to various beampipe related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup() {};
 
   //! GeometryVisitor pattern -> beam pipe visitable

@@ -62,7 +62,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   //! Build recursively individual subdetector systems: Disks -> rings -> modules -> private method called by constructor
   void build();
 
-  //! Calculate various endcap related properties -> private method called by constructor
+  //! Setup: link lambda functions to various endcap related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
   //! Drill down into the property tree to find the maximum dsDistances -> used by build algorithm to optimize disk positions

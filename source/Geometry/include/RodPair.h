@@ -1,5 +1,5 @@
-#ifndef INCLUDE_RODPAIR_H
-#define INCLUDE_RODPAIR_H
+#ifndef INCLUDE_RODPAIR_H_
+#define INCLUDE_RODPAIR_H_
 
 #include <vector>
 #include <string>
@@ -27,7 +27,8 @@ enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
 
 /*
- * @class Base rod class -> use RodStraight or RodTilted
+ * @class RodPair
+ * @brief Base rod class -> use RodStraight or RodTilted
  * @details Rod class holds information about individual layer rods (pairs of pozitive & negative modules, hence RodPair).
  * It's building procedure is executed automatically via Layer class. Similarly, all its components: positive & negative
  * modules in Z are recursively build through private build() method.
@@ -45,7 +46,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   //! Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
    void buildClone(int id, double shiftR, double rotation);
 
-  //! Setup: link lambda functions to various rod related properties (use setup functions for ReadOnly Computable properties)
+  //! Setup: link lambda functions to various rod related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
   //! Limit rod geometry by eta cut
@@ -163,4 +164,4 @@ public:
 //
 //};
 
-#endif /* INCLUDE_RODPAIR_H */
+#endif /* INCLUDE_RODPAIR_H_ */

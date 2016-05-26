@@ -24,8 +24,8 @@ public:
   ReadonlyProperty<int, NoDefault> numROCX, numROCY;
   ReadonlyProperty<double, Default> sensorThickness;
   ReadonlyProperty<SensorType, Default> type;
-  ReadonlyProperty<double, Computable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
-  ReadonlyProperty<double, Computable> minZ, maxZ; // ditto for min/maxZ
+  ReadonlyProperty<double, UncachedComputable> minR, maxR; // CUIDADO min/maxR don't take into account the sensor thickness!
+  ReadonlyProperty<double, UncachedComputable> minZ, maxZ; // ditto for min/maxZ
 
   Sensor() : 
       numSegments("numSegments", parsedOnly()),

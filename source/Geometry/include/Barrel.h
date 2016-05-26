@@ -38,7 +38,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   //! Build recursively individual subdetector systems: Layers -> rods -> modules
   void build();
 
-  //! Setup: link lambda functions to various barrel related properties (use setup functions for ReadOnly Computable properties)
+  //! Setup: link lambda functions to various barrel related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
   //! Limit barrel geometry by eta cut

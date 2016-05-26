@@ -48,7 +48,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Build recursively individual subdetector systems: rods -> modules & conversion stations
   void build(int barrelNumLayers, double barrelMinR, double barrelMaxR);
 
-  //! Setup: link lambda functions to various layer related properties (use setup functions for ReadOnly Computable properties)
+  //! Setup: link lambda functions to various layer related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
   //! Limit layer geometry by eta cut
@@ -87,12 +87,12 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Get rod thickness
   double rodThickness() const { return m_rods.front().thickness(); }
 
-  ReadonlyProperty<double    , UncachedComputable> minZ;               //!< Minimum layer Z
-  ReadonlyProperty<double    , UncachedComputable> maxZ;               //!< Maximum layer Z
-  ReadonlyProperty<double    , Computable>         minR;               //!< Minimum layer radius (given by different positions of layer modules - big & smallDelta)
-  ReadonlyProperty<double    , Computable>         maxR;               //!< Maximum layer radius (given by different positions of layer modules - big & smallDelta)
-  Property<        double    , NoDefault>          outerZ;             //!< Outer Z position (maximum Z), if buildNumModules not defined, this variable used instead to define layer halfLength
-  Property<        int       , AutoDefault>        buildNumModules;    //!< Number of modules to be built in each layer, if not defined outerZ variable used instead
+  ReadonlyProperty<double    , Computable>  minZ;               //!< Minimum layer Z
+  ReadonlyProperty<double    , Computable>  maxZ;               //!< Maximum layer Z
+  ReadonlyProperty<double    , Computable>  minR;               //!< Minimum layer radius (given by different positions of layer modules - big & smallDelta)
+  ReadonlyProperty<double    , Computable>  maxR;               //!< Maximum layer radius (given by different positions of layer modules - big & smallDelta)
+  Property<        double    , NoDefault>   outerZ;             //!< Outer Z position (maximum Z), if buildNumModules not defined, this variable used instead to define layer halfLength
+  Property<        int       , AutoDefault> buildNumModules;    //!< Number of modules to be built in each layer, if not defined outerZ variable used instead
 
   //! Defines which algorithm used to optimize layer radius for straight option: F (fixed), A (auto), E (expand) or S (shrink).
   //! F stands for the positioning at a user-defined radii, i.e. fixed radii.

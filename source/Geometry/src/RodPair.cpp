@@ -157,7 +157,7 @@ void RodPairStraight::build()
     m_materialObject.store(propertyTree());
     m_materialObject.build();
 
-    logINFO(Form("Building %s prototype", fullid(*this).c_str()));
+    logINFO(Form("Building %s protot // TODO: Put it to constructorype", fullid(*this).c_str()));
     check();
 
     // Get module length from a tree
@@ -178,11 +178,9 @@ void RodPairStraight::build()
 
     if (m_startZMode()==StartZMode::MODULECENTER) {
 
-      BarrelModule* mod = GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>());
-      mod->myid(iMod);
-      mod->store(propertyTree()); // TODO: Put it to constructor
-      if (m_ringNode.count(myid())>0) mod->store(m_ringNode.at(myid())); // TODO: Put it to constructor
+      BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
+      mod->setup();
 
       // Translate
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
@@ -214,11 +212,9 @@ void RodPairStraight::build()
       iIter++;
       if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in positive Z, number of iterations exceeded allowed limit! Quitting!!!");
 
-      BarrelModule* mod = GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>());
-      mod->myid(iMod);
-      mod->store(propertyTree()); // TODO: Put it to constructor
-      if (m_ringNode.count(myid())>0) mod->store(m_ringNode.at(myid())); // TODO: Put it to constructor
+      BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
+      mod->setup();
 
       // Translate
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
@@ -250,11 +246,9 @@ void RodPairStraight::build()
       iIter++;
       if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in negative Z, number of iterations exceeded allowed limit! Quitting!!!");
 
-      BarrelModule* mod = GeometryFactory::make<BarrelModule>(GeometryFactory::make<RectangularModule>());
-      mod->myid(iMod);
-      mod->store(propertyTree()); // TODO: Put it to constructor
-      if (m_ringNode.count(myid())>0) mod->store(m_ringNode.at(myid())); // TODO: Put it to constructor
+      BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
+      mod->setup();
 
       // Translate & rotate (rotate after translation!)
       newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta); // Positioning algorithm starts from the centre of a previous module (real or virtual)
