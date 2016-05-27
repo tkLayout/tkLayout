@@ -25,8 +25,7 @@ typedef PtrVector<material::SupportStructure> BarrelSupportStructures;
  * @class Barrel
  * @details Barrel class holds information about tracker barrel system. It's building procedure is expected to be executed
  * automatically via Tracker class build() method. Similarly, all barrel components (layers -> rods -> modules) are
- * recursively built through barrel build() method. Call setup() method after the geometry is built to assign (lambda)
- * functions to various barrel related properties.
+ * recursively built through barrel build() method.
  */
 class Barrel : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Barrel>, public Visitable {
 
@@ -75,6 +74,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Property<double, Default>   m_supportMarginInner; // TODO: Comment
   Property<bool  , Default>   m_innerRadiusFixed;   //!< Is inner radius fixed or floating -> internal algorithm finds optimal radius
   Property<bool  , Default>   m_outerRadiusFixed;   //!< Is outer radius fixed or floating -> internal algorithm finds optimal radius
+
 
   PropertyNode<int>               m_layerNode;      //!< Property tree nodes for layers (included geometry config file)
   PropertyNodeUnique<std::string> m_supportNode;    //!< Property tree nodes for barrel supports (included geometry config file)

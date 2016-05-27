@@ -87,8 +87,7 @@ typedef ModulesSetVisitor::Modules            Modules;
  * @details Tracker class holds information about individual detection systems - trackers: pixel tracker, strip tracker,
  * forward tracker, etc... Information read in from an xml tree (boost property tree) passed as an argument to a constructor.
  * The whole tracker structure is built via Tracker build() method. This method builds recursively all individual
- * subdetectors: barrels -> layers -> rods -> modules, endcaps -> disks -> rings -> modules, etc. After build() method,
- * call setup() method to assign lambda functions to various tracker related Computable variables (properties).
+ * subdetectors: barrels -> layers -> rods -> modules, endcaps -> disks -> rings -> modules, etc.
  */
 class Tracker : public PropertyObject, public Buildable, public Identifiable<string>, Clonable<Tracker>, Visitable {
 

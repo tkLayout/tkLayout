@@ -134,9 +134,11 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   evaluateProperty(moduleWidth);
   ReadonlyProperty<double, Default> maxDsDistance( "dsDistance", parsedOnly(), 0.0);
   evaluateProperty(maxDsDistance);
+  ReadonlyProperty<double, Default> sensorThickness( "sensorThickness", parsedOnly(), 0.1);
+  evaluateProperty(sensorThickness);
 
-  double updatedMinR = barrelMinR + m_bigDelta() + m_smallDelta() + maxDsDistance();
-  double updatedMaxR = barrelMaxR - m_bigDelta() - m_smallDelta() - maxDsDistance();
+  double updatedMinR = barrelMinR + m_bigDelta() + m_smallDelta() + maxDsDistance()/2. + sensorThickness()/2.;
+  double updatedMaxR = barrelMaxR - m_bigDelta() - m_smallDelta() - maxDsDistance()/2. - sensorThickness()/2.;
          updatedMaxR = sqrt(updatedMaxR*updatedMaxR - moduleWidth()/2.*moduleWidth()/2.); // Need to take the outer envelope, i.e. the module width into account
 
   // Calculate expected radius

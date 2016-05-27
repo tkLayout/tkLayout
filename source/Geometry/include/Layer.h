@@ -34,8 +34,7 @@ enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
  * @details Layer class holds information about individual barrel layers. It's building procedure is executed automatically via
  * Barrel class. Similarly, all its components (layer rods (ladders) -> modules) are recursively called through build()
  * method. Depending on the configuration, either straight layers are built using buildStraight() method or tilted using
- * buildTilted() method. Call setup() method after the geometry is built to assign (lambda) functions to various barrel
- * related properties.
+ * buildTilted() method.
  */
 class Layer : public PropertyObject, public Buildable, public Identifiable<int>, public Clonable<Layer>, public Visitable {
 
@@ -135,7 +134,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double, Default>   m_phiOverlap;      //!< Required module overlap in R-Phi (in length units)
   Property<int   , Default>   m_phiSegments;     //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
 
-  PropertyNode<int>               m_ringNode;    // TODO: ??? (to grab properties for specific rod modules)
+  PropertyNode<int>               m_ringNode;    //!< Property tree node for ring (to grab properties for specific rod modules)
   PropertyNodeUnique<std::string> m_stationsNode;//!< Property tree nodes for conversion stations (included geometry config file)
 
 }; // Class

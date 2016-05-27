@@ -178,8 +178,8 @@ public:
 
   ReadonlyProperty<int         , AutoDefault> numSensors;      //!< Number of sensors built within detector module
   ReadonlyProperty<double      , Default    > stereoRotation;  //!< Stereo rotation of Z versus R-Phi measurement to calculate resolution (used if non-zero)
-  ReadonlyProperty<double      , Computable > resolutionLocalX;//!< Resolution in RPhi direction (calculated or defined)
-  ReadonlyProperty<double      , Computable > resolutionLocalY;//!< Resolution in Z direction (calculated or defined)
+  ReadonlyProperty<double      , Computable > resolutionLocalX;//!< TODO: Resolution in RPhi direction (calculated or defined) -> rename to RPhi
+  ReadonlyProperty<double      , Computable > resolutionLocalY;//!< TODO: Resolution in Z direction (calculated or defined) -> rename to Z
   ReadonlyProperty<SensorLayout, Default    > sensorLayout;
   ReadonlyProperty<ZCorrelation, NoDefault  > zCorrelation;
   ReadonlyProperty<ReadoutMode , Default    > readoutMode;     //!< Binary or analog (cluster) readout

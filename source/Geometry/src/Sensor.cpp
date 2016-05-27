@@ -1,16 +1,22 @@
 #include "Sensor.h"
 #include "DetectorModule.h"
 
+define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };
+
 //
 // Constructor - specify unique id, const pointer to parent module & parse geometry config file using boost property tree & read-in module parameters
 //
 Sensor::Sensor(int id, const DetectorModule* parent, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
- numSegments(    "numSegments"    , parsedOnly()),
+ minZ           (string("minZ")   ),
+ maxZ           (string("maxZ")   ),
+ minR           (string("minR")   ),
+ maxR           (string("maxR")   ),
+ numSegments    ("numSegments"    , parsedOnly()),
  numStripsAcross("numStripsAcross", parsedOnly()),
- numROCX(        "numROCX"        , parsedOnly()),
- numROCY(        "numROCY"        , parsedOnly()),
+ numROCX        ("numROCX"        , parsedOnly()),
+ numROCY        ("numROCY"        , parsedOnly()),
  sensorThickness("sensorThickness", parsedOnly(), 0.1),
- type(           "sensorType"     , parsedOnly(), SensorType::None),
+ type           ("sensorType"     , parsedOnly(), SensorType::None),
  m_parent(parent)
 {
   // Set unique id & the geometry config parameters
@@ -23,12 +29,16 @@ Sensor::Sensor(int id, const DetectorModule* parent, const PropertyNode<int>& no
 // Constructor - specify unique id, const pointer to parent module
 //
 Sensor::Sensor(int id, const DetectorModule* parent) :
- numSegments(    "numSegments"    , parsedOnly()),
+ minZ           (string("minZ")   ),
+ maxZ           (string("maxZ")   ),
+ minR           (string("minR")   ),
+ maxR           (string("maxR")   ),
+ numSegments    ("numSegments"    , parsedOnly()),
  numStripsAcross("numStripsAcross", parsedOnly()),
- numROCX(        "numROCX"        , parsedOnly()),
- numROCY(        "numROCY"        , parsedOnly()),
+ numROCX        ("numROCX"        , parsedOnly()),
+ numROCY        ("numROCY"        , parsedOnly()),
  sensorThickness("sensorThickness", parsedOnly(), 0.1),
- type(           "sensorType"     , parsedOnly(), SensorType::None),
+ type           ("sensorType"     , parsedOnly(), SensorType::None),
  m_parent(parent)
 {
   // Set unique id
@@ -56,10 +66,10 @@ void Sensor::build() {
 //
 void Sensor::setup() {
 
-  minR.setup([&]() { return CoordinateOperations::computeMinR(envelopePoly()); });
-  maxR.setup([&]() { return CoordinateOperations::computeMaxR(envelopePoly()); });
-  minZ.setup([&]() { return CoordinateOperations::computeMinZ(envelopePoly()); });
-  maxZ.setup([&]() { return CoordinateOperations::computeMaxZ(envelopePoly()); });
+  minR.setup([&]() { return MIN( CoordinateOperations::computeMinR(lowerEnvelopePoly()), CoordinateOperations::computeMinR(upperEnvelopePoly()) ); });
+  maxR.setup([&]() { return MAX( CoordinateOperations::computeMaxR(lowerEnvelopePoly()), CoordinateOperations::computeMaxR(upperEnvelopePoly()) ); });
+  minZ.setup([&]() { return MIN( CoordinateOperations::computeMinZ(lowerEnvelopePoly()), CoordinateOperations::computeMinZ(upperEnvelopePoly()) ); });
+  maxZ.setup([&]() { return MAX( CoordinateOperations::computeMaxZ(lowerEnvelopePoly()), CoordinateOperations::computeMaxZ(upperEnvelopePoly()) ); });
 }
 
 //
@@ -67,35 +77,61 @@ void Sensor::setup() {
 //
 void Sensor::parent(const DetectorModule* parent) { m_parent = parent; }
 
+//
+// Get standard offset wrt module average position -> +-dsDistance if dsDistance defined
+//
 double Sensor::normalOffset() const {
   return m_parent->numSensors() <= 1 ? 0. : (myid() == 1 ? -m_parent->dsDistance()/2. : m_parent->dsDistance()/2.);
 }
 
+//
+// Build sensor geometrical representation based on detector module geometrical representation shifted by offset (i.e. by +-thickness/2. to get outer/inner envelope etc.)
+//
 Polygon3d<4>* Sensor::buildOwnPoly(double polyOffset) const {
   Polygon3d<4>* p = new Polygon3d<4>(m_parent->basePoly());
   p->translate(p->getNormal()*polyOffset);
   return p;
 }
 
+//
+// Clear sensor polygons -> used when recalculating sensor/module position -> recreating geometrical implementation, i.e. polygon
+//
 void Sensor::clearPolys() { 
 
-  delete m_hitPoly; m_hitPoly = nullptr;
-  delete m_envPoly; m_envPoly = nullptr;
+  if (m_hitPoly     !=nullptr) delete m_hitPoly;      m_hitPoly      = nullptr;
+  if (m_lowerEnvPoly!=nullptr) delete m_lowerEnvPoly; m_lowerEnvPoly = nullptr;
+  if (m_upperEnvPoly!=nullptr) delete m_upperEnvPoly; m_upperEnvPoly = nullptr;
 }
 
+//
+// Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module)
+//
+const Polygon3d<4>& Sensor::upperEnvelopePoly() const {
+
+  if (m_upperEnvPoly==nullptr) m_upperEnvPoly = buildOwnPoly(normalOffset() + sensorThickness()/2.);
+  return *m_upperEnvPoly;
+}
+
+//
+// Get lower envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+//
+const Polygon3d<4>& Sensor::lowerEnvelopePoly() const {
+
+  if (m_lowerEnvPoly==nullptr) m_lowerEnvPoly = buildOwnPoly(normalOffset() - sensorThickness()/2.);
+  return *m_lowerEnvPoly;
+}
+
+//
+// Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+//
 const Polygon3d<4>& Sensor::hitPoly() const {
   if (m_hitPoly == nullptr) m_hitPoly = buildOwnPoly(normalOffset());
   return *m_hitPoly;
 }
 
-const Polygon3d<4>& Sensor::envelopePoly() const {
-  if (m_envPoly == nullptr) {
-    double envelopeOffset = normalOffset() > 1e-6 ? normalOffset() + sensorThickness()/2. : (normalOffset() < -1e-6 ? normalOffset() - sensorThickness()/2. : 0.);
-    m_envPoly = buildOwnPoly(envelopeOffset);
-  }
-  return *m_envPoly;
-}
-
+//
+// Check whether sensor hitted by a track (coming from trackOrig & shot at given direction)
+//
 std::pair<XYZVector, int> Sensor::checkHitSegment(const XYZVector& trackOrig, const XYZVector& trackDir) const {
   const Polygon3d<4>& poly = hitPoly();
   XYZVector p;
@@ -111,4 +147,3 @@ double Sensor::maxPitch()    const { return m_parent->maxWidth() / (double)numSt
 double Sensor::pitch()       const { return m_parent->meanWidth() / (double)numStripsAcross(); }
 double Sensor::stripLength() const { return m_parent->length() / numSegments(); }
 
-define_enum_strings(SensorType) = { "pixel", "largepix", "strip" };
