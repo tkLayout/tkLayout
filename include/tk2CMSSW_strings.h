@@ -135,17 +135,22 @@ namespace insur {
     /**
      * Input and output filenames
      */
-    static const std::string xml_trackerfile = "tracker.xml";
+    static const std::string xml_OT_trackerfile = "tracker.xml";
+    static const std::string xml_PX_trackerfile = "pixel.xml";
     static const std::string xml_newtrackerfile = "newtracker.xml";
     static const std::string xml_trackervolumefile = "trackerVolumeTemplate.xml";
     static const std::string xml_pixbarfile = "pixbar.xml";
     static const std::string xml_pixfwdfile = "pixfwd.xml";
     static const std::string xml_topologyfile = "trackerStructureTopology.xml";
     static const std::string xml_newtopologyfile = "newTrackerStructureTopology.xml";
+    static const std::string xml_PX_topologyfile = "pixelStructureTopology.xml";
     static const std::string xml_prodcutsfile = "trackerProdCuts.xml";
+    static const std::string xml_PX_prodcutsfile = "pixelProdCuts.xml";
     static const std::string xml_trackersensfile = "trackersens.xml";
+    static const std::string xml_PX_trackersensfile = "pixelsens.xml";
     static const std::string xml_recomatfile = "trackerRecoMaterial.xml";
     static const std::string xml_newrecomatfile = "newTrackerRecoMaterial.xml";
+    static const std::string xml_PX_recomatfile = "pixelRecoMaterial.xml";
     static const std::string xml_tmppath = "tmp";
     /**
      * Naming conventions and variable names
@@ -162,6 +167,8 @@ namespace insur {
     static const std::string xml_base_strip = "Strip";
     static const std::string xml_base_ps = "PS";
     static const std::string xml_base_2s = "2S";
+    static const std::string xml_OT = "OuterTracker";
+    static const std::string xml_PX = "InnerPixel";
     static const std::string xml_base_serf = "service";
     static const std::string xml_base_lazy = "support";
     static const std::string xml_layer = "Layer";
@@ -176,17 +183,21 @@ namespace insur {
     static const std::string xml_base_actcomp = "modulecomposite";
     static const std::string xml_base_serfcomp = "servicecomposite";
     static const std::string xml_base_lazycomp = "supportcomposite";
+    static const std::string xml_hybrid_comp = "hybridcomposite";
     static const std::string xml_material_air = "materials:Air";
     static const std::string xml_sensor_silicon = "SenSi";
     static const std::string xml_pixbarident = "pixbar";
     static const std::string xml_pixfwdident = "pixfwd";
     static const std::string xml_fileident = "tracker";
     static const std::string xml_newfileident = "newtracker";
-    static const std::string xml_PX_fileident = "pixel_test";
+    static const std::string xml_PX_fileident = "pixel";
     static const std::string xml_pixbar = "PixelBarrel";
-    static const std::string xml_2OTbar = "Phase2OTBarrel";
+    static const std::string xml_OT_bar = "Phase2OTBarrel";
+    static const std::string xml_PX_bar = "Phase1PixelBarrel";
+    static const std::string xml_PX_value_bar = "PixelPhase1Barrel";
     static const std::string xml_pixfwd = "PixelForward"; 
-    static const std::string xml_2OTfwd = "Phase2OTForward";
+    static const std::string xml_OT_fwd = "Phase2OTForward";
+    static const std::string xml_PX_fwd = "Phase2PixelEndcap";
     static const std::string xml_2OTendcap = "Phase2OTEndcap";
     static const std::string xml_pixfwd_plus = "PixelForward[1]"; // CUIDADO was: "PixelForwardZPlus";
     static const std::string xml_pixfwd_minus = "PixelForward[2]"; // CUIDADO was: "PixelForwardZMinus";
@@ -221,7 +232,9 @@ namespace insur {
     static const std::string xml_det_tobdet = "TOBDet";
     static const std::string xml_tob_subdet = "TOBSubDet";
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
-    static const std::string xml_subdet_2OT_layer = "Phase2OTBarrelLayer";
+    static const std::string xml_spec_layer = "PixelBarrelLayer";
+    static const std::string xml_OT_value_layer = "Phase2OTBarrelLayer";
+    static const std::string xml_PX_value_layer = "PixelBarrelLayer";
     static const std::string xml_subdet_straight_or_tilted_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_straight_rod = "PixelBarrelLad";
     static const std::string xml_subdet_tilted_ring = "PixelBarrelRing";
@@ -266,22 +279,26 @@ namespace insur {
     /**
     *Constants required by Pixel Extractor
     */
-    static const std::string xml_phaseII_Pixelnamespace = "pixel_test:";//the colon is required
+    
     //static const std::string xml_phaseII_pixmotherVolume = "Pixels"; 
     static const std::string xml_phaseII_pixecapsubdet = "PixelPhase2EndcapSubDet"; 
     static const std::string xml_phaseII_pixfulldisk = "PixelPhase2EndcapFullDisk";
-    static const std::string xml_phaseII_pixhalfdisk = "PixelPhase2EndcapReducedDisk";
-    static const std::string xml_phaseII_pixbar = "Phase1PixelBarrel";
-    static const std::string xml_phaseII_pixecap = "Phase2PixelEndcap";
+    static const std::string xml_phaseII_pixhalfdisk = "PixelPhase2EndcapReducedDisk";    
     static const std::string xml_phaseII_pixbardet = "Phase1PixelBarrelDet";
     static const std::string xml_phaseII_pixecapdet = "Phase2PixelEndcapDet";
    
+
+
+    
+    static const std::string xml_phaseII_pixbar = "Phase1PixelBarrel";
+    static const std::string xml_phaseII_pixecap = "Phase2PixelEndcap";
+    static const std::string xml_phaseII_Pixelnamespace = "pixel_test:";//the colon is required
     static const std::string xml_bmodbox = "BModuleBox";
     static const std::string xml_emodbox = "EModuleBox";
     static const std::string xml_phaseII_pixelHybridTag = "TopInactive";
     static const std::string xml_phaseII_pixelChipTag = "BottomInactive";
     static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
 
-    static const std::string xml_PX = "InnerPixel";
+    
 }
 #endif /* _TK2CMSSW_STRINGS_H */

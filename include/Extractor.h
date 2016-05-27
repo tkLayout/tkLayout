@@ -76,6 +76,7 @@ namespace insur {
       }
     };
   public:
+    void setTrackerSpecificStrings(bool isPixelTracker);
     void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool& isPixelTracker, bool wt = false);
   protected:
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
@@ -97,6 +98,9 @@ namespace insur {
     void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
                          std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
   private:
+    std::string m_nspace;
+    std::string m_xml_bar;
+    std::string m_xml_fwd;
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);

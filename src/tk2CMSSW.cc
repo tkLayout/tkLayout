@@ -49,11 +49,13 @@ namespace insur {
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
+	ex.setTrackerSpecificStrings(isPixelTracker);
         ex.analyse(mt, mb, data, isPixelTracker, wt);
 
         std::stringstream simpleHeaderStream;
 	std::string metdataFileName = outsubdir + "_" + currentDateTime(false) + ".cfg";
         writeSimpleHeader(simpleHeaderStream, metdataFileName);
+	wr.setTrackerSpecificStrings(isPixelTracker);
         wr.setSimpleHeader(simpleHeaderStream.str());
         
         // translate collected information to XML and write to buffers
@@ -71,45 +73,53 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW XML generation metadata has been written to " << outpath << metdataFileName << std::endl;
 
-	    //if (!isPixelTracker) {
             if (!wt) {
-                instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
-                outstream.open((outpath + xml_pixbarfile).c_str());
-                if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
-                //writeSimpleHeader(outstream);
-                wr.pixbar(data.shapes, instream, outstream);
-                if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
-                instream.close();
-                instream.clear();
-                outstream.close();
-                outstream.clear();
-                std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+	      instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
+	      outstream.open((outpath + xml_pixbarfile).c_str());
+	      if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
+	      //writeSimpleHeader(outstream);
+	      wr.pixbar(data.shapes, instream, outstream);
+	      if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
+	      instream.close();
+	      instream.clear();
+	      outstream.close();
+	      outstream.clear();
+	      std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
 
-                instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
-                outstream.open((outpath + xml_pixfwdfile).c_str());
-                if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
-                //writeSimpleHeader(outstream);
-                wr.pixfwd(data.shapes, instream, outstream);
-                if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
-                instream.close();
-                instream.clear();
-                outstream.close();
-                outstream.clear();
-                std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
+	      instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
+	      outstream.open((outpath + xml_pixfwdfile).c_str());
+	      if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
+	      //writeSimpleHeader(outstream);
+	      wr.pixfwd(data.shapes, instream, outstream);
+	      if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
+	      instream.close();
+	      instream.clear();
+	      outstream.close();
+	      outstream.clear();
+	      std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
             }
-            if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
-            else outstream.open((outpath + xml_trackerfile).c_str());
+	    if (!isPixelTracker) {
+	      if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
+	      else outstream.open((outpath + xml_OT_trackerfile).c_str());
+	    }
+	    else outstream.open((outpath + xml_PX_trackerfile).c_str());
             if (outstream.fail()) throw std::runtime_error("Error opening tracker file for writing.");
             std::ifstream trackerVolumeTemplate((xmlpath + "/" + xml_trackervolumefile).c_str());
             wr.tracker(data, outstream, trackerVolumeTemplate, wt);
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_trackerfile) << std::endl;
+            std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_OT_trackerfile) << std::endl;
 
-            if (wt) instream.open((xmlpath + "/" + xml_newtopologyfile).c_str());
-            else instream.open((xmlpath + "/" + xml_topologyfile).c_str());
-            outstream.open((outpath + xml_topologyfile).c_str());
+	    if (!isPixelTracker) {
+	      if (wt) instream.open((xmlpath + "/" + xml_newtopologyfile).c_str());
+	      else instream.open((xmlpath + "/" + xml_topologyfile).c_str());
+	      outstream.open((outpath + xml_topologyfile).c_str());
+	    }
+	    else {
+	      instream.open((xmlpath + "/" + xml_PX_topologyfile).c_str());
+	      outstream.open((outpath + xml_PX_topologyfile).c_str());
+            }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
             //writeSimpleHeader(outstream);
             wr.topology(data.specs, instream, outstream);
@@ -120,8 +130,14 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
 
-            instream.open((xmlpath + "/" + xml_prodcutsfile).c_str());
-            outstream.open((outpath + xml_prodcutsfile).c_str());
+	    if (!isPixelTracker) {
+	      instream.open((xmlpath + "/" + xml_prodcutsfile).c_str());
+	      outstream.open((outpath + xml_prodcutsfile).c_str());
+	    }
+	    else {
+	      instream.open((xmlpath + "/" + xml_PX_prodcutsfile).c_str());
+	      outstream.open((outpath + xml_PX_prodcutsfile).c_str());
+	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the prodcuts files.");
             //writeSimpleHeader(outstream);
             wr.prodcuts(data.specs, instream, outstream);
@@ -132,8 +148,14 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
 
-            instream.open((xmlpath + "/" + xml_trackersensfile).c_str());
-            outstream.open((outpath + xml_trackersensfile).c_str());
+	    if (!isPixelTracker) {
+	      instream.open((xmlpath + "/" + xml_trackersensfile).c_str());
+	      outstream.open((outpath + xml_trackersensfile).c_str());
+	    }
+	    else {
+	      instream.open((xmlpath + "/" + xml_PX_trackersensfile).c_str());
+	      outstream.open((outpath + xml_PX_trackersensfile).c_str());
+	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the trackersens files.");
             //writeSimpleHeader(outstream);
             wr.trackersens(data.specs, instream, outstream);
@@ -144,9 +166,15 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
 
-            if (wt) instream.open((xmlpath + "/" + xml_newrecomatfile).c_str());
-            else instream.open((xmlpath + "/" + xml_recomatfile).c_str());
-            outstream.open((outpath + xml_recomatfile).c_str());
+	    if (!isPixelTracker) {
+	      if (wt) instream.open((xmlpath + "/" + xml_newrecomatfile).c_str());
+	      else instream.open((xmlpath + "/" + xml_recomatfile).c_str());
+	      outstream.open((outpath + xml_recomatfile).c_str());
+	    }
+	    else {
+	      instream.open((xmlpath + "/" + xml_PX_recomatfile).c_str());
+	      outstream.open((outpath + xml_PX_recomatfile).c_str());
+	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");
             //writeSimpleHeader(outstream);
             wr.recomaterial(data.specs, data.lrilength, instream, outstream, wt);
@@ -157,7 +185,6 @@ namespace insur {
             outstream.clear();
             std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
 
-	    //}
 
 	    //else {
 	    //printXml(data, outsubdir);
