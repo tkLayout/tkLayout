@@ -6,7 +6,7 @@ Component {
   scaleOnSensor 0
   Element {
     elementName SenSi
-    quantity 0.2
+    quantity 0.15
     unit mm
     targetVolume 2
   }

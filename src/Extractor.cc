@@ -544,7 +544,8 @@ namespace insur {
     std::vector<ModuleCap>::iterator iiter;
     
     int layer = 1;
-
+    std::map<int, double> rodThickness;
+    std::map<int, double> rodWidth;
 
     // LOOP ON LAYERS
     for (oiter = bc.begin(); oiter != bc.end(); oiter++) {
@@ -591,6 +592,8 @@ namespace insur {
 	  ModuleComplex modcomplex(mname.str(),parentName,*iiter);
 	  modcomplex.buildSubVolumes();
 	  if (iiter->getModule().uniRef().phi == 1) {
+	    rodThickness.insert( {layer,  modcomplex.getExpandedModuleThickness() / 2.} );
+	    rodWidth.insert( {layer, modcomplex.getExpandedModuleWidth() / 2.} );
 	    xmin = MIN(xmin, modcomplex.getXmin());
 	    xmax = MAX(xmax, modcomplex.getXmax());
 	    ymin = MIN(ymin, modcomplex.getYmin());
@@ -998,8 +1001,10 @@ namespace insur {
       shape.name_tag = rodname.str();
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
+      if (isPixelTracker) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
       if (isTilted) shape.dy = (flatPartMaxX - flatPartMinX) / 2 + xml_epsilon;
+      if (isPixelTracker) shape.dy = rodWidth.at(layer) + xml_epsilon;
       shape.dz = zmax + xml_epsilon;
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
@@ -1029,9 +1034,9 @@ namespace insur {
 	alg.parent = nspace + ":" + lname.str();
 	pconverter <<  nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
-	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
+	// It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
+	// 90 deg corresponds to no shift. SHOULD NOT BE MODIFIED!!
 	pconverter.str("");
 	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
@@ -1057,9 +1062,7 @@ namespace insur {
 	alg.parent = nspace + ":" + lname.str();
 	pconverter <<  nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
-	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
 	pconverter.str("");
 	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
@@ -1084,9 +1087,7 @@ namespace insur {
 	alg.parent = nspace + ":" + lname.str();
 	pconverter <<  nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
-	pconverter.str("");
-	pconverter << (lagg.getBarrelLayers()->at(layer - 1)->tilt() + 90.) << "*deg";
-	alg.parameters.push_back(numericParam(xml_tilt, pconverter.str()));
+	alg.parameters.push_back(numericParam(xml_tilt, "90*deg"));
 	pconverter.str("");
 	pconverter << rodNextPhiStartPhiAngle * 180. / M_PI << "*deg";
 	alg.parameters.push_back(numericParam(xml_startangle, pconverter.str()));
@@ -1472,9 +1473,7 @@ namespace insur {
 	    // ring number
 	    int modRing = iiter->getModule().uniRef().ring;
 
-	    //if (iiter->getModule().uniRef().side > 0 && (iiter->getModule().uniRef().phi == 1 || iiter->getModule().uniRef().phi == 2)){ std::cout << "modRing = " << modRing << " iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl; }
-
-	    std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
+	    //std::cout << "iiter->getModule().uniRef().phi = " << iiter->getModule().uniRef().phi << " iiter->getModule().uniRef().ring = " << iiter->getModule().uniRef().ring << "iiter->getModule().center().Phi() = " << iiter->getModule().center().Phi() * 180. / M_PI << " iiter->getModule().center().Rho() = " << iiter->getModule().center().Rho() << " iiter->getModule().center().X() = " << iiter->getModule().center().X() << " iiter->getModule().center().Y() = " << iiter->getModule().center().Y() << " iiter->getModule().center().Z() = " << iiter->getModule().center().Z() << " iiter->getModule().flipped() = " << iiter->getModule().flipped() << " iiter->getModule().moduleType() = " << iiter->getModule().moduleType() << std::endl;
 
 
 	    if (iiter->getModule().uniRef().phi == 1) {
@@ -1901,11 +1900,11 @@ namespace insur {
 #endif
       std::ostringstream matname, shapename;
 #if 0
-      matname << xml_base_serfcomp << iter->getCategory() << "R" << (int)(iter->getInnerRadius()) << "dZ" << (int)(iter->getZLength());
+      matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "dZ" << (int)(iter->getZLength());
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZOffset());
       if ((iter->getZOffset() + iter->getZLength()) > 0) c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 #else
-      matname << xml_base_serfcomp << iter->getCategory() << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
+      matname << xml_base_serfcomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
       if ((iter->getZOffset() + iter->getZLength()) > 0 ) {
         if ( iter->getLocalMasses().size() ) {
@@ -2145,19 +2144,15 @@ namespace insur {
     std::vector<InactiveElement>::iterator iter, guard;
     std::vector<InactiveElement>& sp = is.getSupports();
 
-    std::cout << "sp.size() = " << sp.size() << std::endl;
-
     guard = sp.end();
     // support volume loop
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
-      matname << xml_base_lazycomp << iter->getCategory();
+      matname << xml_base_lazycomp << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
 #if 0
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset()));
 #else
       shapename << xml_base_lazy /*<< any2str(iter->getCategory()) */<< "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(iter->getZLength() / 2.0 + iter->getZOffset());
-      std::cout << shapename.str() << std::endl;
-      std::cout << iter->getCategory() << std::endl;
 #endif
 
       //fres = found.find(iter->getCategory());
@@ -2773,7 +2768,8 @@ namespace insur {
       double dz = hybridThickness;  
       double posx = 0.;
       double posy = 0.;
-      double posz = sensorThickness / 2. + hybridThickness / 2.; 
+      double posz = sensorThickness / 2. + hybridThickness / 2.;
+
       // Hybrid Volume (Top Inactive)
       vol[PixelModuleHybrid] = new Volume(moduleId + "Hybrid", PixelModuleHybrid, parentId, dx, dy, dz, posx, posy, posz);
 
