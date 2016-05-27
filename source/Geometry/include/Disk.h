@@ -78,7 +78,10 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   //! GeometryVisitor pattern -> layer visitable (const. option)
   void accept(ConstGeometryVisitor& v) const;
 
-  double averageZ() const { return averageZ_; }
+  //! Return average disc Z position
+  double averageZ()  const { return m_averageZ; }
+
+  //! Return disc thickness
   double thickness() const { return m_bigDelta()*2 + maxRingThickness(); }
 
   Property<int   , NoDefault> numRings; //!< Required number of rings in the disk -> TODO: Compression as for barrel rods
@@ -121,14 +124,12 @@ class Disk : public PropertyObject, public Buildable, public Identifiable<int>, 
   double m_zEndcapHalfLength; //!< Z halflength of endcap in which the disc is to bebuilt
   double m_zEndcapCentre;     //!< Z central position of endcap in which the disc is to bebuilt
   double m_zOffset;           //!< Relative position of the disc with respect to endcap central position
+  double m_averageZ = 0;      //!< Average Z position of the given disc
 
   PropertyNode<int>               m_ringNode;     //!< Property tree node for ring (to grab properties for specific ring modules)
   PropertyNodeUnique<std::string> m_stationsNode; //!< Property tree nodes for conversion stations (included geometry config file)
 
   inline double getDsDistance(const vector<double>& buildDsDistances, int rindex) const;
-
-
-  double averageZ_ = 0;
 }; // Class
 
 #endif /* INCLUDE_DISK_H_ */

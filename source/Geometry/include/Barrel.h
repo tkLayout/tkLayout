@@ -40,6 +40,9 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   //! Setup: link lambda functions to various barrel related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
   void setup();
 
+  //! Cross-check parameters provided from geometry configuration file
+  void check() override;
+
   //! Limit barrel geometry by eta cut
   void cutAtEta(double eta);
 
@@ -70,10 +73,9 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Property<double, NoDefault> m_innerRadius;        //!< Starting barrel inner radius (algorithm may optimize its value)
   Property<double, NoDefault> m_outerRadius;        //!< Starting barrel outer radius (algorithm may optimize its value)
   Property<double, Default>   m_barrelRotation;     //!< Start rod (ladder) positioning in R-Phi at Phi=barrelRotation [rad]
-  Property<double, Default>   m_supportMarginOuter; // TODO: Comment
-  Property<double, Default>   m_supportMarginInner; // TODO: Comment
   Property<bool  , Default>   m_innerRadiusFixed;   //!< Is inner radius fixed or floating -> internal algorithm finds optimal radius
   Property<bool  , Default>   m_outerRadiusFixed;   //!< Is outer radius fixed or floating -> internal algorithm finds optimal radius
+  Property<bool  , Default>   m_sameRods;           //!< Build the same rods in the whole barrel -> advantage from the engineering point of view
 
 
   PropertyNode<int>               m_layerNode;      //!< Property tree nodes for layers (included geometry config file)

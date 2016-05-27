@@ -38,10 +38,10 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
  public:
 
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use number of modules to build rod
-  RodPair(int id, double radius, double rotation, int numModules, const PropertyTree& treeProperty);
+  RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, int numModules, const PropertyTree& treeProperty);
 
   //!  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
-  RodPair(int id, double radius, double rotation, double outerZ , const PropertyTree& treeProperty);
+  RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, double outerZ , const PropertyTree& treeProperty);
 
   //! Position newly individual modules if RodPair cloned from a RodPair (i.e. rotate by respective angle and shift in R) and set rod new id
    void buildClone(int id, double shiftR, double rotation);
@@ -90,6 +90,10 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   int    m_nModules;      //!< Number of modules to be built in a rod of use outerZ if not defined (passed over from layer)
   double m_outerZ;        //!< If number of modules not defined use rod outerZ value (passed over from layer)
   double m_optimalRadius; //!< Optimal rod radius
+
+  // When building a rod one may position modules as if the radius were differnt from the current one -> use e.g. by sameRods mode, where positioning takes extremes from barrel MinR/MaxR
+  double m_minRadius;     //!< Minimum rod radius considered when positioning modules in a rod
+  double m_maxRadius;     //!< Maximum rod radius considered when positioning modules in a rod
   double m_rotation;      //!< Rod rotation in R-Phi
 
 }; // Class
@@ -103,12 +107,12 @@ class RodPairStraight : public RodPair, public Clonable<RodPairStraight> {
 public:
 
   //! Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use numModules to build rod
-  RodPairStraight(int id, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, int numModules, const PropertyTree& treeProperty);
+  RodPairStraight(int id, double minRadius, double maxRadius, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, int numModules, const PropertyTree& treeProperty);
 
   //! Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
-  RodPairStraight(int id, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, double outerZ , const PropertyTree& treeProperty);
+  RodPairStraight(int id, double minRadius, double maxRadius, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, double outerZ , const PropertyTree& treeProperty);
 
-  //! Build recursively individual modules
+  //! Build recursively individual modules at given radius
   void build();
 
   //! Get rod thickness
@@ -118,7 +122,7 @@ public:
 
   Property<double, Default>   zOverlap;            //!< Required overlap of modules in Z (in length units)
   Property<double, NoDefault> zError;              //!< When positioning modules take into account beam spot spread in Z
-  Property<bool  , Default>   compressed;          //!< Modules will be compressed in Z if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
+  Property<bool  , Default>   compressed;          //!< Modules will be compressed in Z, if built layer higher than defined outerZ parameter (if number of modules was used to defined  the rod, no compression occurs)
   Property<bool  , Default>   allowCompressionCuts;//!< During compression algorithm cut out modules behind outerZ first
 
  private:

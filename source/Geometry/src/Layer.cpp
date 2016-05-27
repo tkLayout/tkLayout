@@ -10,7 +10,7 @@ define_enum_strings(RadiusMode) = { "shrink", "enlarge", "fixed", "auto" };
 //
 // Constructor - parse geometry config file using boost property tree & read-in Layer parameters
 //
-Layer::Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
+Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
              const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty) :
  minZ           (string("minZ")              ),
  maxZ           (string("maxZ")              ),
@@ -21,7 +21,6 @@ Layer::Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRF
  radiusMode     (       "radiusMode"         , parsedAndChecked(), RadiusMode::AUTO),
  requestedAvgRadius(    "radius"             , parsedOnly()),
  avgBuildRadius (       "avgBuildRadius"     , parsedOnly()),
- sameRods       (       "sameRods"           , parsedAndChecked(), true),
  sameParityRods (       "sameParityRods"     , parsedAndChecked(), true),
  layerRotation  (       "layerRotation"      , parsedOnly()      , 0.),
  tiltedLayerSpecFile(   "tiltedLayerSpecFile", parsedOnly()),
@@ -34,8 +33,8 @@ Layer::Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRF
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
  m_materialObject(MaterialObject::LAYER),
- m_flangeConversionStation(nullptr)
-
+ m_flangeConversionStation(nullptr),
+ m_sameRods(sameRods)
 {
 
   // Set the geometry config parameters
@@ -44,7 +43,7 @@ Layer::Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRF
   if (nodeProperty.count(id) > 0) this->store(nodeProperty.at(id));
 
   // If required the same rods, even/odd rods need to be built starting with the same sign of smallDelta
-  if (sameRods()) sameParityRods(true);
+  if (m_sameRods) sameParityRods(true);
 
   // Set rotation
   this->layerRotation(layerRotation()+barrelRotation);
@@ -193,6 +192,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
       optimalRadius         = radiusLo;
       optimalModsPerSegment = modsPerSegLo;
     }
+
     break;
   }
   default:
@@ -207,12 +207,24 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   float rodPhiRotation = 2*M_PI/optimalNumRods;
 
   // Rod pair corresponds to an odd/even rod (shifted by bigDelta & rotated by rod phi rotation angle - given by total number of rods in a layer).
-  // Rod pair stands for a pair of modules in positive/negative Z. Odd/even rod is prototyped as first/second, others are cloned to speed-up building.
+  // The pair stands for a pair of modules in positive/negative Z. Odd/even rod is prototyped as first/second, others are cloned to speed-up building.
   RodPairStraight* firstRod  = nullptr;
   RodPairStraight* secondRod = nullptr;
 
-  // Start with bigParity = -1 -> worse scenario (if same rods required -> all even rods (with bigParity=+1) will be cloned from odd rods)
-  m_bigParity(abs(m_bigParity()));
+  // Use these extreme values to calculate optimal positions in Z to have full eta coverage
+  // For same rods extremes given (minBarrelR/maxBarrelR) +-bigDelta
+  double minRadius = 0.;
+  double maxRadius = 0.;
+  if (m_sameRods) {
+
+    minRadius = updatedMinR - m_bigDelta();
+    maxRadius = updatedMaxR + m_bigDelta();
+  }
+  // Not same rods -> extreme given by optimal radius +-bigDelta
+  else {
+    minRadius = optimalRadius - m_bigDelta();
+    maxRadius = optimalRadius + m_bigDelta();
+  }
 
   for (int i=1; i<=optimalNumRods; i++) {
 
@@ -220,7 +232,7 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
     double rotation    = rodPhiRotation*(i-1) + layerRotation();
 
     // Alternate bigParity for even versus odd rods
-    int    bigParity   = (i%2) ? -m_bigParity() : +m_bigParity();
+    int    bigParity   = (i%2) ? m_bigParity() : -m_bigParity();
 
     // Use the same small parity in even rods as for odd rods in case sameParityRods is required
     int    smallParity = (i%2) ? (m_smallParity()) : (sameParityRods() ? m_smallParity() : -m_smallParity());
@@ -230,10 +242,9 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
       RodPairStraight* rod = nullptr;
 
-      if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
-      else                       rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
+      if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
+      else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
       rod->build();
-
       firstRod = rod;
 
       m_rods.push_back(rod);
@@ -241,11 +252,11 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
     // Prototype of even rods
     else if (i==2) {
 
-      // If same rods required, each even/odd rods need to be the same from engineering point of view
-      if (sameRods()) {
+      // If same rods or sameParityRods required, each even/odd rod are the same -> useful from engineering point of view
+      if (m_sameRods || sameParityRods()) {
 
         RodPair* rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
-        rod->buildClone(2, 2*m_bigDelta(), rodPhiRotation);
+        rod->buildClone(2, 2*m_bigDelta()*bigParity, rodPhiRotation);
 
         m_rods.push_back(rod);
       }
@@ -253,13 +264,14 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
         RodPairStraight* rod = nullptr;
 
-        if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
-        else                       rod = GeometryFactory::make<RodPairStraight>(i, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
+        if (buildNumModules() > 0) rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, buildNumModules(), propertyTree());
+        else                       rod = GeometryFactory::make<RodPairStraight>(i, minRadius, maxRadius, optimalRadius, rotation, m_bigDelta(), bigParity, m_smallDelta(), smallParity, outerZ(), propertyTree());
         rod->build();
         secondRod = rod;
 
         m_rods.push_back(rod);
       }
+
     }
     // Clone prototypes to speed-up building -> need for buildClone() call to update new id and rotate cloned rod by respective angle
     else {
@@ -269,27 +281,33 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
 
       // Build odd rod -> Rotation with respect to first rod, no shift in R
       if ((i%2)==1) {
+
         rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
         rod->buildClone(i, shiftR, rodPhiRotation*(i-1));
+
+        m_rods.push_back(rod);
+
       }
       // Build even rod
       else {
 
         // Clone even to even -> Rotation with respect to second rod, no shift in R
-        if (!sameRods()) {
+        if (!(m_sameRods || sameParityRods()) ) {
+
           rod = GeometryFactory::clone<RodPairStraight>(*secondRod);
           rod->buildClone(i, shiftR, rodPhiRotation*(i-2));
+
         }
         // Clone odd to even -> Rotation with respect to first rod, shift by 2*bigDelta
         else  {
           rod = GeometryFactory::clone<RodPairStraight>(*firstRod);
-          rod->buildClone(i, 2*m_bigDelta(), rodPhiRotation*(i-1));
+          rod->buildClone(i, 2*m_bigDelta()*bigParity, rodPhiRotation*(i-1));
         }
-      }
 
-      m_rods.push_back(rod);
+        m_rods.push_back(rod);
+      }
     }
-  }
+  } // For NumRods
 }
 
 //

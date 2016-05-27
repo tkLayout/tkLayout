@@ -20,9 +20,8 @@ Barrel::Barrel(const std::string& name, const PropertyTree& nodeProperty, const 
  m_outerRadius(       "outerRadius"       , parsedAndChecked()),
  m_innerRadiusFixed(  "innerRadiusFixed"  , parsedAndChecked(), true),
  m_outerRadiusFixed(  "outerRadiusFixed"  , parsedAndChecked(), true),
+ m_sameRods(          "sameRods"          , parsedAndChecked(), false),
  m_barrelRotation(    "barrelRotation"    , parsedOnly(), 0.),
- m_supportMarginOuter("supportMarginOuter", parsedOnly(), 2.),
- m_supportMarginInner("supportMarginInner", parsedOnly(), 2.),
  m_layerNode(         "Layer"             , parsedOnly()),
  m_supportNode(       "Support"           , parsedOnly())
 {
@@ -54,7 +53,7 @@ void Barrel::build()
     // Build layers
     for (auto i=1; i <= numLayers(); i++) {
 
-      Layer* layer = GeometryFactory::make<Layer>(i, numLayers(), m_innerRadiusFixed(), m_outerRadiusFixed(), m_barrelRotation(), m_layerNode, propertyTree());
+      Layer* layer = GeometryFactory::make<Layer>(i, numLayers(), m_sameRods(), m_innerRadiusFixed(), m_outerRadiusFixed(), m_barrelRotation(), m_layerNode, propertyTree());
       layer->build(numLayers(), m_innerRadius(), m_outerRadius());
 
       m_layers.push_back(layer);
@@ -89,6 +88,15 @@ void Barrel::setup()
   minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minR()); } return min; });
   maxZ.setup([&]() { double max =-std::numeric_limits<double>::max(); for (const auto& l : m_layers) { max = MAX(max, l.maxZ()); } return max; });
   minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& l : m_layers) { min = MIN(min, l.minZ()); } return min; });
+}
+
+//
+// Cross-check parameters provdied from geometry configuration file
+//
+void Barrel::check() {
+  PropertyObject::check();
+
+  if (m_sameRods() && (!m_innerRadiusFixed() || !m_outerRadiusFixed())) throw PathfulException("Rod building algorithm assumes that inner&outer barrel radii are fixed if same rods required to be built within whole barrel!");
 }
 
 //

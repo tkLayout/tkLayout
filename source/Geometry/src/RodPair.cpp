@@ -6,7 +6,7 @@ define_enum_strings(StartZMode) = { "modulecenter", "moduleedge" };
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use number of modules to build rod
 //
-RodPair::RodPair(int id, double radius, double rotation, int numModules, const PropertyTree& treeProperty) :
+RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, int numModules, const PropertyTree& treeProperty) :
  minZ              (string("minZ")              ),
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
@@ -18,6 +18,8 @@ RodPair::RodPair(int id, double radius, double rotation, int numModules, const P
  m_nModules     (numModules),
  m_outerZ       (0.0),
  m_optimalRadius(radius),
+ m_minRadius(    minRadius),
+ m_maxRadius(    maxRadius),
  m_rotation(     rotation)
 {
   // Set the geometry config parameters
@@ -28,7 +30,7 @@ RodPair::RodPair(int id, double radius, double rotation, int numModules, const P
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
 //
-RodPair::RodPair(int id, double radius, double rotation, double outerZ, const PropertyTree& treeProperty) :
+RodPair::RodPair(int id, double minRadius, double maxRadius, double radius, double rotation, double outerZ, const PropertyTree& treeProperty) :
  minZ              (string("minZ")              ),
  maxZ              (string("maxZ")              ),
  minR              (string("minR")              ),
@@ -40,6 +42,8 @@ RodPair::RodPair(int id, double radius, double rotation, double outerZ, const Pr
  m_nModules     (0),
  m_outerZ       (outerZ),
  m_optimalRadius(radius),
+ m_minRadius(    minRadius),
+ m_maxRadius(    maxRadius),
  m_rotation(     rotation)
 {
  // Set the geometry config parameters
@@ -98,9 +102,9 @@ void RodPair::setup() {
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use number of modules to build rod
 //
-RodPairStraight::RodPairStraight(int id, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, int numModules,
+RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, int numModules,
                  const PropertyTree& treeProperty) :
- RodPair(id, radius, rotation, numModules, treeProperty),
+ RodPair(id, minRadius, maxRadius, radius, rotation, numModules, treeProperty),
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
  zError(              "zError"              , parsedAndChecked()),
@@ -119,9 +123,9 @@ RodPairStraight::RodPairStraight(int id, double radius, double rotation, double 
 //
 //  Constructor - parse geometry config file using boost property tree & read-in Rod parameters -> use outerZ to build rod
 //
-RodPairStraight::RodPairStraight(int id, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, double outerZ ,
+RodPairStraight::RodPairStraight(int id, double minRadius, double maxRadius, double radius, double rotation, double bigDelta, int bigParity, double smallDelta, int smallParity, double outerZ ,
                  const PropertyTree& treeProperty) :
- RodPair(id, radius, rotation, outerZ, treeProperty),
+ RodPair(id, minRadius, maxRadius, radius, rotation, outerZ, treeProperty),
  forbiddenRange(      "forbiddenRange"      , parsedOnly()),
  zOverlap(            "zOverlap"            , parsedAndChecked() , 1.),
  zError(              "zError"              , parsedAndChecked()),
@@ -163,14 +167,18 @@ void RodPairStraight::build()
     // Get module length from a tree
     ReadonlyProperty<double, NoDefault> moduleLength( "length", parsedOnly());
     evaluateProperty(moduleLength);
+    ReadonlyProperty<double, Default>   dsDistance("dsDistance", parsedAndChecked(), 0.);
+    evaluateProperty(dsDistance);
 
     // Position variables
-    double lastZPos       = 0.0; // Last ZPos at which module was positioned
-    double newZPos        = 0.0; // New ZPos at which module is positioned
-    double lastRPos       = 0.0; // Last radius at which module was positioned
-    double newRPos        = 0.0; // New radius at which module is positioned
-    double lastDsDistance = 0.0; // ds distance of last positioned module
-    int    iMod           = 1;   // Current number of built modules
+    double lastZPos       = 0.0;          // Last ZPos at which module is positioned
+    double newZPos        = 0.0;          // New ZPos at which module is positioned
+    double lastRPos       = 0.0;          // Last radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
+    double newRPos        = 0.0;          // New radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
+    double newROptimal    = 0.0;          // Real radius at which module will be positioned in R
+    double newDsDistance  = dsDistance(); // ds distance of newly positioned module
+    double lastDsDistance = 0.0;          // ds distance of last positioned module
+    int    iMod           = 1;            // Current number of built modules
 
     //
     // Position first module to the centre?
@@ -182,20 +190,23 @@ void RodPairStraight::build()
       mod->build();
 
       // Translate
-      newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
-      newRPos += (parity > 0 ? m_smallDelta : -m_smallDelta);
+      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
       newZPos  = 0.0;
 
-      mod->translateR(newRPos);
+      newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
+      newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
+
+      mod->translateR(newROptimal);
       mod->translateZ(newZPos);
 
       m_zPlusModules.push_back(mod);
 
       // Update info
-      lastRPos = newRPos;
-      lastZPos = newZPos;
-      parity  *= -1;
+      lastDsDistance = newDsDistance;
+      parity        *= -1;
       iMod++;
+
+
     }
     else lastZPos = -moduleLength()/2.; // Positioning algorithm starts from the centre of a previous module (here taken as virtual)
 
@@ -215,19 +226,22 @@ void RodPairStraight::build()
       mod->build();
 
       // Translate
-      newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta);
-      newRPos += (parity > 0 ? m_smallDelta : -m_smallDelta);
+      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
+      lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
       newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::RIGHT, parity);
 
-      mod->translateR(newRPos);
+      newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
+      newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
+
+      mod->translateR(newROptimal);
       mod->translateZ(newZPos);
 
       m_zPlusModules.push_back(mod);
 
       // Update info
-      lastRPos = newRPos;
-      lastZPos = newZPos;
-      parity  *= -1;
+      lastZPos       = newZPos;
+      lastDsDistance = newDsDistance;
+      parity        *= -1;
       iMod++;
     }
 
@@ -248,19 +262,22 @@ void RodPairStraight::build()
       mod->build();
 
       // Translate & rotate (rotate after translation!)
-      newRPos  = m_optimalRadius + (m_bigParity > 0 ? m_bigDelta : -m_bigDelta); // Positioning algorithm starts from the centre of a previous module (real or virtual)
-      newRPos += (parity > 0 ? m_smallDelta : -m_smallDelta);
+      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
+      lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
       newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::LEFT, parity);
 
-      mod->translateR(newRPos);
+      newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
+      newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
+
+      mod->translateR(newROptimal);
       mod->translateZ(newZPos);
 
       m_zMinusModules.push_back(mod);
 
       // Update info
-      lastRPos = newRPos;
-      lastZPos = newZPos;
-      parity  *= -1;
+      lastZPos       = newZPos;
+      lastDsDistance = newDsDistance;
+      parity        *= -1;
       iMod++;
     }
 
@@ -345,8 +362,6 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
   // Update maximum, minimum radius using dsDistance values (Transform given Z positions from central Z to its edge equivalent -> one calculates optimal new Z pos related to edge coverage in eta)
   double lastZ = (direction==BuildDir::RIGHT ?  lastZPos + moduleLength/2. : lastZPos - moduleLength/2.);
   double newZ  = lastZ;
-  double newR  = (parity > 0 ? (newRPos  - newDsDistance/2. ) : (newRPos  + newDsDistance/2. ));
-  double lastR = (parity > 0 ? (lastRPos - lastDsDistance/2.) : (lastRPos + lastDsDistance/2.));
 
   // Cover beam spot
   double dz = (beamSpotCover()) ? zError() : 0.0;
@@ -358,8 +373,8 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
     double originZ = parity > 0 ? dz : -dz;
 
     // Take worse from 2 effects: beam spot size or required overlap in Z
-    double newZorigin  = (newZ - zOverlap()) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
+    double newZorigin  = (newZ - zOverlap()) * newRPos/lastRPos;
+    double newZshifted = (newZ - originZ) * newRPos/lastRPos + originZ;
     if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
     else                 newZ = newZorigin;
 
@@ -374,8 +389,8 @@ double RodPairStraight::computeNextZ(double lastRPos, double newRPos, double las
     double originZ = parity > 0 ? -dz : dz;
 
     // Take worse from 2 effects: beam spot size or required overlap in Z
-    double newZorigin  = (newZ + zOverlap()) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
+    double newZorigin  = (newZ + zOverlap()) * newRPos/lastRPos;
+    double newZshifted = (newZ - originZ) * newRPos/lastRPos + originZ;
     if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
     else                 newZ = newZorigin;
 

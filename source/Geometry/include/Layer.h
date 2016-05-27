@@ -41,7 +41,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
  public:
 
   //! Constructor - parse geometry config file using boost property tree & read-in Layer parameters
-  Layer(int id, int barrelNumLayers, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
+  Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, bool barrelMaxRFixed, double barrelRotation,
         const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
 
   //! Build recursively individual subdetector systems: rods -> modules & conversion stations
@@ -104,7 +104,6 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<double    , NoDefault>          requestedAvgRadius;  //!< Requested radius at which the layer should be positioned
   Property<double    , Computable>         avgBuildRadius;      //!< Average layer radius (central value) calculated based on position algorithm
   Property<bool      , Default>            sameParityRods;      //!< When starting to build even/odd rods use the same (not opposite) smallDelta parity
-  Property<bool      , Default>            sameRods;            //!< Use the same zig-zag algorithm (+-small delta) for even & odd rods in a layer -> important from engineering point of view
   Property<double    , Default>            layerRotation;       //!< Layer rotated by general barrel rotation + this value in R-Phi
   Property<string    , AutoDefault>        tiltedLayerSpecFile; //!< Configuration file for tilted option
 
@@ -133,6 +132,8 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   Property<int   , Default>   m_bigParity;       //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
   Property<double, Default>   m_phiOverlap;      //!< Required module overlap in R-Phi (in length units)
   Property<int   , Default>   m_phiSegments;     //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+
+  bool   m_sameRods;                             //! Build same geometrical rods across the whole barrel
 
   PropertyNode<int>               m_ringNode;    //!< Property tree node for ring (to grab properties for specific rod modules)
   PropertyNodeUnique<std::string> m_stationsNode;//!< Property tree nodes for conversion stations (included geometry config file)

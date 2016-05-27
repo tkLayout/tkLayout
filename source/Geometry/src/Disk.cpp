@@ -235,12 +235,12 @@ void Disk::accept(ConstGeometryVisitor& v) const {
 //
 // Helper method translating Disc z position by given offset
 //
-void Disk::translateZ(double z) { averageZ_ += z; for (auto& r : m_rings) r.translateZ(z); }
+void Disk::translateZ(double z) { m_averageZ += z; for (auto& r : m_rings) r.translateZ(z); }
 
 //
 // Helper method mirroring the whole Disc from zPos to -zPos or vice versa
 //
 void Disk::mirrorZ() {
-  averageZ_ = -averageZ_;
+  m_averageZ = -m_averageZ;
   for (auto& r : m_rings) r.mirrorZ();
 }
