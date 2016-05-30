@@ -1886,6 +1886,10 @@ namespace insur {
     std::vector<InactiveElement>::iterator iter, guard;
     std::vector<InactiveElement>& bs = is.getBarrelServices();
     guard = bs.end();
+    double serviceBarrelRMin = std::numeric_limits<double>::max();
+    double serviceBarrelRMax = 0;
+    double serviceEndcapsRMin = std::numeric_limits<double>::max();
+    double serviceEndcapsRMax = 0;
 #if 1
     int  previousInnerRadius = -1;
 #endif
@@ -1919,6 +1923,8 @@ namespace insur {
 	    shape.rmin = iter->getInnerRadius();
 	    shape.rmax = shape.rmin + iter->getRWidth();
 	    s.push_back(shape);
+	    if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
+	    if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
 	    logic.shape_tag = m_nspace + ":" + shapename.str();
@@ -1949,6 +1955,8 @@ namespace insur {
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);
+	      if (shape.rmin < serviceBarrelRMin) serviceBarrelRMin = shape.rmin;
+	      if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	      logic.name_tag = shapenameBarrel.str();
 	      logic.shape_tag = m_nspace + ":" + shapenameBarrel.str();
@@ -1974,6 +1982,8 @@ namespace insur {
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);    
+	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapenameEndcaps.str();
 	      logic.shape_tag = m_nspace + ":" + shapenameEndcaps.str();
@@ -1995,6 +2005,8 @@ namespace insur {
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);
+	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
+	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
 	      logic.shape_tag = m_nspace + ":" + shapename.str();
@@ -2022,6 +2034,10 @@ namespace insur {
       }
 #endif
     }
+    std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
+    std::cout << "serviceBarrelRMax = " << serviceBarrelRMax << std::endl;
+    std::cout << "serviceEndcapsRMin = " << serviceEndcapsRMin << std::endl;
+    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;
   }
 
   /**
