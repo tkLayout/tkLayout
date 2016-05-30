@@ -158,6 +158,7 @@ namespace insur {
     static const std::string xml_insert_marker = "<!--mid point marker-->";
     static const std::string xml_specpars_label = "spec-pars2.xml";
     static const std::string xml_base_act = "active";
+    static const std::string xml_base_Act = "Active";
     static const std::string xml_base_waf = "wafer";
     static const std::string xml_base_inner = "INNER"; // This is for distinguishing inner/outer sensor!
     static const std::string xml_base_outer = "OUTER";
@@ -263,7 +264,9 @@ namespace insur {
     static const std::string xml_roc_cols_name = "PixelROCCols";
     static const std::string xml_par_tail = "Par";
     static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
+    static const std::string xml_PX_barrel_prefix = "TrackerRecMaterialPhase1";
     static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
+    static const std::string xml_PX_endcaps_prefix = "TrackerRecMaterialPhase2PixelEndcapDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
     static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";

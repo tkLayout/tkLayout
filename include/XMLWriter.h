@@ -79,6 +79,8 @@ namespace insur {
 	std::string m_nspace;
 	std::string m_xml_value_layer;
 	std::string m_xml_fwd;
+	std::string m_xml_barrel_prefix;
+	std::string m_xml_endcaps_prefix;
 
         std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt = false);
         bool endcapsInTopology(std::vector<SpecParInfo>& specs);

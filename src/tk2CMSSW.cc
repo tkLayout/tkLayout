@@ -45,7 +45,7 @@ namespace insur {
         std::string xmlpath = mainConfiguration.getXmlDirectory();
         std::string outpath = xmlpath + "/" + outsubdir;
         if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
-        std::string tmppath = xmlpath + "/" + xml_tmppath + "/";
+        //std::string tmppath = xmlpath + "/" + xml_tmppath + "/";
 
         // analyse tracker system and build up collection of elements, composites, hierarchy, shapes, positions, algorithms and topology
         // ex is an instance of Extractor class
@@ -61,10 +61,11 @@ namespace insur {
         // translate collected information to XML and write to buffers
         std::ifstream instream;
         std::ofstream outstream;
-        try {
+        //try {
 	  //if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);  // TO BE PUT IN SQUID !!
 	  //bfs::create_directory(outpath);
-	    if (!bfs::exists(outpath)) bfs::create_directory(outpath);
+
+	//if (!bfs::exists(outpath)) bfs::create_directory(outpath);
 
 	    if (!isPixelTracker) {
 	      outstream.open((outpath + metdataFileName).c_str());
@@ -113,7 +114,8 @@ namespace insur {
             if (outstream.fail()) throw std::runtime_error("Error writing to tracker file.");
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_OT_trackerfile) << std::endl;
+            if (!isPixelTracker) std::cout << "CMSSW tracker geometry output has been written to " << outpath << (wt ? xml_newtrackerfile : xml_OT_trackerfile) << std::endl;
+	    else std::cout << "CMSSW tracker geometry output has been written to " << outpath << xml_PX_trackerfile << std::endl;
 
 	    if (!isPixelTracker) {
 	      if (wt) instream.open((xmlpath + "/" + xml_newtopologyfile).c_str());
@@ -132,7 +134,8 @@ namespace insur {
             instream.clear();
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
+            if (!isPixelTracker) std::cout << "CMSSW topology output has been written to " << outpath << xml_topologyfile << std::endl;
+	    else std::cout << "CMSSW topology output has been written to " << outpath << xml_PX_topologyfile << std::endl;
 
 	    if (!isPixelTracker) {
 	      instream.open((xmlpath + "/" + xml_prodcutsfile).c_str());
@@ -150,7 +153,8 @@ namespace insur {
             instream.clear();
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
+            if (!isPixelTracker) std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_prodcutsfile << std::endl;
+	    else std::cout << "CMSSW prodcuts output has been written to " << outpath << xml_PX_prodcutsfile << std::endl;
 
 	    if (!isPixelTracker) {
 	      instream.open((xmlpath + "/" + xml_trackersensfile).c_str());
@@ -168,7 +172,8 @@ namespace insur {
             instream.clear();
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
+            if (!isPixelTracker) std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_trackersensfile << std::endl;
+	    else std::cout << "CMSSW sensor surface output has been written to " << outpath << xml_PX_trackersensfile << std::endl;
 
 	    if (!isPixelTracker) {
 	      if (wt) instream.open((xmlpath + "/" + xml_newrecomatfile).c_str());
@@ -187,22 +192,22 @@ namespace insur {
             instream.clear();
             outstream.close();
             outstream.clear();
-            std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
-
+            if (!isPixelTracker) std::cout << "CMSSW reco material output has been written to " << outpath << xml_recomatfile << std::endl;
+	    else std::cout << "CMSSW reco material output has been written to " << outpath << xml_PX_recomatfile << std::endl;
 
 	    //else {
 	    //printXml(data, outsubdir);
 	    //}
 
 
-            bfs::remove_all(tmppath);
-        }
+            //bfs::remove_all(tmppath);
+	    /*}
         catch (std::runtime_error& e) {
             std::cerr << "Error writing files: " << e.what() << std::endl;
             if (bfs::exists(outpath)) bfs::remove_all(outpath);
             if (bfs::exists(tmppath)) bfs::rename(tmppath, outpath);
             std::cerr << "No files were changed." <<std::endl;
-        }
+	    }*/
     }
     
     // private
