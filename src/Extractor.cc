@@ -2147,6 +2147,11 @@ namespace insur {
     std::vector<InactiveElement>& sp = is.getSupports();
 
     guard = sp.end();
+
+    double supportBarrelRMin = std::numeric_limits<double>::max();
+    double supportBarrelRMax = 0;
+    double supportEndcapsRMin = std::numeric_limits<double>::max();
+    double supportEndcapsRMax = 0;
     // support volume loop
     for (iter = sp.begin(); iter != guard; iter++) {
       std::ostringstream matname, shapename;
@@ -2266,6 +2271,8 @@ namespace insur {
 	    shape.rmin = iter->getInnerRadius();
 	    shape.rmax = shape.rmin + iter->getRWidth();
 	    s.push_back(shape);
+	    if (shape.rmin < supportBarrelRMin) supportBarrelRMin = shape.rmin;
+	    if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
 	    logic.shape_tag = m_nspace + ":" + shapename.str();
@@ -2289,6 +2296,8 @@ namespace insur {
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
 	      s.push_back(shape);
+	      if (shape.rmin < supportEndcapsRMin) supportEndcapsRMin = shape.rmin;
+	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
 	      logic.shape_tag = m_nspace + ":" + shapename.str();
@@ -2322,6 +2331,10 @@ namespace insur {
 
 
     }
+    std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
+    std::cout << "supportBarrelRMax = " << supportBarrelRMax << std::endl;
+    std::cout << "supportEndcapsRMin = " << supportEndcapsRMin << std::endl;
+    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;
   }
 
   //private
