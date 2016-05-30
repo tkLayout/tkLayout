@@ -123,7 +123,7 @@ namespace insur {
 	      outstream.open((outpath + xml_topologyfile).c_str());
 	    }
 	    else {
-	      instream.open((xmlpath + "/" + xml_PX_topologyfile).c_str());
+	      instream.open((xmlpath + "/" + xml_topologyfile).c_str());
 	      outstream.open((outpath + xml_PX_topologyfile).c_str());
             }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the topology files.");
@@ -181,7 +181,7 @@ namespace insur {
 	      outstream.open((outpath + xml_recomatfile).c_str());
 	    }
 	    else {
-	      instream.open((xmlpath + "/" + xml_PX_recomatfile).c_str());
+	      instream.open((xmlpath + "/" + xml_recomatfile).c_str());
 	      outstream.open((outpath + xml_PX_recomatfile).c_str());
 	    }
             if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the recomaterial files.");

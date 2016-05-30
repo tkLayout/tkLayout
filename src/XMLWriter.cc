@@ -946,7 +946,7 @@ namespace insur {
 
   std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt) {
     std::vector<PathInfo>::iterator existing;
-    std::string prefix, postfix, spname, spname2;
+    std::string prefix, postfix, spname;
     std::vector<std::string> paths, tpaths;
     int lindex, dindex, rindex, mindex, layer = 0;
     int windex = 0;
@@ -1002,8 +1002,7 @@ namespace insur {
 
 	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-	    spname = xml_tob_prefix + xml_pixbar + xml_layer + lnumber;
-	    spname2 = m_xml_barrel_prefix + xml_pixbar + xml_layer + lnumber;
+	    spname = m_xml_barrel_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
 	    if (!m_isPixelTracker) prefix = m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
 	    else prefix = xml_pixbarident + ":" + m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
@@ -1050,7 +1049,7 @@ namespace insur {
 	    if (existing != blocks.end()) existing->paths.insert(existing->paths.end(), paths.begin(), paths.end());
 	    else {
 	      PathInfo pi;
-	      pi.block_name = spname2;
+	      pi.block_name = spname;
 	      pi.layer = layer;
 	      pi.barrel = true;
 	      pi.paths = paths;
@@ -1124,10 +1123,8 @@ namespace insur {
         
 		postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-		//if (!m_isPixelTracker) {
-		  if (plus) paths.push_back(prefix + postfix);
-		  else tpaths.push_back(prefix + postfix);
-		  //}
+		if (plus) paths.push_back(prefix + postfix);
+		else tpaths.push_back(prefix + postfix);
         
 		postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
