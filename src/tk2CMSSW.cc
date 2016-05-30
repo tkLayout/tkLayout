@@ -62,42 +62,46 @@ namespace insur {
         std::ifstream instream;
         std::ofstream outstream;
         try {
-            if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
-            bfs::create_directory(outpath);
+	  //if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);  // TO BE PUT IN SQUID !!
+	  //bfs::create_directory(outpath);
+	    if (!bfs::exists(outpath)) bfs::create_directory(outpath);
 
-	    outstream.open((outpath + metdataFileName).c_str());
-            if (outstream.fail()) throw std::runtime_error("Error opening XML generation metadata file for writing.");
-	    writeMetadata(outstream);
-            if (outstream.fail()) throw std::runtime_error("Error writing to XML generation metadata file.");
-            outstream.close();
-            outstream.clear();
-            std::cout << "CMSSW XML generation metadata has been written to " << outpath << metdataFileName << std::endl;
-
-            if (!wt) {
-	      instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
-	      outstream.open((outpath + xml_pixbarfile).c_str());
-	      if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
-	      //writeSimpleHeader(outstream);
-	      wr.pixbar(data.shapes, instream, outstream);
-	      if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
-	      instream.close();
-	      instream.clear();
+	    if (!isPixelTracker) {
+	      outstream.open((outpath + metdataFileName).c_str());
+	      if (outstream.fail()) throw std::runtime_error("Error opening XML generation metadata file for writing.");
+	      writeMetadata(outstream);
+	      if (outstream.fail()) throw std::runtime_error("Error writing to XML generation metadata file.");
 	      outstream.close();
 	      outstream.clear();
-	      std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+	      std::cout << "CMSSW XML generation metadata has been written to " << outpath << metdataFileName << std::endl;
 
-	      instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
-	      outstream.open((outpath + xml_pixfwdfile).c_str());
-	      if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
-	      //writeSimpleHeader(outstream);
-	      wr.pixfwd(data.shapes, instream, outstream);
-	      if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
-	      instream.close();
-	      instream.clear();
-	      outstream.close();
-	      outstream.clear();
-	      std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
-            }
+	      if (!wt) {
+		instream.open((xmlpath + "/" + xml_pixbarfile).c_str());
+		outstream.open((outpath + xml_pixbarfile).c_str());
+		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixbar files.");
+		//writeSimpleHeader(outstream);
+		wr.pixbar(data.shapes, instream, outstream);
+		if (outstream.fail()) throw std::runtime_error("Error writing to pixbar file.");
+		instream.close();
+		instream.clear();
+		outstream.close();
+		outstream.clear();
+		std::cout << "CMSSW modified pixel barrel has been written to " << outpath << xml_pixbarfile << std::endl;
+
+		instream.open((xmlpath + "/" + xml_pixfwdfile).c_str());
+		outstream.open((outpath + xml_pixfwdfile).c_str());
+		if (instream.fail() || outstream.fail()) throw std::runtime_error("Error opening one of the pixfwdn files.");
+		//writeSimpleHeader(outstream);
+		wr.pixfwd(data.shapes, instream, outstream);
+		if (outstream.fail()) throw std::runtime_error("Error writing to pixfwd file.");
+		instream.close();
+		instream.clear();
+		outstream.close();
+		outstream.clear();
+		std::cout << "CMSSW modified pixel endcap has been written to " << outpath << xml_pixfwdfile << std::endl;
+	      }
+	    }
+
 	    if (!isPixelTracker) {
 	      if (wt) outstream.open((outpath + xml_newtrackerfile).c_str());
 	      else outstream.open((outpath + xml_OT_trackerfile).c_str());

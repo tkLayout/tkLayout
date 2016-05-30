@@ -15,6 +15,7 @@ namespace insur {
     m_isPixelTracker = isPixelTracker;
 
     if (!m_isPixelTracker) {
+      m_nspace = xml_fileident;
       m_xml_trackerfile = xml_OT_trackerfile;
       m_xml_spec_bar = xml_OT_bar;
       m_xml_value_bar = xml_OT_bar;
@@ -27,6 +28,7 @@ namespace insur {
     }
 
     else {
+      m_nspace = xml_PX_fileident;
       m_xml_trackerfile = xml_PX_trackerfile;
       m_xml_spec_bar = xml_PX_bar;
       m_xml_value_bar = xml_PX_value_bar;
@@ -208,7 +210,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
@@ -257,7 +259,7 @@ namespace insur {
         pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+                out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
@@ -270,7 +272,7 @@ namespace insur {
 	  pos = findEntry(t, xml_subdet_ring + xml_par_tail);
 	  if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << xml_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
 	  }
 	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
@@ -521,7 +523,7 @@ namespace insur {
     void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool wt) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
-        if (!wt) logicalPart(xml_tracker, xml_fileident + ":" + xml_tracker, xml_material_air, stream);
+        if (!wt) logicalPart(xml_tracker, m_nspace + ":" + xml_tracker, xml_material_air, stream);
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
@@ -677,7 +679,7 @@ namespace insur {
         stream << xml_general_inter;
         for (unsigned int i = 0; i < es.size(); i++) {
             stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << xml_fileident << ":" << es.at(i).first << xml_material_fraction_close;
+            stream << m_nspace << ":" << es.at(i).first << xml_material_fraction_close;
         }
         stream << xml_composite_material_close;
     }
@@ -996,8 +998,8 @@ namespace insur {
 	  if (lnumber == compstr) {
 	    spname = xml_tob_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    prefix = m_xml_spec_bar + "/" + xml_fileident + ":" + xml_layer + lnumber + "/";
-	    prefix = prefix + xml_fileident + ":" + rcurrent;
+	    prefix = m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
+	    prefix = prefix + m_nspace + ":" + rcurrent;
 
 	    // module loop
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
@@ -1074,7 +1076,7 @@ namespace insur {
 	prefix = m_xml_fwd;
 	//if (plus) prefix = xml_pixfwd_plus;
 	//else prefix = xml_pixfwd_minus;
-	prefix = prefix + "/" + xml_fileident + ":" + dcurrent + "/" + xml_fileident + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
+	prefix = prefix + "/" + m_nspace + ":" + dcurrent + "/" + m_nspace + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
 	// ring loop
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
