@@ -204,19 +204,21 @@ namespace insur {
         pos = findEntry(t, xml_subdet_layer + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+                if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+		else out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << m_xml_value_layer;
         out << xml_spec_par_close;
 
         // Add straight rods
-        if (!m_isPixelTracker) out << xml_spec_par_open << xml_tracker << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
+        if (!m_isPixelTracker) out << xml_spec_par_open << m_xml_tracker << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
 	else out << xml_spec_par_open << "Phase1PixelBarrelRod" << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+                if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+		else out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
@@ -227,7 +229,7 @@ namespace insur {
 	  // Add tilted rings (if any)
 	  pos = findEntry(t, xml_subdet_tilted_ring + xml_par_tail);
 	  if (pos != -1) {
-	    out << xml_spec_par_open << xml_tracker << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	      out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 	    }
@@ -236,7 +238,7 @@ namespace insur {
 	  }
 
 	  // Add BarrelStack
-	  out << xml_spec_par_open << xml_tracker << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << m_xml_tracker << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_barrel_stack + xml_par_tail);
 	  if (pos != -1) {
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -265,7 +267,8 @@ namespace insur {
         pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-                out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      if (m_isPixelTracker) out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      else out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
         if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
@@ -274,11 +277,12 @@ namespace insur {
 
 	if (!m_isPixelTracker) {
 	  // Add Rings
-	  out << xml_spec_par_open << xml_tracker << xml_subdet_ring << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << m_xml_tracker << xml_subdet_ring << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_ring + xml_par_tail);
 	  if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      if (m_isPixelTracker) out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      else out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
 	  }
 	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
@@ -286,7 +290,7 @@ namespace insur {
 	}
 
 	  // Add EndcapStack
-	  if (!m_isPixelTracker) out << xml_spec_par_open << xml_tracker << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
+	  if (!m_isPixelTracker) out << xml_spec_par_open << m_xml_tracker << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
 	  else out << xml_spec_par_open << "PixelEndcapPanelPar" << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
 	  if (pos != -1) {
@@ -300,7 +304,7 @@ namespace insur {
 
 	  if (!m_isPixelTracker) {
 	    // Add LowerDetectors
-	    out << xml_spec_par_open << xml_tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
 	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	    if (pos != -1) {
 	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -321,7 +325,7 @@ namespace insur {
 	    out << xml_spec_par_close;
 
 	    // Add UpperDetectors
-	    out << xml_spec_par_open << xml_tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
 	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	    if (pos != -1) {
 	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
