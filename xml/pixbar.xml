@@ -190,9 +190,7 @@
       <ZSection z="29.12*cm" rMin="20.1*cm" rMax="[Rout1]"/>
       <ZSection z="119.0*cm" rMin="20.1*cm" rMax="[Rout1]"/>
     </Polycone>-->
-
-
-    <Polycone name="Barrel" startPhi="0*deg" deltaPhi="360*deg">
+    <Polycone name="Barrel" startPhi="0*deg" deltaPhi="360*deg">  <!-- TEMPORARY!! Should be defined automatically -->
       <ZSection z="-291.0*cm" rMin="117.99*cm" rMax="120.0*cm"/>
       <ZSection z="-128.1*cm" rMin="117.99*cm" rMax="120.0*cm"/>
       <ZSection z="-128.1*cm" rMin="113.5*cm" rMax="120.0*cm"/>
@@ -216,15 +214,11 @@
       <ZSection z="-[Zv1]"         rMin="[Rin1]"          rMax="[Rout1]" />
       <ZSection z="[Zv1]"          rMin="[Rin1]"          rMax="[Rout1]" />
     </Polycone>
-
-
-
     <SubtractionSolid name="Phase2OTBarrel">
       <rSolid name="Barrel"/>
       <rSolid name="Phase1PixelBarrel"/>
       <Translation x="0*cm" y="0*cm" z="0*cm"/>
     </SubtractionSolid> 
-
     <!--
     <Polycone name="PixelBarrel" startPhi="0*deg" deltaPhi="360*deg">
       <RZPoint r="[Rin1]" z="-[Zv1]"/>
@@ -252,7 +246,6 @@
       <RZPoint r="[Rin1]" z="[Zv1]"/>
     </Polycone>
     -->
-
   </SolidSection>
   <LogicalPartSection label="pixbar.xml">
     <LogicalPart name="Phase1PixelBarrel" category="unspecified">
