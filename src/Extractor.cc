@@ -1031,6 +1031,8 @@ namespace insur {
 	logic.name_tag = rodNextPhiName.str();
 	logic.shape_tag = m_nspace + ":" + logic.name_tag;
 	l.push_back(logic);
+	rspec.partselectors.push_back(rodNextPhiName.str());
+	srspec.partselectors.push_back(rodNextPhiName.str());
       }
 
       rspec.partselectors.push_back(rodname.str());
