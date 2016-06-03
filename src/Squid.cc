@@ -764,17 +764,6 @@ namespace insur {
     g=0; for (int i = 2; i < argc; i++) { if (argv[i] == "-"+std::string(1,103)) g=1; cmdLine += std::string(" ") + argv[i]; }
     v.setCommandLine(cmdLine);
   }
-
-  /*//pixel extractor part
-  void Squid::pixelExtraction(std::string xmlout) {
-    if (!px) {
-      logERROR("PixelExtractor could not find the pixel");
-    } 
-    else {
-      pxt.analyse(pxMaterialCalc.getMaterialTable(),*pm);
-      pxt.printXml(mainConfiguration, xmlout.empty() ? baseName_ : xmlout);
-    }
-    }*/
    
   void Squid::createAdditionalXmlSite(std::string xmlout) {
     std::string xmlPath = mainConfiguration.getXmlDirectory() + "/" + (xmlout.empty() ? baseName_ : xmlout) + "/";

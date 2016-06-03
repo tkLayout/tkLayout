@@ -35,7 +35,6 @@
 #include <Support.h>
 #include "Materialway.h"
 #include "WeightDistributionGrid.h"
-#include <PixelExtractor.h>
 
 
 using material::Materialway;
@@ -160,7 +159,6 @@ namespace insur {
 
     bool prepareWebsite();
     bool sitePrepared;
-    PixelExtractor pxt;
   };
 }
 #endif	/* _SQUID_H */
