@@ -987,7 +987,12 @@ namespace insur {
 	  std::string compstr;
 	  // rod case
 	  if (rcurrent.find(xml_rod) != std::string::npos) {
-	    compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size());
+	    if (rcurrent.find(xml_next_phi) == std::string::npos) {
+	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size());
+	    }
+	    else if (rcurrent.find(xml_next_phi) != std::string::npos) {
+	      compstr = rcurrent.substr(rcurrent.find(xml_rod) + xml_rod.size() + xml_next_phi.size());
+	    }
 	  }
 	  // (if any) tilted ring case
 	  else if ((rcurrent.find(xml_ring) != std::string::npos) && (rcurrent.find(xml_layer) != std::string::npos)) {
