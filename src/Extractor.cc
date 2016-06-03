@@ -653,8 +653,11 @@ namespace insur {
 
       std::ostringstream lname, rodname, rodNextPhiName, pconverter;
       lname << xml_layer << layer; // e.g. Layer1
-      rodname << xml_rod << layer; // e.g.Rod1
-      rodNextPhiName << xml_rod << xml_next_phi << layer; // e.g.RodNextPhi1
+      if (!isPixelTracker) rodname << xml_rod << layer; // e.g.Rod1
+      else {
+	rodname << xml_rod << xml_flipped << layer; // e.g.RodFlipped1
+	rodNextPhiName << xml_rod << xml_unflipped << layer; // e.g.RodUnflipped1
+      }
 
       double rodStartPhiAngle, rodNextPhiStartPhiAngle;
 

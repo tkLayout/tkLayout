@@ -175,7 +175,8 @@ namespace insur {
     static const std::string xml_layer = "Layer";
     static const std::string xml_disc = "Disc";
     static const std::string xml_rod = "Rod";
-    static const std::string xml_next_phi = "NextPhi";
+    static const std::string xml_unflipped = "Unflipped";
+    static const std::string xml_flipped = "Flipped";
     static const std::string xml_ring = "Ring";
     static const std::string xml_plus = "Plus";
     static const std::string xml_minus = "Minus";
