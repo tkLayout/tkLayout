@@ -362,42 +362,40 @@ namespace insur {
   bool Squid::translateFullSystemToXML(std::string xmlout) {
 
     // this prepares the path of the directory where to save the xml files
-    std::string outsubdir = (xmlout.empty() ? baseName_ : xmlout);
-    std::string xmlpath = mainConfiguration.getXmlDirectory();
-    std::string outpath = xmlpath + "/" + outsubdir;
-    if(outpath.at(outpath.size() - 1) != '/') outpath = outpath + "/";
-    std::string tmppath = xmlpath + "/" + xml_tmppath + "/";
+    std::string xmlOutDirectoryName = (xmlout.empty() ? baseName_ : xmlout);
 
-    if (bfs::exists(outpath)) bfs::rename(outpath, tmppath);
-    bfs::create_directory(outpath);
+    std::string xmlGeneralPath = mainConfiguration.getXmlDirectory();
+    std::string xmlOutDirectoryPath = xmlGeneralPath + "/" + xmlOutDirectoryName;
+    if(xmlOutDirectoryPath.at(xmlOutDirectoryPath.size() - 1) != '/') xmlOutDirectoryPath = xmlOutDirectoryPath + "/";
+
+    std::string temporaryPath = xmlGeneralPath + "/" + xml_tmppath + "/";
+    if (bfs::exists(xmlOutDirectoryPath)) bfs::rename(xmlOutDirectoryPath, temporaryPath);
+    bfs::create_directory(xmlOutDirectoryPath);
 
     
-    if ((mb) || (pm)) {
-      try {
-	if (mb) {
-	  t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, outsubdir, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
-	  if (pm) {
-	    t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, outsubdir, false);
-	  }
+    
+    try {
+      if (mb) {
+	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
+	if (pm) {
+	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false);
 	}
-	bfs::remove_all(tmppath);
       }
-
-      catch (std::runtime_error& e) {
-	std::cerr << "Error writing files: " << e.what() << std::endl;
-	if (bfs::exists(outpath)) bfs::remove_all(outpath);
-	if (bfs::exists(tmppath)) bfs::rename(tmppath, outpath);
-	std::cerr << "No files were changed." <<std::endl;
-      }
-      
-      return true;
+      else {
+	std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
+	return false;
+      } 
+      bfs::remove_all(temporaryPath);
     }
 
-    else {
-      std::cout << "Squid::translateFullSystemToXML(): " << err_no_matbudget << std::endl;
-      return false;
-    } 
-
+    catch (std::runtime_error& e) {
+      std::cerr << "Error writing files: " << e.what() << std::endl;
+      if (bfs::exists(xmlOutDirectoryPath)) bfs::remove_all(xmlOutDirectoryPath);
+      if (bfs::exists(temporaryPath)) bfs::rename(temporaryPath, xmlOutDirectoryPath);
+      std::cerr << "No files were changed." <<std::endl;
+    }
+      
+    return true;
   }
 
   // private
