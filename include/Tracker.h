@@ -17,6 +17,7 @@
 #include "Endcap.h"
 #include "SupportStructure.h"
 #include "Visitor.h"
+
 #include "Visitable.h"
 
 using std::set;
@@ -130,6 +131,8 @@ public:
 
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
   Modules& modules() { return moduleSetVisitor_.modules(); }
+
+  bool isPixelTracker() const { return myid() == "Pixels"; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

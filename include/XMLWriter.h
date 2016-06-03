@@ -32,8 +32,8 @@ namespace insur {
      */
     class XMLWriter {
     public:
-      void setTrackerSpecificStrings(bool isPixelTracker);
-        void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
+      void setTrackerSpecificStrings(TrackerDependantStruct td);
+      void pixbar(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
         void pixfwd(std::vector<ShapeInfo>& s, std::ifstream& in, std::ofstream& out);
         void tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool wt = false);
         void topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
@@ -71,17 +71,7 @@ namespace insur {
         void specPar1(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream);
         void specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream);
     private:
-	bool m_isPixelTracker;
-	std::string m_xml_trackerfile;
-	std::string m_xml_spec_bar;
-	std::string m_xml_value_bar;
-	std::string m_xml_tracker;
-	std::string m_nspace;
-	std::string m_xml_value_layer;
-	std::string m_xml_fwd;
-	std::string m_xml_barrel_prefix;
-	std::string m_xml_endcaps_prefix;
-
+	TrackerDependantStruct td_;
         std::vector<PathInfo>& buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt = false);
         bool endcapsInTopology(std::vector<SpecParInfo>& specs);
         int findNumericPrefixSize(std::string s);

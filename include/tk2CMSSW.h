@@ -51,7 +51,7 @@ namespace insur {
     public:
         tk2CMSSW(mainConfigHandler& mch) : mainConfiguration(mch) {}
         virtual ~tk2CMSSW() {}
-	void setTrackerDependantStings(bool isPixelTracker);
+	void setTrackerDependantStrings(bool isPixelTracker);
         void translate(MaterialTable& mt, MaterialBudget& mb, std::string xmlGeneralPath, std::string xmlOutDirectoryPath, std::string xmlOutDirectoryName = "", bool wt = false);
         struct ConfigFile { std::string name, content; };
         void addConfigFile(const ConfigFile& file) { configFiles_.push_back(file); }
@@ -61,7 +61,7 @@ namespace insur {
         Extractor ex;
         XMLWriter wr;
     private:
-	TrackerDependantStruct td;
+	TrackerDependantStruct td_;
         std::vector<ConfigFile> configFiles_;
         void print();
         void writeSimpleHeader(std::ostream& os, std::string& metadataFileName);

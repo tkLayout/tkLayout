@@ -376,8 +376,10 @@ namespace insur {
     
     try {
       if (mb) {
+	t2c.setTrackerDependantStrings(mb->isPixelTrackerMaterial());
 	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
 	if (pm) {
+	  t2c.setTrackerDependantStrings(pm->isPixelTrackerMaterial());
 	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false);
 	}
       }

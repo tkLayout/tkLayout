@@ -13,24 +13,9 @@
 
 namespace insur {
 
-  void Extractor::setTrackerSpecificStrings(bool isPixelTracker) {
-
-    if (!isPixelTracker) {
-      if (wt) m_nspace = xml_newfileident;
-      else m_nspace = xml_fileident;
-
-      m_xml_bar = xml_OT_bar;
-      m_xml_fwd = xml_OT_fwd;
-    }
-
-    else {
-      m_nspace = xml_PX_fileident;
-      m_xml_bar = xml_PX_bar;
-      m_xml_fwd = xml_PX_fwd;
-    }
+  void Extractor::setTrackerSpecificStrings(TrackerDependantStruct td) {
+    td_ = td;
   }
-
-
 
   //public
   /**
@@ -717,10 +702,10 @@ namespace insur {
 	    
 
 	    // For LogicalPartSection in tracker.xml : module's material
-            //logic.material_tag = m_nspace + ":" + matname.str();
+            //logic.material_tag = td_.nspace + ":" + matname.str();
             logic.material_tag = xml_material_air;
             logic.name_tag = mname.str();
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 	    l.push_back(logic);	    
 	    // module composite material
             //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
@@ -729,22 +714,22 @@ namespace insur {
 
 	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
             if (!isTilted || (isTilted && (tiltAngle == 0))) {
-	      pos.parent_tag = m_nspace + ":" + rodname.str();
-	      pos.child_tag = m_nspace + ":" + mname.str();
+	      pos.parent_tag = td_.nspace + ":" + rodname.str();
+	      pos.child_tag = td_.nspace + ":" + mname.str();
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      if (!iiter->getModule().flipped()) { pos.rotref = td_.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = td_.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+		if (!partner->getModule().flipped()) { pos.rotref = td_.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = td_.nspace + ":" + xml_places_flipped_mod_in_rod; }
 		pos.copy = 2; 
 		p.push_back(pos);
 		pos.copy = 1;
@@ -756,22 +741,22 @@ namespace insur {
 	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
-	      pos.parent_tag = m_nspace + ":" + rodNextPhiName.str();
-	      pos.child_tag = m_nspace + ":" + mname.str();
+	      pos.parent_tag = td_.nspace + ":" + rodNextPhiName.str();
+	      pos.child_tag = td_.nspace + ":" + mname.str();
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      if (!iiter->getModule().flipped()) { pos.rotref = td_.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = td_.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+		if (!partner->getModule().flipped()) { pos.rotref = td_.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = td_.nspace + ":" + xml_places_flipped_mod_in_rod; }
 		pos.copy = 2; 
 		p.push_back(pos);
 		pos.copy = 1;
@@ -807,13 +792,13 @@ namespace insur {
 
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = td_.nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
 	    // PosPart section
-            pos.parent_tag = m_nspace + ":" + mname.str();
-            pos.child_tag = m_nspace + ":" + shape.name_tag;
+            pos.parent_tag = td_.nspace + ":" + mname.str();
+            pos.child_tag = td_.nspace + ":" + shape.name_tag;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
@@ -828,11 +813,11 @@ namespace insur {
 
 	      // LogicalPartSection
               logic.name_tag = shape.name_tag;
-              logic.shape_tag = m_nspace + ":" + logic.name_tag;
+              logic.shape_tag = td_.nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
 	      // PosPart section
-              pos.child_tag = m_nspace + ":" + shape.name_tag;
+              pos.child_tag = td_.nspace + ":" + shape.name_tag;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
@@ -843,7 +828,7 @@ namespace insur {
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
                 r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-                pos.rotref = m_nspace + ":" + rot.name;
+                pos.rotref = td_.nspace + ":" + rot.name;
               }
               p.push_back(pos);
 
@@ -875,17 +860,17 @@ namespace insur {
 
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
-            logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+            logic.shape_tag = td_.nspace + ":" + logic.name_tag;
+            logic.material_tag = td_.nspace + ":" + xml_sensor_silicon;
             l.push_back(logic);
 
 	    // PosPart section
-	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	    else pos.parent_tag = m_nspace + ":" + mname.str() + xml_PX + xml_base_waf;
-            pos.child_tag = m_nspace + ":" + shape.name_tag;
+	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = td_.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	    else pos.parent_tag = td_.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+            pos.child_tag = td_.nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-            pos.rotref = m_nspace + ":" + rot_sensor_tag;
+            pos.rotref = td_.nspace + ":" + rot_sensor_tag;
 #endif
             p.push_back(pos);
 
@@ -910,14 +895,14 @@ namespace insur {
 
 	      // LogicalPartSection
               logic.name_tag = shape.name_tag;
-              logic.shape_tag = m_nspace + ":" + logic.name_tag;
+              logic.shape_tag = td_.nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
 	      // PosPart section
-	      pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-              pos.child_tag = m_nspace + ":" + shape.name_tag;
+	      pos.parent_tag = td_.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+              pos.child_tag = td_.nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
-              pos.rotref = m_nspace + ":" + rot_sensor_tag;
+              pos.rotref = td_.nspace + ":" + rot_sensor_tag;
 #endif
               p.push_back(pos);
 
@@ -1021,7 +1006,7 @@ namespace insur {
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
       logic.name_tag = rodname.str();
-      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
       logic.material_tag = xml_material_air;
       l.push_back(logic);
 
@@ -1029,7 +1014,7 @@ namespace insur {
 	shape.name_tag = rodNextPhiName.str();
 	s.push_back(shape);
 	logic.name_tag = rodNextPhiName.str();
-	logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 	l.push_back(logic);
 	rspec.partselectors.push_back(rodNextPhiName.str());
 	srspec.partselectors.push_back(rodNextPhiName.str());
@@ -1045,8 +1030,8 @@ namespace insur {
       // rods in layer algorithm(s)
       if (!isPixelTracker) {
 	alg.name = xml_phialt_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodname.str();
+	alg.parent = td_.nspace + ":" + lname.str();
+	pconverter <<  td_.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
 	// It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
@@ -1073,8 +1058,8 @@ namespace insur {
       }
       else {
 	alg.name = xml_angular_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodname.str();
+	alg.parent = td_.nspace + ":" + lname.str();
+	pconverter <<  td_.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
 	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
@@ -1094,8 +1079,8 @@ namespace insur {
 	alg.parameters.clear();
 
 	alg.name = xml_angular_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodNextPhiName.str();
+	alg.parent = td_.nspace + ":" + lname.str();
+	pconverter <<  td_.nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
 	pconverter << rodNextPhiStartPhiAngle * 180. / M_PI << "*deg";
@@ -1182,12 +1167,12 @@ namespace insur {
 	      so.push_back(shapeOp);
 
 	      logic.name_tag = rinfo.name;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      
-	      pos.parent_tag = m_nspace + ":" + lname.str();
-	      pos.child_tag = m_nspace + ":" + rinfo.name;
+	      pos.parent_tag = td_.nspace + ":" + lname.str();
+	      pos.child_tag = td_.nspace + ":" + rinfo.name;
 	      pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2.0; 
 	      p.push_back(pos);
 	      
@@ -1198,8 +1183,8 @@ namespace insur {
 	      
 	      // backward part of the ring
 	      alg.name = xml_trackerring_algo;
-	      alg.parent = m_nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo.childname));
+	      alg.parent = td_.nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, td_.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
@@ -1227,8 +1212,8 @@ namespace insur {
 	      
 	      // forward part of the ring
 	      alg.name =  xml_trackerring_algo;
-	      alg.parent = m_nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo.childname));
+	      alg.parent = td_.nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, td_.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
@@ -1270,10 +1255,10 @@ namespace insur {
       shape.dz = zmax + 2 * xml_epsilon;
       s.push_back(shape);
       logic.name_tag = lname.str();
-      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
       l.push_back(logic);
-      pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
-      pos.child_tag = m_nspace + ":" + lname.str();
+      pos.parent_tag = xml_pixbarident + ":" + td_.bar;
+      pos.child_tag = td_.nspace + ":" + lname.str();
       p.push_back(pos);
       lspec.partselectors.push_back(lname.str());
       //lspec.moduletypes.push_back("");
@@ -1527,9 +1512,9 @@ namespace insur {
 	      shape.dz = iiter->getModule().thickness() / 2.0;
 
 	      logic.name_tag = mname.str();
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 
-	      //logic.material_tag = m_nspace + ":" + matname.str();
+	      //logic.material_tag = td_.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      // module composite material
@@ -1555,12 +1540,12 @@ namespace insur {
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 
-	      pos.parent_tag = m_nspace + ":" + mname.str();
-	      pos.child_tag = m_nspace + ":" + shape.name_tag;
+	      pos.parent_tag = td_.nspace + ":" + mname.str();
+	      pos.child_tag = td_.nspace + ":" + shape.name_tag;
 	      if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
 	      else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
 	      p.push_back(pos);
@@ -1575,7 +1560,7 @@ namespace insur {
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
-		logic.shape_tag = m_nspace + ":" + logic.name_tag;
+		logic.shape_tag = td_.nspace + ":" + logic.name_tag;
 		l.push_back(logic);
 
 		pos.child_tag = logic.shape_tag;
@@ -1590,7 +1575,7 @@ namespace insur {
 		  rot.thetay = 90.0;
 		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
 		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-		  pos.rotref = m_nspace + ":" + rot.name;
+		  pos.rotref = td_.nspace + ":" + rot.name;
 		}
 
 		p.push_back(pos);
@@ -1617,16 +1602,16 @@ namespace insur {
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
-	      logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+	      logic.shape_tag = td_.nspace + ":" + logic.name_tag;
+	      logic.material_tag = td_.nspace + ":" + xml_sensor_silicon;
 	      l.push_back(logic);
 
-	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	      else pos.parent_tag = m_nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = td_.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	      else pos.parent_tag = td_.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-	      pos.rotref = m_nspace + ":" + rot_sensor_tag;
+	      pos.rotref = td_.nspace + ":" + rot_sensor_tag;
 #endif
 	      p.push_back(pos);
 
@@ -1649,15 +1634,15 @@ namespace insur {
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
-		logic.shape_tag = m_nspace + ":" + logic.name_tag;
-		logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+		logic.shape_tag = td_.nspace + ":" + logic.name_tag;
+		logic.material_tag = td_.nspace + ":" + xml_sensor_silicon;
 		l.push_back(logic);
 
-		pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		pos.parent_tag = td_.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		pos.child_tag = logic.shape_tag;
 		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
-		pos.rotref = m_nspace + ":" + rot_sensor_tag;
+		pos.rotref = td_.nspace + ":" + rot_sensor_tag;
 #endif
 		p.push_back(pos);
 
@@ -1742,16 +1727,16 @@ namespace insur {
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = td_.nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
-            pos.parent_tag = m_nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
+            pos.parent_tag = td_.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
 	    pos.trans.dz = (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0 - (zmin + zmax) / 2.0;
             p.push_back(pos);
-            //pos.parent_tag = m_nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
+            //pos.parent_tag = td_.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
 
             rspec.partselectors.push_back(logic.name_tag);
@@ -1760,7 +1745,7 @@ namespace insur {
 	    // forward part of the ring
 	    alg.name = xml_trackerring_algo;
             alg.parent = logic.shape_tag;
-            alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo[*siter].childname));
+            alg.parameters.push_back(stringParam(xml_childparam, td_.nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
@@ -1786,7 +1771,7 @@ namespace insur {
 
 	    // backward part of the ring
 	    alg.name = xml_trackerring_algo;
-            alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo[*siter].childname));
+            alg.parameters.push_back(stringParam(xml_childparam, td_.nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
@@ -1821,12 +1806,12 @@ namespace insur {
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
         //logic.extra = xml_plus;
-        logic.shape_tag = m_nspace + ":" + shape.name_tag;
+        logic.shape_tag = td_.nspace + ":" + shape.name_tag;
         logic.material_tag = xml_material_air;
         l.push_back(logic);
 
-        pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
-        pos.child_tag = m_nspace + ":" + logic.name_tag;
+        pos.parent_tag = xml_pixfwdident + ":" + td_.fwd;
+        pos.child_tag = td_.nspace + ":" + logic.name_tag;
         pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
         p.push_back(pos);
 
@@ -1836,8 +1821,8 @@ namespace insur {
         //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
         //   logic.extra = xml_minus;
         //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
-        //   pos.child_tag = m_nspace + ":" + logic.name_tag;
+        //   pos.parent_tag = xml_pixfwdident + ":" + td_.fwd;
+        //   pos.child_tag = td_.nspace + ":" + logic.name_tag;
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
         //dspec.partextras.push_back(logic.extra);
@@ -1921,17 +1906,17 @@ namespace insur {
 	    if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
-	    logic.shape_tag = m_nspace + ":" + shapename.str();
-	    logic.material_tag = m_nspace + ":" + matname.str();
+	    logic.shape_tag = td_.nspace + ":" + shapename.str();
+	    logic.material_tag = td_.nspace + ":" + matname.str();
 	    l.push_back(logic);
 
-	    pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	    pos.parent_tag = xml_pixbarident + ":" + td_.bar; //xml_tracker;
 	    pos.child_tag = logic.shape_tag;
 	    pos.trans.dz = iter->getZOffset() + shape.dz;
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
 	    p.push_back(pos);
 	  }
 
@@ -1953,17 +1938,17 @@ namespace insur {
 	      if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	      logic.name_tag = shapenameBarrel.str();
-	      logic.shape_tag = m_nspace + ":" + shapenameBarrel.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = td_.nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = td_.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	      pos.parent_tag = xml_pixbarident + ":" + td_.bar; //xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz;
 	      p.push_back(pos);
 	      pos.copy = 2;
 	      pos.trans.dz = -pos.trans.dz;
-	      pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	      pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
 	      p.push_back(pos);
 	      
 
@@ -1980,11 +1965,11 @@ namespace insur {
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapenameEndcaps.str();
-	      logic.shape_tag = m_nspace + ":" + shapenameEndcaps.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = td_.nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = td_.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + td_.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = startEndcaps + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
@@ -2003,11 +1988,11 @@ namespace insur {
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
-	      logic.shape_tag = m_nspace + ":" + shapename.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = td_.nspace + ":" + shapename.str();
+	      logic.material_tag = td_.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + td_.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
@@ -2083,17 +2068,17 @@ namespace insur {
           s.push_back(shape);
 
           logic.name_tag = shapename.str();
-          logic.shape_tag = m_nspace + ":" + shapename.str();
-          logic.material_tag = m_nspace + ":" + matname.str();
+          logic.shape_tag = td_.nspace + ":" + shapename.str();
+          logic.material_tag = td_.nspace + ":" + matname.str();
           l.push_back(logic);
 
-          pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+          pos.parent_tag = xml_pixfwdident + ":" + td_.fwd; // xml_tracker;
           pos.child_tag = logic.shape_tag;
           pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
           p.push_back(pos);
 	  pos.copy = 2;
 	  pos.trans.dz = -pos.trans.dz;
-	  pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	  pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
 	  p.push_back(pos);
 	  pos.copy = 1;
 	  pos.rotref.clear();
@@ -2172,8 +2157,8 @@ namespace insur {
       s.push_back(shape);
 
       logic.name_tag = shapename.str();
-      logic.shape_tag = m_nspace + ":" + shapename.str();
-      logic.material_tag = m_nspace + ":" + matname.str();
+      logic.shape_tag = td_.nspace + ":" + shapename.str();
+      logic.material_tag = td_.nspace + ":" + matname.str();
       l.push_back(logic);
 
       switch (iter->getCategory()) {
@@ -2181,13 +2166,13 @@ namespace insur {
       case MaterialProperties::t_sup:
       case MaterialProperties::u_sup:
       case MaterialProperties::o_sup:
-          pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
+          pos.parent_tag = xml_pixbarident + ":" + td_.bar;
           break;
       case MaterialProperties::e_sup:
-          pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
+          pos.parent_tag = xml_pixfwdident + ":" + td_.fwd;
           break;
       default:
-	pos.parent_tag = m_nspace + ":" + xml_tracker;
+	pos.parent_tag = td_.nspace + ":" + xml_tracker;
       }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
@@ -2196,7 +2181,7 @@ namespace insur {
       p.push_back(pos);
       pos.copy = 2;
       pos.trans.dz = -pos.trans.dz;
-      pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+      pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
       p.push_back(pos);
       pos.copy = 1;
       pos.rotref.clear();
@@ -2214,8 +2199,8 @@ namespace insur {
         s.push_back(shape);
 
         logic.name_tag = shapename.str();
-        logic.shape_tag = m_nspace + ":" + shapename.str();
-        logic.material_tag = m_nspace + ":" + matname.str();
+        logic.shape_tag = td_.nspace + ":" + shapename.str();
+        logic.material_tag = td_.nspace + ":" + matname.str();
         l.push_back(logic);
 
         switch (iter->getCategory()) {
@@ -2223,13 +2208,13 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-	  pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
+	  pos.parent_tag = xml_pixbarident + ":" + td_.bar;
 	  break;
         case MaterialProperties::e_sup:
-	  pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
+	  pos.parent_tag = xml_pixfwdident + ":" + td_.fwd;
 	  break;
         default:
-	  pos.parent_tag = m_nspace + ":" + xml_tracker;
+	  pos.parent_tag = td_.nspace + ":" + xml_tracker;
         }
         pos.child_tag = logic.shape_tag;
         if ((iter->getCategory() == MaterialProperties::o_sup) ||
@@ -2238,7 +2223,7 @@ namespace insur {
         p.push_back(pos);
 	pos.copy = 2;
 	pos.trans.dz = -pos.trans.dz;
-	pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
 	p.push_back(pos);
 	pos.copy = 1;
 	pos.rotref.clear();
@@ -2269,17 +2254,17 @@ namespace insur {
 	    if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
-	    logic.shape_tag = m_nspace + ":" + shapename.str();
-	    logic.material_tag = m_nspace + ":" + matname.str();
+	    logic.shape_tag = td_.nspace + ":" + shapename.str();
+	    logic.material_tag = td_.nspace + ":" + matname.str();
 	    l.push_back(logic);
 
-	    pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	    pos.parent_tag = xml_pixbarident + ":" + td_.bar; //xml_tracker;
 	    pos.child_tag = logic.shape_tag;
 	    pos.trans.dz = iter->getZOffset() + shape.dz;
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = td_.nspace + ":" + xml_flip_mod_rot;
 	    p.push_back(pos);
 	  }
 
@@ -2294,11 +2279,11 @@ namespace insur {
 	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
-	      logic.shape_tag = m_nspace + ":" + shapename.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = td_.nspace + ":" + shapename.str();
+	      logic.material_tag = td_.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + td_.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
