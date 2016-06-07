@@ -170,65 +170,45 @@ void RodPairStraight::build()
     ReadonlyProperty<double, Default>   dsDistance("dsDistance", parsedAndChecked(), 0.);
     evaluateProperty(dsDistance);
 
-    // Position variables
-    double lastZPos       = 0.0;          // Last ZPos at which module is positioned
-    double newZPos        = 0.0;          // New ZPos at which module is positioned
-    double lastRPos       = 0.0;          // Last radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
-    double newRPos        = 0.0;          // New radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
-    double newROptimal    = 0.0;          // Real radius at which module will be positioned in R
-    double newDsDistance  = dsDistance(); // ds distance of newly positioned module
-    double lastDsDistance = 0.0;          // ds distance of last positioned module
-    int    iMod           = 1;            // Current number of built modules
-
     //
-    // Position first module to the centre?
-    int parity = m_smallParity;
+    // When positioning modules iterate n-times to have +-Z balanced rod, use safety margin to avoid too many iterations
+    int    bIter          = 0;   // Balancing algorithm iterates
+    double zUnbalance     = 0.0; // Total size of +-Z inbalance/2.
+    double startZPos      = 0.0; // Update edge beteween positive & negative modules as balancing algorithm iterates
 
-    if (m_startZMode()==StartZMode::MODULECENTER) {
+    while (bIter<c_nIterations) {
+
+      // Unbalance in +-Z Ok, below required limit
+      if (bIter!=0 && fabs(zUnbalance)<c_safetySpaceFactor) {
+        break;
+      }
+      else {
+
+        m_zPlusModules.release();
+        m_zMinusModules.release();
+      }
+
+      // Position variables
+      double lastZPos       = 0.0;          // Last ZPos at which module is positioned
+      double newZPos        = 0.0;          // New ZPos at which module is positioned
+      double lastRPos       = 0.0;          // Last radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
+      double newRPos        = 0.0;          // New radius using minRodR/maxRodR values -> used to calculate optimal module Z position only
+      double newROptimal    = 0.0;          // Real radius at which module will be positioned in R
+      double newDsDistance  = dsDistance(); // ds distance of newly positioned module
+      double lastDsDistance = 0.0;          // ds distance of last positioned module
+      int    iMod           = 1;            // Current number of built modules
+
+      //
+      // Position first module
+      int parity = m_smallParity;
 
       BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
       mod->build();
 
       // Translate
-      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
-      newZPos  = 0.0;
-
-      newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
-      newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
-
-      mod->translateR(newROptimal);
-      mod->translateZ(newZPos);
-
-      m_zPlusModules.push_back(mod);
-
-      // Update info
-      lastDsDistance = newDsDistance;
-      parity        *= -1;
-      iMod++;
-
-
-    }
-    else lastZPos = -moduleLength()/2.; // Positioning algorithm starts from the centre of a previous module (here taken as virtual)
-
-    //
-    // Position other modules in positive Z
-
-    // To avoid end-less loop
-    int    targetMods = m_nModules;
-    double targetZ    = m_outerZ;
-    int    iIter      = 0;
-    while (iMod<=targetMods || abs(newZPos)<targetZ) {
-
-      iIter++;
-      if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in positive Z, number of iterations exceeded allowed limit! Quitting!!!");
-
-      BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
-      mod->build();
-
-      // Translate
-      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
-      lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
-      newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::RIGHT, parity);
+      newRPos   = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
+      newZPos   = m_startZMode()==StartZMode::MODULECENTER ? 0.0 : startZPos + moduleLength()/2. - zUnbalance;
+      //std::cout << "Module Z: " << newZPos << std::endl;
 
       newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
       newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
@@ -243,42 +223,121 @@ void RodPairStraight::build()
       lastDsDistance = newDsDistance;
       parity        *= -1;
       iMod++;
+
+      //
+      // Position other modules in positive Z
+
+      // To avoid end-less loop
+      int    targetMods = m_nModules;
+      double targetZ    = m_outerZ;
+      int    iIter      = 0;
+      while (iMod<=targetMods || abs(newZPos)<targetZ) {
+
+        iIter++;
+        if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in positive Z, number of iterations exceeded allowed limit! Quitting!!!");
+
+        BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
+        mod->build();
+
+        // Translate
+        newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
+        lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
+        newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::RIGHT, parity);
+
+        newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
+        newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
+
+        //std::cout << "Module Z: " << newZPos << std::endl;
+        mod->translateR(newROptimal);
+        mod->translateZ(newZPos);
+
+        m_zPlusModules.push_back(mod);
+
+        // Update info
+        lastZPos       = newZPos;
+        lastDsDistance = newDsDistance;
+        parity        *= -1;
+        iMod++;
+      }
+
+      //
+      // Build modules in negative Z
+      targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_zPlusModules.size()-1 : m_zPlusModules.size(); //m_nModules-1 : m_nModules;
+      parity     = -m_smallParity;
+      iMod       = 1;
+      newZPos    = (m_startZMode()==StartZMode::MODULECENTER) ? 0.0 : startZPos + moduleLength()/2. - zUnbalance;
+      lastZPos   = newZPos;
+      iIter      = 0;
+      //std::cout << "TargeMods " << targetMods << std::endl;
+      while (iMod<=targetMods) {// || abs(newZPos)<targetZ) {
+
+        iIter++;
+        if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in negative Z, number of iterations exceeded allowed limit! Quitting!!!");
+
+        BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
+        mod->build();
+
+        // Translate & rotate (rotate after translation!)
+        newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
+        lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
+        newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::LEFT, parity);
+
+        newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
+        newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
+
+        //std::cout << "Module Z: " << newZPos << std::endl;
+        mod->translateR(newROptimal);
+        mod->translateZ(newZPos);
+
+        m_zMinusModules.push_back(mod);
+
+        // Update info
+        lastZPos       = newZPos;
+        lastDsDistance = newDsDistance;
+        parity        *= -1;
+        iMod++;
+      }
+
+      // Unbalance in +-Z & starting point -> recalculate
+      if (m_zPlusModules.size()>0 && m_zMinusModules.size()>0) {
+
+        startZPos      = (m_startZMode()==StartZMode::MODULECENTER) ? 0.0 : m_zPlusModules.front().center().Z() - m_zPlusModules.front().length()/2.;
+        double maxZPls = m_zPlusModules.size()>1 ? m_zPlusModules[m_zPlusModules.size()-2].center().Z()+m_zPlusModules[m_zPlusModules.size()-2].length()/2. : 0;
+        maxZPls        = MAX(m_zPlusModules[m_zPlusModules.size()-1].center().Z()+m_zPlusModules[m_zPlusModules.size()-1].length()/2., maxZPls);
+        double minZMin = m_zMinusModules.size()>1 ? m_zMinusModules[m_zMinusModules.size()-2].center().Z()-m_zMinusModules[m_zMinusModules.size()-2].length()/2. : 0;
+        minZMin        = MIN(m_zMinusModules[m_zMinusModules.size()-1].center().Z()-m_zMinusModules[m_zMinusModules.size()-1].length()/2., minZMin);
+        zUnbalance     = (maxZPls + minZMin)/2.; // balancing uneven pos/neg stringsdouble
+
+        //std::cout << "Modules: " << m_zPlusModules.size() << " + " << m_zMinusModules.size() << std::endl;
+        //std::cout << ">Balancing +Z x -Z> " << maxZPls << " "<< minZMin << std::endl;
+      }
+      else {
+
+        startZPos  = 0.0;
+        zUnbalance = 0.0;
+      }
+
+      bIter++; // Number of allowed iterations in balancing procedure
+    } // Balancing
+
+    // Print warning if balancing failed
+    if (bIter>=c_nIterations) {
+
+      std::ostringstream tempSS;
+      tempSS << "Balancing algorighm in rod pair at avg radius: " << m_optimalRadius << " didn't converge! Layer is skewed";
+      tempSS << "Unbalance is " << zUnbalance << " mm";
+      logWARNING(tempSS);
     }
+    // Print balancing output if balancing performed
+    else if (bIter>1) {
 
-    //
-    // Build modules in negative Z
-    targetMods = (m_startZMode()==StartZMode::MODULECENTER) ? m_nModules-1 : m_nModules;
-    parity     = -m_smallParity;
-    iMod       = 1;
-    newZPos    = (m_startZMode()==StartZMode::MODULECENTER) ? 0.0 : +moduleLength()/2.;
-    lastZPos   = newZPos;
-    iIter      = 0;
-    while (iMod<=targetMods || abs(newZPos)<targetZ) {
-
-      iIter++;
-      if (iIter>RodPairStraight::RodPairStraight::c_nIterations) logERROR("When positioning modules in negative Z, number of iterations exceeded allowed limit! Quitting!!!");
-
-      BarrelModule* mod = GeometryFactory::make<BarrelModule>(iMod, GeometryFactory::make<RectangularModule>(), m_ringNode, propertyTree());
-      mod->build();
-
-      // Translate & rotate (rotate after translation!)
-      newRPos  = (parity > 0 ? m_maxRadius + m_smallDelta : m_minRadius - m_smallDelta) - newDsDistance/2; // Ds>0 lower sensor plays a role
-      lastRPos = (parity > 0 ? m_maxRadius - m_smallDelta : m_minRadius + m_smallDelta) + newDsDistance/2; // Ds>0 upper sensor plays a role
-      newZPos  = computeNextZ(lastRPos, newRPos, lastZPos, moduleLength(), lastDsDistance, mod->dsDistance(), BuildDir::LEFT, parity);
-
-      newROptimal  = m_bigParity > 0 ? m_bigDelta : -m_bigDelta;
-      newROptimal += (parity > 0 ? m_optimalRadius + m_smallDelta : m_optimalRadius - m_smallDelta);
-
-      mod->translateR(newROptimal);
-      mod->translateZ(newZPos);
-
-      m_zMinusModules.push_back(mod);
-
-      // Update info
-      lastZPos       = newZPos;
-      lastDsDistance = newDsDistance;
-      parity        *= -1;
-      iMod++;
+      std::ostringstream tempSS;
+      tempSS << "Balancing algorithm in rod pair at avg radius " << m_optimalRadius << " converged after " << bIter << " step(s).\n"
+             << "   Residual Z unbalance is " << zUnbalance << ".\n"
+             << "   Positive string has " << m_zPlusModules.size() << " modules, negative string has " << m_zMinusModules.size() << " modules.\n"
+             << "   Z+ rod starts at " << m_zPlusModules.front().center().Z() - m_zPlusModules.front().length()/2.
+             << ", Z- rod starts at "  << m_zMinusModules.front().center().Z() + m_zMinusModules.front().length()/2. << ".";
+      logINFO(tempSS);
     }
 
     //
@@ -286,7 +345,7 @@ void RodPairStraight::build()
     std::map<int, double> zGuards;
     zGuards[1]      = std::numeric_limits<double>::lowest();
     zGuards[-1]     = std::numeric_limits<double>::lowest();
-    parity          = m_smallParity;
+    double parity   = m_smallParity;
     int iModule     = 1;
     int nCollisions = 0;
 

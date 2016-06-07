@@ -2,54 +2,44 @@
 #include <global_constants.h>
 #include <iomanip>
 
-int IdMaker::id = 0;
-const int IdMaker::nBinsZoom = 1000;
+int FrameGetterBase::s_id = 0;
+const int FrameGetterBase::s_nBinsZoom = 1000;
 
-template<> TH2C* FrameGetter<YZFull>::operator()(double viewportX, double viewportY) const {
-  std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, 0, viewportY);
+//
+// Create frame, i.e. histogram containing all modules in RZ projection (R>=0, Z -0+)
+//
+template<> TH2C* FrameGetter<RZFull>::operator()(double viewportZ, double viewportR) const {
+  std::string name = std::string("frameRZFull") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", s_nBinsZoom, -viewportZ, viewportZ, s_nBinsZoom, 0, viewportR);
   frame->GetXaxis()->SetTitleOffset(1.3);
   frame->SetStats(kFALSE);
   return frame;
 }
 
-
-
-template<> TH2C* FrameGetter<YZ>::operator()(double viewportX, double viewportY) const {
-  std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", nBinsZoom, 0, viewportX, nBinsZoom, 0, viewportY);
+//
+// Create frame, i.e. histogram containing all modules in RZ projection (R>=0, Z>=0)
+//
+template<> TH2C* FrameGetter<RZ>::operator()(double viewportZ, double viewportR) const {
+  std::string name = std::string("frameRZ") + nextString();
+  TH2C* frame = new TH2C(name.c_str(), ";z [mm];r [mm]", s_nBinsZoom, 0, viewportZ, s_nBinsZoom, 0, viewportR);
   frame->GetXaxis()->SetTitleOffset(1.3);
   frame->SetStats(kFALSE);
-  //    frame->GetXaxis()->SetTickLength(-0.03);
-  //    frame->GetXaxis()->SetLabelOffset(0.03);
-  //    frame->GetXaxis()->SetNdivisions(10);
-
-  //    frame->GetYaxis()->SetTitleOffset(1.2);
-  //    frame->GetYaxis()->SetTickLength(-0.015);
-  //    frame->GetYaxis()->SetLabelOffset(0.015);
-  //    frame->GetYaxis()->SetNdivisions(10);
-
   return frame;
 }
 
-//int g; // TODO: What the hell is this???
-
+//
+// Create frame, i.e. histogram containing all modules in XY projection
+//
 template<> TH2C* FrameGetter<XY>::operator()(double viewportX, double viewportY) const {
   std::string name = std::string("frameYZ") + nextString();
-  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", nBinsZoom, -viewportX, viewportX, nBinsZoom, -viewportY, viewportY);
+  TH2C* frame = new TH2C(name.c_str(), ";x [mm];y [mm]", s_nBinsZoom, -viewportX, viewportX, s_nBinsZoom, -viewportY, viewportY);
   frame->GetYaxis()->SetTitleOffset(1.3);
   frame->SetStats(kFALSE);
   return frame;
 }
 
-TPolyLine* drawMod() {
-  double x[] = { 131., 31., 31., 131., 131., 101. };
-  double y[] = { 132., 132., 32., 32., 81., 81. };
-  return new TPolyLine(6, x, y);
-}
-
-template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
-                                                                          Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {
+template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance,
+                                                                       Style_t labelFont, Float_t labelSize, double etaStep, double etaMax, double etaLongLine) const {
   // Add the eta ticks
   double theta;
   double startR = maxR + tickDistance;
@@ -117,10 +107,12 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   }
 }
 
-template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double scaleFactorX, double scaleFactorY,
-                                                                          Style_t labelFont, Float_t stdLabelSize, double etaStepShort, double etaStepLong, double etaMax, double etaLongLineI, double etaLongLineII) const {
+template<class CoordType> void TicksFrameStyle<CoordType>::drawEtaTicks(double maxL, double maxR, double tickDistance, double scaleFactorX, double scaleFactorY,
+                                                                       Style_t labelFont, Float_t stdLabelSize, double etaStepShort, double etaStepLong, double etaMax, double etaLongLineI, double etaLongLineII,
+                                                                       bool zPlsMin) const {
   // Add the eta ticks
   double  theta;
+  double  thetaSign;
   double  tickLengthY   = maxR/scaleFactorY;
   double  textDistanceY = maxR/scaleFactorY;
   double  tickLengthX   = maxL/scaleFactorX;
@@ -146,6 +138,7 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
 
   double thetaLimit = atan(startR/startL);
   std::vector<double> etaSteps;
+  std::vector<double> etaStepsFull;
 
   // Start with short eta step, continue with long eta step when drawing eta ticks 
   for (eta=0; eta<=etaMaxSafe+etaStepShort; eta+=etaStepShort) {
@@ -164,32 +157,42 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   // Add final eta tick
   etaSteps.push_back(etaLongLineII);
 
-  for (std::vector<double>::iterator it = etaSteps.begin(); it!=etaSteps.end(); ++it) {
-    eta=*it;
-    theta = 2 * atan(exp(-eta));
+  // Create ticks for both sides
+  if (zPlsMin) etaStepsFull.resize(2*etaSteps.size());
+  else         etaStepsFull.resize(etaSteps.size());
+
+  int iStep=0;
+  if (zPlsMin)  for (auto it = etaSteps.end(); it!=etaSteps.begin(); it--, iStep++) etaStepsFull[iStep] = -1 * *it;
+  for (auto it = etaSteps.begin(); it!=etaSteps.end(); it++, iStep++) etaStepsFull[iStep] = *it;
+
+  for (auto it = etaStepsFull.begin(); it!=etaStepsFull.end(); ++it) {
+    eta       =*it;
+    thetaSign = eta>=0 ? +1 : -1;
+    theta     = 2 * atan(exp(-fabs(eta)));
     
     aTick->SetLineColor(kBlack);
     aTick->SetLineWidth(1);
     if (theta>thetaLimit) {
-      aTick->DrawLine(startR / tan(theta), startR, endR / tan(theta),  endR);
+      if (zPlsMin && eta==0) aTick->DrawLine(0, 0, endR / tan(theta)*thetaSign,  endR);
+      else                   aTick->DrawLine(startR / tan(theta)*thetaSign, startR, endR / tan(theta)*thetaSign,  endR);
     } else {
       aTick->DrawLine(startL, startL * tan(theta), endL, endL * tan(theta));
     }
     if ((eta==etaLongLineI)&&(etaLongLineI!=0)) {
-      aTick->SetLineColor(4); // blue
-      if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta), endR);
-      else aTick->DrawLine(0., 0., endL, endL * tan(theta));
+      aTick->SetLineColor(kBlue); // blue
+      if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta)*thetaSign, endR);
+      else aTick->DrawLine(0., 0., endL*thetaSign, endL * tan(theta));
       labelSize  = 1.2*stdLabelSize;
       labelAlign = 21;
-      labelColor = 4; 
+      labelColor = kBlue;
     }
     else if ((eta==etaLongLineII)&&(etaLongLineII!=0)) {
-      aTick->SetLineColor(3); // green
-      if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta), endR);
-      else aTick->DrawLine(0., 0., endL, endL * tan(theta));
+      aTick->SetLineColor(kGreen); // green
+      if (theta>thetaLimit) aTick->DrawLine(0., 0., endR / tan(theta)*thetaSign, endR);
+      else aTick->DrawLine(0., 0., endL*thetaSign, endL * tan(theta));
       labelSize  = 1.5*stdLabelSize;
       labelAlign = 23; 
-      labelColor = 3; 
+      labelColor = kGreen;
     }
     else {
       labelSize  = stdLabelSize;
@@ -197,13 +200,17 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
       labelColor = kBlack; 
      }
 
+    if (theta<thetaLimit && thetaSign<0) labelSize = 0; // Avoid collision of ticks with axis description
+
     if (labelSize!=0) {
       textX = (endR +textDistanceY) / tan(theta);
       textY = (endL +textDistanceX) * tan(theta);
       if (textX>endL+textDistanceX) textX = endL+textDistanceX;
       if (textY>endR+textDistanceY) textY = endR+textDistanceY;
+      textX *= thetaSign;
 
       sprintf(labelChar, "%.01f", eta);
+
       aLabel = new TText(textX, textY, labelChar);
       aLabel->SetTextAlign(labelAlign);
       aLabel->SetTextSize(labelSize);
@@ -223,8 +230,10 @@ template<class CoordType> void SummaryFrameStyle<CoordType>::drawEtaTicks(double
   }
 }
 
-
-template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
+//
+// Draw using style when RZ projection required
+//
+template<> void TicksFrameStyle<RZ>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
   frame.Draw();
 
   //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::step_eta_normal, insur::trk_eta_coverage, insur::max_eta_coverage);
@@ -232,12 +241,20 @@ template<> void SummaryFrameStyle<YZ>::operator()(TH2C& frame, TCanvas& canvas, 
   else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::vis_step_eta_short, insur::vis_step_eta_long, insur::vis_short_eta_coverage, insur::vis_trk_eta_coverage, insur::geom_max_eta_coverage);
 }
 
+//
+// Draw using style when RZFull projection required
+//
+template<> void TicksFrameStyle<RZFull>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
+  frame.Draw();
 
-
-template<> void SummaryFrameStyle<XY>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
-  frame.Draw();    
+  //drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 50, 50, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::step_eta_normal, insur::trk_eta_coverage, insur::max_eta_coverage);
+  if (isPixelType) drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::vis_step_eta_long, insur::vis_step_eta_long, insur::vis_short_eta_coverage, insur::vis_trk_eta_coverage, insur::geom_max_eta_coverage, true);
+  else             drawEtaTicks(frame.GetXaxis()->GetXmax(), frame.GetYaxis()->GetXmax(), 0, 60, 24, frame.GetXaxis()->GetLabelFont(), frame.GetXaxis()->GetLabelSize(), insur::vis_step_eta_short, insur::vis_step_eta_long, insur::vis_short_eta_coverage, insur::vis_trk_eta_coverage, insur::geom_max_eta_coverage, true);
 }
 
-
-
-
+//
+// Draw using style when XY projection required
+//
+template<> void TicksFrameStyle<XY>::operator()(TH2C& frame, TCanvas& canvas, DrawerPalette& palette, bool isPixelType) const {
+  frame.Draw();    
+}

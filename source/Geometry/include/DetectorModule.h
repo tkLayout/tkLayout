@@ -210,9 +210,9 @@ public:
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
 
-  virtual PosRef   posRef() const = 0;
+  virtual PosRef   posRef()   const = 0;
   virtual TableRef tableRef() const = 0;
-  virtual UniRef   uniRef() const = 0;
+  virtual UniRef   uniRef()   const = 0;
   virtual int16_t  moduleRing() const { return -1; }
 
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }

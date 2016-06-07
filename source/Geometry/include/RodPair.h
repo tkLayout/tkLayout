@@ -21,7 +21,7 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-typedef PtrVector<BarrelModule>          BarrelModules;
+typedef PtrVector<BarrelModule>            BarrelModules;
 
 enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
@@ -138,7 +138,7 @@ public:
 
   PropertyNode<int> m_ringNode;
 
-  static const int   c_nIterations;             //!< Number of iterations allowed when positioning or compressing modules
+  static const int   c_nIterations;             //!< Number of iterations allowed when positioning or compressing modules or balancing modules
   static const float c_safetySpaceFactor;       //!< Safety factor used when compressing modules in Z
 
   double m_smallDelta;     //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z

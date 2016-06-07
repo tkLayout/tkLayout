@@ -370,7 +370,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   std::map<std::string, RootWImage*> trackerRZImg;
   std::map<std::string, RootWImage*> trackerXYImgBRL;
   std::map<std::string, RootWImage*> trackerXYImgEC;
-  PlotDrawer<YZ, Type>               fullRZDrawer;
+  PlotDrawer<RZFull, Type>           fullRZDrawer;
 
   for (auto iTracker : m_trackers) {
 
@@ -419,14 +419,14 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     RootWImage* myImage;
 
     // R-Z view - avoid drawing canvas if barrel and endcap missing
-    PlotDrawer<YZ, Type> rzDrawer;
+    PlotDrawer<RZ, Type> rzDrawer;
     bool foundModules = rzDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), BARREL | ENDCAP);
     if (foundModules) {
 
       // View
       TCanvas RZCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
       setCanvasProperties(RZCanvas);
-      rzDrawer.drawFrame<SummaryFrameStyle>(RZCanvas, iTracker->isPixelType());
+      rzDrawer.drawFrame<TicksFrameStyle>(RZCanvas, iTracker->isPixelType());
       rzDrawer.drawModules<ContourStyle>(RZCanvas);
       fullRZDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end());
       drawBeamPipeRZ(RZCanvas, iTracker->maxZ());
@@ -444,7 +444,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
       TCanvas XYCanvasBRL("XYCanvasBRL", "XYView Barrel", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
       setCanvasProperties(XYCanvasBRL);
-      xyBarrelDrawer.drawFrame<SummaryFrameStyle>(XYCanvasBRL);
+      xyBarrelDrawer.drawFrame<TicksFrameStyle>(XYCanvasBRL);
       xyBarrelDrawer.drawModules<ContourStyle>(XYCanvasBRL);
       drawBeamPipeXY(XYCanvasBRL);
 
@@ -460,7 +460,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
       TCanvas XYCanvasEC("XYCanvasEC", "XYView Endcap", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
       setCanvasProperties(XYCanvasEC);
-      xyEndcapDrawer.drawFrame<SummaryFrameStyle>(XYCanvasEC);
+      xyEndcapDrawer.drawFrame<TicksFrameStyle>(XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(XYCanvasEC);
       drawBeamPipeXY(XYCanvasEC);
 
@@ -570,7 +570,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
 
   TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
   setCanvasProperties(fullRZCanvas);
-  fullRZDrawer.drawFrame<SummaryFrameStyle>(fullRZCanvas);
+  fullRZDrawer.drawFrame<TicksFrameStyle>(fullRZCanvas);
   fullRZDrawer.drawModules<ContourStyle>(fullRZCanvas);
 
   RootWImage* myImage = new RootWImage(fullRZCanvas, fullRZCanvas.GetWindowWidth(), fullRZCanvas.GetWindowHeight());

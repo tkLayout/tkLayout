@@ -63,7 +63,7 @@ void Layer::cutAtEta(double eta)
 }
 
 //
-// Cross-check parameters provdied from geometry configuration file
+// Cross-check parameters provided from geometry configuration file
 //
 void Layer::check()
 {
