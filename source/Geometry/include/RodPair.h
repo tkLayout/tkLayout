@@ -141,7 +141,7 @@ public:
   static const int   c_nIterations;             //!< Number of iterations allowed when positioning or compressing modules or balancing modules
   static const float c_safetySpaceFactor;       //!< Safety factor used when compressing modules in Z
 
-  double m_smallDelta;     //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
+  double m_smallDelta;     //!< Layer consists of ladders (rods), in which modules are positioned in Z at radius +- smallDelta
   int    m_smallParity;    //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
   double m_bigDelta;       //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
   int    m_bigParity;      //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)

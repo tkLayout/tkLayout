@@ -470,8 +470,8 @@ void RodPairStraight::compressToZ(double zLimit) {
 
   logINFO("Layer slated for compression");
 
-  double findMaxZModule = std::numeric_limits<double>::min();
-  double findMinZModule = std::numeric_limits<double>::max();
+  double findMaxZModule = -std::numeric_limits<double>::max();
+  double findMinZModule = +std::numeric_limits<double>::max();
 
   for (auto& m : m_zPlusModules)  if (m.planarMaxZ()>findMaxZModule) findMaxZModule = m.planarMaxZ();
   for (auto& m : m_zMinusModules) if (m.planarMinZ()<findMinZModule) findMinZModule = m.planarMinZ();
@@ -500,7 +500,7 @@ void RodPairStraight::compressToZ(double zLimit) {
 
     if (zPlusOrigSize - m_zPlusModules.size()) {
 
-      findMaxZModule = std::numeric_limits<double>::min();
+      findMaxZModule = -std::numeric_limits<double>::max();
       for (auto& m : m_zPlusModules)  if (m.planarMaxZ()>findMaxZModule) findMaxZModule = m.planarMaxZ();
 
       Deltap = fabs(zLimit) - findMaxZModule;  // we have to use findMaxZModule instead of checking only the last module as there might be inversions at high Z
@@ -534,7 +534,7 @@ void RodPairStraight::compressToZ(double zLimit) {
 
   for (iIter = 0; fabs(Deltap)>c_safetySpaceFactor && iIter<RodPairStraight::c_nIterations; iIter++) {
 
-    double maxCentreZ = std::numeric_limits<double>::min();
+    double maxCentreZ = -std::numeric_limits<double>::max();
     for (auto& m : m_zPlusModules)  if (m.center().Z()>maxCentreZ) maxCentreZ = m.center().Z();
 
     // Relative fraction: offset to central Z position of uppermost module in a rod
@@ -565,7 +565,7 @@ void RodPairStraight::compressToZ(double zLimit) {
       zGuards[parity] = maxPhysZ;
     }
 
-    double newMaxZ = std::numeric_limits<double>::min();
+    double newMaxZ = -std::numeric_limits<double>::max();
     for (auto& m : m_zPlusModules)  if (m.planarMaxZ()>newMaxZ) newMaxZ = m.planarMaxZ();
 
     Deltap =  fabs(zLimit) - newMaxZ;
