@@ -1,5 +1,5 @@
-#ifndef PLOT_DRAWER_H
-#define PLOT_DRAWER_H
+#ifndef INCLUDE_PLOT_DRAWER_H
+#define INCLUDE_PLOT_DRAWER_H
 
 #include <utility>
 #include <map>
@@ -9,10 +9,8 @@
 #include <TPolyLine.h>
 #include <TPaletteAxis.h>
 #include <TList.h>
-#include <TH2D.h>
 #include <TH2C.h>
 #include <TText.h>
-#include <TLatex.h>
 #include <TLine.h>
 #include <TCanvas.h>
 
@@ -20,7 +18,7 @@
 #include <DetectorModule.h>
 
 /*
- * PlotDrawer is the class drawing module plots on user-supplied canvas. Alas, not visitor-enabled, since it was written before the new visitable geometry was conceived
+ * PlotDrawer is the class drawing tracker modules on user-supplied canvas. Alas, not visitor-enabled, since it was written before the new visitable geometry was conceived
  * Usage:
  * 1) Construct a PlotDrawer object: PlotDrawer<CoordType, ValueGetterType, StatType> drawer(viewportMaxX, viewportMaxY, valueGetter);
  *    - CoordType is the coordinate class: XY, RZ or RZFull (for Z- and Z+ sections together)
@@ -446,4 +444,4 @@ public:
 
 }; // Class
 
-#endif
+#endif /* INCLUDE_PLOT_DRAWER_H */

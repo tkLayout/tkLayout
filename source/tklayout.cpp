@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
   } catch(po::error& e) {
 
     // Display the following options after program starts without configuration
-    std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
-    std::cout << usage << std::endl << shown << std::endl;
+    logERROR(e.what());
+    std::cout << std::endl << usage << std::endl << shown << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerGeometry");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerGeometry");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerGeometry -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerGeometry -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerGeometry -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerGeometry -> visualization failed!");
     }
 
     // Material budget study
@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerMatBudget");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerMatBudget");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerMatBudget -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerMatBudget -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerMatBudget -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerMatBudget -> visualization failed!");
     }
 
     // Resolution study
@@ -174,8 +174,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerResolution");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerResolution");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerResolution -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerResolution -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
     }
   }
 

@@ -52,7 +52,7 @@ class RodPair : public PropertyObject, public Buildable, public Identifiable<int
   //! Limit rod geometry by eta cut
   void cutAtEta(double eta);
 
-  // Return rod modules as a pair of modules on positive Z (first) & negative Z (second)
+  //! Return rod modules as a pair of modules on positive Z (first) & negative Z (second)
   const std::pair<const BarrelModules&,const BarrelModules&> modules() const { return std::pair<const BarrelModules&,const BarrelModules&>(m_zPlusModules,m_zMinusModules); }
 
   //! Return rod as a material object
