@@ -166,33 +166,43 @@ ADD_DEFINITIONS( "-Wl,--copy-dt-needed-entries" )
 SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -fpermissive -Wno-deprecated-declarations")
 #SET ( CMAKE_EXE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries" )
 
-INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/include 
+INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include 
+                     ${PROJECT_SOURCE_DIR}/source/Analysis/include
+                     ${PROJECT_SOURCE_DIR}/source/Tools/include
+                     ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${BOOST_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
-FILE( GLOB all_sources ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/AnalyzerVisitors/*.cpp )
-FILE( GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/include/AnalyzerVisitors*.h )
+FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cpp ${PROJECT_SOURCE_DIR}/source/*.cc )
+FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cpp
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cpp 
+                       ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cpp 
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cpp )
+FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.hh
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.hh 
+                       ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h ${PROJECT_SOURCE_DIR}/source/Tools/include/*.hh 
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.hh ) 
 
-# Exlude files with main function defined
+# Get source files with main function defined
 SET ( sources "" )
-FOREACH( file ${all_sources} )
- IF( ${file} MATCHES "tklayout.cpp" OR ${file} MATCHES "setup.cpp" OR ${file} MATCHES "delphize.cpp" )
-   IF ( ${file} MATCHES "tklayout.cpp" ) 
-     SET( source_tklayout ${file} )
-   ENDIF()
-   IF ( ${file} MATCHES "setup.cpp" ) 
-     SET( source_setup ${file} )
-   ENDIF()
-   IF ( ${file} MATCHES "delphize.cpp" )
-     SET( source_delphize ${file} )
-   ENDIF()
- ELSE()
-   IF( ${file} MATCHES "MainConfigHandler.cpp" )
-     SET( source_mainhandler ${file} )
-   ENDIF()
-   IF( ${file} MATCHES "global_funcs.cpp" )
-     SET( source_globalfunctions ${file} )
-   ENDIF()
-   LIST( APPEND sources ${file} )
+FOREACH( file ${exe_sources} )
+ IF ( ${file} MATCHES "tklayout.cpp" ) 
+  SET( source_tklayout ${file} )
+ ENDIF()
+ IF ( ${file} MATCHES "setup.cpp" ) 
+  SET( source_setup ${file} )
+ ENDIF()
+ IF ( ${file} MATCHES "delphize.cpp" )
+  SET( source_delphize ${file} )
+ ENDIF()
+ENDFOREACH()
+
+# Get files on which setup or delphize depend
+FOREACH( file ${obj_sources} )
+ IF( ${file} MATCHES "MainConfigHandler.cpp" )
+  SET( source_mainhandler ${file} )
+ ENDIF()
+ IF( ${file} MATCHES "global_funcs.cpp" )
+  SET( source_globalfunctions ${file} )
  ENDIF()
 ENDFOREACH()
 
@@ -212,29 +222,29 @@ ADD_CUSTOM_COMMAND(TARGET revisiontag COMMAND ${CMAKE_COMMAND}
 #SET(CMAKE_INSTALL_RPATH ${BOOST_LIBS_DIR} ${ROOT_LIBS_DIR})
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # Set automatically rpath for dynamic linking of internal/external libraries
 
-ADD_EXECUTABLE(tklayout ${source_tklayout} ${sources} ${headers} )
-ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${headers} )
+ADD_EXECUTABLE(tklayout ${source_tklayout} ${obj_sources} ${obj_headers} )
+ADD_EXECUTABLE(setup.bin ${source_setup} ${source_mainhandler} ${source_globalfunctions} ${obj_headers} )
 ADD_EXECUTABLE(delphize ${source_delphize} )
 
 # explicitly say that the executable depends on custom target
 ADD_DEPENDENCIES(tklayout revisiontag)
 
-TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS})
+TARGET_LINK_LIBRARIES(tklayout ${BOOST_LIBS} ${ROOT_LIBS} )
 TARGET_LINK_LIBRARIES(setup.bin ${BOOST_LIBS} )
-TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS})
+TARGET_LINK_LIBRARIES(delphize ${BOOST_LIBS} ${ROOT_LIBS} )
 
 #----------------------------------------------------------------------------
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
-INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
-INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
+#INSTALL(TARGETS setup.bin RUNTIME DESTINATION bin)
+#INSTALL(TARGETS delphize  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
     # Set the default version of SvnRevision.cpp file
     INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cpp to default\" )
-                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cpp ]; then rm -f ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; mv SvnRevision.orig.cpp ${PROJECT_SOURCE_DIR}/src/SvnRevision.cpp; fi\")" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cpp ]; then rm -f ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cpp; mv SvnRevision.orig.cpp ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cpp; fi\")" )
     
     # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
