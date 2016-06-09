@@ -76,29 +76,27 @@ namespace insur {
       }
     };
   public:
-    void setTrackerSpecificStrings(TrackerDependantStruct td);
-    void analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool& isPixelTracker, bool wt = false);
+    void analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt = false);
   protected:
     void analyseElements(MaterialTable&mattab, std::vector<Element>& elems);
-    void analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                std::vector<std::pair<double, double> >& down, bool& isPixelTracker);
-    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, std::vector<std::pair<double, double> >& up,
-                                std::vector<std::pair<double, double> >& down, bool& isPixelTracker);
-    void analyseLayers(MaterialTable& mt, Tracker& tr, std::vector<Composite>& c,
+    void analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
+                                std::vector<std::pair<double, double> >& down);
+    void analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
+                                std::vector<std::pair<double, double> >& down);
+    void analyseLayers(MaterialTable& mt, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
                        std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::vector<PosInfo>& p, 
 		       std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, 
-		       bool& isPixelTracker, bool wt = false);
-    void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, std::vector<Composite>& c,
+		       bool wt = false);
+    void analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags, std::vector<Composite>& c,
                       std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<AlgoInfo>& a,
-                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt = false);
-    void analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
-    void analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                               std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
-    void analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
-                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt = false);
+                      std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt = false);
+    void analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+			 std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
+    void analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+			 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s,
+                         std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt = false);
   private:
-    TrackerDependantStruct td_;
     Composite createComposite(std::string name, double density, MaterialProperties& mp, bool nosensors = false);
     std::vector<ModuleCap>::iterator findPartnerModule(std::vector<ModuleCap>::iterator i,
                                                        std::vector<ModuleCap>::iterator g, int ponrod, bool find_first = false);

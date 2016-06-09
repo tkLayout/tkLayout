@@ -359,28 +359,26 @@ namespace insur {
    * @param xmlout The name - without path - of the designated output subdirectory
    * @return True if there were no errors during processing, false otherwise
    */
-  bool Squid::translateFullSystemToXML(std::string xmlout) {
+  bool Squid::translateFullSystemToXML(std::string xmlout) {    
+
+    std::string xmlDirectoryPath = mainConfiguration.getXmlDirectory();
 
     // this prepares the path of the directory where to save the xml files
-    std::string xmlOutDirectoryName = (xmlout.empty() ? baseName_ : xmlout);
+    std::string xmlOutputName = (xmlout.empty() ? baseName_ : xmlout);
+    std::string xmlOutputPath = xmlDirectoryPath + "/" + xmlOutputName;
+    if(xmlOutputPath.at(xmlOutputPath.size() - 1) != '/') xmlOutputPath = xmlOutputPath + "/";
 
-    std::string xmlGeneralPath = mainConfiguration.getXmlDirectory();
-    std::string xmlOutDirectoryPath = xmlGeneralPath + "/" + xmlOutDirectoryName;
-    if(xmlOutDirectoryPath.at(xmlOutDirectoryPath.size() - 1) != '/') xmlOutDirectoryPath = xmlOutDirectoryPath + "/";
-
-    std::string temporaryPath = xmlGeneralPath + "/" + xml_tmppath + "/";
-    if (bfs::exists(xmlOutDirectoryPath)) bfs::rename(xmlOutDirectoryPath, temporaryPath);
-    bfs::create_directory(xmlOutDirectoryPath);
-
-    
+    std::string temporaryPath = xmlDirectoryPath + "/" + xml_tmppath + "/";
+    if (bfs::exists(xmlOutputPath)) bfs::rename(xmlOutputPath, temporaryPath);
+    bfs::create_directory(xmlOutputPath);  
     
     try {
       if (mb) {
-	t2c.setTrackerDependantStrings(mb->isPixelTrackerMaterial());
-	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
+	XmlTags outerTrackerXmlTags = XmlTags(false);
+	t2c.translate(tkMaterialCalc.getMaterialTable(), *mb, outerTrackerXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false); // false is setting a mysterious flag called wt which changes the way the XML is output. apparently setting it to true is of no use anymore.
 	if (pm) {
-	  t2c.setTrackerDependantStrings(pm->isPixelTrackerMaterial());
-	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, xmlGeneralPath, xmlOutDirectoryPath, xmlOutDirectoryName, false);
+	  XmlTags pixelXmlTags = XmlTags(true);
+	  t2c.translate(pxMaterialCalc.getMaterialTable(), *pm, pixelXmlTags, xmlDirectoryPath, xmlOutputPath, xmlOutputName, false);
 	}
       }
       else {
@@ -392,11 +390,11 @@ namespace insur {
 
     catch (std::runtime_error& e) {
       std::cerr << "Error writing files: " << e.what() << std::endl;
-      if (bfs::exists(xmlOutDirectoryPath)) bfs::remove_all(xmlOutDirectoryPath);
-      if (bfs::exists(temporaryPath)) bfs::rename(temporaryPath, xmlOutDirectoryPath);
+      if (bfs::exists(xmlOutputPath)) bfs::remove_all(xmlOutputPath);
+      if (bfs::exists(temporaryPath)) bfs::rename(temporaryPath, xmlOutputPath);
       std::cerr << "No files were changed." <<std::endl;
     }
-      
+    
     return true;
   }
 

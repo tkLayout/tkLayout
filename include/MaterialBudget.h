@@ -47,7 +47,6 @@ namespace insur {
     std::vector<std::vector<ModuleCap> >& getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& getEndcapModuleCaps();
     void print();
-    bool isPixelTrackerMaterial() const { return tracker->isPixelTracker(); }
   protected:
     Tracker* tracker;
     InactiveSurfaces* inactive;

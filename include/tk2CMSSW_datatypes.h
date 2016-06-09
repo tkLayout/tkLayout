@@ -24,26 +24,6 @@ namespace insur {
 
     enum AlgoPartype { st,num,vec};
 
-    struct TrackerDependantStruct {
-      bool isPixelTracker;
-
-      std::string nspace;
-      std::string bar;
-      std::string fwd;
-
-      std::string trackerfile;
-      std::string topologyfile;
-      std::string prodcutsfile;
-      std::string trackersensfile;
-      std::string recomatfile;
-
-      std::string spec_bar;
-      std::string value_bar;
-      std::string tracker;
-      std::string value_layer;
-      std::string barrel_prefix;
-      std::string endcaps_prefix;
-    };
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
