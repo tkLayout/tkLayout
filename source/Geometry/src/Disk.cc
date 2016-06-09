@@ -131,7 +131,6 @@ void Disk::buildBottomUp(const vector<double>& buildDsDistances) {
       // Calculate shift in Z position of extreme cases (either innemost or outermost disc)
       // Remember that disc put always in to the centre of endcap
       double shiftZ        = parity > 0 ? -m_zEndcapHalfLength : +m_zEndcapHalfLength;
-zError(10);
 
       // Calculate shift in Z due to beam spot
       double errorShiftZ   = parity > 0 ? -zError() : +zError();
