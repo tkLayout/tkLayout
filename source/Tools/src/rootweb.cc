@@ -1,4 +1,4 @@
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <global_constants.h>
 
 int RootWImage::imageCounter_ = 0;

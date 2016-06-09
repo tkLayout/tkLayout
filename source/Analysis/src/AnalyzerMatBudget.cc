@@ -9,7 +9,7 @@
 // Include files
 #include <BeamPipe.h>
 #include <global_constants.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <ostream>
 #include <Tracker.h>
 #include <SimParms.h>
@@ -59,10 +59,6 @@ bool AnalyzerMatBudget::analyze()
 {
   // Check that initialization OK
   if (!m_isInitOK) return false;
-
-  // Initialize random number generator, counters and histograms
-  TRandom3 myDice;
-  myDice.SetSeed(random_seed);
 
   // Print
   std::cout << std::endl;

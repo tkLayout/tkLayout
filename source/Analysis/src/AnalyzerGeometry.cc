@@ -16,7 +16,7 @@
 #include <Layer.h>
 #include <Math/Vector3D.h>
 #include <PlotDrawer.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <ostream>
 #include <TagMaker.h>
 #include <TColor.h>

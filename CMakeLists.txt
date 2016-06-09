@@ -172,36 +172,36 @@ INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR}/source/Geometry/include
                      ${PROJECT_SOURCE_DIR}/source/Tracking/include
                      ${BOOST_INCLUDE_DIR}
                      ${ROOT_INCLUDE_DIRS} )
-FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cpp ${PROJECT_SOURCE_DIR}/source/*.cc )
-FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cpp
-                       ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cpp 
-                       ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cpp 
-                       ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cpp )
-FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.hh
-                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.hh 
-                       ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h ${PROJECT_SOURCE_DIR}/source/Tools/include/*.hh 
-                       ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.hh ) 
+FILE( GLOB exe_sources ${PROJECT_SOURCE_DIR}/source/*.cc )
+FILE( GLOB obj_sources ${PROJECT_SOURCE_DIR}/source/Geometry/src/*.cc
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/src/*.cc 
+                       ${PROJECT_SOURCE_DIR}/source/Tools/src/*.cc 
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/src/*.cc )
+FILE( GLOB obj_headers ${PROJECT_SOURCE_DIR}/source/Geometry/include/*.h
+                       ${PROJECT_SOURCE_DIR}/source/Analysis/include/*.h 
+                       ${PROJECT_SOURCE_DIR}/source/Tools/include/*.h  
+                       ${PROJECT_SOURCE_DIR}/source/Tracking/include/*.h ) 
 
 # Get source files with main function defined
 SET ( sources "" )
 FOREACH( file ${exe_sources} )
- IF ( ${file} MATCHES "tklayout.cpp" ) 
+ IF ( ${file} MATCHES "tklayout.cc" ) 
   SET( source_tklayout ${file} )
  ENDIF()
- IF ( ${file} MATCHES "setup.cpp" ) 
+ IF ( ${file} MATCHES "setup.cc" ) 
   SET( source_setup ${file} )
  ENDIF()
- IF ( ${file} MATCHES "delphize.cpp" )
+ IF ( ${file} MATCHES "delphize.cc" )
   SET( source_delphize ${file} )
  ENDIF()
 ENDFOREACH()
 
 # Get files on which setup or delphize depend
 FOREACH( file ${obj_sources} )
- IF( ${file} MATCHES "MainConfigHandler.cpp" )
+ IF( ${file} MATCHES "MainConfigHandler.cc" )
   SET( source_mainhandler ${file} )
  ENDIF()
- IF( ${file} MATCHES "global_funcs.cpp" )
+ IF( ${file} MATCHES "global_funcs.cc" )
   SET( source_globalfunctions ${file} )
  ENDIF()
 ENDFOREACH()
@@ -242,9 +242,9 @@ INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
-    # Set the default version of SvnRevision.cpp file
-    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cpp to default\" )
-                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cpp ]; then rm -f ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cpp; mv SvnRevision.orig.cpp ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cpp; fi\")" )
+    # Set the default version of SvnRevision.cc file
+    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cc to default\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cc ]; then rm -f ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cc; mv SvnRevision.orig.cc ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cc; fi\")" )
     
     # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )

@@ -15,7 +15,7 @@
 #include <IrradiationMap.h>
 #include <Layer.h>
 #include <Ring.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <Tracker.h>
 #include <TH2D.h>
 #include <TCanvas.h>
