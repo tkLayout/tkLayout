@@ -1,6 +1,6 @@
 #include <string>
 
-class SvnRevision
+class GitRevision
 {
 public:
   static const std::string revisionNumber;

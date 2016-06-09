@@ -11,7 +11,7 @@
 #include <GeometryManager.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <SvnRevision.h>
+#include <GitRevision.h>
 
 namespace po = boost::program_options;
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
   // Print version
   if (progOptions.count("version")) {
-    std::cout << "tklayout revision " << SvnRevision::revisionNumber << std::endl;
+    std::cout << "tklayout revision " << GitRevision::revisionNumber << std::endl;
     return EXIT_SUCCESS;
   }
 

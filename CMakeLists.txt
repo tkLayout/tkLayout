@@ -242,9 +242,9 @@ INSTALL(TARGETS tklayout  RUNTIME DESTINATION bin)
 
 IF(CMAKE_HOST_UNIX)
     
-    # Set the default version of SvnRevision.cc file
-    INSTALL( CODE "MESSAGE(STATUS \"Setting SvnRevision.cc to default\" )
-                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e SvnRevision.orig.cc ]; then rm -f ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cc; mv SvnRevision.orig.cc ${PROJECT_SOURCE_DIR}/source/Tools/src/SvnRevision.cc; fi\")" )
+    # Set the default version of GitRevision.cc file
+    INSTALL( CODE "MESSAGE(STATUS \"Setting GitRevision.cc to default\" )
+                   EXECUTE_PROCESS(COMMAND bash -c \"if [ -e GitRevision.orig.cc ]; then rm -f ${PROJECT_SOURCE_DIR}/source/Tools/src/GitRevision.cc; mv GitRevision.orig.cc ${PROJECT_SOURCE_DIR}/source/Tools/src/GitRevision.cc; fi\")" )
     
     # Intall symlink
     INSTALL( CODE "MESSAGE(STATUS \"Creating symlink $ENV{HOME}/bin/tklayout to ${PROJECT_SOURCE_DIR}/bin/tklayout... \" )
