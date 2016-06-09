@@ -3,13 +3,13 @@
  * @brief This file implements the hit and track classes used for internal analysis
  */
 
-#include "Hit.hh"
-#include "Track.hh"
-//#include "module.hh"
+#include "Track.h"
+
 #include <global_constants.h>
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include "Hit.h"
 
 using namespace ROOT::Math;
 using namespace std;

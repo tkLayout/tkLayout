@@ -21,7 +21,7 @@
 #include <SimParms.h>
 #include <StopWatch.h>
 #include <SvnRevision.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 
 //
 // Constructor - create instances of all available analyzer units & prepare web container
