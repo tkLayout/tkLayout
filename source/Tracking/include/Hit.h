@@ -4,8 +4,8 @@
  */
 
 
-#ifndef _HIT_HH_
-#define _HIT_HH_
+#ifndef INCLUDE_HIT_H_
+#define INCLUDE_HIT_H_
 
 #include "DetectorModule.h"
 #include "PtErrorAdapter.h"
@@ -111,4 +111,4 @@ public:
  */
 bool sortSmallerR(Hit* h1, Hit* h2);
 
-#endif
+#endif /* INCLUDE_HIT_H_ */

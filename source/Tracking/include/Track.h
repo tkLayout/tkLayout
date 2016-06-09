@@ -3,8 +3,8 @@
  * @brief This header file defines track class used for internal analysis
  */
 
-#ifndef _TRACK_HH_
-#define _TRACK_HH_
+#ifndef INCLUDE_TRACK_H_
+#define INCLUDE_TRACK_H_
 
 #include "DetectorModule.h"
 #include "PtErrorAdapter.h"
@@ -119,4 +119,4 @@ public:
   std::vector<std::pair<DetectorModule*, HitType>> getHitModules() const;
 
 };
-#endif
+#endif /* INCLUDE_TRACK_H_ */
