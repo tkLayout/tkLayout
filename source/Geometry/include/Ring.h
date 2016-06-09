@@ -1,5 +1,5 @@
-#ifndef RING_H
-#define RING_H
+#ifndef INCLUDE_RING_H
+#define INCLUDE_RING_H
 
 #include <vector>
 #include <string>
@@ -15,107 +15,118 @@ using std::string;
 #include "DetectorModule.h"
 #include "Visitable.h"
 
-#define MAX_WEDGE_CALC_LOOPS 100
+// Typedefs
+typedef PtrVector<EndcapModule> EndcapModules;
 
+// Enums
+enum BuildDirection { TOPDOWN, BOTTOMUP };
 
+/*
+ * @class Ring
+ * @details Ring keeps information about disk modules grouped together at given radius to a ring. It's building procedure
+ * is executed automatically via Disk class. Similarly, all its modules are built through build() method. Depending on
+ * the configuration, building algorithm uses either the bottom-up or up-down approach. i.e. from the closest ring to the
+ * beam-pipe to the furthest one or vice-versa. Bottom-up approach can build ring using wedge-shaped or rectangular modules,
+ * the topdown only rectangular modules.
+ */
 class Ring : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
-  typedef PtrVector<EndcapModule> Container;
-  Container modules_;
-  MaterialObject materialObject_;
-
-  template<class T> int roundToOdd(T x) { return round((x-1)/2)*2+1; }
-  double solvex(double y);
-  double compute_l(double x, double y, double d);
-  double compute_d(double x, double y, double l);
-  double computeTentativePhiAperture(double moduleWaferDiameter, double minRadius);
-  std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius);
-  std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius);
-
-  void buildModules(EndcapModule* templ, int numMods, double smallDelta);
-  void buildBottomUp();
-  void buildTopDown();
-
-  Property<ModuleShape, NoDefault> moduleShape;
-  Property<double, Default> phiOverlap;
-  Property<bool  , Default> requireOddModsPerSlice;
-  Property<int   , Default> phiSegments;
-  Property<int   , Default> additionalModules;
-  Property<bool  , Default> alignEdges;
-  Property<double, Default> ringGap;
-  Property<int   , Default> smallParity;
-
-  double minRadius_, maxRadius_;
-  double averageZ_ = 0;
 
 public:
-  enum BuildDirection { TOPDOWN, BOTTOMUP };
 
-  ReadonlyProperty<double, NoDefault> smallDelta;
-  ReadonlyProperty<double, Computable> maxModuleThickness;
-  Property<BuildDirection, NoDefault> buildDirection;
-  Property<int   , AutoDefault> disk;
-  Property<double, NoDefault> buildStartRadius;
-  Property<double, NoDefault> buildCropRadius;
-  Property<double, Computable> minZ, maxZ;
-  Property<int   , NoDefault> numModules; // if set forces the number of modules (in phi) to be exactly numModules
+  //! Constructor - specify unique id, build direction & parse geometry config file using boost property tree & read-in module parameters
+  Ring(int id, BuildDirection direction, const PropertyNode<int>& nodeProperty, const PropertyTree& treeProperty);
 
-  Property<double, Default> zRotation;
-  Property<double, Default> ringOuterRadius;
-  Property<double, Default> ringInnerRadius;
+  //! Build all modules -> use either bottom-up or up-down approach
+  void build(double radius, double zOffset);
 
-  double minR()      const { return minRadius_; }
-  double maxR()      const { return maxRadius_; }
-  double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
+  //! Setup: link lambda functions to various layer related properties (use setup functions for ReadOnly Computable properties -> use UncachedComputable if everytime needs to be recalculated)
+  void setup();
 
-  const Container& modules() const { return modules_; }
-
-  Ring() :
-      materialObject_(MaterialObject::ROD),
-      moduleShape           ("moduleShape"           , parsedAndChecked()),
-      phiOverlap            ("phiOverlap"            , parsedOnly(), 1.),
-      requireOddModsPerSlice("requireOddModsPerSlice", parsedOnly(), false),
-      phiSegments           ("phiSegments"           , parsedOnly(), 4),
-      numModules            ("numModules"            , parsedOnly()),
-      additionalModules     ("additionalModules"     , parsedOnly(), 0),
-      alignEdges            ("alignEdges"            , parsedOnly(), true),
-      ringGap               ("ringGap"               , parsedOnly(), 0.),
-      smallParity           ("smallParity"           , parsedOnly(), 1),
-      smallDelta            ("smallDelta"            , parsedAndChecked()),
-      zRotation             ("zRotation"             , parsedOnly(), 0.),
-      ringOuterRadius       ("ringOuterRadius"       , parsedOnly(), -1.),
-      ringInnerRadius       ("ringInnerRadius"       , parsedOnly(), -1.)
-  {}
-
-  void setup() {
-    minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
-    maxZ.setup([this]() { double max = 0;                                  for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; }); // ATTENTION shouldn't that be -std::numeric_limits<double>::max()
-    maxModuleThickness.setup([this]() { 
-      double max = 0; 
-      for (const auto& m : modules_) { 
-        max = MAX(max, m.thickness()); 
-      } 
-      return max; 
-    });
-  }
-  
-  void build();
+  //! Cross-check parameters provided from geometry configuration file
   void check() override;
 
-  void translateZ(double z);
-  void mirrorZ();
-  double averageZ() const { return averageZ_; }
+  //! Limit ring geometry by eta cut
   void cutAtEta(double eta);
 
-  void accept(GeometryVisitor& v) { 
-    v.visit(*this); 
-    for (auto& m : modules_) { m.accept(v); }
-  }
-  void accept(ConstGeometryVisitor& v) const { 
-    v.visit(*this); 
-    for (const auto& m : modules_) { m.accept(v); }
-  }
-  const MaterialObject& materialObject() const;
+  //! GeometryVisitor pattern -> ring visitable
+  void accept(GeometryVisitor& v);
+
+  //! GeometryVisitor pattern -> ring visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
+
+  //! Helper method translating Ring z position by given offset
+  void translateZ(double zOffset);
+
+  //! Helper method mirroring the whole Ringc from zPos to -zPos or vice versa
+  void mirrorZ();
+
+  //! Return average disc Z position
+  double averageZ()  const { return m_averageZ; }
+
+  //! Return module thickness
+  double thickness() const { return smallDelta()*2 + maxModuleThickness(); }
+
+  //! Return ring modules
+  const EndcapModules& modules() const { return m_modules; }
+
+  const MaterialObject& materialObject() const {return m_materialObject;}
+
+  ReadonlyProperty<double, Computable>  maxModuleThickness;
+  Property<        double, Computable>  minZ;            //!< Minimum rod Z pos
+  Property<        double, Computable>  maxZ;            //!< Maximum rod Z pos
+  Property<        double, Computable>  minR;            //!< Minimum rod radius
+  Property<        double, Computable>  maxR;            //!< Maximum rod radius
+  Property<        int   , AutoDefault> disk;
+  Property<        double, NoDefault>   buildCropRadius; //!< Crop ring at given radius
+  Property<        int   , NoDefault>   numModules;      //!< Number of modules -> if set forces the number of modules (in phi) to be exactly numModules
+
+  ReadonlyProperty<double, NoDefault>   smallDelta;      //!< In each rod the modules are positioned in R-Phi zig-zag at average zPos +- smallDelta
+  Property<        double, Default>     zRotation;       //!< Rotate ring around Z axis by given angle
+  Property<        double, Default>     ringOuterRadius; //!< Define outer ring radius -> if not defined set optimally from disk level
+  Property<        double, Default>     ringInnerRadius; //!< Define inner ring radius -> if not defined set optimally from disk level
+
+private:
+
+   EndcapModules  m_modules;        //!< Modules built within a ring
+   MaterialObject m_materialObject;
+
+   //! If modules built within a ring using approach bottom-up
+   void buildBottomUp(double radius);
+
+   //! If modules built within a ring using approach up-down
+   void buildTopDown(double radius);
+
+   //! Helper build method -> build modules based on template module
+   void buildModules(EndcapModule* templ, int numMods, double smallDelta);
+
+   //! Helper method calculating for given wedge-shaped modules at given radius their shape (covering phi aperture)
+   double computeTentativePhiAperture(double moduleWaferDiameter, double minRadius);
+
+   //! Helper method computing ring optimal parameters when wedge-shaped modules used
+   std::pair<double, int> computeOptimalRingParametersWedge(double moduleWaferDiameter, double minRadius);
+
+   //! Helper method computing ring optimal parameters when rectangular-shaped modules used
+   std::pair<double, int> computeOptimalRingParametersRectangle(double moduleWidth, double maxRadius);
+
+   template<class T> int roundToOdd(T x) { return round((x-1)/2)*2+1; }
+   double solvex(double y);
+   double compute_l(double x, double y, double d);
+   double compute_d(double x, double y, double l);
+
+   Property<   ModuleShape, NoDefault> m_moduleShape;            //!< Use wedge or rectangular-shaped modules
+   Property<BuildDirection, Default>   m_buildDirection;         //!< Use bottom-up or top-down approach -> initialized from disk level if not set by user
+   Property<        double, Default>   m_phiOverlap;             //!< Required modules overlap in R-Phi direction (overlap in mm)
+   Property<        bool  , Default>   m_requireOddModsPerSlice; //!< Require odd number of modules per segment?
+   Property<        int   , Default>   m_phiSegments;            //!< Ring symmetry - number of symmetric segments, e.g 4 -> 90deg symmetry
+   Property<        int   , Default>   m_additionalModules;      //!< Automatically calculates number of modules and adds this number to it
+   Property<        bool  , Default>   m_alignEdges;             //!< Start building modules in the ring with its edge or centre
+   Property<        double, Default>   m_ringGap;                //!< Required gap in-between rings
+   Property<        int   , Default>   m_smallParity;            //!< In each rod the modules are positioned in R-Phi zig-zag at average zPos +- smallDelta -> use +- or -+smallDelta
+
+   double m_averageZ = 0;      //!< Average Z position of the given ring
+
+   const int c_maxWedgeCalcLoops = 100; //!< Maximum number of loops to be iterated when finding optimal positions for wege-shaped modules
+
 };
 
-
-#endif
+#endif /* INCLUDE_RING_H */

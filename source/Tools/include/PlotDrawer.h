@@ -73,7 +73,7 @@ public:
 class Max {
   double m_max;
 public:
-  Max() : m_max(std::numeric_limits<double>::min()) {}
+  Max() : m_max(-std::numeric_limits<double>::max()) {}
   void   fill(double value) { m_max = (value > m_max) ? value : m_max; }
   double get() const { return m_max; }
 };
