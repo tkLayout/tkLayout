@@ -305,5 +305,57 @@ namespace insur {
     static const std::string xml_phaseII_pixeldetTag = "InnerPixel";
 
     
+
+
+
+
+    struct XmlTags {
+
+      //XmlTags() {};
+    XmlTags(bool isPixelTracker) : 
+      nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
+
+	trackerfile(!isPixelTracker ? xml_OT_trackerfile : xml_PX_trackerfile),
+	topologyfile(!isPixelTracker ? xml_topologyfile : xml_PX_topologyfile),
+	prodcutsfile(!isPixelTracker ? xml_prodcutsfile : xml_PX_prodcutsfile),
+	trackersensfile(!isPixelTracker ? xml_trackersensfile : xml_PX_trackersensfile),
+	recomatfile(!isPixelTracker ? xml_recomatfile : xml_PX_recomatfile),
+
+	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
+	spec_bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
+	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
+	value_bar(!isPixelTracker ? xml_OT_bar : xml_PX_value_bar),
+	tracker(!isPixelTracker ? xml_OT : ""),
+	value_layer(!isPixelTracker ? xml_OT_value_layer : xml_PX_value_layer),
+	barrel_prefix(!isPixelTracker ? xml_tob_prefix : xml_PX_barrel_prefix),
+	endcaps_prefix(!isPixelTracker ? xml_tid_prefix : xml_PX_endcaps_prefix)
+      {};
+
+      const std::string nspace;
+      const std::string bar;
+      const std::string fwd;
+
+      const std::string trackerfile;
+      const std::string topologyfile;
+      const std::string prodcutsfile;
+      const std::string trackersensfile;
+      const std::string recomatfile;
+
+      const std::string spec_bar;
+      const std::string value_bar;
+      const std::string tracker;
+      const std::string value_layer;
+      const std::string barrel_prefix;
+      const std::string endcaps_prefix;
+    };
+
+    /*class TrackerXmlTagsClass {
+      private :   
+      XmlTags tags_;
+      public :      
+      XmlTags getTags() { return tags_; }    
+      };*/
+
+
 }
 #endif /* _TK2CMSSW_STRINGS_H */

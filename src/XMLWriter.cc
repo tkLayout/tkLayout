@@ -9,46 +9,6 @@
 
 namespace insur {
 
-
-  void XMLWriter::setTrackerSpecificStrings(bool isPixelTracker) {
-
-    m_isPixelTracker = isPixelTracker;
-
-    if (!m_isPixelTracker) {
-      m_nspace = xml_fileident;
-      m_xml_trackerfile = xml_OT_trackerfile;
-      m_xml_spec_bar = xml_OT_bar;
-      m_xml_value_bar = xml_OT_bar;
-      m_xml_tracker = xml_OT;
-      m_nspace = xml_fileident;
-      m_xml_value_layer = xml_OT_value_layer;
-      m_xml_fwd = xml_OT_fwd;
-      m_xml_barrel_prefix = xml_tob_prefix;
-      m_xml_endcaps_prefix = xml_tid_prefix;
-
-
-    }
-
-    else {
-      m_nspace = xml_PX_fileident;
-      m_xml_trackerfile = xml_PX_trackerfile;
-      m_xml_spec_bar = xml_PX_bar;
-      m_xml_value_bar = xml_PX_value_bar;
-      m_xml_tracker = "";
-      m_nspace = xml_PX_fileident;
-      m_xml_value_layer = xml_PX_value_layer;
-      m_xml_fwd = xml_PX_fwd;
-      m_xml_barrel_prefix = xml_PX_barrel_prefix;
-      m_xml_endcaps_prefix = xml_PX_endcaps_prefix;
-
-
-
-    }
-
-
-  }
-
-
     //public
     /**
      * This creates a custom file <i>pixbar.xml</i> from a skeleton file using the list of previously collected shapes.
@@ -134,7 +94,7 @@ namespace insur {
      * @param d A reference to a struct containing a number of vectors for the previously extracted tracker information
      * @param out A reference to a file stream that is bound to the output file
      */
-  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate, bool wt) {
+  void XMLWriter::tracker(CMSSWBundle& d, std::ofstream& out, std::istream& trackerVolumeTemplate,  bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
     std::vector<Element>& e = d.elements;
     std::vector<Composite>& c = d.composites;
     std::vector<LogicalInfo>& l = d.logic;
@@ -149,19 +109,19 @@ namespace insur {
     buffer << xml_definition;
     if (wt) {
       buffer << xml_new_const_section;
-      materialSection(xml_newtrackerfile, e, c, buffer);
+      materialSection(xml_newtrackerfile, e, c, buffer, trackerXmlTags);
       rotationSection(r, xml_newtrackerfile, buffer);
-      logicalPartSection(l, xml_newtrackerfile, buffer, true);
-      solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, true);
+      logicalPartSection(l, xml_newtrackerfile, buffer, isPixelTracker, trackerXmlTags, true);
+      solidSection(s, so, xml_newtrackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker, true);
       posPartSection(p, a, xml_newtrackerfile, buffer);
     }
     else {
-      if (!m_isPixelTracker) buffer << xml_const_section;
-      materialSection(m_xml_trackerfile, e, c, buffer);
-      rotationSection(r, m_xml_trackerfile, buffer);
-      logicalPartSection(l, m_xml_trackerfile, buffer);
-      solidSection(s, so, m_xml_trackerfile, buffer, trackerVolumeTemplate, true);
-      posPartSection(p, a, m_xml_trackerfile, buffer);
+      if (!isPixelTracker) buffer << xml_const_section;
+      materialSection(trackerXmlTags.trackerfile, e, c, buffer, trackerXmlTags);
+      rotationSection(r, trackerXmlTags.trackerfile, buffer);
+      logicalPartSection(l, trackerXmlTags.trackerfile, buffer, isPixelTracker, trackerXmlTags);
+      solidSection(s, so, trackerXmlTags.trackerfile, buffer, trackerVolumeTemplate, true, isPixelTracker);
+      posPartSection(p, a, trackerXmlTags.trackerfile, buffer);
     }
     buffer << xml_defclose;
     out << buffer.str();
@@ -179,7 +139,7 @@ namespace insur {
      * @in A reference to a file stream that is bound to the input file
      * @out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+  void XMLWriter::topology(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out,  bool isPixelTracker, XmlTags& trackerXmlTags) {
         std::ostringstream strm;
         std::string line;
         unsigned int i;
@@ -192,55 +152,55 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
 
         // Add Phase2OTBarrel
-        if (!m_isPixelTracker) out << xml_spec_par_open << m_xml_spec_bar << "SubDet" << xml_par_tail << xml_general_inter;
-	else out << xml_spec_par_open << m_xml_spec_bar << xml_par_tail << xml_general_inter;
-        if (!m_isPixelTracker) out << xml_spec_par_selector << m_xml_spec_bar << xml_general_endline;
-	else out << xml_spec_par_selector << xml_pixbarident << ":" << m_xml_spec_bar << xml_general_endline;
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << m_xml_value_bar;
+        if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.spec_bar << "SubDet" << xml_par_tail << xml_general_inter;
+	else out << xml_spec_par_open << trackerXmlTags.spec_bar << xml_par_tail << xml_general_inter;
+        if (!isPixelTracker) out << xml_spec_par_selector << trackerXmlTags.spec_bar << xml_general_endline;
+	else out << xml_spec_par_selector << xml_pixbarident << ":" << trackerXmlTags.spec_bar << xml_general_endline;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.value_bar;
         out << xml_spec_par_close;
 
         // Add Layers
-        out << xml_spec_par_open <<  m_xml_tracker << xml_spec_layer << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_open <<  trackerXmlTags.tracker << xml_spec_layer << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_layer + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << m_xml_value_layer;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.value_layer;
         out << xml_spec_par_close;
 
         // Add straight rods
-        if (!m_isPixelTracker) out << xml_spec_par_open << m_xml_tracker << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
+        if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
 	else out << xml_spec_par_open << "Phase1PixelBarrelRod" << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
+        if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
 	else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelBarrelLadder";
         out << xml_spec_par_close;
 
-	if (!m_isPixelTracker) {
+	if (!isPixelTracker) {
 	  // Add tilted rings (if any)
 	  pos = findEntry(t, xml_subdet_tilted_ring + xml_par_tail);
 	  if (pos != -1) {
-	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
 	    }
 	    out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second <<  xml_subdet_2OT_tilted_ring;
 	    out << xml_spec_par_close;
 	  }
 
 	  // Add BarrelStack
-	  out << xml_spec_par_open << m_xml_tracker << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_barrel_stack + xml_par_tail);
 	  if (pos != -1) {
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
 	    }
 	  }
 	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_barrel_stack;
@@ -248,9 +208,9 @@ namespace insur {
 	}
 
         // Add Phase2OTForward
-        if (!m_isPixelTracker) {
+        if (!isPixelTracker) {
 	  out << xml_spec_par_open << xml_2OTendcap << "SubDet" << xml_par_tail << xml_general_inter;
-	  out << xml_spec_par_selector << m_xml_fwd << xml_general_endline;
+	  out << xml_spec_par_selector << trackerXmlTags.fwd << xml_general_endline;
 	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_2OTendcap;
 	}
 	else {
@@ -261,24 +221,24 @@ namespace insur {
         out << xml_spec_par_close;
 
         // Add Disks
-        out << xml_spec_par_open << m_xml_tracker << xml_subdet_wheel << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_wheel << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
         if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
-        if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
+        if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
 	else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelPhase2EndcapFullDisk";
         out << xml_spec_par_close;
 
-	if (!m_isPixelTracker) {
+	if (!isPixelTracker) {
 	  // Add Rings
-	  out << xml_spec_par_open << m_xml_tracker << xml_subdet_ring << xml_par_tail << xml_general_inter;
+	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_ring << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_ring + xml_par_tail);
 	  if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
 	  }
 	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
@@ -286,21 +246,21 @@ namespace insur {
 	}
 
 	  // Add EndcapStack
-	  if (!m_isPixelTracker) out << xml_spec_par_open << m_xml_tracker << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
+	  if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
 	  else out << xml_spec_par_open << "PixelEndcapPanelPar" << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
 	  if (pos != -1) {
 	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << m_nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
 	    }
 	  }
-	  if (!m_isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_endcap_stack;
+	  if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_endcap_stack;
 	  else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelEndcapPanel";
 	  out << xml_spec_par_close;
 
-	  if (!m_isPixelTracker) {
+	  if (!isPixelTracker) {
 	    // Add LowerDetectors
-	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
 	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	    if (pos != -1) {
 	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -321,7 +281,7 @@ namespace insur {
 	    out << xml_spec_par_close;
 
 	    // Add UpperDetectors
-	    out << xml_spec_par_open << m_xml_tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
+	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
 	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	    if (pos != -1) {
 	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
@@ -346,14 +306,14 @@ namespace insur {
 	  //TOB
 	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	  if (pos != -1) {
-	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
+	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
 		
 	  }
 
 	  //TID
 	  pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
 	  if (pos != -1) {
-	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out);
+	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
 		
 	  }
 
@@ -369,7 +329,7 @@ namespace insur {
      * @param in A reference to a file stream that is bound to the input file
      * @param out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+  void XMLWriter::prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags) {
         unsigned int pos = 0;
         std::string line;
         while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
@@ -380,7 +340,7 @@ namespace insur {
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tobdet) == std::string::npos)) pos++;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 	      else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
@@ -389,7 +349,7 @@ namespace insur {
         while ((pos < t.size()) && (t.at(pos).name.find(xml_subdet_tiddet) == std::string::npos)) pos++;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 		else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
@@ -405,7 +365,7 @@ namespace insur {
      * @param in A reference to a file stream that is bound to the input file
      * @param out A reference to a file stream that is bound to the output file
      */
-    void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out) {
+  void XMLWriter::trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out,  bool isPixelTracker, XmlTags& trackerXmlTags) {
         unsigned int pos = 0;
         std::string line;
         while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
@@ -415,7 +375,7 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 		else out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
@@ -425,7 +385,7 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
         if (pos < t.size()) {
             for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
-                if (!m_isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+                if (!isPixelTracker) out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
 		else  out << xml_spec_par_selector << xml_PX_fileident << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
         }
@@ -444,9 +404,9 @@ namespace insur {
      * @param out A reference to a file stream that is bound to the output file
      */
     void XMLWriter::recomaterial(std::vector<SpecParInfo>& t,
-            std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool wt) {
+				 std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
         std::vector<PathInfo> b;
-        b = buildPaths(t, b, wt);
+        b = buildPaths(t, b, isPixelTracker, trackerXmlTags, wt);
         if (!b.empty()) {
             std::string line;
             while (std::getline(in, line) && (line.find(xml_preamble_concise) == std::string::npos)) out << line << std::endl; // scan for preamble
@@ -493,10 +453,10 @@ namespace insur {
      * @param c A reference to the vector containing a series of composite material definitions
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream) {
+    void XMLWriter::materialSection(std::string name , std::vector<Element>& e, std::vector<Composite>& c, std::ostringstream& stream, XmlTags& trackerXmlTags) {
         stream << xml_material_section_open << name << xml_general_inter;
         for (unsigned int i = 0; i < e.size(); i++) elementaryMaterial(e.at(i).tag, e.at(i).density, e.at(i).atomic_number, e.at(i).atomic_weight, stream);
-        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream);
+        for (unsigned int i = 0; i < c.size(); i++) compositeMaterial(c.at(i).name, c.at(i).density, c.at(i).method, c.at(i).elements, stream, trackerXmlTags);
         stream << xml_material_section_close;
     }
     
@@ -526,10 +486,10 @@ namespace insur {
      * @param label The label of the logical part section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool wt) {
+    void XMLWriter::logicalPartSection(std::vector<LogicalInfo>& l, std::string label, std::ostringstream& stream, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
         std::vector<LogicalInfo>::const_iterator iter, guard = l.end();
         stream << xml_logical_part_section_open << label << xml_general_inter;
-        if (!wt && !m_isPixelTracker) logicalPart(xml_tracker, m_nspace + ":" + xml_tracker, xml_material_air, stream);
+        if (!wt && !isPixelTracker) logicalPart(xml_tracker, trackerXmlTags.nspace + ":" + xml_tracker, xml_material_air, stream);
         for (iter = l.begin(); iter != guard; iter++) logicalPart(iter->name_tag, iter->shape_tag, iter->material_tag, stream);
         stream << xml_logical_part_section_close;
     }
@@ -556,9 +516,9 @@ namespace insur {
      * @param label The label of the solid section, typically the name of the output file
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool wt) {
+  void XMLWriter::solidSection(std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, std::string label, std::ostringstream& stream, std::istream& trackerVolumeTemplate, bool notobtid, bool isPixelTracker, bool wt) {
         stream << xml_solid_section_open << label << xml_general_inter;
-        if (!wt && !m_isPixelTracker) {
+        if (!wt && !isPixelTracker) {
           //tubs(xml_tracker, pixel_radius, outer_radius, max_length, stream); // CUIDADO old tracker volume, now parsed from a file
           trackerLogicalVolume(stream, trackerVolumeTemplate);
         }
@@ -669,7 +629,7 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
     void XMLWriter::compositeMaterial(std::string name,
-            double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream) {
+				      double density, CompType method, std::vector<std::pair<std::string, double> >& es, std::ostringstream& stream, XmlTags& trackerXmlTags) {
         stream << xml_composite_material_open << name << xml_composite_material_first_inter;
         stream << density << xml_composite_material_second_inter ;
         switch (method) {
@@ -685,7 +645,7 @@ namespace insur {
         stream << xml_general_inter;
         for (unsigned int i = 0; i < es.size(); i++) {
             stream << xml_material_fraction_open << es.at(i).second << xml_material_fraction_inter;
-            stream << m_nspace << ":" << es.at(i).first << xml_material_fraction_close;
+            stream << trackerXmlTags.nspace << ":" << es.at(i).first << xml_material_fraction_close;
         }
         stream << xml_composite_material_close;
     }
@@ -915,10 +875,10 @@ namespace insur {
      * @param stream A reference to the output buffer
      */
 
-  void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream) {
+  void XMLWriter::specParROC(std::vector<std::string>& partsel, std::vector<ModuleROCInfo>& minfo, std::pair<std::string, std::string> param, std::ofstream& stream, bool isPixelTracker) {
     for (unsigned i = 0; i < partsel.size(); i++) {
       stream <<xml_spec_par_open << partsel.at(i)<<xml_par_tail<<xml_general_inter;
-      if (!m_isPixelTracker) stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
+      if (!isPixelTracker) stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
       else stream << xml_spec_par_selector << xml_PX_fileident << ":" << partsel.at(i) << xml_general_endline;
       if( param.second.find("TOBDet") != std::string::npos) param.second = xml_subdet_tobdet_1;
       if( param.second.find("TIDDet") != std::string::npos) param.second = xml_subdet_tiddet;
@@ -944,7 +904,7 @@ namespace insur {
      * @return The completed collection of blocks in string representation
      */
 
-  std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool wt) {
+  std::vector<PathInfo>& XMLWriter::buildPaths(std::vector<SpecParInfo>& specs, std::vector<PathInfo>& blocks, bool isPixelTracker, XmlTags& trackerXmlTags, bool wt) {
     std::vector<PathInfo>::iterator existing;
     std::string prefix, postfix, spname;
     std::vector<std::string> paths, tpaths;
@@ -1010,12 +970,12 @@ namespace insur {
 
 	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-	    spname = m_xml_barrel_prefix + xml_pixbar + xml_layer + lnumber;
+	    spname = trackerXmlTags.barrel_prefix + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    if (!m_isPixelTracker) prefix = m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
-	    else prefix = xml_pixbarident + ":" + m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
-	    //else prefix = m_xml_spec_bar + "/" + m_nspace + ":" + xml_layer + lnumber + "/";
-	    prefix = prefix + m_nspace + ":" + rcurrent;
+	    if (!isPixelTracker) prefix = trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    else prefix = xml_pixbarident + ":" + trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    //else prefix = trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    prefix = prefix + trackerXmlTags.nspace + ":" + rcurrent;
 
 	    // module loop
 	    for (unsigned int k = 0; k < specs.at(mindex).partselectors.size(); k++) {
@@ -1038,15 +998,15 @@ namespace insur {
 		      
 		    // This is to take care of the Inner/Outer distinction
 		    if (refstring.find(xml_base_lower) != std::string::npos) {
-		      postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		      postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
 		    }
 		    else if (refstring.find(xml_base_upper) != std::string::npos) {
-		      postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		      postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
 		    }
 
 		    else
-		      if (!m_isPixelTracker) postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
-		      else postfix = m_nspace + ":" + postfix + "/" + m_nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + m_nspace + ":" + refstring;
+		      if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		      else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
 
 		    paths.push_back(prefix + "/" + postfix);
 		  }
@@ -1084,20 +1044,20 @@ namespace insur {
 	//CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
 	//else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
 	std::ostringstream index;
-	if (!m_isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);
+	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);
 	else index << 11 + i;
 	layer = atoi(dnumber.c_str());
-	if (!m_isPixelTracker) spname = m_xml_endcaps_prefix + index.str();
-	else spname = m_xml_endcaps_prefix + index.str() + "Fw";
+	if (!isPixelTracker) spname = trackerXmlTags.endcaps_prefix + index.str();
+	else spname = trackerXmlTags.endcaps_prefix + index.str() + "Fw";
 
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;
 
-	if (!m_isPixelTracker) prefix = m_xml_fwd;
-	else prefix = xml_pixfwdident + ":" + m_xml_fwd;
+	if (!isPixelTracker) prefix = trackerXmlTags.fwd;
+	else prefix = xml_pixfwdident + ":" + trackerXmlTags.fwd;
 	//if (plus) prefix = xml_pixfwd_plus;
 	//else prefix = xml_pixfwd_minus;
-	prefix = prefix + "/" + m_nspace + ":" + dcurrent + "/" + m_nspace + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
+	prefix = prefix + "/" + trackerXmlTags.nspace + ":" + dcurrent + "/" + trackerXmlTags.nspace + ":"; // CUIDADO was: prefix + "/" + dcurrent  + "[" + index.str() +"]";
 
 	// ring loop
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
@@ -1120,16 +1080,16 @@ namespace insur {
 		// This is to take care of the Inner/Outer distinction
 		if (refstring.find(xml_base_lower) != std::string::npos) {
 		  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
-		  postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		  postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
 		}
 		else if (refstring.find(xml_base_upper) != std::string::npos) {
 		  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
-		  postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		  postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
 		}
         
 		else
-		  if (!m_isPixelTracker) postfix = m_nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
-		  else postfix = m_nspace + ":" + postfix + "/" + m_nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + m_nspace + ":" + refstring;
+		  if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		  else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
         
 		postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         

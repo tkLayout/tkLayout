@@ -13,25 +13,6 @@
 
 namespace insur {
 
-  void Extractor::setTrackerSpecificStrings(bool isPixelTracker) {
-
-    if (!isPixelTracker) {
-      if (wt) m_nspace = xml_newfileident;
-      else m_nspace = xml_fileident;
-
-      m_xml_bar = xml_OT_bar;
-      m_xml_fwd = xml_OT_fwd;
-    }
-
-    else {
-      m_nspace = xml_PX_fileident;
-      m_xml_bar = xml_PX_bar;
-      m_xml_fwd = xml_PX_fwd;
-    }
-  }
-
-
-
   //public
   /**
    * This is the public analysis function that extracts the information that is necessary to convert a given material budget to a
@@ -43,12 +24,13 @@ namespace insur {
    * @param mb A reference to the material budget that is to be analysed; used as input
    * @param d A reference to the bundle of vectors that will contain the information extracted during analysis; used for output
    */
-  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, CMSSWBundle& d, bool& isPixelTracker, bool wt) {
+  void Extractor::analyse(MaterialTable& mt, MaterialBudget& mb, XmlTags& trackerXmlTags, CMSSWBundle& d, bool wt) {
 
     std::cout << "Starting analysis..." << std::endl;
 
     Tracker& tr = mb.getTracker();
     InactiveSurfaces& is = mb.getInactiveSurfaces();
+    bool isPixelTracker = tr.isPixelTracker();
 
     std::vector<std::vector<ModuleCap> >& bc = mb.getBarrelModuleCaps();
     std::vector<std::vector<ModuleCap> >& ec = mb.getEndcapModuleCaps();
@@ -165,12 +147,12 @@ namespace insur {
       shape.name_tag = xml_tob;
 
       // Barrel
-      analyseBarrelContainer(tr, shape.rzup, shape.rzdown, isPixelTracker);
+      analyseBarrelContainer(tr, trackerXmlTags, shape.rzup, shape.rzdown);
       s.push_back(shape);
       std::cout << "Barrel container done." << std::endl;
 
       // Endcap
-      analyseEndcapContainer(ec, tr, shape.rzup, shape.rzdown, isPixelTracker);
+      analyseEndcapContainer(ec, tr, trackerXmlTags, shape.rzup, shape.rzdown);
       if (!(shape.rzup.empty() || shape.rzdown.empty())) {
         shape.name_tag = xml_tid;
         s.push_back(shape);
@@ -182,19 +164,16 @@ namespace insur {
     analyseElements(mt, e);
     std::cout << "Elementary materials done." << std::endl;
     // Analyse barrel
-    analyseLayers(mt, tr, c, l, s, so, p, a, r, t, ri, isPixelTracker, wt);
+    analyseLayers(mt, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
     std::cout << "Barrel layers done." << std::endl;
     // Analyse endcaps
-    analyseDiscs(mt, ec, tr, c, l, s, p, a, r, t, ri, isPixelTracker, wt);
+    analyseDiscs(mt, ec, tr, trackerXmlTags, c, l, s, p, a, r, t, ri, wt);
     std::cout << "Endcap discs done." << std::endl;
-    // Barrel services
-    analyseBarrelServices(is, c, l, s, p, t, isPixelTracker);
+    // Analyse services
+    analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Barrel services done." << std::endl;
-    // Endcap services
-    //analyseEndcapServices(is, c, l, s, p, t, isPixelTracker);
-    //std::cout << "Endcap services done." << std::endl;
-    // Supports
-    analyseSupports(is, c, l, s, p, t, isPixelTracker);
+    // Analyse supports
+    analyseSupports(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
     std::cout << "Support structures done." << std::endl;
     std::cout << "Analysis done." << std::endl;
   }
@@ -232,8 +211,11 @@ namespace insur {
    * @param up A reference to a vector listing polygon points by increasing radius
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
-  void Extractor::analyseBarrelContainer(Tracker& t, std::vector<std::pair<double, double> >& up,
-                                         std::vector<std::pair<double, double> >& down, bool& isPixelTracker) {
+  void Extractor::analyseBarrelContainer(Tracker& t, XmlTags& trackerXmlTags, std::vector<std::pair<double, double> >& up,
+                                         std::vector<std::pair<double, double> >& down) {
+    
+    bool isPixelTracker = t.isPixelTracker();
+
     std::pair<double, double> rz;
     double rmax = 0.0, zmax = 0.0, zmin = 0.0;
     up.clear();
@@ -331,8 +313,11 @@ namespace insur {
    * @param up A reference to a vector listing polygon points by increasing radius
    * @param down A reference to a vector listing polygon points by decreasing radius
    */
-  void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t,
-                                         std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down, bool& isPixelTracker) {
+  void Extractor::analyseEndcapContainer(std::vector<std::vector<ModuleCap> >& ec, Tracker& t, XmlTags& trackerXmlTags,
+                                         std::vector<std::pair<double, double> >& up, std::vector<std::pair<double, double> >& down) {
+    
+    bool isPixelTracker = t.isPixelTracker();
+
     int first, last;
     std::pair<double, double> rz;
     double rmin = 0.0, rmax = 0.0, zmax = 0.0;
@@ -463,10 +448,12 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
    */
-  void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr,
+  void Extractor::analyseLayers(MaterialTable& mt/*, std::vector<std::vector<ModuleCap> >& bc*/, Tracker& tr, XmlTags& trackerXmlTags,
                                 std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so, 
 				std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, 
-				std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt) {
+				std::vector<RILengthInfo>& ri, bool wt) {
+
+    bool isPixelTracker = tr.isPixelTracker();
 
     // Container inits
     ShapeInfo shape;
@@ -720,10 +707,10 @@ namespace insur {
 	    
 
 	    // For LogicalPartSection in tracker.xml : module's material
-            //logic.material_tag = m_nspace + ":" + matname.str();
+            //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
             logic.material_tag = xml_material_air;
             logic.name_tag = mname.str();
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 	    l.push_back(logic);	    
 	    // module composite material
             //matname << xml_base_actcomp << "L" << layer << "P" << modRing;
@@ -732,22 +719,22 @@ namespace insur {
 
 	    // For PosPart section in tracker.xml : module's positions in rod (straight layer) or rod part (tilted layer)
             if (!isTilted || (isTilted && (tiltAngle == 0))) {
-	      pos.parent_tag = m_nspace + ":" + rodname.str();
-	      pos.child_tag = m_nspace + ":" + mname.str();
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodname.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusIn;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusIn;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 		pos.copy = 2; 
 		p.push_back(pos);
 		pos.copy = 1;
@@ -759,22 +746,22 @@ namespace insur {
 	  if (isPixelTracker && iiter->getModule().uniRef().phi == 2) {
 	    if (!isTilted || (isTilted && (tiltAngle == 0))) {
 	      rodNextPhiStartPhiAngle = iiter->getModule().center().Phi();
-	      pos.parent_tag = m_nspace + ":" + rodNextPhiName.str();
-	      pos.child_tag = m_nspace + ":" + mname.str();
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + rodNextPhiName.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + mname.str();
 	      partner = findPartnerModule(iiter, oiter->end(), modRing);
 
 	      pos.trans.dx = iiter->getModule().center().Rho() - RadiusOut;
 	      pos.trans.dz = iiter->getModule().center().Z();
-	      if (!iiter->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-	      else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+	      if (!iiter->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+	      else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 	      p.push_back(pos);
 	      
 	      // This is a copy of the BModule (FW/BW barrel half)
 	      if (partner != oiter->end()) {
 		pos.trans.dx = partner->getModule().center().Rho() - RadiusOut;
 		pos.trans.dz = partner->getModule().center().Z();
-		if (!partner->getModule().flipped()) { pos.rotref = m_nspace + ":" + xml_places_unflipped_mod_in_rod; }
-		else { pos.rotref = m_nspace + ":" + xml_places_flipped_mod_in_rod; }
+		if (!partner->getModule().flipped()) { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_unflipped_mod_in_rod; }
+		else { pos.rotref = trackerXmlTags.nspace + ":" + xml_places_flipped_mod_in_rod; }
 		pos.copy = 2; 
 		p.push_back(pos);
 		pos.copy = 1;
@@ -810,13 +797,13 @@ namespace insur {
 
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
 	    // PosPart section
-            pos.parent_tag = m_nspace + ":" + mname.str();
-            pos.child_tag = m_nspace + ":" + shape.name_tag;
+            pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
+            pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
             pos.trans.dx = 0.0;
             pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; 
             p.push_back(pos);
@@ -831,11 +818,11 @@ namespace insur {
 
 	      // LogicalPartSection
               logic.name_tag = shape.name_tag;
-              logic.shape_tag = m_nspace + ":" + logic.name_tag;
+              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
 	      // PosPart section
-              pos.child_tag = m_nspace + ":" + shape.name_tag;
+              pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
               pos.trans.dz = pos.trans.dz + /*2 * shape.dz +*/ iiter->getModule().dsDistance();  // CUIDADO: was with 2*shape.dz, but why???
               //pos.copy = 2;
 
@@ -846,7 +833,7 @@ namespace insur {
                 rot.thetay = 90.0;
                 rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
                 r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-                pos.rotref = m_nspace + ":" + rot.name;
+                pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
               }
               p.push_back(pos);
 
@@ -878,17 +865,17 @@ namespace insur {
 
 	    // LogicalPartSection
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
-            logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+            logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
             l.push_back(logic);
 
 	    // PosPart section
-	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	    else pos.parent_tag = m_nspace + ":" + mname.str() + xml_PX + xml_base_waf;
-            pos.child_tag = m_nspace + ":" + shape.name_tag;
+	    if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	    else pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+            pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
             pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-            pos.rotref = m_nspace + ":" + rot_sensor_tag;
+            pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
             p.push_back(pos);
 
@@ -913,14 +900,14 @@ namespace insur {
 
 	      // LogicalPartSection
               logic.name_tag = shape.name_tag;
-              logic.shape_tag = m_nspace + ":" + logic.name_tag;
+              logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
               l.push_back(logic);
 
 	      // PosPart section
-	      pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-              pos.child_tag = m_nspace + ":" + shape.name_tag;
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+              pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
-              pos.rotref = m_nspace + ":" + rot_sensor_tag;
+              pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
               p.push_back(pos);
 
@@ -1024,7 +1011,7 @@ namespace insur {
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
       logic.name_tag = rodname.str();
-      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
       logic.material_tag = xml_material_air;
       l.push_back(logic);
 
@@ -1032,7 +1019,7 @@ namespace insur {
 	shape.name_tag = rodNextPhiName.str();
 	s.push_back(shape);
 	logic.name_tag = rodNextPhiName.str();
-	logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 	l.push_back(logic);
 	rspec.partselectors.push_back(rodNextPhiName.str());
 	srspec.partselectors.push_back(rodNextPhiName.str());
@@ -1048,8 +1035,8 @@ namespace insur {
       // rods in layer algorithm(s)
       if (!isPixelTracker) {
 	alg.name = xml_phialt_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodname.str();
+	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	alg.parameters.push_back(numericParam(xml_tilt, "90*deg")); // This "tilt" here has nothing to do with the tilt angle of a tilted TBPS.
 	// It is an angle used internally by PhiAltAlgo to shift in Phi the startAngle ( in (X,Y) plane).
@@ -1076,8 +1063,8 @@ namespace insur {
       }
       else {
 	alg.name = xml_angular_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodname.str();
+	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	pconverter <<  trackerXmlTags.nspace + ":" + rodname.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
 	pconverter << rodStartPhiAngle * 180. / M_PI << "*deg";
@@ -1097,8 +1084,8 @@ namespace insur {
 	alg.parameters.clear();
 
 	alg.name = xml_angular_algo;
-	alg.parent = m_nspace + ":" + lname.str();
-	pconverter <<  m_nspace + ":" + rodNextPhiName.str();
+	alg.parent = trackerXmlTags.nspace + ":" + lname.str();
+	pconverter <<  trackerXmlTags.nspace + ":" + rodNextPhiName.str();
 	alg.parameters.push_back(stringParam(xml_childparam, pconverter.str()));
 	pconverter.str("");
 	pconverter << rodNextPhiStartPhiAngle * 180. / M_PI << "*deg";
@@ -1185,12 +1172,12 @@ namespace insur {
 	      so.push_back(shapeOp);
 
 	      logic.name_tag = rinfo.name;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      
-	      pos.parent_tag = m_nspace + ":" + lname.str();
-	      pos.child_tag = m_nspace + ":" + rinfo.name;
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + lname.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + rinfo.name;
 	      pos.trans.dz = (rinfo.z1 + rinfo.z2) / 2.0; 
 	      p.push_back(pos);
 	      
@@ -1201,8 +1188,8 @@ namespace insur {
 	      
 	      // backward part of the ring
 	      alg.name = xml_trackerring_algo;
-	      alg.parent = m_nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo.childname));
+	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
@@ -1230,8 +1217,8 @@ namespace insur {
 	      
 	      // forward part of the ring
 	      alg.name =  xml_trackerring_algo;
-	      alg.parent = m_nspace + ":" + rinfo.name;
-	      alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo.childname));
+	      alg.parent = trackerXmlTags.nspace + ":" + rinfo.name;
+	      alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo.childname));
 	      pconverter << (rinfo.modules / 2);
 	      alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
 	      pconverter.str("");
@@ -1273,10 +1260,10 @@ namespace insur {
       shape.dz = zmax + 2 * xml_epsilon;
       s.push_back(shape);
       logic.name_tag = lname.str();
-      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
       l.push_back(logic);
-      pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
-      pos.child_tag = m_nspace + ":" + lname.str();
+      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
+      pos.child_tag = trackerXmlTags.nspace + ":" + lname.str();
       p.push_back(pos);
       lspec.partselectors.push_back(lname.str());
       //lspec.moduletypes.push_back("");
@@ -1313,9 +1300,11 @@ namespace insur {
    * @param t A reference to the collection of topology information; used for output
    * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
    */
-  void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr,
+  void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags,
                                std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool& isPixelTracker, bool wt) {
+                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+
+    bool isPixelTracker = tr.isPixelTracker();
 
     // Container inits
     ShapeInfo shape;
@@ -1530,9 +1519,9 @@ namespace insur {
 	      shape.dz = iiter->getModule().thickness() / 2.0;
 
 	      logic.name_tag = mname.str();
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 
-	      //logic.material_tag = m_nspace + ":" + matname.str();
+	      //logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      // module composite material
@@ -1558,12 +1547,12 @@ namespace insur {
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 
-	      pos.parent_tag = m_nspace + ":" + mname.str();
-	      pos.child_tag = m_nspace + ":" + shape.name_tag;
+	      pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str();
+	      pos.child_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
 	      if (iiter->getModule().uniRef().side > 0) pos.trans.dz = /*shape.dz*/ - iiter->getModule().dsDistance() / 2.0; // CUIDADO WAS getModule().moduleThickness()
 	      else pos.trans.dz = iiter->getModule().dsDistance() / 2.0 /*- shape.dz*/; // DITTO HERE
 	      p.push_back(pos);
@@ -1578,7 +1567,7 @@ namespace insur {
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
-		logic.shape_tag = m_nspace + ":" + logic.name_tag;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
 		l.push_back(logic);
 
 		pos.child_tag = logic.shape_tag;
@@ -1593,7 +1582,7 @@ namespace insur {
 		  rot.thetay = 90.0;
 		  rot.phiy = 90.0 + iiter->getModule().stereoRotation() / M_PI * 180.;
 		  r.insert(std::pair<const std::string,Rotation>(rot.name,rot));
-		  pos.rotref = m_nspace + ":" + rot.name;
+		  pos.rotref = trackerXmlTags.nspace + ":" + rot.name;
 		}
 
 		p.push_back(pos);
@@ -1620,16 +1609,16 @@ namespace insur {
 	      s.push_back(shape);
 
 	      logic.name_tag = shape.name_tag;
-	      logic.shape_tag = m_nspace + ":" + logic.name_tag;
-	      logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+	      logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
 	      l.push_back(logic);
 
-	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
-	      else pos.parent_tag = m_nspace + ":" + mname.str() + xml_PX + xml_base_waf;
+	      if (iiter->getModule().numSensors() == 2) pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+	      else pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_PX + xml_base_waf;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_IN__ // Flip INNER sensors
-	      pos.rotref = m_nspace + ":" + rot_sensor_tag;
+	      pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
 	      p.push_back(pos);
 
@@ -1652,15 +1641,15 @@ namespace insur {
 		s.push_back(shape);
 
 		logic.name_tag = shape.name_tag;
-		logic.shape_tag = m_nspace + ":" + logic.name_tag;
-		logic.material_tag = m_nspace + ":" + xml_sensor_silicon;
+		logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
+		logic.material_tag = trackerXmlTags.nspace + ":" + xml_sensor_silicon;
 		l.push_back(logic);
 
-		pos.parent_tag = m_nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
+		pos.parent_tag = trackerXmlTags.nspace + ":" + mname.str() + xml_base_lowerupper + xml_base_waf;
 		pos.child_tag = logic.shape_tag;
 		pos.trans.dz = 0.0;
 #ifdef __FLIPSENSORS_OUT__ // Flip OUTER sensors
-		pos.rotref = m_nspace + ":" + rot_sensor_tag;
+		pos.rotref = trackerXmlTags.nspace + ":" + rot_sensor_tag;
 #endif
 		p.push_back(pos);
 
@@ -1745,16 +1734,16 @@ namespace insur {
             s.push_back(shape);
 
             logic.name_tag = shape.name_tag;
-            logic.shape_tag = m_nspace + ":" + logic.name_tag;
+            logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
             logic.material_tag = xml_material_air;
             l.push_back(logic);
 
-            pos.parent_tag = m_nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
+            pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_plus;
             pos.child_tag = logic.shape_tag;
 
 	    pos.trans.dz = (rinfo[*siter].zmin + rinfo[*siter].zmax) / 2.0 - (zmin + zmax) / 2.0;
             p.push_back(pos);
-            //pos.parent_tag = m_nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
+            //pos.parent_tag = trackerXmlTags.nspace + ":" + dname.str(); // CUIDADO ended with: + xml_minus;
             //p.push_back(pos);
 
             rspec.partselectors.push_back(logic.name_tag);
@@ -1763,7 +1752,7 @@ namespace insur {
 	    // forward part of the ring
 	    alg.name = xml_trackerring_algo;
             alg.parent = logic.shape_tag;
-            alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo[*siter].childname));
+            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
@@ -1789,7 +1778,7 @@ namespace insur {
 
 	    // backward part of the ring
 	    alg.name = xml_trackerring_algo;
-            alg.parameters.push_back(stringParam(xml_childparam, m_nspace + ":" + rinfo[*siter].childname));
+            alg.parameters.push_back(stringParam(xml_childparam, trackerXmlTags.nspace + ":" + rinfo[*siter].childname));
             pconverter << (rinfo[*siter].modules / 2);
             alg.parameters.push_back(numericParam(xml_nmods, pconverter.str()));
             pconverter.str("");
@@ -1824,12 +1813,12 @@ namespace insur {
 
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
         //logic.extra = xml_plus;
-        logic.shape_tag = m_nspace + ":" + shape.name_tag;
+        logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
         logic.material_tag = xml_material_air;
         l.push_back(logic);
 
-        pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
-        pos.child_tag = m_nspace + ":" + logic.name_tag;
+        pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
+        pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
         pos.trans.dz = (zmax + zmin) / 2.0 - xml_z_pixfwd;
         p.push_back(pos);
 
@@ -1839,8 +1828,8 @@ namespace insur {
         //   logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_minus;
         //   logic.extra = xml_minus;
         //   l.push_back(logic);
-        //   pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
-        //   pos.child_tag = m_nspace + ":" + logic.name_tag;
+        //   pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
+        //   pos.child_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
         //dspec.partextras.push_back(logic.extra);
@@ -1865,8 +1854,9 @@ namespace insur {
    * @param p A reference to the collection of volume positionings; used for output
    * @param t A reference to the collection of topology information; used for output
    */
-  void Extractor::analyseBarrelServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
+  void Extractor::analyseServices(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+					std::vector<Composite>& c, std::vector<LogicalInfo>& l,
+                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -1924,17 +1914,17 @@ namespace insur {
 	    if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
-	    logic.shape_tag = m_nspace + ":" + shapename.str();
-	    logic.material_tag = m_nspace + ":" + matname.str();
+	    logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+	    logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	    l.push_back(logic);
 
-	    pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	    pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 	    pos.child_tag = logic.shape_tag;
 	    pos.trans.dz = iter->getZOffset() + shape.dz;
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
 	    p.push_back(pos);
 	  }
 
@@ -1956,17 +1946,17 @@ namespace insur {
 	      if (shape.rmax > serviceBarrelRMax) serviceBarrelRMax = shape.rmax;
 
 	      logic.name_tag = shapenameBarrel.str();
-	      logic.shape_tag = m_nspace + ":" + shapenameBarrel.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameBarrel.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	      pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz;
 	      p.push_back(pos);
 	      pos.copy = 2;
 	      pos.trans.dz = -pos.trans.dz;
-	      pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	      pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
 	      p.push_back(pos);
 	      
 
@@ -1983,11 +1973,11 @@ namespace insur {
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapenameEndcaps.str();
-	      logic.shape_tag = m_nspace + ":" + shapenameEndcaps.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapenameEndcaps.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = startEndcaps + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
@@ -2006,11 +1996,11 @@ namespace insur {
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
-	      logic.shape_tag = m_nspace + ":" + shapename.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);
@@ -2036,80 +2026,7 @@ namespace insur {
     std::cout << "serviceEndcapsRMin = " << serviceEndcapsRMin << std::endl;
     std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;
   }
-
-  /**
-   * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
-   * it creates a composite material information struct for each endcap service, and it adds the remaining information about
-   * the volume to the collections of hierarchy, shape, position and topology information. All of these future CMSSW XML
-   * blocks are given unique names based on the properties of the encap service they came from.
-   * @param is A reference to the collection of inactive surfaces that the endcap services are a part of; used as input
-   * @param c A reference to the collection of composite material information; used for output
-   * @param l A reference to the collection of volume hierarchy information; used for output
-   * @param s A reference to the collection of shape parameters; used for output
-   * @param p A reference to the collection of volume positionings; used for output
-   * @param t A reference to the collection of topology information; used for output
-   */
-  void Extractor::analyseEndcapServices(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                        std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
-    // container inits
-    ShapeInfo shape;
-    LogicalInfo logic;
-    PosInfo pos;
-    shape.type = tb;
-    shape.dx = 0.0;
-    shape.dy = 0.0;
-    shape.dyy = 0.0;
-    pos.copy = 1;
-    pos.trans.dx = 0.0;
-    pos.trans.dy = 0.0;
-    // e_ser: one composite for every service volume on the z+ side
-    // s, l and p: one entry per service volume
-    std::vector<InactiveElement>::iterator iter, guard;
-    std::vector<InactiveElement>& es = is.getEndcapServices();
-    guard = es.end();
-    for (iter = es.begin(); iter != guard; iter++) {
-      std::ostringstream matname, shapename;
-      matname << xml_base_serfcomp << iter->getCategory() << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-      shapename << xml_base_serf << "R" << (int)(iter->getInnerRadius()) << "Z" << (int)(fabs(iter->getZOffset() + iter->getZLength() / 2.0));
-#if 0
-      if ((iter->getZOffset() + iter->getZLength()) > 0) { // This is necessary because of replication of Forward volumes!
-        c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-#else
-      if ( (iter->getZOffset() + iter->getZLength()) > 0 ) { 
-        if ( iter->getLocalMasses().size() ) {
-          c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
-
-          shape.name_tag = shapename.str();
-          shape.dz = iter->getZLength() / 2.0;
-          shape.rmin = iter->getInnerRadius();
-          shape.rmax = shape.rmin + iter->getRWidth();
-          s.push_back(shape);
-
-          logic.name_tag = shapename.str();
-          logic.shape_tag = m_nspace + ":" + shapename.str();
-          logic.material_tag = m_nspace + ":" + matname.str();
-          l.push_back(logic);
-
-          pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
-          pos.child_tag = logic.shape_tag;
-          pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
-          p.push_back(pos);
-	  pos.copy = 2;
-	  pos.trans.dz = -pos.trans.dz;
-	  pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
-	  p.push_back(pos);
-	  pos.copy = 1;
-	  pos.rotref.clear();
-        }
-        else {
-          std::stringstream msg;
-          msg << shapename.str() << " is not exported to XML because it is empty." << std::ends;
-          logWARNING( msg.str() ); 
-        }
-#endif
-      }
-    }
-  }
+    
 
   /**
    * This is one of the smaller analysis functions that provide the core functionality of this class. It does a number of things:
@@ -2123,8 +2040,9 @@ namespace insur {
    * @param p A reference to the collection of volume positionings; used for output
    * @param t A reference to the collection of topology information; used for output
    */
-  void Extractor::analyseSupports(InactiveSurfaces& is, std::vector<Composite>& c, std::vector<LogicalInfo>& l,
-                                  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool& isPixelTracker, bool wt) {
+  void Extractor::analyseSupports(InactiveSurfaces& is, bool& isPixelTracker, XmlTags& trackerXmlTags,
+				  std::vector<Composite>& c, std::vector<LogicalInfo>& l,
+                                  std::vector<ShapeInfo>& s, std::vector<PosInfo>& p, std::vector<SpecParInfo>& t, bool wt) {
     // container inits
     ShapeInfo shape;
     LogicalInfo logic;
@@ -2175,8 +2093,8 @@ namespace insur {
       s.push_back(shape);
 
       logic.name_tag = shapename.str();
-      logic.shape_tag = m_nspace + ":" + shapename.str();
-      logic.material_tag = m_nspace + ":" + matname.str();
+      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
       l.push_back(logic);
 
       switch (iter->getCategory()) {
@@ -2184,13 +2102,13 @@ namespace insur {
       case MaterialProperties::t_sup:
       case MaterialProperties::u_sup:
       case MaterialProperties::o_sup:
-          pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
+          pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
           break;
       case MaterialProperties::e_sup:
-          pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
+          pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
           break;
       default:
-	pos.parent_tag = m_nspace + ":" + xml_tracker;
+	pos.parent_tag = trackerXmlTags.nspace + ":" + xml_tracker;
       }
       pos.child_tag = logic.shape_tag;
       if ((iter->getCategory() == MaterialProperties::o_sup) ||
@@ -2199,7 +2117,7 @@ namespace insur {
       p.push_back(pos);
       pos.copy = 2;
       pos.trans.dz = -pos.trans.dz;
-      pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+      pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
       p.push_back(pos);
       pos.copy = 1;
       pos.rotref.clear();
@@ -2217,8 +2135,8 @@ namespace insur {
         s.push_back(shape);
 
         logic.name_tag = shapename.str();
-        logic.shape_tag = m_nspace + ":" + shapename.str();
-        logic.material_tag = m_nspace + ":" + matname.str();
+        logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+        logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
         l.push_back(logic);
 
         switch (iter->getCategory()) {
@@ -2226,13 +2144,13 @@ namespace insur {
         case MaterialProperties::t_sup:
         case MaterialProperties::u_sup:
         case MaterialProperties::o_sup:
-	  pos.parent_tag = xml_pixbarident + ":" + m_xml_bar;
+	  pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar;
 	  break;
         case MaterialProperties::e_sup:
-	  pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd;
+	  pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd;
 	  break;
         default:
-	  pos.parent_tag = m_nspace + ":" + xml_tracker;
+	  pos.parent_tag = trackerXmlTags.nspace + ":" + xml_tracker;
         }
         pos.child_tag = logic.shape_tag;
         if ((iter->getCategory() == MaterialProperties::o_sup) ||
@@ -2241,7 +2159,7 @@ namespace insur {
         p.push_back(pos);
 	pos.copy = 2;
 	pos.trans.dz = -pos.trans.dz;
-	pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
 	p.push_back(pos);
 	pos.copy = 1;
 	pos.rotref.clear();
@@ -2272,17 +2190,17 @@ namespace insur {
 	    if (shape.rmax > supportBarrelRMax) supportBarrelRMax = shape.rmax;
 
 	    logic.name_tag = shapename.str();
-	    logic.shape_tag = m_nspace + ":" + shapename.str();
-	    logic.material_tag = m_nspace + ":" + matname.str();
+	    logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+	    logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	    l.push_back(logic);
 
-	    pos.parent_tag = xml_pixbarident + ":" + m_xml_bar; //xml_tracker;
+	    pos.parent_tag = xml_pixbarident + ":" + trackerXmlTags.bar; //xml_tracker;
 	    pos.child_tag = logic.shape_tag;
 	    pos.trans.dz = iter->getZOffset() + shape.dz;
 	    p.push_back(pos);
 	    pos.copy = 2;
 	    pos.trans.dz = -pos.trans.dz;
-	    pos.rotref = m_nspace + ":" + xml_flip_mod_rot;
+	    pos.rotref = trackerXmlTags.nspace + ":" + xml_flip_mod_rot;
 	    p.push_back(pos);
 	  }
 
@@ -2297,11 +2215,11 @@ namespace insur {
 	      if (shape.rmax > supportEndcapsRMax) supportEndcapsRMax = shape.rmax;
 
 	      logic.name_tag = shapename.str();
-	      logic.shape_tag = m_nspace + ":" + shapename.str();
-	      logic.material_tag = m_nspace + ":" + matname.str();
+	      logic.shape_tag = trackerXmlTags.nspace + ":" + shapename.str();
+	      logic.material_tag = trackerXmlTags.nspace + ":" + matname.str();
 	      l.push_back(logic);
 
-	      pos.parent_tag = xml_pixfwdident + ":" + m_xml_fwd; // xml_tracker;
+	      pos.parent_tag = xml_pixfwdident + ":" + trackerXmlTags.fwd; // xml_tracker;
 	      pos.child_tag = logic.shape_tag;
 	      pos.trans.dz = iter->getZOffset() + shape.dz - xml_z_pixfwd;
 	      p.push_back(pos);

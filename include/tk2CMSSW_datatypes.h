@@ -23,6 +23,7 @@ namespace insur {
     enum ShapeOperationType { uni, intersec };
 
     enum AlgoPartype { st,num,vec};
+
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
