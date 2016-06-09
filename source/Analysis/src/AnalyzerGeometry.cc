@@ -30,9 +30,6 @@
 #include <TRandom3.h>
 #include <SimParms.h>
 
-// Namespaces
-using namespace insur;
-
 //
 // AnalyzerGeometry constructor
 //
@@ -47,10 +44,10 @@ AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const B
 //
 // AnalyzerGeometry init method
 //
-bool AnalyzerGeometry::init(int nTracks)
+bool AnalyzerGeometry::init(int nGeomTracks)
 {
   // Set nTracks
-  m_nTracks = nTracks;
+  m_nTracks = nGeomTracks;
 
   if (m_nTracks<=0 || m_trackers.size()==0) {
 
@@ -424,7 +421,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     if (foundModules) {
 
       // View
-      TCanvas RZCanvas("RZCanvas", "RZView Canvas", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
+      TCanvas RZCanvas("RZCanvas", "RZView Canvas", vis_max_canvas_sizeX, vis_min_canvas_sizeY );
       setCanvasProperties(RZCanvas);
       rzDrawer.drawFrame<TicksFrameStyle>(RZCanvas, iTracker->isPixelType());
       rzDrawer.drawModules<ContourStyle>(RZCanvas);
@@ -442,7 +439,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     foundModules = xyBarrelDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), BARREL);
     if (foundModules) {
 
-      TCanvas XYCanvasBRL("XYCanvasBRL", "XYView Barrel", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
+      TCanvas XYCanvasBRL("XYCanvasBRL", "XYView Barrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       setCanvasProperties(XYCanvasBRL);
       xyBarrelDrawer.drawFrame<TicksFrameStyle>(XYCanvasBRL);
       xyBarrelDrawer.drawModules<ContourStyle>(XYCanvasBRL);
@@ -458,7 +455,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
     foundModules = xyEndcapDrawer.addModulesType(iTracker->modules().begin(), iTracker->modules().end(), ENDCAP);
     if (foundModules) {
 
-      TCanvas XYCanvasEC("XYCanvasEC", "XYView Endcap", insur::vis_min_canvas_sizeX, insur::vis_min_canvas_sizeY );
+      TCanvas XYCanvasEC("XYCanvasEC", "XYView Endcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
       setCanvasProperties(XYCanvasEC);
       xyEndcapDrawer.drawFrame<TicksFrameStyle>(XYCanvasEC);
       xyEndcapDrawer.drawModules<ContourStyle>(XYCanvasEC);
@@ -481,7 +478,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
       m_sensorHitEtaProfile[trkName].Draw();
 
       myImage = new RootWImage(etaCanvasHitSensors, etaCanvasHitSensors.GetWindowWidth(), etaCanvasHitSensors.GetWindowHeight());
-      myImage->setComment("Number of hit sensors versus "+insur::web_etaLetter);
+      myImage->setComment("Number of hit sensors versus "+web_etaLetter);
       myContent->addItem(myImage);
     }
 
@@ -495,7 +492,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
       if (m_moduleTypes[trkName].size()>1) for (auto iType : m_moduleTypes[trkName]) m_moduleTypeHitEtaProfile[trkName][iType].Draw("same");
 
       myImage = new RootWImage(etaCanvasHitModules, etaCanvasHitModules.GetWindowWidth(), etaCanvasHitModules.GetWindowHeight());
-      myImage->setComment("Number of hit modules versus "+insur::web_etaLetter);
+      myImage->setComment("Number of hit modules versus "+web_etaLetter);
       myContent->addItem(myImage);
     }
 
@@ -507,7 +504,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
       m_hitMapPhiEta[trkName].Draw("colz");
 
       myImage = new RootWImage(etaCanvasHitMap, etaCanvasHitMap.GetWindowWidth(), etaCanvasHitMap.GetWindowHeight());
-      myImage->setComment("Hit coverage in "+insur::web_etaLetter+", "+insur::web_phiLetter);
+      myImage->setComment("Hit coverage in "+web_etaLetter+", "+web_phiLetter);
       myContent->addItem(myImage);
     }
 
@@ -549,7 +546,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
         zoomedPlot->Draw();
 
         RootWImage* myImage = new RootWImage(coverageCanvas, coverageCanvas.GetWindowWidth(), coverageCanvas.GetWindowHeight());
-        myImage->setComment("Layer coverage in "+insur::web_etaLetter+" (efficiency)");
+        myImage->setComment("Layer coverage in "+web_etaLetter+" (efficiency)");
         myContent->addItem(myImage);
       }
     }
@@ -568,7 +565,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   myContent = new RootWContent("Tracker layout: ");
   myPage->addContent(myContent);
 
-  TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", insur::vis_max_canvas_sizeX, insur::vis_min_canvas_sizeY );
+  TCanvas fullRZCanvas("RZCanvasFull", "RZView Canvas Full", vis_max_canvas_sizeX, vis_min_canvas_sizeY );
   setCanvasProperties(fullRZCanvas);
   fullRZDrawer.drawFrame<TicksFrameStyle>(fullRZCanvas);
   fullRZDrawer.drawModules<ContourStyle>(fullRZCanvas);
@@ -577,7 +574,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   myContent->addItem(myImage);
 
   // Hits
-  TCanvas hitCanvas("HitCanvas", "Number of modules with at least one hit;#eta;Number of hit modules", insur::vis_std_canvas_sizeX, insur::vis_min_canvas_sizeY);
+  TCanvas hitCanvas("HitCanvas", "Number of modules with at least one hit;#eta;Number of hit modules", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
   setCanvasProperties(hitCanvas);
 
   TH1D moduleTotHitsEtaHis;
@@ -661,16 +658,6 @@ void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
   else {
     logWARNING("DrawBeamPipeXY failed: no beam pipe defined!");
   }
-}
-
-//
-// Set canvas standard properties
-//
-void AnalyzerGeometry::setCanvasProperties(TCanvas& canvas)
-{
-  canvas.SetFillColor(kWhite);
-  canvas.SetBorderMode(0);
-  canvas.SetBorderSize(0);
 }
 
 //
@@ -764,8 +751,8 @@ void LayerDiskSummaryVisitor::preVisit() {
   m_moduleTable->setContent( 0, 0, "Module in:                                   ");
   m_moduleTable->setContent( 1, 0, "Position:                                    ");
   m_moduleTable->setContent( 2, 0, "Type:                                        ");
-  m_moduleTable->setContent( 3, 0, "Sensor area [mm"+insur::web_superStart+"2"+insur::web_superEnd+"]: ");
-  m_moduleTable->setContent( 4, 0, "Total area [m"+insur::web_superStart+"2"+insur::web_superEnd+"]:   ");
+  m_moduleTable->setContent( 3, 0, "Sensor area [mm"+web_superStart+"2"+web_superEnd+"]: ");
+  m_moduleTable->setContent( 4, 0, "Total area [m"+web_superStart+"2"+web_superEnd+"]:   ");
 //  m_moduleTable->setContent( 5, 0, "Service Weight [kg]:                         ");
 //  m_moduleTable->setContent( 6, 0, "Total Weight [kg]:                           ");
   m_moduleTable->setContent( 5, 0, "Number of modules:                           ");
@@ -775,8 +762,8 @@ void LayerDiskSummaryVisitor::preVisit() {
 //  m_moduleTable->setContent(11, 0, "Number of channels (R-Phi 2.side):           ");
 //  m_moduleTable->setContent(12, 0, "Number of channels (Z 1.side):               ");
 //  m_moduleTable->setContent(13, 0, "Number of channels (Z 2.side):               ");
-  m_moduleTable->setContent( 8, 0, "Min-Max R-Phi resolution ("+insur::web_muLetter+"m):    ");
-  m_moduleTable->setContent( 9, 0, "Min-Max Z resolution ("+insur::web_muLetter+"m):        ");
+  m_moduleTable->setContent( 8, 0, "Min-Max R-Phi resolution ("+web_muLetter+"m):    ");
+  m_moduleTable->setContent( 9, 0, "Min-Max Z resolution ("+web_muLetter+"m):        ");
 }
 
 //
@@ -937,9 +924,9 @@ void LayerDiskSummaryVisitor::postVisit() {
 
     // Tag
     std::ostringstream tag("");
-    tag << insur::web_smallStart;
+    tag << web_smallStart;
     for (auto iter : m_moduleTagToPositionsMap[moduleType]) tag << iter << "<br/> ";
-    tag << insur::web_smallEnd;
+    tag << web_smallEnd;
 
     // Type
     std::string type = module->moduleType();
@@ -985,11 +972,11 @@ void LayerDiskSummaryVisitor::postVisit() {
   }
 
   // Finalize tables
-  std::string sTotBarrelModules = insur::web_emphStart + any2str(m_totalBarrelModules)        + insur::web_emphEnd;
-  std::string sTotEndcapModules = insur::web_emphStart + any2str(m_totalEndcapModules)        + insur::web_emphEnd;
-  std::string sTrkTotArea       = insur::web_emphStart + any2str(trkTotArea, c_areaPrecision) + insur::web_emphEnd;;
-  std::string sTrkTotModules    = insur::web_emphStart + any2str(trkTotNumModules)            + insur::web_emphEnd;
-  std::string sTrkTotNumChannels= insur::web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + insur::web_emphEnd;
+  std::string sTotBarrelModules = web_emphStart + any2str(m_totalBarrelModules)        + web_emphEnd;
+  std::string sTotEndcapModules = web_emphStart + any2str(m_totalEndcapModules)        + web_emphEnd;
+  std::string sTrkTotArea       = web_emphStart + any2str(trkTotArea, c_areaPrecision) + web_emphEnd;;
+  std::string sTrkTotModules    = web_emphStart + any2str(trkTotNumModules)            + web_emphEnd;
+  std::string sTrkTotNumChannels= web_emphStart + any2str(trkTotNumChannels, c_channelPrecision) + web_emphEnd;
 
   m_layerTable->setContent( 0, m_nBarrelLayers+1, "Total");
   m_layerTable->setContent( 6, m_nBarrelLayers+1, sTotBarrelModules);
