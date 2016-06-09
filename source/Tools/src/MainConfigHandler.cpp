@@ -412,13 +412,13 @@ string MainConfigHandler::getGeometriesDirectory() {
 string MainConfigHandler::getBinDirectory_() { return binDirectory_; }
 string MainConfigHandler::getLayoutDirectory_() { return layoutDirectory_; }
 string MainConfigHandler::getStandardDirectory_() { return standardDirectory_; }
-string MainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+insur::default_styledir; }
-string MainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+insur::default_xmlpath; }
-string MainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+insur::default_mattabdir; }
-string MainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+insur::default_irradiationdir; }
-string MainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+insur::default_materialsdir; }
-string MainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+insur::default_configdir+"/"+insur::default_stdincludedir; }
-string MainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+insur::default_geometriesdir; }
+string MainConfigHandler::getStyleDirectory_() { return layoutDirectory_+"/"+default_styledir; }
+string MainConfigHandler::getXmlDirectory_() { return standardDirectory_+"/"+default_xmlpath; }
+string MainConfigHandler::getMattabDirectory_() { return standardDirectory_+"/"+default_mattabdir; }
+string MainConfigHandler::getIrradiationDirectory_() { return standardDirectory_+"/"+default_irradiationdir; }
+string MainConfigHandler::getDefaultMaterialsDirectory_() { return standardDirectory_+"/"+default_materialsdir; }
+string MainConfigHandler::getStandardIncludeDirectory_() { return standardDirectory_+"/"+default_configdir+"/"+default_stdincludedir; }
+string MainConfigHandler::getGeometriesDirectory_() { return standardDirectory_+"/"+default_geometriesdir; }
 
 
 std::set<string> MainConfigHandler::preprocessConfiguration(istream& is, ostream& os, const string& istreamid) {

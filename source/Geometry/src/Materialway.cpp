@@ -1030,10 +1030,10 @@ namespace material {
 
   const double Materialway::gridFactor = 1000.0;                                     /**< the conversion factor for using integers in the algorithm (helps finding collisions),
                                                                               actually transforms millimiters in microns */
-  const int Materialway::sectionWidth = discretize(insur::geom_inactive_volume_width);     /**< the width of a section */
-  const int Materialway::safetySpace = discretize(insur::geom_epsilon);           /**< the safety space between sections */
-  //const double Materialway::globalMaxZ_mm = insur::max_length;                     /**< the Z coordinate of the end point of the sections */
-  //const double Materialway::globalMaxR_mm = insur::outer_radius;                   /**< the rho coordinate of the end point of the sections */
+  const int Materialway::sectionWidth = discretize(geom_inactive_volume_width);     /**< the width of a section */
+  const int Materialway::safetySpace = discretize(geom_epsilon);           /**< the safety space between sections */
+  //const double Materialway::globalMaxZ_mm = max_length;                     /**< the Z coordinate of the end point of the sections */
+  //const double Materialway::globalMaxR_mm = outer_radius;                   /**< the rho coordinate of the end point of the sections */
   //const int Materialway::globalMaxZ = discretize(globalMaxZ_mm);
   //const int Materialway::globalMaxR = discretize(globalMaxR_mm);
   const int Materialway::boundaryPadding = discretize(10.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */

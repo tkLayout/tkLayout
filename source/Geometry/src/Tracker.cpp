@@ -36,7 +36,7 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
  maxZ(     string("maxZ")           ),
  minEta(   string("minEta")         ),
  maxEta(   string("maxEta")         ),
- etaCut(          "etaCut"          , parsedOnly(), insur::geom_max_eta_coverage),
+ etaCut(          "etaCut"          , parsedOnly(), geom_max_eta_coverage),
  isPixelType(     "isPixelType"     , parsedOnly(), true),
  servicesForcedUp("servicesForcedUp", parsedOnly(), true),
  skipAllServices( "skipAllServices" , parsedOnly(), false),

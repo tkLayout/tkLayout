@@ -41,7 +41,7 @@ SimParms::SimParms() :
  chargeDepletionVoltage(  "chargeDepletionVoltage"  , parsedOnly(), 600),
  alphaParm(               "alphaParm"               , parsedOnly(), 4e-17),
  referenceTemp(           "referenceTemp"           , parsedOnly(), 20),
- magneticField(           "magneticField"           , parsedOnly(), insur::magnetic_field),
+ magneticField(           "magneticField"           , parsedOnly(), magnetic_field),
  dipoleMagneticField(     "dipoleMagneticField"     , parsedOnly(), 0.0),
  dipoleDPlResAt10TeV(     "dipoleDPlResAt10TeV"     , parsedOnly(), 0.1),
  dipoleXToX0(             "dipoleXToX0"             , parsedOnly(), 0.1),
@@ -70,7 +70,7 @@ SimParms::SimParms() :
 {
   // Read irradiation maps
   m_irradiationMapsManager = new IrradiationMapsManager();
-  for (auto file : insur::default_irradiationfiles) {
+  for (auto file : default_irradiationfiles) {
 
     std::string path = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + file;
     irradiationMapFiles.appendString(path);

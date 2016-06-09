@@ -5,7 +5,8 @@
  *      Author: drasal
  */
 
-#include "../include/AnalyzerUnit.h"
+#include "AnalyzerUnit.h"
+#include "TCanvas.h"
 
 //
 // Constructor - set active trackers only
@@ -54,3 +55,12 @@ AnalyzerUnit::AnalyzerUnit(std::string name, std::vector<const Tracker*> tracker
 //
 AnalyzerUnit::~AnalyzerUnit() {}
 
+//
+// Set canvas standard properties
+//
+void AnalyzerUnit::setCanvasProperties(TCanvas& canvas)
+{
+  canvas.SetFillColor(kWhite);
+  canvas.SetBorderMode(0);
+  canvas.SetBorderSize(0);
+}

@@ -75,7 +75,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
 
   //! Initialize - mostly histograms & other containers
   //! @return True if OK
-  bool init(int nTracks);
+  bool init(int nGeomTracks);
 
   //! Inspect geometry layout (if init OK) -> collect data to histograms & tables
   //! @return True if OK
@@ -94,8 +94,6 @@ class AnalyzerGeometry : public AnalyzerUnit {
   void drawBeamPipeRZ(TCanvas& canvas, double maxZ);
   //! Draw beam-pipe in XY to given canvas
   void drawBeamPipeXY(TCanvas& canvas);
-  //! Set canvas standard properties - background color, border mode, ...
-  void setCanvasProperties(TCanvas& canvas);
 
   int    m_nTracks;     //!< Number of geometry tracks to be used in the analysis
   double m_etaSpan;     //!< Eta interval to be analyzed
