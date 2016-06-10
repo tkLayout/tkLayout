@@ -6,23 +6,6 @@
 #include <SvnRevision.h>
 #include <tk2CMSSW.h>
 
-
-
-
-
-#include<iomanip>
-#include <boost/version.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <string>
-using boost::property_tree::ptree;
-using boost::property_tree::write_xml;
-using boost::property_tree::xml_writer_settings;
-using boost::property_tree::xml_writer_make_settings;
-
-
-
-
 namespace insur {
 
     // public

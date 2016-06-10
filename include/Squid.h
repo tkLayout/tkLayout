@@ -128,8 +128,6 @@ namespace insur {
     Materialway materialwayPixel;
     MatCalc tkMaterialCalc;
     MatCalc pxMaterialCalc;
-    //XmlTags outerTrackerXmlTags;
-    //XmlTags pixelXmlTags;
     Analyzer a;
     Analyzer pixelAnalyzer;
     Vizard v;
