@@ -196,7 +196,6 @@ namespace insur {
     static const std::string xml_pixbar = "PixelBarrel";
     static const std::string xml_OT_bar = "Phase2OTBarrel";
     static const std::string xml_PX_bar = "Phase1PixelBarrel";
-    static const std::string xml_PX_value_bar = "PixelPhase1Barrel";
     static const std::string xml_pixfwd = "PixelForward"; 
     static const std::string xml_OT_fwd = "Phase2OTForward";
     static const std::string xml_PX_fwd = "Phase2PixelEndcap";
@@ -236,8 +235,6 @@ namespace insur {
     static const std::string xml_tob_subdet = "TOBSubDet";
     static const std::string xml_subdet_layer = "PixelBarrelLayer";
     static const std::string xml_spec_layer = "PixelBarrelLayer";
-    static const std::string xml_OT_value_layer = "Phase2OTBarrelLayer";
-    static const std::string xml_PX_value_layer = "PixelBarrelLayer";
     static const std::string xml_subdet_straight_or_tilted_rod = "PixelBarrelLadder";
     static const std::string xml_subdet_straight_rod = "PixelBarrelLad";
     static const std::string xml_subdet_tilted_ring = "PixelBarrelRing";
@@ -265,10 +262,10 @@ namespace insur {
     static const std::string xml_roc_rows_name = "PixelROCRows";
     static const std::string xml_roc_cols_name = "PixelROCCols";
     static const std::string xml_par_tail = "Par";
-    static const std::string xml_tob_prefix = "TrackerRecMaterialTOB";
-    static const std::string xml_PX_barrel_prefix = "TrackerRecMaterialPhase1";
-    static const std::string xml_tid_prefix = "TrackerRecMaterialTIDDisk";
-    static const std::string xml_PX_endcaps_prefix = "TrackerRecMaterialPhase2PixelEndcapDisk";
+    static const std::string xml_OT_reco_layer_spec = "TrackerRecMaterialTOB";
+    static const std::string xml_PX_reco_layer_spec = "TrackerRecMaterialPhase1";
+    static const std::string xml_OT_reco_disc_spec = "TrackerRecMaterialTIDDisk";
+    static const std::string xml_PX_reco_disc_spec = "TrackerRecMaterialPhase2PixelEndcapDisk";
     static const std::string xml_forward = "Fw";
     static const std::string xml_backward = "Bw";
     static const std::string xml_places_unflipped_mod_in_rod = "HCZ2YX";
@@ -284,9 +281,52 @@ namespace insur {
 
 
 
+    static const std::string xml_OT_topo_barrel_spec = "Phase2OTBarrelSubDet";
+    static const std::string xml_PX_topo_barrel_spec = "Phase1PixelBarrel";
+
+    static const std::string xml_OT_topo_barrel_value = "Phase2OTBarrel";
+    static const std::string xml_PX_topo_barrel_value = "PixelPhase1Barrel";
+
+    static const std::string xml_OT_topo_layer_spec = "OuterTrackerPixelBarrelLayer";
+    static const std::string xml_PX_topo_layer_spec = "PixelBarrelLayer";
+   
+    static const std::string xml_OT_topo_layer_value = "Phase2OTBarrelLayer";
+    static const std::string xml_PX_topo_layer_value = xml_PX_topo_layer_spec;
+   
+    static const std::string xml_OT_topo_straight_rod_spec = "OuterTrackerPixelBarrelLadder";
+    static const std::string xml_PX_topo_straight_rod_spec = "Phase1PixelBarrelRod";
+   
+    static const std::string xml_OT_topo_straight_rod_value = "PixelBarrelLadder";
+    static const std::string xml_PX_topo_straight_rod_value = "PixelBarrelLadder";
+
+    static const std::string xml_OT_topo_endcaps_spec = "Phase2OTEndcapSubDet";
+    static const std::string xml_PX_topo_endcaps_spec = "PixelPhase2EndcapSubDet";
+
+    static const std::string xml_OT_topo_endcaps_value = "Phase2OTEndcap";
+    static const std::string xml_PX_topo_endcaps_value = "PixelPhase2EndcapSubDet";
+
+    static const std::string xml_OT_topo_disc_spec = "OuterTrackerPixelEndcapDisk";
+    static const std::string xml_PX_topo_disc_spec = "PixelEndcapDisk";
+   
+    static const std::string xml_OT_topo_disc_value = "Phase2OTEndcapDisk";
+    static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapFullDisk";
+   
+    static const std::string xml_OT_topo_emodule_spec = "OuterTrackerEndcapStack";
+    static const std::string xml_PX_topo_emodule_spec = "PixelEndcapPanel";
+   
+    static const std::string xml_OT_topo_emodule_value = "Phase2OTEndcapStack";
+    static const std::string xml_PX_topo_emodule_value = xml_PX_topo_emodule_spec;
+   
+
+
+
+
     struct XmlTags {
     XmlTags(bool isPixelTracker) : 
       nspace(!isPixelTracker ? xml_fileident : xml_PX_fileident),
+	tracker(!isPixelTracker ? xml_OT : xml_PX),
+	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
+	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
 
 	trackerfile(!isPixelTracker ? xml_OT_trackerfile : xml_PX_trackerfile),
 	topologyfile(!isPixelTracker ? xml_topologyfile : xml_PX_topologyfile),
@@ -294,17 +334,25 @@ namespace insur {
 	trackersensfile(!isPixelTracker ? xml_trackersensfile : xml_PX_trackersensfile),
 	recomatfile(!isPixelTracker ? xml_recomatfile : xml_PX_recomatfile),
 
-	bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
-	spec_bar(!isPixelTracker ? xml_OT_bar : xml_PX_bar),
-	fwd(!isPixelTracker ? xml_OT_fwd : xml_PX_fwd),
-	value_bar(!isPixelTracker ? xml_OT_bar : xml_PX_value_bar),
-	tracker(!isPixelTracker ? xml_OT : ""),
-	value_layer(!isPixelTracker ? xml_OT_value_layer : xml_PX_value_layer),
-	barrel_prefix(!isPixelTracker ? xml_tob_prefix : xml_PX_barrel_prefix),
-	endcaps_prefix(!isPixelTracker ? xml_tid_prefix : xml_PX_endcaps_prefix)
+	topo_barrel_spec(!isPixelTracker ? xml_OT_topo_barrel_spec : xml_PX_topo_barrel_spec),
+	topo_barrel_value(!isPixelTracker ? xml_OT_topo_barrel_value : xml_PX_topo_barrel_value),
+	topo_layer_spec(!isPixelTracker ? xml_OT_topo_layer_spec : xml_PX_topo_layer_spec),
+	topo_layer_value(!isPixelTracker ? xml_OT_topo_layer_value : xml_PX_topo_layer_value),
+	topo_straight_rod_spec(!isPixelTracker ? xml_OT_topo_straight_rod_spec : xml_PX_topo_straight_rod_spec),
+	topo_straight_rod_value(!isPixelTracker ? xml_OT_topo_straight_rod_value : xml_PX_topo_straight_rod_value),
+	topo_endcaps_spec(!isPixelTracker ? xml_OT_topo_endcaps_spec : xml_PX_topo_endcaps_spec),
+	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
+	topo_disc_spec(!isPixelTracker ? xml_OT_topo_disc_spec : xml_PX_topo_disc_spec),
+	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	topo_emodule_spec(!isPixelTracker ? xml_OT_topo_emodule_spec : xml_PX_topo_emodule_spec),
+	topo_emodule_value(!isPixelTracker ? xml_OT_topo_emodule_value : xml_PX_topo_emodule_value),
+
+	reco_layer_spec(!isPixelTracker ? xml_OT_reco_layer_spec : xml_PX_reco_layer_spec),
+	reco_disc_spec(!isPixelTracker ? xml_OT_reco_disc_spec : xml_PX_reco_disc_spec)
       {};
 
       const std::string nspace;
+      const std::string tracker;
       const std::string bar;
       const std::string fwd;
 
@@ -312,14 +360,23 @@ namespace insur {
       const std::string topologyfile;
       const std::string prodcutsfile;
       const std::string trackersensfile;
-      const std::string recomatfile;
+      const std::string recomatfile;       
 
-      const std::string spec_bar;
-      const std::string value_bar;
-      const std::string tracker;
-      const std::string value_layer;
-      const std::string barrel_prefix;
-      const std::string endcaps_prefix;
+      const std::string topo_barrel_spec;
+      const std::string topo_barrel_value;
+      const std::string topo_layer_spec;
+      const std::string topo_layer_value;
+      const std::string topo_straight_rod_spec;
+      const std::string topo_straight_rod_value;
+      const std::string topo_endcaps_spec;
+      const std::string topo_endcaps_value;
+      const std::string topo_disc_spec;
+      const std::string topo_disc_value;
+      const std::string topo_emodule_spec;
+      const std::string topo_emodule_value;
+
+      const std::string reco_layer_spec;
+      const std::string reco_disc_spec;
     };
 
     /*class TrackerXmlTagsClass {

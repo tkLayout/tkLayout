@@ -152,35 +152,33 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
 
         // Add Phase2OTBarrel
-        if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.spec_bar << "SubDet" << xml_par_tail << xml_general_inter;
-	else out << xml_spec_par_open << trackerXmlTags.spec_bar << xml_par_tail << xml_general_inter;
-        if (!isPixelTracker) out << xml_spec_par_selector << trackerXmlTags.spec_bar << xml_general_endline;
-	else out << xml_spec_par_selector << xml_pixbarident << ":" << trackerXmlTags.spec_bar << xml_general_endline;
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.value_bar;
+	out << xml_spec_par_open << trackerXmlTags.topo_barrel_spec << xml_par_tail << xml_general_inter;       
+	out << xml_spec_par_selector;
+	if (isPixelTracker) out << xml_pixbarident << ":";
+	out << trackerXmlTags.bar << xml_general_endline;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_barrel_value;
         out << xml_spec_par_close;
 
         // Add Layers
-        out << xml_spec_par_open <<  trackerXmlTags.tracker << xml_spec_layer << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_open <<  trackerXmlTags.topo_layer_spec << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_layer + xml_par_tail);
         if (pos != -1) {
-            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
-        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.value_layer;
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_layer_value;
         out << xml_spec_par_close;
 
         // Add straight rods
-        if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_straight_rod << "der" << xml_par_tail << xml_general_inter;
-	else out << xml_spec_par_open << "Phase1PixelBarrelRod" << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_open << trackerXmlTags.topo_straight_rod_spec << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
         if (pos != -1) {
-            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
-        if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_straight_rod << "der";
-	else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelBarrelLadder";
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_straight_rod_value;	
         out << xml_spec_par_close;
 
 	if (!isPixelTracker) {
@@ -208,28 +206,22 @@ namespace insur {
 	}
 
         // Add Phase2OTForward
-        if (!isPixelTracker) {
-	  out << xml_spec_par_open << xml_2OTendcap << "SubDet" << xml_par_tail << xml_general_inter;
-	  out << xml_spec_par_selector << trackerXmlTags.fwd << xml_general_endline;
-	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_2OTendcap;
-	}
-	else {
-	  out << xml_spec_par_open << "PixelPhase2EndcapSubDetPar" << xml_general_inter;
-	  out << xml_spec_par_selector << "pixfwd:Phase2PixelEndcap" << xml_general_endline;
-	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelPhase2EndcapSubDet";
-	}        
-        out << xml_spec_par_close;
+	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_spec << xml_par_tail << xml_general_inter;
+	out << xml_spec_par_selector;
+	if (isPixelTracker) out << xml_pixfwdident << ":";
+	out << trackerXmlTags.fwd << xml_general_endline;
+	out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_endcaps_value;   
+	out << xml_spec_par_close;
 
         // Add Disks
-        out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_wheel << xml_par_tail << xml_general_inter;
+        out << xml_spec_par_open << trackerXmlTags.topo_disc_spec << xml_par_tail << xml_general_inter;
         pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
         if (pos != -1) {
-            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+	  }
         }
-        if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_wheel;
-	else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelPhase2EndcapFullDisk";
+        out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_disc_value;
         out << xml_spec_par_close;
 
 	if (!isPixelTracker) {
@@ -245,82 +237,79 @@ namespace insur {
 	  out << xml_spec_par_close;
 	}
 
-	  // Add EndcapStack
-	  if (!isPixelTracker) out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_endcap_stack << xml_par_tail << xml_general_inter;
-	  else out << xml_spec_par_open << "PixelEndcapPanelPar" << xml_general_inter;
-	  pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
-	  if (pos != -1) {
-	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-	    }
+	// Add EndcapStack
+	out << xml_spec_par_open << trackerXmlTags.topo_emodule_spec << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
+	if (pos != -1) {
+	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
 	  }
-	  if (!isPixelTracker) out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_endcap_stack;
-	  else out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << "PixelEndcapPanel";
-	  out << xml_spec_par_close;
+	}
+	out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_emodule_value;
+	out << xml_spec_par_close;
 
-	  if (!isPixelTracker) {
-	    // Add LowerDetectors
-	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
-	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-	    if (pos != -1) {
-	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-		if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
-		  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		}
-	      }
-	    }
-	    pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
-	    if (pos != -1) {
-	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-		if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
-		  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		}
-	      }
-	    }
-	    out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_lower_detectors << xml_spec_par_parameter_second << xml_true;
-	    out << xml_spec_par_close;
-
-	    // Add UpperDetectors
-	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
-	    pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
-	    if (pos != -1) {
-	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-		if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
-		  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		}
-	      }
-	    }
-	    pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
-	    if (pos != -1) {
-	      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-		if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
-		  out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
-		}
-	      }
-	    }
-	    out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_upper_detectors << xml_spec_par_parameter_second << xml_true;
-	    out << xml_spec_par_close;
-	  }
-		
-	  //Write specPar blocks for ROC parameters 
-	  //TOB
+	if (!isPixelTracker) {
+	  // Add LowerDetectors
+	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_lower_detectors << xml_par_tail << xml_general_inter;
 	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
 	  if (pos != -1) {
-	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
-		
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
 	  }
-
-	  //TID
 	  pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
 	  if (pos != -1) {
-	    specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
-		
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_lower) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
 	  }
+	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_lower_detectors << xml_spec_par_parameter_second << xml_true;
+	  out << xml_spec_par_close;
 
-	  //copy rest of skeleton file unchanged
-	  while (std::getline(in, line)) out << line << std::endl;
+	  // Add UpperDetectors
+	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_upper_detectors << xml_par_tail << xml_general_inter;
+	  pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	  if (pos != -1) {
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
+	  }
+	  pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+	  if (pos != -1) {
+	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	      if (t.at(pos).partselectors.at(i).find(xml_base_upper) != std::string::npos) {
+		out << xml_spec_par_selector << t.at(pos).partselectors.at(i) << xml_general_endline;
+	      }
+	    }
+	  }
+	  out << xml_spec_par_parameter_first << xml_tracker << xml_subdet_upper_detectors << xml_spec_par_parameter_second << xml_true;
+	  out << xml_spec_par_close;
+	}
+		
+	//Write specPar blocks for ROC parameters 
+	//TOB
+	pos = findEntry(t, xml_subdet_tobdet + xml_par_tail);
+	if (pos != -1) {
+	  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
+		
+	}
 
-    }
+	//TID
+	pos = findEntry(t, xml_subdet_tiddet + xml_par_tail);
+	if (pos != -1) {
+	  specParROC(t.at(pos).partselectors, t.at(pos).moduletypes, t.at(pos).parameter, out, isPixelTracker);
+		
+	}
+
+	//copy rest of skeleton file unchanged
+	while (std::getline(in, line)) out << line << std::endl;
+  }
     
     /**
      * This function modifies the skeleton file <i>trackerProdCuts.xml</i> and writes the result to a new file
@@ -970,11 +959,11 @@ namespace insur {
 
 	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-	    spname = trackerXmlTags.barrel_prefix + xml_pixbar + xml_layer + lnumber;
+	    spname = trackerXmlTags.reco_layer_spec + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
-	    if (!isPixelTracker) prefix = trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
-	    else prefix = xml_pixbarident + ":" + trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
-	    //else prefix = trackerXmlTags.spec_bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
+	    //else prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
 	    prefix = prefix + trackerXmlTags.nspace + ":" + rcurrent;
 
 	    // module loop
@@ -1047,8 +1036,8 @@ namespace insur {
 	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);
 	else index << 11 + i;
 	layer = atoi(dnumber.c_str());
-	if (!isPixelTracker) spname = trackerXmlTags.endcaps_prefix + index.str();
-	else spname = trackerXmlTags.endcaps_prefix + index.str() + "Fw";
+	if (!isPixelTracker) spname = trackerXmlTags.reco_disc_spec + index.str();
+	else spname = trackerXmlTags.reco_disc_spec + index.str() + "Fw";
 
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;
