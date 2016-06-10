@@ -28,9 +28,7 @@ using namespace std;
  * @param h2 A pointer to the second hit
  * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
  */
-bool sortSmallerR(Hit* h1, Hit* h2) {
-    return (h1->getDistance() < h2->getDistance());
-}
+bool Hit::sortSmallerR(Hit* h1, Hit* h2) { return (h1->getDistance() < h2->getDistance()); }
 
 /**
  * Nothing to do for the destructor, as a hit never owns any objects it has pointers to...

@@ -25,6 +25,7 @@ class Disk;
 class Endcap;
 class EndcapModule;
 class Layer;
+class LayerNameVisitor;
 class DetectorModule;
 class TCanvas;
 class Tracker;
@@ -33,30 +34,6 @@ class TH2I;
 class TProfile;
 class Ring;
 class RootWTable;
-
-/*
- * Helper class: Layer name visitor (visitor pattern) -> get names of individual layers
- */
-class LayerNameVisitor : public ConstGeometryVisitor {
-
-  std::string m_idBRLorEC; //!< Barrel/Endcap id number
-  std::string m_idTRK;     //!< Tracker name
-
-  std::map<std::string, std::set<std::string>> m_data; //!< Layer/Disk names for given tracker
-
- public:
-
-  LayerNameVisitor(std::vector<const Tracker*>& trackers);
-  virtual ~LayerNameVisitor() {};
-
-  //! Fill container with layer names for defined tracker if tracker exists
-  bool getLayerNames(std::string trkName, std::set<std::string>& layerNames);
-
-  void visit(const Barrel& b);
-  void visit(const Endcap& e);
-  void visit(const Layer& l);
-  void visit(const Disk& d);
-}; // Class
 
 /*
  * @class AnalyzerGeometry
@@ -71,7 +48,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
   AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
 
   //! Destructor
-  virtual ~AnalyzerGeometry() {};
+  virtual ~AnalyzerGeometry();
 
   //! Initialize - mostly histograms & other containers
   //! @return True if OK
@@ -103,7 +80,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
   const float c_etaSafetyMargin = 0.01;
   const int   c_nBinsProfile    = 100;
 
-  LayerNameVisitor m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
+  LayerNameVisitor* m_layerNamesVisitor; //! Visitor pattern to be used to find layer names
 
   // Histogram output
   std::map<std::string,TH2D>      m_hitMapPhiEta;            //!< Number of hits - map in phi & eta for each tracker with given name
@@ -123,6 +100,29 @@ class AnalyzerGeometry : public AnalyzerUnit {
 
 }; // Class
 
+/*
+ * Helper class: Layer name visitor (visitor pattern) -> get names of individual layers
+ */
+class LayerNameVisitor : public ConstGeometryVisitor {
+
+  std::string m_idBRLorEC; //!< Barrel/Endcap id number
+  std::string m_idTRK;     //!< Tracker name
+
+  std::map<std::string, std::set<std::string>> m_data; //!< Layer/Disk names for given tracker
+
+ public:
+
+  LayerNameVisitor(std::vector<const Tracker*>& trackers);
+  virtual ~LayerNameVisitor() {};
+
+  //! Fill container with layer names for defined tracker if tracker exists
+  bool getLayerNames(std::string trkName, std::set<std::string>& layerNames);
+
+  void visit(const Barrel& b);
+  void visit(const Endcap& e);
+  void visit(const Layer& l);
+  void visit(const Disk& d);
+}; // Helper Class
 
 /*
  *  Helper class: Layer/disk summary visitor (visitor pattern) - gather information for geometry tables
@@ -190,6 +190,6 @@ class LayerDiskSummaryVisitor : public ConstGeometryVisitor {
   const int   c_occupancyPrecision = 1;
   const int   c_resolutionPrecision= 0;
   const int   c_channelPrecision   = 2;
-}; // Class
+}; // Helper Class
 
 #endif /* INCLUDE_ANALYZERGEOMETRY_H_ */
