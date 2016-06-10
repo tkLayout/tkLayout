@@ -159,14 +159,14 @@ void MainConfigHandler::askMomenta() {
   string tempString2 = "";
 
   cout << "*** Specify the list of transverse momenta to be used for the" << endl
-       << "    tracking performance test (in MeV/c)" << endl
-       << "    Example: 1000, 10000, 100000 : ";
+       << "    tracking performance test (in GeV/c)" << endl
+       << "    Example: 1, 10, 100 : ";
   cin  >> tempString;
 
   getline(cin,tempString2);
   tempString+=tempString2;
   m_momenta = parseDoubleList(tempString);
-  for (double& iMom : m_momenta) iMom *= Units::MeV;
+  for (double& iMom : m_momenta) iMom *= Units::GeV;
 }
 
 //
@@ -177,13 +177,13 @@ void MainConfigHandler::askTriggerMomenta() {
   string tempString2 = "";
 
   cout << "*** Specify the list of transverse momenta to be used for the" << endl
-       << "    trigger efficiency performance test (in MeV/c)" << endl
-       << "    Example: 1000, 2000, 5000, 10000: ";
+       << "    trigger efficiency performance test (in GeV/c)" << endl
+       << "    Example: 1, 2, 5, 10: ";
   cin  >> tempString;
   getline(cin,tempString2);
   tempString+=tempString2;
   m_triggerMomenta = parseDoubleList(tempString);
-  for (double& iMom : m_triggerMomenta) iMom *= Units::MeV;
+  for (double& iMom : m_triggerMomenta) iMom *= Units::GeV;
 }
 
 //
@@ -247,14 +247,14 @@ bool MainConfigHandler::createConfigurationFileFromQuestions(string& configFileN
     configFile << c_MOMENTADEFINITION << "=\"";
     for (auto it = m_momenta.begin(); it!=m_momenta.end(); ++it) {
       if (it!=m_momenta.begin()) configFile << ", ";
-      configFile << std::fixed << std::setprecision(2) << (*it)/Units::MeV;
+      configFile << std::fixed << std::setprecision(2) << (*it)/Units::GeV;
     }
     configFile << "\"" << std::endl;
 
     configFile << c_TRIGGERMOMENTADEFINITION << "=\"";
     for (auto it = m_triggerMomenta.begin(); it!=m_triggerMomenta.end(); ++it) {
       if (it!=m_triggerMomenta.begin()) configFile << ", ";
-      configFile << std::fixed << std::setprecision(2) << (*it)/Units::MeV;
+      configFile << std::fixed << std::setprecision(2) << (*it)/Units::GeV;
     }
     configFile << "\"" << std::endl;
 
@@ -390,12 +390,12 @@ bool MainConfigHandler::readConfigurationFile(string& configFileName) {
       }
       else if (parameter==c_MOMENTADEFINITION) {
         m_momenta = parseDoubleList(value);
-        for (double& iMom : m_momenta) iMom *= Units::MeV;
+        for (double& iMom : m_momenta) iMom *= Units::GeV;
         momentaFound = true;
       }
       else if (parameter==c_TRIGGERMOMENTADEFINITION) {
         m_triggerMomenta = parseDoubleList(value);
-        for (double& iMom : m_triggerMomenta) iMom *= Units::MeV;
+        for (double& iMom : m_triggerMomenta) iMom *= Units::GeV;
         triggerMomentaFound = true;
       }
       else if (parameter==c_THRESHOLDPROBABILITIESDEFINITION) {
