@@ -17,6 +17,7 @@
 
 class RootWSite;
 class BeamPipe;
+class TCanvas;
 class Tracker;
 class MaterialBudget;
 
@@ -54,6 +55,9 @@ class AnalyzerUnit
   virtual std::string getName() final {return m_name;}
 
  protected:
+
+  //! Set canvas standard properties - background color, border mode, ...
+  void setCanvasProperties(TCanvas& canvas);
 
   //! Is correctly initialized
   bool m_isInitOK;

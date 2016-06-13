@@ -11,7 +11,7 @@
 #include <GeometryManager.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <SvnRevision.h>
+#include <GitRevision.h>
 
 namespace po = boost::program_options;
 
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
   shown.add_options()
     ("help,h"           , "Display help info.")
     ("opt-file"         , po::value<std::string>(&optFile)->implicit_value(""), "Specify an option file to parse the program options from (in addition to command line).")
-    ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(insur::default_n_tracks), "Number of tracks for geometry calculations.")
-    ("material-tracks,N", po::value<int>(&matTracks)->default_value(insur::default_n_tracks), "Number of tracks for material & resolution calculations.")
+    ("geometry-tracks,n", po::value<int>(&geomTracks)->default_value(default_n_tracks), "Number of tracks for geometry calculations.")
+    ("material-tracks,N", po::value<int>(&matTracks)->default_value(default_n_tracks), "Number of tracks for material & resolution calculations.")
     ("occupancy,o"      , "Report occupancy studies based on Fluka data.")
     ("geometry,g"       , "Report geometry layout.")
     ("material,m"       , "Report material buget.")
@@ -85,8 +85,8 @@ int main(int argc, char* argv[]) {
   } catch(po::error& e) {
 
     // Display the following options after program starts without configuration
-    std::cerr << "\nERROR: " << e.what() << std::endl << std::endl;
-    std::cout << usage << std::endl << shown << std::endl;
+    logERROR(e.what());
+    std::cout << std::endl << usage << std::endl << shown << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
   // Print version
   if (progOptions.count("version")) {
-    std::cout << "tklayout revision " << SvnRevision::revisionNumber << std::endl;
+    std::cout << "tklayout revision " << GitRevision::revisionNumber << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerGeometry");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerGeometry");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerGeometry -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerGeometry -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerGeometry -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerGeometry -> visualization failed!");
     }
 
     // Material budget study
@@ -162,8 +162,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerMatBudget");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerMatBudget");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerMatBudget -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerMatBudget -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerMatBudget -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerMatBudget -> visualization failed!");
     }
 
     // Resolution study
@@ -174,8 +174,8 @@ int main(int argc, char* argv[]) {
       isAnalysisOK      = aManager.analyzeUnit("AnalyzerResolution");
       isVisualizationOK = aManager.visualizeUnit("AnalyzerResolution");
       stopTaskClock();
-      if (!isAnalysisOK)      std::cerr << "\nERROR in AnalyzerResolution -> analysis failed!"      << std::endl;
-      if (!isVisualizationOK) std::cerr << "\nERROR in AnalyzerResolution -> visualization failed!" << std::endl;
+      if (!isAnalysisOK)      logERROR("Error in AnalyzerResolution -> analysis failed!");
+      if (!isVisualizationOK) logERROR("Error in AnalyzerResolution -> visualization failed!");
     }
   }
 

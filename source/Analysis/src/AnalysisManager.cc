@@ -20,8 +20,8 @@
 #include <TH2I.h>
 #include <SimParms.h>
 #include <StopWatch.h>
-#include <SvnRevision.h>
-#include <rootweb.hh>
+#include <GitRevision.h>
+#include <rootweb.h>
 
 //
 // Constructor - create instances of all available analyzer units & prepare web container
@@ -156,7 +156,7 @@ bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
   m_webSite->addAuthor("Nicoletta De Maio");
   m_webSite->addAuthor("Stefano Martina");
   m_webSite->addAuthor("Stefano Mersi");
-  m_webSite->setRevision(SvnRevision::revisionNumber);
+  m_webSite->setRevision(GitRevision::revisionNumber);
   return true;
 }
 

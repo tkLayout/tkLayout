@@ -53,15 +53,15 @@ IF(GIT_FOUND)
     # Unix like system
     IF(CMAKE_HOST_UNIX)
   
-      # Create new SvnRevision.cpp
-      SET( vstring "#include <SvnRevision.h>\n\n"
-                   "//SvnRevision.cpp - written by cmake. changes will be lost!\n"
-                   "const std::string SvnRevision::revisionNumber = \"${GIT_REVISION}\"\;\n")
+      # Create new GitRevision.cc
+      SET( vstring "#include <GitRevision.h>\n\n"
+                   "//GitRevision.cc - written by cmake. changes will be lost!\n"
+                   "const std::string GitRevision::revisionNumber = \"${GIT_REVISION}\"\;\n")
 
-      FILE(WRITE SvnRevision.cpp.txt ${vstring} )
-      EXECUTE_PROCESS(COMMAND bash -c "if [ ! -e SvnRevision.orig.cpp ]; then cp -p ${CMAKE_CURRENT_SOURCE_DIR}/../source/Tools/src/SvnRevision.cpp SvnRevision.orig.cpp; fi" )
+      FILE(WRITE GitRevision.cc.txt ${vstring} )
+      EXECUTE_PROCESS(COMMAND bash -c "if [ ! -e GitRevision.orig.cc ]; then cp -p ${CMAKE_CURRENT_SOURCE_DIR}/../source/Tools/src/GitRevision.cc GitRevision.orig.cc; fi" )
       EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              SvnRevision.cpp.txt ${CMAKE_CURRENT_SOURCE_DIR}/../src/SvnRevision.cpp)
+                              GitRevision.cc.txt ${CMAKE_CURRENT_SOURCE_DIR}/../source/Tools/src/GitRevision.cc)
     ENDIF()
   ENDIF()
 ENDIF()

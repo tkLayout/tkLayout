@@ -109,7 +109,7 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
 
  private:
 
-  //! Cross-check parameters provdied from geometry configuration file
+  //! Cross-check parameters provided from geometry configuration file
   void check() override;
 
   //! If straight layer required, build() method internally calls buildStraight()

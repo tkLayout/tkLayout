@@ -8,7 +8,7 @@ using namespace std;
 
 // Default values for gloabl parameters
 double ptError::IP_length = 70;     // mm
-double ptError::B = insur::magnetic_field; // T
+double ptError::B = magnetic_field; // T
 
 void ptError::defaultParameters() {
   Module_pitch = defaultModulePitch;

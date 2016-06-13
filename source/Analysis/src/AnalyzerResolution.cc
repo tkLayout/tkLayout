@@ -7,7 +7,7 @@
 #include <AnalyzerResolution.h>
 
 #include <MessageLogger.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <Tracker.h>
 
 

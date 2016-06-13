@@ -1,5 +1,5 @@
-#ifndef _ROOTWEB_HH_
-#define _ROOTWEB_HH_
+#ifndef INCLUDE_ROOTWEB_H_
+#define INCLUDE_ROOTWEB_H_
 
 #define BOOST_NO_CXX11_SCOPED_ENUMS
 #define BOOST_NO_CXX11_SCOPED_ENUM
@@ -338,4 +338,4 @@ public:
 
 
   
-#endif
+#endif /* INCLUDE_ROOTWEB_H_ */

@@ -24,11 +24,11 @@ int main(int argc, char* argv[]) {
       cout << "# Main config file" << endl;
       cout << "TKG_CONFIGFILE=\"" << m.getConfigFileName() << "\"" << endl;
       cout << "# Directories needing copy during install" << endl;
-      cout << "TKG_SOURCE_MATTAB=\"" << insur::default_mattabdir << "\"" << endl;
-      cout << "TKG_SOURCE_XML=\"" << insur::default_xmlpath << "\"" << endl;
-      cout << "TKG_SOURCE_STYLE=\"" << insur::default_styledir << "\"" << endl;
-      cout << "TKG_SOURCE_STDINCLUDE=\"" << insur::default_stdincludedir << "\"" << endl;
-      cout << "TKG_SOURCE_GEOMETRIES=\"" << insur::default_geometriesdir << "\"" << endl;
+      cout << "TKG_SOURCE_MATTAB=\"" << default_mattabdir << "\"" << endl;
+      cout << "TKG_SOURCE_XML=\"" << default_xmlpath << "\"" << endl;
+      cout << "TKG_SOURCE_STYLE=\"" << default_styledir << "\"" << endl;
+      cout << "TKG_SOURCE_STDINCLUDE=\"" << default_stdincludedir << "\"" << endl;
+      cout << "TKG_SOURCE_GEOMETRIES=\"" << default_geometriesdir << "\"" << endl;
       cout << "TKG_DESTINATION_MATTAB=\"" << m.getMattabDirectory() << "\"" << endl;
       cout << "TKG_DESTINATION_STDINCLUDE=\"" << m.getStandardIncludeDirectory() << "\"" << endl;
       cout << "TKG_DESTINATION_GEOMETRIES=\"" << m.getGeometriesDirectory() << "\"" << endl;

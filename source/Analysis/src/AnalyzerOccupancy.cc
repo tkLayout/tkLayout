@@ -15,14 +15,12 @@
 #include <IrradiationMap.h>
 #include <Layer.h>
 #include <Ring.h>
-#include <rootweb.hh>
+#include <rootweb.h>
 #include <Tracker.h>
 #include <TH2D.h>
 #include <TCanvas.h>
 #include <Units.h>
 #include <TLegend.h>
-
-using namespace insur;
 
 AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) :
  AnalyzerUnit("AnalyzerOccupancy", trackers, beamPipe)
@@ -121,8 +119,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     TCanvas* canvasXZBField = new TCanvas("canvasXZBField", "XZ view of B field [T] (Y=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     TCanvas* canvasYZBField = new TCanvas("canvasYZBField", "YZ view of B field [T] (X=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 
-    m_bFieldMap->drawXZBFieldProj(canvasXZBField, "XZ view of B field [T] (Y=0)", 0, insur::geom_max_radius, 0, insur::geom_max_length);
-    m_bFieldMap->drawYZBFieldProj(canvasYZBField, "YZ view of B field [T] (X=0)", 0, insur::geom_max_radius, 0, insur::geom_max_length);
+    m_bFieldMap->drawXZBFieldProj(canvasXZBField, "XZ view of B field [T] (Y=0)", 0, geom_max_radius, 0, geom_max_length);
+    m_bFieldMap->drawYZBFieldProj(canvasYZBField, "YZ view of B field [T] (X=0)", 0, geom_max_radius, 0, geom_max_length);
 
     RootWImage* anImageXZBField = new RootWImage(canvasXZBField, canvasXZBField->GetWindowWidth(), canvasXZBField->GetWindowHeight());
     anImageXZBField->setComment("XZ view of B field [T] (Y=0)");
@@ -831,7 +829,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
 
           double minFlux     = m_layerMinFluxes[iLayer]*nPileUps;
           double maxFlux     = m_layerMaxFluxes[iLayer]*nPileUps;
-          double maxCellArea = insur::trk_max_occupancy/maxFlux;
+          double maxCellArea = trk_max_occupancy/maxFlux;
           double numSensors  = m_layerNSensorsInMod[iLayer];
 
           // Calculate data rates for layers
@@ -876,8 +874,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           }
 
           std::cout << ">>> " << dataRateCollisionSpar << std::endl;
-          dataRateTriggerSpar   *= insur::trigger_freq;
-          dataRateUnTriggerSpar *= insur::collision_freq;
+          dataRateTriggerSpar   *= trigger_freq;
+          dataRateUnTriggerSpar *= collision_freq;
 
           totDataRateTriggerSpar   += dataRateTriggerSpar;
           totDataRateUnTriggerSpar += dataRateUnTriggerSpar;
@@ -889,7 +887,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           layerTable->setContent(3, 0, "Max flux in Z [particles/cm^-2]            : ");
           layerTable->setContent(4, 0, "Z position [mm] related to max flux        : ");
           layerTable->setContent(5, 0, "Max cell area in Z (1% occupancy) [mm^2]   : ");
-          if (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1]) {
+          if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
             layerTable->setContent(6 , 0, "#Hits per BX (bunch crossing)             : ");
             layerTable->setContent(7 , 0, "#Hit-channels per BX                      : ");
             layerTable->setContent(8 , 0, "#Hit-channels per module per BX           : ");
@@ -911,7 +909,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           layerTable->setContent(3, iLayer+1, maxFlux/(1./Units::cm2)          , precisionFlux);
           layerTable->setContent(4, iLayer+1, m_layerMaxFluxZ[iLayer]/Units::mm, c_coordPrecision);
           layerTable->setContent(5, iLayer+1, maxCellArea/Units::mm2           , precisionArea);
-          if (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1]) {
+          if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
             layerTable->setContent(6 , iLayer+1, totHitRate                          );
             layerTable->setContent(7 , iLayer+1, totChannelRate                      );
             layerTable->setContent(8 , iLayer+1, totChannelRate/m_layerNModules[iLayer]);
@@ -927,7 +925,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
             layerTable->setContent(18, iLayer+1, dataRateTriggerSpar/m_layerNModules[iLayer]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
           }
         }
-        if (m_nLayers>0 && (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1])) {
+        if (m_nLayers>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
           layerTable->setContent(0 , m_nLayers+1, "Total [TB/s]");
           layerTable->setContent(13, m_nLayers+1, totDataRateUnTriggerSpar/(Units::TB/Units::s));
           layerTable->setContent(14, m_nLayers+1, totDataRateTriggerSpar/(Units::TB/Units::s));
@@ -962,7 +960,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
 
           double minFlux      = m_ringMinFluxes[iRing]*nPileUps;
           double maxFlux      = m_ringMaxFluxes[iRing]*nPileUps;
-          double maxCellArea  = insur::trk_max_occupancy/maxFlux;
+          double maxCellArea  = trk_max_occupancy/maxFlux;
           double numSensors   = m_ringNSensorsInMod[iRing];
 
           // Calculate data rates for rings
@@ -1005,8 +1003,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
             dataRateUnTriggerSpar += channelRate[iSensor]*senAddrSparSize[iSensor];
           }
 
-          dataRateTriggerSpar   *= insur::trigger_freq;
-          dataRateUnTriggerSpar *= insur::collision_freq;
+          dataRateTriggerSpar   *= trigger_freq;
+          dataRateUnTriggerSpar *= collision_freq;
 
           totDataRateTriggerSpar   += dataRateTriggerSpar;
           totDataRateUnTriggerSpar += dataRateUnTriggerSpar;
@@ -1018,7 +1016,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           ringTable->setContent(3, 0, "Max flux in R [particles/cm^-2]         : ");
           ringTable->setContent(4, 0, "Z position [mm] related to max flux     : ");
           ringTable->setContent(5, 0, "Max cell area in R (1% occupancy) [mm^2]: ");
-          if (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1]) {
+          if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
             ringTable->setContent(6 , 0, "#Hits per BX (bunch crossing)             : ");
             ringTable->setContent(7 , 0, "#Hit-channels per BX                      : ");
             ringTable->setContent(8 , 0, "#Hit-channels per module per BX           : ");
@@ -1040,7 +1038,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
           ringTable->setContent(3, iRing+1, maxFlux/(1./Units::cm2)         , precisionFlux);
           ringTable->setContent(4, iRing+1, m_ringMaxFluxZ[iRing]/Units::mm , c_coordPrecision);
           ringTable->setContent(5, iRing+1, maxCellArea/Units::mm2          , precisionArea);
-          if (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1]) {
+          if (nPileUps==trk_pile_up[trk_pile_up.size()-1]) {
             ringTable->setContent(6 , iRing+1, totHitRate*2                        ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
             ringTable->setContent(7 , iRing+1, totChannelRate*2                    ); // Factor 2 for positive + negative side (neg. side don't used in calculations)
             ringTable->setContent(8 , iRing+1, totChannelRate/m_ringNModules[iRing]);
@@ -1055,7 +1053,7 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
             ringTable->setContent(17, iRing+1, dataRateUnTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s), 2*c_coordPrecision);
             ringTable->setContent(18, iRing+1, dataRateTriggerSpar/m_ringNModules[iRing]/(Units::Gb/Units::s)  , 2*c_coordPrecision);
           }
-          if (m_nRings>0 && (nPileUps==insur::trk_pile_up[insur::trk_pile_up.size()-1])) {
+          if (m_nRings>0 && (nPileUps==trk_pile_up[trk_pile_up.size()-1])) {
             ringTable->setContent(0 , m_nRings+1, "Total [TB/s]");
             ringTable->setContent(13, m_nRings+1, totDataRateUnTriggerSpar/(Units::TB/Units::s)*2); // Factor 2 for positive + negative side (neg. side don't used in calculations)
             ringTable->setContent(14, m_nRings+1, totDataRateTriggerSpar/(Units::TB/Units::s)*2);   // Factor 2 for positive + negative side (neg. side don't used in calculations)
@@ -1074,14 +1072,14 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     else                                  usedChargedMap = m_chargedMapBOnMatOn;
 
     OccupancyVisitor geometryVisitor(usedPhotonsMap, usedChargedMap);
-    geometryVisitor.setMaxPileUp(insur::trk_pile_up[insur::trk_pile_up.size()-1]);
-    geometryVisitor.setMaxColFreq(insur::collision_freq);
+    geometryVisitor.setMaxPileUp(trk_pile_up[trk_pile_up.size()-1]);
+    geometryVisitor.setMaxColFreq(collision_freq);
 
     // set all values through visitor
     itTracker->accept(geometryVisitor);
 
     // Print out layer & disk table
-    for (auto nPileUps : insur::trk_pile_up) {
+    for (auto nPileUps : trk_pile_up) {
 
       RootWTable*        pileUpTable = new RootWTable();
       std::ostringstream namePileUp;

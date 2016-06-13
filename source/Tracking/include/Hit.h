@@ -4,8 +4,8 @@
  */
 
 
-#ifndef _HIT_HH_
-#define _HIT_HH_
+#ifndef INCLUDE_HIT_H_
+#define INCLUDE_HIT_H_
 
 #include "DetectorModule.h"
 #include "PtErrorAdapter.h"
@@ -42,7 +42,7 @@ protected:
   int    objectKind_;    // kind of hit object
   
   DetectorModule* hitModule_;    // Pointer to the hit module
-  Track*          myTrack_;      // Pointer to the track
+  const Track*          myTrack_;      // Pointer to the track
   
   RILength correctedMaterial_;
   
@@ -65,6 +65,9 @@ public:
   Hit(double myDistance);
   Hit(double myDistance, DetectorModule* myModule, HitType activeHitType);
   
+  //! Given two hits, compare the distance to the z-axis.
+  static bool sortSmallerR(Hit* h1, Hit* h2);
+
   DetectorModule* getHitModule() { return hitModule_; };
   void setHitModule(DetectorModule* myModule);
   
@@ -82,7 +85,7 @@ public:
   void     setOrientation(int newOrientation) { orientation_ = newOrientation; };
   int      getObjectKind() { return objectKind_;};
   void     setObjectKind(int newObjectKind) { objectKind_ = newObjectKind;};
-  void     setTrack(Track* newTrack) {myTrack_ = newTrack; updateRadius();};
+  void     setTrack(const Track* newTrack) {myTrack_ = newTrack; updateRadius();};
   double   getTrackTheta();
   RILength getCorrectedMaterial();
   void     setCorrectedMaterial(RILength newMaterial) { correctedMaterial_ = newMaterial;};
@@ -106,9 +109,4 @@ public:
   bool isStub() const { return activeHitType_ == HitType::STUB; }
 };
 
-/**
- * Given two hits, compare the distance to the z-axis.
- */
-bool sortSmallerR(Hit* h1, Hit* h2);
-
-#endif
+#endif /* INCLUDE_HIT_H_ */

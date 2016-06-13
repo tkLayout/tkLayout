@@ -5,24 +5,16 @@
 #include <vector>
 #include <set>
 
-#define HOMEDIRECTORY "HOME"
-#define CONFIGURATIONFILENAME ".tkgeometryrc"
-#define CONFIGURATIONFILENAMEDEFINITION "TKGEOMETRYRC"
-#define BINDIRECTORYDEFINITION "TKG_BINDIRECTORY"
-#define LAYOUTDIRECTORYDEFINITION "TKG_LAYOUTDIRECTORY" 
-#define STANDARDDIRECTORYDEFINITION "TKG_STANDARDDIRECTORY" 
-#define MOMENTADEFINITION "TKG_MOMENTA" 
-#define TRIGGERMOMENTADEFINITION "TKG_TRIGGERMOMENTA" 
-#define THRESHOLDPROBABILITIESDEFINITION "TKG_THRESHOLD_PROB"
-
 /*
  * @class MainConfigHandler
  * @brief Singleton class reading-in the tkLayout configuration (only once) from .tkgeometryrc file and
  * providing the information through out the software.
  * @details Singleton class reading-in the tkLayout configuration (only once) from .tkgeometryrc file and
  * providing the information through out the software. If the configuration file is missing, user will be
- * asked directly through std::cin on the fly. The corresponding configuration will be saved in a file in
- * the home directory.
+ * directly asked through std::cin on the fly for required information. The corresponding configurations
+ * will be saved in a file (defined by c_CONFIGURATIONFILENAME variable) in the home directory. The Handler
+ * also provides a mechanism how preprocess any configuration file recursive using of @include/@includestd
+ * pragmas -> used in geometry boost tree, when building full tracker geometry.
  */
 class MainConfigHandler {
 
@@ -34,10 +26,14 @@ class MainConfigHandler {
   //! MainConfigHandler access method -> get instance of singleton class MainConfigHandler
   static MainConfigHandler& getInstance();
 
-  // Other methods
-  bool getConfiguration(bool checkDirExists = true);
-  //bool getConfiguration(std::string& layoutDirectory, std::string& xmlDirectory);
-  bool getConfiguration(std::string& layoutDirectory);
+  //! Helper method to preprocess any input configuration file (is) (its full address specified by istreamid) ->
+  //! recursively pass through all included files specified by @include & @includestd/@include-std pragma and
+  //! include its content to one big configuration file (defined as os)
+  std::set<std::string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);
+
+  // Getter methods - checking that configuration file read-in first by this singleton class
+  bool        getConfiguration(bool checkDirExists = true);
+  bool        getConfiguration(std::string& layoutDirectory);
   std::string getBinDirectory();
   std::string getLayoutDirectory();
   std::string getStandardDirectory();
@@ -49,37 +45,55 @@ class MainConfigHandler {
   std::string getStandardIncludeDirectory();
   std::string getGeometriesDirectory();
   std::string getConfigFileName();
-  std::set<std::string> preprocessConfiguration(std::istream& is, std::ostream& os, const std::string& istreamid);
+
+  //bool getConfiguration(std::string& layoutDirectory, std::string& xmlDirectory);
+
   std::vector<double>& getMomenta();
   std::vector<double>& getTriggerMomenta();
   std::vector<double>& getThresholdProbabilities();
 
  private:
 
- //! Singleton constructor method
- MainConfigHandler();
+  //! Singleton constructor method -> must be private (singleton pattern)
+  MainConfigHandler();
 
- bool goodConfigurationRead_;
-  //std::string styleDirectory_;
-  std::string binDirectory_;
-  std::string layoutDirectory_;
-  //std::string xmlDirectory_;
-  std::string standardDirectory_;
-  std::vector<double> momenta_;
-  std::vector<double> triggerMomenta_;
-  std::vector<double> thresholdProbabilities_;
+  //! Check that given directory exists on the filesystem
   bool checkDirectory(std::string dirName) ;
+
+  //! Ask user on standard input for bin directory, where to place executables
   void askBinDirectory();
+
+  //! Ask user on standard input for layout directory, where to place the www output
   void askLayoutDirectory();
+
+  //! Ask user on standard input for standard directory. xml files and other various output will be put here.
   void askStandardDirectory();
+
+  //! Ask user on standard input for particle momenta to be studied
   void askMomenta();
+
+  //! Ask user on standard input for particle momenta to be studied by trigger
   void askTriggerMomenta();
+
+  //! Specify the list of trigger efficiency to be used for pt threshold find scan
   void askThresholdProbabilities();
+
+  //! Create base configuration file for tkLayout .tkgeometryrc, if doesn't exist
   bool createConfigurationFileFromQuestions(std::string& configFileName);
+
+  //! Helper method to read line
   bool parseLine(const char* codeLine, std::string& parameter, std::string& value);
-  bool readConfigurationFile(std::string& configFileName);
-  bool readConfiguration(bool checkDirExists);
+
+  //! Helper method to convert string list of doubles to std::vector<double>
   std::vector<double> parseDoubleList(std::string);
+
+  //! Read configuration from c_CONFIGURATIONFILENAME or ask user to define configuration on the fly if doesn't exist
+  bool readConfiguration(bool checkDirExists);
+
+  //! Helper method called by readConfiguration()
+  bool readConfigurationFile(std::string& configFileName);
+
+  // Private getter methods returning required configuration quantity
   std::string getBinDirectory_();
   std::string getLayoutDirectory_();
   std::string getStandardDirectory_();
@@ -90,6 +104,28 @@ class MainConfigHandler {
   std::string getDefaultMaterialsDirectory_();
   std::string getStandardIncludeDirectory_();
   std::string getGeometriesDirectory_();
+
+  bool m_goodConfigurationRead;          //!< Returns true if configuration read-in correctly
+
+  std::string m_binDirectory;            //!< bin directory, where to place executables
+  std::string m_layoutDirectory;         //!< layout directory, where to place the www output
+  std::string m_standardDirectory;       //!< xml files and other various output will be put here.
+  //std::string m_styleDirectory;
+  //std::string m_xmlDirectory;
+
+  std::vector<double> m_momenta;                //!< Studied particle momenta
+  std::vector<double> m_triggerMomenta;         //!< Studied particle momenta for trigger (i.e. strip detector, outer detector)
+  std::vector<double> m_thresholdProbabilities; //!< Studied trigger efficiencies
+
+  const char* c_HOMEDIRECTORY                   = "HOME";
+  const char* c_CONFIGURATIONFILENAME           = ".tkgeometryrc";
+  const char* c_CONFIGURATIONFILENAMEDEFINITION = "TKGEOMETRYRC";
+  const char* c_BINDIRECTORYDEFINITION          = "TKG_BINDIRECTORY";
+  const char* c_LAYOUTDIRECTORYDEFINITION       = "TKG_LAYOUTDIRECTORY";
+  const char* c_STANDARDDIRECTORYDEFINITION     = "TKG_STANDARDDIRECTORY";
+  const char* c_MOMENTADEFINITION               = "TKG_MOMENTA";
+  const char* c_TRIGGERMOMENTADEFINITION        = "TKG_TRIGGERMOMENTA";
+  const char* c_THRESHOLDPROBABILITIESDEFINITION= "TKG_THRESHOLD_PROB";
 };
 
 #endif
