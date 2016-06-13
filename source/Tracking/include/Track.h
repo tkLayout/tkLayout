@@ -115,7 +115,7 @@ public:
   const std::set<std::string>& getTags() const { return m_tags; }
 
   //! Get a vector of pairs: Detector module & hit type
-  std::vector<std::pair<DetectorModule*, HitType>> getHitModules() const;
+  std::vector<std::pair<const DetectorModule*, HitType>> getHitModules() const;
 
   const double& getDeltaRho() const      { return m_deltaRho; }
   const double& getDeltaPhi() const      { return m_deltaPhi; }

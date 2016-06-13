@@ -230,8 +230,8 @@ Hit* Track::addIPConstraint(double dr, double dz) {
 
   newHit->setPixel(false);
   newHit->setCorrectedMaterial(emptyMaterial);
-  newHit->setOrientation(Hit::Horizontal);
-  newHit->setObjectKind(Hit::Active);
+  newHit->setOrientation(HitOrientation::Horizontal);
+  newHit->setObjectKind(HitKind::Active);
   newHit->setResolutionRphi(dr);
   newHit->setResolutionY(dz);
   this->addHit(newHit);
@@ -277,11 +277,11 @@ void Track::keepTaggedOnly(const string& tag) {
 
   for (auto iHit : m_hits) {
 
-    DetectorModule* module = iHit->getHitModule();
+    const DetectorModule* module = iHit->getHitModule();
     if (!module) continue;
 
-    if (std::count_if(module->trackingTags.begin(), module->trackingTags.end(), [&tag](const string& s){ return s == tag; })) iHit->setObjectKind(Hit::Active);
-    else iHit->setObjectKind(Hit::Inactive);
+    if (std::count_if(module->trackingTags.begin(), module->trackingTags.end(), [&tag](const string& s){ return s == tag; })) iHit->setObjectKind(HitKind::Active);
+    else iHit->setObjectKind(HitKind::Inactive);
   }
 }
 
@@ -328,9 +328,9 @@ void Track::printHits() {
               << " d="  << it->getDistance()
               << " rl=" << it->getCorrectedMaterial().radiation
               << " il=" << it->getCorrectedMaterial().interaction
-              << " getObjectKind()=" << it->getObjectKind();
-    if (it->getObjectKind()==Hit::Active) {
-      std::cout << " activeHitType_=" << it->getActiveHitType();
+              << " getObjectKind()=" << static_cast<short>(it->getObjectKind());
+    if (it->getObjectKind()==HitKind::Active) {
+      std::cout << " activeHitType_=" << static_cast<short>(it->getActiveHitType());
     }
     std::cout << std::endl;
   }
@@ -374,7 +374,7 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
     if (iHit) {
       if ((useIP) || (!iHit->isIP())) {
         for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-          if ((tag==*it) && (iHit->getObjectKind()==Hit::Active)) nHits++;
+          if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) nHits++;
         }
       }
     }
@@ -398,7 +398,7 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
   for (auto iHit : m_hits) {
     if (iHit) {
       for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-         if ((tag==*it) && (iHit->getObjectKind()==Hit::Active)) probabilities.push_back(probability);
+         if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) probabilities.push_back(probability);
       }
 
       // Decrease the probability that the next hit is a clean one
@@ -428,7 +428,7 @@ double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
 
     if (iHit) {
       for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-        if ((tag==*it) && (iHit->getObjectKind()==Hit::Active)) goodHits++;
+        if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) goodHits++;
       }
 
 
@@ -464,17 +464,17 @@ RILength Track::getMaterial() {
 //
 // Get a vector of pairs: Detector module & hit type
 //
-std::vector<std::pair<DetectorModule*, HitType>> Track::getHitModules() const {
+std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() const {
 
-  std::vector<std::pair<DetectorModule*, HitType>> result;
+  std::vector<std::pair<const DetectorModule*, HitType>> result;
 
   for (auto iHit : m_hits) {
 
-    if ((iHit) && (iHit->isTrigger()) && (!iHit->isIP()) && (iHit->getObjectKind()==Hit::Active)) {
+    if ((iHit) && (iHit->isTrigger()) && (!iHit->isIP()) && (iHit->getObjectKind()==HitKind::Active)) {
 
       // We've got a possible trigger here
       // Let's find the corresponding module
-      DetectorModule* myModule = iHit->getHitModule();
+      const DetectorModule* myModule = iHit->getHitModule();
       if (myModule) result.push_back(std::make_pair(myModule, iHit->getActiveHitType()));
       else {
         // Whoops: problem here: an active hit is not linked to any module
@@ -526,7 +526,7 @@ void Track::computeCorrelationMatrixRPhi() {
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
-    if (m_hits.at(c)->getObjectKind() == Hit::Inactive) {
+    if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
       for (int r = 0; r <= c; r++) m_correlationsRPhi(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
@@ -534,7 +534,7 @@ void Track::computeCorrelationMatrixRPhi() {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == Hit::Inactive) m_correlationsRPhi(r, c) = 0.0;
+        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_correlationsRPhi(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -566,11 +566,11 @@ void Track::computeCorrelationMatrixRPhi() {
 
   for (int i = 0; i < n; i++) {
 
-    if ((m_hits.at(i)->getObjectKind() == Hit::Inactive) && (!look_for_active)) {
+    if ((m_hits.at(i)->getObjectKind() == HitKind::Inactive) && (!look_for_active)) {
       nResized = i;
       look_for_active = true;
     }
-    else if ((m_hits.at(i)->getObjectKind() == Hit::Active) && (look_for_active)) {
+    else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
         m_correlationsRPhi(nResized, j) = m_correlationsRPhi(i, j);
@@ -619,7 +619,7 @@ void Track::computeCovarianceMatrixRPhi() {
   // Set up partial derivative matrices diffs and diffsT -> using Karimaki approach & parabolic aproximations to define these matrices
   for (auto i = 0; i < nHits; i++) {
 
-    if (m_hits.at(i)->getObjectKind()  == Hit::Active) {
+    if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
       diffs(i - offset, 0) = 0.5 * m_hits.at(i)->getRadius() * m_hits.at(i)->getRadius();
       diffs(i - offset, 1) = - m_hits.at(i)->getRadius();
       diffs(i - offset, 2) = 1;
@@ -672,7 +672,7 @@ void Track::computeCorrelationMatrixRZ() {
   for (int c = 0; c < n; c++) {
 
     // Dummy value for correlations involving inactive surfaces
-    if (m_hits.at(c)->getObjectKind() == Hit::Inactive) {
+    if (m_hits.at(c)->getObjectKind() == HitKind::Inactive) {
       for (int r = 0; r <= c; r++) m_correlationsRZ(r, c) = 0.0;
     }
     // One of the correlation factors refers to an active surface
@@ -680,7 +680,7 @@ void Track::computeCorrelationMatrixRZ() {
 
       for (int r = 0; r <= c; r++) {
         // Dummy value for correlation involving an inactive surface
-        if (m_hits.at(r)->getObjectKind() == Hit::Inactive) m_correlationsRZ(r, c) = 0.0;
+        if (m_hits.at(r)->getObjectKind() == HitKind::Inactive) m_correlationsRZ(r, c) = 0.0;
 
         // Correlations between two active surfaces
         else {
@@ -716,11 +716,11 @@ void Track::computeCorrelationMatrixRZ() {
 
   for (int i = 0; i < n; i++) {
 
-    if ((m_hits.at(i)->getObjectKind() == Hit::Inactive) && (!look_for_active)) {
+    if ((m_hits.at(i)->getObjectKind() == HitKind::Inactive) && (!look_for_active)) {
       nResized = i;
       look_for_active = true;
     }
-    else if ((m_hits.at(i)->getObjectKind() == Hit::Active) && (look_for_active)) {
+    else if ((m_hits.at(i)->getObjectKind() == HitKind::Active) && (look_for_active)) {
 
       for (int j = 0; j < n; j++) {
         m_correlationsRZ(nResized, j) = m_correlationsRZ(i, j);
@@ -760,7 +760,7 @@ void Track::computeCovarianceMatrixRZ() {
   // Set up partial derivative matrices diffs and diffsT -> line fit in s-Z to define these matrices
   for (auto i = 0; i < nHits; i++) {
 
-    if (m_hits.at(i)->getObjectKind()  == Hit::Active) {
+    if (m_hits.at(i)->getObjectKind()  == HitKind::Active) {
 
       // Partial derivatives for x = p[0] * y + p[1]
       diffs(i - offset, 0) = m_hits.at(i)->getRadius();
