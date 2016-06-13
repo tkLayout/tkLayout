@@ -30,6 +30,7 @@ enum class HitKind        : short { Undefined, Active, Inactive };     // Hit ob
  * All the other information is available to both categories. For convenience, the scaled radiation and interaction lengths are stored in
  * here as well to avoid additional computation and callbacks to the material property objects.
  */
+// TODO: Remove pointer to track and find another method without any pointers involved!
 class Hit {
 
 public:

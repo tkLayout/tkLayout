@@ -199,7 +199,13 @@ double Hit::getResolutionZ(double trackR) {
   else {
 
     if (m_hitModule) {
-      return m_hitModule->resolutionEquivalentZ(getRadius(), trackR, m_track->getCotgTheta());
+
+      if (m_track==nullptr) {
+
+        logWARNING("Hit::getResolutionZ -> no track assigned, will return zero!");
+        return 0;
+      }
+      else return m_hitModule->resolutionEquivalentZ(getRadius(), trackR, m_track->getCotgTheta());
       //if (isTrigger_) return hitModule_->resolutionYTrigger();
       //else return hitModule_->resolutionY();
     }
