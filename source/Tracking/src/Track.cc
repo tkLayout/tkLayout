@@ -350,7 +350,7 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
   m_magField  = SimParms::getInstance()->magneticField();
   m_radius    = m_pt / (0.3 * m_magField);
 
-  m_direction.SetCoordinates(m_radius/sin(m_theta), m_theta, m_phi);
+  m_direction.SetCoordinates(1, m_theta, m_phi);
 
   if (m_magField<=0) {
     logERROR("Track::setThetaPhiPt -> Magnetic field not defined!!!");
@@ -363,7 +363,7 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
 };
 
 //
-// Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
+// Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
 //
 int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
 
@@ -374,7 +374,7 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
     if (iHit) {
       if ((useIP) || (!iHit->isIP())) {
         for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-          if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) nHits++;
+          if ((tag==*it || tag=="all") && (iHit->getObjectKind()==HitKind::Active)) nHits++;
         }
       }
     }
@@ -385,6 +385,7 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
 
 //
 // Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
+// If tag specified as "all" no extra tag required
 //
 std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
 
@@ -398,7 +399,7 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
   for (auto iHit : m_hits) {
     if (iHit) {
       for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-         if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) probabilities.push_back(probability);
+         if ((tag==*it || tag=="all") && (iHit->getObjectKind()==HitKind::Active)) probabilities.push_back(probability);
       }
 
       // Decrease the probability that the next hit is a clean one

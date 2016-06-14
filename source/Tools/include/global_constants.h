@@ -112,6 +112,13 @@ static const double vis_eta_step           = 0.1;
 static const double vis_material_eta_step  = 0.05;
 static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
+// Colors for plot background and such
+static const int color_plot_background     = kWhite;
+static const int color_pad_background      = kGray;
+static const int color_grid                = kGreen-10;
+static const int color_hard_grid           = kGray;
+static const std::vector<std::string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
+
 /**
  * Internal string constants for standard one-sided and specialised double-sided, rotated types
  */

@@ -336,7 +336,7 @@ double DetectorModule::effectiveDsDistance() const {
   else return dsDistance()*sin(center().Theta())/sin(center().Theta()+tiltAngle());
 }
 
-std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) {
+std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const {
 
   HitType ht = HitType::NONE;
   XYZVector gc; // global coordinates of the hit
@@ -359,7 +359,7 @@ std::pair<XYZVector, HitType> DetectorModule::checkTrackHits(const XYZVector& tr
     else if (outSegm.second > -1) { gc = outSegm.first; ht = HitType::OUTER; }
   }
   //basePoly().isLineIntersecting(trackOrig, trackDir, gc); // this was just for debug
-  if (ht != HitType::NONE) m_numHits++;
+  // if (ht != HitType::NONE) m_numHits++; // TODO: correct -> don't change it's content!!!
   return std::make_pair(gc, ht);
 };
 

@@ -64,6 +64,7 @@ public:
   void setTrack(const Track* newTrack)              { m_track = newTrack; updateRadius();};
   void setCorrectedMaterial(RILength newMaterial)   { m_correctedMaterial = newMaterial;};
   void setPixel(bool isPixel)                       { m_isPixel = isPixel;}
+  void setBeamPipe(bool isBeamPipe)                 { m_isBeamPipe = isBeamPipe;}
   void setTrigger(bool isTrigger)                   { m_isTrigger = isTrigger;}
   void setResolutionRphi(double newRes)             { m_resolutionRphi = newRes; } // Only used for virtual hits on non-modules
   void setResolutionY(double newRes)                { m_resolutionY = newRes; } // Only used for virtual hits on non-modules
@@ -86,6 +87,7 @@ public:
   bool isPixel() const   { return m_isPixel; };
   bool isTrigger() const { return m_isTrigger; };
   bool isIP() const      { return m_isIP; };
+  bool isBeamPipe() const{ return m_isBeamPipe; };
   bool isSquareEndcap();
   bool isStub() const;
 
@@ -100,11 +102,12 @@ protected:
   const DetectorModule* m_hitModule;  //!< Const pointer to the hit module
   const Track*          m_track;      //!< Const pointer to the track, into which the hit was assigned
   
-  RILength m_correctedMaterial;
+  RILength m_correctedMaterial; //!< Material in the way of particle shot at m_track direction, i.e. theta, module tilt angles corrected
   
   bool m_isPixel;   //!< Hit coming from the pixel module?
   bool m_isTrigger; //!< Hit comint from the trigger module?
   bool m_isIP;      //!< An artificial hit, simulating IP constraint?
+  bool m_isBeamPipe;//!< An artificial hit, simulating colision with beam-pipe?
 
 private:
   

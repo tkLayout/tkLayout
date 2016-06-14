@@ -98,8 +98,8 @@ namespace insur {
         double getTotalMass() const;
         double getLocalMass();
         double getExitingMass();
-        double getRadiationLength();
-        double getInteractionLength();
+        double getRadiationLength() const;
+        double getInteractionLength() const ;
         RILength getMaterialLengths();
         const std::map<std::string, RILength>& getComponentsRI() const;
         // output calculations

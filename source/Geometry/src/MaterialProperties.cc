@@ -252,7 +252,7 @@ namespace insur {
      * Get the radiation length of the inactive element.
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
-    double MaterialProperties::getRadiationLength() { return r_length; }
+    double MaterialProperties::getRadiationLength() const { return r_length; }
     
 
     const std::map<std::string, RILength>& MaterialProperties::getComponentsRI() const { return componentsRI; } // CUIDADO: I know it parts with the old API but it's so much more practical this way
@@ -261,7 +261,7 @@ namespace insur {
      * Get the intraction length of the inactive element.
      * @return The overall radiation length, taking into account all registered materials; -1 if the value has not yet been computed
      */
-    double MaterialProperties::getInteractionLength() { return i_length; }
+    double MaterialProperties::getInteractionLength() const { return i_length; }
 
     RILength MaterialProperties::getMaterialLengths() {
       RILength myMaterials;
