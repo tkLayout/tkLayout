@@ -40,8 +40,8 @@ int main(int argc, char* argv[]) {
     ("verbosity", po::value<int>(&verbosity)->default_value(1), "Levels of details in the program's output (overridden by the option 'quiet').")
     ("quiet", "No output is produced, except the required messages (equivalent to verbosity 0, overrides the option 'verbosity')")
     ("performance", "Outputs the CPU time needed for each computing step (overrides the option 'quiet').")
-    ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random");
-    //("pixelxml", "Produce XML output files for pixel.\nThe config file name (minus extension)\nwill be used as subdir.");
+    ("randseed", po::value<int>(&randseed)->default_value(0xcafebabe), "Set the random seed\nIf explicitly set to 0, seed is random")
+    ;
     
   po::options_description trackopt("Track simulation options");
   trackopt.add_options()

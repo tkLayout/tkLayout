@@ -152,7 +152,7 @@ namespace insur {
         while (std::getline(in, line) && (line.find(xml_insert_marker) == std::string::npos)) out << line << std::endl;
 
         // Add Phase2OTBarrel
-	out << xml_spec_par_open << trackerXmlTags.topo_barrel_spec << xml_par_tail << xml_general_inter;       
+	out << xml_spec_par_open << trackerXmlTags.topo_barrel_name << xml_par_tail << xml_general_inter;       
 	out << xml_spec_par_selector;
 	if (isPixelTracker) out << xml_pixbarident << ":";
 	out << trackerXmlTags.bar << xml_general_endline;
@@ -160,8 +160,8 @@ namespace insur {
         out << xml_spec_par_close;
 
         // Add Layers
-        out << xml_spec_par_open <<  trackerXmlTags.topo_layer_spec << xml_par_tail << xml_general_inter;
-        pos = findEntry(t, xml_subdet_layer + xml_par_tail);
+        out << xml_spec_par_open <<  trackerXmlTags.topo_layer_name << xml_par_tail << xml_general_inter;
+        pos = findEntry(t, trackerXmlTags.topo_layer_name + xml_par_tail);
         if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
@@ -171,8 +171,8 @@ namespace insur {
         out << xml_spec_par_close;
 
         // Add straight rods
-        out << xml_spec_par_open << trackerXmlTags.topo_straight_rod_spec << xml_par_tail << xml_general_inter;
-        pos = findEntry(t, xml_subdet_straight_rod + xml_par_tail);
+        out << xml_spec_par_open << trackerXmlTags.topo_straight_rod_name << xml_par_tail << xml_general_inter;
+        pos = findEntry(t, trackerXmlTags.topo_straight_rod_name + xml_par_tail);
         if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
@@ -206,7 +206,7 @@ namespace insur {
 	}
 
         // Add Phase2OTForward
-	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_spec << xml_par_tail << xml_general_inter;
+	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
 	out << xml_spec_par_selector;
 	if (isPixelTracker) out << xml_pixfwdident << ":";
 	out << trackerXmlTags.fwd << xml_general_endline;
@@ -214,8 +214,8 @@ namespace insur {
 	out << xml_spec_par_close;
 
         // Add Disks
-        out << xml_spec_par_open << trackerXmlTags.topo_disc_spec << xml_par_tail << xml_general_inter;
-        pos = findEntry(t, xml_subdet_wheel + xml_par_tail);
+        out << xml_spec_par_open << trackerXmlTags.topo_disc_name << xml_par_tail << xml_general_inter;
+        pos = findEntry(t, trackerXmlTags.topo_disc_name + xml_par_tail);
         if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
@@ -238,8 +238,8 @@ namespace insur {
 	}
 
 	// Add EndcapStack
-	out << xml_spec_par_open << trackerXmlTags.topo_emodule_spec << xml_par_tail << xml_general_inter;
-	pos = findEntry(t, xml_subdet_endcap_stack + xml_par_tail);
+	out << xml_spec_par_open << trackerXmlTags.topo_emodule_name << xml_par_tail << xml_general_inter;
+	pos = findEntry(t, trackerXmlTags.topo_emodule_name + xml_par_tail);
 	if (pos != -1) {
 	  for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	    out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
@@ -902,7 +902,7 @@ namespace insur {
     std::vector<PathInfo> tblocks;
     blocks.clear();
     //TOB
-    lindex = findEntry(specs, xml_subdet_layer + xml_par_tail);
+    lindex = findEntry(specs, trackerXmlTags.topo_layer_name + xml_par_tail);
     rindex = findEntry(specs, xml_subdet_straight_or_tilted_rod + xml_par_tail);
     mindex = findEntry(specs, xml_subdet_tobdet + xml_par_tail);
     if ((lindex >= 0) && (rindex >= 0) && (mindex >= 0)) {
@@ -959,7 +959,7 @@ namespace insur {
 
 	  // taking the rod or (if any) tilted ring matching the current layer
 	  if (lnumber == compstr) {
-	    spname = trackerXmlTags.reco_layer_spec + xml_pixbar + xml_layer + lnumber;
+	    spname = trackerXmlTags.reco_layer_name + xml_pixbar + xml_layer + lnumber;
 	    layer = atoi(lnumber.c_str());
 	    if (!isPixelTracker) prefix = trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
 	    else prefix = xml_pixbarident + ":" + trackerXmlTags.bar + "/" + trackerXmlTags.nspace + ":" + xml_layer + lnumber + "/";
@@ -1017,9 +1017,9 @@ namespace insur {
 	}
       }
     }
-    else { std::cerr << xml_subdet_layer << " or " << xml_subdet_straight_or_tilted_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    else { std::cerr << trackerXmlTags.topo_layer_name << " or " << xml_subdet_straight_or_tilted_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
     //TID
-    dindex = findEntry(specs, xml_subdet_wheel + xml_par_tail);
+    dindex = findEntry(specs, trackerXmlTags.topo_disc_name + xml_par_tail);
     rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
     windex = findEntry(specs, xml_subdet_tiddet + xml_par_tail);
     if ((dindex >= 0) && (rindex >= 0) && (windex >= 0)) {
@@ -1036,8 +1036,8 @@ namespace insur {
 	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);
 	else index << 11 + i;
 	layer = atoi(dnumber.c_str());
-	if (!isPixelTracker) spname = trackerXmlTags.reco_disc_spec + index.str();
-	else spname = trackerXmlTags.reco_disc_spec + index.str() + "Fw";
+	if (!isPixelTracker) spname = trackerXmlTags.reco_disc_name + index.str();
+	else spname = trackerXmlTags.reco_disc_name + index.str() + "Fw";
 
 	//if (plus) spname = spname + xml_forward;
 	//else spname = spname + xml_backward;
@@ -1121,7 +1121,7 @@ namespace insur {
 	tpaths.clear();
       }
     }
-    else { std::cerr << xml_subdet_wheel << " or " << xml_subdet_ring << " or " << xml_subdet_tiddet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    else { std::cerr << trackerXmlTags.topo_disc_name << " or " << xml_subdet_ring << " or " << xml_subdet_tiddet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
     blocks.insert(blocks.end(), tblocks.begin(), tblocks.end());
     return blocks;
   }

@@ -483,17 +483,17 @@ namespace insur {
     ModuleROCInfo minfo_zero={};
     SpecParInfo rocdims, lspec, rspec, srspec, trspec, sspec, mspec;    
     // Layer
-    lspec.name = xml_subdet_layer + xml_par_tail;
+    lspec.name = trackerXmlTags.topo_layer_name + xml_par_tail;
     lspec.parameter.first = xml_tkddd_structure;
-    lspec.parameter.second = xml_det_layer;
+    lspec.parameter.second = trackerXmlTags.topo_layer_value;
     // Rod (straight or tilted)
     rspec.name = xml_subdet_straight_or_tilted_rod + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_straight_or_tilted_rod;
     // Straight Rod
-    srspec.name = xml_subdet_straight_rod + xml_par_tail;
+    srspec.name = trackerXmlTags.topo_straight_rod_name + xml_par_tail;
     srspec.parameter.first = xml_tkddd_structure;
-    srspec.parameter.second = xml_det_straight_rod;
+    srspec.parameter.second = trackerXmlTags.topo_straight_rod_value;
     // Tilted Ring (if any)
     trspec.name = xml_subdet_tilted_ring + xml_par_tail;
     trspec.parameter.first = xml_tkddd_structure;
@@ -506,25 +506,6 @@ namespace insur {
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tobdet;
-    
-    /*if (isPixelTracker) {
-      SpecParInfo barrel_spec;
-      //Barrel
-      barrel_spec.name = xml_phaseII_pixbar + xml_par_tail;
-      barrel_spec.parameter.first = xml_tkddd_structure;
-      barrel_spec.parameter.second = "PixelPhase1Barrel";
-      barrel_spec.partselectors.push_back("pixbar:" + xml_phaseII_pixbar);
-      barrel_spec.moduletypes.push_back(minfo_zero);
-      // Rod (straight or tilted)
-      rsspec.name = xml_phaseII_pixbar + xml_rod + xml_par_tail;
-      // Straight Rod
-      srspec.name = xml_phaseII_pixbar + xml_rod + xml_par_tail;  
-      //Module
-      
-      mspec.parameter.second = xml_subdet_tobdet_1;
-      
-      }*/
-   
 
 
     // material properties
@@ -1331,44 +1312,22 @@ namespace insur {
     ModuleROCInfo minfo;
     ModuleROCInfo minfo_zero={}; 
     SpecParInfo rocdims, dspec, rspec, sspec, mspec;
-    // Disk
-    dspec.name = xml_subdet_wheel + xml_par_tail;
+    // Disc
+    dspec.name = trackerXmlTags.topo_disc_name + xml_par_tail;
     dspec.parameter.first = xml_tkddd_structure;
-    dspec.parameter.second = xml_det_wheel;
+    dspec.parameter.second = trackerXmlTags.topo_disc_value;
     // Ring
-    rspec.name = xml_subdet_ring + xml_par_tail;
+    if (!isPixelTracker) rspec.name = xml_subdet_ring + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_ring;
     // Module stack
-    sspec.name = xml_subdet_endcap_stack + xml_par_tail;
+    sspec.name = trackerXmlTags.topo_emodule_name + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
-    sspec.parameter.second = xml_subdet_2OT_endcap_stack;
+    sspec.parameter.second = trackerXmlTags.topo_emodule_value;
     // Module
     mspec.name = xml_subdet_tiddet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tiddet;
-
-
-    /* //PIXEL 
-       Endcap
-    endcap_spec.name = xml_phaseII_pixecapsubdet + xml_par_tail;
-    endcap_spec.parameter.first = xml_tkddd_structure;
-    endcap_spec.parameter.second = xml_phaseII_pixecapsubdet;
-    endcap_spec.partselectors.push_back(xml_pixfwdident + ":" + xml_phaseII_pixecap);
-    endcap_spec.moduletypes.push_back(minfo_zero);
-    // Disk
-    disc_spec.name = xml_subdet_wheel + xml_par_tail;
-    disc_spec.parameter.first = xml_tkddd_structure;
-    disc_spec.parameter.second = xml_phaseII_pixfulldisk;
-    // Ring
-    ring_spec.name = xml_subdet_ring + xml_par_tail;
-    ring_spec.parameter.first = xml_tkddd_structure;
-    ring_spec.parameter.second = xml_subdet_ring;
-    //Module
-    SpecParInfo module_spec;//, flip_spec;
-    module_spec.parameter.first = xml_tkddd_structure;
-    module_spec.parameter.second = xml_subdet_tiddet;
-    */
 
 
     // material properties
