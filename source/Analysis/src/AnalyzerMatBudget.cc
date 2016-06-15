@@ -39,19 +39,14 @@ AnalyzerMatBudget::AnalyzerMatBudget(std::vector<const Tracker*> trackers, const
  m_nTracks(0),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
- m_etaMax(+1*geom_max_eta_coverage),
- m_hadronTotalHitsGraph(nullptr),
- m_hadronAverageHitsGraph(nullptr)
+ m_etaMax(+1*geom_max_eta_coverage)
 {};
 
 //
 // Destructor
 //
 AnalyzerMatBudget::~AnalyzerMatBudget()
-{
-  if (m_hadronTotalHitsGraph!=nullptr) delete m_hadronTotalHitsGraph;
-  if (m_hadronAverageHitsGraph!=nullptr) delete m_hadronAverageHitsGraph;
-}
+{}
 
 //
 // AnalyzerMatBudget init method
@@ -157,6 +152,34 @@ bool AnalyzerMatBudget::init(int nMatTracks)
       m_intMB[trkName]["Total"].Reset();
       m_intMB[trkName]["Total"].SetNameTitle("intMBTotal", "Total Interaction Length");
       m_intMB[trkName]["Total"].SetBins(m_nTracks, 0, m_etaMax);
+
+      // Nuclear interactions
+      m_hadronTotalHitsGraph[trkName].SetName(std::string("HadronTotalHitsGraphIn"+trkName).c_str());
+      m_hadronAverageHitsGraph[trkName].SetName(std::string("HadronAverageHitsGraphIn"+trkName).c_str());
+
+      // Clear the list of requested good hadron hits
+      m_hadronNeededHitsFraction[trkName].clear();
+      m_hadronGoodTracksFraction[trkName].clear();
+
+      m_hadronNeededHitsFraction[trkName].push_back(0);
+      m_hadronNeededHitsFraction[trkName].push_back(0.0001);
+      //m_hadronNeededHitsFraction[trkName].push_back(.33);
+      m_hadronNeededHitsFraction[trkName].push_back(.66);
+      m_hadronNeededHitsFraction[trkName].push_back(1);
+
+      std::sort(m_hadronNeededHitsFraction[trkName].begin(),
+                m_hadronNeededHitsFraction[trkName].end());
+
+      // Prepare the plots for the track survival fraction
+      ostringstream tempSS;
+      for (auto i=0; i<m_hadronNeededHitsFraction[trkName].size(); ++i) {
+        tempSS.str("");
+        tempSS << "hadronGoodTracksFraction_at" << m_hadronNeededHitsFraction[trkName].at(i);
+        TGraph myGraph;
+        myGraph.SetName(tempSS.str().c_str());
+        m_hadronGoodTracksFraction[trkName].push_back(myGraph);
+      }
+
     }  // For trackers
 
     // Material distribution in beam-pipe
@@ -167,24 +190,32 @@ bool AnalyzerMatBudget::init(int nMatTracks)
     m_intMB["Beampipe"]["Total"].SetNameTitle("intMBPipe", "BeamPipe Interaction Length");
     m_intMB["Beampipe"]["Total"].SetBins(m_nTracks, 0, m_etaMax);
 
-    // Nuclear interactions
-    m_hadronTotalHitsGraph = new TGraph();
-    m_hadronTotalHitsGraph->SetName("hadronTotalHitsGraph");
-    m_hadronAverageHitsGraph = new TGraph();
-    m_hadronAverageHitsGraph->SetName("hadronAverageHitsGraph");
-
-    // Clear the list of requested good hadron hits
-    m_hadronNeededHitsFraction.clear();
-    m_hadronGoodTracksFraction.clear();
-
-    m_hadronNeededHitsFraction.push_back(0);
-    m_hadronNeededHitsFraction.push_back(0.0001);
-    //m_hadronNeededHitsFraction.push_back(.33);
-    m_hadronNeededHitsFraction.push_back(.66);
-    m_hadronNeededHitsFraction.push_back(1);
-
-    std::sort(m_hadronNeededHitsFraction.begin(),
-              m_hadronNeededHitsFraction.end());
+//    // Nuclear interactions
+//    m_hadronTotalHitsGraph["Tracker"].SetName(std::string("HadronTotalHitsGraphInTracker").c_str());
+//    m_hadronAverageHitsGraph["Tracker"].SetName(std::string("HadronAverageHitsGraphInTracker").c_str());
+//
+//    // Clear the list of requested good hadron hits
+//    m_hadronNeededHitsFraction["Tracker"].clear();
+//    m_hadronGoodTracksFraction["Tracker"].clear();
+//
+//    m_hadronNeededHitsFraction["Tracker"].push_back(0);
+//    m_hadronNeededHitsFraction["Tracker"].push_back(0.0001);
+//    //m_hadronNeededHitsFraction["Tracker"].push_back(.33);
+//    m_hadronNeededHitsFraction["Tracker"].push_back(.66);
+//    m_hadronNeededHitsFraction["Tracker"].push_back(1);
+//
+//    std::sort(m_hadronNeededHitsFraction["Tracker"].begin(),
+//              m_hadronNeededHitsFraction["Tracker"].end());
+//
+//    // Prepare the plots for the track survival fraction
+//    ostringstream tempSS;
+//    for (auto i=0; i<m_hadronNeededHitsFraction["Tracker"].size(); ++i) {
+//      tempSS.str("");
+//      tempSS << "hadronGoodTracksFraction_at" << m_hadronNeededHitsFraction["Tracker"].at(i);
+//      TGraph myGraph;
+//      myGraph.SetName(tempSS.str().c_str());
+//      m_hadronGoodTracksFraction["Tracker"].push_back(myGraph);
+//    }
 
     m_isInitOK = true;
     return m_isInitOK;
@@ -334,7 +365,7 @@ bool AnalyzerMatBudget::analyze()
         int nActive = matTrack.getNActiveHits("all",true);
         if (nActive>0) {
 
-          m_hadronTotalHitsGraph->SetPoint(m_hadronTotalHitsGraph->GetN(), eta, nActive);
+          m_hadronTotalHitsGraph[trkName].SetPoint(m_hadronTotalHitsGraph[trkName].GetN(), eta, nActive);
 
           double probability;
           std::vector<double> probabilities = matTrack.getHadronActiveHitsProbability("all");
@@ -354,13 +385,13 @@ bool AnalyzerMatBudget::analyze()
             moreThanProb += exactProb;
           }
 
-          m_hadronAverageHitsGraph->SetPoint(m_hadronAverageHitsGraph->GetN(), eta, averageHits);
+          m_hadronAverageHitsGraph[trkName].SetPoint(m_hadronAverageHitsGraph[trkName].GetN(), eta, averageHits);
           //m_hadronAverageHitsGraph.SetPointError(_hadronAverageHitsGraph.GetN()-1, 0, sqrt( averageSquaredHits - averageHits*averageHits) );
 
           unsigned int requiredHits;
-          for (unsigned int i = 0; i<m_hadronNeededHitsFraction.size(); ++i) {
+          for (unsigned int i = 0; i<m_hadronNeededHitsFraction[trkName].size(); ++i) {
 
-            requiredHits = int(ceil(double(nActive) * m_hadronNeededHitsFraction.at(i)));
+            requiredHits = int(ceil(double(nActive) * m_hadronNeededHitsFraction[trkName].at(i)));
             if      (requiredHits==0)                   probability = 1;
             else if (requiredHits>probabilities.size()) probability = 0;
             else                                        probability = probabilities.at(requiredHits-1);
@@ -372,7 +403,7 @@ bool AnalyzerMatBudget::analyze()
             //              << endl;
             // std::cerr << "      PROBABILITY = " << probability << endl << endl;
             //}
-            m_hadronGoodTracksFraction.at(i).SetPoint(m_hadronGoodTracksFraction.at(i).GetN(), eta, probability);
+            m_hadronGoodTracksFraction[trkName].at(i).SetPoint(m_hadronGoodTracksFraction[trkName].at(i).GetN(), eta, probability);
           }
         }
       } // Calculate efficiency plots
@@ -424,6 +455,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
   RootWContent* myContent = nullptr;
   RootWImage*   myImage   = nullptr;
   RootWTable*   myTable   = nullptr;
+
+  // Set Rainbow palette for drawing
+  Palette::setRootPalette(55);
 
   for (int iTrk=0; iTrk<=m_trackers.size(); iTrk++) {
 
@@ -851,82 +885,84 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myContent->addItem(myImage);
 
     //
-    // Hits occupancy
-    myContent = new RootWContent("Hits occupancy & track efficiency", true);
-    myPage->addContent(myContent);
+    // Hits occupancy: TODO Fix for full tracker
+    if (trkName!="Tracker") {
+      myContent = new RootWContent("Hits occupancy & track efficiency", false);
+      myPage->addContent(myContent);
 
-    // Set variables
-    std::map<int, std::vector<double> > averages;
+      // Set variables
+      std::map<int, std::vector<double> > averages;
 
-    // Number of hits
-    myCanvas = new TCanvas(std::string("HadronsHitsNumberIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
-    myCanvas->Divide(2, 1);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
-    myPad->cd();
+      // Number of hits
+      myCanvas = new TCanvas(std::string("HadronsHitsNumberIn"+trkName).c_str());
+      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->Divide(2, 1);
+      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
+      myPad->SetFillColor(color_pad_background);
+      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
+      myPad->cd();
 
-    m_hadronTotalHitsGraph->SetTitle("Maximum (black) & average (red) number of hits");
-    m_hadronAverageHitsGraph->SetTitle("Maximum (black) & average (red) number of hits");
-    m_hadronTotalHitsGraph->SetMarkerStyle(8);
-    m_hadronTotalHitsGraph->SetMarkerColor(kBlack);
-    m_hadronTotalHitsGraph->SetMinimum(0);
-    m_hadronTotalHitsGraph->GetXaxis()->SetTitle("#eta");
-    m_hadronTotalHitsGraph->Draw("alp");
-    m_hadronAverageHitsGraph->SetMarkerStyle(8);
-    m_hadronAverageHitsGraph->SetMarkerColor(kRed);
-    m_hadronAverageHitsGraph->Draw("same lp");
+      m_hadronTotalHitsGraph[trkName].SetTitle("Maximum (black) & average (red) number of hits");
+      m_hadronAverageHitsGraph[trkName].SetTitle("Maximum (black) & average (red) number of hits");
+      m_hadronTotalHitsGraph[trkName].SetMarkerStyle(8);
+      m_hadronTotalHitsGraph[trkName].SetMarkerColor(kBlack);
+      m_hadronTotalHitsGraph[trkName].SetMinimum(0);
+      m_hadronTotalHitsGraph[trkName].GetXaxis()->SetTitle("#eta");
+      m_hadronTotalHitsGraph[trkName].Draw("alp");
+      m_hadronAverageHitsGraph[trkName].SetMarkerStyle(8);
+      m_hadronAverageHitsGraph[trkName].SetMarkerColor(kRed);
+      m_hadronAverageHitsGraph[trkName].Draw("same lp");
 
-    //
-    // Track fraction
-    myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
-    myPad->cd();
-    TLegend* myLegend = new TLegend(0.65, 0.16, .85, .40);
-    // Old-style palette by Stefano, with custom-generated colors
-    // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
-    // Replaced by the libreOffice-like palette
-    TH1D* ranger = new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage);
-    ranger->SetMaximum(1.);
-    ranger->GetXaxis()->SetTitle("#eta");
-    //myAxis = ranger->GetYaxis();
-    //myAxis->SetTitle("Tracks fraction");
-    ranger->Draw();
-    ostringstream tempSS;
-    std::map<int, std::string> fractionTitles;
+      // Track fraction
+      myPad = dynamic_cast<TPad*>(myCanvas->GetPad(2));
+      myPad->cd();
+      TLegend* myLegend = new TLegend(0.65, 0.16, .85, .40);
+      // Old-style palette by Stefano, with custom-generated colors
+      // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
+      // Replaced by the libreOffice-like palette
+      TH1D* ranger = new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage);
+      ranger->SetMaximum(1.);
+      ranger->GetXaxis()->SetTitle("#eta");
+      //myAxis = ranger->GetYaxis();
+      //myAxis->SetTitle("Tracks fraction");
+      ranger->Draw();
+      ostringstream tempSS;
+      std::map<int, std::string> fractionTitles;
 
-    for (auto i=0; i<m_hadronGoodTracksFraction.size(); ++i) {
+      for (auto i=0; i<m_hadronGoodTracksFraction[trkName].size(); ++i) {
 
-      TGraph& myGraph = m_hadronGoodTracksFraction.at(i);
-      //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph.GetN() << " points" << std::endl;
-      //double xx, yy;
-      //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
-      //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-      averages[i] = average(myGraph, geom_range_eta_regions);
-      closeGraph(myGraph);
-      myGraph.SetFillColor(Palette::color(i+1));
-      myGraph.Draw("same F");
-      tempSS.str("");
-      if (m_hadronNeededHitsFraction.at(i)!=0) {
-        if (m_hadronNeededHitsFraction.at(i)==0.0001)
-          tempSS << "1 hit required";
-        else
-          tempSS << int(m_hadronNeededHitsFraction.at(i)*100)
-            << "% hits required";
-        fractionTitles[i]=tempSS.str();
-        myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
+        TGraph& myGraph = m_hadronGoodTracksFraction[trkName].at(i);
+        //std::cerr << "Good Hadrons fractions at (" << i <<") has " << myGraph.GetN() << " points" << std::endl;
+        //double xx, yy;
+        //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
+        //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
+        averages[i] = average(myGraph, geom_range_eta_regions);
+        closeGraph(myGraph);
+        myGraph.SetFillColor(Palette::color(i+1));
+        myGraph.Draw("same F");
+        tempSS.str("");
+        if (m_hadronNeededHitsFraction[trkName].at(i)!=0) {
+          if (m_hadronNeededHitsFraction[trkName].at(i)==0.0001)
+            tempSS << "1 hit required";
+          else
+            tempSS << int(m_hadronNeededHitsFraction[trkName].at(i)*100)
+              << "% hits required";
+          fractionTitles[i]=tempSS.str();
+          myLegend->AddEntry(&myGraph, fractionTitles[i].c_str(), "F");
+        }
       }
+      ranger->Draw("sameaxis");
+      myLegend->Draw();
+
+      myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Hits occupancy & track efficiency for hadrons");
+      myImage->setName("hadHitsTracks");
+      myContent->addItem(myImage);
     }
-    ranger->Draw("sameaxis");
-    myLegend->Draw();
-    myImage = new RootWImage(myCanvas, 2*vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hits occupancy & track efficiency for hadrons");
-    myImage->setName("hadHitsTracks");
-    myContent->addItem(myImage);
 
     //
     // Summary table
-    RootWContent& summaryContent = myPage->addContent("Summary", false);
+    RootWContent& summaryContent = myPage->addContent("Summary", true);
 
     // Define variables
     ostringstream label;

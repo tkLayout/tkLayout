@@ -1,4 +1,5 @@
 #include <Palette.h>
+#include <TStyle.h>
 
 bool Palette::initialized = false;  
 std::map<std::string, int> Palette::colorPickMap;
@@ -45,6 +46,14 @@ Color_t Palette::color(const std::string& type) {
 Color_t Palette::color(const unsigned int& plotIndex) {
   if (!initialized) initializeMe();
   return color_int(plotIndex);
+}
+
+//
+// Set one of predefined Root palette -> default RainBow (i.e. 55)
+//
+void Palette::setRootPalette(short palette=55) {
+
+  gStyle->SetPalette(palette);
 }
 
 //

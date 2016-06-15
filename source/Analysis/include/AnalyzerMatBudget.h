@@ -102,11 +102,11 @@ class AnalyzerMatBudget : public AnalyzerUnit {
   std::map<std::string, TH2D> m_intMap;      //!< Material map in interaction lengths for given tracker: m_radMap[trkName] = TH2D
   std::map<std::string, TH2D> m_intMapCount; //!< Counter for material map in terms of interaction length
 
-  // Hadrons
-  TGraph*             m_hadronTotalHitsGraph;
-  TGraph*             m_hadronAverageHitsGraph;
-  std::vector<double> m_hadronNeededHitsFraction;
-  std::vector<TGraph> m_hadronGoodTracksFraction;
+  // Hadrons -> each variable for given tracker: "Total" corresponds to sum
+  std::map<std::string, TGraph> m_hadronTotalHitsGraph;
+  std::map<std::string, TGraph> m_hadronAverageHitsGraph;
+  std::map<std::string, std::vector<double>> m_hadronNeededHitsFraction;
+  std::map<std::string, std::vector<TGraph>> m_hadronGoodTracksFraction;
 
   // Csv output
   CsvTextBuilder       m_materialCsv;
