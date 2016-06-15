@@ -96,10 +96,14 @@ public:
   double getRho() const                { return (m_radius>0 ? 1/m_radius : 0);}
   double getRadius() const             { return m_radius; }
   
-  //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
+  const Polar3DVector& getDirection() const { return m_direction; }
+  const XYZVector& getOrigin() const        { return m_origin; }
+
+  //! Get number of active hits assigned to track for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file). If tag specified as "all" no extra tag required
   int getNActiveHits(std::string tag, bool useIP = true) const;
 
   //! Get the probabilty of having "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
+  //! If tag specified as "all" no extra tag required
   std::vector<double> getHadronActiveHitsProbability(std::string tag);
 
   //! Get the probabilty of having a given number of "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
@@ -115,7 +119,7 @@ public:
   const std::set<std::string>& getTags() const { return m_tags; }
 
   //! Get a vector of pairs: Detector module & hit type
-  std::vector<std::pair<DetectorModule*, HitType>> getHitModules() const;
+  std::vector<std::pair<const DetectorModule*, HitType>> getHitModules() const;
 
   const double& getDeltaRho() const      { return m_deltaRho; }
   const double& getDeltaPhi() const      { return m_deltaPhi; }

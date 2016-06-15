@@ -67,8 +67,11 @@ public:
   //! Set materials, so called module-cap to a module
   void setModuleCap(ModuleCap* newCap);
 
-  //! Get materials, i.e. module-cap
+  //! Get materials, i.e. module-cap to be modified
   ModuleCap* getModuleCap() { return m_myModuleCap;}
+
+  //! Get materials, i.e. module-cap to be read-only
+  const ModuleCap& getModuleCap() const { return *m_myModuleCap; }
 
   //! Geometric module interface -> return reference to a geometrical representation of a module
   const Polygon3d<4>& basePoly() const { return decorated().basePoly(); }
@@ -216,7 +219,7 @@ public:
   virtual int16_t  moduleRing() const { return -1; }
 
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
-  std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir);
+  std::pair<XYZVector, HitType> checkTrackHits(const XYZVector& trackOrig, const XYZVector& trackDir) const;
 
  protected:
 

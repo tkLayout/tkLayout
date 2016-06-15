@@ -52,8 +52,8 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   ReadonlyProperty<double, Default>   radius;           //!< Beam pipe radius
   ReadonlyProperty<double, Default>   thickness;        //!< Beam pipe thickness
   ReadonlyProperty<double, Default>   maxZ;             //!< Beam pipe extends from minimum Z to maximum Z
-  ReadonlyProperty<double, Default>   radLength;        //!< Beam pipe rad. length in [%] @ 90 deg
-  ReadonlyProperty<double, Default>   intLength;        //!< Beam pipe int. lenght in [%] @ 90 deg
+  ReadonlyProperty<double, Default>   radLength;        //!< Beam pipe rad. length @ 90 deg
+  ReadonlyProperty<double, Default>   intLength;        //!< Beam pipe int. lenght @ 90 deg
 
  private:
 

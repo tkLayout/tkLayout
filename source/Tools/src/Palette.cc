@@ -1,20 +1,24 @@
 #include <Palette.h>
+#include <TStyle.h>
 
 bool Palette::initialized = false;  
 std::map<std::string, int> Palette::colorPickMap;
 
-
 void Palette::initializeMe() {
-  Palette::colorPickMap["pt2S"] = 2;
-  Palette::colorPickMap["rphi"] = 4;
+  Palette::colorPickMap["pt2S"]   = 2;
+  Palette::colorPickMap["rphi"]   = 4;
   Palette::colorPickMap["stereo"] = 6;
-  Palette::colorPickMap["ptIn"] = 9;
-  Palette::colorPickMap["ptPS"] = 1;
-  Palette::colorPickMap["pixel"] = 9;
+  Palette::colorPickMap["ptIn"]   = 9;
+  Palette::colorPickMap["ptPS"]   = 1;
+  Palette::colorPickMap["pixel"]  = 9;
   initialized = true;
 }
 
+//
+// Based on module predefined type return standard color
+//
 Color_t Palette::color(const std::string& type) {
+
   if (!initialized) initializeMe();
   if (type=="") return color_invalid_module;
   if (colorPickMap[type]==0) {
@@ -36,11 +40,25 @@ Color_t Palette::color(const std::string& type) {
   return color_int(colorPickMap[type]);
 }
 
+//
+// Based on index return predefined color, if index higher than color range, modulo range operator used
+//
 Color_t Palette::color(const unsigned int& plotIndex) {
   if (!initialized) initializeMe();
   return color_int(plotIndex);
 }
 
+//
+// Set one of predefined Root palette -> default RainBow (i.e. 55)
+//
+void Palette::setRootPalette(short palette=55) {
+
+  gStyle->SetPalette(palette);
+}
+
+//
+// Internal definition of color map
+//
 Color_t Palette::color_int(const unsigned int& plotIndex) {
   std::string colorCode;
   

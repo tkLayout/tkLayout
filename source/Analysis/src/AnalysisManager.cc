@@ -9,6 +9,7 @@
 // List of units
 #include <AnalyzerUnit.h>
 #include <AnalyzerGeometry.h>
+#include <AnalyzerMatBudget.h>
 #include <AnalyzerResolution.h>
 
 // Other include files
@@ -32,8 +33,14 @@ AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
  m_webSite(nullptr),
  m_webSitePrepared(false)
 {
+  AnalyzerUnit* unit = nullptr;
+
   // Create AnalyzerGeometry
-  AnalyzerGeometry* unit = new AnalyzerGeometry(activeTrackers, beamPipe);
+  unit = new AnalyzerGeometry(activeTrackers, beamPipe);
+  m_units[unit->getName()] = unit;
+
+  // Create AnalyzerMatBudget
+  unit = new AnalyzerMatBudget(activeTrackers, beamPipe);
   m_units[unit->getName()] = unit;
 
   // Prepare Web site
