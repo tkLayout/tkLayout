@@ -829,31 +829,29 @@ namespace insur {
      * @param partsel A list of logical volume names that the additional parameter applies to
      * @param stream A reference to the output buffer
      */
-    void XMLWriter::specPar1(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
-        stream << xml_spec_par_open << name << xml_general_inter;
-//std::cerr<<" >       "<<xml_spec_par_open << name << xml_general_inter<<std::endl;
-        for (unsigned i = 0; i < partsel.size(); i++) {
-            stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
-//std::cerr<<" >>>     "<<stream.str().c_str()<<std::endl;
-        }
-        stream << xml_spec_par_parameter_first << param.first << xml_spec_par_parameter_second;
-//std::cerr<<" >>>>>   "<<xml_spec_par_parameter_first << param.first << xml_spec_par_parameter_second<<std::endl;
-        stream << param.second << xml_spec_par_close;
-//std::cerr<<" >>>>>>> "<<param.second << xml_spec_par_close<<std::endl;
+  
+  void XMLWriter::specParKeep(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
+    stream << xml_spec_par_open << name << xml_general_inter;
+    for (unsigned i = 0; i < partsel.size(); i++) {
+      stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
     }
+    stream << xml_spec_par_parameter_first << param.first << xml_spec_par_parameter_second;
+    stream << param.second << xml_spec_par_close;
+  }
 
 
 
-
-
-    void XMLWriter::specPar(std::string name, std::pair<std::string, std::string> param, std::vector<std::string>& partsel, std::ostringstream& stream) {
-        stream << xml_spec_par_open << name << xml_general_inter;
-        for (unsigned i = 0; i < partsel.size(); i++) {
-            stream << xml_spec_par_selector << partsel.at(i) << xml_general_endline;
-        }
-        stream << xml_spec_par_parameter_first << param.first << xml_spec_par_parameter_second;
-        stream << param.second << xml_spec_par_close;
+  void XMLWriter::specPar(std::string name, std::vector<SpecParInfo>& t, std::string paramSecond, std::ostringstream& stream, XMLTags& trackerXmlTags) {
+    stream << xml_spec_par_open << name << xml_general_inter;
+    pos = findEntry(t, name);
+    if (pos != -1) {
+      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
+	out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+      }
     }
+    out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << paramSecond;
+    out << xml_spec_par_close;
+  }
 
 
     /**
