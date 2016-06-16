@@ -495,13 +495,13 @@ namespace insur {
     srspec.parameter.first = xml_tkddd_structure;
     srspec.parameter.second = trackerXmlTags.topo_straight_rod_value;
     // Tilted Ring (if any)
-    trspec.name = xml_subdet_tilted_ring + xml_par_tail;
+    trspec.name = trackerXmlTags.topo_tilted_ring_name + xml_par_tail;
     trspec.parameter.first = xml_tkddd_structure;
-    trspec.parameter.second = xml_det_tilted_ring;
+    trspec.parameter.second = trackerXmlTags.topo_tilted_ring_value;
     // Module stack
-    sspec.name = xml_subdet_barrel_stack + xml_par_tail;
+    sspec.name = trackerXmlTags.topo_bmodule_name + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
-    sspec.parameter.second =  xml_subdet_2OT_barrel_stack;
+    sspec.parameter.second =  trackerXmlTags.topo_bmodule_value;
     // Module detectors
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
@@ -1319,12 +1319,12 @@ namespace insur {
     // Ring
     rspec.name = trackerXmlTags.topo_ring_name + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
-    rspec.parameter.second = xml_det_ring;
+    rspec.parameter.second = trackerXmlTags.topo_ring_value;
     // Module stack
     sspec.name = trackerXmlTags.topo_emodule_name + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
     sspec.parameter.second = trackerXmlTags.topo_emodule_value;
-    // Module
+    // Module detectors
     mspec.name = xml_subdet_tiddet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tiddet;

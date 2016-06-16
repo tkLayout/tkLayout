@@ -164,30 +164,13 @@ namespace insur {
 
         // Add straight rods
 	specPar(trackerXmlTags.topo_straight_rod_name, t, out, trackerXmlTags);
-     
-	if (!isPixelTracker) {
-	  // Add tilted rings (if any)
-	  pos = findEntry(t, xml_subdet_tilted_ring + xml_par_tail);
-	  if (pos != -1) {
-	    out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_tilted_ring << xml_par_tail << xml_general_inter;
-	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-	    }
-	    out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second <<  xml_subdet_2OT_tilted_ring;
-	    out << xml_spec_par_close;
-	  }
 
-	  // Add BarrelStack
-	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_barrel_stack << xml_par_tail << xml_general_inter;
-	  pos = findEntry(t, xml_subdet_barrel_stack + xml_par_tail);
-	  if (pos != -1) {
-	    for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-	    }
-	  }
-	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_2OT_barrel_stack;
-	  out << xml_spec_par_close;
-	}
+	// Add tilted rings (if any)
+	specPar(trackerXmlTags.topo_tilted_ring_name, t, out, trackerXmlTags);
+	 
+	// Add BarrelStack
+	// (Only for OT)
+	if (!isPixelTracker) specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
 
         // Add Phase2OTForward
 	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
@@ -200,18 +183,9 @@ namespace insur {
         // Add Disks
 	specPar(trackerXmlTags.topo_disc_name, t, out, trackerXmlTags);
 
-	if (!isPixelTracker) {
-	  // Add Rings
-	  out << xml_spec_par_open << trackerXmlTags.tracker << trackerXmlTags.topo_ring_name << xml_par_tail << xml_general_inter;
-	  pos = findEntry(t, trackerXmlTags.topo_ring_name + xml_par_tail);
-	  if (pos != -1) {
-            for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
-            }
-	  }
-	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_ring_name;
-	  out << xml_spec_par_close;
-	}
+	// Add Rings
+	//( Only for OT)
+	if (!isPixelTracker) specPar(trackerXmlTags.topo_ring_name, t, out, trackerXmlTags);
 
 	// Add EndcapStack
 	specPar(trackerXmlTags.topo_emodule_name, t, out, trackerXmlTags);
@@ -810,15 +784,15 @@ namespace insur {
 
 
   void XMLWriter::specPar(std::string name, std::vector<SpecParInfo>& t, std::ofstream& stream, XmlTags& trackerXmlTags) {
-    stream << xml_spec_par_open << name << xml_par_tail << xml_general_inter;
     int pos = findEntry(t, name + xml_par_tail);
     if (pos != -1) {
+      stream << xml_spec_par_open << name << xml_par_tail << xml_general_inter;
       for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
 	stream << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
       }
       stream << xml_spec_par_parameter_first << t.at(pos).parameter.first << xml_spec_par_parameter_second << t.at(pos).parameter.second;
+      stream << xml_spec_par_close;
     }
-    stream << xml_spec_par_close;
   }
 
 
