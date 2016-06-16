@@ -502,7 +502,7 @@ namespace insur {
     sspec.name = xml_subdet_barrel_stack + xml_par_tail;
     sspec.parameter.first = xml_tkddd_structure;
     sspec.parameter.second =  xml_subdet_2OT_barrel_stack;
-    // Module
+    // Module detectors
     mspec.name = xml_subdet_tobdet + xml_par_tail;
     mspec.parameter.first = xml_tkddd_structure;
     mspec.parameter.second = xml_det_tobdet;
