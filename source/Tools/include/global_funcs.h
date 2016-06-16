@@ -145,10 +145,10 @@ template<class I> inline RangePair<I> pair2range(const std::pair<I, I>& p) { ret
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-inline double pt2radius(double pt, double magneticField) { return pt/(0.3*magneticField) * 1e3; }
-inline double radius2pt(double radius, double magneticField) { return radius * 0.3 * magneticField * 1e-3; }
-inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
-inline double theta2eta(double theta) { return -log(tan(theta/2)); }
+//inline double pt2radius(double pt, double magneticField) { return pt/(0.3*magneticField) * 1e3; }
+//inline double radius2pt(double radius, double magneticField) { return radius * 0.3 * magneticField * 1e-3; }
+//inline double eta2theta(double eta) { return 2*atan(exp(-eta)); }
+//inline double theta2eta(double theta) { return -log(tan(theta/2)); }
 
 
 // example: double maxZ = maxget(vec.begin(), vec.end(), [](Module* m) { return m->maxZ(); }); // gets maxZ from a vector of modules

@@ -19,6 +19,7 @@
 #include <ostream>
 #include <Palette.h>
 #include <TCanvas.h>
+#include <TColor.h>
 #include <TGraph.h>
 #include <TH1D.h>
 #include <TH2D.h>
@@ -243,11 +244,11 @@ bool AnalyzerMatBudget::analyze()
     std::cout << " " << trkName << " tracker" << std::endl;
 
     // Analyze material budget for individual subdetector & beam-pipe
-    for (auto iTrack=0; iTrack<=m_nTracks; iTrack++) {
+    for (auto iTrack=0; iTrack<m_nTracks; iTrack++) {
 
       // Generate a track
       double phi   = myDice.Rndm() * 2 * M_PI;
-      double eta   = 0 + m_etaMax/m_nTracks*iTrack; // Currently assumed +-Z symmetry // m_etaMin + m_etaSpan/m_nTracks*iTrack;
+      double eta   = 0 + m_etaMax/m_nTracks*(iTrack+0.5); // Currently assumed +-Z symmetry, to fill bin centre use iTrack + 0.5 // m_etaMin + m_etaSpan/m_nTracks*iTrack;
       double theta = 2*atan(exp(-1*eta));
       double pT    = 100*Units::TeV; // Arbitrarily high number
 
@@ -268,8 +269,9 @@ bool AnalyzerMatBudget::analyze()
       //
       // Get material related to detector modules, so-called module caps, beam-pipe etc.
       std::map<std::string, Material> matBudget;
-      MaterialVisitor mcVisitor(matTrack, matBudget, m_radMap[trkName], m_radMapCount[trkName], m_intMap[trkName], m_intMapCount[trkName]);
-      iTracker->accept(mcVisitor);
+      MaterialVisitor matVisitor(matTrack, matBudget, m_radMap[trkName], m_radMapCount[trkName], m_intMap[trkName], m_intMapCount[trkName]);
+      iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
+      m_beamPipe->accept(matVisitor);// Assign to material tack hit corresponding to beam-pipe
 
       // Given sub-tracker
       m_radMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].radiation);
@@ -380,6 +382,7 @@ bool AnalyzerMatBudget::analyze()
             //  << i << ")=" << probabilities.at(i)
             //  << endl;
             //}
+
             exactProb     = probabilities.at(i)-moreThanProb;
             averageHits  += (i+1)*exactProb;
             moreThanProb += exactProb;
@@ -500,7 +503,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myPad->SetFillColor(color_pad_background);
 
     // Rebin material histograms to readable values
-    int rebinCoef = vis_material_eta_step/m_radMB["Total"]["Total"].GetXaxis()->GetBinWidth(0);
+    int rebinCoef = vis_material_eta_step/m_radMB[trkName]["Total"].GetXaxis()->GetBinWidth(0);
     if (rebinCoef==0) rebinCoef = 1;
 
     m_radMB[trkName]["Total"].SetFillColor(kGray + 2);
@@ -592,9 +595,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_materialCsv.addCsvElement(trkName, "");
     m_materialCsv.addCsvElement(trkName, "Photon conv. prob.");
     for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
-      // Third row: the photon conversion probability
+      // Fourth row: the photon conversion probability
+      averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
       averageValue *= -7./9.;
-      averageValue = 1 - exp(averageValue);
+      averageValue  = 1 - exp(averageValue);
       materialSummaryTable->setContent(3,j, averageValue ,4);
       m_materialCsv.addCsvElement(trkName, averageValue);
     }
@@ -608,16 +612,15 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     // Set variables and book histograms
     THStack* radContainer = new THStack("rstack", "Radiation Length by Category");
     THStack* intContainer = new THStack("istack", "Interaction Length by Category");
-    TH1D *acr = nullptr, *aci = nullptr, *ser = nullptr, *sei = nullptr, *sur = nullptr, *sui = nullptr, *bpr = nullptr, *bpi = nullptr;
 
     // Radiation length in tracking volume by active, serving or passive
     m_radMB["Beampipe"]["Total"].SetFillColor(kGreen);
     m_radMB["Beampipe"]["Total"].SetLineColor(kGreen);
     m_radMB["Beampipe"]["Total"].SetXTitle("#eta");
-    m_radMB["Beampipe"]["Total"].Rebin(rebinCoef);
-    m_radMB["Beampipe"]["Total"].Scale(1./rebinCoef);
-    m_radMB[trkName]["Barrel"].SetFillColor(kYellow);
-    m_radMB[trkName]["Barrel"].SetLineColor(kYellow);
+    if (iTrk==0) m_radMB["Beampipe"]["Total"].Rebin(rebinCoef);
+    if (iTrk==0) m_radMB["Beampipe"]["Total"].Scale(1./rebinCoef);
+    m_radMB[trkName]["Barrel"].SetFillColor(TColor::GetColor("#FFD21F"));
+    m_radMB[trkName]["Barrel"].SetLineColor(TColor::GetColor("#FFD21F"));
     m_radMB[trkName]["Barrel"].SetXTitle("#eta");
     m_radMB[trkName]["Barrel"].Rebin(rebinCoef);
     m_radMB[trkName]["Barrel"].Scale(1./rebinCoef);
@@ -641,10 +644,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMB["Beampipe"]["Total"].SetFillColor(kGreen-2);
     m_intMB["Beampipe"]["Total"].SetLineColor(kGreen-2);
     m_intMB["Beampipe"]["Total"].SetXTitle("#eta");
-    m_intMB["Beampipe"]["Total"].Rebin(rebinCoef);
-    m_intMB["Beampipe"]["Total"].Scale(1./rebinCoef);
-    m_intMB[trkName]["Barrel"].SetFillColor(kYellow+1);
-    m_intMB[trkName]["Barrel"].SetLineColor(kYellow+1);
+    if (iTrk==0) m_intMB["Beampipe"]["Total"].Rebin(rebinCoef);
+    if (iTrk==0) m_intMB["Beampipe"]["Total"].Scale(1./rebinCoef);
+    m_intMB[trkName]["Barrel"].SetFillColor(TColor::GetColor("#FFDE5C"));
+    m_intMB[trkName]["Barrel"].SetLineColor(TColor::GetColor("#FFDE5C"));
     m_intMB[trkName]["Barrel"].SetXTitle("#eta");
     m_intMB[trkName]["Barrel"].Rebin(rebinCoef);
     m_intMB[trkName]["Barrel"].Scale(1./rebinCoef);
@@ -922,6 +925,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       // Replaced by the libreOffice-like palette
       TH1D* ranger = new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage);
       ranger->SetMaximum(1.);
+      ranger->SetStats(kFALSE);
       ranger->GetXaxis()->SetTitle("#eta");
       //myAxis = ranger->GetYaxis();
       //myAxis->SetTitle("Tracks fraction");
@@ -1150,7 +1154,7 @@ void MaterialVisitor::visit(const BeamPipe& bp)
   material.interaction = bp.intLength()/sin(theta);
   hit->setCorrectedMaterial(material);
   hit->setBeamPipe(true);
-  m_matTrack.addHit(hit); ;
+  m_matTrack.addHit(hit);
 }
 
 //
@@ -1185,6 +1189,7 @@ void MaterialVisitor::analyzeModuleMB(const DetectorModule& m)
   if (m.maxZ() > 0) {
 
     XYZVector direction(m_matTrack.getDirection());
+
     auto pair    = m.checkTrackHits(m_matTrack.getOrigin(), direction);
     auto hitRho  = pair.first.rho();
     auto hitType = pair.second;
@@ -1228,8 +1233,8 @@ void MaterialVisitor::analyzeModuleMB(const DetectorModule& m)
       }
       else if (m.subdet() == ENDCAP) {
 
-        material.radiation   /= cos(theta + tiltAngle - M_PI/2);
-        material.interaction /= cos(theta + tiltAngle - M_PI/2);
+        material.radiation   /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
+        material.interaction /= cos(theta + tiltAngle - M_PI/2); // Endcap has tiltAngle = pi/2
 
         // Fill endcap container
         m_matBudget["Endcap"].radiation   += material.radiation;
