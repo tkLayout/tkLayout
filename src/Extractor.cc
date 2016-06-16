@@ -1317,7 +1317,7 @@ namespace insur {
     dspec.parameter.first = xml_tkddd_structure;
     dspec.parameter.second = trackerXmlTags.topo_disc_value;
     // Ring
-    if (!isPixelTracker) rspec.name = xml_subdet_ring + xml_par_tail;
+    rspec.name = trackerXmlTags.topo_ring_name + xml_par_tail;
     rspec.parameter.first = xml_tkddd_structure;
     rspec.parameter.second = xml_det_ring;
     // Module stack

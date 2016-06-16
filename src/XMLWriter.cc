@@ -226,14 +226,14 @@ namespace insur {
 
 	if (!isPixelTracker) {
 	  // Add Rings
-	  out << xml_spec_par_open << trackerXmlTags.tracker << xml_subdet_ring << xml_par_tail << xml_general_inter;
-	  pos = findEntry(t, xml_subdet_ring + xml_par_tail);
+	  out << xml_spec_par_open << trackerXmlTags.tracker << trackerXmlTags.topo_ring_name << xml_par_tail << xml_general_inter;
+	  pos = findEntry(t, trackerXmlTags.topo_ring_name + xml_par_tail);
 	  if (pos != -1) {
             for (i = 0; i < t.at(pos).partselectors.size(); i++) {
 	      out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
             }
 	  }
-	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << xml_subdet_ring;
+	  out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << trackerXmlTags.topo_ring_name;
 	  out << xml_spec_par_close;
 	}
 
@@ -574,7 +574,7 @@ namespace insur {
     void XMLWriter::specParSection(std::vector<SpecParInfo>& t, std::string label, std::ostringstream& stream) {
         std::vector<SpecParInfo>::iterator titer, tguard = t.end();
         stream << xml_spec_par_section_open << label << xml_general_inter;
-        for (titer = t.begin(); titer != tguard; titer++) specPar(titer->name, titer->parameter, titer->partselectors, stream);
+        for (titer = t.begin(); titer != tguard; titer++) specParKeep(titer->name, titer->parameter, titer->partselectors, stream);
         stream << xml_spec_par_section_close;
     }
 
@@ -841,16 +841,16 @@ namespace insur {
 
 
 
-  void XMLWriter::specPar(std::string name, std::vector<SpecParInfo>& t, std::string paramSecond, std::ostringstream& stream, XMLTags& trackerXmlTags) {
+  void XMLWriter::specPar(std::string name, std::vector<SpecParInfo>& t, std::string paramSecond, std::ostringstream& stream, XmlTags& trackerXmlTags) {
     stream << xml_spec_par_open << name << xml_general_inter;
-    pos = findEntry(t, name);
+    int pos = findEntry(t, name);
     if (pos != -1) {
-      for (i = 0; i < t.at(pos).partselectors.size(); i++) {
-	out << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
+      for (unsigned int i = 0; i < t.at(pos).partselectors.size(); i++) {
+	stream << xml_spec_par_selector << trackerXmlTags.nspace << ":" << t.at(pos).partselectors.at(i) << xml_general_endline;
       }
+      stream << xml_spec_par_parameter_first << t.at(pos).parameter.first << xml_spec_par_parameter_second << t.at(pos).parameter.second;
     }
-    out << xml_spec_par_parameter_first << xml_tkddd_structure << xml_spec_par_parameter_second << paramSecond;
-    out << xml_spec_par_close;
+    stream << xml_spec_par_close;
   }
 
 
@@ -1018,8 +1018,9 @@ namespace insur {
     else { std::cerr << trackerXmlTags.topo_layer_name << " or " << xml_subdet_straight_or_tilted_rod << " or " << xml_subdet_tobdet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
     //TID
     dindex = findEntry(specs, trackerXmlTags.topo_disc_name + xml_par_tail);
-    rindex = findEntry(specs, xml_subdet_ring + xml_par_tail);
+    rindex = findEntry(specs, trackerXmlTags.topo_ring_name + xml_par_tail);
     windex = findEntry(specs, xml_subdet_tiddet + xml_par_tail);
+    std::cout << dindex << rindex << windex << std::endl;
     if ((dindex >= 0) && (rindex >= 0) && (windex >= 0)) {
       // disc loop
       for (unsigned int i = 0; i < specs.at(dindex).partselectors.size(); i++) {
@@ -1061,7 +1062,6 @@ namespace insur {
 	    // module loop
 	    for (unsigned int k=0; k<specs.at(windex).partselectors.size(); k++ ) {
 	      std::string refstring = specs.at(windex).partselectors.at(k);
-                        
 	      if (refstring.find(postfix) != std::string::npos) {
 
 		// This is to take care of the Inner/Outer distinction
@@ -1082,7 +1082,6 @@ namespace insur {
         
 		if (plus) paths.push_back(prefix + postfix);
 		else tpaths.push_back(prefix + postfix);
-        
 		postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
 	      }
@@ -1119,7 +1118,7 @@ namespace insur {
 	tpaths.clear();
       }
     }
-    else { std::cerr << trackerXmlTags.topo_disc_name << " or " << xml_subdet_ring << " or " << xml_subdet_tiddet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
+    else { std::cerr << trackerXmlTags.topo_disc_name << " or " << trackerXmlTags.topo_ring_name << " or " << xml_subdet_tiddet << " could not be found while building paths for trackerRecoMaterial.xml." << std::endl; }
     blocks.insert(blocks.end(), tblocks.begin(), tblocks.end());
     return blocks;
   }

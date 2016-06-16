@@ -241,8 +241,7 @@ namespace insur {
     static const std::string xml_det_ring = "TIDRing";
     static const std::string xml_det_tiddet = "TIDDet";
     static const std::string xml_tid_subdet = "TIDSubDet";
-    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";
-    static const std::string xml_subdet_ring = "PixelEndcapPanel";
+    static const std::string xml_subdet_2OT_wheel = "Phase2OTEndcapDisk";   
     static const std::string xml_subdet_tiddet = "PixelEndcapDet";
     static const std::string xml_apv_head = "TrackerAPVNumber";
     static const std::string xml_subdet_lower_detectors = "LowerDetectors";
@@ -301,6 +300,9 @@ namespace insur {
    
     static const std::string xml_OT_topo_disc_value = "Phase2OTEndcapDisk";
     static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapFullDisk";
+
+    static const std::string xml_OT_topo_ring_name = "PixelEndcapPanel";
+    static const std::string xml_PX_topo_ring_name = "PixelEndcapRing";
    
     static const std::string xml_OT_topo_emodule_name = "OuterTrackerEndcapStack";
     static const std::string xml_PX_topo_emodule_name = "PixelEndcapPanel";
@@ -335,6 +337,7 @@ namespace insur {
 	topo_endcaps_value(!isPixelTracker ? xml_OT_topo_endcaps_value : xml_PX_topo_endcaps_value),
 	topo_disc_name(!isPixelTracker ? xml_OT_topo_disc_name : xml_PX_topo_disc_name),
 	topo_disc_value(!isPixelTracker ? xml_OT_topo_disc_value : xml_PX_topo_disc_value),
+	topo_ring_name(!isPixelTracker ? xml_OT_topo_ring_name : xml_PX_topo_ring_name),
 	topo_emodule_name(!isPixelTracker ? xml_OT_topo_emodule_name : xml_PX_topo_emodule_name),
 	topo_emodule_value(!isPixelTracker ? xml_OT_topo_emodule_value : xml_PX_topo_emodule_value),
 
@@ -363,6 +366,7 @@ namespace insur {
       const std::string topo_endcaps_value;
       const std::string topo_disc_name;
       const std::string topo_disc_value;
+      const std::string topo_ring_name;
       const std::string topo_emodule_name;
       const std::string topo_emodule_value;
 
