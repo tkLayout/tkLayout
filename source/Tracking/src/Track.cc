@@ -373,8 +373,15 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
   for (auto iHit : m_hits) {
     if (iHit) {
       if ((useIP) || (!iHit->isIP())) {
-        for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-          if ((tag==*it || tag=="all") && (iHit->getObjectKind()==HitKind::Active)) nHits++;
+        if (iHit->getObjectKind()==HitKind::Active){
+
+          // Check tag
+          bool tagOK = false;
+          for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
+            if (tag==*it || tag=="all") tagOK = true;
+          }
+
+          if (tagOK) nHits++;
         }
       }
     }
@@ -398,8 +405,15 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
 
   for (auto iHit : m_hits) {
     if (iHit) {
-      for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-         if ((tag==*it || tag=="all") && (iHit->getObjectKind()==HitKind::Active)) probabilities.push_back(probability);
+      if (iHit->getObjectKind()==HitKind::Active){
+
+        // Check tag
+        bool tagOK = false;
+        for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
+          if (tag==*it || tag=="all") tagOK = true;
+        }
+
+        if (tagOK) probabilities.push_back(probability);
       }
 
       // Decrease the probability that the next hit is a clean one
@@ -413,6 +427,7 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
 
 //
 // Get the probabilty of having a given number of "clean" hits for nuclear-interacting particles for given tag: pixel, strip, tracker, etc. (as defined in the geometry config file)
+// If tag specified as "all" no extra tag required
 //
 double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
 
@@ -428,10 +443,16 @@ double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
   for (auto iHit : m_hits) {
 
     if (iHit) {
-      for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
-        if ((tag==*it) && (iHit->getObjectKind()==HitKind::Active)) goodHits++;
-      }
+      if (iHit->getObjectKind()==HitKind::Active) {
 
+        // Check tag
+        bool tagOK = false;
+        for (auto it=iHit->getHitModule()->trackingTags.begin(); it!=iHit->getHitModule()->trackingTags.end(); it++) {
+          if (tag==*it || tag=="all") tagOK = true;
+        }
+
+        if (tagOK) goodHits++;
+      }
 
       // If I reached the requested number of hits
       if (goodHits==nHits) return probability;
@@ -463,7 +484,7 @@ RILength Track::getMaterial() {
 }
 
 //
-// Get a vector of pairs: Detector module & hit type
+// Get a vector of pairs: Detector module & hit type for Trigger hits
 //
 std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() const {
 

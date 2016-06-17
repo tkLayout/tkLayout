@@ -118,7 +118,7 @@ public:
   //! Get all tags assigned to the track (see m_tags variable below
   const std::set<std::string>& getTags() const { return m_tags; }
 
-  //! Get a vector of pairs: Detector module & hit type
+  //! Get a vector of pairs: Detector module & hit type for Trigger hits
   std::vector<std::pair<const DetectorModule*, HitType>> getHitModules() const;
 
   const double& getDeltaRho() const      { return m_deltaRho; }

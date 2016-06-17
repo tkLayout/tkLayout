@@ -122,7 +122,7 @@ const Polygon3d<4>& Sensor::lowerEnvelopePoly() const {
 }
 
 //
-// Get upper envelope of the sensor (taking into account correct sensor Thickness and dsDistance of the module) -> if taking min/max take min/max(lower, upper)
+// Get geometry properties
 //
 const Polygon3d<4>& Sensor::hitPoly() const {
   if (m_hitPoly == nullptr) m_hitPoly = buildOwnPoly(normalOffset());
