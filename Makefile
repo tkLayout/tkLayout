@@ -58,7 +58,7 @@ COMP=$(CXX) $(COMPILERFLAGS) $(INCLUDEFLAGS)
 
 LINK=$(CXX) $(LINKERFLAGS)
 
-all: directories tklayout setup
+all: directories tklayout setup diskplace
 	@echo "Full build successful."
 
 directories: ${OUT_DIR}
@@ -410,11 +410,17 @@ $(BINDIR)/houghtrack: $(LIBDIR)/TrackShooter.o $(LIBDIR)/module.o $(LIBDIR)/modu
 tklayout: $(BINDIR)/tklayout
 	@echo "tklayout built"
 
+diskplace: $(BINDIR)/diskplace
+	@echo "diskplace built"
+
 delphize: $(BINDIR)/delphize
 	@echo "delphize built"
 
 tunePtParam: $(BINDIR)/tunePtParam
 	@echo "tunePtParam built"
+
+$(BINDIR)/diskplace: $(SRCDIR)/diskPlace.cpp
+	$(COMP) $(SRCDIR)/diskPlace.cpp -lm -o $(BINDIR)/diskplace
 
 $(BINDIR)/tklayout: $(LIBDIR)/tklayout.o $(LIBDIR)/CoordinateOperations.o $(LIBDIR)/hit.o $(LIBDIR)/global_funcs.o $(LIBDIR)/Polygon3d.o \
 	$(LIBDIR)/Property.o \

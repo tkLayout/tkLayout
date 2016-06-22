@@ -7,6 +7,7 @@
  */
 
 #include <string>
+#include <cmath>
 #include <vector>
 
 namespace insur {
@@ -94,6 +95,12 @@ namespace insur {
   static const double vis_min_dPhi           = 1E-4;
   static const double vis_max_dCtgTheta      = 1.0;
   static const double vis_min_dCtgTheta      = 1E-6;
+  static const double vis_max_dL             = 1E3;
+  static const double vis_min_dL             = 1E0;
+  static const double vis_max_beta           = M_PI/2;
+  static const double vis_min_beta           = 0;
+  static const double vis_max_omega          = +M_PI;
+  static const double vis_min_omega          = -M_PI;
 
   static const double vis_safety_factor      = geom_safety_factor;
 

@@ -15,6 +15,8 @@
 #include "messageLogger.h"
 #include "Visitable.h"
 
+#include <iostream>
+
 using std::string;
 using std::vector;
 using std::pair;
@@ -82,6 +84,8 @@ public:
   void cutAtEta(double eta);
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
+
+  void removeModules() { zMinusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); zPlusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); }
   
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 

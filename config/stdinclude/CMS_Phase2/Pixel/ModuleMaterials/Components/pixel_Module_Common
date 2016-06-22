@@ -35,16 +35,4 @@ Component {
     unit mm
     targetVolume 1
   }
-  Element {
-    elementName Pix_Caps
-    quantity 0.939
-    unit g
-    targetVolume 1
-  }
-  Element {
-    elementName Si
-    quantity 0.15
-    unit mm
-    targetVolume 3
-  }
 }

@@ -112,6 +112,8 @@ public:
   Property<double, Default> supportPlateThickness;
   Property<double, Default> chipThickness;
 
+  Property<bool, Default> removeModule;
+
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
   void cntNameId(const std::string& name, int id) { cntName_ = name; cntId_ = id; }
@@ -147,7 +149,8 @@ public:
       frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
       hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
       supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
-      chipThickness            ("chipThickness"            , parsedOnly(), 0)
+      chipThickness            ("chipThickness"            , parsedOnly(), 0),
+      removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;
