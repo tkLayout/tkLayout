@@ -323,10 +323,24 @@ namespace material {
     startZ = boundary->maxZ();
     startR = boundary->maxR();
 
+    std::cout << "GROUND" << std::endl;
+
     bool going=true;
     while (going) {
+
+      std::cout << "START" << std::endl;
+      std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
+      std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+
+
+
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
+
+      std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
+      std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+      std::cout << "foundBoundaryCollision = " << foundBoundaryCollision << std::endl;
+      std::cout << "noSectionCollision = " << noSectionCollision << std::endl;
 
       going = foundBoundaryCollision && noSectionCollision;
     }
@@ -1193,14 +1207,32 @@ namespace material {
     return retValue;
   }
 
+
   void Materialway::buildExternalSections(const Tracker& tracker) {
     //for(Boundary& boundary : boundariesList_) {
-    int i=0;
-    for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
-      //if(i++==0)
-      outerUsher.go(const_cast<Boundary*>(*it), tracker, VERTICAL);
+    //int i=0;
+    if (tracker.endcaps().size() < 2 || tracker.barrels().size() > 1 ) {
+      for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
+	outerUsher.go(const_cast<Boundary*>(*it), tracker, VERTICAL);
+      }
+    }
+    else {
+
+      for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
+	outerUsher.go(const_cast<Boundary*>(*it), tracker, HORIZONTAL);
+      }
+
+      /*for(auto const& it : barrelBoundaryAssociations_) {
+	outerUsher.go(it.second, tracker, HORIZONTAL);
+      }
+     
+      for(auto const& it : endcapBoundaryAssociations_) {
+	//std::cout << "endcap it.first->myid() = " << it.first->myid() << std::endl;
+	outerUsher.go(it.second, tracker, HORIZONTAL);
+	}*/
     }
   }
+
 
   void Materialway::buildInternalSections(Tracker& tracker) {
    innerUsher.go(tracker);
