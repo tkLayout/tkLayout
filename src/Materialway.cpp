@@ -1067,10 +1067,8 @@ namespace material {
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
-  //const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
-  //const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
-  const int Materialway::layerStationWidth = discretize(10.0);         /**< the width of the converting station on right of the layers */
+  const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
   Materialway::Materialway() :
