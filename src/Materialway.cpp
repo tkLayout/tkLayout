@@ -328,19 +328,26 @@ namespace material {
     bool going=true;
     while (going) {
 
-      std::cout << "START" << std::endl;
-      std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
-      std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+      if (tracker.isPixelTracker()) {
+	  if (startZ > 1700000. ) direction = VERTICAL;
+	  //if (startZ < 500000. ) direction = VERTICAL;
+
+	  std::cout << "START" << std::endl;
+	  std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
+	  std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+	}
 
 
 
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
 
-      std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
-      std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
-      std::cout << "foundBoundaryCollision = " << foundBoundaryCollision << std::endl;
-      std::cout << "noSectionCollision = " << noSectionCollision << std::endl;
+      if (tracker.isPixelTracker()) {
+	  std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
+	  std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+	  std::cout << "foundBoundaryCollision = " << foundBoundaryCollision << std::endl;
+	  std::cout << "noSectionCollision = " << noSectionCollision << std::endl;
+	}
 
       going = foundBoundaryCollision && noSectionCollision;
     }
@@ -1060,8 +1067,10 @@ namespace material {
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
   const int Materialway::diskSectionUpMargin = discretize(5.0);     /**< the space between the end of the disk (on top) and the end of the service sections right of it */
   const int Materialway::sectionTolerance = discretize(1.0);       /**< the tolerance for attaching the modules in the layers and disk to the service section next to it */
+  //const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
+  //const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
   const int Materialway::layerStationLenght = discretize(5.0);         /**< the lenght of the converting station on right of the layers */
-  const int Materialway::layerStationWidth = discretize(20.0);         /**< the width of the converting station on right of the layers */
+  const int Materialway::layerStationWidth = discretize(10.0);         /**< the width of the converting station on right of the layers */
   const double Materialway::radialDistribError = 0.05;                 /**< 5% max error in the material radial distribution */
 
   Materialway::Materialway() :
@@ -1174,7 +1183,11 @@ namespace material {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
+
+if (boundMaxZ < 300000.) boundMaxR = 180000.;
         Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+
+	
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
