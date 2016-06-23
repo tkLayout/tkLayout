@@ -1183,6 +1183,13 @@ namespace material {
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
 if (boundMaxZ < 300000.) boundMaxR = 180000.;
+ if (boundMinR < 180000. ) {
+   std::cout << "boundMinZ = " << boundMinZ << std::endl;
+   std::cout << "boundMaxZ = " << boundMaxZ << std::endl;
+   std::cout << "boundMinR = " << boundMinR << std::endl;
+   std::cout << "boundMaxR = " << boundMaxR << std::endl;
+ }
+
         Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
 	
@@ -1197,6 +1204,13 @@ if (boundMaxZ < 300000.) boundMaxR = 180000.;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
         Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+
+if (boundMinR < 180000. ) {
+   std::cout << "boundMinZ = " << boundMinZ << std::endl;
+   std::cout << "boundMaxZ = " << boundMaxZ << std::endl;
+   std::cout << "boundMinR = " << boundMinR << std::endl;
+   std::cout << "boundMaxR = " << boundMaxR << std::endl;
+ }
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
@@ -1222,13 +1236,14 @@ if (boundMaxZ < 300000.) boundMaxR = 180000.;
   void Materialway::buildExternalSections(const Tracker& tracker) {
     //for(Boundary& boundary : boundariesList_) {
     //int i=0;
-    if (tracker.endcaps().size() < 2 || tracker.barrels().size() > 1 ) {
+    if (!tracker.hasStepInEndcapsOuterRadius() ) {
+ 
       for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
 	outerUsher.go(const_cast<Boundary*>(*it), tracker, VERTICAL);
       }
     }
     else {
-
+    
       for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
 	outerUsher.go(const_cast<Boundary*>(*it), tracker, HORIZONTAL);
       }

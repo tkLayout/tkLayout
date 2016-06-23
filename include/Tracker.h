@@ -48,6 +48,7 @@ public:
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
   Property<double, Computable> maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
+  ReadonlyProperty<bool, Computable> hasStepInEndcapsOuterRadius;
   ReadonlyProperty<double, Default> etaCut;
   ReadonlyProperty<bool, Default> servicesForcedUp;
   ReadonlyProperty<bool, Default> skipAllServices;
@@ -103,23 +104,36 @@ public:
 
 
       maxRwithHybrids.setup([this]() { 
-        double max = 0; 
-        for (const auto& b : barrels_) max = MAX(max, b.maxRwithHybrids());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxRwithHybrids());
-        return max;
-      });
+	  double max = 0; 
+	  for (const auto& b : barrels_) max = MAX(max, b.maxRwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxRwithHybrids());
+	  return max;
+	});
       minRwithHybrids.setup([this]() {
-        double min = std::numeric_limits<double>::max(); 
-        for (const auto& b : barrels_) min = MIN(min, b.minRwithHybrids());
-        for (const auto& e : endcaps_) min = MIN(min, e.minRwithHybrids());
-        return min;
-      });
+	  double min = std::numeric_limits<double>::max(); 
+	  for (const auto& b : barrels_) min = MIN(min, b.minRwithHybrids());
+	  for (const auto& e : endcaps_) min = MIN(min, e.minRwithHybrids());
+	  return min;
+	});
       maxZwithHybrids.setup([this]() {
-        double max = 0;
-        for (const auto& b : barrels_) max = MAX(max, b.maxZwithHybrids());
-        for (const auto& e : endcaps_) max = MAX(max, e.maxZwithHybrids());
-        return max;
-     });
+	  double max = 0;
+	  for (const auto& b : barrels_) max = MAX(max, b.maxZwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxZwithHybrids());
+	  return max;
+	});
+
+
+      hasStepInEndcapsOuterRadius.setup([this]() {
+	  bool hasStep = false;
+	  if (endcaps().size() > 1) {
+	    // check whether all endcaps outer radii are identical with each other
+	    // if radii are not all identical, there is an endcap step !
+	    hasStep = !std::equal(endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(), 
+				  [&](const Endcap& e1, const Endcap& e2) { return (e1.maxRwithHybrids() == e2.maxRwithHybrids()); });
+	  }
+	  return hasStep;
+	});
+
 
 
   }
