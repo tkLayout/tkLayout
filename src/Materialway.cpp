@@ -1061,7 +1061,8 @@ namespace material {
   const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
   const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(15.0);
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
-  const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
+  //const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
+  const int Materialway::globalMaxRPadding = discretize(25.0);
   const int Materialway::layerSectionMargin = discretize(2.0);          /**< the space between the layer and the service sections over it */
   const int Materialway::diskSectionMargin = discretize(2.0);          /**< the space between the disk and the service sections right of it */
   const int Materialway::layerSectionRightMargin = discretize(5.0);     /**< the space between the end of the layer (on right) and the end of the service sections over it */
@@ -1182,7 +1183,8 @@ namespace material {
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
-if (boundMaxZ < 300000.) boundMaxR = 180000.;
+	if (boundMaxZ < 300000.) boundMaxR = 175890.;  //180000.;
+
  if (boundMinR < 180000. ) {
    std::cout << "boundMinZ = " << boundMinZ << std::endl;
    std::cout << "boundMaxZ = " << boundMaxZ << std::endl;
@@ -1203,6 +1205,9 @@ if (boundMaxZ < 300000.) boundMaxR = 180000.;
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
+
+	if (boundMinZ > 1800000. && boundMinZ < 2000000. && boundMaxR < 300000.) boundMinZ = 1700000.;
+
         Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
 if (boundMinR < 180000. ) {
