@@ -329,8 +329,8 @@ namespace material {
     while (going) {
 
       if (tracker.isPixelTracker()) {
-	  if (startZ > 1700000. ) direction = VERTICAL;
-	  //if (startZ < 500000. ) direction = VERTICAL;
+	if (startZ > 1700000. ) direction = VERTICAL;
+	  
 
 	  std::cout << "START" << std::endl;
 	  std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
@@ -1183,7 +1183,7 @@ namespace material {
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
 
-	if (boundMaxZ < 300000.) boundMaxR = 175890.;  //180000.;
+	//if (boundMaxZ < 300000.) boundMaxR = 175890.;  //180000.;
 
  if (boundMinR < 180000. ) {
    std::cout << "boundMinZ = " << boundMinZ << std::endl;
@@ -1205,9 +1205,6 @@ namespace material {
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
-
-	if (boundMinZ > 1800000. && boundMinZ < 2000000. && boundMaxR < 300000.) boundMinZ = 1700000.;
-
         Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
 if (boundMinR < 180000. ) {
