@@ -51,8 +51,9 @@ namespace material {
 
   //=================================================================================
   //START Materialway::Boundary
-  Materialway::Boundary::Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR) :
+  Materialway::Boundary::Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR) :
       containedElement_(containedElement),
+      isBarrel_(isBarrel),
       outgoingSection_(nullptr),
       minZ_(minZ),
       maxZ_(maxZ),
@@ -60,7 +61,7 @@ namespace material {
       maxR_(maxR) {}
 
   Materialway::Boundary::Boundary() :
-    Boundary(nullptr, 0, 0, 0, 0){}
+    Boundary(nullptr, true, 0, 0, 0, 0){}
   Materialway::Boundary::~Boundary() {}
 
 
@@ -314,8 +315,9 @@ namespace material {
     boundariesList_(boundariesList) {}
   Materialway::OuterUsher::~OuterUsher() {}
 
-  void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker, Direction direction) {
+  void Materialway::OuterUsher::go(Boundary* boundary, const Tracker& tracker) {
     int startZ, startR, collision, border;
+    Direction direction;
     bool foundBoundaryCollision, noSectionCollision;
     Section* lastSection = nullptr;
     Section* firstSection = nullptr;
@@ -328,16 +330,16 @@ namespace material {
     bool going=true;
     while (going) {
 
-      if (tracker.isPixelTracker()) {
-	if (startZ > 1700000. ) direction = VERTICAL;
-	  
+      
 
-	  std::cout << "START" << std::endl;
-	  std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
-	  std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
-	}
+      // compute direction along which external sections will be built
+      direction = buildDirection(startZ, tracker.hasStepInEndcapsOuterRadius());
 
-
+if (tracker.isPixelTracker()) {
+	std::cout << "START" << std::endl;
+	std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
+	std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
+      }
 
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
       noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
@@ -354,6 +356,27 @@ namespace material {
 
     boundary->outgoingSection(firstSection);
   }
+
+
+ /**
+   * This computes the direction along which the external sections will be built.
+   * @param startZ : Z coordinate of the starting point
+   * @param hasStepInEndcapsOuterRadius : Has the considered tracker a step in its outer radius, in the endcaps region ?
+   * @return direction : The direction along which the external sections will be built
+   */
+  Materialway::Direction Materialway::OuterUsher::buildDirection(const int& startZ, const bool& hasStepInEndcapsOuterRadius) {
+    Direction direction = VERTICAL;
+    if (boundariesList_.size() > 0) {
+      // Special case where there is a step in the outer radius in the endcaps
+      if (hasStepInEndcapsOuterRadius && (startZ <= (*boundariesList_.cbegin())->minZ())) {
+	// set direction to horizontal for the barrel and all the first endcaps
+	direction = HORIZONTAL;
+      }
+    }
+    else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
+    return direction;
+  }
+
 
   /**
    * Look for the nearest collision in every defined boundary, starting from the (startZ, startR) point.
@@ -1192,7 +1215,7 @@ namespace material {
    std::cout << "boundMaxR = " << boundMaxR << std::endl;
  }
 
-        Boundary* newBoundary = new Boundary(&barrel, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+ Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
 	
 
@@ -1205,7 +1228,7 @@ namespace material {
         int boundMinR = discretize(endcap.minRwithHybrids()) - boundaryPaddingEndcaps;
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
-        Boundary* newBoundary = new Boundary(&endcap, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
+        Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
 if (boundMinR < 180000. ) {
    std::cout << "boundMinZ = " << boundMinZ << std::endl;
@@ -1228,8 +1251,38 @@ if (boundMinR < 180000. ) {
     BarrelVisitor visitor (boundariesList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_);
     tracker.accept(visitor);
 
-    if (boundariesList_.size() > 0)
+    if (boundariesList_.size() > 0) {
+      if (tracker.hasStepInEndcapsOuterRadius() && barrelBoundaryAssociations_.size() > 0 && endcapBoundaryAssociations_.size() > 0) {
+	BoundariesSet::iterator it = boundariesList_.begin();
+	bool isBarrel = (const_cast<Boundary*>(*it))->isBarrel();
+	int closestEndcapMaxR = (const_cast<Boundary*>(*it))->maxR();
+
+	while (isBarrel == false && it != boundariesList_.end()) {
+	  closestEndcapMaxR = (const_cast<Boundary*>(*it))->maxR();
+	  it++;
+	  isBarrel = (const_cast<Boundary*>(*it))->isBarrel();   
+	  }
+	  (const_cast<Boundary*>(*it))->maxR(closestEndcapMaxR);
+
+
+
+	  //std::cout <<    "(const_cast<Boundary*>(*it))->maxR() = " << (const_cast<Boundary*>(*it))->maxR() << std::endl;
+	barrelBoundaryAssociations_[&(tracker.barrels().back())]->maxR(closestEndcapMaxR);
+
+	
+
+	//BoundariesSet::iterator it2 = std::find_if(boundariesList_.begin(), boundariesList_.end(), [&](const Boundary* b) { return b->isBarrel(); } );
+	//BoundariesSet::iterator it2 = std::find_if(boundariesList_.begin(), boundariesList_.end(), [&](const Boundary& b) { return (std::find_if( barrelBoundaryAssociations_.begin(), barrelBoundaryAssociations_.end(), std::bind2nd(map_data_compare<BarrelBoundaryMap>(), b) != barrelBoundaryAssociations_.end()); } );
+
+
+
+
+	//std::cout << " barrelBoundaryAssociations_[(*tracker.barrel().back())]->maxR() = " << barrelBoundaryAssociations_[&(tracker.barrels().back())]->maxR() << std::endl;
+	//std::cout << " endcapBoundaryAssociations_[tracker.endcaps().begin()]->maxZ() = " <<  endcapBoundaryAssociations_[&(tracker.endcaps().front())]->maxZ() << std::endl;
+
+      }
       retValue = true;
+    }
 
     return retValue;
   }
@@ -1238,13 +1291,13 @@ if (boundMinR < 180000. ) {
   void Materialway::buildExternalSections(const Tracker& tracker) {
     //for(Boundary& boundary : boundariesList_) {
     //int i=0;
-    if (!tracker.hasStepInEndcapsOuterRadius() ) {
+    //if (!tracker.hasStepInEndcapsOuterRadius() ) {
  
       for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
-	outerUsher.go(const_cast<Boundary*>(*it), tracker, VERTICAL);
+	outerUsher.go(const_cast<Boundary*>(*it), tracker);
       }
-    }
-    else {
+      //}
+      /*else {
     
       for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
 	outerUsher.go(const_cast<Boundary*>(*it), tracker, HORIZONTAL);
@@ -1258,7 +1311,7 @@ if (boundMinR < 180000. ) {
 	//std::cout << "endcap it.first->myid() = " << it.first->myid() << std::endl;
 	outerUsher.go(it.second, tracker, HORIZONTAL);
 	}*/
-    }
+      //}
   }
 
 

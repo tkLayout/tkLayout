@@ -169,7 +169,8 @@ namespace material {
     class Boundary {
     public:
       Boundary();
-      Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR);
+      //Boundary(const Visitable* containedElement, int minZ, int minR, int maxZ, int maxR);
+      Boundary(const Visitable* containedElement, const bool isBarrel, int minZ, int minR, int maxZ, int maxR);
       virtual ~Boundary();
 
       int isHit(int z, int r, Direction aDirection) const;
@@ -184,10 +185,17 @@ namespace material {
       int maxZ() const;
       int maxR() const;
       Section* outgoingSection();
+      const bool isBarrel() const { return isBarrel_; }
+
+      bool operator==(Boundary* const& b) {
+        return (minZ_ == b->minZ() && minR_ == b->minR() && maxZ_ == b->maxZ() && maxR_ == b->maxR());
+      }
+
     private:
       int minZ_, minR_, maxZ_, maxR_;
       Section* outgoingSection_;
       const Visitable* containedElement_;
+      const bool isBarrel_;
     }; //class Boundary
 
     typedef std::map<const Barrel*, Boundary*> BarrelBoundaryMap;
@@ -212,11 +220,12 @@ namespace material {
       OuterUsher(SectionVector& sectionsList, BoundariesSet& boundariesList);
       virtual ~OuterUsher();
 
-      void go(Boundary* boundary, const Tracker& tracker, Direction direction);         /**< start the process of section building, returns pointer to the first */
+      void go(Boundary* boundary, const Tracker& tracker);         /**< start the process of section building, returns pointer to the first */
     private:
       SectionVector& sectionsList_;
       BoundariesSet& boundariesList_;
 
+      Direction buildDirection(const int& startZ, const bool& hasStepInEndcapsOuterRadius);
       bool findBoundaryCollision(int& collision, int& border, int startZ, int startR, const Tracker& tracker, Direction direction);
       bool findSectionCollision(std::pair<int,Section*>& sectionCollision, int startZ, int startR, int end, Direction direction);
       bool buildSection(Section*& firstSection, Section*& lastSection, int& startZ, int& startR, int end, Direction direction);
