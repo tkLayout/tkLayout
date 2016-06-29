@@ -325,31 +325,16 @@ namespace material {
     startZ = boundary->maxZ();
     startR = boundary->maxR();
 
-    std::cout << "GROUND" << std::endl;
-
     bool going=true;
     while (going) {
-
-      
-
       // compute direction along which external sections will be built
-      direction = buildDirection(startZ, tracker.hasStepInEndcapsOuterRadius());
+      direction = buildDirection(startZ, startR, tracker.hasStepInEndcapsOuterRadius(), tracker.barrels().size());
 
-if (tracker.isPixelTracker()) {
-	std::cout << "START" << std::endl;
-	std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
-	std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
-      }
-
+      // Look for a possible colision between the services to be routed and all boundaries
       foundBoundaryCollision = findBoundaryCollision(collision, border, startZ, startR, tracker, direction);
-      noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
 
-      if (tracker.isPixelTracker()) {
-	  std::cout << "direction verticale = " << (direction == VERTICAL) << std::endl;
-	  std::cout << "startZ = " << startZ << "startR = " << startR << std::endl;
-	  std::cout << "foundBoundaryCollision = " << foundBoundaryCollision << std::endl;
-	  std::cout << "noSectionCollision = " << noSectionCollision << std::endl;
-	}
+      // Lastly, Build the corresponding "elbow shaped" services (pair of 2 services)
+      noSectionCollision = buildSectionPair(firstSection, lastSection, startZ, startR, collision, border, direction);
 
       going = foundBoundaryCollision && noSectionCollision;
     }
@@ -364,13 +349,24 @@ if (tracker.isPixelTracker()) {
    * @param hasStepInEndcapsOuterRadius : Has the considered tracker a step in its outer radius, in the endcaps region ?
    * @return direction : The direction along which the external sections will be built
    */
-  Materialway::Direction Materialway::OuterUsher::buildDirection(const int& startZ, const bool& hasStepInEndcapsOuterRadius) {
+  Materialway::Direction Materialway::OuterUsher::buildDirection(const int& startZ, const int& startR, const bool& hasStepInEndcapsOuterRadius, const int& numBarrels) {
+    // By default, direction is vertical
     Direction direction = VERTICAL;
     if (boundariesList_.size() > 0) {
+
       // Special case where there is a step in the outer radius in the endcaps
       if (hasStepInEndcapsOuterRadius && (startZ <= (*boundariesList_.cbegin())->minZ())) {
+
 	// set direction to horizontal for the barrel and all the first endcaps
 	direction = HORIZONTAL;
+
+	// In case where there are several barrels, direction horizontal should only be set for the top of the outermost barrel.
+	if (numBarrels > 1) {
+	  // Get the outermost Barrel boundary (The Barrel which has the biggest value = (boundary->maxR() + boundary->maxZ()))
+	  auto biggestBarrelBoundary = std::find_if(boundariesList_.begin(), boundariesList_.end(), 
+						    [&](const Boundary* b) { return b->isBarrel(); } );
+	  if (startR < (*biggestBarrelBoundary)->maxR()) direction = VERTICAL;
+	}    	
       }
     }
     else logERROR("Try to build direction for routing services along boundaries, but no boundary !");
@@ -1205,19 +1201,7 @@ if (tracker.isPixelTracker()) {
         int boundMinR = discretize(barrel.minRwithHybrids()) - boundaryPaddingBarrel;
         int boundMaxZ = discretize(barrel.maxZwithHybrids()) + boundaryPrincipalPaddingBarrel;
         int boundMaxR = discretize(barrel.maxRwithHybrids()) + boundaryPaddingBarrel;
-
-	//if (boundMaxZ < 300000.) boundMaxR = 175890.;  //180000.;
-
- if (boundMinR < 180000. ) {
-   std::cout << "boundMinZ = " << boundMinZ << std::endl;
-   std::cout << "boundMaxZ = " << boundMaxZ << std::endl;
-   std::cout << "boundMinR = " << boundMinR << std::endl;
-   std::cout << "boundMaxR = " << boundMaxR << std::endl;
- }
-
- Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
-
-	
+	Boundary* newBoundary = new Boundary(&barrel, true, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
 
         boundariesList_.insert(newBoundary);
         barrelBoundaryAssociations_.insert(std::make_pair(&barrel, newBoundary));
@@ -1229,13 +1213,6 @@ if (tracker.isPixelTracker()) {
         int boundMaxZ = discretize(endcap.maxZwithHybrids()) + boundaryPaddingEndcaps;
         int boundMaxR = discretize(endcap.maxRwithHybrids()) + boundaryPrincipalPaddingEndcaps;
         Boundary* newBoundary = new Boundary(&endcap, false, boundMinZ, boundMinR, boundMaxZ, boundMaxR);
-
-if (boundMinR < 180000. ) {
-   std::cout << "boundMinZ = " << boundMinZ << std::endl;
-   std::cout << "boundMaxZ = " << boundMaxZ << std::endl;
-   std::cout << "boundMinR = " << boundMinR << std::endl;
-   std::cout << "boundMaxR = " << boundMaxR << std::endl;
- }
 
         boundariesList_.insert(newBoundary);
         endcapBoundaryAssociations_.insert(std::make_pair(&endcap, newBoundary));
@@ -1252,34 +1229,36 @@ if (boundMinR < 180000. ) {
     tracker.accept(visitor);
 
     if (boundariesList_.size() > 0) {
+
+      // For a given tracker, in case of a step in the Outer Radius in the Endcaps : 
+      // This sets the maxR boundary of the outermost barrel to the value of the maxR of the closest-to-barrel Endcap.
+      // As a result, the services will be routed properly, directly from the outermost barrel to the closest-to-barrel Endcap.
       if (tracker.hasStepInEndcapsOuterRadius() && barrelBoundaryAssociations_.size() > 0 && endcapBoundaryAssociations_.size() > 0) {
-	BoundariesSet::iterator it = boundariesList_.begin();
-	bool isBarrel = (const_cast<Boundary*>(*it))->isBarrel();
-	int closestEndcapMaxR = (const_cast<Boundary*>(*it))->maxR();
-
-	while (isBarrel == false && it != boundariesList_.end()) {
-	  closestEndcapMaxR = (const_cast<Boundary*>(*it))->maxR();
-	  it++;
-	  isBarrel = (const_cast<Boundary*>(*it))->isBarrel();   
-	  }
-	  (const_cast<Boundary*>(*it))->maxR(closestEndcapMaxR);
-
-
-
-	  //std::cout <<    "(const_cast<Boundary*>(*it))->maxR() = " << (const_cast<Boundary*>(*it))->maxR() << std::endl;
-	barrelBoundaryAssociations_[&(tracker.barrels().back())]->maxR(closestEndcapMaxR);
-
 	
+	// In boundariesList_, the boundaries are sorted by decreasing order of the value of (boundary->maxR() + boundary->maxZ()).
+	// As a result, one can define a comparaison relation between barrels (or between endcaps) : the comparaison relation that exists between their corresponding boundaries.
+	// This allows to get the "biggest barrel" and "smallest endcap" in the sense of this relation of comparaison. As a result, we have access to the outermost barrel, and the closest-to-barrel endcap, respectively.
+	
+	// This is TEMPORARY. A relation of comparaison for barrels and endcaps should be introduced much upper in the code.
+	// + Ugly to have boundariesList_, barrelBoundaryAssociations_, endcapBoundaryAssociations_ all storing the same data !
+	// Convenient because allows to have both a relation of comparaison (1 set) and a sortage by key (2 maps), but should be optimized !!
 
-	//BoundariesSet::iterator it2 = std::find_if(boundariesList_.begin(), boundariesList_.end(), [&](const Boundary* b) { return b->isBarrel(); } );
-	//BoundariesSet::iterator it2 = std::find_if(boundariesList_.begin(), boundariesList_.end(), [&](const Boundary& b) { return (std::find_if( barrelBoundaryAssociations_.begin(), barrelBoundaryAssociations_.end(), std::bind2nd(map_data_compare<BarrelBoundaryMap>(), b) != barrelBoundaryAssociations_.end()); } );
 
+	// Get the closest-to-barrel Endcap boundary (The Endcap which has the smallest value = (boundary->maxR() + boundary->maxZ()))
+	auto smallestEndcapBoundary = std::find_if(boundariesList_.rbegin(), boundariesList_.rend(), 
+										  [&](const Boundary* b) { return !b->isBarrel(); } );
+	int smallestEndcapMaxR = (*smallestEndcapBoundary)->maxR(); // takes its maxR
 
+	// Get the outermost Barrel boundary (The Barrel which has the biggest value = (boundary->maxR() + boundary->maxZ()))
+	auto biggestBarrelBoundary = std::find_if(boundariesList_.begin(), boundariesList_.end(), 
+									 [&](const Boundary* b) { return b->isBarrel(); } );
 
-
-	//std::cout << " barrelBoundaryAssociations_[(*tracker.barrel().back())]->maxR() = " << barrelBoundaryAssociations_[&(tracker.barrels().back())]->maxR() << std::endl;
-	//std::cout << " endcapBoundaryAssociations_[tracker.endcaps().begin()]->maxZ() = " <<  endcapBoundaryAssociations_[&(tracker.endcaps().front())]->maxZ() << std::endl;
-
+	// set the maxR for the outermost Barrel boundary, which is in barrelBoundaryAssociations_ 
+	for (auto& it : barrelBoundaryAssociations_) {
+	  if (*biggestBarrelBoundary == it.second) it.second->maxR(smallestEndcapMaxR);
+	}
+	// set the maxR for the outermost Barrel boundary, which is also in boundariesList_ ...
+	(*biggestBarrelBoundary)->maxR(smallestEndcapMaxR);
       }
       retValue = true;
     }
@@ -1289,29 +1268,9 @@ if (boundMinR < 180000. ) {
 
 
   void Materialway::buildExternalSections(const Tracker& tracker) {
-    //for(Boundary& boundary : boundariesList_) {
-    //int i=0;
-    //if (!tracker.hasStepInEndcapsOuterRadius() ) {
- 
-      for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
-	outerUsher.go(const_cast<Boundary*>(*it), tracker);
-      }
-      //}
-      /*else {
-    
-      for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
-	outerUsher.go(const_cast<Boundary*>(*it), tracker, HORIZONTAL);
-      }
-
-      /*for(auto const& it : barrelBoundaryAssociations_) {
-	outerUsher.go(it.second, tracker, HORIZONTAL);
-      }
-     
-      for(auto const& it : endcapBoundaryAssociations_) {
-	//std::cout << "endcap it.first->myid() = " << it.first->myid() << std::endl;
-	outerUsher.go(it.second, tracker, HORIZONTAL);
-	}*/
-      //}
+    for(BoundariesSet::iterator it = boundariesList_.begin(); it != boundariesList_.end(); ++it) {
+      outerUsher.go(const_cast<Boundary*>(*it), tracker);
+    }
   }
 
 
@@ -1330,13 +1289,6 @@ if (boundMinR < 180000. ) {
         innerRadius = undiscretize(section->minR());
         rWidth = undiscretize(section->maxR() - section->minR());
 
-	if (zOffset > 295. & zOffset < 500. && innerRadius > 150. && innerRadius < 220.) {
-	  std::cout << "MATERIAL BUILDING" << std::endl;
-	  std::cout << "zOffset = " << zOffset << std::endl;
-	  std::cout << "zLength = " << zLength << std::endl;
-	  std::cout << "innerRadius = " << innerRadius << std::endl;
-	  std::cout << "rWidth = " << rWidth << std::endl;
-	}
         if (section->bearing() == HORIZONTAL) {
           InactiveTube* tube = new InactiveTube;
           tube->setZLength(zLength);
