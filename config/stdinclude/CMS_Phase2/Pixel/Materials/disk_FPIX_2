@@ -1,0 +1,132 @@
+// Pixel endcap disks material
+// Large disks (220 modules)
+// 2.41 times bigger than small disk
+
+Materials FPIX_disk {
+  type layer
+
+  // Cooling for the module
+  Component {
+    componentName Cooling
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Steel
+      quantity 42.9
+      unit g
+    }
+    Element {
+      elementName CO2
+      quantity 26.0
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 pipes per disk
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Steel
+      quantity 0.124
+      unit g/m
+    }
+    Element {
+      elementName FPIX_CO2
+      quantity 0.076
+      unit g/m
+    }
+  }
+
+// Power for the module
+// Rescaled on surface *2.41
+  Component {
+    componentName "Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 11.3
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 2.41
+      unit g
+    }
+  }
+
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  Component {
+    componentName "Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al
+      quantity 0.064
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.012
+      unit g/m
+    }
+  }
+
+// HV power wires
+// Power for the module
+// Rescaled on surface *2.41
+  Component {
+    componentName "HV Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 8.9
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 2.2
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  Component {
+    componentName "HV Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al
+      quantity 0.052
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.012
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.4
+      unit mm
+    }
+    Element {
+      elementName Airex
+      quantity 4
+      unit mm
+    }
+  }
+}

@@ -1478,31 +1478,31 @@ namespace insur {
 
             for(const Layer& layer : barrel.layers()){
             //for(Barrel::Container::const_iterator layerIter = barrel.layers().begin(); layerIter != barrel.layers().end(); ++ layerIter){
-              if (layer.maxZ() > 0.0) {
+              if (layer.maxZwithHybrids() > 0.0) {
                 real_index_.push_back(index);
-                radius_list_io_.push_back(std::make_pair(layer.minR(), layer.maxR()));
+                radius_list_io_.push_back(std::make_pair(layer.minRwithHybrids(), layer.maxRwithHybrids()));
 
                 counter ++;
               }
               index++;
             }
             layer_counters_.push_back(counter);
-            length_offset_list_.push_back(std::make_pair(barrel.maxZ() - barrel.minZ(), barrel.maxZ()));
-            if (barrel.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, barrel.minZ()));
+            length_offset_list_.push_back(std::make_pair(barrel.maxZwithHybrids() - barrel.minZwithHybrids(), barrel.maxZwithHybrids()));
+            if (barrel.minZwithHybrids() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, barrel.minZwithHybrids()));
           }
 
 /*
           void visit(const Layer& l) {
-            if (l.maxZ() > 0.) { // skip Z- mezzanine layers
+            if (l.maxZwithHybrids() > 0.) { // skip Z- mezzanine layers
               real_index_.push_back(index);
-              radius_list_io_.push_back(std::make_pair(l.minR(), l.maxR()));
-              if (prevZ == l.maxZ()) layer_counters_.back()++;
+              radius_list_io_.push_back(std::make_pair(l.minRwithHybrids(), l.maxRwithHybrids()));
+              if (prevZ == l.maxZwithHybrids()) layer_counters_.back()++;
               else {
-                prevZ = l.maxZ();
-                double len = l.maxZ() - l.minZ();
+                prevZ = l.maxZwithHybrids();
+                double len = l.maxZwithHybrids() - l.minZwithHybrids();
                 layer_counters_.push_back(1);
-                length_offset_list_.push_back(std::make_pair(len, l.maxZ()));
-                if (l.minZ() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, l.minZ()));
+                length_offset_list_.push_back(std::make_pair(len, l.maxZwithHybrids()));
+                if (l.minZwithHybrids() > 0) layers_short_.push_back(std::pair<int, double>(radius_list_io_.size() - 1, l.minZwithHybrids()));
               }
             }
             index++;
@@ -1555,8 +1555,8 @@ namespace insur {
             endcap_has_services_.push_back(!endcap.skipServices());
 
             for(const Disk& disk : endcap.disks()) {
-              if (disk.maxZ() > 0.0) {
-                length_offset_list_.push_back(std::make_pair(disk.maxZ() - disk.minZ(), disk.minZ()));
+              if (disk.maxZwithHybrids() > 0.0) {
+                length_offset_list_.push_back(std::make_pair(disk.maxZwithHybrids() - disk.minZwithHybrids(), disk.minZwithHybrids()));
                 real_index_.push_back(index);
                 counter ++;
               }
@@ -1564,20 +1564,20 @@ namespace insur {
             }
 
             layer_counters_.push_back(counter);
-            radius_list_io_.push_back(std::make_pair(endcap.minR(), endcap.maxR()));
+            radius_list_io_.push_back(std::make_pair(endcap.minRwithHybrids(), endcap.maxRwithHybrids()));
           }
 
           /*
           void visit(const Disk& d) {
-            if (d.maxZ() > 0.) {
-              double len = d.maxZ() - d.minZ();
-              length_offset_list_.push_back(std::make_pair(len, d.minZ()));
+            if (d.maxZwithHybrids() > 0.) {
+              double len = d.maxZwithHybrids() - d.minZwithHybrids();
+              length_offset_list_.push_back(std::make_pair(len, d.minZwithHybrids()));
               real_index_.push_back(index);
-              if (prevR == d.maxR()) layer_counters_.back()++;
+              if (prevR == d.maxRwithHybrids()) layer_counters_.back()++;
               else {
-                prevR = d.maxR();
+                prevR = d.maxRwithHybrids();
                 layer_counters_.push_back(1);
-                radius_list_io_.push_back(std::make_pair(d.minR(), d.maxR()));
+                radius_list_io_.push_back(std::make_pair(d.minRwithHybrids(), d.maxRwithHybrids()));
               }
             }
             index++;

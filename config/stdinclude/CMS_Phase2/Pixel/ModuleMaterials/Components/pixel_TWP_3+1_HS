@@ -9,11 +9,13 @@ Component {
     elementName Cu_TWP_3+1_HS
     quantity 0.884
     unit g/m
+    targetVolume 1
   }
   // Two insulations
   Element {
     elementName Kapton
     quantity 0.077
     unit g/m
+    targetVolume 1
   }
 }

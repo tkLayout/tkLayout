@@ -112,8 +112,8 @@ namespace material {
            {};
           
            void visit(Layer& layer) {
-             layerRadiuses_.insert(layer.minR() - autoLayerMarginUpper_);
-             layerRadiuses_.insert(layer.maxR() + autoLayerMarginLower_);
+             layerRadiuses_.insert(layer.minRwithHybrids() - autoLayerMarginUpper_);
+             layerRadiuses_.insert(layer.maxRwithHybrids() + autoLayerMarginLower_);
            }
          };
 
@@ -122,8 +122,8 @@ namespace material {
 
         //get radiuses around layers
         for(const Layer& layer : barrel.layers()) {
-          layerRadii.insert(layer.minR() - autoLayerMarginUpper);
-          layerRadii.insert(layer.maxR() + autoLayerMarginLower);
+          layerRadii.insert(layer.minRwithHybrids() - autoLayerMarginUpper);
+          layerRadii.insert(layer.maxRwithHybrids() + autoLayerMarginLower);
         }
         if(layerRadii.size() < 4) {
           logERROR("Barrel with only one or zero layers. Auto support impossible to build.");
@@ -147,19 +147,19 @@ namespace material {
     case TOP :
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
-                               MAX(0, barrel.minZ()),
-                               barrel.maxR() + autoLayerMarginLower,
-                               barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Top barrel support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+                               MAX(0, barrel.minZwithHybrids()),
+                               barrel.maxRwithHybrids() + autoLayerMarginLower,
+                               barrel.maxZwithHybrids() - MAX(0, barrel.minZwithHybrids()));
+      //std::cout << ">>Top barrel support>> " << "maxRwithHybrids: " << endcap.maxRwithHybrids() + insur::geom_support_margin_top << " minZwithHybrids: " << MAX(0, endcap.minZwithHybrids()) << " maxZwithHybrids: " << endcap.maxZwithHybrids() << std::endl;
       logINFO("Building barrel top support structure horizontally oriented");
       break;
     case BOTTOM :
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
-                               MAX(0, barrel.minZ()),
-                               barrel.minR() - inactiveElementWidth - autoLayerMarginUpper,
-                               barrel.maxZ() - MAX(0, barrel.minZ()));
-      //std::cout << ">>Bottom barrel support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+                               MAX(0, barrel.minZwithHybrids()),
+                               barrel.minRwithHybrids() - inactiveElementWidth - autoLayerMarginUpper,
+                               barrel.maxZwithHybrids() - MAX(0, barrel.minZwithHybrids()));
+      //std::cout << ">>Bottom barrel support>> " << "minRwithHybrids: " << endcap.minRwithHybrids() - insur::geom_support_margin_bottom << " minZwithHybrids: " << MAX(0, endcap.minZwithHybrids()) << " maxZwithHybrids: " << endcap.maxZwithHybrids() << std::endl;
       logINFO("Building barrel bottom support structure horizontally oriented");
       break;
     default :
@@ -186,20 +186,20 @@ namespace material {
 
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
-                               MAX(0, endcap.minZ()),
-                               endcap.maxR() + autoLayerMarginLower,
-                               endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Top end-cap support>> " << "maxR: " << endcap.maxR() + insur::geom_support_margin_top << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+                               MAX(0, endcap.minZwithHybrids()),
+                               endcap.maxRwithHybrids() + autoLayerMarginLower,
+                               endcap.maxZwithHybrids() - MAX(0, endcap.minZwithHybrids()));
+      //std::cout << ">>Top end-cap support>> " << "maxRwithHybrids: " << endcap.maxRwithHybrids() + insur::geom_support_margin_top << " minZwithHybrids: " << MAX(0, endcap.minZwithHybrids()) << " maxZwithHybrids: " << endcap.maxZwithHybrids() << std::endl;
       logINFO("Building end-cap top support structure horizontally oriented");
       break;
     case BOTTOM :
 
       direction_ = HORIZONTAL;
       buildInactiveElementPair(direction_,
-                               MAX(0, endcap.minZ()),
-                               endcap.minR() - inactiveElementWidth - autoLayerMarginUpper,
-                               endcap.maxZ() - MAX(0, endcap.minZ()));
-      //std::cout << ">>Bottom end-cap support>> " << "minR: " << endcap.minR() - insur::geom_support_margin_bottom << " minZ: " << MAX(0, endcap.minZ()) << " maxZ: " << endcap.maxZ() << std::endl;
+                               MAX(0, endcap.minZwithHybrids()),
+                               endcap.minRwithHybrids() - inactiveElementWidth - autoLayerMarginUpper,
+                               endcap.maxZwithHybrids() - MAX(0, endcap.minZwithHybrids()));
+      //std::cout << ">>Bottom end-cap support>> " << "minRwithHybrids: " << endcap.minRwithHybrids() - insur::geom_support_margin_bottom << " minZwithHybrids: " << MAX(0, endcap.minZwithHybrids()) << " maxZwithHybrids: " << endcap.maxZwithHybrids() << std::endl;
       logINFO("Building end-cap bottom support structure horizontally oriented");
       break;
     default :

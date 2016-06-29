@@ -9,5 +9,6 @@ Component {
     elementName Al-CF
     quantity 8.7 
     unit g/m
+    targetVolume 1
   }
 }

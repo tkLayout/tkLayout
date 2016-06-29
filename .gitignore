@@ -1,4 +1,5 @@
 bin
 lib
 tkgeometryrc
-test/testGraphVizCreator
+test/testGraphVizCreatordoc/algorithms/scattering.aux
+doc/algorithms/scattering.log

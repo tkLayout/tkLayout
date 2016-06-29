@@ -7,6 +7,7 @@
  */
 
 #include <string>
+#include <cmath>
 #include <vector>
 
 namespace insur {
@@ -24,7 +25,8 @@ namespace insur {
   static const std::vector<double>      geom_range_eta_regions = {0.001,0.8,1.6,2.4 ,3.2 ,4.0  }; // Name tracker eta regions
 
   static const double geom_epsilon                    = 0.1;
-  static const double geom_inactive_volume_width      = 10.0;   // mm
+  //static const double geom_inactive_volume_width      = 10.0;   // mm
+  static const double geom_inactive_volume_width      = 5.0;   // mm
   static const double geom_inner_pixel_radius         = 30.0;   // mm
   static const double geom_inner_strip_radius         = 150.0;  // mm
   static const double geom_outer_strip_radius         = 1200.0; // mm
@@ -93,6 +95,12 @@ namespace insur {
   static const double vis_min_dPhi           = 1E-4;
   static const double vis_max_dCtgTheta      = 1.0;
   static const double vis_min_dCtgTheta      = 1E-6;
+  static const double vis_max_dL             = 1E3;
+  static const double vis_min_dL             = 1E0;
+  static const double vis_max_beta           = M_PI/2;
+  static const double vis_min_beta           = 0;
+  static const double vis_max_omega          = +M_PI;
+  static const double vis_min_omega          = -M_PI;
 
   static const double vis_safety_factor      = geom_safety_factor;
 

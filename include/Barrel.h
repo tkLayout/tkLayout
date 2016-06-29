@@ -58,14 +58,19 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
     minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minZ()); } return min; });
     maxR.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxR()); } return max; });
     minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minR()); } return min; });
+
+    maxZwithHybrids.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxZwithHybrids()); } return max; });
+    minZwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minZwithHybrids()); } return min; });
+    maxRwithHybrids.setup([this]() { double max = 0;                                  for (const auto& l : layers_) { max = MAX(max, l.maxRwithHybrids()); } return max; });
+    minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& l : layers_) { min = MIN(min, l.minRwithHybrids()); } return min; });
   }
   void build(); 
   void cutAtEta(double eta);
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& l : layers_) { l.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& l : layers_) { l.accept(v); }
   }
@@ -76,6 +81,7 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   Property<        int   , NoDefault>  numLayers;
   ReadonlyProperty<double, Computable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<bool  , Default>    skipServices;
 };
 

@@ -23,6 +23,7 @@ namespace insur {
     enum ShapeOperationType { uni, intersec };
 
     enum AlgoPartype { st,num,vec};
+
     /**
      * @struct Rotation
      * @brief This struct collects the parameters that describe a rotation in 3D.
@@ -205,7 +206,6 @@ namespace insur {
         bool fw;
         bool isZPlus;
         bool fw_flipped;
-        double phi;
         int modules;
         double mthk;
         double rmin;
@@ -214,7 +214,9 @@ namespace insur {
         double zmin;
         double zmax;
         double zfw;
+        double startPhiAnglefw;  // in RAD
         double zbw;
+        double startPhiAnglebw;  // in RAD
     };
     /**
      * @struct BTiltedRingInfo
@@ -242,15 +244,16 @@ namespace insur {
         std::string name;
         std::string childname;
         bool isZPlus;
-        double tiltAngle;
+        double tiltAngle;      // in DEG
         bool bw_flipped;
-        bool fw_flipped;
-        double phi;
+        bool fw_flipped;  
         int modules;
         double r1;
         double z1;
+        double startPhiAngle1; // in RAD
         double r2;
         double z2;
+        double startPhiAngle2; // in RAD
         double rmin;
         double rmax;
         double zmin;

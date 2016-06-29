@@ -17,6 +17,7 @@
 #include "Endcap.h"
 #include "SupportStructure.h"
 #include "Visitor.h"
+
 #include "Visitable.h"
 
 using std::set;
@@ -46,6 +47,8 @@ public:
 
   ReadonlyProperty<double, Computable> maxR, minR;
   ReadonlyProperty<double, Computable> maxZ;
+  Property<double, Computable> maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
+  ReadonlyProperty<bool, Computable> hasStepInEndcapsOuterRadius;
   ReadonlyProperty<double, Default> etaCut;
   ReadonlyProperty<bool, Default> servicesForcedUp;
   ReadonlyProperty<bool, Default> skipAllServices;
@@ -79,7 +82,7 @@ public:
   {}
 
   void setup() {
-      maxR.setup([this]() { 
+      maxR.setup([this]() {
         double max = 0; 
         for (const auto& b : barrels_) max = MAX(max, b.maxR());
         for (const auto& e : endcaps_) max = MAX(max, e.maxR());
@@ -97,6 +100,42 @@ public:
         for (const auto& e : endcaps_) max = MAX(max, e.maxZ());
         return max;
      });
+
+
+
+      maxRwithHybrids.setup([this]() { 
+	  double max = 0; 
+	  for (const auto& b : barrels_) max = MAX(max, b.maxRwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxRwithHybrids());
+	  return max;
+	});
+      minRwithHybrids.setup([this]() {
+	  double min = std::numeric_limits<double>::max(); 
+	  for (const auto& b : barrels_) min = MIN(min, b.minRwithHybrids());
+	  for (const auto& e : endcaps_) min = MIN(min, e.minRwithHybrids());
+	  return min;
+	});
+      maxZwithHybrids.setup([this]() {
+	  double max = 0;
+	  for (const auto& b : barrels_) max = MAX(max, b.maxZwithHybrids());
+	  for (const auto& e : endcaps_) max = MAX(max, e.maxZwithHybrids());
+	  return max;
+	});
+
+
+      hasStepInEndcapsOuterRadius.setup([this]() {
+	  bool hasStep = false;
+	  if (endcaps().size() > 1) {
+	    // check whether all endcaps outer radii are identical with each other
+	    // if radii are not all identical, there is an endcap step !
+	    hasStep = !std::equal(endcaps_.begin() + 1, endcaps_.end(), endcaps_.begin(), 
+				  [&](const Endcap& e1, const Endcap& e2) { return (e1.maxRwithHybrids() == e2.maxRwithHybrids()); });
+	  }
+	  return hasStep;
+	});
+
+
+
   }
 
   void build();
@@ -106,6 +145,8 @@ public:
 
   const Modules& modules() const { return moduleSetVisitor_.modules(); }
   Modules& modules() { return moduleSetVisitor_.modules(); }
+
+  bool isPixelTracker() const { return myid() == "Pixels"; }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
