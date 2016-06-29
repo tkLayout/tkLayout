@@ -2,6 +2,9 @@ moduleType pixel
 
 numSensors 1
 
+hybridThickness 0.5
+chipThickness 0.5
+
 Sensor 1 {
   sensorType largepix
   numStripsAcross 1024
@@ -11,7 +14,3 @@ Sensor 1 {
 }
 
 plotColor 4
-
-
-hybridThickness 0.5
-chipThickness 0.5
