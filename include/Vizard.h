@@ -111,6 +111,7 @@ namespace insur {
 
   // Formatting parameters
   static const int coordPrecision = 3;
+  static const int anglePrecision = 1;
   static const int areaPrecision = 1;
   static const int occupancyPrecision = 1;
   static const int rphiResolutionPrecision = 0;
@@ -224,7 +225,7 @@ namespace insur {
     double averageHistogramValues(TH1D& histo, double cutoffStart, double cutoffEnd);
 
     void createSummaryCanvas(double maxZ, double maxRho, Analyzer& analyzer, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
-    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
+    void createSummaryCanvasNicer(Tracker& tracker, TCanvas *&YZCanvas, TCanvas *&YZCanvasBarrel, TCanvas *&XYCanvas, TCanvas *&XYCanvasEC);
 
     enum {ViewSectionXY=3, ViewSectionYZ=1, ViewSectionXZ=2};
     void drawEtaTicks(double maxL, double maxR, double tickDistance, double tickLength, double textDistance, Style_t labelFont, Float_t labelSize,

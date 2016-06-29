@@ -19,6 +19,111 @@ using std::string;
 #define MAX_WEDGE_CALC_LOOPS 100
 
 
+
+class TiltedRing : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
+
+ public:
+  typedef PtrVector<BarrelModule> Container;
+ private :
+  Container modules_;
+  //MaterialObject materialObject_;
+  
+  double thetaOuterUP_, thetaOuterDOWN_, thetaOuter_, tiltAngleIdealOuter_, deltaTiltIdealOuter_, zOuter_;
+  double thetaInner_, tiltAngleIdealInner_, deltaTiltIdealInner_, zInner_;
+
+  double thetaStart_, thetaEnd_;
+
+  double thetaStartInner_, thetaEndInner_;
+
+  double numPhi_, phiOverlap_;
+
+  double rStartOuter_REAL_, zStartOuter_REAL_, rEndOuter_REAL_, zEndOuter_REAL_;
+  double rStartInner_REAL_, zStartInner_REAL_, rEndInner_REAL_, zEndInner_REAL_;
+
+
+ public:
+  Property<double, NoDefault> innerRadius;
+  Property<double, NoDefault> outerRadius;
+  Property<double, NoDefault> tiltAngle;
+  Property<double, NoDefault> theta_g;
+  Property<double, NoDefault> zOverlap;
+
+  const Container& modules() const { return modules_; }
+
+ TiltedRing() :
+  //materialObject_(MaterialObject::ROD),
+    innerRadius           ("ringInnerRadius"       , parsedAndChecked()),
+    outerRadius           ("ringOuterRadius"       , parsedAndChecked()),
+    tiltAngle             ("tiltAngle"             , parsedAndChecked()),
+    theta_g               ("theta_g"               , parsedAndChecked()),
+    zOverlap              ("zOverlap"              , parsedAndChecked())
+      {}
+
+  void build(double lastThetaEnd);
+  void buildLeftRight(double lastThetaEnd);
+  void check() override;
+
+  void accept(GeometryVisitor& v) {
+    v.visit(*this); 
+    for (auto& m : modules_) { m.accept(v); }
+  }
+  void accept(ConstGeometryVisitor& v) const {
+    v.visit(*this); 
+    for (const auto& m : modules_) { m.accept(v); }
+    }
+
+  //const MaterialObject& materialObject() const { return materialObject_; };
+
+  
+  double zOuter() const { return zOuter_; }
+  double zInner() const { return zInner_; }
+  double thetaOuter() const { return thetaOuter_; }
+  double thetaInner() const { return thetaInner_; }
+  double thetaEnd() const { return thetaEnd_; }
+
+
+  double tiltAngleIdealOuter() const { return tiltAngleIdealOuter_; }
+  double deltaTiltIdealOuter() const { return deltaTiltIdealOuter_; }
+
+  double tiltAngleIdealInner() const { return tiltAngleIdealInner_; }
+  double deltaTiltIdealInner() const { return deltaTiltIdealInner_; }
+
+  double thetaStartInner() const { return thetaStartInner_; }
+  double thetaEndInner() const { return thetaEndInner_; }
+
+  double averageR() const { return (innerRadius() + outerRadius()) / 2.; }
+  double averageZ() const { return (zInner_ + zOuter_) / 2.; }
+
+  double deltaR() const { return outerRadius() - innerRadius(); }
+  double gapR() const { return (outerRadius() - innerRadius()) / sin(theta_g() * M_PI / 180.); }
+  double deltaZ() const { return zOuter_ - zInner_; }
+
+  void numPhi(double numPhi) { numPhi_ = numPhi; }
+  double numPhi() const { return numPhi_; }
+  double phiOverlap() const { return  phiOverlap_; }
+
+  double rStartOuter_REAL() const { return rStartOuter_REAL_; }
+  double zStartOuter_REAL() const { return zStartOuter_REAL_; } 
+  double rEndOuter_REAL() const { return rEndOuter_REAL_; }
+  double zEndOuter_REAL() const { return zEndOuter_REAL_; }
+  double thetaEndOuter_REAL () const { return atan(rEndOuter_REAL_ / zEndOuter_REAL_); }
+
+  double rStartInner_REAL() const { return rStartInner_REAL_; }
+  double zStartInner_REAL() const { return zStartInner_REAL_; } 
+  double rEndInner_REAL() const { return rEndInner_REAL_; }
+  double zEndInner_REAL() const { return zEndInner_REAL_; }
+  double thetaEndInner_REAL () const { return atan(rEndInner_REAL_ / zEndInner_REAL_); }
+
+};
+
+
+
+
+
+
+
+
+
 class Ring : public PropertyObject, public Buildable, public Identifiable<int>, public Visitable {
   typedef PtrVector<EndcapModule> Container;
   Container modules_;
@@ -67,7 +172,7 @@ public:
 
   double minR()      const { return minRadius_; }
   double maxR()      const { return maxRadius_; }
-  double thickness() const { return smallDelta()*2 + maxModuleThickness(); } 
+  double thickness() const { return smallDelta()*2 + maxModuleThickness(); }
 
   const Container& modules() const { return modules_; }
 
@@ -94,11 +199,11 @@ public:
     minZ.setup([this]() { double min = std::numeric_limits<double>::max(); for (const auto& m : modules_) min = MIN(min, m.minZ()); return min; });
     maxZ.setup([this]() { double max = 0; for (const auto& m : modules_) max = MAX(max, m.maxZ()); return max; });
     maxModuleThickness.setup([this]() { 
-      double max = 0; 
+      double max = 0;
       for (const auto& m : modules_) { 
         max = MAX(max, m.thickness()); 
       } 
-      return max; 
+      return max;
     });
 
 

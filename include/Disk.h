@@ -104,7 +104,7 @@ public:
   const Container& rings() const { return rings_; }
   const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }
   }

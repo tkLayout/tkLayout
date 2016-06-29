@@ -66,11 +66,11 @@ class Barrel : public PropertyObject, public Buildable, public Identifiable<stri
   }
   void build(); 
   void cutAtEta(double eta);
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& l : layers_) { l.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& l : layers_) { l.accept(v); }
   }

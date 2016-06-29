@@ -1153,6 +1153,7 @@ namespace insur {
       }
     }
 
+
     //********************************//
     //*                              *//
     //*       Layers and disks       *//
@@ -1346,9 +1347,156 @@ namespace insur {
     myContent->addItem(v.ringTable);
 
 
+    //***************************************//
+    //*                                     *//
+    //* Automatic-placement tilted layers : *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+    myContent = new RootWContent("Tilted layers with automatic placement : additional info", false);
+
+    class TiltedLayersVisitor : public ConstGeometryVisitor {
+    public:
+      std::vector<RootWTable*> tiltedLayerNames;
+      std::vector<RootWTable*> flatPartNames;
+      std::vector<RootWTable*> tiltedPartNames;
+      std::vector<RootWTable*> flatPartTables;
+      std::vector<RootWTable*> tiltedPartTables;
+      int nTiltedLayers = 0;
+
+      
+
+      void visit(const Layer& l) override {
+	if (l.isTilted() && l.isTiltedAuto()) {
+	  nTiltedLayers++;
+
+	  RootWTable* tiltedLayerName = new RootWTable();
+	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
+	  tiltedLayerNames.push_back(tiltedLayerName);	 
+
+	  RootWTable* flatPartName = new RootWTable();
+	  flatPartName->setContent(0, 0, "Flat part :");
+	  flatPartNames.push_back(flatPartName);	 
+	  RootWTable* tiltedPartName = new RootWTable();
+	  tiltedPartName->setContent(0, 0, "Tilted part :");
+	  tiltedPartNames.push_back(tiltedPartName);	
+
+	  RootWTable* tiltedPartTable = new RootWTable();
+	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
+	    int ringNumber = l.buildNumModulesFlat() + 1 + i;
+	    tiltedPartTable->setContent(0, 0, "Ring");
+	    tiltedPartTable->setContent(0, i+1, ringNumber);
+	    tiltedPartTable->setContent(1, 0, "tiltAngle (°)");
+	    tiltedPartTable->setContent(1, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngle(), anglePrecision);
+	    tiltedPartTable->setContent(2, 0, "tiltAngleIdeal" + subStart + "Inner" + subEnd + " (°)");
+	    tiltedPartTable->setContent(2, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealInner(), anglePrecision);
+	    tiltedPartTable->setContent(3, 0, "deltaTiltIdeal" + subStart + "Inner" + subEnd + " (°)");
+	    tiltedPartTable->setContent(3, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealInner(), anglePrecision);
+	    tiltedPartTable->setContent(4, 0, "tiltAngleIdeal" + subStart + "Outer" + subEnd + " (°)");
+	    tiltedPartTable->setContent(4, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealOuter(), anglePrecision);
+	    tiltedPartTable->setContent(5, 0, "deltaTiltIdeal" + subStart + "Outer" + subEnd + " (°)");
+	    tiltedPartTable->setContent(5, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealOuter(), anglePrecision);
+	    tiltedPartTable->setContent(6, 0, "theta_g (°)");
+	    tiltedPartTable->setContent(6, i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g(), anglePrecision);
+	    tiltedPartTable->setContent(7, 0, "r" + subStart + "Inner" + subEnd);
+	    tiltedPartTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), coordPrecision);	    
+	    tiltedPartTable->setContent(8, 0, "r" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(8, i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius(), coordPrecision);
+	    tiltedPartTable->setContent(9, 0, "averageR (on Ring)");
+	    tiltedPartTable->setContent(9, i+1, l.tiltedRingsGeometry()[ringNumber]->averageR(), coordPrecision);
+	    tiltedPartTable->setContent(10, 0, "gapR");
+	    tiltedPartTable->setContent(10, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR(), coordPrecision);
+	    tiltedPartTable->setContent(11, 0, "z" + subStart + "Inner" + subEnd);
+	    tiltedPartTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner(), coordPrecision);
+	    tiltedPartTable->setContent(12, 0, "z" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), coordPrecision);	   	    
+	    tiltedPartTable->setContent(13, 0, "averageZ (on Ring)");
+	    tiltedPartTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), coordPrecision);
+	    tiltedPartTable->setContent(14, 0, "deltaZ" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(14, i+1, l.tiltedRingsGeometryInfo().deltaZInner()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(15, 0, "deltaZ" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(16, 0, "phiOverlap");
+	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);	    
+	    tiltedPartTable->setContent(17, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(18, i+1, l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber], coordPrecision);
+	  }
+	  tiltedPartTables.push_back(tiltedPartTable);
 
 
+	  RootWTable* flatPartTable = new RootWTable();
 
+	  StraightRodPair* minusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
+	  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
+	  StraightRodPair* plusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
+	  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
+	  
+	  int i = 0;
+	  for (const auto& m : minusBigDeltaModules) {
+	    int ringNumber = i + 1;
+	    flatPartTable->setContent(0, 0, "Ring");
+	    flatPartTable->setContent(0, i+1, ringNumber);
+	    flatPartTable->setContent(1, 0, "r" + subStart + "Inner" + subEnd);
+	    flatPartTable->setContent(1, i+1, m.center().Rho(), coordPrecision);
+	    flatPartTable->setContent(3, 0, "averageR (on Flat part)");
+	    flatPartTable->setContent(3, i+1, l.flatPartAverageR(), coordPrecision);
+	    flatPartTable->setContent(4, 0, "bigDelta");
+	    flatPartTable->setContent(4, i+1, l.bigDelta(), coordPrecision);
+	    flatPartTable->setContent(5, 0, "smallDelta");
+	    flatPartTable->setContent(5, i+1, l.smallDelta(), coordPrecision);
+	    flatPartTable->setContent(6, 0, "z");
+	    flatPartTable->setContent(6, i+1, m.center().Z(), coordPrecision);
+	    flatPartTable->setContent(7, 0, "phiOverlap");
+	    flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    if (i > 0) {
+	      flatPartTable->setContent(8, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(8, i+1, l.flatRingsGeometryInfo().zErrorInner()[i], coordPrecision);
+	      flatPartTable->setContent(9, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(9, i+1, l.flatRingsGeometryInfo().zErrorOuter()[i], coordPrecision);
+	    }
+	    i++;
+	  }
+	  i = 0;
+	  for (const auto& m : plusBigDeltaModules) {	    
+	    flatPartTable->setContent(2, 0, "r" + subStart + "Outer" + subEnd);
+	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision); 
+	    i++;
+	  }
+	  flatPartTables.push_back(flatPartTable);
+	}
+      }
+    };
+
+    TiltedLayersVisitor tv;  
+    tracker.accept(tv);
+
+    if (tv.nTiltedLayers > 0) {
+      myPage->addContent(myContent);
+
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      spacer->setContent(3, 0, " ");
+
+      for (int i = 0; i < tv.nTiltedLayers; i++) {
+	myContent->addItem(tv.tiltedLayerNames.at(i));
+	myContent->addItem(tv.flatPartNames.at(i));
+	myContent->addItem(tv.flatPartTables.at(i));
+	myContent->addItem(tv.tiltedPartNames.at(i));
+	myContent->addItem(tv.tiltedPartTables.at(i));
+	if (i < tv.nTiltedLayers - 1) { myContent->addItem(spacer); }
+      }
+    }
+
+
+    //********************************//
+    //*                              *//
+    //*       Modules                *//
+    //*                              *//
+    //********************************//
     double totalPower=0; 
     double totalCost=0;
     double moduleTotalWeight=0;
@@ -1384,11 +1532,6 @@ namespace insur {
     int barrelCount=0;
     int endcapCount=0;
 
-    //********************************//
-    //*                              *//
-    //*       Modules                *//
-    //*                              *//
-    //********************************//
     myContent = new RootWContent("Modules", false);
     myPage->addContent(myContent);
     RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
@@ -1840,6 +1983,126 @@ namespace insur {
     }
     moduleTable->setContent(totalWeightRow, iType, aWeight.str());
 
+
+    //********************************//
+    //*                              *//
+    //*    Modules parametrized      *//
+    //*     spatial resolution       *//
+    //*                              *//
+    //********************************//
+    // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
+    if (debugResolution) {
+
+      std::string tag;
+      if (name == "" ) tag = "tracker";
+      else tag = name;
+
+      RootWContent& parametrizedResolutionContent  = myPage->addContent("Modules parametrized spatial resolution");
+
+      // Modules' parametrized spatial resolution maps
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXBarrelMap = analyzer.getParametrizedResolutionLocalXBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYBarrelMap = analyzer.getParametrizedResolutionLocalYBarrelMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalXEndcapsMap = analyzer.getParametrizedResolutionLocalXEndcapsMap();
+      std::map<std::string, TH2D>& parametrizedResolutionLocalYEndcapsMap = analyzer.getParametrizedResolutionLocalYEndcapsMap();
+
+      // Modules' parametrized spatial resolution distributions
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXBarrelDistribution = analyzer.getParametrizedResolutionLocalXBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYBarrelDistribution = analyzer.getParametrizedResolutionLocalYBarrelDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalXEndcapsDistribution = analyzer.getParametrizedResolutionLocalXEndcapsDistribution();
+      std::map<std::string, TH1D>& parametrizedResolutionLocalYEndcapsDistribution = analyzer.getParametrizedResolutionLocalYEndcapsDistribution();
+
+      if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYBarrelMap[tag].GetEntries() == 0 && parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() == 0 && parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() == 0) {
+	parametrizedResolutionContent.addText(Form("Spatial resolution is not parametrized for any module. To get spatial resolution values, please have a look at modules table."));
+      }
+
+      // If maps not empty, add modules' parametrized spatial resolution maps and corresponding distributions
+      else {
+	RootWTable* myTable = new RootWTable();
+	parametrizedResolutionContent.addItem(myTable);
+	myTable->setContent(1, 1, "These plots are for all modules types, over full barrel or endcaps volumes.");
+	myTable->setContent(2, 1, "To get statistics per module type, please have a look at modules table.");
+	myTable->setContent(3, 1, " ");
+	myTable->setContent(4, 1, " ");
+
+	gStyle->SetTitleX(0.54);
+	gStyle->SetTitleW(1);
+	gStyle->SetOptStat("emr");
+	if (parametrizedResolutionLocalXBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoXBarCanvas;
+	  resoXBarCanvas.SetFillColor(color_plot_background);
+	  resoXBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelMap[tag].Draw();
+	  myPad = resoXBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoXBarImage = parametrizedResolutionContent.addImage(resoXBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXBarImage.setComment(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	  resoXBarImage.setName(Form("Resolution on local X coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYBarrelMap[tag].GetEntries() != 0) {
+	  TCanvas resoYBarCanvas;
+	  resoYBarCanvas.SetFillColor(color_plot_background);
+	  resoYBarCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYBarCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYBarCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelMap[tag].Draw();
+	  myPad = resoYBarCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYBarrelDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYBarrelDistribution[tag].DrawNormalized();
+	  RootWImage& resoYBarImage = parametrizedResolutionContent.addImage(resoYBarCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYBarImage.setComment(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	  resoYBarImage.setName(Form("Resolution on local Y coordinate for %s barrel modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalXEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoXEndCanvas;
+	  resoXEndCanvas.SetFillColor(color_plot_background);
+	  resoXEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoXEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoXEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsMap[tag].Draw();
+	  myPad = resoXEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalXEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoXEndImage = parametrizedResolutionContent.addImage(resoXEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoXEndImage.setComment(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	  resoXEndImage.setName(Form("Resolution on local X coordinate for %s endcaps modules", tag.c_str()));
+	}
+	if (parametrizedResolutionLocalYEndcapsMap[tag].GetEntries() != 0) {
+	  TCanvas resoYEndCanvas;
+	  resoYEndCanvas.SetFillColor(color_plot_background);
+	  resoYEndCanvas.Divide(2,1);
+	  TVirtualPad* myPad;
+	  myPad = resoYEndCanvas.GetPad(0);
+	  myPad->SetFillColor(color_pad_background);
+	  myPad = resoYEndCanvas.GetPad(1);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsMap[tag].Draw();
+	  myPad = resoYEndCanvas.GetPad(2);
+	  myPad->cd();
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].SetStats(1);
+	  parametrizedResolutionLocalYEndcapsDistribution[tag].DrawNormalized();
+	  RootWImage& resoYEndImage = parametrizedResolutionContent.addImage(resoYEndCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+	  resoYEndImage.setComment(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	  resoYEndImage.setName(Form("Resolution on local Y coordinate for %s endcaps modules", tag.c_str()));
+	}
+      }
+    } // debugResolution
+
+
     //********************************//
     //*                              *//
     //*       Plots                  *//
@@ -1848,11 +2111,12 @@ namespace insur {
     RootWImage* myImage;
     TCanvas *summaryCanvas = NULL;
     TCanvas *RZCanvas = NULL;
+    TCanvas *RZCanvasBarrel = NULL;
     TCanvas *XYCanvas = NULL;
     TCanvas *XYCanvasEC = NULL;
     TCanvas *myCanvas = NULL;
     //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-    createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
+    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
     if (name=="pixel") {
       logINFO("PIXEL HACK for beam pipe");
       TPolyLine* beampipe  = new TPolyLine();
@@ -1866,7 +2130,10 @@ namespace insur {
       drawCircle(22.5, true, 18); // "grey18"
       RZCanvas->cd();
       beampipe->Draw("same");
+      RZCanvasBarrel->cd();
+      beampipe->Draw("same");
 
+      RZCanvas->cd();
       TPolyLine* etafour  = new TPolyLine();
       etafour->SetPoint(0, 0, 0);
       etafour->SetPoint(1, 2700, 98.9376398798);
@@ -1887,7 +2154,12 @@ namespace insur {
 
     if (RZCanvas) {
       myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ position of the modules");
+      myImage->setComment("RZ positions of the modules");
+      myContent->addItem(myImage);
+    }
+    if ((RZCanvasBarrel) && (name == "pixel")) {
+      myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("RZ positions of the barrel modules");
       myContent->addItem(myImage);
     }
     if (XYCanvas) {
@@ -5229,7 +5501,7 @@ namespace insur {
   }    
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
@@ -5239,12 +5511,18 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RZCanvasBarrel->cd();
+    PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
+    yzDrawerBarrel.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
+    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();
