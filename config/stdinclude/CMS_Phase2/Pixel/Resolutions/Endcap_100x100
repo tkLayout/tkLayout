@@ -1,5 +1,7 @@
 // Large square endcap pixel
-resolutionLocalXEndcapParam0 0.023  // mm
-resolutionLocalXEndcapParam1 0.026  // mm
-resolutionLocalYEndcapParam0 0.025  // mm
-resolutionLocalYEndcapParam1 -0.027 // mm
+resolutionLocalXEndcapParam0 0.0081   // mm
+resolutionLocalXEndcapParam1 0.0174 // mm
+resolutionLocalXEndcapParam2 0.036
+resolutionLocalXEndcapParam3 0.027
+resolutionLocalYEndcapParam0 0.024    // mm
+resolutionLocalYEndcapParam1 -0.028   // mm
