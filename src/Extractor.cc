@@ -1980,10 +1980,11 @@ namespace insur {
       }
 #endif
     }
-    std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
+    // DEBUG EXTREMA
+    /*std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
     std::cout << "serviceBarrelRMax = " << serviceBarrelRMax << std::endl;
     std::cout << "serviceEndcapsRMin = " << serviceEndcapsRMin << std::endl;
-    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;
+    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;*/
   }
     
 
@@ -2205,10 +2206,11 @@ namespace insur {
 
 
     }
-    std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
+    // DEBUG EXTREMA
+    /*std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
     std::cout << "supportBarrelRMax = " << supportBarrelRMax << std::endl;
     std::cout << "supportEndcapsRMin = " << supportEndcapsRMin << std::endl;
-    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;
+    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;*/
   }
 
   //private
