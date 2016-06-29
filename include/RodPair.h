@@ -57,15 +57,7 @@ public:
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
 
-
-    //maxZwithHybrids       .setup([&]() { double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); return MAX(maxZ(), max); });
-    maxZwithHybrids       .setup([&]() {
-	double max = maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); 
-	if ((zPlusModules_.front().readoutType() == ReadoutType::READOUT_PIXEL) && (zPlusModules_.front().maxRwithHybrids() > 200.)) {
-	  max =  MAX(1150., max);
-	}
-	return max;
-      });
+    maxZwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); });
     minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZwithHybrids); });
     minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minRwithHybrids); });
     maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxRwithHybrids); });
