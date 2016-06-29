@@ -135,7 +135,7 @@ public:
             minBuildRadius ("minBuildRadius" , parsedOnly()),
             maxBuildRadius ("maxBuildRadius" , parsedOnly()),
 	    layerRotation  ("layerRotation",   parsedOnly(), 0.),
-	    sameParityRods ("sameParityRods" , parsedAndChecked(), false),
+	    sameParityRods ("sameParityRods" , parsedAndChecked(), true),
 	    buildNumModulesFlat("numModulesFlat"     , parsedOnly()),
 	    buildNumModulesTilted("numModulesTilted"     , parsedOnly()),
 	    isTilted       ("isTilted"       , parsedOnly(), false),
@@ -161,7 +161,6 @@ public:
   int totalModules() const { return numModulesPerRod()*numRods(); }
   double rodThickness() const { return rods_.front().thickness(); }
   double flatPartRodThickness() const { return smallDelta()*2. + rods_.front().maxModuleThickness(); }
-  bool isTilted() const { return rods_.front().isTilted(); }
 
   void check() override;
   void build();

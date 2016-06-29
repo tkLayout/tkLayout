@@ -295,7 +295,7 @@ void Layer::buildStraight(bool isFlatPart) {
   else { flatPartRods_.push_back(second); }
 
   // All other Rods
-  for (int i = 2; i < numRods_; i++) {
+  for (int i = 2; i < numRods(); i++) {
     StraightRodPair* rod = i%2 ? GeometryFactory::clone(*second) : GeometryFactory::clone(*first); // clone rods
     rod->myid(i+1);
     rod->rotateZ(rodPhiRotation*(i%2 ? i-1 : i));
