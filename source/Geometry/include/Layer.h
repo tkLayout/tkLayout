@@ -1,20 +1,16 @@
 #ifndef INCLUDE_LAYER_H_
 #define INCLUDE_LAYER_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
 
 #include "global_funcs.h"
+#include "ConversionStation.h"
 #include "Property.h"
 #include "RodPair.h"
 #include "Visitable.h"
 #include "MaterialObject.h"
-
-// Forward declaration
-namespace material {
-  class ConversionStation;
-}
 
 // Used namespace in following classes
 using std::string;
@@ -23,10 +19,11 @@ using std::pair;
 using std::unique_ptr;
 using material::MaterialObject;
 using material::ConversionStation;
+using material::ConversionStations;
 
 // Typedefs
-typedef PtrVector<RodPair>              Rods;
-typedef std::vector<ConversionStation*> ConversionStations;
+typedef PtrVector<Layer> Layers;
+
 enum RadiusMode { SHRINK, ENLARGE, FIXED, AUTO };
 
 /*

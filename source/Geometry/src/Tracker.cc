@@ -62,7 +62,7 @@ Tracker::Tracker(const PropertyTree& treeProperty) :
 Tracker::~Tracker()
 {
   if (m_modulesSetVisitor!=nullptr) delete m_modulesSetVisitor;
-  if (m_cntNameVisitor!=nullptr) delete m_cntNameVisitor;
+  if (m_cntNameVisitor   !=nullptr) delete m_cntNameVisitor;
 }
 
 //

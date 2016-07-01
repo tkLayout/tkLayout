@@ -1,11 +1,9 @@
 #ifndef INCLUDE_RING_H
 #define INCLUDE_RING_H
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
-
-#include <boost/ptr_container/ptr_vector.hpp>
 
 using std::vector;
 using std::string;
@@ -16,7 +14,8 @@ using std::string;
 #include "Visitable.h"
 
 // Typedefs
-typedef PtrVector<EndcapModule> EndcapModules;
+typedef PtrVector<Ring>            Rings;
+typedef std::map<int, const Ring*> RingIndexMap;
 
 // Enums
 enum BuildDirection { TOPDOWN, BOTTOMUP };

@@ -31,8 +31,8 @@ BeamPipe::BeamPipe(const PropertyTree& treeProperty) :
 //
 BeamPipe::~BeamPipe()
 {
-  // Clear memory;
-  if (m_tube!=nullptr) delete m_tube;
+  // Clear memory - not necessary
+  m_tube.reset();
 }
 
 //
@@ -47,7 +47,7 @@ void BeamPipe::build()
     double zLength = 2*maxZ();
     double zOffset = 0.0;
 
-    m_tube = new insur::InactiveTube;
+    m_tube.reset(new insur::InactiveTube);
     m_tube->setZLength(zLength);
     m_tube->setZOffset(0.0);
     m_tube->setInnerRadius(radius());
@@ -83,6 +83,6 @@ void BeamPipe::accept(ConstGeometryVisitor& v) const
 //
 const insur::InactiveTube* BeamPipe::getMaterial() const
 {
-  const insur::InactiveTube* tube = m_tube;
+  const insur::InactiveTube* tube = m_tube.get();
   return tube;
 }

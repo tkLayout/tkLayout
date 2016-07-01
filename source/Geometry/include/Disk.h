@@ -1,11 +1,9 @@
 #ifndef INCLUDE_DISK_H_
 #define INCLUDE_DISK_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
-
-#include <boost/ptr_container/ptr_vector.hpp>
 
 #include "global_funcs.h"
 #include "Property.h"
@@ -22,8 +20,7 @@ using material::MaterialObject;
 using material::ConversionStation;
 
 // Typedefs
-typedef PtrVector<Ring>      Rings;
-typedef std::map<int, Ring*> RingIndexMap;
+typedef PtrVector<Disk> Disks;
 
 /*
  * @class Disk

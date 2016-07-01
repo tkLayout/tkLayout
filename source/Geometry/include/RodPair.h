@@ -1,13 +1,11 @@
 #ifndef INCLUDE_RODPAIR_H_
 #define INCLUDE_RODPAIR_H_
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <functional>
 #include <algorithm>
-
-#include <boost/ptr_container/ptr_vector.hpp>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "global_funcs.h"
 #include "GeometryFactory.h"
@@ -21,7 +19,8 @@ using std::vector;
 using std::pair;
 using std::unique_ptr;
 
-typedef PtrVector<BarrelModule>            BarrelModules;
+// Typedefs
+typedef PtrVector<RodPair> Rods;
 
 enum class BuildDir   { RIGHT = 1, LEFT = -1 };
 enum class StartZMode { MODULECENTER, MODULEEDGE };
