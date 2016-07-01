@@ -233,9 +233,9 @@ void Track::addIPConstraint(double dr, double dz) {
 }
 
 //
-// Sort internally all hits assigned to this track -> sorting algorithm based on hit radius (the smaller, the sooner)
+// Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
 //
-void Track::sortHits() {std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortSmallerR); }
+void Track::sortHits(bool bySmallerR) { bySmallerR ? std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortSmallerR) : std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortHigherR); }
 
 //
 // Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
@@ -395,7 +395,8 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
   double probability = 1;
 
   // Sort hits first
-  sortHits();
+  bool bySmallerR = true;
+  sortHits(bySmallerR);
 
   for (auto& iHit : m_hits) {
     if (iHit) {
@@ -432,7 +433,8 @@ double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
   int goodHits = 0;
 
   // Sort hits first
-  sortHits();
+  bool bySmallerR = true;
+  sortHits(bySmallerR);
 
   for (auto& iHit : m_hits) {
 

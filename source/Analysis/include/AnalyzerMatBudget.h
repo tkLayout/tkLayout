@@ -113,8 +113,8 @@ class AnalyzerMatBudget : public AnalyzerUnit {
 
 }; // Class
 
-//! Helper class - Module caps visitor (visitor pattern) - checks that modules, beam-pipe etc. hit by a track -> returns radiation & interaction length & preanalyze material related data
-class MaterialVisitor : public ConstGeometryVisitor {
+//! Helper class - Material budget visitor (visitor pattern) - checks that modules, beam-pipe etc. hit by a track -> returns radiation & interaction length & preanalyze material related data
+class MatBudgetVisitor : public ConstGeometryVisitor {
 
 public:
 
@@ -122,10 +122,10 @@ public:
   //! As a parameter provide a track, under which the material is studied, container filling in
   //! material for given subdetectors or components defined by name (Barrel, Endcap, ...) and
   //! radiation maps as TH2D to be filled
-  MaterialVisitor(Track& matTrack, std::map<std::string, RILength>& matBudget, TH2D& radMap, TH2D& radMapCount, TH2D& intMap, TH2D& intMapCount);
+  MatBudgetVisitor(Track& matTrack, std::map<std::string, RILength>& matBudget, TH2D& radMap, TH2D& radMapCount, TH2D& intMap, TH2D& intMapCount);
 
   //! Destructor
-  ~MaterialVisitor();
+  ~MatBudgetVisitor();
 
   //! Visit BeamPipe
   void visit(const BeamPipe& bp) override;

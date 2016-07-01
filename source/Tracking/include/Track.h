@@ -64,8 +64,8 @@ public:
   //! Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
   void addIPConstraint(double dr, double dz);
 
-  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius (the smaller, the sooner)
-  void sortHits();
+  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
+  void sortHits(bool bySmallerR);
 
   //! Does track contain no hits?
   bool hasNoHits() const {return m_hits.empty(); }
