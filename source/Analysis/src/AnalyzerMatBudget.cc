@@ -1113,7 +1113,7 @@ void MaterialVisitor::visit(const BeamPipe& bp)
   // Add hit corresponding with beam-pipe
   double theta    = m_matTrack.getTheta();
   double distance = (bp.radius()+bp.thickness())/2./sin(theta);
-  Hit* hit = new Hit(distance);
+  HitPtr hit(new Hit(distance));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);
 
@@ -1122,7 +1122,7 @@ void MaterialVisitor::visit(const BeamPipe& bp)
   material.interaction = bp.intLength()/sin(theta);
   hit->setCorrectedMaterial(material);
   hit->setBeamPipe(true);
-  m_matTrack.addHit(hit);
+  m_matTrack.addHit(std::move(hit));
 }
 
 //
@@ -1222,9 +1222,9 @@ void MaterialVisitor::analyzeModuleMB(const DetectorModule& m)
       }
 
       // Create Hit object with appropriate parameters, add to Track t
-      Hit* hit = new Hit(pair.first.R(), &m, hitType);
+      HitPtr hit(new Hit(pair.first.R(), &m, hitType));
       hit->setCorrectedMaterial(material);
-      m_matTrack.addHit(hit);
+      m_matTrack.addHit(std::move(hit));
     }
   } // Z>0
 }

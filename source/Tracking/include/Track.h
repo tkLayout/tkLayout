@@ -7,19 +7,25 @@
 #define INCLUDE_TRACK_H_
 
 #include <cmath>
+#include <memory>
 #include <set>
 #include <vector>
 
 #include "DetectorModule.h"
+#include "Hit.h"
 #include <Math/Vector3D.h>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
 
 // Forward declaration
-class Hit;
+class Track;
 class RILength;
 
 #undef TRACK_DEBUG_RZ
+
+//Typedef
+typedef std::unique_ptr<Track> TrackPtr;
+typedef std::vector<TrackPtr>  TrackCollection;
 
 /**
  * @class Track
@@ -53,10 +59,10 @@ public:
   void computeErrors();
 
   //! Add new hit to track and return a pointer to that hit
-  Hit* addHit(Hit* newHit);
+  void addHit(HitPtr newHit);
 
   //! Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
-  Hit* addIPConstraint(double dr, double dz);
+  void addIPConstraint(double dr, double dz);
 
   //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius (the smaller, the sooner)
   void sortHits();
@@ -163,7 +169,7 @@ protected:
   Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
   XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z
 
-  std::vector<Hit*>     m_hits;//!< Track assigned hits
+  HitCollection         m_hits;//!< Track assigned hits
   std::set<std::string> m_tags;//!< Which subdetectors to be used in the track (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
   // Track resolution as a function of momentum
