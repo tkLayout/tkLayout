@@ -15,10 +15,21 @@
 #include "messageLogger.h"
 #include "Visitable.h"
 
+#include <iostream>
+
 using std::string;
 using std::vector;
 using std::pair;
 using std::unique_ptr;
+
+
+struct TiltedModuleSpecs {
+  double r, z, gamma;
+  bool valid() const {
+    return r > 0.0 && fabs(gamma) <= 2*M_PI;
+  }
+};
+
 
 typedef vector<unique_ptr<BarrelModule>> RodTemplate;
 
@@ -37,8 +48,10 @@ protected:
 private:
   void clearComputables();
 public:
-  Property<double, NoDefault> maxZ;
+  //Property<double, NoDefault> maxZ;
+  Property<double, Computable> maxZ;
   Property<double, Computable> minZ, maxR, minR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<double, Computable> maxModuleThickness;
   Property<bool, Default> beamSpotCover;
 
@@ -50,9 +63,15 @@ public:
 
   void setup() {
     minZ       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZ); }); // we want the minZ so we don't bother with scanning the zPlus vector
+    maxZ .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZ); });
     minR       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minR); }); // min and maxR can be found by just scanning the zPlus vector, since the rod pair is symmetrical in R
     maxR       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxR); });
     maxModuleThickness.setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::thickness); });
+
+    maxZwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxZwithHybrids); });
+    minZwithHybrids       .setup([&]() { return minget2(zMinusModules_.begin(), zMinusModules_.end(), &Module::minZwithHybrids); });
+    minRwithHybrids       .setup([&]() { return minget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::minRwithHybrids); });
+    maxRwithHybrids       .setup([&]() { return maxget2(zPlusModules_.begin(), zPlusModules_.end(), &Module::maxRwithHybrids); });
   }
   
   virtual double thickness() const = 0;
@@ -68,13 +87,15 @@ public:
   void cutAtEta(double eta);
 
   const std::pair<const Container&,const Container&> modules() const { return std::pair<const Container&,const Container&>(zPlusModules_,zMinusModules_); }
+
+  void removeModules() { zMinusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); zPlusModules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); }
   
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& m : zPlusModules_) { m.accept(v); }
     for (auto& m : zMinusModules_) { m.accept(v); }
   }
-  void accept(ConstGeometryVisitor& v) const { 
+  void accept(ConstGeometryVisitor& v) const {
     v.visit(*this); 
     for (const auto& m : zPlusModules_) { m.accept(v); }
     for (const auto& m : zMinusModules_) { m.accept(v); }
@@ -89,9 +110,9 @@ class StraightRodPair : public RodPair, public Clonable<StraightRodPair> {
   double computeNextZ(double newDsLength, double newDsDistance, double lastDsDistance, double lastZ, BuildDir direction, int parity);
   template<typename Iterator> vector<double> computeZList(Iterator begin, Iterator end, double startZ, BuildDir direction, int smallParity, bool fixedStartZ);
   template<typename Iterator> pair<vector<double>, vector<double>> computeZListPair(Iterator begin, Iterator end, double startZ, int recursionCounter);
-  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, int parity, int side);
-  void buildFull(const RodTemplate& rodTemplate); 
-  void buildMezzanine(const RodTemplate& rodTemplate); 
+  void buildModules(Container& modules, const RodTemplate& rodTemplate, const vector<double>& posList, BuildDir direction, bool isPlusBigDeltaRod, int parity, int side);
+  void buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
+  void buildMezzanine(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod); 
 
 public:
  
@@ -109,18 +130,21 @@ public:
   Property<bool, Default> compressed;
   Property<bool, Default> allowCompressionCuts;
 
+  Property<bool, Default> isFlatPart;
+
   PropertyNode<int> ringNode;
   
   StraightRodPair() :
               forbiddenRange      ("forbiddenRange"      , parsedOnly()),
               zOverlap            ("zOverlap"            , parsedAndChecked() , 1.),
-              zError              ("zError"              , parsedAndChecked()),
-              zPlusParity         ("smallParity"         , parsedAndChecked()),
+	      zError              ("zError"              , parsedAndChecked()),
+	      zPlusParity         ("smallParity"         , parsedOnly()),
               mezzanine           ("mezzanine"           , parsedOnly(), false),
               startZ              ("startZ"              , parsedOnly()),
               compressed          ("compressed"          , parsedOnly(), true),
               allowCompressionCuts("allowCompressionCuts", parsedOnly(), true),
-	      ringNode            ("Ring"                , parsedOnly())
+	      ringNode            ("Ring"                , parsedOnly()),
+	      isFlatPart          ("isFlatPart"          , parsedOnly(), false)
   {}
 
 
@@ -128,21 +152,44 @@ public:
   bool isTilted() const override { return false; }
 
   void check() override;
-  void build(const RodTemplate& rodTemplate);
+  void build(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod);
 
   std::set<int> solveCollisionsZPlus();
   std::set<int> solveCollisionsZMinus();
   void compressToZ(double z);
 
-};
+  double thetaEnd() const {
+    double thetaEnd;
 
+    if (zPlusModules_.empty()) { thetaEnd = M_PI/2.; }
+    else {
+      // findMaxZModule as a function
+      auto lastMod = zPlusModules_.back();
 
-struct TiltedModuleSpecs {
-  double r, z, gamma;
-  bool valid() const {
-    return r > 0.0 && fabs(gamma) <= 2*M_PI;
+      double dsDistance = lastMod.dsDistance();
+      double lastR = lastMod.center().Rho();
+      
+      double rH2ppUP = lastR + 0.5 * dsDistance;  // WARNING !!! FOR THE MOMENT, DOESN T TAKE MODULE WIDTH INTO ACCOUNT, SHOULD BE CHANGED ?
+
+      thetaEnd = atan(rH2ppUP / (lastMod.planarMaxZ() - zOverlap()));
+    
+      /*std::cout << "lastMod.center().Rho() = " << lastMod.center().Rho() << std::endl;
+      std::cout << "lastMod.dsDistance() = " << lastMod.dsDistance() << std::endl;
+      std::cout << "lastMod.thickness() = " << lastMod.thickness() << std::endl;
+      std::cout << "rH2ppUP = " << rH2ppUP << std::endl;
+      std::cout << "thetaEnd = " << thetaEnd << std::endl;
+   
+      std::cout << "lastMod.planarMaxR() = " << lastMod.planarMaxR() << std::endl;
+      std::cout << "lastMod.planarMaxZ() - zOverlap() = " << lastMod.planarMaxZ() - zOverlap() << std::endl;
+      double thetaEnd2 = atan(lastMod.planarMaxR() / (lastMod.planarMaxZ() - zOverlap()));
+      std::cout << "thetaEnd2 = " << thetaEnd2 << std::endl;*/
+    }
+    return thetaEnd;
   }
+
 };
+
+
 
 class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
  
@@ -152,6 +199,7 @@ class TiltedRodPair : public RodPair, public Clonable<TiltedRodPair> {
 
   double thickness() const override { std::cerr << "thickness() for tilted rods gives incorrect results as it is calculated as maxR()-minR()\n"; return maxR() - minR(); }
   bool isTilted() const override { return true; }
+  void check() override;
   void build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip);
 
   

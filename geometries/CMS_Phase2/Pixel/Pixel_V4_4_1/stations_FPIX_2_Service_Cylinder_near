@@ -1,0 +1,32 @@
+// Pixel endcap second-station conversions (service cylinder)
+// twisted pairs->GBT
+
+Station {
+  stationName FPIX9
+  type second
+  minZ 1770.00
+  maxZ 1860.00
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+Station {
+  stationName FPIX10
+  type second
+  minZ 2029.59
+  maxZ 2119.59
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+Station {
+  stationName FPIX11
+  type second
+  minZ 2327.69
+  maxZ 2417.69
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+Station {
+  stationName FPIX12
+  type second
+  minZ 2670.00
+  maxZ 2760.00
+  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
+}
+
