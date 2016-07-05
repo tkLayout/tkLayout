@@ -4,31 +4,31 @@
 Station {
   stationName BPIX1
   type second
-  minZ 200
-  maxZ 290
+  minZ 230
+  maxZ 320
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 
 Station {
   stationName BPIX2
   type second
-  minZ 300
-  maxZ 390
+  minZ 330
+  maxZ 420
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 
 Station {
   stationName BPIX3
   type second
-  minZ 400
-  maxZ 490
+  minZ 430
+  maxZ 520
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }
 
 Station {
   stationName BPIX4
   type second
-  minZ 500
-  maxZ 590
+  minZ 530
+  maxZ 620
   @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT
 }

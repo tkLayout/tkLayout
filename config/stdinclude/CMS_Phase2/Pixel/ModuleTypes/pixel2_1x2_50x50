@@ -1,10 +1,11 @@
 // 2x1 chips pixel module (50um x 50um)
-// Chip size 17x19
-moduleType pixel_1x2_50x50
+// Chip size 16.4x22
+moduleType pixel2_1x2_50x50
 
 // Active silicon size
-width 17
-length 38
+// (includes space between chips 0.2mm)
+width 16.4
+length 44.2
 
 numSensors 1
 
