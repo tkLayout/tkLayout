@@ -11,4 +11,4 @@ Baseline_tilted_200_Pixel_1_5_2.cfg  Like 1.5.1, but without DC/DC converters
 Baseline_tilted_200_Pixel_3_4_1.cfg  Con lo step alto 2 rings (da vedere come ci siamo arrivati)
 Baseline_tilted_200_Pixel_3_5_1.cfg  Like 3_4_1, but TEDD and FPIX_2 disks moved to allow insertion -- small pixels everywhere
 
-Baseline_tilted_200_Pixel_4_0_0.cfg  Like 3_5_1, but tilted pixels 
+Baseline_tilted_200_Pixel_4_0_0.cfg  Like 3_5_1, but with 22x16.4 mm^2 chips (good for tilt?)
