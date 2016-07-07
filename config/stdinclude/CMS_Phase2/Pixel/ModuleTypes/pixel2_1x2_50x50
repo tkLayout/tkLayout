@@ -1,4 +1,4 @@
-// 2x1 chips pixel module (50um x 50um)
+// 1x2 chips pixel module (50um x 50um)
 // Chip size 16.4x22
 moduleType pixel2_1x2_50x50
 
@@ -25,4 +25,4 @@ Sensor 1 {
   numROCY 2
 }
 
-plotColor 4
+plotColor 1
