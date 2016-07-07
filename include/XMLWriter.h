@@ -39,9 +39,7 @@ namespace insur {
         void prodcuts(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void trackersens(std::vector<SpecParInfo>& t, std::ifstream& in, std::ofstream& out);
         void recomaterial(std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, std::ifstream& in, std::ofstream& out, bool wt = false);
-        void setExtendedHeader(const std::string& header) { extendedHeader_ = header; }
         void setSimpleHeader(const std::string& header) { simpleHeader_ = header; }
-        const std::string& getExtendedHeader() const { return extendedHeader_; }
         const std::string& getSimpleHeader() const { return simpleHeader_; }
     protected:
         void trackerLogicalVolume(std::ostringstream& stream, std::istream& instream); // takes the stream containing the tracker logical volume template and outputs it to the outstream
@@ -77,7 +75,7 @@ namespace insur {
         int findNumericPrefixSize(std::string s);
         int findEntry(std::vector<SpecParInfo>& specs, std::string name);
         std::vector<PathInfo>::iterator findEntry(std::string name, std::vector<PathInfo>& data);
-        std::string extendedHeader_, simpleHeader_; // headers containing generation information which are inserted after the preamble
+	std::string  simpleHeader_; // header containing generation information which is inserted after the preamble
     };
 }
 #endif	/* _XMLWRITER_H */

@@ -2255,6 +2255,7 @@ namespace insur {
       fullLayoutContent = new RootWContent("Full layout", true);
       RootWImage* anImage = new RootWImage(aLayout, aLayout->GetWindowWidth(), aLayout->GetWindowHeight() );
       anImage->setComment("RZ position of the modules (full layout)");
+      anImage->setName("fullLayout");
       fullLayoutContent->addItem(anImage);
     }
 
@@ -2350,6 +2351,10 @@ namespace insur {
     //*                              *//
     //********************************//
 
+    // Summary file with all root plots
+    myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
+    myBinaryFile->setNoCopy(true);
+    summaryContent->addItem(myBinaryFile);
     RootWTextFile* myTextFile;
 
     // Summary of layout and performance
@@ -2768,6 +2773,7 @@ namespace insur {
         TCanvas distanceCanvas;
         TCanvas angleCanvas;
         TCanvas ctgThetaCanvas;
+        TCanvas etaCanvas;
         TCanvas z0Canvas;
         TCanvas pCanvas;
 
@@ -2782,6 +2788,7 @@ namespace insur {
         distanceCanvas.SetGrid(1,1);
         angleCanvas.SetGrid(1,1);
         ctgThetaCanvas.SetGrid(1,1);
+        etaCanvas.SetGrid(1,1);
         z0Canvas.SetGrid(1,1);
         pCanvas.SetGrid(1,1);
         std::string plotOption = "";
@@ -2877,23 +2884,35 @@ namespace insur {
         }
         plotOption = "";
         myColor=0;
-        // ctgTheta canvas loop
+        // ctgTheta and eta canvas loop
         g_guard = a.getCtgThetaGraphs(idealMaterial, isTrigger).end();
         for (g_iter = a.getCtgThetaGraphs(idealMaterial, isTrigger).begin(); g_iter != g_guard; g_iter++) {
           TGraph& ctgThetaGraph = g_iter->second;
           TProfile& ctgThetaProfile = newProfile(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
-          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);//1E-5);
-          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//0.1*verticalScale);
+	  TProfile& etaProfile = newProfile_timesSin(ctgThetaGraph, 0, a.getEtaMaxTracker(), nRebin);
+	  etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
+          ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
+          ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
           ctgThetaCanvas.SetLogy();
           ctgThetaProfile.SetLineColor(momentumColor(myColor));
           ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
+          etaProfile.SetMinimum(vis_min_dCtgTheta);
+          etaProfile.SetMaximum(vis_max_dCtgTheta);
+          etaCanvas.SetLogy();
+          etaProfile.SetLineColor(momentumColor(myColor));
+          etaProfile.SetMarkerColor(momentumColor(myColor));
           myColor++;
           ctgThetaProfile.SetMarkerStyle(markerStyle);
           ctgThetaProfile.SetMarkerSize(markerSize);
           ctgThetaCanvas.SetFillColor(color_plot_background);
+          etaProfile.SetMarkerStyle(markerStyle);
+          etaProfile.SetMarkerSize(markerSize);
+          etaCanvas.SetFillColor(color_plot_background);
           if (ctgThetaGraph.GetN() > 0) {
             ctgThetaCanvas.cd();
             ctgThetaProfile.Draw(plotOption.c_str());
+            etaCanvas.cd();
+            etaProfile.Draw(plotOption.c_str());
             plotOption = "same";
           }
         }
@@ -2957,11 +2976,14 @@ namespace insur {
         distanceImage.setName(Form("dxyres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& angleImage = myContent->addImage(angleCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         angleImage.setComment("Angle resolution vs. eta");
-        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
+        angleImage.setName(Form("phires_%s_%s",additionalTag.c_str(), scenarioStr.c_str())); 
         RootWImage& ctgThetaImage = myContent->addImage(ctgThetaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         ctgThetaImage.setComment("CtgTheta resolution vs. eta");
         ctgThetaImage.setName(Form("cotThetares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
-        RootWImage& z0Image = myContent->addImage(z0Canvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        RootWImage& etaImage = myContent->addImage(etaCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+        etaImage.setComment("Eta resolution vs. eta");
+        etaImage.setName(Form("etares_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
+	RootWImage& z0Image = myContent->addImage(z0Canvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
         z0Image.setComment("z0 resolution vs. eta");
         z0Image.setName(Form("dzres_%s_%s",additionalTag.c_str(), scenarioStr.c_str()));
         RootWImage& pImage = myContent->addImage(pCanvas, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
@@ -3161,6 +3183,7 @@ namespace insur {
           TCanvas d0Canvas_Pt;
           TCanvas phiCanvas_Pt;
           TCanvas ctgThetaCanvas_Pt;
+          TCanvas etaCanvas_Pt;
           TCanvas z0Canvas_Pt;
           TCanvas pCanvas_Pt;
   
@@ -3177,6 +3200,7 @@ namespace insur {
           d0Canvas_Pt.SetGrid(1,1);
           phiCanvas_Pt.SetGrid(1,1);
           ctgThetaCanvas_Pt.SetGrid(1,1);
+          etaCanvas_Pt.SetGrid(1,1);
           z0Canvas_Pt.SetGrid(1,1);
           pCanvas_Pt.SetGrid(1,1);
   
@@ -3311,29 +3335,42 @@ namespace insur {
               plotOption = "same";
             }
           }
-          // Draw ctgTheta
+          // Draw ctgTheta and eta
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_Pt | idealMaterial, tag)) {
   
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+	    TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+	    etaProfile.SetTitle("Pseudorapidity error - const P_{T} across #eta;#eta;#delta #eta");
+
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
-            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
+            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
             ctgThetaCanvas_Pt.SetLogy();
             ctgThetaCanvas_Pt.SetFillColor(color_plot_background);
+            etaProfile.SetMinimum(vis_min_dCtgTheta);
+            etaProfile.SetMaximum(vis_max_dCtgTheta);
+            etaCanvas_Pt.SetLogy();
+            etaCanvas_Pt.SetFillColor(color_plot_background);
   
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
+            etaProfile.SetLineColor(momentumColor(myColor));
+            etaProfile.SetMarkerColor(momentumColor(myColor));
+            etaProfile.SetLineWidth(lineWidth);
             myColor++;
             ctgThetaProfile.SetMarkerStyle(markerStyle);
             ctgThetaProfile.SetMarkerSize(markerSize);
+            etaProfile.SetMarkerStyle(markerStyle);
+            etaProfile.SetMarkerSize(markerSize);
   
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_Pt.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
+              etaCanvas_Pt.cd();
+              etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
           }
@@ -3394,6 +3431,10 @@ namespace insur {
           RootWImage& ctgThetaImage_Pt = myContent->addImage(ctgThetaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_Pt.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           ctgThetaImage_Pt.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& etaImage_Pt = myContent->addImage(etaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          etaImage_Pt.setComment(etaLetter+" resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
+          etaImage_Pt.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
 
         // Draw case II with const P across eta
@@ -3420,6 +3461,7 @@ namespace insur {
           TCanvas d0Canvas_P;
           TCanvas phiCanvas_P;
           TCanvas ctgThetaCanvas_P;
+          TCanvas etaCanvas_P;
           TCanvas z0Canvas_P;
           TCanvas pCanvas_P;
   
@@ -3436,6 +3478,7 @@ namespace insur {
           d0Canvas_P.SetGrid(1,1);
           phiCanvas_P.SetGrid(1,1);
           ctgThetaCanvas_P.SetGrid(1,1);
+          etaCanvas_P.SetGrid(1,1);
           z0Canvas_P.SetGrid(1,1);
           pCanvas_P.SetGrid(1,1);
   
@@ -3570,29 +3613,42 @@ namespace insur {
               plotOption = "same";
             }
           }
-          // Draw ctgTheta
+          // Draw ctgTheta and eta
           plotOption = "";
           myColor    = 0;
           for (const auto& mapel : gb.getTaggedGraphs(GraphBag::CtgthetaGraph_P | idealMaterial, tag)) {
   
             const TGraph& ctgThetaGraph = mapel.second;
             TProfile& ctgThetaProfile   = newProfile(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
-  
+            TProfile& etaProfile        = newProfile_timesSin(ctgThetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+	    etaProfile.SetTitle("Pseudorapidity error - const P across #eta;#eta;#delta #eta");
+
             ctgThetaProfile.SetMinimum(vis_min_dCtgTheta);
-            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);//*verticalScale);
+            ctgThetaProfile.SetMaximum(vis_max_dCtgTheta);
             ctgThetaCanvas_P.SetLogy();
             ctgThetaCanvas_P.SetFillColor(color_plot_background);
+            etaProfile.SetMinimum(vis_min_dCtgTheta);
+            etaProfile.SetMaximum(vis_max_dCtgTheta);
+            etaCanvas_P.SetLogy();
+            etaCanvas_P.SetFillColor(color_plot_background);
   
             ctgThetaProfile.SetLineColor(momentumColor(myColor));
             ctgThetaProfile.SetMarkerColor(momentumColor(myColor));
             ctgThetaProfile.SetLineWidth(lineWidth);
+            etaProfile.SetLineColor(momentumColor(myColor));
+            etaProfile.SetMarkerColor(momentumColor(myColor));
+            etaProfile.SetLineWidth(lineWidth);
             myColor++;
             ctgThetaProfile.SetMarkerStyle(markerStyle);
             ctgThetaProfile.SetMarkerSize(markerSize);
+            etaProfile.SetMarkerStyle(markerStyle);
+            etaProfile.SetMarkerSize(markerSize);
   
             if (ctgThetaGraph.GetN() > 0) {
               ctgThetaCanvas_P.cd();
               ctgThetaProfile.Draw(plotOption.c_str());
+              etaCanvas_P.cd();
+              etaProfile.Draw(plotOption.c_str());
               plotOption = "same";
             }
           }
@@ -3653,6 +3709,10 @@ namespace insur {
           RootWImage& ctgThetaImage_P = myContent->addImage(ctgThetaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           ctgThetaImage_P.setComment("Ctg("+thetaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
           ctgThetaImage_P.setName(Form("cotThetares_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& etaImage_P = myContent->addImage(etaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          etaImage_P.setComment(etaLetter+") resolution vs. "+etaLetter+" - const P across "+etaLetter);
+          etaImage_P.setName(Form("etares_%s_%s", tag.c_str(), scenarioStr.c_str()));
         }
       } // Scenarios
  
@@ -5057,7 +5117,24 @@ namespace insur {
 
     return (*resultProfile);
   }
-  
+
+  TProfile& Vizard::newProfile_timesSin(const TGraph& sourceGraph, double xlow, double xup, int rebin /* = 1 */, int nBins) {
+    TProfile* resultProfile;
+    int nPoints = sourceGraph.GetN();
+    // Rebin by factor 1 or user defined factor
+    if (nBins==0) nPoints /= rebin;
+    // Or set new number of bins
+    else if (nBins <= nPoints) nPoints = nBins;
+    resultProfile = new TProfile(Form("%s_timesSin_profile", sourceGraph.GetName()), sourceGraph.GetTitle(), nPoints, xlow, xup);
+    double x, y;
+    double sintheta;
+    for (int i=0; i<sourceGraph.GetN(); ++i) {
+      sourceGraph.GetPoint(i, x, y);
+      resultProfile->Fill(x, y/cosh(x));
+    }
+    return (*resultProfile);
+  }
+
   void Vizard::createTriggerSectorMapCsv(const TriggerSectorMap& tsm) {
     triggerSectorMapCsv_.clear();
     triggerSectorMapCsv_ = "eta_idx, phi_idx, module_list" + csv_eol; 
@@ -5296,45 +5373,60 @@ namespace insur {
     myContent.addItem(myTextFile);
 
   }
-  //create an extra tab for xml file linking
-    bool Vizard::createXmlSite(RootWSite& site,std::string xmldir,std::string layoutdir) {
+
+
+  // Create an extra tab for XML files linking
+  bool Vizard::createXmlSite(RootWSite& site, std::string xmlDir, std::string layoutDir) {
     RootWPage* myPage = new RootWPage("XML");
     myPage->setAddress("xml.html");
     site.addPage(myPage);
 
-    std::vector<std::string> pixelxmlfilenames,trackerxmlfilenames;
-    boost::filesystem::path xmlDirectory(xmldir);
-    boost::filesystem::directory_iterator end_iter;
-    if ( boost::filesystem::exists(xmlDirectory) && boost::filesystem::is_directory(xmlDirectory)) {
-      for( boost::filesystem::directory_iterator dir_iter(xmlDirectory) ; dir_iter != end_iter ; ++dir_iter) {
-         if ( boost::filesystem::is_regular_file( dir_iter->path() ) ) {
-            // assign current file name to current_file and echo it out to the console.
-            std::string current_file =dir_iter->path().filename().string();
-            std::cout << current_file << "\tpath=" << dir_iter->path().string() << std::endl;
-             if( current_file.find(".xml") != std::string::npos ) {
-              boost::filesystem::copy_file( dir_iter->path(),
-                                            layoutdir + current_file,
-                                            boost::filesystem::copy_option::overwrite_if_exists);
-              if( current_file.find("pixel") != std::string::npos )
-                pixelxmlfilenames.push_back(current_file);
-              else 
-                trackerxmlfilenames.push_back(current_file);
-             }
-        }
+    std::vector<std::string> origMetadataXmlFiles, origPixelXmlFiles, origOuterTrackerXmlFiles;
+    std::vector<std::string> metadataXmlFileNames, pixelXmlFileNames, outerTrackerXmlFileNames;
+    
+    try {
+      boost::filesystem::directory_iterator end_iter;
+      for (boost::filesystem::directory_iterator dir_iter(xmlDir); dir_iter != end_iter; dir_iter++) {
+	if (boost::filesystem::is_regular_file(dir_iter->path())) {
+	  std::string origFile = dir_iter->path().string();
+	  std::string fileName = dir_iter->path().filename().string();
+	 
+	  if (fileName.find(".cfg") != std::string::npos ) {
+	    origMetadataXmlFiles.push_back(origFile);
+	    metadataXmlFileNames.push_back(fileName);
+	  }
+	  else if (fileName.find(".xml") != std::string::npos ) {
+	    if (fileName.find("pixel") != std::string::npos ) {
+	      origPixelXmlFiles.push_back(origFile);
+	      pixelXmlFileNames.push_back(fileName);
+	    }
+	    else {
+	      origOuterTrackerXmlFiles.push_back(origFile);
+	      outerTrackerXmlFileNames.push_back(fileName);
+	    }
+	  }
+	}
       }
     }
-    else std::cerr << "XML directory does not exist" << std::endl;
+    catch (boost::filesystem::filesystem_error e) {
+      cerr << e.what() << " when trying to copy XML files from XML directory to website directory." << endl;
+    }
 
-    RootWBinaryFileList* pxFileList = new RootWBinaryFileList(pixelxmlfilenames.begin(), pixelxmlfilenames.end(), 
-                                          "xml for Inner Pixel",pixelxmlfilenames.begin(), pixelxmlfilenames.end());
- 
-    RootWBinaryFileList* tkFileList = new RootWBinaryFileList(trackerxmlfilenames.begin(), trackerxmlfilenames.end(), 
-                                          "xml for Outer Tracker",trackerxmlfilenames.begin(), trackerxmlfilenames.end());
-    RootWContent* content = new RootWContent("xml files");
-    content->addItem(pxFileList);
-    content->addItem(tkFileList);
+    RootWContent* content = new RootWContent("XML files");
+    if (!metadataXmlFileNames.empty()) {
+      RootWBinaryFileList* metadataXmlFileList = new RootWBinaryFileList(metadataXmlFileNames.begin(), metadataXmlFileNames.end(), "XML generation Metadata", origMetadataXmlFiles.begin(), origMetadataXmlFiles.end());
+      content->addItem(metadataXmlFileList);
+    }
+    if (!pixelXmlFileNames.empty()) {
+      RootWBinaryFileList* pixelXmlFileList = new RootWBinaryFileList(pixelXmlFileNames.begin(), pixelXmlFileNames.end(), "XML for Pixel", origPixelXmlFiles.begin(), origPixelXmlFiles.end());
+      content->addItem(pixelXmlFileList);
+    }
+    if (!outerTrackerXmlFileNames.empty()) {
+      RootWBinaryFileList* outerTrackerXmlFileList = new RootWBinaryFileList(outerTrackerXmlFileNames.begin(), outerTrackerXmlFileNames.end(), "XML for Outer Tracker", origOuterTrackerXmlFiles.begin(), origOuterTrackerXmlFiles.end());
+      content->addItem(outerTrackerXmlFileList);
+    }
     myPage->addContent(content);
-    
   }
+  // NB : XML files are copied from the XML directory to the www/layout directory with RootWBinaryFileList::dump.
 
 }
