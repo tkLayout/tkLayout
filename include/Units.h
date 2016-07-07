@@ -33,6 +33,8 @@ namespace Units {
   static const float k   = 1E3;
   static const float M   = 1E6;
   static const float G   = 1E9;
+
+  static const double deg = M_PI/180.; // one degree in radians
 } // Namespace
 
 #endif /* INCLUDE_UNITS_H_ */

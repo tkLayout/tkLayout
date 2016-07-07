@@ -2355,6 +2355,7 @@ namespace insur {
     myBinaryFile = new RootWBinaryFile("summary.root", "ROOT file with all relevant plots");
     myBinaryFile->setNoCopy(true);
     summaryContent->addItem(myBinaryFile);
+
     RootWTextFile* myTextFile;
 
     // Summary of layout and performance
@@ -3165,6 +3166,9 @@ namespace insur {
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::Z0Graph_Pt      , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_Pt     , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::CtgthetaGraph_Pt, tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::LGraph_Pt       , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::BetaGraph_Pt    , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::OmegaGraph_Pt   , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_Pt       , tag).empty()) {
   
           // Set link to myContent
@@ -3186,6 +3190,9 @@ namespace insur {
           TCanvas etaCanvas_Pt;
           TCanvas z0Canvas_Pt;
           TCanvas pCanvas_Pt;
+          TCanvas lCanvas_Pt;
+          TCanvas betaCanvas_Pt;
+          TCanvas omegaCanvas_Pt;
   
           // Default attributes
           int myColor            = 0;
@@ -3203,6 +3210,9 @@ namespace insur {
           etaCanvas_Pt.SetGrid(1,1);
           z0Canvas_Pt.SetGrid(1,1);
           pCanvas_Pt.SetGrid(1,1);
+          lCanvas_Pt.SetGrid(1,1);
+          betaCanvas_Pt.SetGrid(1,1);
+          omegaCanvas_Pt.SetGrid(1,1);
   
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -3401,9 +3411,91 @@ namespace insur {
               plotOption = "p same";
             }
           }
+ 
+          // Draw l0
           plotOption = "";
-          myColor=0;
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::LGraph_Pt | idealMaterial, tag)) {
   
+            const TGraph& LGraph = mapel.second;
+            TProfile& lProfile   = newProfile(LGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            lProfile.SetMinimum(vis_min_dL);
+            lProfile.SetMaximum(vis_max_dL);//*verticalScale);
+            lCanvas_Pt.SetLogy();
+            lCanvas_Pt.SetFillColor(color_plot_background);
+  
+            lProfile.SetLineColor(momentumColor(myColor));
+            lProfile.SetMarkerColor(momentumColor(myColor));
+            lProfile.SetLineWidth(lineWidth);
+            myColor++;
+            lProfile.SetMarkerStyle(markerStyle);
+            lProfile.SetMarkerSize(markerSize);
+            lCanvas_Pt.SetFillColor(color_plot_background);
+  
+            if (LGraph.GetN() > 0) {
+              lCanvas_Pt.cd();
+              lProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
+
+          // Draw beta
+          plotOption = "";
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::BetaGraph_Pt | idealMaterial, tag)) {
+  
+            const TGraph& BetaGraph = mapel.second;
+            TProfile& betaProfile   = newProfile(BetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            betaProfile.SetMinimum(vis_min_beta);
+            betaProfile.SetMaximum(vis_max_beta);
+            betaCanvas_Pt.SetLogy(0);
+            betaCanvas_Pt.SetFillColor(color_plot_background);
+  
+            betaProfile.SetLineColor(momentumColor(myColor));
+            betaProfile.SetMarkerColor(momentumColor(myColor));
+            betaProfile.SetLineWidth(lineWidth);
+            myColor++;
+            betaProfile.SetMarkerStyle(markerStyle);
+            betaProfile.SetMarkerSize(markerSize);
+            betaCanvas_Pt.SetFillColor(color_plot_background);
+  
+            if (BetaGraph.GetN() > 0) {
+              betaCanvas_Pt.cd();
+              betaProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
+  
+          // Draw omega
+          plotOption = "";
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::OmegaGraph_Pt | idealMaterial, tag)) {
+  
+            const TGraph& OmegaGraph = mapel.second;
+            TProfile& omegaProfile   = newProfile(OmegaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            omegaProfile.SetMinimum(vis_min_omega);
+            omegaProfile.SetMaximum(vis_max_omega);
+            omegaCanvas_Pt.SetLogy(0);
+            omegaCanvas_Pt.SetFillColor(color_plot_background);
+  
+            omegaProfile.SetLineColor(momentumColor(myColor));
+            omegaProfile.SetMarkerColor(momentumColor(myColor));
+            omegaProfile.SetLineWidth(lineWidth);
+            myColor++;
+            omegaProfile.SetMarkerStyle(markerStyle);
+            omegaProfile.SetMarkerSize(markerSize);
+            omegaCanvas_Pt.SetFillColor(color_plot_background);
+  
+            if (OmegaGraph.GetN() > 0) {
+              omegaCanvas_Pt.cd();
+              omegaProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
+ 
           RootWImage& linMomImage_Pt = myContent->addImage(linMomCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_Pt.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const Pt across "+etaLetter);
           linMomImage_Pt.setName(Form("linptres_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -3424,6 +3516,18 @@ namespace insur {
           z0Image_Pt.setComment("z0 resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           z0Image_Pt.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
   
+          RootWImage& lImage_Pt = myContent->addImage(lCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          lImage_Pt.setComment("L resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
+          lImage_Pt.setName(Form("lres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& betaImage_Pt = myContent->addImage(betaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          betaImage_Pt.setComment("Relative influence of #sigma_{d0} (max for #beta=#pi/2) and #sigma_{z0} (max for #beta=0) - const Pt across "+etaLetter);
+          betaImage_Pt.setName(Form("beta_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& omegaImage_Pt = myContent->addImage(omegaCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          omegaImage_Pt.setComment("Pixel aspect ratio optimzation (for fixed pixel area). #Omega=#pi/2 means you need longer pixels - const Pt across "+etaLetter);
+          omegaImage_Pt.setName(Form("omega_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
           RootWImage& phiImage_Pt = myContent->addImage(phiCanvas_Pt, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_Pt.setComment("Angle resolution vs. "+etaLetter+" - const Pt across "+etaLetter);
           phiImage_Pt.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
@@ -3443,7 +3547,10 @@ namespace insur {
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::Z0Graph_P      , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PhiGraph_P     , tag).empty() &&
             !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::CtgthetaGraph_P, tag).empty() &&
-            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_P       , tag).empty()) {
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::PGraph_P       , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::LGraph_P       , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::BetaGraph_P    , tag).empty() &&
+            !gb.getTaggedGraphs(GraphBag::RealGraph | GraphBag::OmegaGraph_P   , tag).empty()) {
   
           // Set link to myContent
           if (scenario==0) {
@@ -3464,6 +3571,9 @@ namespace insur {
           TCanvas etaCanvas_P;
           TCanvas z0Canvas_P;
           TCanvas pCanvas_P;
+          TCanvas lCanvas_P;
+          TCanvas betaCanvas_P;
+          TCanvas omegaCanvas_P;
   
           // Default attributes
           int myColor            = 0;
@@ -3481,6 +3591,9 @@ namespace insur {
           etaCanvas_P.SetGrid(1,1);
           z0Canvas_P.SetGrid(1,1);
           pCanvas_P.SetGrid(1,1);
+          lCanvas_P.SetGrid(1,1);
+          betaCanvas_P.SetGrid(1,1);
+          omegaCanvas_P.SetGrid(1,1);
   
           gStyle->SetGridStyle(style_grid);
           gStyle->SetGridColor(color_hard_grid);
@@ -3681,6 +3794,90 @@ namespace insur {
           }
           plotOption = "";
           myColor=0;
+
+          // Draw l0
+          plotOption = "";
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::LGraph_P | idealMaterial, tag)) {
+  
+            const TGraph& LGraph = mapel.second;
+            TProfile& lProfile   = newProfile(LGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            lProfile.SetMinimum(vis_min_dL);
+            lProfile.SetMaximum(vis_max_dL);//*verticalScale);
+            lCanvas_P.SetLogy();
+            lCanvas_P.SetFillColor(color_plot_background);
+  
+            lProfile.SetLineColor(momentumColor(myColor));
+            lProfile.SetMarkerColor(momentumColor(myColor));
+            lProfile.SetLineWidth(lineWidth);
+            myColor++;
+            lProfile.SetMarkerStyle(markerStyle);
+            lProfile.SetMarkerSize(markerSize);
+            lCanvas_P.SetFillColor(color_plot_background);
+  
+            if (LGraph.GetN() > 0) {
+              lCanvas_P.cd();
+              lProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
+
+          // Draw beta
+          plotOption = "";
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::BetaGraph_P | idealMaterial, tag)) {
+  
+            const TGraph& BetaGraph = mapel.second;
+            TProfile& betaProfile   = newProfile(BetaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            betaProfile.SetMinimum(vis_min_beta);
+            betaProfile.SetMaximum(vis_max_beta);
+            betaCanvas_P.SetLogy(0);
+            betaCanvas_P.SetFillColor(color_plot_background);
+  
+            betaProfile.SetLineColor(momentumColor(myColor));
+            betaProfile.SetMarkerColor(momentumColor(myColor));
+            betaProfile.SetLineWidth(lineWidth);
+            myColor++;
+            betaProfile.SetMarkerStyle(markerStyle);
+            betaProfile.SetMarkerSize(markerSize);
+            betaCanvas_P.SetFillColor(color_plot_background);
+  
+            if (BetaGraph.GetN() > 0) {
+              betaCanvas_P.cd();
+              betaProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
+  
+          // Draw omega
+          plotOption = "";
+          myColor    = 0;
+          for (const auto& mapel : gb.getTaggedGraphs(GraphBag::OmegaGraph_P | idealMaterial, tag)) {
+  
+            const TGraph& OmegaGraph = mapel.second;
+            TProfile& omegaProfile   = newProfile(OmegaGraph, 0, analyzer.getEtaMaxTracker(), 1, nBins);
+  
+            omegaProfile.SetMinimum(vis_min_omega);
+            omegaProfile.SetMaximum(vis_max_omega);
+            omegaCanvas_P.SetLogy(0);
+            omegaCanvas_P.SetFillColor(color_plot_background);
+  
+            omegaProfile.SetLineColor(momentumColor(myColor));
+            omegaProfile.SetMarkerColor(momentumColor(myColor));
+            omegaProfile.SetLineWidth(lineWidth);
+            myColor++;
+            omegaProfile.SetMarkerStyle(markerStyle);
+            omegaProfile.SetMarkerSize(markerSize);
+            omegaCanvas_P.SetFillColor(color_plot_background);
+  
+            if (OmegaGraph.GetN() > 0) {
+              omegaCanvas_P.cd();
+              omegaProfile.Draw(plotOption.c_str());
+              plotOption = "p same";
+            }
+          }
             
           RootWImage& linMomImage_P = myContent->addImage(linMomCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           linMomImage_P.setComment("Transverse momentum resolution vs. "+etaLetter+" (linear scale) - const P across "+etaLetter);
@@ -3701,7 +3898,19 @@ namespace insur {
           RootWImage& z0Image_P = myContent->addImage(z0Canvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           z0Image_P.setComment("z0 resolution vs. "+etaLetter+" - const P across "+etaLetter);
           z0Image_P.setName(Form("dzres_%s_%s", tag.c_str(), scenarioStr.c_str()));
-  
+
+          RootWImage& lImage_P = myContent->addImage(lCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          lImage_P.setComment("L resolution vs. "+etaLetter+" - const P across "+etaLetter);
+          lImage_P.setName(Form("lres_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& betaImage_P = myContent->addImage(betaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          betaImage_P.setComment("Relative influence of #sigma_{d0} (max for #beta=#pi/2) and #sigma_{z0} (max for #beta=0) - const P across "+etaLetter);
+          betaImage_P.setName(Form("beta_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
+          RootWImage& omegaImage_P = myContent->addImage(omegaCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
+          omegaImage_P.setComment("Pixel aspect ratio optimzation (for fixed pixel area). #Omega=#pi/2 means you need longer pixels - const P across "+etaLetter);
+          omegaImage_P.setName(Form("omega_%s_%s", tag.c_str(), scenarioStr.c_str()));
+
           RootWImage& phiImage_P = myContent->addImage(phiCanvas_P, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
           phiImage_P.setComment("Angle resolution vs. "+etaLetter+" - const P across "+etaLetter);
           phiImage_P.setName(Form("phires_%s_%s", tag.c_str(), scenarioStr.c_str()));
