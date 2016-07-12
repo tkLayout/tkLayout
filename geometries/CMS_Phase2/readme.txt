@@ -20,6 +20,9 @@ Baseline_tilted_200_Pixel_4_0_1.cfg  Like 4_0_0, but
 Baseline_tilted_200_Pixel_4_0_2.cfg  Like 4_0_0, but
                                      FPIX1=25x100
 
+Baseline_tilted_200_Pixel_4_0_3.cfg  Like 4_0_2, but
+                                     FPIX2=50x50
+
 
 
 Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX
