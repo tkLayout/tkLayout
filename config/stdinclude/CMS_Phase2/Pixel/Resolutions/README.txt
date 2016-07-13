@@ -37,7 +37,7 @@
 // Endcap PXE :
 // If parameters to calculate resolutionLocalXEndcap or resolutionLocalYEndcap are specified, the following models are used :
 // Model for resolution on local X coordinate (endcap modules):
-// resolutionLocalXEndcap = resolutionLocalXBarrelParam0 + resolutionLocalXBarrelParam1 * cos(alpha)
+// resolutionLocalXEndcap = resolutionLocalXEndcapParam0 + resolutionLocalXEndcapParam1 * exp(-pow(1./tan(alpha), 2.) / resolutionLocalXEndcapParam3) * cos(resolutionLocalXEndcapParam2 * 1./tan(alpha))
 // Model for resolution on local Y coordinate (endcap modules):
 // resolutionLocalYEndcap = resolutionLocalYBarrelParam0 + resolutionLocalYBarrelParam1 * abs(cos(beta))
 // With alpha and beta the reference notation angles for a track hitting a pixel module.
