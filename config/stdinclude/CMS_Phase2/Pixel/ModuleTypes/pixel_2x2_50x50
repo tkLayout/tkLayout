@@ -1,6 +1,6 @@
 // 2x2 chips pixel module (50um x 50um)
 // Chip size 17x19
-moduleType pixel_2x2_50x50
+moduleType pixel_2x2_50x50  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
 width 34
