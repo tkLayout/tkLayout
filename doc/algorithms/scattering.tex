@@ -249,5 +249,142 @@ or in matrix notation $C$.
 %\Delta s = L \sqrt{\sigma^2_{\varphi}}
 %\end{equation}
 %
+
+\section{Impact parameter quality}
+We assume that the primary vertex is known with a much better
+precision than the impact paramteter, so we place our reference system
+with the origin in the primary vertex.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=0.5\textwidth]{impact_parameter.pdf}
+\caption{Impact parameter}
+\label{fig:impact}
+\end{center}
+\end{figure}
+
+For symmetry reasons we can assume that the meson we want to identify
+is created in the $\{x,z\}$ plane. The angle between the direction of
+flight and the $z$ axis is $\vartheta$.
+
+The decay happens after a distance $f$, and the angle between the
+tracked decay product and the original meson is $\alpha$.
+
+The projection of the track on the plane containing the origin and
+perpendicular to the meson line of flight will be on a circle of
+radius $l=f\,\sin(\alpha)$. It can be noted that $f=\gamma\,c\,\tau$
+and $\alpha \simeq 1/\gamma$, thus
+\begin{equation}
+l \simeq c \, \tau
+\end{equation}
+
+Said plane will have axes $\vec{e_{x'}}$ and $\vec{e_y}$, with
+\begin{equation}
+  \vec{e_{x'}} = \vec{e_x}\,\cos(\vartheta) - \vec{e_z}\,\sin(\vartheta)
+\end{equation}
+
+If we call $\phi$ the angle running on this circle, the projection point has equation
+\begin{equation}
+\left \{
+\begin{array}{rcl}
+x' & = & l\,\sin(\phi) \\
+y  & = & l\,\cos(\phi) \\
+z '& = & 0
+\end{array}
+\right .
+\end{equation}
+that is
+\begin{equation}
+\left \{
+\begin{array}{rcl}
+x & = &  l\,\sin(\phi)\,\cos(\vartheta) \\
+y & = &  l\,\cos(\phi) \\
+z & = & -l\,\sin(\phi)\,\sin(\vartheta)
+\end{array}
+\right .
+\end{equation}
+
+Assuming we can measure the transverse impact parameter with
+resolution $\sigma_{d0}$ and the longitudinal impact parameter with
+resolution $\sigma_{z0}$, then we want to combine these two
+measurements into one parameter $t$. In the $\{d_0, z_0\}$ plane the
+origin is $\frac{d_0}{\sigma_{d0}}$ standard deviations away along one
+axis and $\frac{z_0}{\sigma_{z0}}$ standard deviations away along the
+other, so a reasonable discriminant is
+\begin{equation}
+t^2 = \left ( \frac {r} {\sigma_{d0}} \right )^2 + 
+              \left ( \frac {z} {\sigma_{z0}} \right )^2
+\end{equation}
+with $r^2=x^2+y^2$ which leads to:
+\begin{equation}
+t^2 = \frac {l^2\,\cos^2(\vartheta)\,\sin^2(\phi) + l^2\,\cos^2(\phi)} {\sigma_{d0}^2} + 
+    \frac {l^2\,\sin^2(\vartheta)\,\sin^2(\phi)} {\sigma_{z0}^2}
+\end{equation}
+Averaging on $\phi$ gives:
+\begin{equation}
+  t^2 = \frac {l^2} {2} \left [ \frac {\cos^2(\vartheta) + 1 } {\sigma_{d0}^2} + 
+        \frac {\sin^2(\vartheta)} {\sigma_{z0}^2} \right ]
+\end{equation}
+The significance $t$ can thus be interpreted as the proper decay
+length $l$ divided by its measurement error:
+\begin{equation}
+\frac {l} {\sigma_l} = l \, \sqrt{ \frac 1 2 \left [ \frac {\cos^2(\vartheta) + 1 } {\sigma_{d0}^2} + 
+                                   \frac {\sin^2(\vartheta)} {\sigma_{z0}^2} \right ] }
+\end{equation}
+and 
+\begin{equation}
+\sigma_l = \frac 1 { \sqrt{ \frac 1 2 \left [ \frac {\cos^2(\vartheta) + 1 } {\sigma_{d0}^2} + 
+                                   \frac {\sin^2(\vartheta)} {\sigma_{z0}^2} \right ] } }
+\end{equation}
+and finally:
+\begin{equation}
+\sigma_l = \sqrt{ \frac 2 {  \frac {\cos^2(\vartheta) + 1 } {\sigma_{d0}^2} + 
+                                   \frac {\sin^2(\vartheta)} {\sigma_{z0}^2} } }
+\end{equation}
+considering that $\gamma \gg 1$, then $\alpha \ll 1$ and thus the track angle $\theta \simeq \vartheta$.
+
+\begin{equation}
+\sigma_{c\tau} = \sqrt{ \frac 2 {  \frac {\cos^2(\theta) + 1 } {\sigma_{d0}^2} + 
+                                   \frac {\sin^2(\theta)} {\sigma_{z0}^2} } }
+\end{equation}
+
+When looking at possible optimizations, one possible measurement is
+the relative increase of $\sigma_{c\tau}$ for an increase of $\sigma_{d0}$ and $\sigma_{z0}$
+\begin{equation}
+F(\theta, \sigma_{d0}, \sigma_{z0}) =
+\frac
+  {\frac {\partial \sigma_{c\tau}} {\partial \sigma_{d0}} }
+  {\frac {\partial \sigma_{c\tau}} {\partial \sigma_{z0}} } = 
+\frac
+  {(\cos^2(\theta) + 1)\, \sigma^3_{z0}}
+  {\sin^2(\theta) \, \sigma^3_{d0}}
+\end{equation}
+This function $F$ could tell the relative gain of increasing
+$\sigma_{d0}$ or $\sigma_{z0}$. One easy way of representing it is
+$\beta = \arctan (F(\theta, \sigma_{d0}, \sigma_{z0}) )$. When $\beta
+\simeq 0$ the resolution is dominated by $\sigma_{z0}$ and when $\beta
+\simeq \pi/2$ the resolution is dominated by $\sigma_{d0}$.
+
+Another parameter for optimization comes from the observation that, to
+the first order, the resolution is proportional to the pixel size and
+that for a fixed channel count, one can double the resolution on one
+axis by halfening it on the other. In these terms it makes sense to
+express the resolutions as a function of their product
+$k=\sigma_{z0}\times\sigma_{d0}$ (which can be taken as a constraint)
+and their ratio $x=\sigma_{z0}/\sigma_{d0}$, which can be
+considered our optimization free variable (higher $x$ means longer pixels). We want to maximize
+$B=1/\sigma^2_l$, that is
+\begin{equation}
+  B = \frac 1 2 \left [ \frac {\cos^2(\theta)+1} {k/x} + \frac {\sin^2(\theta)} {k\,x} \right ]
+\end{equation}
+\begin{equation}
+ \frac { \partial B } {\partial x} = \frac { \cos^2(\theta) + 1 + \frac 1 x \sin^2(\theta) } {2\,k}
+\end{equation}
+As usual we can express this as an angle $\Omega=\arctan(\partial B /
+\partial x)$. For $\Omega = \pi/2$ it is better to have longer pixels
+and for $\Omega = -\pi/2$ it is better to have shorter (and wider)
+pixels. The optimal compromise is reached for $\Omega \simeq 0$.
+
+
 \label{LastPage}
 \end{document}
