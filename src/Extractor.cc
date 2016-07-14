@@ -1343,6 +1343,7 @@ namespace insur {
     std::vector<ModuleCap>::iterator iiter;
 
     int layer = 1;
+    int discNumber = 1;
 
 
     // LOOP ON DISKS
@@ -1376,7 +1377,7 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 	    //disk name
 	    std::ostringstream dname;
-	    dname << xml_disc << layer; // e.g. Disc6
+	    dname << xml_disc << discNumber; // e.g. Disc6
 	    // module name
 	    std::ostringstream mname;
 	    mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
@@ -1404,13 +1405,14 @@ namespace insur {
 	// for material properties
         double rtotal = 0.0, itotal = 0.0;
         int count = 0;
-	ril.index = layer;
+	//ril.index = layer;  // TO DO : Where is this used ? Should it be replaced by discNumber ?
+	ril.index = discNumber;
 
 
 	//if (zmin > 0) {	
         std::ostringstream dname, pconverter;
 	//disk name
-        dname << xml_disc << layer; // e.g. Disc6
+        dname << xml_disc << discNumber; // e.g. Disc6
 
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
@@ -1484,7 +1486,7 @@ namespace insur {
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      // module composite material
-	      //matname << xml_base_actcomp << "D" << layer << "R" << modRing;
+	      //matname << xml_base_actcomp << "D" << discNumber << "R" << modRing;
 	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 	    //Topology
@@ -1792,6 +1794,7 @@ namespace insur {
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
         //dspec.partextras.push_back(logic.extra);
+	discNumber++;
       }
       layer++;
     }
