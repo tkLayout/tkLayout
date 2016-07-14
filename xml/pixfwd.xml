@@ -69,7 +69,6 @@
    <ZSection z="[RootStartZ]" rMin="2.8*cm" rMax="[RootRadius1]"/>
    <ZSection z="99.00*cm" rMin="2.8*cm" rMax="[RootRadius1]"/>
    <ZSection z="99.00*cm" rMin="2.8*cm" rMax="116.0*cm"/>
-   <!--<ZSection z="129.9*cm" rMin="2.8*cm" rMax="116.0*cm"/>-->
    <ZSection z="134.5*cm" rMin="2.8*cm" rMax="116.0*cm"/>
    <ZSection z="261.9*cm" rMin="7.40000*cm" rMax="116.0*cm"/>
  </Polycone>
