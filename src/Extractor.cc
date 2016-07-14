@@ -1405,7 +1405,6 @@ namespace insur {
 	// for material properties
         double rtotal = 0.0, itotal = 0.0;
         int count = 0;
-	//ril.index = layer;  // TO DO : Where is this used ? Should it be replaced by discNumber ?
 	ril.index = discNumber;
 
 
@@ -1861,9 +1860,11 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
+	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1281.;
-	  else startEndcaps = 300.;
+	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -1984,10 +1985,10 @@ namespace insur {
 #endif
     }
     // DEBUG EXTREMA
-    /*std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
+    std::cout << "serviceBarrelRMin = " << serviceBarrelRMin << std::endl;
     std::cout << "serviceBarrelRMax = " << serviceBarrelRMax << std::endl;
     std::cout << "serviceEndcapsRMin = " << serviceEndcapsRMin << std::endl;
-    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;*/
+    std::cout << "serviceEndcapsRMax = " << serviceEndcapsRMax << std::endl;
   }
     
 
@@ -2138,9 +2139,11 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
+	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1281.;
-	  else startEndcaps = 300.;          
+	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
 
 	  // BARREL supports
 	  if (iter->getZOffset() < startEndcaps ) {
@@ -2210,10 +2213,10 @@ namespace insur {
 
     }
     // DEBUG EXTREMA
-    /*std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
+    std::cout << "supportBarrelRMin = " << supportBarrelRMin << std::endl;
     std::cout << "supportBarrelRMax = " << supportBarrelRMax << std::endl;
     std::cout << "supportEndcapsRMin = " << supportEndcapsRMin << std::endl;
-    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;*/
+    std::cout << "supportEndcapsRMax = " << supportEndcapsRMax << std::endl;
   }
 
   //private

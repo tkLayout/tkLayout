@@ -6,13 +6,14 @@
  <Constant name="zero" value="0.0*fm"/>
  <!-- <Constant name="RootRadius"     value="[pixfwdCylinder:CylindersOuterRmax]"/>-->
  <!--<Constant name="RootRadius"     value="20.1*cm"/>-->
- <Constant name="RootRadius"     value="19.65*cm"/>
+ <Constant name="RootRadius1"     value="19.65*cm"/>
+ <Constant name="RootRadius2"     value="28.8*cm"/> <!-- For Pixel 1_1_1 : RootRadius2 = RootRadius1 -->
  <Constant name="RootHalfLength" value="[pixfwdCylinder:CylindersOuterLength]/2.+ [pixfwdCylinder:CylindersEndFlangeLength]/2.+[Zextension]/2."/>
 
  <Constant name="AnchorZ"        value="0.*mm"/>
  <Constant name="ZPixelForward"  value="291.*mm"/>
  <!--<Constant name="RootStartZ"     value="-4*mm"/>-->
- <Constant name="RootStartZ"     value="9*mm"/> <!-- -2*mm-->
+ <Constant name="RootStartZ"     value="-64*mm"/> <!-- For Pixel 1_1_1 : 9*mm-->
  <Constant name="RootMidZ1"      value="[cms:TrackLumiZ1]-[ZPixelForward]"/>
  <Constant name="RootMidZ2"      value="[cms:TrackLumiZ2]-[ZPixelForward]"/>
  <Constant name="RootMidZ3"      value="[cms:TrackBeamZ1]-[ZPixelForward]"/>
@@ -65,16 +66,19 @@
    <ZSection z="[RootEndZ]"    rMin="[cms:TrackBeamR2]" rMax="[RootRadius]"/>
    </Polycone>-->
  <Polycone name="Forward" startPhi="0*deg" deltaPhi="360*deg" >    <!-- TEMPORARY!! Should be defined automatically -->
-   <ZSection z="[RootStartZ]" rMin="2.8*cm" rMax="[RootRadius]"/>
-   <ZSection z="99.00*cm" rMin="2.8*cm" rMax="[RootRadius]"/>
+   <ZSection z="[RootStartZ]" rMin="2.8*cm" rMax="[RootRadius1]"/>
+   <ZSection z="99.00*cm" rMin="2.8*cm" rMax="[RootRadius1]"/>
    <ZSection z="99.00*cm" rMin="2.8*cm" rMax="116.0*cm"/>
+   <!--<ZSection z="129.9*cm" rMin="2.8*cm" rMax="116.0*cm"/>-->
    <ZSection z="134.5*cm" rMin="2.8*cm" rMax="116.0*cm"/>
    <ZSection z="261.9*cm" rMin="7.40000*cm" rMax="116.0*cm"/>
  </Polycone>
  <Polycone name="Phase2PixelEndcap" startPhi="0*deg" deltaPhi="360*deg" >
-   <ZSection z="[RootStartZ]"  rMin="2.8*cm" rMax="[RootRadius]"/>
-   <ZSection z="134.5*cm"   rMin="2.8*cm" rMax="[RootRadius]"/>
-   <ZSection z="261.9*cm"   rMin="7.40000*cm" rMax="[RootRadius]"/>
+   <ZSection z="[RootStartZ]"  rMin="2.8*cm" rMax="[RootRadius1]"/>
+   <ZSection z="129.9*cm"   rMin="2.8*cm" rMax="[RootRadius1]"/>
+   <ZSection z="129.9*cm"   rMin="2.8*cm" rMax="[RootRadius2]"/>
+   <ZSection z="134.5*cm"   rMin="2.8*cm" rMax="[RootRadius2]"/>
+   <ZSection z="261.9*cm"   rMin="7.40000*cm" rMax="[RootRadius2]"/>
  </Polycone>
  <!--</Polycone>
      <Polycone name="Phase2PixelEndcap" startPhi="0*deg" deltaPhi="360*deg" >
