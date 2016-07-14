@@ -1,9 +1,11 @@
 // 2x1 chips pixel module (25um x 100um)
-moduleType pixel_1x2_25x100  // pixel modules should always have a type starting with keyword 'pixel_'
+// Chip size 16.4x22
+moduleType pixel_2_1x2_25x100  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
-width 17
-length 38
+// (includes space between chips 0.2mm)
+width 16.4
+length 44.2
 
 numSensors 1
 
@@ -23,4 +25,4 @@ Sensor 1 {
   numROCY 2
 }
 
-plotColor 4
+plotColor 6

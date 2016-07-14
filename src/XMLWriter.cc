@@ -973,8 +973,8 @@ namespace insur {
 	//CUIDADO if (plus) dnumber = dnumber.substr(0, dnumber.size() - xml_plus.size());
 	//else dnumber = dnumber.substr(0, dnumber.size() - xml_minus.size());
 	std::ostringstream index;
-	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);
-	else index << 11 + i;
+	if (!isPixelTracker) index << (xml_reco_material_disc_offset + i / 2);  // TO DO : WHAT IS THIS ???
+	else index << 1 + i; // disc numbering starts from 1
 	layer = atoi(dnumber.c_str());
 	if (!isPixelTracker) spname = trackerXmlTags.reco_disc_name + index.str();
 	else spname = trackerXmlTags.reco_disc_name + index.str() + "Fw";
@@ -991,40 +991,48 @@ namespace insur {
 	// ring loop
 	for (unsigned int j = 0; j < specs.at(rindex).partselectors.size(); j++) {
 	  std::string compstr = specs.at(rindex).partselectors.at(j);
-	  compstr = compstr.substr(compstr.size() - dnumber.size());
+
+	  rnumber = compstr.substr(xml_ring.size());
+	  rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
+
+	  compstr = compstr.substr(xml_ring.size() + rnumber.size() + xml_disc.size());
 
 	  // matching discs
 	  if (dnumber.compare(compstr) == 0) {
-	    rnumber = specs.at(rindex).partselectors.at(j).substr(xml_ring.size());
-	    rnumber = rnumber.substr(0, findNumericPrefixSize(rnumber));
 
-	    postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+	    std::string postfixbase = xml_endcap_module + rnumber + xml_disc;
+	    postfix = postfixbase + dnumber;
 
 	    // module loop
 	    for (unsigned int k=0; k<specs.at(windex).partselectors.size(); k++ ) {
 	      std::string refstring = specs.at(windex).partselectors.at(k);
+
 	      if (refstring.find(postfix) != std::string::npos) {
+		std::string refdnumber = refstring.substr(postfixbase.size());
+		refdnumber = refdnumber.substr(0, findNumericPrefixSize(refdnumber));
+		if (dnumber == refdnumber) {
 
-		// This is to take care of the Inner/Outer distinction
-		if (refstring.find(xml_base_lower) != std::string::npos) {
-		  //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
-		  postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
-		}
-		else if (refstring.find(xml_base_upper) != std::string::npos) {
-		  //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
-		  postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
-		}
+		  // This is to take care of the Inner/Outer distinction
+		  if (refstring.find(xml_base_lower) != std::string::npos) {
+		    //postfix = postfix.substr(0, postfix.size() - xml_base_lower.size());
+		    postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_lower + xml_base_waf + "/" + refstring;
+		  }
+		  else if (refstring.find(xml_base_upper) != std::string::npos) {
+		    //postfix = postfix.substr(0, postfix.size() - xml_base_upper.size());
+		    postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_upper + xml_base_waf + "/" + refstring;
+		  }
         
-		else
-		  if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
-		  else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
+		  else
+		    if (!isPixelTracker) postfix = trackerXmlTags.nspace + ":" + postfix + "/" + postfix + xml_base_waf + "/" + refstring;
+		    else postfix = trackerXmlTags.nspace + ":" + postfix + "/" + trackerXmlTags.nspace + ":" + postfix + xml_PX + xml_base_waf + "/" + trackerXmlTags.nspace + ":" + refstring;
         
-		postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
+		  postfix = specs.at(rindex).partselectors.at(j) + "/" + postfix;
         
-		if (plus) paths.push_back(prefix + postfix);
-		else tpaths.push_back(prefix + postfix);
-		postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
+		  if (plus) paths.push_back(prefix + postfix);
+		  else tpaths.push_back(prefix + postfix);
+		  postfix = xml_endcap_module + rnumber + xml_disc + dnumber;
 
+		}
 	      }
 	    } // Added to allow Inner/Outer distinction
 	  }

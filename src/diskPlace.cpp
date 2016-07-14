@@ -14,6 +14,6 @@ int main(int argc, char* argv[]) {
   for (int i=0; i<n; ++i) printf("    Disk %d { destination FPIX%d }\n", i+1, i+1+deltaDisk);
   for (int i=0; i<n; ++i) printf("Station {\n  stationName FPIX%d\n  type second\n"
                                  "  minZ %.2f\n  maxZ %.2f\n"
-                                 "  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT\n}\n", i+1+deltaDisk, z1*pow(r,i)+20, z1*pow(r,i)+110);
+                                 "  @include-std CMS_Phase2/Pixel/Conversions/TWP_to_GBT\n}\n", i+1+deltaDisk, z1*pow(r,i)+20, z1*pow(r,i)+70);
   return 0;
 }

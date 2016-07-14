@@ -1,5 +1,5 @@
 // 3x1 chips pixel module (100um x 100um)
-moduleType pixel_1x3_100x100
+moduleType pixel_1x3_100x100  // pixel modules should always have a type starting with keyword 'pixel_'
 
 // Active silicon size
 width 17
