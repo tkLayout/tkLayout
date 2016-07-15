@@ -1792,6 +1792,8 @@ namespace insur {
 	  shapeOp.type = substract;
 	  shapeOp.rSolid1 = dname.str() + "Full";
 	  shapeOp.rSolid2 = dname.str() + "Air";
+	  shapeOp.trans.dx = 0.;
+	  shapeOp.trans.dy = 0.;
 	  shapeOp.trans.dz = diskThickness / 4.0 + xml_epsilon;
 	  so.push_back(shapeOp);
 	}
