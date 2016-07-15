@@ -62,6 +62,7 @@ namespace insur {
 		  std::vector<std::pair<double, double> >& rzd, std::ostringstream& stream);
     void shapesUnion(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
     void shapesIntersection(std::string name, std::string rSolid1, std::string rSolid2, std::ostringstream& stream);
+    void shapesSubstraction(std::string name, std::string rSolid1, std::string rSolid2, Translation& trans, std::ostringstream& stream);
     void posPart(std::string parent, std::string child, std::string rotref, Translation& trans, int copy, std::ostringstream& stream);
     void rotation(std::string name, double thetax, double phix, double thetay, double phiy,
 		  double thetaz, double phiz, std::ostringstream& stream);

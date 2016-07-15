@@ -20,7 +20,7 @@ namespace insur {
      */
     enum ShapeType { bx, tb, co, tp, pc };
 
-    enum ShapeOperationType { uni, intersec };
+    enum ShapeOperationType { uni, intersec, substract };
 
     enum AlgoPartype { st,num,vec};
 
@@ -140,12 +140,14 @@ namespace insur {
      * @param name_tag The name of the result volume of the operation
      * @param rSolid1 The name of one of the volume the operation is made on
      * @param rSolid2 The name of a second volume the operation is made on
+     * @param trans A translation applied to the child volume within the parent volume's coordinate system
      */
     struct ShapeOperationInfo {
         ShapeOperationType type;
         std::string name_tag;
         std::string rSolid1;
         std::string rSolid2;
+        Translation trans;
     };
     /**
      * @struct PosInfo
