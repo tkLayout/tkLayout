@@ -479,6 +479,8 @@ namespace insur {
 	    break;
 	  case intersec : shapesIntersection(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, stream);
 	    break;
+	  case substract : shapesSubstraction(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, so.at(i).trans, stream);
+	    break;
 	  default: std::cerr << "solidSection(): unknown shape operation type found. Using union." << std::endl;
 	    shapesUnion(so.at(i).name_tag, so.at(i).rSolid1, so.at(i).rSolid2, stream);
 	  }
@@ -711,6 +713,22 @@ namespace insur {
       stream << xml_rsolid_open << rSolid1 << xml_rsolid_close;
       stream << xml_rsolid_open << rSolid2 << xml_rsolid_close;
       stream << xml_intersection_close;
+    }
+
+  /**
+     * This formatter writes an XML entry describing an intersection of shapes, to the stream that serves as a buffer for the output
+     * file contents.
+     * @param name The name of the result volume of the substraction
+     * @param rSolid1 The name of one of the volume the operation is made on
+     * @param rSolid2 The name of a second volume the operation is made on
+     * @param stream A reference to the output buffer
+     */
+    void XMLWriter::shapesSubstraction(std::string name, std::string rSolid1, std::string rSolid2, Translation& trans, std::ostringstream& stream) {
+      stream << xml_substraction_open << name << xml_substraction_inter;
+      stream << xml_rsolid_open << rSolid1 << xml_rsolid_close;
+      stream << xml_rsolid_open << rSolid2 << xml_rsolid_close;
+      if (!(trans.dx == 0.0 && trans.dy == 0.0 && trans.dz == 0.0)) translation(trans.dx, trans.dy, trans.dz, stream);
+      stream << xml_substraction_close;
     }
     
     /**

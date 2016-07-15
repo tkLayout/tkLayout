@@ -11,7 +11,7 @@
     <Constant name="Rout1" value="19.20*cm"/> <!-- 21.35*cm-->
     <Constant name="Rout2" value="21.00*cm"/>
     <!--<Constant name="Zv1" value="28.70*cm"/>-->
-    <Constant name="Zv1" value="30.00*cm"/>
+    <Constant name="Zv1" value="22.70*cm"/> <!-- For Pixel 1_1_1 : value="30.00*cm" -->
     <Constant name="Zv2" value="56.00*cm"/>
     <Constant name="Zv3" value="110.5*cm"/>
     <Constant name="Zv4" value="282.0*cm"/>
