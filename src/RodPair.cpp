@@ -173,16 +173,21 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   double maxr = maxBuildRadius();
   double minr = minBuildRadius();
  
-  double newR = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
-  double lastR = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
+  // Case A : zOverlap is considered for computing next Z
+  double newRA = (parity > 0 ? maxr + d : minr - d) - newDsDistance/2;
+  double lastRA = (parity > 0 ? maxr - d : minr + d) + lastDsDistance/2;
+
+  // Case B : zError is considered for computing next Z
+  double newRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr + d : minr + d) : minr - d) - newDsDistance/2;
+  double lastRB = (parity > 0 ? (((direction == BuildDir::RIGHT && lastZ > dz) || (direction == BuildDir::LEFT && lastZ < -dz)) ? maxr - d : minr - d) : minr + d) + lastDsDistance/2;
 
   double newZ = lastZ;
   if (!beamSpotCover()) dz = 0;
   if (direction == BuildDir::RIGHT) {
     double originZ = parity > 0 ? dz : -dz;
-    double newZorigin = (newZ - ov) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted);
+    double newZorigin = (newZ - ov) * newRA/lastRA;
+    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
+    if (beamSpotCover()) newZ = MIN(newZorigin, newZshifted); // Take the most stringent of cases A and B
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end; 
@@ -201,9 +206,9 @@ double StraightRodPair::computeNextZ(double newDsLength, double newDsDistance, d
   } 
   else {
     double originZ = parity > 0 ? -dz : dz;
-    double newZorigin = (newZ + ov) * newR/lastR;
-    double newZshifted = (newZ - originZ) * newR/lastR + originZ;
-    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted);
+    double newZorigin = (newZ + ov) * newRA/lastRA;
+    double newZshifted = (newZ - originZ) * newRB/lastRB + originZ;
+    if (beamSpotCover()) newZ = MAX(newZorigin, newZshifted); // Take the most stringent of cases A and B
     else newZ = newZorigin;
     if (forbiddenRange.state()) {
       double forbiddenRange_begin,forbiddenRange_end;              
@@ -279,7 +284,8 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
   vector<double> zPlusList = computeZList(begin, end, startZ, BuildDir::RIGHT, zPlusParity(), fixedStartZ);
   vector<double> zMinusList = computeZList(begin, end, startZ, BuildDir::LEFT, -zPlusParity(), !fixedStartZ);
 
-  double zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); // balancing uneven pos/neg strings
+  double zUnbalance = 0.;
+  if (!zPlusList.empty() && !zMinusList.empty()) { zUnbalance = (zPlusList.back()+(*(end-1))->length()/2) + (zMinusList.back()-(*(end-1))->length()/2); } // balancing uneven pos/neg strings
 
   if (++recursionCounter == 100) { // this stops infinite recursion if the balancing doesn't converge
     std::ostringstream tempSS;
@@ -288,7 +294,7 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
     logWARNING(tempSS);
 
     return std::make_pair(zPlusList, zMinusList);
-  }  
+  }
 
   if (fabs(zUnbalance) > 0.1) { // 0.1 mm unbalance is tolerated
     return computeZListPair(begin, end,
@@ -298,8 +304,9 @@ template<typename Iterator> pair<vector<double>, vector<double>> StraightRodPair
     std::ostringstream tempSS;
     tempSS << "Balanced module placement in rod pair at avg build radius " << (maxBuildRadius()+minBuildRadius())/2. << " converged after " << recursionCounter << " step(s).\n" 
            << "   Residual Z unbalance is " << zUnbalance << ".\n"
-           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n"
-           << "   Z+ rod starts at " << zPlusList.front() << ", Z- rod starts at " << zMinusList.front() << ".";
+           << "   Positive string has " << zPlusList.size() << " modules, negative string has " << zMinusList.size() << " modules.\n";
+    if (!zPlusList.empty()) { tempSS << "Z+ rod starts at " << zPlusList.front() << ".\n"; }
+    if (!zMinusList.empty()) { tempSS << "Z- rod starts at " << zMinusList.front() << ".\n"; }
     logINFO(tempSS);
     return std::make_pair(zPlusList, zMinusList);
   }
@@ -331,6 +338,8 @@ void StraightRodPair::buildModules(Container& modules, const RodTemplate& rodTem
 
 void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
   double startZ = startZMode() == StartZMode::MODULECENTER ? -(*rodTemplate.begin())->length()/2. : 0.;
+  /*std::cout << "startZ = " << startZ << std::endl;
+  std::cout << "rodTemplate.size() = " << rodTemplate.size() << std::endl;*/
   auto zListPair = computeZListPair(rodTemplate.begin(), rodTemplate.end(), startZ, 0);
 
     // actual module creation
@@ -345,7 +354,7 @@ void StraightRodPair::buildFull(const RodTemplate& rodTemplate, bool isPlusBigDe
   if (!collisionsZPlus.empty() || !collisionsZMinus.empty()) logWARNING("Some modules have been translated to avoid collisions. Check info tab");
 
   if (compressed() && maxZ.state() && currMaxZ > maxZ()) compressToZ(maxZ());
-  currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.); 
+  currMaxZ = zPlusModules_.size() > 1 ? MAX(zPlusModules_.rbegin()->planarMaxZ(), (zPlusModules_.rbegin()+1)->planarMaxZ()) : (!zPlusModules_.empty() ? zPlusModules_.rbegin()->planarMaxZ() : 0.);
   maxZ(currMaxZ);
 }
 
@@ -367,6 +376,7 @@ void StraightRodPair::check() {
   if (mezzanine()) {
     if (startZMode.state()) logWARNING("Ignoring startZMode (set to modulecenter by default) for a mezzanine.");
   }
+  if (!isFlatPart() && !zPlusParity.state()) throw PathfulException("Straight rod : smallParity must be specified.");
 }
 
 void StraightRodPair::build(const RodTemplate& rodTemplate, bool isPlusBigDeltaRod) {
@@ -391,6 +401,9 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   int i = 0;
   if (direction == BuildDir::LEFT && fabs(tmspecs[0].z) < 0.5) { i = 1; it++; } // this skips the first module if we're going left (i.e. neg rod) and z=0 because it means the pos rod has already got a module there
   for (; i < tmspecs.size(); i++, ++it) {
+    //std::cout << "i = " << i << std::endl;
+    //std::cout << "tmspecs[i].r = " << tmspecs[i].r << std::endl;
+    //std::cout << "tmspecs[i].z = " << tmspecs[i].z << std::endl;
     BarrelModule* mod = GeometryFactory::make<BarrelModule>(**it);
     mod->myid(i+1);
     mod->side(side);
@@ -403,6 +416,12 @@ void TiltedRodPair::buildModules(Container& modules, const RodTemplate& rodTempl
   }
 }
 
+void TiltedRodPair::check() {
+  PropertyObject::check();
+
+  if (startZMode() != StartZMode::MODULECENTER) throw PathfulException("Tilted layer : only startZMode = modulecenter can be specified.");
+}
+
 
 void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<TiltedModuleSpecs>& tmspecs, bool flip) {
   materialObject_.store(propertyTree());
@@ -413,6 +432,10 @@ void TiltedRodPair::build(const RodTemplate& rodTemplate, const std::vector<Tilt
     check();
     buildModules(zPlusModules_, rodTemplate, tmspecs, BuildDir::RIGHT, flip);
     buildModules(zMinusModules_, rodTemplate, tmspecs, BuildDir::LEFT, flip);
+    //maxZ(zPlusModules_.back().maxZ());
+    //if (!zPlusModules_.empty()) {
+    //std::cout << "zPlusModules_.back().maxZ() = " << zPlusModules_.back().maxZ() << std::endl;
+    //}
 
   } catch (PathfulException& pe) { pe.pushPath(fullid(*this)); throw; }
   cleanup();

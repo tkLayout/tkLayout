@@ -110,6 +110,9 @@ public:
   Property<double, Default> frontEndHybridWidth;
   Property<double, Default> hybridThickness;
   Property<double, Default> supportPlateThickness;
+  Property<double, Default> chipThickness;
+
+  Property<bool, Default> removeModule;
 
   int16_t cntId() const { return cntId_; }
   const std::string& cntName() const { return cntName_; }
@@ -142,10 +145,12 @@ public:
       nominalResolutionLocalX  ("nominalResolutionLocalX"  , parsedOnly()),
       nominalResolutionLocalY  ("nominalResolutionLocalY"  , parsedOnly()),
       plotColor                ("plotColor"                , parsedOnly(), 0),
-      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
-      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
-      hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
-      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+      serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 0),
+      frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 0),
+      hybridThickness          ("hybridThickness"          , parsedOnly(), 0),
+      supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 0),
+      chipThickness            ("chipThickness"            , parsedOnly(), 0),
+      removeModule             ("removeModule"             , parsedOnly(), false)
 	{ }
 
     virtual bool hasAnyResolutionLocalXParam() const = 0;
@@ -237,6 +242,12 @@ public:
   double maxR() const { return maxget2(sensors_.begin(), sensors_.end(), &Sensor::maxR); }
   double minR() const { return minget2(sensors_.begin(), sensors_.end(), &Sensor::minR); }
 
+  std::map<std::string, double> extremaWithHybrids() const;
+  double minZwithHybrids() const { return extremaWithHybrids()["minZ"]; }
+  double maxZwithHybrids() const { return extremaWithHybrids()["maxZ"]; }
+  double minRwithHybrids() const { return extremaWithHybrids()["minR"]; }
+  double maxRwithHybrids() const { return extremaWithHybrids()["maxR"]; }
+
   double planarMaxZ() const { return CoordinateOperations::computeMaxZ(basePoly()); }
   double planarMinZ() const { return CoordinateOperations::computeMinZ(basePoly()); }
   double planarMaxR() const { return CoordinateOperations::computeMaxR(basePoly()); }
@@ -289,6 +300,8 @@ int numSegmentsEstimate() const { return sensors().front().numSegmentsEstimate()
   virtual TableRef tableRef() const = 0;
   virtual UniRef uniRef() const = 0;
   virtual int16_t moduleRing() const { return -1; }
+
+  bool isPixelModule() const { return (split<std::string>(moduleType(), "_")[0] == "pixel"); }
 
   bool couldHit(const XYZVector& direction, double zError) const;
   double trackCross(const XYZVector& PL, const XYZVector& PU) { return decorated().trackCross(PL, PU); }
@@ -474,6 +487,8 @@ public:
   //bool hasAnyResolutionLocalYParam() override { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam1;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam2;
+  ReadonlyProperty<double, NoDefault> resolutionLocalXEndcapParam3;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam0;
   ReadonlyProperty<double, NoDefault> resolutionLocalYEndcapParam1;
 
@@ -481,11 +496,13 @@ public:
   DetectorModule(decorated),
     resolutionLocalXEndcapParam0            ("resolutionLocalXEndcapParam0"            , parsedOnly()),
     resolutionLocalXEndcapParam1            ("resolutionLocalXEndcapParam1"            , parsedOnly()),
+    resolutionLocalXEndcapParam2            ("resolutionLocalXEndcapParam2"            , parsedOnly()),
+    resolutionLocalXEndcapParam3            ("resolutionLocalXEndcapParam3"            , parsedOnly()),
     resolutionLocalYEndcapParam0            ("resolutionLocalYEndcapParam0"            , parsedOnly()),
     resolutionLocalYEndcapParam1            ("resolutionLocalYEndcapParam1"            , parsedOnly())
       { setup(); }
 
-  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state()); }
+  bool hasAnyResolutionLocalXParam() const { return (resolutionLocalXEndcapParam0.state() || resolutionLocalXEndcapParam1.state() || resolutionLocalXEndcapParam2.state() || resolutionLocalXEndcapParam3.state()); }
   
   bool hasAnyResolutionLocalYParam() const { return (resolutionLocalYEndcapParam0.state() || resolutionLocalYEndcapParam1.state()); }
 
@@ -635,9 +652,13 @@ public:
 
   virtual ModuleSubdetector subdet() const { return ENDCAP; }
 
-  double calculateParameterizedResolutionLocalX(double trackPhi) const { return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * 1./tan(alpha(trackPhi)); }
+  double calculateParameterizedResolutionLocalX(double trackPhi) const {
+    return resolutionLocalXEndcapParam0() + resolutionLocalXEndcapParam1() * exp(-pow(1./tan(alpha(trackPhi)), 2.) / resolutionLocalXEndcapParam3()) * cos(resolutionLocalXEndcapParam2() * 1./tan(alpha(trackPhi)));    
+  }
 
-  double calculateParameterizedResolutionLocalY(double theta) const { return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta))); }
+  double calculateParameterizedResolutionLocalY(double theta) const {
+    return resolutionLocalYEndcapParam0() + resolutionLocalYEndcapParam1() * fabs(1./tan(beta(theta)));
+  }
 
   PosRef posRef() const { return (PosRef){ cntId(), (side() > 0 ? disk() : -disk()), ring(), blade() }; }
   TableRef tableRef() const { return (TableRef){ cntName(), disk(), ring() }; }

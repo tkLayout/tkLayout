@@ -1,0 +1,152 @@
+// Pixel endcap disks material
+// Large disks (220 modules)
+// 2.41 times bigger than small disk
+
+Materials FPIX_2_disk {
+  type layer
+
+  // Cooling for the module
+  // Average on disk (scales on surface)
+  Component {
+    componentName Cooling
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Ti
+      quantity 27.5945
+      unit g
+    }
+    Element {
+      elementName CO2
+      quantity 26.0
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 16 pipes per disk
+  Component {
+    componentName Cooling
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Ti
+      quantity 0.0532
+      unit g/m
+    }
+    Element {
+      elementName FPIX_CO2
+      quantity 0.052
+      unit g/m
+    }
+  }
+
+// Power for the module
+// Average on disk
+// Rescaled on surface *2.41
+  Component {
+    componentName "Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 11.327
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 2.3859
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 2.41
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  Component {
+    componentName "Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al
+      quantity 0.064
+      unit g/m
+    }
+    Element {
+      elementName FPIX_Cu
+      quantity 0.0134320988
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.012
+      unit g/m
+    }
+  }
+
+// HV power wires
+// Power for the module
+// Rescaled on surface *2.41
+  Component {
+    componentName "HV Power wires"
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName Al
+      quantity 0.94743125
+      unit g
+    }
+    Element {
+      elementName Cu
+      quantity 0.3374
+      unit g
+    }
+    Element {
+      elementName PE
+      quantity 3.3981
+      unit g
+    }
+  }
+  // fake numbers for calculating conversion with a factor of 1000
+  // 24 chains per disk
+  Component {
+    componentName "HV Power wires"
+    service true
+    scaleOnSensor 0
+    Element {
+      elementName FPIX_Al
+      quantity 0.011016
+      unit g/m
+    }
+    Element {
+      elementName FPIX_Cu
+      quantity 0.0039216
+      unit g/m
+    }
+    Element {
+      elementName FPIX_PE
+      quantity 0.0396
+      unit g/m
+    }
+  }
+
+  // Support Mechanics
+  //Mechanics
+  Component {
+    componentName Mechanics
+    service false
+    scaleOnSensor 0
+    Element {
+      elementName CF
+      quantity 0.4
+      unit mm
+    }
+    Element {
+      elementName Airex
+      quantity 4
+      unit mm
+    }
+  }
+}

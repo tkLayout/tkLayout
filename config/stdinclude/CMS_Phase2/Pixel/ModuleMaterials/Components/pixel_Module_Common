@@ -6,33 +6,33 @@ Component {
   scaleOnSensor 0
   Element {
     elementName SenSi
-    quantity 0.2
+    quantity 0.15
     unit mm
+    targetVolume 2
   }
   Element {
     elementName Si
     quantity 0.15
     unit mm
+    targetVolume 1
   }
   Element {
     elementName PS-FEH-mix
     quantity 0.15
     unit mm
+    targetVolume 1
   }
   Element {
     elementName Cu
     quantity 0.05
     unit mm
+    targetVolume 1
   }
   // Support
   Element {
     elementName CF
     quantity 0.2
     unit mm
-  }
-  Element {
-    elementName Pix_Caps
-    quantity 0.939
-    unit g
+    targetVolume 1
   }
 }

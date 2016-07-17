@@ -1,0 +1,28 @@
+// 1x2 chips pixel module (50um x 50um)
+// Chip size 16.4x22
+moduleType pixel2_1x2_50x50
+
+// Active silicon size
+// (includes space between chips 0.2mm)
+width 16.4
+length 44.2
+
+numSensors 1
+
+powerStripChip 0
+powerModuleChip 0
+powerModuleOptical 0
+
+sensorThickness 0.150
+hybridThickness 0.5
+chipThickness 0.5
+
+Sensor 1 {
+  sensorType pixel
+  pitchEstimate 0.050
+  stripLengthEstimate 0.050
+  numROCX 1 
+  numROCY 2
+}
+
+plotColor 1

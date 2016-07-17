@@ -56,6 +56,7 @@ public:
   Property<double, NoDefault> placeZ;
 
   ReadonlyProperty<double, Computable> minZ, maxZ, minR, maxR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<int, Computable> totalModules;
   ReadonlyProperty<double, Computable> maxRingThickness;
 
@@ -81,6 +82,12 @@ public:
     maxZ.setup([this]() { double max = std::numeric_limits<double>::lowest(); for (const Ring& r : rings_) { max = MAX(max, r.maxZ()); } return max; });
     minR.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minR()); } return min; });
     maxR.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxR()); } return max; });
+
+    minZwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minZwithHybrids()); } return min; });
+    maxZwithHybrids.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxZwithHybrids()); } return max; });
+    minRwithHybrids.setup([this]() { double min = std::numeric_limits<double>::max(); for (const Ring& r : rings_) { min = MIN(min, r.minRwithHybrids()); } return min; });
+    maxRwithHybrids.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.maxRwithHybrids()); } return max; });
+
     maxRingThickness.setup([this]() { double max = 0; for (const Ring& r : rings_) { max = MAX(max, r.thickness()); } return max; });
     totalModules.setup([this]() { int cnt = 0; for (const Ring& r : rings_) { cnt += r.numModules(); } return cnt; });
   }
@@ -97,7 +104,7 @@ public:
   const Container& rings() const { return rings_; }
   const RingIndexMap& ringsMap() const { return ringIndexMap_; }
 
-  void accept(GeometryVisitor& v) { 
+  void accept(GeometryVisitor& v) {
     v.visit(*this); 
     for (auto& r : rings_) { r.accept(v); }
   }

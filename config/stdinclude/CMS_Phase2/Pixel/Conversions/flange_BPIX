@@ -1,0 +1,9 @@
+// Flange service conversion
+// used to generate services at the FPIX flange 
+
+Station {
+  stationName flange_BPIX
+  type flange
+
+  @include-std CMS_Phase2/Pixel/Conversions/Components/CoolingPipe_2:1
+}

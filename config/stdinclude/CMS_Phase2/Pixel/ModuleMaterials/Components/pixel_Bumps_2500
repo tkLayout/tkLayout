@@ -9,5 +9,6 @@ Component {
     elementName Pix_Bumps
     quantity 0.017
     unit mm
+    targetVolume 3
   }
 }

@@ -1153,6 +1153,7 @@ namespace insur {
       }
     }
 
+
     //********************************//
     //*                              *//
     //*       Layers and disks       *//
@@ -1346,9 +1347,156 @@ namespace insur {
     myContent->addItem(v.ringTable);
 
 
+    //***************************************//
+    //*                                     *//
+    //* Automatic-placement tilted layers : *//
+    //*            Additional info          *//
+    //*                                     *//
+    //***************************************//
+    myContent = new RootWContent("Tilted layers with automatic placement : additional info", false);
+
+    class TiltedLayersVisitor : public ConstGeometryVisitor {
+    public:
+      std::vector<RootWTable*> tiltedLayerNames;
+      std::vector<RootWTable*> flatPartNames;
+      std::vector<RootWTable*> tiltedPartNames;
+      std::vector<RootWTable*> flatPartTables;
+      std::vector<RootWTable*> tiltedPartTables;
+      int nTiltedLayers = 0;
+
+      
+
+      void visit(const Layer& l) override {
+	if (l.isTilted() && l.isTiltedAuto()) {
+	  nTiltedLayers++;
+
+	  RootWTable* tiltedLayerName = new RootWTable();
+	  tiltedLayerName->setContent(0, 0, "Layer " + std::to_string(l.myid()) + " :");
+	  tiltedLayerNames.push_back(tiltedLayerName);	 
+
+	  RootWTable* flatPartName = new RootWTable();
+	  flatPartName->setContent(0, 0, "Flat part :");
+	  flatPartNames.push_back(flatPartName);	 
+	  RootWTable* tiltedPartName = new RootWTable();
+	  tiltedPartName->setContent(0, 0, "Tilted part :");
+	  tiltedPartNames.push_back(tiltedPartName);	
+
+	  RootWTable* tiltedPartTable = new RootWTable();
+	  for (int i=0; i < l.tiltedRingsGeometry().size(); i++) {
+	    int ringNumber = l.buildNumModulesFlat() + 1 + i;
+	    tiltedPartTable->setContent(0, 0, "Ring");
+	    tiltedPartTable->setContent(0, i+1, ringNumber);
+	    tiltedPartTable->setContent(1, 0, "tiltAngle (°)");
+	    tiltedPartTable->setContent(1, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngle(), anglePrecision);
+	    tiltedPartTable->setContent(2, 0, "tiltAngleIdeal" + subStart + "Inner" + subEnd + " (°)");
+	    tiltedPartTable->setContent(2, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealInner(), anglePrecision);
+	    tiltedPartTable->setContent(3, 0, "deltaTiltIdeal" + subStart + "Inner" + subEnd + " (°)");
+	    tiltedPartTable->setContent(3, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealInner(), anglePrecision);
+	    tiltedPartTable->setContent(4, 0, "tiltAngleIdeal" + subStart + "Outer" + subEnd + " (°)");
+	    tiltedPartTable->setContent(4, i+1, l.tiltedRingsGeometry()[ringNumber]->tiltAngleIdealOuter(), anglePrecision);
+	    tiltedPartTable->setContent(5, 0, "deltaTiltIdeal" + subStart + "Outer" + subEnd + " (°)");
+	    tiltedPartTable->setContent(5, i+1, l.tiltedRingsGeometry()[ringNumber]->deltaTiltIdealOuter(), anglePrecision);
+	    tiltedPartTable->setContent(6, 0, "theta_g (°)");
+	    tiltedPartTable->setContent(6, i+1, l.tiltedRingsGeometry()[ringNumber]->theta_g(), anglePrecision);
+	    tiltedPartTable->setContent(7, 0, "r" + subStart + "Inner" + subEnd);
+	    tiltedPartTable->setContent(7, i+1, l.tiltedRingsGeometry()[ringNumber]->innerRadius(), coordPrecision);	    
+	    tiltedPartTable->setContent(8, 0, "r" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(8, i+1, l.tiltedRingsGeometry()[ringNumber]->outerRadius(), coordPrecision);
+	    tiltedPartTable->setContent(9, 0, "averageR (on Ring)");
+	    tiltedPartTable->setContent(9, i+1, l.tiltedRingsGeometry()[ringNumber]->averageR(), coordPrecision);
+	    tiltedPartTable->setContent(10, 0, "gapR");
+	    tiltedPartTable->setContent(10, i+1, l.tiltedRingsGeometry()[ringNumber]->gapR(), coordPrecision);
+	    tiltedPartTable->setContent(11, 0, "z" + subStart + "Inner" + subEnd);
+	    tiltedPartTable->setContent(11, i+1, l.tiltedRingsGeometry()[ringNumber]->zInner(), coordPrecision);
+	    tiltedPartTable->setContent(12, 0, "z" + subStart + "Outer" + subEnd);
+	    tiltedPartTable->setContent(12, i+1, l.tiltedRingsGeometry()[ringNumber]->zOuter(), coordPrecision);	   	    
+	    tiltedPartTable->setContent(13, 0, "averageZ (on Ring)");
+	    tiltedPartTable->setContent(13, i+1, l.tiltedRingsGeometry()[ringNumber]->averageZ(), coordPrecision);
+	    tiltedPartTable->setContent(14, 0, "deltaZ" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(14, i+1, l.tiltedRingsGeometryInfo().deltaZInner()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(15, 0, "deltaZ" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(15, i+1, l.tiltedRingsGeometryInfo().deltaZOuter()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(16, 0, "phiOverlap");
+	    tiltedPartTable->setContent(16, i+1, l.tiltedRingsGeometry()[ringNumber]->phiOverlap(), coordPrecision);	    
+	    tiltedPartTable->setContent(17, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(17, i+1, l.tiltedRingsGeometryInfo().zErrorInner()[ringNumber], coordPrecision);
+	    tiltedPartTable->setContent(18, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	    tiltedPartTable->setContent(18, i+1, l.tiltedRingsGeometryInfo().zErrorOuter()[ringNumber], coordPrecision);
+	  }
+	  tiltedPartTables.push_back(tiltedPartTable);
 
 
+	  RootWTable* flatPartTable = new RootWTable();
 
+	  StraightRodPair* minusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().at(1) : l.flatPartRods().front());
+	  const auto& minusBigDeltaModules = minusBigDeltaRod->modules().first;
+	  StraightRodPair* plusBigDeltaRod = (l.bigParity() > 0 ? l.flatPartRods().front() : l.flatPartRods().at(1));
+	  const auto& plusBigDeltaModules = plusBigDeltaRod->modules().first;
+	  
+	  int i = 0;
+	  for (const auto& m : minusBigDeltaModules) {
+	    int ringNumber = i + 1;
+	    flatPartTable->setContent(0, 0, "Ring");
+	    flatPartTable->setContent(0, i+1, ringNumber);
+	    flatPartTable->setContent(1, 0, "r" + subStart + "Inner" + subEnd);
+	    flatPartTable->setContent(1, i+1, m.center().Rho(), coordPrecision);
+	    flatPartTable->setContent(3, 0, "averageR (on Flat part)");
+	    flatPartTable->setContent(3, i+1, l.flatPartAverageR(), coordPrecision);
+	    flatPartTable->setContent(4, 0, "bigDelta");
+	    flatPartTable->setContent(4, i+1, l.bigDelta(), coordPrecision);
+	    flatPartTable->setContent(5, 0, "smallDelta");
+	    flatPartTable->setContent(5, i+1, l.smallDelta(), coordPrecision);
+	    flatPartTable->setContent(6, 0, "z");
+	    flatPartTable->setContent(6, i+1, m.center().Z(), coordPrecision);
+	    flatPartTable->setContent(7, 0, "phiOverlap");
+	    flatPartTable->setContent(7, i+1, (((minusBigDeltaRod->zPlusParity() * pow(-1, (i%2))) > 0) ? l.flatPartPhiOverlapSmallDeltaPlus() : l.flatPartPhiOverlapSmallDeltaMinus()), coordPrecision);
+	    if (i > 0) {
+	      flatPartTable->setContent(8, 0, "zError" + subStart + "Inner" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(8, i+1, l.flatRingsGeometryInfo().zErrorInner()[i], coordPrecision);
+	      flatPartTable->setContent(9, 0, "zError" + subStart + "Outer" + subEnd + " (Ring i & i-1)");
+	      flatPartTable->setContent(9, i+1, l.flatRingsGeometryInfo().zErrorOuter()[i], coordPrecision);
+	    }
+	    i++;
+	  }
+	  i = 0;
+	  for (const auto& m : plusBigDeltaModules) {	    
+	    flatPartTable->setContent(2, 0, "r" + subStart + "Outer" + subEnd);
+	    flatPartTable->setContent(2, i+1, m.center().Rho(), coordPrecision); 
+	    i++;
+	  }
+	  flatPartTables.push_back(flatPartTable);
+	}
+      }
+    };
+
+    TiltedLayersVisitor tv;  
+    tracker.accept(tv);
+
+    if (tv.nTiltedLayers > 0) {
+      myPage->addContent(myContent);
+
+      RootWTable* spacer = new RootWTable();
+      spacer->setContent(0, 0, " ");
+      spacer->setContent(1, 0, " ");
+      spacer->setContent(2, 0, " ");
+      spacer->setContent(3, 0, " ");
+
+      for (int i = 0; i < tv.nTiltedLayers; i++) {
+	myContent->addItem(tv.tiltedLayerNames.at(i));
+	myContent->addItem(tv.flatPartNames.at(i));
+	myContent->addItem(tv.flatPartTables.at(i));
+	myContent->addItem(tv.tiltedPartNames.at(i));
+	myContent->addItem(tv.tiltedPartTables.at(i));
+	if (i < tv.nTiltedLayers - 1) { myContent->addItem(spacer); }
+      }
+    }
+
+
+    //********************************//
+    //*                              *//
+    //*       Modules                *//
+    //*                              *//
+    //********************************//
     double totalPower=0; 
     double totalCost=0;
     double moduleTotalWeight=0;
@@ -1384,11 +1532,6 @@ namespace insur {
     int barrelCount=0;
     int endcapCount=0;
 
-    //********************************//
-    //*                              *//
-    //*       Modules                *//
-    //*                              *//
-    //********************************//
     myContent = new RootWContent("Modules", false);
     myPage->addContent(myContent);
     RootWTable* moduleTable = new RootWTable(); myContent->addItem(moduleTable);
@@ -1840,144 +1983,13 @@ namespace insur {
     }
     moduleTable->setContent(totalWeightRow, iType, aWeight.str());
 
+
     //********************************//
     //*                              *//
-    //*       Plots                  *//
+    //*    Modules parametrized      *//
+    //*     spatial resolution       *//
     //*                              *//
     //********************************//
-    RootWImage* myImage;
-    TCanvas *summaryCanvas = NULL;
-    TCanvas *RZCanvas = NULL;
-    TCanvas *XYCanvas = NULL;
-    TCanvas *XYCanvasEC = NULL;
-    TCanvas *myCanvas = NULL;
-    //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
-    createSummaryCanvasNicer(tracker, RZCanvas, XYCanvas, XYCanvasEC);
-    if (name=="pixel") {
-      logINFO("PIXEL HACK for beam pipe");
-      TPolyLine* beampipe  = new TPolyLine();
-      beampipe->SetPoint(0, 0, 45/2.);
-      beampipe->SetPoint(1, 2915/2., 45/2.);
-      beampipe->SetPoint(2, 3804/2., 56.6/2.);
-      beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
-      XYCanvasEC->cd();
-      drawCircle(22.5, true, 18); // "grey18"
-      XYCanvas->cd();
-      drawCircle(22.5, true, 18); // "grey18"
-      RZCanvas->cd();
-      beampipe->Draw("same");
-
-      TPolyLine* etafour  = new TPolyLine();
-      etafour->SetPoint(0, 0, 0);
-      etafour->SetPoint(1, 2700, 98.9376398798);
-      etafour->Draw("same");
-    }
-    // createColorPlotCanvas(tracker, 1, RZCanvas);
-
-
-    //TVirtualPad* myPad;
-    myContent = new RootWContent("Plots");
-    myPage->addContent(myContent);
-
-    if (summaryCanvas) {
-      myImage = new RootWImage(summaryCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
-      myContent->addItem(myImage);
-    }
-
-    if (RZCanvas) {
-      myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
-      myImage->setComment("RZ position of the modules");
-      myContent->addItem(myImage);
-    }
-    if (XYCanvas) {
-      myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("XY Section of the tracker barrel");
-      myContent->addItem(myImage);
-    }
-    if (XYCanvasEC) {
-      myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage->setComment("XY Projection of the tracker endcap(s)");
-      myContent->addItem(myImage);
-    }
-
-    /*
-     * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padXY);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY Section of the tracker barrel");
-     * myContent->addItem(myImage);
-     * }
-     *
-     * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myCanvas->cd();
-     * myPad = summaryCanvas->GetPad(padEC);
-     * if (myPad) {
-     * myPad->DrawClonePad();
-     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-     * myImage->setComment("XY View of the tracker endcap");
-     * myContent->addItem(myImage);
-     * }
-     */
-
-    // Eta profile big plot
-    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfiles(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit modules across eta");
-    myContent->addItem(myImage);
-
-    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfilesSensors(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit coverage across eta");
-    myContent->addItem(myImage);
-
-    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    drawEtaProfilesStubs(*myCanvas, analyzer);
-    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Stub coverage across eta");
-    myContent->addItem(myImage);
-
-    if (name != "pixel") totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
-    else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
-
-    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    hitMapCanvas->cd();
-    //gStyle->SetPalette(1);
-    hitMapCanvas->SetFillColor(color_plot_background);
-    hitMapCanvas->SetBorderMode(0);
-    hitMapCanvas->SetBorderSize(0);
-    analyzer.getMapPhiEta().Draw("colz");
-    analyzer.getMapPhiEta().SetStats(0);
-    hitMapCanvas->Modified();
-    myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
-    myImage->setComment("Hit coverage in eta, phi");
-    myContent->addItem(myImage);
-
-    drawEtaCoverage(*myPage, analyzer);
-    drawEtaCoverageStubs(*myPage, analyzer);
-
-    // Add detailed geometry info here
-    RootWContent* filesContent = new RootWContent("Geometry files", false);
-    myPage->addContent(filesContent);
-    RootWTextFile* myTextFile;
-    // Barrel coordinates
-    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinate file");
-    myTextFile->addText(createBarrelModulesCsv(tracker));
-    filesContent->addItem(myTextFile);
-    // Endcap coordinates
-    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
-    myTextFile->addText(createEndcapModulesCsv(tracker));
-    filesContent->addItem(myTextFile);
-    // All coordinates
-    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
-    myTextFile->addText(createAllModulesCsv(tracker));
-    filesContent->addItem(myTextFile);
-
     // If debug requested, add modules' parametrized spatial resolution maps and distributions to website resolution tabs
     if (debugResolution) {
 
@@ -2090,6 +2102,166 @@ namespace insur {
       }
     } // debugResolution
 
+
+    //********************************//
+    //*                              *//
+    //*       Plots                  *//
+    //*                              *//
+    //********************************//
+    RootWImage* myImage;
+    TCanvas *summaryCanvas = NULL;
+    TCanvas *RZCanvas = NULL;
+    TCanvas *RZCanvasBarrel = NULL;
+    TCanvas *XYCanvas = NULL;
+    TCanvas *XYCanvasEC = NULL;
+    TCanvas *myCanvas = NULL;
+    //createSummaryCanvas(tracker.getMaxL(), tracker.getMaxR(), analyzer, summaryCanvas, YZCanvas, XYCanvas, XYCanvasEC);
+    createSummaryCanvasNicer(tracker, RZCanvas, RZCanvasBarrel, XYCanvas, XYCanvasEC);
+    if (name=="pixel") {
+      logINFO("PIXEL HACK for beam pipe");
+      TPolyLine* beampipe  = new TPolyLine();
+      beampipe->SetPoint(0, 0, 45/2.);
+      beampipe->SetPoint(1, 2915/2., 45/2.);
+      beampipe->SetPoint(2, 3804/2., 56.6/2.);
+      beampipe->SetPoint(3, 3804/2.+1164, 91/2.);
+      XYCanvasEC->cd();
+      drawCircle(22.5, true, 18); // "grey18"
+      XYCanvas->cd();
+      drawCircle(22.5, true, 18); // "grey18"
+      RZCanvas->cd();
+      beampipe->Draw("same");
+      RZCanvasBarrel->cd();
+      beampipe->Draw("same");
+
+      RZCanvas->cd();
+      TPolyLine* etafour  = new TPolyLine();
+      etafour->SetPoint(0, 0, 0);
+      etafour->SetPoint(1, 2700, 98.9376398798);
+      etafour->Draw("same");
+    }
+    // createColorPlotCanvas(tracker, 1, RZCanvas);
+
+
+    //TVirtualPad* myPad;
+    myContent = new RootWContent("Plots");
+    myPage->addContent(myContent);
+
+    if (summaryCanvas) {
+      myImage = new RootWImage(summaryCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("Tracker summary: modules position in XY (endcap and barrel), YZ and number of hits vs. eta");
+      myContent->addItem(myImage);
+    }
+
+    if (RZCanvas) {
+      myImage = new RootWImage(RZCanvas, RZCanvas->GetWindowWidth(), RZCanvas->GetWindowHeight() );
+      myImage->setComment("RZ positions of the modules");
+      myContent->addItem(myImage);
+    }
+    if ((RZCanvasBarrel) && (name == "pixel")) {
+      myImage = new RootWImage(RZCanvasBarrel, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("RZ positions of the barrel modules");
+      myContent->addItem(myImage);
+    }
+    if (XYCanvas) {
+      myImage = new RootWImage(XYCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("XY Section of the tracker barrel");
+      myContent->addItem(myImage);
+    }
+    if (XYCanvasEC) {
+      myImage = new RootWImage(XYCanvasEC, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+      myImage->setComment("XY Projection of the tracker endcap(s)");
+      myContent->addItem(myImage);
+    }
+
+    /*
+     * myCanvas = new TCanvas("XYViewBarrel", "XYViewBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+     * myCanvas->cd();
+     * myPad = summaryCanvas->GetPad(padXY);
+     * if (myPad) {
+     * myPad->DrawClonePad();
+     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+     * myImage->setComment("XY Section of the tracker barrel");
+     * myContent->addItem(myImage);
+     * }
+     *
+     * myCanvas = new TCanvas("XYViewEndcap", "XYViewEndcap", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+     * myCanvas->cd();
+     * myPad = summaryCanvas->GetPad(padEC);
+     * if (myPad) {
+     * myPad->DrawClonePad();
+     * myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+     * myImage->setComment("XY View of the tracker endcap");
+     * myContent->addItem(myImage);
+     * }
+     */
+
+    // Eta profile big plot
+    myCanvas = new TCanvas("EtaProfileHits", "Eta profile (Hit Modules)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfiles(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Hit modules across eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileSensors", "Eta profile (Hits)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfilesSensors(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Hit coverage across eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileStubs", "Eta profile (Stubs)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfilesStubs(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Stub coverage across eta");
+    myContent->addItem(myImage);
+
+    myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfilesLayers(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Layer coverage across eta");
+    myContent->addItem(myImage);
+
+    if (name != "pixel") {
+      totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
+      totalEtaProfileLayers_ = &analyzer.getTotalEtaProfileLayers();
+    }
+    else {
+      totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
+      totalEtaProfileLayersPixel_ = &analyzer.getTotalEtaProfileLayers();
+    }
+
+    TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    hitMapCanvas->cd();
+    //gStyle->SetPalette(1);
+    hitMapCanvas->SetFillColor(color_plot_background);
+    hitMapCanvas->SetBorderMode(0);
+    hitMapCanvas->SetBorderSize(0);
+    analyzer.getMapPhiEta().Draw("colz");
+    analyzer.getMapPhiEta().SetStats(0);
+    hitMapCanvas->Modified();
+    myImage = new RootWImage(hitMapCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Hit coverage in eta, phi");
+    myContent->addItem(myImage);
+
+    drawEtaCoverage(*myPage, analyzer);
+    drawEtaCoverageStubs(*myPage, analyzer);
+
+    // Add detailed geometry info here
+    RootWContent* filesContent = new RootWContent("Geometry files", false);
+    myPage->addContent(filesContent);
+    RootWTextFile* myTextFile;
+    // Barrel coordinates
+    myTextFile = new RootWTextFile(Form("barrelCoordinates%s.csv", name.c_str()), "Barrel modules coordinate file");
+    myTextFile->addText(createBarrelModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // Endcap coordinates
+    myTextFile = new RootWTextFile(Form("endcapCoordinates%s.csv", name.c_str()), "Endcap modules coordinate file");
+    myTextFile->addText(createEndcapModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+    // All coordinates
+    myTextFile = new RootWTextFile(Form("allCoordinates%s.csv", name.c_str()), "Complete coordinate file");
+    myTextFile->addText(createAllModulesCsv(tracker));
+    filesContent->addItem(myTextFile);
+
     return true;
   }
 
@@ -2118,6 +2290,14 @@ namespace insur {
     TProfile& totalEtaProfileStubs = analyzer.getTotalEtaProfileStubs();
     std::vector<TProfile>& etaProfilesStubs = analyzer.getTypeEtaProfilesStubs();
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
+  }
+
+  bool Vizard::drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfileLayers = analyzer.getTotalEtaProfileLayers();
+    std::vector<TProfile> etaProfilesLayers; // Empty vector: we count layers, therefore there is no plot "by module type" here
+    return drawEtaProfilesAny(totalEtaProfileLayers, etaProfilesLayers);
   }
 
   bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles, bool total/*=true*/) {
@@ -2155,6 +2335,11 @@ namespace insur {
     return drawEtaProfilesStubs(*myVirtualPad, analyzer);
   }
 
+  bool Vizard::drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesLayers(*myVirtualPad, analyzer);
+  }
 
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
     return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
@@ -2265,15 +2450,15 @@ namespace insur {
     myPage->addContent(simulationContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
-     
+
     THStack* totalEtaStack = new THStack();
     if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
     TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     totalEtaProfileFull->cd();
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalEtaStack->GetStack()->Last()->Draw();
     // add profile for types here...##### 
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
@@ -2283,6 +2468,31 @@ namespace insur {
     myImage->setComment("Full hit coverage across eta");
     fullLayoutContent->addItem(myImage);
 
+    // Number of layers count
+    THStack* totalLayersEtaStack = new THStack();
+    if (totalEtaProfileLayers_) {
+      totalLayersEtaStack->Add(totalEtaProfileLayers_->ProjectionX());
+      totalEtaProfileLayers_->SetMarkerColor(Palette::color(1));
+    }
+    if (totalEtaProfileLayersPixel_) {
+      totalLayersEtaStack->Add(totalEtaProfileLayersPixel_->ProjectionX());
+      totalEtaProfileLayersPixel_->SetMarkerColor(Palette::color(2));
+    }
+    TCanvas* totalEtaProfileLayersFull = new TCanvas("totalEtaProfileLayersFull", "Full eta profile (Layers)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    totalEtaProfileLayersFull->cd();
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
+    totalLayersEtaStack->GetStack()->Last()->Draw();
+    // Per detector here
+    if (totalEtaProfileLayers_) std::cout << "I draw OT" << std::endl , totalEtaProfileLayers_->Draw("same");
+    if (totalEtaProfileLayersPixel_)std::cout << "I draw Pixel" << std::endl , totalEtaProfileLayersPixel_->Draw("same");
+    totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
+    RootWImage* myImageLayers = new RootWImage(totalEtaProfileLayersFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
+    fullLayoutContent->addItem(myImageLayers);
+
+    // Number of layers count
 
     RootWInfo* cmdLineInfo;
     cmdLineInfo = new RootWInfo("Command line arguments");
@@ -5229,7 +5439,7 @@ namespace insur {
   }    
 
   void Vizard::createSummaryCanvasNicer(Tracker& tracker,
-                                        TCanvas *&RZCanvas, TCanvas *&XYCanvas,
+                                        TCanvas *&RZCanvas, TCanvas *&RZCanvasBarrel, TCanvas *&XYCanvas,
                                         TCanvas *&XYCanvasEC) {
 
     double scaleFactor = tracker.maxR()/600;
@@ -5239,12 +5449,18 @@ namespace insur {
 
     RZCanvas = new TCanvas("RZCanvas", "RZView Canvas", rzCanvasX, rzCanvasY );
     RZCanvas->cd();
-
     PlotDrawer<YZ, Type> yzDrawer;
     yzDrawer.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL | ENDCAP);
     yzDrawer.drawFrame<SummaryFrameStyle>(*RZCanvas);
     yzDrawer.drawModules<ContourStyle>(*RZCanvas);
 
+    double viewPortMax = MAX(tracker.barrels().at(0).maxR() * 1.1, tracker.barrels().at(0).maxZ() * 1.1); // Style to improve. Calculate (with margin) the barrel geometric extremum
+    RZCanvasBarrel = new TCanvas("RZCanvasBarrel", "RZView CanvasBarrel", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    RZCanvasBarrel->cd();
+    PlotDrawer<YZ, Type> yzDrawerBarrel(viewPortMax, viewPortMax);
+    yzDrawerBarrel.addModulesType(tracker.modules().begin(), tracker.modules().end(), BARREL);
+    yzDrawerBarrel.drawFrame<SummaryFrameStyle>(*RZCanvasBarrel);
+    yzDrawerBarrel.drawModules<ContourStyle>(*RZCanvasBarrel);
 
     XYCanvas = new TCanvas("XYCanvas", "XYView Canvas", vis_min_canvas_sizeX, vis_min_canvas_sizeY );
     XYCanvas->cd();

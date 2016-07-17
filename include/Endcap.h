@@ -47,6 +47,16 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
     minR.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : disks_) { min = MIN(min, d.minR()); } return min; });
     maxZ.setup([&]() { double max = 0;                                  for (const auto& d : disks_) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZ()); } return max; });
     minZ.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : disks_) { if(d.minZ() > 0 ) min = MIN(min, d.minZ()); } return min; });
+
+    maxRwithHybrids.setup([&]() { double max = 0;                                  for (const auto& d : disks_) { max = MAX(max, d.maxRwithHybrids()); } return max; });
+    minRwithHybrids.setup([&]() { double min = std::numeric_limits<double>::max(); for (const auto& d : disks_) { min = MIN(min, d.minRwithHybrids()); } return min; });
+    maxZwithHybrids.setup([&]() { double max = 0;                                  for (const auto& d : disks_) { if(d.maxZ() > 0 ) max = MAX(max, d.maxZwithHybrids()); } return max; });
+    minZwithHybrids.setup([&]() {
+	double min = std::numeric_limits<double>::max();
+	for (const auto& d : disks_) { if(d.minZ() > 0 ) min = MIN(min, d.minZwithHybrids()); }
+	if (innerZ.state()) { min = MIN(min, innerZ()); } // if minZ (or barrelGap) is specified in cfg file, this should be taken into account as well !
+	return min;
+      });
   }
   void build();
   void cutAtEta(double eta);
@@ -68,6 +78,7 @@ class Endcap : public PropertyObject, public Buildable, public Identifiable<std:
   Property<        double, NoDefault>  outerZ;
   ReadonlyProperty<double, Computable> maxZ, minZ;
   ReadonlyProperty<double, Computable> maxR, minR;
+  Property<double, Computable> minZwithHybrids, maxZwithHybrids, minRwithHybrids, maxRwithHybrids;
   ReadonlyProperty<bool  , Default>    skipServices;
 };
 
