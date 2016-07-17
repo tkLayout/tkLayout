@@ -176,6 +176,7 @@ namespace insur {
     TProfile& getTotalEtaProfile() {return totalEtaProfile; }
     TProfile& getTotalEtaProfileSensors() {return totalEtaProfileSensors; }
     TProfile& getTotalEtaProfileStubs() {return totalEtaProfileStubs; }
+    TProfile& getTotalEtaProfileLayers() {return totalEtaProfileLayers; }
     TGraph& getPowerDensity() {return powerDensity;};
     std::vector<TProfile>& getTypeEtaProfiles() {return typeEtaProfile; }
     std::vector<TProfile>& getTypeEtaProfilesSensors() {return typeEtaProfileSensors; }
@@ -363,7 +364,7 @@ namespace insur {
     StubRateHistos trueStubRateHistos_;
 
     TGraph powerDensity;
-    TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs;
+    TProfile totalEtaProfile, totalEtaProfileSensors, totalEtaProfileStubs, totalEtaProfileLayers;
     std::vector<TProfile> typeEtaProfile, typeEtaProfileSensors, typeEtaProfileStubs;
     std::map<std::string, TProfile> layerEtaCoverageProfile, layerEtaCoverageProfileStubs;
 

@@ -2214,8 +2214,20 @@ namespace insur {
     myImage->setComment("Stub coverage across eta");
     myContent->addItem(myImage);
 
-    if (name != "pixel") totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
-    else totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
+    myCanvas = new TCanvas("EtaProfileLayers", "Eta profile (Layers)", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    drawEtaProfilesLayers(*myCanvas, analyzer);
+    myImage = new RootWImage(myCanvas, vis_min_canvas_sizeX, vis_min_canvas_sizeY);
+    myImage->setComment("Layer coverage across eta");
+    myContent->addItem(myImage);
+
+    if (name != "pixel") {
+      totalEtaProfileSensors_ = &analyzer.getTotalEtaProfileSensors();
+      totalEtaProfileLayers_ = &analyzer.getTotalEtaProfileLayers();
+    }
+    else {
+      totalEtaProfileSensorsPixel_ = &analyzer.getTotalEtaProfileSensors();
+      totalEtaProfileLayersPixel_ = &analyzer.getTotalEtaProfileLayers();
+    }
 
     TCanvas* hitMapCanvas = new TCanvas("hitmapcanvas", "Hit Map", vis_min_canvas_sizeX, vis_min_canvas_sizeY);
     hitMapCanvas->cd();
@@ -2280,6 +2292,14 @@ namespace insur {
     return drawEtaProfilesAny(totalEtaProfileStubs, etaProfilesStubs);
   }
 
+  bool Vizard::drawEtaProfilesLayers(TVirtualPad& myPad, Analyzer& analyzer) {
+    myPad.cd();
+    myPad.SetFillColor(color_plot_background);
+    TProfile& totalEtaProfileLayers = analyzer.getTotalEtaProfileLayers();
+    std::vector<TProfile> etaProfilesLayers; // Empty vector: we count layers, therefore there is no plot "by module type" here
+    return drawEtaProfilesAny(totalEtaProfileLayers, etaProfilesLayers);
+  }
+
   bool Vizard::drawEtaProfilesAny(TProfile& totalEtaProfile, std::vector<TProfile>& etaProfiles, bool total/*=true*/) {
     std::vector<TProfile>::iterator etaProfileIterator;
     //totalEtaProfile.SetMaximum(15); // TODO: make this configurable
@@ -2315,6 +2335,11 @@ namespace insur {
     return drawEtaProfilesStubs(*myVirtualPad, analyzer);
   }
 
+  bool Vizard::drawEtaProfilesLayers(TCanvas& myCanvas, Analyzer& analyzer) {
+    TVirtualPad* myVirtualPad = myCanvas.GetPad(0);
+    if (!myVirtualPad) return false;
+    return drawEtaProfilesLayers(*myVirtualPad, analyzer);
+  }
 
   bool Vizard::drawEtaCoverage(RootWPage& myPage, Analyzer& analyzer) {
     return drawEtaCoverageAny(myPage, analyzer.getLayerEtaCoverageProfiles(), "Hits");
@@ -2425,15 +2450,15 @@ namespace insur {
     myPage->addContent(simulationContent);
     summaryContent = new RootWContent("Summary");
     myPage->addContent(summaryContent);
-     
+
     THStack* totalEtaStack = new THStack();
     if (totalEtaProfileSensors_) totalEtaStack->Add(totalEtaProfileSensors_->ProjectionX());
     if (totalEtaProfileSensorsPixel_) totalEtaStack->Add(totalEtaProfileSensorsPixel_->ProjectionX());
     TCanvas* totalEtaProfileFull = new TCanvas("TotalEtaProfileFull", "Full eta profile (Hits)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     totalEtaProfileFull->cd();
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
-    ((TH1I*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalEtaStack->GetStack()->Last()->Draw();
     // add profile for types here...##### 
     drawEtaProfilesSensors(*totalEtaProfileFull, analyzer, false);
@@ -2443,6 +2468,31 @@ namespace insur {
     myImage->setComment("Full hit coverage across eta");
     fullLayoutContent->addItem(myImage);
 
+    // Number of layers count
+    THStack* totalLayersEtaStack = new THStack();
+    if (totalEtaProfileLayers_) {
+      totalLayersEtaStack->Add(totalEtaProfileLayers_->ProjectionX());
+      totalEtaProfileLayers_->SetMarkerColor(Palette::color(1));
+    }
+    if (totalEtaProfileLayersPixel_) {
+      totalLayersEtaStack->Add(totalEtaProfileLayersPixel_->ProjectionX());
+      totalEtaProfileLayersPixel_->SetMarkerColor(Palette::color(2));
+    }
+    TCanvas* totalEtaProfileLayersFull = new TCanvas("totalEtaProfileLayersFull", "Full eta profile (Layers)", vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    totalEtaProfileLayersFull->cd();
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerStyle(8);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMarkerSize(1);
+    ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
+    totalLayersEtaStack->GetStack()->Last()->Draw();
+    // Per detector here
+    if (totalEtaProfileLayers_) std::cout << "I draw OT" << std::endl , totalEtaProfileLayers_->Draw("same");
+    if (totalEtaProfileLayersPixel_)std::cout << "I draw Pixel" << std::endl , totalEtaProfileLayersPixel_->Draw("same");
+    totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
+    RootWImage* myImageLayers = new RootWImage(totalEtaProfileLayersFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
+    myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
+    fullLayoutContent->addItem(myImageLayers);
+
+    // Number of layers count
 
     RootWInfo* cmdLineInfo;
     cmdLineInfo = new RootWInfo("Command line arguments");
