@@ -24,6 +24,15 @@ Baseline_tilted_200_Pixel_4_0_3.cfg  Like 4_0_2, but
 
 Baseline_tilted_200_Pixel_4_0_2_1.cfg Like 4_0_2, but with 7 FPIX1 disks and 4 FPIX2 disks
 
+OT_Tilted_360_200_Pixel_4021.cfg     First OT-numbered version: 3.6.0
+                                     Pixel version 4.0.2.1
+                                     Contains the new 2S barrel, with 3x multiplicity
+                                     Contains new tilted barrel version 2016-07-15 (by kamil Cichy)
 
+OT_Tilted_361_200_Pixel_4021.cfg     OT Version 3.6.1
+                                     Pixel version 4.0.2.1
+                                     Small adjustment in tilted barrel positions (version 2016-07-16 by Kamil Cichy)
 
 Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX
+
+
