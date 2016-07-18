@@ -6,7 +6,7 @@ width 96
 length 46.26
 
 sensorLayout pt
-zCorrelation multisegment
+zCorrelation samesegment
 
 numSensors 2
 
