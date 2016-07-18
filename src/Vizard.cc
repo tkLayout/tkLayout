@@ -1171,7 +1171,7 @@ namespace insur {
     public:
       RootWTable* layerTable = new RootWTable();
       RootWTable* diskTable = new RootWTable();
-      RootWTable* ringTable = new RootWTable();
+      //RootWTable* ringTable = new RootWTable();
       std::map<std::string, std::set<std::string> > tagMapPositions;
       std::map<std::string, int> tagMapCount;
       std::map<std::string, long> tagMapCountChan;
@@ -1196,7 +1196,7 @@ namespace insur {
       std::map<std::string, double> tagMapSensorPowerAvg;
       std::map<std::string, double> tagMapSensorPowerMax;
       std::map<std::string, const DetectorModule*> tagMap;
-      std::map<int, const EndcapModule*> ringTypeMap;
+      //std::map<int, const EndcapModule*> ringTypeMap;
 
       int nBarrelLayers=0;
       int nDisks=0;
@@ -1220,11 +1220,11 @@ namespace insur {
         diskTable->setContent(0, 0, "Disk");
         diskTable->setContent(1, 0, "z");
         diskTable->setContent(2, 0, "# mod");
-        ringTable->setContent(0, 0, "Ring");
-        ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
-        ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
-        ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
-        ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
+        //ringTable->setContent(0, 0, "Ring");
+        //ringTable->setContent(1, 0, "r"+subStart+"min"+subEnd);
+        //ringTable->setContent(2, 0, "r"+subStart+"low"+subEnd);
+        //ringTable->setContent(3, 0, "r"+subStart+"high"+subEnd);
+        //ringTable->setContent(4, 0, "r"+subStart+"max"+subEnd);
       }
 
       void visit(const SimParms& s) override { nMB = s.numMinBiasEvents(); }
@@ -1307,14 +1307,14 @@ namespace insur {
         }
       }
 
-      void visit(const EndcapModule& m) override {
+      /*void visit(const EndcapModule& m) override {
         if (m.disk() != 1 && m.side() != 1) return;
         if (ringTypeMap.find(m.ring())==ringTypeMap.end()){
           // We have a new sensor geometry
           ringTypeMap[m.ring()] = &m;
         }
 
-      }
+	}*/
 
       void postVisit() {
         layerTable->setContent(0, nBarrelLayers+1, "Total");
@@ -1323,7 +1323,7 @@ namespace insur {
         diskTable->setContent(2, nDisks+1, totalEndcapModules*2);
 
         std::ostringstream myName;
-        for (auto typeIt = ringTypeMap.begin();
+        /*for (auto typeIt = ringTypeMap.begin();
              typeIt!=ringTypeMap.end(); typeIt++) {
           auto* anEC = (*typeIt).second;
           int aRing=(*typeIt).first;
@@ -1332,7 +1332,7 @@ namespace insur {
           ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
           ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
           ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
-        }
+	  }*/
       }
     };
 
@@ -1344,7 +1344,7 @@ namespace insur {
 
     myContent->addItem(v.layerTable);
     myContent->addItem(v.diskTable);
-    myContent->addItem(v.ringTable);
+    //myContent->addItem(v.ringTable);
 
 
     //***************************************//
