@@ -33,6 +33,10 @@ OT_Tilted_361_200_Pixel_4021.cfg     OT Version 3.6.1
                                      Pixel version 4.0.2.1
                                      Small adjustment in tilted barrel positions (version 2016-07-16 by Kamil Cichy)
 
+OT_Tilted_362_200_Pixel_4021.cfg     OT Version 3.6.2
+                                     Pixel version 4.0.2.1
+                                     VERY small adjustment in positioning of TBPS layer 1 ring 8 and 10 (affexts rings 8+)
+
 Baseline_tilted_200_Pixel_4_1_0.cfg  Like 4_0_0, but with tilted BPIX
 
 

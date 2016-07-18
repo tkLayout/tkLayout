@@ -2485,8 +2485,8 @@ namespace insur {
     ((TH1D*)totalLayersEtaStack->GetStack()->Last())->SetMinimum(0.);
     totalLayersEtaStack->GetStack()->Last()->Draw();
     // Per detector here
-    if (totalEtaProfileLayers_) std::cout << "I draw OT" << std::endl , totalEtaProfileLayers_->Draw("same");
-    if (totalEtaProfileLayersPixel_)std::cout << "I draw Pixel" << std::endl , totalEtaProfileLayersPixel_->Draw("same");
+    if (totalEtaProfileLayers_) totalEtaProfileLayers_->Draw("same");
+    if (totalEtaProfileLayersPixel_) totalEtaProfileLayersPixel_->Draw("same");
     totalLayersEtaStack->GetStack()->Last()->Draw("same"); // To overwrite where total is the same as one of the two
     RootWImage* myImageLayers = new RootWImage(totalEtaProfileLayersFull, vis_std_canvas_sizeX, vis_std_canvas_sizeY);
     myImageLayers->setComment("Full layer coverage across eta (OT = blue, pixel = red)");
