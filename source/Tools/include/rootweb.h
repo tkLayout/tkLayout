@@ -110,7 +110,7 @@ public:
   void setCanvas(TCanvas& myCanvas);
   void setComment(string newComment);
   void setName(string newName);
-  std::string getName();
+  std::string getName() const {return name_;}
   void setZoomedSize(int witdh, int height);
   void setRelativeHtmlDirectory(string newDirectory); 
   void setTargetDirectory(string newDirectory); 
@@ -119,6 +119,7 @@ public:
   ostream& dump(ostream& output);
   bool isImage() {return true;};
   bool addExtension(string newExt);
+  const TCanvas* getCanvas() const {return myCanvas_; }
 private:
   TCanvas* myCanvas_;
   int zoomedWidth_;
@@ -153,8 +154,8 @@ public:
   RootWFile(string newFileName, string newDescription) {setFileName(newFileName); setDescription(newDescription); };
   void setFileName(string newFileName) { fileName_ = newFileName;};
   void setDescription(string newDescription) { description_=newDescription; };
-  string getFileName() { return fileName_ ; };
-  string getDescription() { return description_ ; };
+  string getFileName() const { return fileName_ ; };
+  string getDescription() const { return description_ ; };
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; };
   bool isFile() {return true;};
 };
@@ -172,7 +173,7 @@ public:
   template<class I> void addFileNames(I begin, I end) { fileNames_.insert(fileNames_.end(), begin, end); }
   void setDescription(string newDescription) { description_ = newDescription; }
   const std::list<string>& getFileNames() const { return fileNames_; }
-  string getDescription() { return description_; }
+  string getDescription() const { return description_; }
   void setTargetDirectory(string newTargetDirectory) {targetDirectory_ = newTargetDirectory; }
   bool isFile() {return true;}
 };
@@ -228,6 +229,7 @@ public:
   void setTargetDirectory(string newTargetDirectory);
   void addParagraph(string parText) ;
   void setTitle(string newTitle) ;
+  string getTitle() const {return title_;} ;
   void addItem(RootWItem* newItem);
   ostream& dump(ostream& output);
   RootWText& addText();
@@ -241,6 +243,7 @@ public:
   RootWImage& addImage(TCanvas* myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
   RootWImage& addImage(TCanvas& myCanvas, int witdh, int height);
   RootWImage& addImage(TCanvas& myCanvas, int witdh, int height, string relativeHtmlDirectory); // TODO: is this used for real?
+  const TCanvas* findImage(std::string imageName) const;
   RootWTextFile& addTextFile();
   RootWTextFile& addTextFile(string newFileName);
   RootWTextFile& addTextFile(string newFileName, string newDescription);
@@ -280,12 +283,12 @@ public:
   RootWSite(string title);
   RootWSite(string title, string comment);
   void setTitle(string newTitle);
+  string getTitle() const {return title_;} ;
   void setComment(string newComment);
   void setCommentLink(string newCommentLink);
-  string getTitle();
-  string getComment();
-  string getCommentLink();
-  string getRevision();
+  string getComment() const {return comment_; }
+  string getCommentLink() const {return commentLink_;}
+  string getRevision() const {return revision_;}
   void setRevision (string newRevision);
   ostream& dumpHeader(ostream& output, RootWPage* thisPage);
   ostream& dumpFooter(ostream& output);
@@ -312,7 +315,7 @@ public:
   RootWPage(string title);
   void setTargetDirectory(string newTargetDirectory);
   void setTitle(string newTitle);
-  string getTitle();
+  string getTitle() {return title_;};
   void setAddress(string newAddress);
   string getAddress();
   void setSite(RootWSite* newSite);
@@ -323,6 +326,7 @@ public:
   double getAlert();
   void setRelevance(int newRelevance);
   int getRelevance();
+  const RootWContent* findContent(std::string title) const;
 };
 
 class RootWItemCollection {

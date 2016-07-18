@@ -88,17 +88,6 @@ static const double vis_short_eta_coverage = geom_range_eta_regions[1];
 static const double vis_trk_eta_coverage   = geom_range_eta_regions[2];
 static const double vis_long_eta_coverage  = geom_range_eta_regions[3];
 
-static const double vis_max_dPtOverPt      = 500;  // [%]
-static const double vis_min_dPtOverPt      = 0.001; // [%]
-static const double vis_max_dZ0            = 5000.;
-static const double vis_min_dZ0            = 1.;
-static const double vis_max_dD0            = 5000.;
-static const double vis_min_dD0            = 1.;
-static const double vis_max_dPhi           = 100.;
-static const double vis_min_dPhi           = 1E-4;
-static const double vis_max_dCtgTheta      = 1.0;
-static const double vis_min_dCtgTheta      = 1E-6;
-
 static const double vis_safety_factor      = geom_safety_factor;
 
 static const int    vis_min_canvas_sizeX   = 600;
@@ -112,12 +101,7 @@ static const double vis_eta_step           = 0.1;
 static const double vis_material_eta_step  = 0.05;
 static const int    vis_n_bins             = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
-// Colors for plot background and such
-static const int color_plot_background     = kWhite;
-static const int color_pad_background      = kGray;
-static const int color_grid                = kGreen-10;
-static const int color_hard_grid           = kGray;
-static const std::vector<std::string> color_names = {"Black","BrightBlue","Red","BrightGreen","Yellow","Pink","Aqua","Green","Blue"};
+static const int style_grid = 3;
 
 /**
  * Internal string constants for standard one-sided and specialised double-sided, rotated types
@@ -146,6 +130,10 @@ static const std::string web_etaLetter  = "&eta;";
 static const std::string web_phiLetter  = "&phi;";
 static const std::string web_thetaLetter= "&theta;";
 static const std::string web_deltaLetter= "&delta;";
+
+static const int         web_priority_Geom = 99;
+static const int         web_priority_MB   = 89;
+static const int         web_priority_Resol= 79;
 
 /**
  * Filename and path constants

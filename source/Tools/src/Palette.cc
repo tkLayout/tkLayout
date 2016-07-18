@@ -49,6 +49,33 @@ Color_t Palette::color(const unsigned int& plotIndex) {
 }
 
 //
+// Based on index return predefined color for momenta
+//
+Color_t Palette::colorMomenta(const unsigned int& colorIndex)
+{
+  if      (colorIndex==0) return kBlack;
+  else if (colorIndex==1) return kBlue;
+  else if (colorIndex==2) return kRed;
+  else if (colorIndex==3) return kGreen;
+  else if (colorIndex==4) return kMagenta;
+  else if (colorIndex==5) return kGreen+4;
+  else                    return colorIndex;
+}
+
+//
+// Based on index return names for predefined momenta colors
+std::string Palette::colorMomentaNames(const unsigned int& colorIndex) {
+
+  if      (colorIndex==0) return std::string("Black");
+  else if (colorIndex==1) return std::string("Blue");
+  else if (colorIndex==2) return std::string("Red");
+  else if (colorIndex==3) return std::string("Green");
+  else if (colorIndex==4) return std::string("Magenta");
+  else if (colorIndex==5) return std::string("DarkGreen");
+  else                    return std::string("Unknown");
+}
+
+//
 // Set one of predefined Root palette -> default RainBow (i.e. 55)
 //
 void Palette::setRootPalette(short palette=55) {

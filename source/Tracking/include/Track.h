@@ -98,6 +98,7 @@ public:
   double getCotgTheta() const          { return m_cotgTheta; }
   double getPhi() const                { return m_phi;}
   double getTransverseMomentum() const { return m_pt; }
+  double getPt() const                 { return m_pt; }
   double getMagField() const           { return m_magField; }
   double getRho() const                { return (m_radius>0 ? 1/m_radius : 0);}
   double getRadius() const             { return m_radius; }
@@ -132,8 +133,8 @@ public:
   const double& getDeltaD0() const       { return m_deltaD0; }
   const double& getDeltaCtgTheta() const { return m_deltaCtgTheta; }
   const double& getDeltaZ0() const       { return m_deltaZ0; }
-  const double& getDeltaPt() const       { return m_deltaPt; }
-  const double& getDeltaP()  const       { return m_deltaP; }
+  const double& getDeltaPtOverPt() const { return m_deltaPt; }
+  const double& getDeltaPOverP()  const  { return m_deltaP; }
 
 //  void addEfficiency(double efficiency, bool alsoPixel = false);
 //  void keepTriggerOnly();

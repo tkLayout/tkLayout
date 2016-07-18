@@ -206,10 +206,6 @@ void RootWImage::setName(string newName) {
   name_ = newName;
 }
 
-std::string RootWImage::getName() {
-  return name_ ;
-}
-
 void RootWImage::setCanvas(TCanvas* myCanvas) {
   if (myCanvas_) delete myCanvas_;
   myCanvas_ = (TCanvas*)myCanvas->DrawClone();
@@ -351,7 +347,6 @@ bool RootWImage::addExtension(string myExtension) {
   return result;
 }
 
-
 //*******************************************//
 // RootWContent                              //
 //*******************************************//
@@ -472,6 +467,24 @@ RootWImage& RootWContent::addImage(TCanvas& myCanvas, int witdh, int height, str
   return (*newImage);
 }
 
+const TCanvas* RootWContent::findImage(std::string imageName) const {
+
+  const TCanvas* canvas = nullptr;
+  for (const auto& iContent : itemList_) {
+
+    const RootWImage* image = dynamic_cast<const RootWImage*>(iContent);
+
+    if (image!=nullptr) {
+      if (image->getName()==imageName) {
+        canvas = image->getCanvas();
+        break;
+      }
+    }
+  }
+
+  return canvas;
+}
+
 RootWTextFile& RootWContent::addTextFile() {
   RootWTextFile* newTextFile = new RootWTextFile();
   addItem(newTextFile);
@@ -585,10 +598,6 @@ void RootWPage::setTitle(string newTitle) {
   if (address_=="") address_ = title_+".html";
 }
 
-string RootWPage::getTitle() {
-  return title_;
-}
-
 void RootWPage::setAddress(string newAddress) {
   address_ = newAddress;
 }
@@ -665,6 +674,17 @@ int RootWPage::getRelevance() {
   return relevance;
 }
 
+const RootWContent* RootWPage::findContent(std::string title) const {
+
+  const RootWContent* content = nullptr;
+  for (auto iContent : contentList_) {
+    if (iContent->getTitle()==title) {
+      content = iContent;
+    }
+  }
+
+  return content;
+}
 
 //*******************************************//
 // RootWSite                                 //
@@ -722,22 +742,6 @@ void RootWSite::setComment(string newComment) {
 
 void RootWSite::setCommentLink(string newCommentLink) {
   commentLink_ = newCommentLink;
-}
-
-string RootWSite::getTitle() {
-  return title_;
-}
-
-string RootWSite::getComment() {
-  return comment_;
-}
-
-string RootWSite::getCommentLink() {
-  return commentLink_;
-}
-
-string RootWSite::getRevision() {
-  return revision_;
 }
 
 void RootWSite::setRevision(string newRevision) {

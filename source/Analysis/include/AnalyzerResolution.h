@@ -13,16 +13,25 @@
 #include <vector>
 
 #include <AnalyzerUnit.h>
+#include "global_constants.h"
 #include <Track.h>
 #include <Visitor.h>
 
 class BarrelModule;
 class BeamPipe;
+class CsvTextBuilder;
 class EndcapModule;
+class RootWContent;
+class RootWPage;
+class TProfile;
 class Tracker;
 
 /*
  * @class AnalyzerResolution
+ * Analyze tracker resolution for various combination of tracker layers/discs, tagged with given name: pixel (pixel only),
+ * strip (strip only), fwd (forward only), etc. The tag is specified for each tracker component by a user in the geometry
+ * configuration file. Data are then vizualized and printed out in a html formatted output.
+ * Unique module name defined as "AnalyzerResolution".
  */
 class AnalyzerResolution : public AnalyzerUnit {
 
@@ -51,6 +60,15 @@ class AnalyzerResolution : public AnalyzerUnit {
 
  private:
 
+  //! Prepare plot: fill with data & set properties; varType specifies variable type to be filled: pT, p, d0, z0, phi0, cotgTheta & scenario const pT,  const p
+  void preparePlot(std::vector<unique_ptr<TProfile>>& profHisArray, std::string varType, std::string scenario, const std::map<int, TrackCollection>& mapCollection);
+
+  //! Prepare summary content table
+  void prepareSummaryTable(std::string tag, std::string scenario, RootWPage& webPage, RootWContent& summaryContent, CsvTextBuilder& csvContainer);
+
+  //! Calculate average values in defined regions for given profile histogram
+  std::vector<double> averageHis(const TProfile& his, std::vector<double> regions);
+
   int    m_nTracks; //!< Number of simulation tracks to be used in the analysis
   double m_etaMin;  //!< Minimum eta value;
   double m_etaMax;  //!< Maximum eta value
@@ -59,6 +77,19 @@ class AnalyzerResolution : public AnalyzerUnit {
   std::map<std::string, std::map<int, TrackCollection>> taggedTrackPtCollectionMapIdeal; //!< For given track tag -> map of track collection for given pT (ideal - no material)
   std::map<std::string, std::map<int, TrackCollection>> taggedTrackPCollectionMap;       //!< For given track tag -> map of track collection for given p (full material)
   std::map<std::string, std::map<int, TrackCollection>> taggedTrackPCollectionMapIdeal;  //!< For given track tag -> map of track collection for given p (ideal - no material)
+
+  const double c_max_dPtOverPt = 1000;  // [%]
+  const double c_min_dPtOverPt = 0.001; // [%]
+  const double c_max_dZ0       = 5000.;
+  const double c_min_dZ0       = 1.;
+  const double c_max_dD0       = 5000.;
+  const double c_min_dD0       = 1.;
+  const double c_max_dPhi0     = 100.;
+  const double c_min_dPhi0     = 1E-4;
+  const double c_max_dCtgTheta = 1.0;
+  const double c_min_dCtgTheta = 1E-6;
+
+  const int    c_nBins         = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
 
 }; // Class
 

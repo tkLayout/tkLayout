@@ -453,7 +453,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
   if (!m_isInitOK || !m_isAnalysisOK) return false;
 
   // Go through all trackers & prepare web content
-  int webPriority         = 89;
+  int webPriority         = web_priority_MB;
   RootWPage*    myPage    = nullptr;
   RootWContent* myContent = nullptr;
   RootWImage*   myImage   = nullptr;
@@ -497,10 +497,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Prepare canvas
     TCanvas* myCanvas = new TCanvas(std::string("MaterialInTrackingVolume"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     TPad* myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     // Rebin material histograms to readable values
     m_radMB[trkName]["Total"].SetFillColor(kGray + 2);
@@ -670,10 +670,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Rebin histograms, draw them to a canvas and write the canvas to the web page
     myCanvas = new TCanvas(std::string("MaterialByCategoryIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
     myPad->cd();
@@ -718,10 +718,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
     myCanvas = new TCanvas(std::string("MaterialByComponentIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     // Radiation length for components
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
@@ -824,7 +824,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Radiation length plot
     myCanvas = new TCanvas(std::string("RadMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->cd();
 
     m_radMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
@@ -841,7 +841,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Interaction length plot
     myCanvas = new TCanvas(std::string("IntMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->cd();
 
     m_intMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
@@ -867,10 +867,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
       // Number of hits
       myCanvas = new TCanvas(std::string("HadronsHitsNumberIn"+trkName).c_str());
-      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->SetFillColor(Palette::color_plot_background);
       myCanvas->Divide(2, 1);
       myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-      myPad->SetFillColor(color_pad_background);
+      myPad->SetFillColor(Palette::color_pad_background);
       myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
       myPad->cd();
 
