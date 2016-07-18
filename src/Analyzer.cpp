@@ -2869,6 +2869,15 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
   totalEtaProfileStubs.SetBins(100, 0, maxEta);
   totalEtaProfileStubs.SetStats(0);
 
+  totalEtaProfileLayers.Reset();
+  totalEtaProfileLayers.SetName("totalEtaProfileLayers");
+  totalEtaProfileLayers.SetMarkerStyle(8);
+  totalEtaProfileLayers.SetMarkerColor(1);
+  totalEtaProfileLayers.SetMarkerSize(1.5);
+  totalEtaProfileLayers.SetTitle("Number of layers with at least a hit;#eta;Number of layers");
+  totalEtaProfileLayers.SetBins(100, 0, maxEta);
+  totalEtaProfileLayers.SetStats(0);
+
   std::map<std::string, int> modulePlotColors; // CUIDADO quick and dirty way of creating a map with all the module colors (a cleaner way would be to have the map already created somewhere else)
 
   //XYZVector dir(0, 1, 0);
@@ -2922,6 +2931,7 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
       totalEtaProfileSensors.Fill(fabs(aLine.second), numHits);
       totalEtaProfileStubs.Fill(fabs(aLine.second), numStubs); 
 
+      int nHitLayers = 0;
       for (auto layerName : layerNames.data) {
         int layerHit = 0;
         int layerStub = 0;
@@ -2935,8 +2945,10 @@ void Analyzer::analyzeGeometry(Tracker& tracker, int nTracks /*=1000*/ ) {
         }
         layerEtaCoverageProfile[layerName].Fill(aLine.second, layerHit);
         layerEtaCoverageProfileStubs[layerName].Fill(aLine.second, layerStub);
+	if (layerHit) nHitLayers++;
       }
 
+      totalEtaProfileLayers.Fill(fabs(aLine.second), nHitLayers);
     }
   }
 
