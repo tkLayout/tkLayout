@@ -180,10 +180,11 @@ bool AnalysisManager::makeWebInfoPage()
   RootWPage& myPage       = m_webSite->addPage("Info");
   RootWContent* myContent = nullptr;
 
-  // Summary of parameters
+  // Summary of tkLayout parameters
   myContent = new RootWContent("Summary of tkLayout parameters");
   myPage.addContent(myContent);
 
+  // Command line arguments
   RootWInfo* myInfo;
   myInfo = new RootWInfo("Command line arguments");
   myInfo->setValue(SimParms::getInstance()->getCommandLine());
@@ -219,6 +220,38 @@ bool AnalysisManager::makeWebInfoPage()
                                                                     "Geometry configuration file(s)",
                                                                     includeSet.begin(), includeSet.end());
     myContent->addItem(myBinaryFileList);
+  }
+
+  // Summary of Csv files
+  myContent = new RootWContent("Summary list of csv files");
+  myPage.addContent(myContent);
+
+  // Csv files - resolution files
+  RootWTextFile* myCsvResFile= nullptr;
+
+  if (m_units.find("AnalyzerResolution")!=m_units.end()) {
+
+    AnalyzerResolution* unit = dynamic_cast<AnalyzerResolution*>(m_units["AnalyzerResolution"]);
+
+    // Pt option
+    std::string fileName     = "ResolutionSummaryPt.csv";
+    std::string webFileName  = "Resolution summary (pt option)";
+    myCsvResFile = new RootWTextFile(fileName, webFileName);
+
+    for (auto it=unit->getCsvResPt().getCsvTextBegin(); it!=unit->getCsvResPt().getCsvTextEnd(); ++it) {
+      myCsvResFile->addText(unit->getCsvResPt().getCsvText(it->first));
+    }
+    myContent->addItem(myCsvResFile);
+
+    // P option
+    fileName     = "ResolutionSummaryP.csv";
+    webFileName  = "Resolution summary (p option)";
+    myCsvResFile = new RootWTextFile(fileName, webFileName);
+
+    for (auto it=unit->getCsvResP().getCsvTextBegin(); it!=unit->getCsvResP().getCsvTextEnd(); ++it) {
+      myCsvResFile->addText(unit->getCsvResP().getCsvText(it->first));
+    }
+    myContent->addItem(myCsvResFile);
   }
 
   return true;

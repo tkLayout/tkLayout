@@ -42,6 +42,14 @@ void CsvTextBuilder::addCsvEOL(std::string id) {
 }
 
 /*
+ * Read text block content
+ */
+std::string CsvTextBuilder::getCsvText(std::string id) const {
+
+  if (existCsvText(id)) return m_text.at(id);
+  else                  return "";
+}
+/*
  * Clear text block content
  */
 void CsvTextBuilder::clearCsVText(std::string id) {
@@ -52,7 +60,7 @@ void CsvTextBuilder::clearCsVText(std::string id) {
 /*
  *  Test if text block exists
  */
-bool CsvTextBuilder::existCsvText(std::string id) {
+bool CsvTextBuilder::existCsvText(std::string id) const {
 
   if (m_text.find(id)!=m_text.end()) return true;
   else                               return false;

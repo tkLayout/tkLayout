@@ -58,6 +58,12 @@ class AnalyzerResolution : public AnalyzerUnit {
   //! Get number of used tracks
   int getNSimTracks() const { return m_nTracks;}
 
+  //! Get Csv text output for const pt -> exception thrown if doesn't exist
+  const CsvTextBuilder& getCsvResPt() const;
+
+  //! Get Csv text output for const p -> exception thrown if doesn't exist
+  const CsvTextBuilder& getCsvResP() const;
+
  private:
 
   //! Prepare plot: fill with data & set properties; varType specifies variable type to be filled: pT, p, d0, z0, phi0, cotgTheta & scenario const pT,  const p
@@ -67,16 +73,20 @@ class AnalyzerResolution : public AnalyzerUnit {
   void prepareSummaryTable(std::string tag, std::string scenario, RootWPage& webPage, RootWContent& summaryContent, CsvTextBuilder& csvContainer);
 
   //! Calculate average values in defined regions for given profile histogram
-  std::vector<double> averageHis(const TProfile& his, std::vector<double> regions);
+  std::vector<double> averageHisValues(const TProfile& his, std::vector<double> regions);
 
   int    m_nTracks; //!< Number of simulation tracks to be used in the analysis
   double m_etaMin;  //!< Minimum eta value;
   double m_etaMax;  //!< Maximum eta value
 
-  std::map<std::string, std::map<int, TrackCollection>> taggedTrackPtCollectionMap;      //!< For given track tag -> map of track collection for given pT (full material)
-  std::map<std::string, std::map<int, TrackCollection>> taggedTrackPtCollectionMapIdeal; //!< For given track tag -> map of track collection for given pT (ideal - no material)
-  std::map<std::string, std::map<int, TrackCollection>> taggedTrackPCollectionMap;       //!< For given track tag -> map of track collection for given p (full material)
-  std::map<std::string, std::map<int, TrackCollection>> taggedTrackPCollectionMapIdeal;  //!< For given track tag -> map of track collection for given p (ideal - no material)
+  // Csv containers -> keep final pT/p resolution in csv file
+  std::unique_ptr<CsvTextBuilder> m_csvResPt;
+  std::unique_ptr<CsvTextBuilder> m_csvResP;
+
+  std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPtCollectionMap;      //!< For given track tag -> map of track collection for given pT (full material)
+  std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPtCollectionMapIdeal; //!< For given track tag -> map of track collection for given pT (ideal - no material)
+  std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPCollectionMap;       //!< For given track tag -> map of track collection for given p (full material)
+  std::map<std::string, std::map<int, TrackCollection>> m_taggedTrackPCollectionMapIdeal;  //!< For given track tag -> map of track collection for given p (ideal - no material)
 
   const double c_max_dPtOverPt = 1000;  // [%]
   const double c_min_dPtOverPt = 0.001; // [%]
