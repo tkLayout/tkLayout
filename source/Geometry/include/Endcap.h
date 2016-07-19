@@ -1,23 +1,20 @@
 #ifndef INCLUDE_ENDCAP_H_
 #define INCLUDE_ENDCAP_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
-
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "Property.h"
-#include "Visitable.h"
 
 #include "Disk.h"
+#include "Property.h"
+#include "Visitable.h"
 
 namespace material {
   class SupportStructure;
 }
 
 // Typedefs
-typedef PtrVector<Disk>                       Disks;
+typedef PtrVector<Endcap>                     Endcaps;
 typedef PtrVector<material::SupportStructure> EndcapSupportStructures;
 
 /*

@@ -24,19 +24,17 @@ enum ReadoutMode       { BINARY, CLUSTER };
 enum HitType           { NONE, INNER, OUTER, BOTH = 3, STUB = 7 };
 
 // Typedefs
-typedef PtrVector<Sensor> Sensors;
+typedef PtrVector<BarrelModule> BarrelModules;
+typedef PtrVector<EndcapModule> EndcapModules;
 
 struct PosRef { int cnt, z, rho, phi; };
 struct TableRef { string table; int row, col; };
 struct UniRef { string cnt; int layer, ring, phi, side; };
 
-namespace insur {
-  class ModuleCap;
-}
-
+// Forward declaration
+class ModuleCap;
 class DetectorModule;
 
-using insur::ModuleCap;
 using material::ElementsVector;
 
 /*

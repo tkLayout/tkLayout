@@ -5,11 +5,10 @@
 
 #include "Track.h"
 
-#include <global_constants.h>
-#include <vector>
 #include <algorithm>
 #include <cstdlib>
 
+#include <global_constants.h>
 #include "Hit.h"
 #include "MessageLogger.h"
 #include "MaterialProperties.h"
@@ -73,9 +72,9 @@ Track::Track(const Track& track) {
   m_covariancesRZ.ResizeTo(track.m_covariancesRZ);
   m_covariancesRZ    = track.m_covariancesRZ;
 
-  for (auto iHit : track.m_hits) {
-    Hit* hit = new Hit(*iHit);
-    addHit(hit);
+  for (auto& iHit : track.m_hits) {
+    HitPtr hit(new Hit(*iHit));
+    addHit(std::move(hit));
   }
   m_tags = track.m_tags;
 }
@@ -117,9 +116,9 @@ Track& Track::operator= (const Track& track) {
   m_covariancesRZ.ResizeTo(track.m_covariancesRZ);
   m_covariancesRZ    = track.m_covariancesRZ;
 
-  for (auto iHit : track.m_hits) {
-    Hit* hit = new Hit(*iHit);
-    addHit(hit);
+  for (auto& iHit : track.m_hits) {
+    HitPtr hit(new Hit(*iHit));
+    addHit(std::move(hit));
   }
   m_tags = track.m_tags;
 
@@ -132,10 +131,7 @@ Track& Track::operator= (const Track& track) {
 //
 Track::~Track() {
 
-  for (auto iHit : m_hits) {
-
-    if (iHit!=nullptr) delete iHit;
-  }
+  // Clear memory
   m_hits.clear();
 }
 
@@ -199,10 +195,7 @@ void Track::computeErrors() {
 //
 // Adds a new hit to the track (hit radius automatically updated)
 //
-Hit* Track::addHit(Hit* newHit) {
-
-  // Add new hit
-  m_hits.push_back(newHit);
+void Track::addHit(HitPtr newHit) {
 
   // Add tracking tags
   if (newHit->getHitModule() != nullptr) {
@@ -210,18 +203,19 @@ Hit* Track::addHit(Hit* newHit) {
   }
   newHit->setTrack(this);
 
-  return newHit;
+  // Add new hit
+  m_hits.push_back(std::move(newHit));
 }
 
 //
 // Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
 //
-Hit* Track::addIPConstraint(double dr, double dz) {
+void Track::addIPConstraint(double dr, double dz) {
 
   // This modeling of the IP constraint was validated:
   // By placing dr = 0.5 mm and dz = 1 mm one obtains
   // sigma(d0) = 0.5 mm and sigma(z0) = 1 mm
-  Hit* newHit = new Hit(dr);
+  HitPtr newHit(new Hit(dr));
   newHit->setIP(true);
 
   RILength emptyMaterial;
@@ -234,15 +228,14 @@ Hit* Track::addIPConstraint(double dr, double dz) {
   newHit->setObjectKind(HitKind::Active);
   newHit->setResolutionRphi(dr);
   newHit->setResolutionY(dz);
-  this->addHit(newHit);
+  this->addHit(std::move(newHit));
 
-  return newHit;
 }
 
 //
-// Sort internally all hits assigned to this track -> sorting algorithm based on hit radius (the smaller, the sooner)
+// Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
 //
-void Track::sortHits() {std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortSmallerR); }
+void Track::sortHits(bool bySmallerR) { bySmallerR ? std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortSmallerR) : std::stable_sort(m_hits.begin(), m_hits.end(), Hit::sortHigherR); }
 
 //
 // Remove hits that don't follow the parabolic approximation used in tracking - TODO: still needs to be updated (not all approximations taken into account)
@@ -252,21 +245,22 @@ bool Track::pruneHits() {
   double helixRadius = getRadius();
   bool   isPruned    = false;
 
-  std::vector<Hit*> newHits;
-  for (auto iHit : m_hits) {
+  HitCollection newHits;
+  for (auto& iHit : m_hits) {
 
-    if (iHit->getRadius()<2*helixRadius) newHits.push_back(iHit);
+    if (iHit->getRadius()<2*helixRadius) newHits.push_back(std::move(iHit));
     else {
 
       // Clear memory
-      delete iHit;
-      iHit = nullptr;
+      iHit.reset();
 
       isPruned = true;
     }
   }
 
-  m_hits = newHits;
+  m_hits.clear();
+  for (auto& iHit : newHits) m_hits.push_back(std::move(iHit));
+
   return isPruned;
 }
 
@@ -275,7 +269,7 @@ bool Track::pruneHits() {
 //
 void Track::keepTaggedOnly(const string& tag) {
 
-  for (auto iHit : m_hits) {
+  for (auto& iHit : m_hits) {
 
     const DetectorModule* module = iHit->getHitModule();
     if (!module) continue;
@@ -294,7 +288,7 @@ void Track::removeMaterial() {
   RILength nullMaterial;
 
   // Reset all material assigned to hits
-  for (auto iHit : m_hits) iHit->setCorrectedMaterial(nullMaterial);
+  for (auto& iHit : m_hits) iHit->setCorrectedMaterial(nullMaterial);
 }
 
 //
@@ -357,7 +351,7 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
     EXIT_FAILURE;
   }
 
-  for (auto iHit : m_hits) iHit->updateRadius();
+  for (auto& iHit : m_hits) iHit->updateRadius();
 
   return m_direction;
 };
@@ -370,7 +364,7 @@ int Track::getNActiveHits (std::string tag, bool useIP /* = true */ ) const {
   // Result variable
   int nHits=0;
 
-  for (auto iHit : m_hits) {
+  for (auto& iHit : m_hits) {
     if (iHit) {
       if ((useIP) || (!iHit->isIP())) {
         if (iHit->getObjectKind()==HitKind::Active){
@@ -401,9 +395,10 @@ std::vector<double> Track::getHadronActiveHitsProbability(std::string tag) {
   double probability = 1;
 
   // Sort hits first
-  sortHits();
+  bool bySmallerR = true;
+  sortHits(bySmallerR);
 
-  for (auto iHit : m_hits) {
+  for (auto& iHit : m_hits) {
     if (iHit) {
       if (iHit->getObjectKind()==HitKind::Active){
 
@@ -438,9 +433,10 @@ double Track::getHadronActiveHitsProbability(std::string tag, int nHits) {
   int goodHits = 0;
 
   // Sort hits first
-  sortHits();
+  bool bySmallerR = true;
+  sortHits(bySmallerR);
 
-  for (auto iHit : m_hits) {
+  for (auto& iHit : m_hits) {
 
     if (iHit) {
       if (iHit->getObjectKind()==HitKind::Active) {
@@ -478,7 +474,7 @@ RILength Track::getMaterial() {
   totalMaterial.radiation   = 0;
   totalMaterial.interaction = 0;
 
-  for (auto iHit : m_hits) totalMaterial += iHit->getCorrectedMaterial();
+  for (auto& iHit : m_hits) totalMaterial += iHit->getCorrectedMaterial();
 
   return totalMaterial;
 }
@@ -490,7 +486,7 @@ std::vector<std::pair<const DetectorModule*, HitType>> Track::getHitModules() co
 
   std::vector<std::pair<const DetectorModule*, HitType>> result;
 
-  for (auto iHit : m_hits) {
+  for (auto& iHit : m_hits) {
 
     if ((iHit) && (iHit->isTrigger()) && (!iHit->isIP()) && (iHit->getObjectKind()==HitKind::Active)) {
 

@@ -8,6 +8,8 @@
 #ifndef BEAMPIPE_H_
 #define BEAMPIPE_H_
 
+#include <memory>
+
 #include "Property.h"
 #include "Visitable.h"
 
@@ -60,7 +62,7 @@ class BeamPipe : public PropertyObject, public Identifiable<string>, public Buil
   //! Copy constructor
   BeamPipe(const BeamPipe&) = default;
 
-  insur::InactiveTube* m_tube; //!< Beam pipe as inactive tube;
+  std::unique_ptr<insur::InactiveTube> m_tube; //!< Beam pipe as inactive tube;
 
 }; // Class
 

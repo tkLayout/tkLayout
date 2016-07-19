@@ -43,6 +43,10 @@ AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
   unit = new AnalyzerMatBudget(activeTrackers, beamPipe);
   m_units[unit->getName()] = unit;
 
+  // Create AnalyzerMatBudget
+  unit = new AnalyzerResolution(activeTrackers, beamPipe);
+  m_units[unit->getName()] = unit;
+
   // Prepare Web site
   auto simParms = SimParms::getInstance();
   m_webSitePrepared = prepareWebSite(simParms->getLayoutName(), simParms->getWebDir());

@@ -13,10 +13,15 @@
 
 // Forward declaration
 class DetectorModule;
+class Hit;
 class Track;
 
 #undef HIT_DEBUG
 #undef HIT_DEBUG_RZ
+
+// Typedefs
+typedef std::unique_ptr<Hit> HitPtr;
+typedef std::vector<HitPtr>  HitCollection;
 
 enum class HitOrientation : short { Undefined, Horizontal, Vertical};  // Hit object orientation
 enum class HitKind        : short { Undefined, Active, Inactive };     // Hit object type
@@ -38,7 +43,7 @@ public:
   //! Constructor
   Hit();
 
-  //
+  //! Copy constructor
   Hit(const Hit& h);
 
   //! Constructor for a hit with no module at a given distance from the origin
@@ -50,8 +55,11 @@ public:
   //! Destructor
   ~Hit();
 
-  //! Given two hits, compare the distance to the z-axis.
-  static bool sortSmallerR(Hit* h1, Hit* h2);
+  //! Given two hits, compare the distance to the z-axis based on smaller R
+  static bool sortSmallerR(const HitPtr& h1, const HitPtr& h2);
+
+  //! Given two hits, compare the distance to the z-axis based on higher R
+  static bool sortHigherR(const HitPtr& h1, const HitPtr& h2);
 
   //! Update hit radius (radius in 2D - xy plane), based on new track parameters
   void updateRadius() {m_radius = m_distance * sin(getTrackTheta());};

@@ -7,19 +7,25 @@
 #define INCLUDE_TRACK_H_
 
 #include <cmath>
+#include <memory>
 #include <set>
 #include <vector>
 
 #include "DetectorModule.h"
+#include "Hit.h"
 #include <Math/Vector3D.h>
 #include <TMatrixT.h>
 #include <TMatrixTSym.h>
 
 // Forward declaration
-class Hit;
+class Track;
 class RILength;
 
 #undef TRACK_DEBUG_RZ
+
+//Typedef
+typedef std::unique_ptr<Track> TrackPtr;
+typedef std::vector<TrackPtr>  TrackCollection;
 
 /**
  * @class Track
@@ -53,13 +59,13 @@ public:
   void computeErrors();
 
   //! Add new hit to track and return a pointer to that hit
-  Hit* addHit(Hit* newHit);
+  void addHit(HitPtr newHit);
 
   //! Add IP constraint to the track, technically new hit is assigned: with no material and hit resolution in R-Phi as dr, in s-Z as dz
-  Hit* addIPConstraint(double dr, double dz);
+  void addIPConstraint(double dr, double dz);
 
-  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius (the smaller, the sooner)
-  void sortHits();
+  //! Sort internally all hits assigned to this track -> sorting algorithm based on hit radius - by smaller radius sooner or vice-versa (inner-2-outer approach or vice-versa)
+  void sortHits(bool bySmallerR);
 
   //! Does track contain no hits?
   bool hasNoHits() const {return m_hits.empty(); }
@@ -92,6 +98,7 @@ public:
   double getCotgTheta() const          { return m_cotgTheta; }
   double getPhi() const                { return m_phi;}
   double getTransverseMomentum() const { return m_pt; }
+  double getPt() const                 { return m_pt; }
   double getMagField() const           { return m_magField; }
   double getRho() const                { return (m_radius>0 ? 1/m_radius : 0);}
   double getRadius() const             { return m_radius; }
@@ -126,8 +133,8 @@ public:
   const double& getDeltaD0() const       { return m_deltaD0; }
   const double& getDeltaCtgTheta() const { return m_deltaCtgTheta; }
   const double& getDeltaZ0() const       { return m_deltaZ0; }
-  const double& getDeltaPt() const       { return m_deltaPt; }
-  const double& getDeltaP()  const       { return m_deltaP; }
+  const double& getDeltaPtOverPt() const { return m_deltaPt; }
+  const double& getDeltaPOverP()  const  { return m_deltaP; }
 
 //  void addEfficiency(double efficiency, bool alsoPixel = false);
 //  void keepTriggerOnly();
@@ -163,7 +170,7 @@ protected:
   Polar3DVector  m_direction;  //!< Track parameters as a 3-vector: R, theta, phi
   XYZVector      m_origin;     //!< Track origin as a 3-vector: X, Y, Z
 
-  std::vector<Hit*>     m_hits;//!< Track assigned hits
+  HitCollection         m_hits;//!< Track assigned hits
   std::set<std::string> m_tags;//!< Which subdetectors to be used in the track (each subdetector is tagged by a set of tags, e.g. pixel, fwd, tracker -> used in tracking of pixels, fwd tracking & full tracker)
 
   // Track resolution as a function of momentum

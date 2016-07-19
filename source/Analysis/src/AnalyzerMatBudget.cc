@@ -268,9 +268,9 @@ bool AnalyzerMatBudget::analyze()
       //
       // Get material related to detector modules, so-called module caps, beam-pipe etc.
       std::map<std::string, Material> matBudget;
-      MaterialVisitor matVisitor(matTrack, matBudget, m_radMap[trkName], m_radMapCount[trkName], m_intMap[trkName], m_intMapCount[trkName]);
+      MatBudgetVisitor matVisitor(matTrack, matBudget, m_radMap[trkName], m_radMapCount[trkName], m_intMap[trkName], m_intMapCount[trkName]);
       iTracker->accept(matVisitor);  // Assign to material track hits corresponding to modules
-      m_beamPipe->accept(matVisitor);// Assign to material tack hit corresponding to beam-pipe
+      m_beamPipe->accept(matVisitor);// Assign to material track hit corresponding to beam-pipe
 
       // Given sub-tracker
       m_radMB[trkName]["Barrel"].Fill(eta, matBudget["Barrel"].radiation);
@@ -360,7 +360,8 @@ bool AnalyzerMatBudget::analyze()
       // Calculate efficiency plots
       if (!matTrack.hasNoHits()) {
 
-        matTrack.sortHits();
+        bool bySmallerR = true;
+        matTrack.sortHits(bySmallerR);
 
         // Get hits
         int nActive = matTrack.getNActiveHits("all",true);
@@ -452,7 +453,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
   if (!m_isInitOK || !m_isAnalysisOK) return false;
 
   // Go through all trackers & prepare web content
-  int webPriority         = 89;
+  int webPriority         = web_priority_MB;
   RootWPage*    myPage    = nullptr;
   RootWContent* myContent = nullptr;
   RootWImage*   myImage   = nullptr;
@@ -496,10 +497,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Prepare canvas
     TCanvas* myCanvas = new TCanvas(std::string("MaterialInTrackingVolume"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     TPad* myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     // Rebin material histograms to readable values
     m_radMB[trkName]["Total"].SetFillColor(kGray + 2);
@@ -669,10 +670,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Rebin histograms, draw them to a canvas and write the canvas to the web page
     myCanvas = new TCanvas(std::string("MaterialByCategoryIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
     myPad->cd();
@@ -717,10 +718,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     TLegend* compLegend = new TLegend(0.1,0.6,0.35,0.9);
 
     myCanvas = new TCanvas(std::string("MaterialByComponentIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->Divide(2, 1);
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-    myPad->SetFillColor(color_pad_background);
+    myPad->SetFillColor(Palette::color_pad_background);
 
     // Radiation length for components
     myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
@@ -823,7 +824,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Radiation length plot
     myCanvas = new TCanvas(std::string("RadMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->cd();
 
     m_radMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
@@ -840,7 +841,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     // Interaction length plot
     myCanvas = new TCanvas(std::string("IntMaterialMapIn"+trkName).c_str());
-    myCanvas->SetFillColor(color_plot_background);
+    myCanvas->SetFillColor(Palette::color_plot_background);
     myCanvas->cd();
 
     m_intMap[trkName].GetXaxis()->SetRangeUser(0, maxZ);
@@ -866,10 +867,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
       // Number of hits
       myCanvas = new TCanvas(std::string("HadronsHitsNumberIn"+trkName).c_str());
-      myCanvas->SetFillColor(color_plot_background);
+      myCanvas->SetFillColor(Palette::color_plot_background);
       myCanvas->Divide(2, 1);
       myPad = dynamic_cast<TPad*>(myCanvas->GetPad(0));
-      myPad->SetFillColor(color_pad_background);
+      myPad->SetFillColor(Palette::color_pad_background);
       myPad = dynamic_cast<TPad*>(myCanvas->GetPad(1));
       myPad->cd();
 
@@ -1085,9 +1086,9 @@ double AnalyzerMatBudget::averageHistogramValues(const TH1D& his, double cutoffS
 }
 
 //
-// ModuelCapsVisitor constructor
+// Material budget visitor - constructor
 //
-MaterialVisitor::MaterialVisitor(Track& matTrack, std::map<std::string, Material>& matBudget, TH2D& radMap, TH2D& radMapCount, TH2D& intMap, TH2D& intMapCount) :
+MatBudgetVisitor::MatBudgetVisitor(Track& matTrack, std::map<std::string, Material>& matBudget, TH2D& radMap, TH2D& radMapCount, TH2D& intMap, TH2D& intMapCount) :
     m_matTrack(matTrack),
     m_nEntries(0),
     m_matBudget(matBudget),
@@ -1101,19 +1102,19 @@ MaterialVisitor::MaterialVisitor(Track& matTrack, std::map<std::string, Material
 //
 // Destructor
 //
-MaterialVisitor::~MaterialVisitor()
+MatBudgetVisitor::~MatBudgetVisitor()
 {
 }
 
 //
 // Visit BeamPipe -> update track with beam pipe hit
 //
-void MaterialVisitor::visit(const BeamPipe& bp)
+void MatBudgetVisitor::visit(const BeamPipe& bp)
 {
   // Add hit corresponding with beam-pipe
   double theta    = m_matTrack.getTheta();
   double distance = (bp.radius()+bp.thickness())/2./sin(theta);
-  Hit* hit = new Hit(distance);
+  HitPtr hit(new Hit(distance));
   hit->setOrientation(HitOrientation::Horizontal);
   hit->setObjectKind(HitKind::Inactive);
 
@@ -1122,13 +1123,13 @@ void MaterialVisitor::visit(const BeamPipe& bp)
   material.interaction = bp.intLength()/sin(theta);
   hit->setCorrectedMaterial(material);
   hit->setBeamPipe(true);
-  m_matTrack.addHit(hit);
+  m_matTrack.addHit(std::move(hit));
 }
 
 //
 // Visit BarrelModule (no limits on Rods, Layers or Barrels)
 //
-void MaterialVisitor::visit(const BarrelModule& m)
+void MatBudgetVisitor::visit(const BarrelModule& m)
 {
   analyzeModuleMB(m);
 }
@@ -1136,7 +1137,7 @@ void MaterialVisitor::visit(const BarrelModule& m)
 //
 // Visit EndcapModule (no limits on Rings or Endcaps)
 //
-void MaterialVisitor::visit(const EndcapModule& m)
+void MatBudgetVisitor::visit(const EndcapModule& m)
 {
   analyzeModuleMB(m);
 }
@@ -1144,14 +1145,14 @@ void MaterialVisitor::visit(const EndcapModule& m)
 //
 // Post visit method called after the whole visit-accept pattern done to recalibrate histograms, etc.
 //
-void MaterialVisitor::postvisit()
+void MatBudgetVisitor::postvisit()
 {
 }
 
 //
 // Analyze if module crossed by given track & how much material is in the way
 //
-void MaterialVisitor::analyzeModuleMB(const DetectorModule& m)
+void MatBudgetVisitor::analyzeModuleMB(const DetectorModule& m)
 {
   // Collision detection: material tracks being shot in z+ only, so consider only modules that lie on +Z side
   if (m.maxZ() > 0) {
@@ -1222,9 +1223,9 @@ void MaterialVisitor::analyzeModuleMB(const DetectorModule& m)
       }
 
       // Create Hit object with appropriate parameters, add to Track t
-      Hit* hit = new Hit(pair.first.R(), &m, hitType);
+      HitPtr hit(new Hit(pair.first.R(), &m, hitType));
       hit->setCorrectedMaterial(material);
-      m_matTrack.addHit(hit);
+      m_matTrack.addHit(std::move(hit));
     }
   } // Z>0
 }

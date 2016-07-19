@@ -7,16 +7,13 @@
 #include <memory>
 #include <set>
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "Property.h"
-#include "Visitor.h"
-#include "Visitable.h"
-
 #include <Barrel.h>
 #include <DetectorModule.h>
 #include <Endcap.h>
+#include "Property.h"
 #include <SupportStructure.h>
+#include "Visitor.h"
+#include "Visitable.h"
 
 // Using namespaces
 using std::set;
@@ -26,8 +23,6 @@ class HierarchicalNameVisitor;
 class ModulesSetVisitor;
 
 // Typedefs
-typedef PtrVector<Barrel>                     Barrels;
-typedef PtrVector<Endcap>                     Endcaps;
 typedef PtrVector<material::SupportStructure> SupportStructures;
 
 /*

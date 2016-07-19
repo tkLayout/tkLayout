@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Material budget study
-    if ((progOptions.count("all") || progOptions.count("material")) && beamPipeOK && passiveTrackerOK) {
+    if ((progOptions.count("all") || progOptions.count("material") || progOptions.count("resolution")) && beamPipeOK && passiveTrackerOK) {
 
       startTaskClock("Analyzing material budget");
       aManager.initUnit(matTracks, "AnalyzerMatBudget");

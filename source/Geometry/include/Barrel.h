@@ -1,16 +1,13 @@
 #ifndef INCLUDE_BARREL_H_
 #define INCLUDE_BARREL_H_
 
+#include <memory>
 #include <vector>
 #include <string>
-#include <memory>
-
-#include <boost/ptr_container/ptr_vector.hpp>
-
-#include "Property.h"
-#include "Visitable.h"
 
 #include "Layer.h"
+#include "Property.h"
+#include "Visitable.h"
 
 // Forward declaration
 namespace material {
@@ -18,7 +15,7 @@ namespace material {
 }
 
 // Typedefs
-typedef PtrVector<Layer>                      Layers;
+typedef PtrVector<Barrel>                     Barrels;
 typedef PtrVector<material::SupportStructure> BarrelSupportStructures;
 
 /*

@@ -26,12 +26,20 @@ using namespace std;
 //#endif
 
 /**
- * This is a comparator for two Hit objects.
+ * This is a comparator for two Hit objects based on smaller radius.
  * @param h1 A pointer to the first hit
  * @param h2 A pointer to the second hit
  * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
  */
-bool Hit::sortSmallerR(Hit* h1, Hit* h2) { return (h1->getDistance() < h2->getDistance()); }
+bool Hit::sortSmallerR(const HitPtr& h1, const HitPtr& h2) { return (h1->getDistance() < h2->getDistance()); }
+
+/**
+ * This is a comparator for two Hit objects based on higher radius
+ * @param h1 A pointer to the first hit
+ * @param h2 A pointer to the second hit
+ * @return The result of the comparison: <i>true</i> if the distance from the z-axis of h1 is smaller than that of h2, false otherwise
+ */
+bool Hit::sortHigherR(const HitPtr& h1, const HitPtr& h2) { return (h1->getDistance() > h2->getDistance()); }
 
 /**
  * Nothing to do for the destructor, as a hit never owns any objects it has pointers to...
@@ -51,8 +59,9 @@ Hit::Hit() {
     m_isPixel          = false;
     m_isTrigger        = false;
     m_isIP             = false;
-    m_resolutionRphi = 0;
-    m_resolutionY    = 0;
+    m_isBeamPipe       = false;
+    m_resolutionRphi   = 0;
+    m_resolutionY      = 0;
     m_activeHitType    = HitType::NONE;
 }
 
@@ -71,6 +80,7 @@ Hit::Hit(const Hit& h) {
     m_isPixel           = h.m_isPixel;
     m_isTrigger         = h.m_isTrigger;
     m_isIP              = h.m_isIP;
+    m_isBeamPipe        = h.m_isBeamPipe;
     m_resolutionRphi    = h.m_resolutionRphi;
     m_resolutionY       = h.m_resolutionY;
     m_activeHitType     = h.m_activeHitType;
@@ -90,6 +100,7 @@ Hit::Hit(double myDistance) {
     m_isTrigger        = false;
     m_isPixel          = false;
     m_isIP             = false;
+    m_isBeamPipe       = false;
     m_resolutionRphi   = 0;
     m_resolutionY      = 0;
     m_activeHitType    = HitType::NONE;

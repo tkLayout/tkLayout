@@ -370,7 +370,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   if (!m_isInitOK || !m_isAnalysisOK) return false;
 
   // Go through all trackers & prepare web content
-  int webPriority         = 99;
+  int webPriority         = web_priority_Geom;
   RootWPage*    myPage    = nullptr;
   RootWContent* myContent = nullptr;
 
@@ -570,7 +570,7 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
   // Page address
   std::string pageAddress = "index.html";
   myPage->setAddress(pageAddress);
-  webSite.addPage(myPage, 100);
+  webSite.addPage(myPage, web_priority_Geom+1);
 
   // Full tracker layout
   myContent = new RootWContent("Tracker layout: ");

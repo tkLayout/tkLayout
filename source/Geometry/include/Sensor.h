@@ -1,15 +1,21 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include <string>
 #include <exception>
+#include <string>
 
+#include "CoordinateOperations.h"
+#include "GeometryFactory.h"
 #include "global_funcs.h"
 #include "Polygon3d.h"
 #include "Property.h"
-#include "CoordinateOperations.h"
 
+// Forward declaration
 class DetectorModule;
+class Sensor;
+
+// Typedefs
+typedef PtrVector<Sensor> Sensors;
 
 enum class SensorType { Pixel, Largepix, Strip, None };
 
