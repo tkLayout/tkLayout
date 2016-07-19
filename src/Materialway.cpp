@@ -1078,7 +1078,7 @@ namespace material {
   const int Materialway::boundaryPaddingBarrel = discretize(12.0);             /**< the space between the barrel/endcap and the containing box (for routing services) */
   const int Materialway::boundaryPaddingEndcaps = discretize(10.0); 
   const int Materialway::boundaryPrincipalPaddingBarrel = discretize(21.0);       /**< the space between the barrel/endcap and the containing box only right for the barrel, up for endcap */
-  const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(15.0);
+  const int Materialway::boundaryPrincipalPaddingEndcaps = discretize(16.0);
   const int Materialway::globalMaxZPadding = discretize(100.0);          /**< the space between the tracker and the right limit (for routing services) */
   //const int Materialway::globalMaxRPadding = discretize(30.0);          /**< the space between the tracker and the upper limit (for routing services) */
   const int Materialway::globalMaxRPadding = discretize(25.0);

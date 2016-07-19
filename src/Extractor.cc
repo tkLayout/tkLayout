@@ -167,7 +167,7 @@ namespace insur {
     analyseLayers(mt, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
     std::cout << "Barrel layers done." << std::endl;
     // Analyse endcaps
-    analyseDiscs(mt, ec, tr, trackerXmlTags, c, l, s, p, a, r, t, ri, wt);
+    analyseDiscs(mt, ec, tr, trackerXmlTags, c, l, s, so, p, a, r, t, ri, wt);
     std::cout << "Endcap discs done." << std::endl;
     // Analyse services
     analyseServices(is, isPixelTracker, trackerXmlTags, c, l, s, p, t);
@@ -1282,14 +1282,16 @@ namespace insur {
    * @param ri A reference to the collection of overall radiation and interaction lengths per layer or disc; used for output
    */
   void Extractor::analyseDiscs(MaterialTable& mt, std::vector<std::vector<ModuleCap> >& ec, Tracker& tr, XmlTags& trackerXmlTags,
-                               std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<PosInfo>& p,
-                               std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
+                               std::vector<Composite>& c, std::vector<LogicalInfo>& l, std::vector<ShapeInfo>& s, std::vector<ShapeOperationInfo>& so,
+			       std::vector<PosInfo>& p, std::vector<AlgoInfo>& a, std::map<std::string,Rotation>& r, std::vector<SpecParInfo>& t, std::vector<RILengthInfo>& ri, bool wt) {
 
     bool isPixelTracker = tr.isPixelTracker();
 
     // Container inits
     ShapeInfo shape;
     shape.dyy = 0.0;
+
+    ShapeOperationInfo shapeOp;
 
     LogicalInfo logic;
 
@@ -1343,6 +1345,7 @@ namespace insur {
     std::vector<ModuleCap>::iterator iiter;
 
     int layer = 1;
+    int discNumber = 1;
 
 
     // LOOP ON DISKS
@@ -1376,7 +1379,7 @@ namespace insur {
 	    int modRing = iiter->getModule().uniRef().ring;
 	    //disk name
 	    std::ostringstream dname;
-	    dname << xml_disc << layer; // e.g. Disc6
+	    dname << xml_disc << discNumber; // e.g. Disc6
 	    // module name
 	    std::ostringstream mname;
 	    mname << xml_endcap_module << modRing << dname.str(); // e.g. EModule1Disc6
@@ -1399,18 +1402,18 @@ namespace insur {
         shape.rmin = 0.0;
         shape.rmax = 0.0;
         pos.trans.dz = 0.0;
-
+	shapeOp.trans.dz = 0.0;
 
 	// for material properties
         double rtotal = 0.0, itotal = 0.0;
         int count = 0;
-	ril.index = layer;
+	ril.index = discNumber;
 
 
 	//if (zmin > 0) {	
         std::ostringstream dname, pconverter;
 	//disk name
-        dname << xml_disc << layer; // e.g. Disc6
+        dname << xml_disc << discNumber; // e.g. Disc6
 
         std::map<int, ERingInfo> rinfo;
 	std::set<int> ridx;
@@ -1484,7 +1487,7 @@ namespace insur {
 	      logic.material_tag = xml_material_air;
 	      l.push_back(logic);
 	      // module composite material
-	      //matname << xml_base_actcomp << "D" << layer << "R" << modRing;
+	      //matname << xml_base_actcomp << "D" << discNumber << "R" << modRing;
 	      //c.push_back(createComposite(matname.str(), compositeDensity(*iiter, true), *iiter, true));
 
 	    //Topology
@@ -1674,6 +1677,8 @@ namespace insur {
           ri.push_back(ril);
         }
 
+	double rminStepInForwadestDisc = 0;
+
         // rings
         shape.type = tb;
         shape.dx = 0.0;
@@ -1691,6 +1696,8 @@ namespace insur {
             shape.rmax = rinfo[*siter].rmax + xml_epsilon;
 	    shape.dz = (rinfo[*siter].zmax - rinfo[*siter].zmin) / 2.0 + xml_epsilon;
             s.push_back(shape);
+	    // Quick and dirty
+	    if (dname.str() == "Disc11" && *siter == 2) { rminStepInForwadestDisc = shape.rmin - xml_epsilon; }
 
             logic.name_tag = shape.name_tag;
             logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
@@ -1768,8 +1775,30 @@ namespace insur {
         shape.rmin = rmin - 2 * xml_epsilon;
         shape.rmax = rmax + 2 * xml_epsilon;
         shape.dz = diskThickness / 2.0 + 2 * xml_epsilon; //(zmax - zmin) / 2.0;
+	// TO DO : IMPLEMENT AN AUTOMATIC MORE OPTIMIZED CONTAINER SHAPE FOR DISCS COLLIDING WITH BEAM PIPE !!
+	if (dname.str() == "Disc11" && ridx.count(2) != 0) { shape.name_tag = dname.str() + "Full"; }
         s.push_back(shape);
 
+	// TO DO : IMPLEMENT AN AUTOMATIC MORE OPTIMIZED CONTAINER SHAPE FOR DISCS COLLIDING WITH BEAM PIPE !!
+	if (dname.str() == "Disc11" && ridx.count(2) != 0) {
+	  shape.name_tag = dname.str() + "Air";
+	  shape.rmin = rmin - 2 * xml_epsilon;
+	  shape.rmax = rminStepInForwadestDisc;
+	  shape.dz = diskThickness / 4.0 + xml_epsilon;
+	  s.push_back(shape);
+
+	  // Substraction of an air part from the disc container volume, to avoid collision with beam pipe
+	  shapeOp.name_tag = dname.str();
+	  shapeOp.type = substract;
+	  shapeOp.rSolid1 = dname.str() + "Full";
+	  shapeOp.rSolid2 = dname.str() + "Air";
+	  shapeOp.trans.dx = 0.;
+	  shapeOp.trans.dy = 0.;
+	  shapeOp.trans.dz = diskThickness / 4.0 + xml_epsilon;
+	  so.push_back(shapeOp);
+	}
+
+	shape.name_tag = dname.str();
         logic.name_tag = shape.name_tag; // CUIDADO ended with + xml_plus;
         //logic.extra = xml_plus;
         logic.shape_tag = trackerXmlTags.nspace + ":" + shape.name_tag;
@@ -1792,6 +1821,7 @@ namespace insur {
         //   p.push_back(pos);
         //dspec.partselectors.push_back(logic.name_tag); // CUIDADO dspec still needs to be duplicated for minus discs (I think)
         //dspec.partextras.push_back(logic.extra);
+	discNumber++;
       }
       layer++;
     }
@@ -1858,9 +1888,11 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
+	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1281.;
-	  else startEndcaps = 300.;
+	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  else startEndcaps = 227.;   // PIXEL 4_0_2_1
           
 	  // BARREL services
 	  if ((iter->getZOffset() + iter->getZLength() / 2.0) < startEndcaps ) {
@@ -1950,6 +1982,8 @@ namespace insur {
 	      shape.dz = iter->getZLength() / 2.0;
 	      shape.rmin = iter->getInnerRadius();
 	      shape.rmax = shape.rmin + iter->getRWidth();
+	      // TO DO : IMPLEMENT AN AUTOMATIC CUT + WARNING FOR SERVICES COLLIDING WITH BEAM PIPE !!
+	      if (shape.name_tag == "serviceR63Z2661") { shape.rmin = shape.rmin + 0.5; std::cout << " cut serviceR63Z2661" << std::endl; }   
 	      s.push_back(shape);
 	      if (shape.rmin < serviceEndcapsRMin) serviceEndcapsRMin = shape.rmin;
 	      if (shape.rmax > serviceEndcapsRMax) serviceEndcapsRMax = shape.rmax;
@@ -2135,9 +2169,11 @@ namespace insur {
         if ( iter->getLocalMasses().size() ) {
           c.push_back(createComposite(matname.str(), compositeDensity(*iter), *iter));
 
+	  // TO DO : CALCULATION OF OUTERMOST SHAPES BOUNDARIES
 	  double startEndcaps;
 	  if (!isPixelTracker) startEndcaps = 1281.;
-	  else startEndcaps = 300.;          
+	  //else startEndcaps = 300.; // PIXEL 1_1_1
+	  else startEndcaps = 227.;   // PIXEL 4_0_2_1          
 
 	  // BARREL supports
 	  if (iter->getZOffset() < startEndcaps ) {

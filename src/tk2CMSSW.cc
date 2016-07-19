@@ -205,6 +205,8 @@ namespace insur {
 	        break;
 	        case intersec: std::cout << "intersection, rSolid1 = " << data.shapeOps.at(i).rSolid1 << ", rSolid2 = " << data.shapeOps.at(i).rSolid2;
 	        break;
+	        case substract: std::cout << "substraction, rSolid1 = " << data.shapeOps.at(i).rSolid1 << ", rSolid2 = " << data.shapeOps.at(i).rSolid2 << ", translation = (" << data.shapeOps.at(i).trans.dx << ", " << data.shapeOps.at(i).trans.dy << ", " << data.shapeOps.at(i).trans.dz << ")" << std::endl;
+	        break;
 	        default: std::cout << "unknown operation";
             }
             std::cout << std::endl;

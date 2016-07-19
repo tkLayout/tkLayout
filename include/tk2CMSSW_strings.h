@@ -108,6 +108,9 @@ namespace insur {
     static const std::string xml_intersection_open = "<IntersectionSolid name=\"";
     static const std::string xml_intersection_inter = "\">\n";
     static const std::string xml_intersection_close = "</IntersectionSolid>\n";
+    static const std::string xml_substraction_open = "<SubtractionSolid name=\"";
+    static const std::string xml_substraction_inter = "\">\n";
+    static const std::string xml_substraction_close = "</SubtractionSolid>\n";
     static const std::string xml_rsolid_open = "<rSolid name=\"";
     static const std::string xml_rsolid_close = "\"/>\n";
     static const std::string xml_pos_part_open = "<PosPart copyNumber=\"";
