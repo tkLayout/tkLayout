@@ -983,6 +983,7 @@ namespace insur {
       // rod(s)
       shape.name_tag = rodname.str();
       shape.dx = (ymax - ymin) / 2 + xml_epsilon;
+      if (isTilted) shape.name_tag = rodname.str() + "Full";
       if (isTilted) shape.dx = (flatPartMaxY - flatPartMinY) / 2 + xml_epsilon;
       if (isPixelTracker) shape.dx = rodThickness.at(layer) + xml_epsilon;   // TO DO : IMPLEMENT SMALL DELTA FOR THE TILTED !!!! OTHERWISE, THIS VALUE WILL BE FALSE FOR A TILTED PIXEL TRACKER EXPORT !!!
       shape.dy = (xmax - xmin) / 2 + xml_epsilon;
@@ -991,6 +992,34 @@ namespace insur {
       shape.dz = zmax + xml_epsilon;
       if (isTilted) shape.dz = flatPartMaxZ + xml_epsilon;
       s.push_back(shape);
+
+      // TO DO : IMPROVE THIS !!
+      // Subtraction of an air volume from the flat part rod container volume, to avoid collision with first tilted ring
+      if (isTilted) {
+	shape.name_tag = rodname.str() + "Air";
+	shape.dx = shape.dx / 2.0;
+	shape.dz = 10.; // To be calculated with maxZ of the 'one before last' module of the flat part rod
+	s.push_back(shape);
+	
+	shapeOp.name_tag = rodname.str() + "SubtractionIntermediate";
+	shapeOp.type = substract;
+	shapeOp.rSolid1 = rodname.str() + "Full";
+	shapeOp.rSolid2 = rodname.str() + "Air";
+	shapeOp.trans.dx = shape.dx + xml_epsilon;
+	shapeOp.trans.dy = 0.;
+	shapeOp.trans.dz = flatPartMaxZ + xml_epsilon - shape.dz / 2.0;
+	so.push_back(shapeOp);
+
+	shapeOp.name_tag = rodname.str();
+	shapeOp.type = substract;
+	shapeOp.rSolid1 = rodname.str() + "SubtractionIntermediate";
+	shapeOp.rSolid2 = rodname.str() + "Air";
+	shapeOp.trans.dx = shape.dx + xml_epsilon;
+	shapeOp.trans.dy = 0.;
+	shapeOp.trans.dz = -shapeOp.trans.dz;
+	so.push_back(shapeOp);
+      }
+
       logic.name_tag = rodname.str();
       logic.shape_tag = trackerXmlTags.nspace + ":" + logic.name_tag;
       logic.material_tag = xml_material_air;
@@ -1787,7 +1816,7 @@ namespace insur {
 	  shape.dz = diskThickness / 4.0 + xml_epsilon;
 	  s.push_back(shape);
 
-	  // Substraction of an air part from the disc container volume, to avoid collision with beam pipe
+	  // Subtraction of an air part from the disc container volume, to avoid collision with beam pipe
 	  shapeOp.name_tag = dname.str();
 	  shapeOp.type = substract;
 	  shapeOp.rSolid1 = dname.str() + "Full";

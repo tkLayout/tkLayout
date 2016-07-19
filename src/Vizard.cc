@@ -1332,7 +1332,7 @@ namespace insur {
           ringTable->setContent(2, aRing, sqrt(pow(anEC->minR(),2)+pow(anEC->minWidth()/2.,2)), coordPrecision); // Ugly, this should be accessible as a method
           ringTable->setContent(3, aRing, anEC->minR()+anEC->length(), coordPrecision);
           ringTable->setContent(4, aRing, anEC->maxR(), coordPrecision);
-        }
+	}  
       }
     };
 
