@@ -222,7 +222,7 @@ public:
   double averageZ() const { return averageZ_; }
   void cutAtEta(double eta);
 
-  void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); }
+  void removeModules() { modules_.erase_if([](DetectorModule& m) { return (m.removeModule()); }); numModules(modules_.size()); }
 
   void accept(GeometryVisitor& v) { 
     v.visit(*this); 
