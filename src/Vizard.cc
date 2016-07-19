@@ -1308,8 +1308,7 @@ namespace insur {
       }
 
       void visit(const EndcapModule& m) override {
-        //if (m.disk() != 1 && m.side() != 1) return;
-	if (m.side() != 1) return;
+        if (m.disk() != 1 && m.side() != 1) return;
         if (ringTypeMap.find(m.ring())==ringTypeMap.end()){
           // We have a new sensor geometry
           ringTypeMap[m.ring()] = &m;
