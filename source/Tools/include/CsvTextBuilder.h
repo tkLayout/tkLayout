@@ -30,15 +30,17 @@ class CsvTextBuilder {
   //! Remove last ';' character and add end-of-line character to a csv formatted text
   void addCsvEOL(std::string id);
   //! Read text block content
-  std::string getCsvText(std::string id) { return m_text[id]; }
+  std::string getCsvText(std::string id) const;
   //! Clear text block content
   void clearCsVText(std::string id);
   //! Test if text block exists
-  bool existCsvText(std::string id);
+  bool existCsvText(std::string id) const;
 
   // Iterators over ids & individual text blocks
-  std::map<std::string, std::string>::iterator getCsvTextBegin() { return m_text.begin();}
-  std::map<std::string, std::string>::iterator getCsvTextEnd()   { return m_text.end();}
+  std::map<std::string, std::string>::iterator       getCsvTextBegin() { return m_text.begin();}
+  std::map<std::string, std::string>::const_iterator getCsvTextBegin() const { return m_text.begin();}
+  std::map<std::string, std::string>::iterator       getCsvTextEnd()   { return m_text.end();}
+  std::map<std::string, std::string>::const_iterator getCsvTextEnd() const { return m_text.end();}
 
  private:
   std::string                        m_csvSeparator; //!< csv separator character

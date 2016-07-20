@@ -44,6 +44,29 @@ bool AnalyzerResolution::init(int nTracks)
   }
   else {
 
+    // Prepare Csv containers -> keep final pT/p resolution in csv file
+    m_csvResPt = std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
+    m_csvResP  = std::unique_ptr<CsvTextBuilder>(new CsvTextBuilder());
+
+    m_csvResPt->addCsvElement("Label", "Tag name");
+    m_csvResPt->addCsvElement("Label", "Resolution type");
+    m_csvResPt->addCsvElement("Label", "Transverse momentum [GeV]");
+
+    m_csvResP->addCsvElement("Label", "Tag name");
+    m_csvResP->addCsvElement("Label", "Resolution type");
+    m_csvResP->addCsvElement("Label", "Total momentum [GeV]");
+
+    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+
+      ostringstream label("");
+      label << "Real geom. eta(" << std::setiosflags(ios::fixed) << std::setprecision(1) << geom_range_eta_regions[iBorder] << "-" << geom_range_eta_regions[iBorder+1] << ")";
+      m_csvResPt->addCsvElement("Label", label.str());
+      m_csvResP->addCsvElement("Label", label.str());
+    }
+
+    m_csvResPt->addCsvEOL("Label");
+    m_csvResP->addCsvEOL("Label");
+
     m_isInitOK = true;
     return m_isInitOK;
   }
@@ -121,7 +144,7 @@ bool AnalyzerResolution::analyze()
           if (trackPt->getNActiveHits(tag, true)>2) {
 
             trackPt->computeErrors();
-            std::map<int, TrackCollection>& myMap        = taggedTrackPtCollectionMap[tag];
+            std::map<int, TrackCollection>& myMap        = m_taggedTrackPtCollectionMap[tag];
             TrackCollection&                myCollection = myMap[parameter];
             myCollection.push_back(std::move(trackPt));
           }
@@ -139,7 +162,7 @@ bool AnalyzerResolution::analyze()
           if (idealTrackPt->getNActiveHits(tag, true)>2) {
 
             idealTrackPt->computeErrors();
-            std::map<int, TrackCollection>& myMapIdeal        = taggedTrackPtCollectionMapIdeal[tag];
+            std::map<int, TrackCollection>& myMapIdeal        = m_taggedTrackPtCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdeal = myMapIdeal[parameter];
             myCollectionIdeal.push_back(std::move(idealTrackPt));
           }
@@ -158,7 +181,7 @@ bool AnalyzerResolution::analyze()
           if (trackP->getNActiveHits(tag, true)>2) {
 
             trackP->computeErrors();
-            std::map<int, TrackCollection>& myMapII        = taggedTrackPCollectionMap[tag];
+            std::map<int, TrackCollection>& myMapII        = m_taggedTrackPCollectionMap[tag];
             TrackCollection&                myCollectionII = myMapII[parameter];
             myCollectionII.push_back(std::move(trackP));
           }
@@ -177,7 +200,7 @@ bool AnalyzerResolution::analyze()
           if (idealTrackP->getNActiveHits(tag, true)>2) {
 
             idealTrackP->computeErrors();
-            std::map<int, TrackCollection>& myMapIdealII        = taggedTrackPCollectionMapIdeal[tag];
+            std::map<int, TrackCollection>& myMapIdealII        = m_taggedTrackPCollectionMapIdeal[tag];
             TrackCollection&                myCollectionIdealII = myMapIdealII[parameter];
             myCollectionIdealII.push_back(std::move(idealTrackP));
           }
@@ -201,31 +224,6 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
   // Check that initialization & analysis OK
   if (!m_isInitOK && !m_isAnalysisOK) return false;
 
-  // Csv containers -> keep final pT/p resolution in csv file
-  CsvTextBuilder csvResPt;
-  CsvTextBuilder csvResP;
-
-  csvResPt.addCsvElement("Label", "Tag name");
-  csvResPt.addCsvElement("Label", "Resolution type");
-  csvResPt.addCsvElement("Label", "Real/Ideal geometry");
-  csvResPt.addCsvElement("Label", "Transverse momentum [GeV]");
-
-  csvResP.addCsvElement("Label", "Tag name");
-  csvResP.addCsvElement("Label", "Resolution type");
-  csvResP.addCsvElement("Label", "Real/Ideal geometry");
-  csvResP.addCsvElement("Label", "Total momentum [GeV]");
-
-  for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
-
-    ostringstream label("");
-    label << "eta(" << std::setiosflags(ios::fixed) << std::setprecision(1) << geom_range_eta_regions[iBorder] << "-" << geom_range_eta_regions[iBorder+1] << ")";
-    csvResPt.addCsvElement("Label", label.str());
-    csvResPt.addCsvElement("Label", label.str());
-  }
-
-  csvResPt.addCsvEOL("Label");
-  csvResP.addCsvEOL("Label");
-
   // Set Rainbow palette for drawing
   Palette::setRootPalette(55);
 
@@ -236,7 +234,7 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
   RootWImage*   myImage   = nullptr;
   RootWTable*   myTable   = nullptr;
 
-  for (auto& key : taggedTrackPtCollectionMap) {
+  for (auto& key : m_taggedTrackPtCollectionMap) {
 
     std::string tag       = key.first;
     std::string pageTitle = "Resolution";
@@ -283,22 +281,22 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
       std::string scenario, scenarioName;
 
       if (i==0) {
-        taggedTrackCollectionMap = &taggedTrackPtCollectionMap[tag];
+        taggedTrackCollectionMap = &m_taggedTrackPtCollectionMap[tag];
         scenario                 = "withMS_Pt";
         scenarioName             = "const P_{T}";
       }
       if (i==1) {
-        taggedTrackCollectionMap = &taggedTrackPtCollectionMapIdeal[tag];
+        taggedTrackCollectionMap = &m_taggedTrackPtCollectionMapIdeal[tag];
         scenario                 = "noMS_Pt";
         scenarioName             = "const P_{T}";
       }
       if (i==2) {
-        taggedTrackCollectionMap = &taggedTrackPCollectionMap[tag];
+        taggedTrackCollectionMap = &m_taggedTrackPCollectionMap[tag];
         scenario                 = "withMS_P";
         scenarioName             = "const P";
       }
       if (i==3) {
-        taggedTrackCollectionMap = &taggedTrackPCollectionMapIdeal[tag];
+        taggedTrackCollectionMap = &m_taggedTrackPCollectionMapIdeal[tag];
         scenario                 = "noMS_P";
         scenarioName             = "const P";
       }
@@ -458,14 +456,38 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
 
     // Set Summary content for const Pt
     RootWContent& summaryContent_Pt = myPage->addContent("Summary - const Pt across "+web_etaLetter);
-    prepareSummaryTable(tag, "Pt", *myPage, summaryContent_Pt, csvResPt);
+    prepareSummaryTable(tag, "Pt", *myPage, summaryContent_Pt, *m_csvResPt);
 
     // Set Summary content for const P
     RootWContent& summaryContent_P = myPage->addContent("Summary - const P across "+web_etaLetter, false);
-    prepareSummaryTable(tag, "P", *myPage, summaryContent_P, csvResP);
+    prepareSummaryTable(tag, "P", *myPage, summaryContent_P, *m_csvResP);
   } // For tag
 
   return true;
+}
+
+//
+// Get Csv text output for const pt -> exception thrown if doesn't exist
+//
+const CsvTextBuilder& AnalyzerResolution::getCsvResPt() const
+{
+  // Check if exist
+  if (m_csvResPt) return *m_csvResPt;
+
+  // Otherwise throw exception
+  else throw std::invalid_argument( "CsvTextBuilder::getCsvResPt() - csvResPt not defined (null reference), check!!!" );
+}
+
+//
+// Get Csv text output for const p -> exception thrown if doesn't exist
+//
+const CsvTextBuilder& AnalyzerResolution::getCsvResP() const
+{
+  // Check if exist
+  if (m_csvResP) return *m_csvResP;
+
+  // Otherwise throw exception
+  else throw std::invalid_argument( "CsvTextBuilder::getCsvResP() - csvResP not defined (null reference), check!!!" );
 }
 
 //
@@ -553,7 +575,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       profHis->SetMaximum(c_max_dPhi0);
       profHis->SetMinimum(c_min_dPhi0);
     }
-    if (varType=="cotgThetat") {
+    if (varType=="cotgTheta") {
       profHis->SetMaximum(c_max_dCtgTheta);
       profHis->SetMinimum(c_min_dCtgTheta);
     }
@@ -619,7 +641,6 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
   for (unsigned int iMom=0; iMom<momenta.size(); ++iMom) {
 
     label.str("");
-
     std::string color = Palette::colorMomentaNames(iMom);
 
     if (iMom!=momenta.size()-1) label << momenta[iMom]/Units::GeV << " (" << color << "),";
@@ -636,8 +657,16 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
     // Fill the table with the values, first the heading of momentum
     int baseColumn;
     int myColor = kBlack;
-//      std::ostringstream myLabel;
-//
+
+    // Set csv content
+    std::string csvPlotName = plotName;
+    std::string delta       = "&delta;";
+    std::string ampersand   = "&";
+    std::string semicolon   = ";";
+    if (csvPlotName.find(delta)!= std::string::npos)    csvPlotName.replace(csvPlotName.find(delta), delta.length()    , "d");
+    while (csvPlotName.find(ampersand)!=std::string::npos) csvPlotName.erase(csvPlotName.find(ampersand), ampersand.length());
+    while (csvPlotName.find(semicolon)!=std::string::npos) csvPlotName.erase(csvPlotName.find(semicolon), semicolon.length());
+
     // Get values for all analyzed momenta
     for (unsigned int iMom=0; iMom<momenta.size(); ++iMom) {
 
@@ -649,9 +678,6 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
       baseColumn = (geom_name_eta_regions.size()-1)*iMom + 1;
       myTable.setContent(0, baseColumn, momenta[iMom]/Units::GeV,0);
       myTable.setColor(0, baseColumn, Palette::colorMomenta(iMom));
-//        myIndex.p=momentum[i];
-//        myIndex.ideal = false;
-//        myGraph = myPlotMap_Pt[myIndex];
       myTable.setContent(2, 0, "Real:      ");
       myTable.setContent(3, 0, "Ideal:     ");
       myTable.setContent(4, 0, "Real/Ideal:");
@@ -706,7 +732,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
           // If profile histogram for given momentum analyze
           if (std::string(myProfile->GetName())==profileName) {
 
-            averagesReal = averageHis(*myProfile,geom_range_eta_regions);
+            averagesReal = averageHisValues(*myProfile,geom_range_eta_regions);
           }
         }
       }
@@ -721,7 +747,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
           // If profile histogram for given momentum analyze
           if (std::string(myProfile->GetName())==profileName.c_str()) {
 
-            averagesIdeal = averageHis(*myProfile,geom_range_eta_regions);
+            averagesIdeal = averageHisValues(*myProfile,geom_range_eta_regions);
           }
         }
       }
@@ -733,12 +759,12 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
         myTable.setColor(1, baseColumn+j, myColor);
         if (averagesReal.size() > j) {
 
-          myTable.setContent(2, baseColumn+j,averagesReal[j],1);
+          myTable.setContent(2, baseColumn+j,averagesReal[j],2);
           myTable.setColor(2, baseColumn+j, myColor);
         }
         if (averagesIdeal.size() > j) {
 
-          myTable.setContent(3, baseColumn+j,averagesIdeal[j],1);
+          myTable.setContent(3, baseColumn+j,averagesIdeal[j],2);
           myTable.setColor(3, baseColumn+j, myColor);
         }
         if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
@@ -746,6 +772,19 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
           myTable.setColor(4, baseColumn+j, myColor);
         }
       }
+
+      // Csv content
+      if (plotName==*plotNames.begin() && iMom==0) csvContainer.addCsvElement(tag, tag);
+      else                                         csvContainer.addCsvElement(tag, "");
+
+      if (iMom==0) csvContainer.addCsvElement(tag, csvPlotName);
+      else         csvContainer.addCsvElement(tag, "");
+
+      csvContainer.addCsvElement(tag, any2str(momenta[iMom]/Units::GeV,0));
+
+      for (const auto& average : averagesReal) csvContainer.addCsvElement(tag, average);
+
+      csvContainer.addCsvEOL(tag);
 
     } // For momenta
   } // For plot names: dpt/pt, dp/p, ...
@@ -755,7 +794,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
 //
 // Calculate average values in defined regions for given profile histogram
 //
-std::vector<double> AnalyzerResolution::averageHis(const TProfile& his, std::vector<double> regions)
+std::vector<double> AnalyzerResolution::averageHisValues(const TProfile& his, std::vector<double> regions)
 {
   std::vector<double> averages;
 
