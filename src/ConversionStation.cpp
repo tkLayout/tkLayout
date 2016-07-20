@@ -33,6 +33,7 @@ namespace material {
     //double totalGrams = 0.0;
     double multiplier = 0.0;
     bool converted = false;
+    std::set<std::string> infoMaterials;
     std::set<std::string> warningMaterials;
     
     for (const MaterialObject::Element* currElement : serviceElements_) { //inputElements) {
@@ -71,12 +72,28 @@ namespace material {
       }
       if (!converted) {
         serviceOutput.addElement(currElement);
-        warningMaterials.insert(currElement->elementName());
+        // We may want a warning or an info here
+        bool doWarning = false;
+        bool doInfo = false;
+        if (stationType_ != SECOND) {
+          // Always throw a warning for flange stations
+          doWarning=true;
+        } else {
+          // it's a SECOND-level station: let's not overwarn
+          // If I was the target of the failed conversion, then it's a warning, otherwise it's an info
+          if (currElement->destination.state() && currElement->destination().compare(stationName_()) == 0) doWarning=true;
+          else doInfo = true;
+        }
+        if (doWarning) warningMaterials.insert(currElement->elementName());
+        if (doInfo) infoMaterials.insert(currElement->elementName());
       }
     }
 
     for(auto& warningMaterial : warningMaterials) {
       logWARNING("Element \"" + warningMaterial + "\" ignored by station \"" + stationName_() + "\".");
+    }    
+    for(auto& infoMaterial : infoMaterials) {
+      logINFO("Element \"" + infoMaterial + "\" ignored by station \"" + stationName_() + "\".");
     }    
 
     /*
