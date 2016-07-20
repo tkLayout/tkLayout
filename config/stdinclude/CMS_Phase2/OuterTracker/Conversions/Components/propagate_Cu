@@ -1,18 +1,19 @@
+// 1:1 conversion of Cu
+
 Conversion {
   Input {
     Element {
-      elementName FPIX_Steel
+      elementName Cu 
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Steel
-      quantity 1000
+      elementName Cu
+      quantity 1
       unit g/m
       service true
     }
   }
 }
-

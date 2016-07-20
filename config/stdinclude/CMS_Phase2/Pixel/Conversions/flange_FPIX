@@ -6,7 +6,18 @@ Station {
   type flange
 
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Steel_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Ti_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Cu_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_CO2_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_1:1000
+  @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_Al_HV_1:1000
   @include-std CMS_Phase2/Pixel/Conversions/Components/FPIX_PE_1:1000
+
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_HS
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_1+1_LS
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_2+1_HS
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_3+1_HS
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Cu_TWP_6+1_HS
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_Kapton
+  @include-std CMS_Phase2/Pixel/Conversions/Components/propagate_PE
 }

@@ -7,61 +7,12 @@ Station {
   stationName flangeTBPS
   type flange
 
-  // Cu PE and Al from twp and optical fibres
-  Conversion {
-    Input {
-      Element {
-        elementName PE
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName PE
-        quantity 10
-        unit g/m
-        service true
-      }
-    }  
-  }
-
-  Conversion {
-    Input {
-      Element {
-        elementName Al
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName Al
-        quantity 10
-        unit g/m
-        service true
-      }
-    }  
-  }
-
-  // Wires and cables one-to-one
-  Conversion {
-    Input {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-      }
-    }
-    Output {
-      Element {
-        elementName Cu
-        quantity 10
-        unit g/m
-        service true
-      }
-    }
-  }
+  // Optical fibres and twp propagation
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_PE
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Al
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Cu
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Glass
+  @include-std CMS_Phase2/OuterTracker/Conversions/Components/propagate_Acrylate
 
   // Power cables conversions
   // As per Habia cables PP1-PP0 (700063813 Rev 03)

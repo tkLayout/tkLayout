@@ -91,7 +91,7 @@ Materials FPIX_disk {
     service false
     scaleOnSensor 0
     Element {
-      elementName Al
+      elementName Al_HV
       quantity 0.393125
       unit g
     }
@@ -113,7 +113,7 @@ Materials FPIX_disk {
     service true
     scaleOnSensor 0
     Element {
-      elementName FPIX_Al
+      elementName FPIX_Al_HV
       quantity 0.005508
       unit g/m
     }
