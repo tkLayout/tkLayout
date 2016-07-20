@@ -1,14 +1,14 @@
 Conversion {
   Input {
     Element {
-      elementName FPIX_Steel
+      elementName FPIX_Al_HV
       quantity 1
       unit g/m
     }
   }
   Output {
     Element {
-      elementName Steel
+      elementName Al_HV
       quantity 1000
       unit g/m
       service true
