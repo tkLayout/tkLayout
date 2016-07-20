@@ -87,6 +87,7 @@ namespace insur {
   static const std::string phiLetter  = "&phi;";
   static const std::string thetaLetter= "&theta;";
   static const std::string deltaLetter= "&delta;";
+  static const std::string tauLetter  = "&tau;";
 
   //clearStart="<tt>";
   //clearEnd="</tt>";
