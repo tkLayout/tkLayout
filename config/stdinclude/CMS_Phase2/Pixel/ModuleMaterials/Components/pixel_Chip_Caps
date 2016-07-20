@@ -1,7 +1,8 @@
 // Capacitors for one pixel chip
+// According to Murata web page (from Stella)
 Element {
   service false
   elementName Pix_Caps
-  quantity 0.313
+  quantity 0.1878
   unit g
 }
