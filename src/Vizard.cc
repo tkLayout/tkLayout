@@ -4152,6 +4152,7 @@ namespace insur {
       plotNames.push_back(deltaLetter+"z0 ["+muLetter+"m]:  ");
       plotNames.push_back(deltaLetter+phiLetter+":          ");
       plotNames.push_back(deltaLetter+"ctg("+thetaLetter+"):");
+      plotNames.push_back(deltaLetter+"c"+tauLetter+" ["+muLetter+"m]:");
   
       for (std::vector<std::string>::iterator it=plotNames.begin();
            it!=plotNames.end(); ++it) {
@@ -4188,6 +4189,7 @@ namespace insur {
       fillTaggedPlotMap(gb, plotNames[3], GraphBag::Z0Graph_Pt      , tag, myPlotMap_Pt);
       fillTaggedPlotMap(gb, plotNames[4], GraphBag::PhiGraph_Pt     , tag, myPlotMap_Pt);
       fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_Pt, tag, myPlotMap_Pt);
+      fillTaggedPlotMap(gb, plotNames[6], GraphBag::LGraph_Pt, tag, myPlotMap_Pt);
 
                 
       std::vector<std::string>::iterator plotNameIt = plotNames.begin();
@@ -4260,16 +4262,16 @@ namespace insur {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
-              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
+              else                                                          myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
-              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
+              else                                                          myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
               myTable->setColor(3, baseColumn+j, myColor);
             }
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
@@ -4296,6 +4298,7 @@ namespace insur {
       fillTaggedPlotMap(gb, plotNames[3], GraphBag::Z0Graph_P      , tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[4], GraphBag::PhiGraph_P     , tag, myPlotMap_P);
       fillTaggedPlotMap(gb, plotNames[5], GraphBag::CtgthetaGraph_P, tag, myPlotMap_P);
+      fillTaggedPlotMap(gb, plotNames[6], GraphBag::LGraph_P       , tag, myPlotMap_P);
   
   
       for (std::vector<std::string>::iterator it=plotNames.begin();
@@ -4346,16 +4349,16 @@ namespace insur {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
-              else                                              myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionStd);
+              else                                                          myTable->setContent(2, baseColumn+j,averagesReal[j],tableResolutionPrecisionHigh);
               myTable->setColor(2, baseColumn+j, myColor);
             }
             if (averagesIdeal.size() > j) {
   
               // Check item iterated and set precision
               int iItem = plotNameIt - plotNames.begin();
-              if (iItem==0 || iItem==1 || iItem==2 || iItem==3) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
-              else                                              myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
+              if (iItem==0 || iItem==1 || iItem==2 || iItem==3 || iItem==6) myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionStd);
+              else                                                          myTable->setContent(3, baseColumn+j,averagesIdeal[j],tableResolutionPrecisionHigh);
               myTable->setColor(3, baseColumn+j, myColor);
             }
             if ((averagesReal.size() > j)&&(averagesIdeal.size() > j)) {
