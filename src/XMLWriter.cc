@@ -184,8 +184,7 @@ namespace insur {
 	specPar(trackerXmlTags.topo_disc_name, t, out, trackerXmlTags);
 
 	// Add Rings
-	//( Only for OT)
-	if (!isPixelTracker) specPar(trackerXmlTags.topo_ring_name, t, out, trackerXmlTags);
+	specPar(trackerXmlTags.topo_ring_name, t, out, trackerXmlTags);
 
 	// Add EndcapStack
 	specPar(trackerXmlTags.topo_emodule_name, t, out, trackerXmlTags);

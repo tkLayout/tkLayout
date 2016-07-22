@@ -274,7 +274,7 @@ namespace insur {
     static const std::string xml_PX_topo_barrel_name = "Phase1PixelBarrel";
 
     static const std::string xml_OT_topo_barrel_value = "Phase2OTBarrel";
-    static const std::string xml_PX_topo_barrel_value = "PixelPhase1Barrel";
+    static const std::string xml_PX_topo_barrel_value = "PixelV4021Barrel";
 
     static const std::string xml_OT_topo_layer_name = "OuterTrackerPixelBarrelLayer";
     static const std::string xml_PX_topo_layer_name = "PixelBarrelLayer";
@@ -304,7 +304,7 @@ namespace insur {
     static const std::string xml_PX_topo_endcaps_name = "PixelPhase2EndcapSubDet";
 
     static const std::string xml_OT_topo_endcaps_value = "Phase2OTEndcap";
-    static const std::string xml_PX_topo_endcaps_value = "PixelPhase2EndcapSubDet";
+    static const std::string xml_PX_topo_endcaps_value = "PixelV4021Endcap";
 
     static const std::string xml_OT_topo_disc_name = "OuterTrackerPixelEndcapDisk";
     static const std::string xml_PX_topo_disc_name = "PixelEndcapDisk";
@@ -316,13 +316,13 @@ namespace insur {
     static const std::string xml_PX_topo_ring_name = "PixelEndcapRing";
 
     static const std::string xml_OT_topo_ring_value = "PixelEndcapPanel";
-    static const std::string xml_PX_topo_ring_value = "";
+    static const std::string xml_PX_topo_ring_value = "PixelPhase2PixelEndcapPanel";
    
     static const std::string xml_OT_topo_emodule_name = "OuterTrackerEndcapStack";
-    static const std::string xml_PX_topo_emodule_name = "PixelEndcapPanel";
+    static const std::string xml_PX_topo_emodule_name = "PixelEndcapStack";
    
     static const std::string xml_OT_topo_emodule_value = "Phase2OTEndcapStack";
-    static const std::string xml_PX_topo_emodule_value = xml_PX_topo_emodule_name;
+    static const std::string xml_PX_topo_emodule_value = "PixelPhase2PixelEndcapStack";
    
 
 
