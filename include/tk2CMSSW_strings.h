@@ -298,7 +298,7 @@ namespace insur {
     static const std::string xml_PX_topo_bmodule_name = "InnerPixelBarrelStack";
    
     static const std::string xml_OT_topo_bmodule_value = "Phase2OTBarrelStack";
-    static const std::string xml_PX_topo_bmodule_value = "";
+    static const std::string xml_PX_topo_bmodule_value = "InnerPixelBarrelStack";
 
     static const std::string xml_OT_topo_endcaps_name = "Phase2OTEndcapSubDet";
     static const std::string xml_PX_topo_endcaps_name = "PixelPhase2EndcapSubDet";

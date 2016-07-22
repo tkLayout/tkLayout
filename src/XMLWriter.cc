@@ -169,8 +169,7 @@ namespace insur {
 	specPar(trackerXmlTags.topo_tilted_ring_name, t, out, trackerXmlTags);
 	 
 	// Add BarrelStack
-	// (Only for OT)
-	if (!isPixelTracker) specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
+	specPar(trackerXmlTags.topo_bmodule_name, t, out, trackerXmlTags);	
 
         // Add Phase2OTForward
 	out << xml_spec_par_open << trackerXmlTags.topo_endcaps_name << xml_par_tail << xml_general_inter;
