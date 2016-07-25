@@ -64,6 +64,9 @@ class AnalyzerMatBudget : public AnalyzerUnit {
   //! Get number of used material tracks
   int getNMatTracks() const { return m_nTracks;}
 
+  //! Get Csv text output for material budget -> exception thrown if doesn't exist
+  const CsvTextBuilder& getCsvMatBudget() const;
+
  private:
 
   //! Helper method creating profile histogram from histogram
@@ -109,7 +112,7 @@ class AnalyzerMatBudget : public AnalyzerUnit {
   std::map<std::string, std::vector<TGraph>> m_hadronGoodTracksFraction;
 
   // Csv output
-  CsvTextBuilder       m_materialCsv;
+  std::unique_ptr<CsvTextBuilder> m_csvMatBudget;
 
 }; // Class
 

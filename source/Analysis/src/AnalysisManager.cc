@@ -19,10 +19,15 @@
 #include <TH2D.h>
 #include <TProfile.h>
 #include <TH2I.h>
+#include "RootWPage.h"
 #include <SimParms.h>
 #include <StopWatch.h>
 #include <GitRevision.h>
-#include <rootweb.h>
+#include "RootWContent.h"
+#include "RootWInfo.h"
+#include "RootWSite.h"
+#include "RootWBinaryFileList.h"
+#include "RootWTextFile.h"
 
 //
 // Constructor - create instances of all available analyzer units & prepare web container
@@ -30,22 +35,21 @@
 AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
                                  std::vector<const insur::InactiveSurfaces*> passiveTrackers,
                                  const BeamPipe* beamPipe) :
- m_webSite(nullptr),
  m_webSitePrepared(false)
 {
-  AnalyzerUnit* unit = nullptr;
+  std::unique_ptr<AnalyzerUnit> unit;
 
   // Create AnalyzerGeometry
-  unit = new AnalyzerGeometry(activeTrackers, beamPipe);
-  m_units[unit->getName()] = unit;
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerGeometry(activeTrackers, beamPipe));
+  m_units[unit->getName()] = std::move(unit);
 
   // Create AnalyzerMatBudget
-  unit = new AnalyzerMatBudget(activeTrackers, beamPipe);
-  m_units[unit->getName()] = unit;
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerMatBudget(activeTrackers, beamPipe));
+  m_units[unit->getName()] = std::move(unit);
 
   // Create AnalyzerMatBudget
-  unit = new AnalyzerResolution(activeTrackers, beamPipe);
-  m_units[unit->getName()] = unit;
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(activeTrackers, beamPipe));
+  m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site
   auto simParms = SimParms::getInstance();
@@ -57,10 +61,8 @@ AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
 //
 AnalysisManager::~AnalysisManager()
 {
-  for (auto iModule : m_units) {
-
-    if (iModule.second==nullptr) delete m_units[iModule.first];
-  }
+  m_units.clear();
+  m_webSite.reset();
 }
 
 //
@@ -130,7 +132,8 @@ bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
     // Add log webPage
     if (addLogPage) makeWebLogPage();
 
-    bool webOK = m_webSite->makeSite(false);
+    // Create web-site (set if verbosity on/off)
+    bool webOK = m_webSite->makeSite(true);
     stopTaskClock();
 
     return webOK;
@@ -142,7 +145,7 @@ bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
 //
 bool AnalysisManager::prepareWebSite(std::string layoutName, std::string webDir)
 {
-  m_webSite = new RootWSite("TkLayout results");
+  m_webSite = std::unique_ptr<RootWSite>(new RootWSite("TkLayout results"));
 
   // Set directory
   if (webDir!="") m_webSite->setTargetDirectory(webDir);
@@ -178,32 +181,26 @@ bool AnalysisManager::makeWebInfoPage()
 {
   // Create web page: Log info
   RootWPage& myPage       = m_webSite->addPage("Info");
-  RootWContent* myContent = nullptr;
 
   // Summary of tkLayout parameters
-  myContent = new RootWContent("Summary of tkLayout parameters");
-  myPage.addContent(myContent);
+  RootWContent& myContentParms = myPage.addContent("Summary of tkLayout parameters");
 
   // Command line arguments
-  RootWInfo* myInfo;
-  myInfo = new RootWInfo("Command line arguments");
-  myInfo->setValue(SimParms::getInstance()->getCommandLine());
-  myContent->addItem(myInfo);
+  RootWInfo& myInfo = myContentParms.addInfo("Command line arguments");
+  myInfo.setValue(SimParms::getInstance()->getCommandLine());
 
   // Summary of used geometry & simulation tracks
   if (m_units.find("AnalyzerGeometry")!=m_units.end()) {
 
-    AnalyzerGeometry* unit = dynamic_cast<AnalyzerGeometry*>(m_units["AnalyzerGeometry"]);
-    myInfo = new RootWInfo("Number of tracks - geometry studies: ");
-    myInfo->setValue(unit->getNGeomTracks());
-    myContent->addItem(myInfo);
+    const AnalyzerGeometry* unit = dynamic_cast<const AnalyzerGeometry*>(m_units["AnalyzerGeometry"].get());
+    RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - geometry studies: ");
+    myInfo.setValue(unit->getNGeomTracks());
   }
   if (m_units.find("AnalyzerResolution")!=m_units.end()) {
 
-    AnalyzerResolution* unit = dynamic_cast<AnalyzerResolution*>(m_units["AnalyzerResolution"]);
-    myInfo = new RootWInfo("Number of tracks - resolution studies: ");
-    myInfo->setValue(unit->getNSimTracks());
-    myContent->addItem(myInfo);
+    const AnalyzerResolution* unit = dynamic_cast<const AnalyzerResolution*>(m_units["AnalyzerResolution"].get());
+    RootWInfo& myInfo = myContentParms.addInfo("Number of tracks - resolution studies: ");
+    myInfo.setValue(unit->getNSimTracks());
   }
 
   // Summary of geometry config files
@@ -216,42 +213,42 @@ bool AnalysisManager::makeWebInfoPage()
       auto pos = s.find_last_of('/');
       return (pos != string::npos ? s.substr(pos+1) : s);
     });
-    RootWBinaryFileList* myBinaryFileList = new RootWBinaryFileList(includeNameSet.begin(), includeNameSet.end(),
-                                                                    "Geometry configuration file(s)",
-                                                                    includeSet.begin(), includeSet.end());
-    myContent->addItem(myBinaryFileList);
+
+    auto iterNameBegin = includeNameSet.begin();
+    auto iterNameEnd   = includeNameSet.end();
+    auto iterInclBegin = includeSet.begin();
+    auto iterInclEnd   = includeSet.end();
+    std::unique_ptr<RootWBinaryFileList> myBinaryFileList(new RootWBinaryFileList(iterNameBegin, iterNameEnd,
+                                                                                  "Geometry configuration file(s)",
+                                                                                  iterInclBegin, iterInclEnd));
+    myContentParms.addItem(std::move(myBinaryFileList));
   }
 
   // Summary of Csv files
-  myContent = new RootWContent("Summary list of csv files");
-  myPage.addContent(myContent);
+  RootWContent& myContentCsv = myPage.addContent("Summary list of csv files");
 
   // Csv files - resolution files
-  RootWTextFile* myCsvResFile= nullptr;
-
   if (m_units.find("AnalyzerResolution")!=m_units.end()) {
 
-    AnalyzerResolution* unit = dynamic_cast<AnalyzerResolution*>(m_units["AnalyzerResolution"]);
+    const AnalyzerResolution* unit = dynamic_cast<const AnalyzerResolution*>(m_units["AnalyzerResolution"].get());
 
     // Pt option
-    std::string fileName     = "ResolutionSummaryPt.csv";
-    std::string webFileName  = "Resolution summary (pt option)";
-    myCsvResFile = new RootWTextFile(fileName, webFileName);
+    std::string fileName    = "ResolutionSummaryPt.csv";
+    std::string webFileName = "Resolution summary (pt option)";
+    RootWTextFile& myCsvResFilePt = myContentCsv.addTextFile(fileName, webFileName);
 
     for (auto it=unit->getCsvResPt().getCsvTextBegin(); it!=unit->getCsvResPt().getCsvTextEnd(); ++it) {
-      myCsvResFile->addText(unit->getCsvResPt().getCsvText(it->first));
+      myCsvResFilePt.addText(unit->getCsvResPt().getCsvText(it->first));
     }
-    myContent->addItem(myCsvResFile);
 
     // P option
-    fileName     = "ResolutionSummaryP.csv";
-    webFileName  = "Resolution summary (p option)";
-    myCsvResFile = new RootWTextFile(fileName, webFileName);
+    fileName    = "ResolutionSummaryP.csv";
+    webFileName = "Resolution summary (p option)";
+    RootWTextFile& myCsvResFileP = myContentCsv.addTextFile(fileName, webFileName);
 
     for (auto it=unit->getCsvResP().getCsvTextBegin(); it!=unit->getCsvResP().getCsvTextEnd(); ++it) {
-      myCsvResFile->addText(unit->getCsvResP().getCsvText(it->first));
+      myCsvResFileP.addText(unit->getCsvResP().getCsvText(it->first));
     }
-    myContent->addItem(myCsvResFile);
   }
 
   return true;

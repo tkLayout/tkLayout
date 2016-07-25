@@ -9,6 +9,7 @@
 #define INCLUDE_ANALYSISMANAGER_H_
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -89,10 +90,10 @@ class AnalysisManager {
   //! @return True if any logs found
   bool makeWebLogPage();
 
-  RootWSite*  m_webSite;         //!< Web container, where all analysis results will be available
-  bool        m_webSitePrepared; //!< Web container correctly prepared
+  std::unique_ptr<RootWSite> m_webSite;         //!< Web container, where all analysis results will be available
+  bool                       m_webSitePrepared; //!< Web container correctly prepared
 
-  std::map<std::string, AnalyzerUnit*> m_units; //!< List of all available analyzer units
+  std::map<std::string, std::unique_ptr<AnalyzerUnit>> m_units; //!< List of all available analyzer units
 
 }; // Class
 

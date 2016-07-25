@@ -7,6 +7,7 @@
 #ifndef INCLUDE_ANALYZEROCCUPANCY_H_
 #define INCLUDE_ANALYZEROCCUPANCY_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -67,7 +68,7 @@ class AnalyzerOccupancy : public AnalyzerUnit {
   bool fillHistogram(const IrradiationMap* map, TH2D*& his, std::string name, std::string title);
 
   //! Draw histogram
-  bool drawHistogram(TCanvas*& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
+  bool drawHistogram(TCanvas& canvas, TH2D* his, const IrradiationMap* map, std::string nameType, std::string nameParticles);
 
   // Analyzed geometry
   //std::vector<Tracker*> m_trackers;

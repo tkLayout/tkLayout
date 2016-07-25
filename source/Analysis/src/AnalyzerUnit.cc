@@ -6,7 +6,10 @@
  */
 
 #include "AnalyzerUnit.h"
-#include "TCanvas.h"
+
+#include "RootWSite.h"
+#include <TCanvas.h>
+
 
 //
 // Constructor - set active trackers only
