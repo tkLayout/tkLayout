@@ -9,6 +9,7 @@
 // Include files
 #include <Barrel.h>
 #include <BeamPipe.h>
+#include "Detector.h"
 #include <DetectorModule.h>
 #include <Disk.h>
 #include <global_constants.h>
@@ -37,9 +38,9 @@
 //
 // AnalyzerGeometry constructor
 //
-AnalyzerGeometry::AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerGeometry", trackers, beamPipe),
+AnalyzerGeometry::AnalyzerGeometry(const Detector& detector) : AnalyzerUnit("AnalyzerGeometry", detector),
  m_nTracks(0),
- m_layerNamesVisitor(new LayerNameVisitor(trackers)),
+ m_layerNamesVisitor(new LayerNameVisitor(m_trackers)),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),
  m_etaMax(+1*geom_max_eta_coverage)
@@ -630,13 +631,13 @@ void AnalyzerGeometry::drawBeamPipeRZ(TCanvas& canvas, double maxZ)
     double bpThick  = m_beamPipe->thickness();
 
     // Beam-pipe in RZ
-    std::unique_ptr<TPolyLine> beamPipeRZ(new TPolyLine());
-    beamPipeRZ->SetPoint(0, 0                     , bpRadius + bpThick/2.);
-    beamPipeRZ->SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
-    beamPipeRZ->SetLineColor(14);
-    beamPipeRZ->SetLineWidth(2);
+    TPolyLine beamPipeRZ;
+    beamPipeRZ.SetPoint(0, 0                     , bpRadius + bpThick/2.);
+    beamPipeRZ.SetPoint(1, maxZ*vis_safety_factor, bpRadius + bpThick/2.);
+    beamPipeRZ.SetLineColor(14);
+    beamPipeRZ.SetLineWidth(2);
     canvas.cd();
-    beamPipeRZ->Draw("same");
+    beamPipeRZ.DrawClone("same");
   }
   else {
     logWARNING("DrawBeamPipeRZ failed: no beam pipe defined!");
@@ -653,11 +654,11 @@ void AnalyzerGeometry::drawBeamPipeXY(TCanvas& canvas)
     double bpThick  = m_beamPipe->thickness();
 
     // Beam-pipe in XY
-    std::unique_ptr<TEllipse> beamPipeXY(new TEllipse(0, 0, bpRadius + bpThick/2.));
-    beamPipeXY->SetFillColor(18); // "grey18"
-    beamPipeXY->SetFillStyle(1001);
+    TEllipse beamPipeXY(0, 0, bpRadius + bpThick/2.);
+    beamPipeXY.SetFillColor(18); // "grey18"
+    beamPipeXY.SetFillStyle(1001);
     canvas.cd();
-    beamPipeXY->Draw("same");
+    beamPipeXY.DrawClone("same");
   }
   else {
     logWARNING("DrawBeamPipeXY failed: no beam pipe defined!");

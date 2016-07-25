@@ -20,8 +20,8 @@
 
 // Forward declaration
 class BarrelModule;
-class BeamPipe;
 class ConstGeometryVisitor;
+class Detector;
 class Disk;
 class EndcapModule;
 class ModuleCap;
@@ -31,7 +31,6 @@ class TGraph;
 class TH1D;
 class TH2D;
 class Track;
-class Tracker;
 class RootWTable;
 
 /*
@@ -44,7 +43,7 @@ class AnalyzerMatBudget : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerMatBudget(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerMatBudget(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerMatBudget();

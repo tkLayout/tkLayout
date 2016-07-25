@@ -22,6 +22,7 @@
 class Barrel;
 class BeamPipe;
 class ConstGeometryVisitor;
+class Detector;
 class Disk;
 class Endcap;
 class EndcapModule;
@@ -46,7 +47,7 @@ class AnalyzerGeometry : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerGeometry(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerGeometry(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerGeometry();

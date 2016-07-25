@@ -18,13 +18,12 @@
 #include <Visitor.h>
 
 class BarrelModule;
-class BeamPipe;
 class CsvTextBuilder;
+class Detector;
 class EndcapModule;
 class RootWContent;
 class RootWPage;
 class TProfile;
-class Tracker;
 
 /*
  * @class AnalyzerResolution
@@ -38,7 +37,7 @@ class AnalyzerResolution : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerResolution(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerResolution(const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerResolution() {};

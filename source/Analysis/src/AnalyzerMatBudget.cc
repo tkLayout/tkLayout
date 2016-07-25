@@ -40,7 +40,7 @@
 //
 // AnalyzerMatBudget constructor
 //
-AnalyzerMatBudget::AnalyzerMatBudget(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerMatBudget", trackers, beamPipe),
+AnalyzerMatBudget::AnalyzerMatBudget(const Detector& detector) : AnalyzerUnit("AnalyzerMatBudget", detector),
  m_nTracks(0),
  m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
  m_etaMin(-1*geom_max_eta_coverage),

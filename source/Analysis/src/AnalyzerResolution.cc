@@ -30,7 +30,7 @@
 #include "Units.h"
 
 
-AnalyzerResolution::AnalyzerResolution(std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) : AnalyzerUnit("AnalyzerResolution", trackers, beamPipe),
+AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit("AnalyzerResolution", detector),
  m_nTracks(0),
  m_etaMin(-1*geom_max_eta_coverage),
  m_etaMax(+1*geom_max_eta_coverage)

@@ -15,13 +15,8 @@
 #include <vector>
 
 class AnalyzerUnit;
-class BeamPipe;
+class Detector;
 class RootWSite;
-namespace insur {
-  class InactiveSurfaces;
-}
-class Support;
-class Tracker;
 
 /*
  * @class AnalysisManager
@@ -42,14 +37,10 @@ class AnalysisManager {
  public:
 
   //! Constructor - create instances of all available analyzer units & prepare web container
-  //! @param[in] activeTrackers  List of all active sub-trackers
-  //! @param[in] passiveTrackers List of passives related to active sub-trackers
-  //! @param[in] beamPipe        Passive surface (tube) simulating beam pipe
-  AnalysisManager(std::vector<const Tracker*> activeTrackers,
-                  std::vector<const insur::InactiveSurfaces*> passiveTrackers,
-                  const BeamPipe* beamPipe);
+  //! @param[in] detector - List of all active sub-trackers + its passive parts and the beam pipe
+  AnalysisManager(const Detector& detector);
 
-  //! Destructor -
+  //! Destructor
   ~AnalysisManager();
 
   //! Initialize required analyzer unit

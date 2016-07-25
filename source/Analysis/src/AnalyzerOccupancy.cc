@@ -27,8 +27,8 @@
 #include <Units.h>
 #include <TLegend.h>
 
-AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe) :
- AnalyzerUnit("AnalyzerOccupancy", trackers, beamPipe)
+AnalyzerOccupancy::AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, const Detector& detector) :
+ AnalyzerUnit("AnalyzerOccupancy", detector)
 {
   // Set geometry, i.e. individual trackers
   //for (auto it : trackers) m_trackers.push_back(it);

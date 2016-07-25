@@ -13,14 +13,12 @@
 #include <AnalyzerResolution.h>
 
 // Other include files
-#include <BeamPipe.h>
-#include <InactiveSurfaces.h>
-#include <Tracker.h>
+#include "Detector.h"
 #include <TH2D.h>
 #include <TProfile.h>
 #include <TH2I.h>
 #include "RootWPage.h"
-#include <SimParms.h>
+#include "SimParms.h"
 #include <StopWatch.h>
 #include <GitRevision.h>
 #include "RootWContent.h"
@@ -32,23 +30,21 @@
 //
 // Constructor - create instances of all available analyzer units & prepare web container
 //
-AnalysisManager::AnalysisManager(std::vector<const Tracker*> activeTrackers,
-                                 std::vector<const insur::InactiveSurfaces*> passiveTrackers,
-                                 const BeamPipe* beamPipe) :
+AnalysisManager::AnalysisManager(const Detector& detector) :
  m_webSitePrepared(false)
 {
   std::unique_ptr<AnalyzerUnit> unit;
 
   // Create AnalyzerGeometry
-  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerGeometry(activeTrackers, beamPipe));
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerGeometry(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Create AnalyzerMatBudget
-  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerMatBudget(activeTrackers, beamPipe));
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerMatBudget(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Create AnalyzerMatBudget
-  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(activeTrackers, beamPipe));
+  unit = std::unique_ptr<AnalyzerUnit>(new AnalyzerResolution(detector));
   m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site

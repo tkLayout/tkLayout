@@ -117,11 +117,10 @@ int main(int argc, char* argv[]) {
   StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
 
   //
-  // Build full tracker + beam pipe
+  // Build full detector: tracker + beam pipe
   GeometryManager gManager(geomFile);
-  bool activeTrackerOK  = gManager.buildActiveTracker();
-  bool passiveTrackerOK = gManager.buildPassiveTracker();
-  bool beamPipeOK       = gManager.buildBeamPipe();
+  bool activeDetOK  = gManager.buildActiveDetector();
+  bool passiveDetOK = gManager.buildPassiveDetector();
 
   //
   // Set simulation generic parameters
@@ -135,12 +134,12 @@ int main(int argc, char* argv[]) {
 
   //
   // Analyze tracker - create analysis manager
-  AnalysisManager aManager(gManager.getActiveTrackers(), gManager.getPassiveTrackers(), gManager.getBeamPipe());
+  AnalysisManager aManager(gManager.getDetector());
 
   // Call individual analyzer units
   bool isAnalysisOK      = false;
   bool isVisualizationOK = false;
-  if (activeTrackerOK) {
+  if (activeDetOK) {
 
     // Geometry layout study
     if (progOptions.count("all") || progOptions.count("geometry") || progOptions.count("material") || progOptions.count("resolution")) {
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Material budget study
-    if ((progOptions.count("all") || progOptions.count("material") || progOptions.count("resolution")) && beamPipeOK && passiveTrackerOK) {
+    if ((progOptions.count("all") || progOptions.count("material") || progOptions.count("resolution")) && passiveDetOK) {
 
       startTaskClock("Analyzing material budget");
       aManager.initUnit(matTracks, "AnalyzerMatBudget");
@@ -167,7 +166,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Resolution study
-    if ((progOptions.count("all") || progOptions.count("resolution")) && beamPipeOK && passiveTrackerOK) {
+    if ((progOptions.count("all") || progOptions.count("resolution")) && passiveDetOK) {
 
       startTaskClock("Analyzing resolution");
       aManager.initUnit(matTracks, "AnalyzerResolution");

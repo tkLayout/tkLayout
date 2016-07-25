@@ -13,11 +13,10 @@
 
 #include <AnalyzerUnit.h>
 
-class BeamPipe;
 class BFieldMap;
+class Detector;
 class IrradiationMap;
 class RootWSite;
-class Tracker;
 class TH2D;
 class TCanvas;
 
@@ -31,7 +30,7 @@ class AnalyzerOccupancy : public AnalyzerUnit {
  public:
 
   //! Constructor
-  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, std::vector<const Tracker*> trackers, const BeamPipe* beamPipe);
+  AnalyzerOccupancy(std::string chargedFileName, std::string photonsFileName, const Detector& detector);
 
   //! Destructor
   virtual ~AnalyzerOccupancy();
