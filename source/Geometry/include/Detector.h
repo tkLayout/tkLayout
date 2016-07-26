@@ -12,6 +12,8 @@
 #include <vector>
 #include <boost/property_tree/ptree_fwd.hpp>
 
+#include "Visitable.h"
+
 // Forward declaration
 class BeamPipe;
 class Tracker;
@@ -25,7 +27,7 @@ namespace insur {
  * It represents an object at the top of geometrical hierarchy to be passed by reference from
  * GeometryManager to AnalysisManager, etc.
  */
-class Detector {
+class Detector : public Visitable {
 
  public:
 
@@ -49,6 +51,12 @@ class Detector {
   //! Build beam pipe. This procedure replaces the previously registered beam pipe
   //! @return True if there were no errors during processing, false otherwise
   bool buildBeamPipe(boost::property_tree::ptree& geomTree);
+
+  //! GeometryVisitor pattern -> detector visitable
+  void accept(GeometryVisitor& v);
+
+  //! GeometryVisitor pattern -> detector visitable (const. option)
+  void accept(ConstGeometryVisitor& v) const;
 
   //! Get references to active sub-trackers
   //! @return vector of pointers to active trackers

@@ -59,7 +59,6 @@ bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
       // Create tracker
       std::unique_ptr<Tracker> trk(new Tracker(it->second));
       trk->build();
-      trk->setup();
 
       m_activeTrackers.push_back(std::move(trk));
 
@@ -144,7 +143,6 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
         std::cout << "Building new beam pipe" << std::endl;
         m_beamPipe = std::unique_ptr<BeamPipe>(new BeamPipe(it->second));
         m_beamPipe->build();
-        m_beamPipe->setup();
       }
 
     }; // Beam pipes
@@ -170,6 +168,26 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
   }
   stopTaskClock();
   return true;
+}
+
+//
+// GeometryVisitor pattern -> detector visitable
+//
+void Detector::accept(GeometryVisitor& v)
+{
+  v.visit(*this);
+  for (auto& iTrk : m_activeTrackers) iTrk->accept(v);
+  m_beamPipe->accept(v);
+}
+
+//
+// GeometryVisitor pattern -> detector visitable (const. option)
+//
+void Detector::accept(ConstGeometryVisitor& v) const
+{
+  v.visit(*this);
+  for (auto& iTrk : m_activeTrackers) iTrk->accept(v);
+  m_beamPipe->accept(v);
 }
 
 //

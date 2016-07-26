@@ -1,26 +1,31 @@
 #ifndef VISITOR_H
 #define VISITOR_H
 
-
-class BeamPipe;
-class Tracker;
 class Barrel;
-class Endcap;
-class Layer;
+class BarrelModule;
+class BeamPipe;
+class Detector;
+class DetectorModule;
 class Disk;
+class Endcap;
+class EndcapModule;
+class GeometricModule;
+class Layer;
+class RectangularModule;
 class Ring;
 class RodPair;
-class BarrelModule;
-class EndcapModule;
-class DetectorModule;
-class RectangularModule;
 class WedgeModule;
-class GeometricModule;
 class SimParms;
+class Tracker;
 
+/*
+ * @classGeometryVisitor
+ * Visitor design pattern to separate geometry analysis algorithms from geometry implementation - non const. variant
+ */
 class GeometryVisitor { 
 public:
   virtual ~GeometryVisitor() {}
+  virtual void visit(Detector&) {}
   virtual void visit(BeamPipe&) {}
   virtual void visit(Tracker&) {}
   virtual void visit(Barrel&) {}
@@ -38,9 +43,14 @@ public:
   virtual void visit(SimParms&) {}
 };
 
+/*
+ * @classConstGeometryVisitor
+ * Visitor design pattern to separate geometry analysis algorithms from geometry implementation - const. variant
+ */
 class ConstGeometryVisitor {
 public:
   virtual ~ConstGeometryVisitor() {}
+  virtual void visit(const Detector&) {}
   virtual void visit(const BeamPipe&) {}
   virtual void visit(const Tracker&) {}
   virtual void visit(const Barrel&) {}
