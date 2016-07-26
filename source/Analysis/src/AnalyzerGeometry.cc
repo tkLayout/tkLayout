@@ -239,7 +239,7 @@ bool AnalyzerGeometry::analyze()
 
       ROOT::Math::XYZVector direction = ROOT::Math::XYZVector(cos(phi)*sin(theta), sin(phi)*sin(theta), cos(theta));
 
-      double zError = SimParms::getInstance()->zErrorCollider();
+      double zError = SimParms::getInstance().zErrorCollider();
       double zPos   = myDice.Rndm()*2 - 1;
 
       ROOT::Math::XYZVector origin = ROOT::Math::XYZVector(0, 0, zPos);
@@ -848,7 +848,7 @@ void LayerDiskSummaryVisitor::visit(const DetectorModule& m) {
   m_moduleTagToPositionsMap[tag].insert(moduleTagMaker.posTag);
 
   // Get number of minimum bias events
-  int nMinBiasEvents = SimParms::getInstance()->numMinBiasEvents();
+  int nMinBiasEvents = SimParms::getInstance().numMinBiasEvents();
 
   //Update sensor counters
   m_moduleCount[tag]++;

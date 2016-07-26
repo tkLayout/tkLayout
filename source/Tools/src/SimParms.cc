@@ -6,16 +6,11 @@
 #include "IrradiationMapsManager.h"
 
 //
-// Static instance of this class
-//
-SimParms * SimParms::s_instance = nullptr;
-
-//
 // Method constructing static instance of this class
 //
-SimParms * SimParms::getInstance()
+SimParms& SimParms::getInstance()
 {
-  if (s_instance == nullptr) s_instance = new SimParms;
+  static SimParms s_instance;
   return s_instance;
 }
 
@@ -69,7 +64,7 @@ SimParms::SimParms() :
  m_layoutName("Default")
 {
   // Read irradiation maps
-  m_irradiationMapsManager = new IrradiationMapsManager();
+  m_irradiationMapsManager = std::unique_ptr<IrradiationMapsManager>(new IrradiationMapsManager());
   for (auto file : default_irradiationfiles) {
 
     std::string path = MainConfigHandler::getInstance().getIrradiationDirectory() + "/" + file;
@@ -83,7 +78,7 @@ SimParms::SimParms() :
 //
 SimParms::~SimParms()
 {
-  if (m_irradiationMapsManager != nullptr) delete m_irradiationMapsManager;
+  m_irradiationMapsManager.reset();
 }
 
 //

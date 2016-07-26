@@ -1,6 +1,7 @@
 #ifndef _MAINCONFIGHANDLER_H__
 #define _MAINCONFIGHANDLER_H__
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <set>
@@ -106,6 +107,8 @@ class MainConfigHandler {
   std::string getDefaultMaterialsDirectory_P();
   std::string getStandardIncludeDirectory_P();
   std::string getGeometriesDirectory_P();
+
+  static MainConfigHandler* s_instance;  //!< An instance of MainConfigHandler class - singleton pattern
 
   bool m_goodConfigurationRead;          //!< Returns true if configuration read-in correctly
 

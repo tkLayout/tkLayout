@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
   if (progOptions.count("quiet"))       verboseWatch = 0;
   if (progOptions.count("performance")) verboseWatch = 1;
 
-  StopWatch::instance()->setVerbosity(verboseWatch, performanceWatch);
+  StopWatch::getInstance().setVerbosity(verboseWatch, performanceWatch);
 
   //
   // Build full detector: tracker + beam pipe
@@ -124,13 +124,13 @@ int main(int argc, char* argv[]) {
 
   //
   // Set simulation generic parameters
-  auto simParms = SimParms::getInstance();
-  simParms->setCommandLine(argc, argv);
-  simParms->setLayoutName(gManager.getLayoutName());
-  simParms->setBaseGeomFileName(gManager.getBaseGeomFileName());
-  simParms->setRunDirPath(gManager.getRunDirPath());
-  simParms->setWebDir(gManager.getWebDir());
-  simParms->setListOfConfFiles(gManager.getListOfConfFiles());
+  auto& simParms = SimParms::getInstance();
+  simParms.setCommandLine(argc, argv);
+  simParms.setLayoutName(gManager.getLayoutName());
+  simParms.setBaseGeomFileName(gManager.getBaseGeomFileName());
+  simParms.setRunDirPath(gManager.getRunDirPath());
+  simParms.setWebDir(gManager.getWebDir());
+  simParms.setListOfConfFiles(gManager.getListOfConfFiles());
 
   //
   // Analyze tracker - create analysis manager

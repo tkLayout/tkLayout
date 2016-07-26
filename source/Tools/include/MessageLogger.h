@@ -10,18 +10,18 @@
 #include <sstream>
 
 //! Log message with ERROR verbosity
-#define logERROR(message)   MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::ERROR)
+#define logERROR(message)   MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::ERROR)
 //! Log message with WARNING verbosity
-#define logWARNING(message) MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::WARNING)
+#define logWARNING(message) MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::WARNING)
 //! Log message with INFO verbosity
-#define logINFO(message)    MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::INFO)
+#define logINFO(message)    MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::INFO)
 //! Log message with DEBUG verbosity
-#define logDEBUG(message)   MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::DEBUG)
+#define logDEBUG(message)   MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::DEBUG)
 
-#define logUniqueERROR(message)   MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::ERROR, MessageLogger::UNIQUE)
-#define logUniqueWARNING(message) MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::WARNING, MessageLogger::UNIQUE)
-#define logUniqueINFO(message)    MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::INFO, MessageLogger::UNIQUE)
-#define logUniqueDEBUG(message)   MessageLogger::getInstance()->addMessage(__func__, message, MessageLogger::DEBUG, MessageLogger::UNIQUE)
+#define logUniqueERROR(message)   MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::ERROR, MessageLogger::UNIQUE)
+#define logUniqueWARNING(message) MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::WARNING, MessageLogger::UNIQUE)
+#define logUniqueINFO(message)    MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::INFO, MessageLogger::UNIQUE)
+#define logUniqueDEBUG(message)   MessageLogger::getInstance().addMessage(__func__, message, MessageLogger::DEBUG, MessageLogger::UNIQUE)
 
 using namespace std;
 
@@ -54,7 +54,7 @@ class MessageLogger {
  public:
 
   //! Message logger access method -> get instance of singleton class Message logger
-  static MessageLogger* getInstance();
+  static MessageLogger& getInstance();
 
   //! Destructor
   ~MessageLogger();
@@ -93,8 +93,6 @@ class MessageLogger {
 
   //! Private constructor -> necessary for singleton pattern
   MessageLogger();
-
-  static MessageLogger*          s_instance;         //!< An instance of MessageLogger - singleton pattern
 
   static std::vector<LogMessage> s_logMessages;      //!< Container with all messages
   static int                     s_messageCounter[]; //!< Number of messages of given verbosity saved in the logger interface

@@ -12,7 +12,6 @@
 #include "Hit.h"
 #include "MessageLogger.h"
 #include "MaterialProperties.h"
-#include "PtErrorAdapter.h"
 #include "SimParms.h"
 #include "Units.h"
 
@@ -341,7 +340,7 @@ const Polar3DVector& Track::setThetaPhiPt(const double& newTheta, const double& 
   m_eta       = -log(tan(m_theta/2));
   m_phi       = newPhi;
   m_pt        = newPt;
-  m_magField  = SimParms::getInstance()->magneticField();
+  m_magField  = SimParms::getInstance().magneticField();
   m_radius    = m_pt / (0.3 * m_magField);
 
   m_direction.SetCoordinates(1, m_theta, m_phi);
