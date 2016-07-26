@@ -12,7 +12,6 @@
 
 #include "DetectorModule.h"
 #include <MessageLogger.h>
-#include "PtErrorAdapter.h"
 #include "Track.h"
 
 //using namespace ROOT::Math;

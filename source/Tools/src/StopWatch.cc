@@ -2,61 +2,58 @@
 
 #include <iostream>
 
-// Global static pointer used to ensure a single instance of the class
-StopWatch* StopWatch::myInstance_ = NULL;
-
 // Returns the instance (if already present) or creates one if needed
-StopWatch* StopWatch::instance() {
-  return myInstance_ ? myInstance_ : (myInstance_ = new StopWatch);
-}
+StopWatch& StopWatch::getInstance() {
 
-// Destroys the current instance
-void StopWatch::destroy() {
-  if (myInstance_) {
-    delete myInstance_; 
-    myInstance_ = NULL;
-  }
+  static StopWatch s_instance;
+  return s_instance;
 }
 
 void StopWatch::setVerbosity(unsigned int newVerbosity, bool newPerformance) {
-  verbosity_ = newVerbosity;
-  reportTime_ = newPerformance;
+
+  m_verbosity  = newVerbosity;
+  m_reportTime = newPerformance;
 }
 
-/* Object constructor */
+//
+// Singleton constructor method -> must be private (singleton pattern)
+//
 StopWatch::StopWatch() {
-  lastVerbosity_ = 0;
-  verbosity_ = 1000;
-  reportTime_ = true;
+  m_lastVerbosity = 0;
+  m_verbosity     = 1000;
+  m_reportTime    = true;
 } 
 
-/* Object destructor */
+//
+// Destructor
+//
 StopWatch::~StopWatch() {
   std::cout << std::endl;
 } 
 
 void StopWatch::startCounter(std::string message) {
-  startTimes_.push_back(clock());
-  if (startTimes_.size()<=verbosity_) {
+
+  m_startTimes.push_back(clock());
+  if (m_startTimes.size()<=m_verbosity) {
     std::cout << std::endl;
-    for (unsigned int i=1; i<startTimes_.size(); ++i) std::cout << "  ";
+    for (unsigned int i=1; i<m_startTimes.size(); ++i) std::cout << "  ";
     std::cout << message << " ... " << std::flush;
   }
 }
 
 double StopWatch::stopCounter() {
   double timeSeconds;
-  if (startTimes_.size()) {
+  if (m_startTimes.size()) {
     clock_t stopTime = clock();
-    clock_t startTime = startTimes_.back();
-    startTimes_.pop_back();
+    clock_t startTime = m_startTimes.back();
+    m_startTimes.pop_back();
     timeSeconds = diffClock(stopTime, startTime);
-    if (startTimes_.size()<verbosity_) {
-      if (startTimes_.size()<lastVerbosity_) std::cout << std::endl;
+    if (m_startTimes.size()<m_verbosity) {
+      if (m_startTimes.size()<m_lastVerbosity) std::cout << std::endl;
       std::cout << "done" ;
-      if (reportTime_) std::cout << " [in " << timeSeconds << " s]";
+      if (m_reportTime) std::cout << " [in " << timeSeconds << " s]";
       std::cout << std::flush;
-      lastVerbosity_=startTimes_.size();
+      m_lastVerbosity=m_startTimes.size();
     }
   } else {
     timeSeconds = 0;
@@ -66,7 +63,7 @@ double StopWatch::stopCounter() {
 }
 
 void StopWatch::addInfo(std::string message) {
-  if (startTimes_.size()<=verbosity_) {
+  if (m_startTimes.size()<=m_verbosity) {
     std::cout << message << " " << std::flush;
   }
 }

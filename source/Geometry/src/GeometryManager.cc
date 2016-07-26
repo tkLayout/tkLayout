@@ -48,10 +48,10 @@ GeometryManager::GeometryManager(std::string baseGeomFile) :
 
     //
     // Fill SimParms singleton class (container for generic info necessary for simulation), store data to property tree
-    auto simParms = SimParms::getInstance();
+    auto& simParms = SimParms::getInstance();
 
-    simParms->store(getChild(*m_geomTree, "SimParms"));
-    simParms->crosscheck();
+    simParms.store(getChild(*m_geomTree, "SimParms"));
+    simParms.crosscheck();
 
     //
     // Create detector

@@ -48,8 +48,8 @@ AnalysisManager::AnalysisManager(const Detector& detector) :
   m_units[unit->getName()] = std::move(unit);
 
   // Prepare Web site
-  auto simParms = SimParms::getInstance();
-  m_webSitePrepared = prepareWebSite(simParms->getLayoutName(), simParms->getWebDir());
+  auto& simParms = SimParms::getInstance();
+  m_webSitePrepared = prepareWebSite(simParms.getLayoutName(), simParms.getWebDir());
 }
 
 //
@@ -120,7 +120,7 @@ bool AnalysisManager::makeWebSite(bool addInfoPage, bool addLogPage) {
   if (!m_webSitePrepared) return false;
   else {
 
-    startTaskClock(any2str("Creating website in: "+ SimParms::getInstance()->getWebDir()) );
+    startTaskClock(any2str("Creating website in: "+ SimParms::getInstance().getWebDir()) );
 
     // Add info webPage
     if (addInfoPage) makeWebInfoPage();
@@ -183,7 +183,7 @@ bool AnalysisManager::makeWebInfoPage()
 
   // Command line arguments
   RootWInfo& myInfo = myContentParms.addInfo("Command line arguments");
-  myInfo.setValue(SimParms::getInstance()->getCommandLine());
+  myInfo.setValue(SimParms::getInstance().getCommandLine());
 
   // Summary of used geometry & simulation tracks
   if (m_units.find("AnalyzerGeometry")!=m_units.end()) {
@@ -200,8 +200,8 @@ bool AnalysisManager::makeWebInfoPage()
   }
 
   // Summary of geometry config files
-  auto simParms   = SimParms::getInstance();
-  auto includeSet = simParms->getListOfConfFiles();
+  auto& simParms  = SimParms::getInstance();
+  auto includeSet = simParms.getListOfConfFiles();
   if (!includeSet.empty()) {
     std::vector<std::string> includeNameSet;
     std::transform(includeSet.begin(), includeSet.end(), std::back_inserter(includeNameSet), [](const std::string& s) {

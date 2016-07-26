@@ -88,7 +88,7 @@ bool AnalyzerResolution::analyze()
   myDice.SetSeed(random_seed);
 
   // Initialize
-  double efficiency  = SimParms::getInstance()->efficiency();
+  double efficiency  = SimParms::getInstance().efficiency();
 
   // Tracks pruned
   bool isPruned = false;
@@ -120,7 +120,7 @@ bool AnalyzerResolution::analyze()
         matTrack.keepTaggedOnly(tag);
 
         // Add IP constraint
-        if (SimParms::getInstance()->useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance()->rError(), SimParms::getInstance()->zErrorCollider());
+        if (SimParms::getInstance().useIPConstraint()) matTrack.addIPConstraint(SimParms::getInstance().rError(), SimParms::getInstance().zErrorCollider());
 
         // Sort hits
         bool smallerRadius = true;
