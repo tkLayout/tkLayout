@@ -25,7 +25,7 @@ class StopWatch {
 
  public:
 
-  //! StopWatch access method -> get instance of singleton class MainConfigHandler
+  //! StopWatch access method -> get instance of singleton class StopWatch
   static StopWatch& getInstance();
 
   //! Destructor
@@ -34,7 +34,7 @@ class StopWatch {
   //! Start the counter now with a given message
   void startCounter(std::string message);
 
-  //! Stop the counter now
+  //! Stop the counter
   double stopCounter();
 
   void setVerbosity(unsigned int newVerbosity, bool newPerformance);

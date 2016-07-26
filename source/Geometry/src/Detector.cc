@@ -57,7 +57,7 @@ bool Detector::buildActiveTracker(boost::property_tree::ptree& geomTree)
       std::cout << " " << it->second.data() << " tracker" << std::endl;
 
       // Create tracker
-      std::unique_ptr<Tracker> trk(new Tracker(it->second));
+      std::unique_ptr<Tracker> trk(GeometryFactory::make<Tracker>(it->second));
       trk->build();
 
       m_activeTrackers.push_back(std::move(trk));
@@ -141,7 +141,7 @@ bool Detector::buildBeamPipe(boost::property_tree::ptree& geomTree)
       else {
 
         std::cout << "Building new beam pipe" << std::endl;
-        m_beamPipe = std::unique_ptr<BeamPipe>(new BeamPipe(it->second));
+        m_beamPipe = std::unique_ptr<BeamPipe>(GeometryFactory::make<BeamPipe>(it->second));
         m_beamPipe->build();
       }
 
