@@ -437,11 +437,11 @@ bool AnalyzerGeometry::visualize(RootWSite& webSite)
       drawBeamPipeRZ(RZCanvas, iTracker->maxZ());
 
       RootWImage& myImage = myContentPlots.addImage(RZCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY);
-      myImage.setComment("RZ plot of the tracker");
+      myImage.setComment("RZ (envelope Radius versus Z) plot of the tracker");
 
       // Clone image view to have an exact copy
       std::unique_ptr<RootWImage> myImageClone(new RootWImage(RZCanvas, vis_max_canvas_sizeX, vis_min_canvas_sizeY));
-      myImageClone->setComment("RZ plot of the tracker");
+      myImageClone->setComment("RZ (envelope Radius versus Z) plot of the tracker");
       trackerRZImg[trkName] = std::move(myImageClone);
     }
 

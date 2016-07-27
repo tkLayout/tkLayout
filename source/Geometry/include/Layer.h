@@ -118,22 +118,23 @@ class Layer : public PropertyObject, public Buildable, public Identifiable<int>,
   //! Helper function calculating optimal layer radius for straight option
   double calculateOptimalRadius(int numRods, double bigDelta, double smallDelta, double dsDistance, double moduleWidth, double overlap);
 
-  Rods               m_rods;                     //!< Layer rods
+  Rods               m_rods;                      //!< Layer rods
   MaterialObject     m_materialObject;
-  ConversionStation* m_flangeConversionStation;  //!< First order layer conversion unit
-  ConversionStations m_secondConversionStations; //!< Vector of second order layer conversion units
+  ConversionStation* m_flangeConversionStation;   //!< First order layer conversion unit
+  ConversionStations m_secondConversionStations;  //!< Vector of second order layer conversion units
 
-  Property<double, NoDefault> m_smallDelta;      //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
-  Property<int   , Default>   m_smallParity;     //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
-  Property<double, NoDefault> m_bigDelta;        //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
-  Property<int   , Default>   m_bigParity;       //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
-  Property<double, Default>   m_phiOverlap;      //!< Required module overlap in R-Phi (in length units)
-  Property<int   , Default>   m_phiSegments;     //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+  Property<double, NoDefault> m_smallDelta;       //!< Layer consists of ladders (rods), in which modules are positioned at radius +- smallDelta in Z
+  Property<int   , Default>   m_smallParity;      //!< Algorithm that builds rod modules starts at +smallDelta (positive parity) or -smallDelta (negative parity)
+  Property<double, NoDefault> m_bigDelta;         //!< Layer consists of ladders (rods), where even/odd rods are positioned at radius +- bigDelta in R-Phi
+  Property<int   , Default>   m_bigParity;        //!< Algorithm that builds rods starts at +bigDelta (positive parity) or -bigDelta (negative parity)
+  Property<double, Default>   m_phiOverlap;       //!< Required module overlap in R-Phi (in length units)
+  Property<int   , Default>   m_phiSegments;      //!< Required symmetry in R-Phi - number of symmetric segments (1, 2, 4, ...)
+  Property<bool  , Default>   m_useMinMaxRCorrect;//!< Apply smallDelta, bigDelta, detThickness, etc. when calculating minR/maxR for first/last layer? For backwards compatibility of lite version (on) versus older version (off)
 
-  bool   m_sameRods;                             //! Build same geometrical rods across the whole barrel
+  bool   m_sameRods;                              //! Build same geometrical rods across the whole barrel
 
-  PropertyNode<int>               m_ringNode;    //!< Property tree node for ring (to grab properties for specific rod modules)
-  PropertyNodeUnique<std::string> m_stationsNode;//!< Property tree nodes for conversion stations (included geometry config file)
+  PropertyNode<int>               m_ringNode;     //!< Property tree node for ring (to grab properties for specific rod modules)
+  PropertyNodeUnique<std::string> m_stationsNode; //!< Property tree nodes for conversion stations (included geometry config file)
 
 }; // Class
 

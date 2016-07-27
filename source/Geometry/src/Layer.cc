@@ -30,6 +30,7 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
  m_bigParity    (       "bigParity"          , parsedOnly()      ,-1),
  m_phiOverlap   (       "phiOverlap"         , parsedAndChecked(), 1.),
  m_phiSegments  (       "phiSegments"        , parsedAndChecked(), 4),
+ m_useMinMaxRCorrect(   "useMinMaxRCorrect"  , parsedAndChecked(), true),
  m_ringNode     (       "Ring"               , parsedOnly()),
  m_stationsNode (       "Station"            , parsedOnly()),
  m_materialObject(MaterialObject::LAYER),
@@ -139,6 +140,12 @@ void Layer::buildStraight(int barrelNumLayers, double barrelMinR, double barrelM
   double updatedMinR = barrelMinR + m_bigDelta() + m_smallDelta() + maxDsDistance()/2. + sensorThickness()/2.;
   double updatedMaxR = barrelMaxR - m_bigDelta() - m_smallDelta() - maxDsDistance()/2. - sensorThickness()/2.;
          updatedMaxR = sqrt(updatedMaxR*updatedMaxR - moduleWidth()/2.*moduleWidth()/2.); // Need to take the outer envelope, i.e. the module width into account
+
+  // For backwards compatibility with older versions of sofware
+  if (!m_useMinMaxRCorrect()) {
+    updatedMinR = barrelMinR;
+    updatedMaxR = barrelMaxR;
+  }
 
   // Calculate expected radius
   double layerRadius = 0;
