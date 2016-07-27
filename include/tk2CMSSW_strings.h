@@ -274,7 +274,7 @@ namespace insur {
     static const std::string xml_PX_topo_barrel_name = "Phase1PixelBarrel";
 
     static const std::string xml_OT_topo_barrel_value = "Phase2OTBarrel";
-    static const std::string xml_PX_topo_barrel_value = "PixelV4021Barrel";
+    static const std::string xml_PX_topo_barrel_value = "PixelPhase1Barrel";
 
     static const std::string xml_OT_topo_layer_name = "OuterTrackerPixelBarrelLayer";
     static const std::string xml_PX_topo_layer_name = "PixelBarrelLayer";
