@@ -5657,14 +5657,10 @@ namespace insur {
   
   std::string Vizard::createEndcapModulesCsv(const Tracker& t) {
     class EndcapVisitor : public ConstGeometryVisitor {
-      double minZ_;
     public:
       std::stringstream output;
       void preVisit() {
         output << "Ring, r(mm), phi(deg), z(mm), base_inner(mm), base_outer(mm), height(mm)" <<std::endl;
-      }
-      void visit(const Endcap& e) {
-        minZ_ = e.minZ();
       }
       void visit(const EndcapModule& m) {
         if (m.disk() != 1 || m.minZ() < 0.) return;
@@ -5675,7 +5671,7 @@ namespace insur {
         output << m.ring() << ", " 
                << std::fixed << std::setprecision(3) << m.center().Rho() << ", "
                << std::fixed << std::setprecision(3) << m.center().Phi()/M_PI*180. << ", "
-               << std::fixed << std::setprecision(3) << m.center().Z() - minZ_ << ", "
+               << std::fixed << std::setprecision(3) << m.center().Z() << ", "
                << std::fixed << std::setprecision(3) << m.minWidth() << ", "
                << std::fixed << std::setprecision(3) << m.maxWidth() << ", "
                << std::fixed << std::setprecision(3) << m.length() << std::endl;
