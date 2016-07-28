@@ -49,9 +49,10 @@ Layer::Layer(int id, int barrelNumLayers, bool sameRods, bool barrelMinRFixed, b
   // Set rotation
   this->layerRotation(layerRotation()+barrelRotation);
 
-  // Set radius mode if not default value set or not defined from barrel level
-  if ( (myid()==1)               && barrelMinRFixed ) this->radiusMode(RadiusMode::FIXED);
-  if ( (myid()==barrelNumLayers) && barrelMaxRFixed ) this->radiusMode(RadiusMode::FIXED);
+  // Set radius mode if not default value set or not defined from barrel level (for backwards 
+  // compatibility fix to barrel limits can be switched off using useMinMaxRCorrect variable)
+  if ( (myid()==1)               && barrelMinRFixed && m_useMinMaxRCorrect()) this->radiusMode(RadiusMode::FIXED);
+  if ( (myid()==barrelNumLayers) && barrelMaxRFixed && m_useMinMaxRCorrect()) this->radiusMode(RadiusMode::FIXED);
 }
 
 //
