@@ -1344,7 +1344,7 @@ namespace insur {
 
     myContent->addItem(v.layerTable);
     myContent->addItem(v.diskTable);
-    //myContent->addItem(v.ringTable);
+    myContent->addItem(v.ringTable);
 
 
     //***************************************//
