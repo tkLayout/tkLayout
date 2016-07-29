@@ -304,19 +304,19 @@ namespace insur {
     static const std::string xml_PX_topo_endcaps_name = "PixelPhase2EndcapSubDet";
 
     static const std::string xml_OT_topo_endcaps_value = "Phase2OTEndcap";
-    static const std::string xml_PX_topo_endcaps_value = "PixelV4021Endcap";
+    static const std::string xml_PX_topo_endcaps_value = "PixelPhase2EndcapSubDet";
 
     static const std::string xml_OT_topo_disc_name = "OuterTrackerPixelEndcapDisk";
     static const std::string xml_PX_topo_disc_name = "PixelEndcapDisk";
    
     static const std::string xml_OT_topo_disc_value = "Phase2OTEndcapDisk";
-    static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapFullDisk";
+    static const std::string xml_PX_topo_disc_value = "PixelPhase2EndcapTDRDisk";
 
     static const std::string xml_OT_topo_ring_name = "OuterTrackerPixelEndcapPanel";
     static const std::string xml_PX_topo_ring_name = "PixelEndcapRing";
 
     static const std::string xml_OT_topo_ring_value = "PixelEndcapPanel";
-    static const std::string xml_PX_topo_ring_value = "PixelPhase2PixelEndcapPanel";
+    static const std::string xml_PX_topo_ring_value = "PixelEndcapPanel";
    
     static const std::string xml_OT_topo_emodule_name = "OuterTrackerEndcapStack";
     static const std::string xml_PX_topo_emodule_name = "PixelEndcapStack";
