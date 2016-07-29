@@ -340,6 +340,7 @@ void Layer::buildTilted() {
     double flatPartrOuterSmall = std::numeric_limits<double>::max();
     double flatPartrInnerBig = 0;
     double flatPartrOuterBig = 0;
+    double flatPartAverageR = 0.;
 
     if (buildNumModulesFlat() != 0) {
 
@@ -355,6 +356,7 @@ void Layer::buildTilted() {
 	  if (t1.valid()) (bigParity() > 0 ? tmspecso.push_back(t1) : tmspecsi.push_back(t1));
 	  (bigParity() > 0 ? flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()));
 	  (bigParity() > 0 ? flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()));
+	  flatPartAverageR += m.center().Rho();
 	}
 
 	StraightRodPair* flatPartRod2 = flatPartRods_.at(1);
@@ -364,6 +366,7 @@ void Layer::buildTilted() {
 	  if (t2.valid()) (bigParity() > 0 ? tmspecsi.push_back(t2) : tmspecso.push_back(t2));
 	  (bigParity() > 0 ? flatPartrInnerSmall = MIN(flatPartrInnerSmall, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterSmall = MIN(flatPartrOuterSmall, m.center().Rho() + 0.5*m.dsDistance()));
 	  (bigParity() > 0 ? flatPartrInnerBig = MAX(flatPartrInnerBig, m.center().Rho() + 0.5*m.dsDistance()) : flatPartrOuterBig = MAX(flatPartrOuterBig, m.center().Rho() + 0.5*m.dsDistance()));
+	  flatPartAverageR += m.center().Rho();
 	}
 
 	flatPartThetaEnd = (bigParity() > 0 ? flatPartRod1->thetaEnd() : flatPartRod2->thetaEnd());
@@ -395,7 +398,7 @@ void Layer::buildTilted() {
 	s = (-b - sqrt(b*b - 4*a*c))/(2*a);
 	flatPartPhiOverlapSmallDeltaPlus_ = width + s;
 
-	flatPartAverageR_ = (flatPartrInnerSmall + flatPartrOuterSmall + flatPartrInnerBig + flatPartrOuterBig) / 4.;
+	flatPartAverageR_ = flatPartAverageR / (flatPartRod1->modules().first.size() + flatPartRod2->modules().first.size());
 
 	flatRingsGeometryInfo_.calculateFlatRingsGeometryInfo(flatPartRods_, bigParity());
 
