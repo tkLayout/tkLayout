@@ -27,6 +27,9 @@ AnalyzerUnit::AnalyzerUnit(std::string name, const Detector& detector) :
   // Analysis by default not done
   m_isAnalysisOK = false;
 
+  // Visualizaton by default not done
+  m_isVisOK = false;
+
   // Set unique name
   m_name = name;
 }

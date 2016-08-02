@@ -106,7 +106,9 @@ bool AnalyzerOccupancy::analyze()
   fillHistogram(m_photonsMapBOnMatOff,  m_hisPhotonsFluxBOnMatOff,  "PhotonsFluxPerPPBOnMatOff",  "Flux of photons [cm^{-2}] per pp collision - B on, material off");
   fillHistogram(m_photonsMapBOffMatOff, m_hisPhotonsFluxBOffMatOff, "PhotonsFluxPerPPBOffMatOff", "Flux of photons [cm^{-2}] per pp collision - B off, material off");
   fillHistogram(m_photonsMapBOffTrkOff, m_hisPhotonsFluxBOffTrkOff, "PhotonsFluxPerPPBOffTrkOff", "Flux of photons [cm^{-2}] per pp collision - B off, tracker material off");
-  return true;
+
+  m_isAnalysisOK = true;
+  return m_isAnalysisOK;
 }
 
 bool AnalyzerOccupancy::visualize(RootWSite& webSite)
@@ -123,8 +125,20 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
     TCanvas canvasXZBField("canvasXZBField", "XZ view of B field [T] (Y=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     TCanvas canvasYZBField("canvasYZBField", "YZ view of B field [T] (X=0)", vis_std_canvas_sizeX, vis_min_canvas_sizeY);
 
-    m_bFieldMap->drawXZBFieldProj(canvasXZBField, "XZ view of B field [T] (Y=0)", 0, geom_max_radius, 0, geom_max_length);
-    m_bFieldMap->drawYZBFieldProj(canvasYZBField, "YZ view of B field [T] (X=0)", 0, geom_max_radius, 0, geom_max_length);
+    double geomMaxRadius = 0.0;
+    double geomMaxLength = 0.0;
+
+    for (auto& iTrk : m_trackers) {
+
+      auto maxR = iTrk->maxR();
+      auto maxZ = iTrk->maxZ();
+
+      if (maxR>geomMaxRadius) geomMaxRadius = maxR;
+      if (maxZ>geomMaxLength) geomMaxLength = maxZ;
+    }
+
+    m_bFieldMap->drawXZBFieldProj(canvasXZBField, "XZ view of B field [T] (Y=0)", 0, geomMaxRadius, 0, geomMaxLength);
+    m_bFieldMap->drawYZBFieldProj(canvasYZBField, "YZ view of B field [T] (X=0)", 0, geomMaxRadius, 0, geomMaxLength);
 
     RootWImage& anImageXZBField = magFieldContent.addImage(canvasXZBField, vis_std_canvas_sizeX, vis_min_canvas_sizeY);
     anImageXZBField.setComment("XZ view of B field [T] (Y=0)");
@@ -1068,7 +1082,8 @@ bool AnalyzerOccupancy::visualize(RootWSite& webSite)
   }
 
   std::cout << "End" << std::endl;
-  return true;
+  m_isVisOK = true;
+  return m_isVisOK;
 }
 
 bool AnalyzerOccupancy::readMagFieldMap(std::string directory, std::string bFieldFileName)

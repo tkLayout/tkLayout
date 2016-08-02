@@ -97,7 +97,7 @@ class AnalyzerResolution : public AnalyzerUnit {
   const double c_max_dCtgTheta = 1.0;
   const double c_min_dCtgTheta = 1E-6;
 
-  const int    c_nBins         = geom_max_eta_coverage/vis_eta_step;  // Default number of bins in histogram from eta=0  to max_eta_coverage
+  const int    c_nBins;
 
 }; // Class
 

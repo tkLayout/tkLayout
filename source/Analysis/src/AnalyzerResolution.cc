@@ -32,8 +32,9 @@
 
 AnalyzerResolution::AnalyzerResolution(const Detector& detector) : AnalyzerUnit("AnalyzerResolution", detector),
  m_nTracks(0),
- m_etaMin(-1*geom_max_eta_coverage),
- m_etaMax(+1*geom_max_eta_coverage)
+ m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage()),
+ c_nBins(SimParms::getInstance().getMaxEtaCoverage()/vis_eta_step)  // Default number of bins in histogram from eta=0  to max_eta_coverage)
 {};
 
 bool AnalyzerResolution::init(int nTracks)
@@ -62,10 +63,10 @@ bool AnalyzerResolution::init(int nTracks)
     m_csvResP->addCsvElement("Label", "Resolution type");
     m_csvResP->addCsvElement("Label", "Total momentum [GeV]");
 
-    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+    for (unsigned int iBorder=0; iBorder<SimParms::getInstance().getNEtaRegions()-1; ++iBorder) {
 
       ostringstream label("");
-      label << "Real geom. eta(" << std::setiosflags(ios::fixed) << std::setprecision(1) << geom_range_eta_regions[iBorder] << "-" << geom_range_eta_regions[iBorder+1] << ")";
+      label << "Real geom. eta(" << std::setiosflags(ios::fixed) << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[iBorder] << "-" << SimParms::getInstance().etaRegionRanges[iBorder+1] << ")";
       m_csvResPt->addCsvElement("Label", label.str());
       m_csvResP->addCsvElement("Label", label.str());
     }
@@ -222,7 +223,8 @@ bool AnalyzerResolution::analyze()
     logWARNING(message);
   }
 
-  return true;
+  m_isAnalysisOK = true;
+  return m_isAnalysisOK;
 }
 
 bool AnalyzerResolution::visualize(RootWSite& webSite)
@@ -471,7 +473,8 @@ bool AnalyzerResolution::visualize(RootWSite& webSite)
     prepareSummaryTable(tag, "P", myPage, summaryContent_P, *m_csvResP);
   } // For tag
 
-  return true;
+  m_isVisOK = true;
+  return m_isVisOK;
 }
 
 //
@@ -538,7 +541,7 @@ void AnalyzerResolution::preparePlot(std::vector<unique_ptr<TProfile>>& profHisA
       name  = "cotgTh_vs_eta"+any2str(momentum);
       title = "Track polar angle error - const "+scenario+" across #eta;#eta;#delta ctg(#theta)";
     }
-    std::unique_ptr<TProfile> profHis(new TProfile(name.c_str(), title.c_str(), c_nBins, 0, geom_max_eta_coverage));
+    std::unique_ptr<TProfile> profHis(new TProfile(name.c_str(), title.c_str(), c_nBins, 0, SimParms::getInstance().getMaxEtaCoverage()));
 
     // Set style
     profHis->SetLineWidth(2.);
@@ -630,12 +633,12 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
   cutsSummaryTable.setContent(0,0,"Region: ");
   cutsSummaryTable.setContent(1,0,"Min "+web_etaLetter+":");
   cutsSummaryTable.setContent(2,0,"Max "+web_etaLetter+":");
-  for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
+  for (unsigned int iBorder=0; iBorder<SimParms::getInstance().getNEtaRegions()-1; ++iBorder) {
 
-    cutsSummaryTable.setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
-    label.str(""); label << geom_range_eta_regions[iBorder];
+    cutsSummaryTable.setContent(0,iBorder+1,SimParms::getInstance().etaRegionNames[iBorder+1]);
+    label.str(""); label << SimParms::getInstance().etaRegionRanges[iBorder];
     cutsSummaryTable.setContent(1,iBorder+1,label.str());
-    label.str(""); label << geom_range_eta_regions[iBorder+1];
+    label.str(""); label << SimParms::getInstance().etaRegionRanges[iBorder+1];
     cutsSummaryTable.setContent(2,iBorder+1,label.str());
   }
 
@@ -682,7 +685,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
       std::vector<double> averagesIdeal;
 
       // Set table - 1.row & 1.column
-      baseColumn = (geom_name_eta_regions.size()-1)*iMom + 1;
+      baseColumn = (SimParms::getInstance().getNEtaRegions()-1)*iMom + 1;
       myTable.setContent(0, baseColumn, momenta[iMom]/Units::GeV,0);
       myTable.setColor(0, baseColumn, Palette::colorMomenta(iMom));
       myTable.setContent(2, 0, "Real:      ");
@@ -729,6 +732,12 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
         profileName= "cotgTh_vs_eta"+any2str(momenta[iMom],0);
       }
 
+      // Prepare eta cuts
+      std::vector<double> etaCuts;
+      for (auto& iCut : SimParms::getInstance().etaRegionRanges) {
+        etaCuts.push_back(iCut);
+      }
+
       // Real geometry (active+passive)
       if (canvasReal!=nullptr) for (int i=0; i<canvasReal->GetListOfPrimitives()->GetSize(); ++i) {
         if (std::string(canvasReal->GetListOfPrimitives()->At(i)->ClassName())=="TProfile") {
@@ -739,7 +748,7 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
           // If profile histogram for given momentum analyze
           if (std::string(myProfile->GetName())==profileName) {
 
-            averagesReal = averageHisValues(*myProfile,geom_range_eta_regions);
+            averagesReal = averageHisValues(*myProfile,etaCuts);
           }
         }
       }
@@ -754,15 +763,15 @@ void AnalyzerResolution::prepareSummaryTable(std::string tag, std::string scenar
           // If profile histogram for given momentum analyze
           if (std::string(myProfile->GetName())==profileName.c_str()) {
 
-            averagesIdeal = averageHisValues(*myProfile,geom_range_eta_regions);
+            averagesIdeal = averageHisValues(*myProfile,etaCuts);
           }
         }
       }
 
       // Fill resolution for different eta regions to a table
-      for (unsigned int j=0; j<(geom_name_eta_regions.size()-1); ++j) {
+      for (unsigned int j=0; j<(SimParms::getInstance().getNEtaRegions()-1); ++j) {
 
-        myTable.setContent(1, baseColumn+j, geom_name_eta_regions[j+1]);
+        myTable.setContent(1, baseColumn+j, SimParms::getInstance().etaRegionNames[j+1]);
         myTable.setColor(1, baseColumn+j, myColor);
         if (averagesReal.size() > j) {
 

@@ -42,9 +42,9 @@
 //
 AnalyzerMatBudget::AnalyzerMatBudget(const Detector& detector) : AnalyzerUnit("AnalyzerMatBudget", detector),
  m_nTracks(0),
- m_etaSpan(geom_max_eta_coverage - geom_max_eta_coverage),
- m_etaMin(-1*geom_max_eta_coverage),
- m_etaMax(+1*geom_max_eta_coverage)
+ m_etaSpan(2*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMin(-1*SimParms::getInstance().getMaxEtaCoverage()),
+ m_etaMax(+1*SimParms::getInstance().getMaxEtaCoverage())
 {};
 
 //
@@ -62,8 +62,8 @@ bool AnalyzerMatBudget::init(int nMatTracks)
   m_nTracks = nMatTracks;
 
   // Compute shooting intervals to analyze geometry
-  double etaMin = -1*geom_max_eta_coverage;
-  double etaMax = +1*geom_max_eta_coverage;
+  double etaMin = -1*SimParms::getInstance().getMaxEtaCoverage();
+  double etaMax = +1*SimParms::getInstance().getMaxEtaCoverage();
 
   float  safeMargin = c_etaSafetyMargin;
   m_etaSpan         = (etaMax - etaMin)*(1. + safeMargin);
@@ -530,12 +530,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     RootWTable& myTableOverview = myContentOverview.addTable();
     char titleString[256];
-    sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average radiation length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableOverview.setContent(1, 1, titleString);
-    sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average interaction length [%] in tracking volume ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableOverview.setContent(2, 1, titleString);
-    myTableOverview.setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableOverview.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], geom_max_eta_coverage)*100, 2);
+    myTableOverview.setContent(1, 2, averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableOverview.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
 
     // Calculate summary table
     std::unique_ptr<RootWTable> materialSummaryTable(new RootWTable());
@@ -551,10 +551,10 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
       m_csvMatBudget->addCsvElement("Label", "Tracker/Component name");
       m_csvMatBudget->addCsvElement("Label", "Type");
-      for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+      for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
 
         ostringstream label;
-        label << "eta(" << std::fixed << std::setprecision(1) << geom_range_eta_regions[j-1] << "-" <<geom_range_eta_regions[j] << ")";
+        label << "eta(" << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[j-1] << "-" << SimParms::getInstance().etaRegionRanges[j] << ")";
         m_csvMatBudget->addCsvElement("Label", label.str());
       }
       m_csvMatBudget->addCsvEOL("Label");
@@ -562,12 +562,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, trkName);
     m_csvMatBudget->addCsvElement(trkName, "Rad. length [%]");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // First row: the cut name
-      materialSummaryTable->setContent(0,j, geom_name_eta_regions[j]);
+      materialSummaryTable->setContent(0,j, SimParms::getInstance().etaRegionNames[j]);
 
       // Second row: the radiation length
-      averageValue = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue = averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       materialSummaryTable->setContent(1,j, averageValue*100 ,2);
       m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
@@ -575,9 +575,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, "");
     m_csvMatBudget->addCsvElement(trkName, "Int. length [%]");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // Third row: the interaction length
-      averageValue = averageHistogramValues(m_intMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue = averageHistogramValues(m_intMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       materialSummaryTable->setContent(2,j, averageValue*100 ,2);
       m_csvMatBudget->addCsvElement(trkName, averageValue*100);
     }
@@ -585,9 +585,9 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
     m_csvMatBudget->addCsvElement(trkName, "");
     m_csvMatBudget->addCsvElement(trkName, "Photon conv. prob.");
-    for (unsigned int j=1; j< geom_name_eta_regions.size(); ++j) {
+    for (unsigned int j=1; j< SimParms::getInstance().getNEtaRegions(); ++j) {
       // Fourth row: the photon conversion probability
-      averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], geom_range_eta_regions[j-1], geom_range_eta_regions[j]);
+      averageValue  = averageHistogramValues(m_radMB[trkName]["Total"], SimParms::getInstance().etaRegionRanges[j-1], SimParms::getInstance().etaRegionRanges[j]);
       averageValue *= -7./9.;
       averageValue  = 1 - exp(averageValue);
       materialSummaryTable->setContent(3,j, averageValue ,4);
@@ -641,7 +641,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     RootWTable& myTableAllMat = myContentCateg.addTable();
 
     // Average values by active, service and passive
-    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableAllMat.setContent(0, 0, titleString);
     myTableAllMat.setContent(1, 0, "Beam pipe (green)");
     myTableAllMat.setContent(2, 0, "Barrel modules (yellow)");
@@ -651,18 +651,18 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     myTableAllMat.setContent(6, 0, "Total");
     myTableAllMat.setContent(0, 1, "Radiation length [%]");
     myTableAllMat.setContent(0, 2, "Interaction length [%]");
-    myTableAllMat.setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
-    myTableAllMat.setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , geom_max_eta_coverage)*100, 2);
+    myTableAllMat.setContent(1, 1, averageHistogramValues(m_radMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(1, 2, averageHistogramValues(m_intMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(2, 1, averageHistogramValues(m_radMB[trkName]["Barrel"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(2, 2, averageHistogramValues(m_intMB[trkName]["Barrel"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(3, 1, averageHistogramValues(m_radMB[trkName]["Endcap"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(3, 2, averageHistogramValues(m_intMB[trkName]["Endcap"]  , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(4, 1, averageHistogramValues(m_radMB[trkName]["Supports"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(4, 2, averageHistogramValues(m_intMB[trkName]["Supports"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(5, 1, averageHistogramValues(m_radMB[trkName]["Services"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(5, 2, averageHistogramValues(m_intMB[trkName]["Services"], SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(6, 1, averageHistogramValues(m_radMB[trkName]["Total"]   , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
+    myTableAllMat.setContent(6, 2, averageHistogramValues(m_intMB[trkName]["Total"]   , SimParms::getInstance().getMaxEtaCoverage())*100, 2);
 
     // Rebin histograms, draw them to a canvas and write the canvas to the web page
     TCanvas myCanvasMatCat(std::string("MaterialByCategoryIn"+trkName).c_str());
@@ -700,7 +700,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     RootWContent& myContentComp = myPage.addContent("Material overview by component", false);
 
     RootWTable myTableComp = myContentComp.addTable();
-    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), geom_max_eta_coverage);
+    sprintf(titleString, std::string("Average ("+web_etaLetter+" = [0, %.1f])").c_str(), SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(0, 0, titleString);
     myTableComp.setContent(0, 1, "Radiation length [%]");
     myTableComp.setContent(0, 2, "Interaction length [%]");
@@ -729,7 +729,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     radCompStack->Add(&m_radMB["Beampipe"]["Total"]);
     compLegend->AddEntry(&m_radMB["Beampipe"]["Total"], "Beampipe");
     compIndex++;
-    double avgValue = averageHistogramValues(m_radMB["Beampipe"]["Total"], geom_max_eta_coverage);
+    double avgValue = averageHistogramValues(m_radMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(compIndex, 0, "Beampipe");
     myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
     totalRadLength += avgValue;
@@ -741,7 +741,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       iComp.second.SetXTitle("#eta");
       radCompStack->Add(&(iComp.second));
       compLegend->AddEntry(&(iComp.second), iComp.first.c_str());
-      avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
+      avgValue = averageHistogramValues(iComp.second, SimParms::getInstance().getMaxEtaCoverage());
       myTableComp.setContent(compIndex, 0, iComp.first);
       myTableComp.setContent(compIndex++, 1, avgValue*100, 2);
       totalRadLength += avgValue;
@@ -763,7 +763,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     m_intMB["Beampipe"]["Total"].SetXTitle("#eta");
     intCompStack->Add(&m_intMB["Beampipe"]["Total"]);
     compIndex++;
-    avgValue = averageHistogramValues(m_intMB["Beampipe"]["Total"], geom_max_eta_coverage);
+    avgValue = averageHistogramValues(m_intMB["Beampipe"]["Total"], SimParms::getInstance().getMaxEtaCoverage());
     myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
     totalIntLength += avgValue;
 
@@ -773,7 +773,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       iComp.second.SetFillColor(Palette::color(compIndex));
       iComp.second.SetXTitle("#eta");
       intCompStack->Add(&(iComp.second));
-      avgValue = averageHistogramValues(iComp.second, geom_max_eta_coverage);
+      avgValue = averageHistogramValues(iComp.second, SimParms::getInstance().getMaxEtaCoverage());
       myTableComp.setContent(compIndex++, 2, avgValue*100, 2);
       totalIntLength += avgValue;
     }
@@ -875,7 +875,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       // Old-style palette by Stefano, with custom-generated colors
       // Palette::prepare(hadronGoodTracksFraction.size()); // there was a 120 degree phase here
       // Replaced by the libreOffice-like palette
-      std::unique_ptr<TH1D> ranger(new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, geom_max_eta_coverage));
+      std::unique_ptr<TH1D> ranger(new TH1D(std::string("HadTrackRangerIn"+trkName).c_str(),"Track efficiency with given fraction of hits ", 100, 0, SimParms::getInstance().getMaxEtaCoverage()));
       ranger->SetMaximum(1.);
       ranger->SetStats(kFALSE);
       ranger->GetXaxis()->SetTitle("#eta");
@@ -885,6 +885,12 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
       ostringstream tempSS;
       std::map<int, std::string> fractionTitles;
 
+      // Prepare eta regions to vector
+      std::vector<double> etaCuts;
+      for (auto& iCut : SimParms::getInstance().etaRegionRanges) {
+        etaCuts.push_back(iCut);
+      }
+
       for (auto i=0; i<m_hadronGoodTracksFraction[trkName].size(); ++i) {
 
         TGraph& myGraph = m_hadronGoodTracksFraction[trkName].at(i);
@@ -892,7 +898,7 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
         //double xx, yy;
         //myGraph.GetPoint(myGraph.GetN()-1, xx, yy);
         //std::cerr << "Last point (x,y) = ("<< xx <<", " << yy <<")" << std::endl;
-        averages[i] = average(myGraph, geom_range_eta_regions);
+        averages[i] = average(myGraph, etaCuts);
         closeGraph(myGraph);
         myGraph.SetFillColor(Palette::color(i+1));
         myGraph.Draw("same F");
@@ -929,11 +935,11 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
     cutsSummaryTable.setContent(2,0,"Max "+web_etaLetter+":");
 
     RootWTable* myTable = &cutsSummaryTable;
-    for (unsigned int iBorder=0; iBorder<geom_name_eta_regions.size()-1; ++iBorder) {
-      myTable->setContent(0,iBorder+1,geom_name_eta_regions[iBorder+1]);
-      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder];
+    for (unsigned int iBorder=0; iBorder<SimParms::getInstance().getNEtaRegions()-1; ++iBorder) {
+      myTable->setContent(0,iBorder+1,SimParms::getInstance().etaRegionNames[iBorder+1]);
+      label.str(""); label << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[iBorder];
       myTable->setContent(1,iBorder+1,label.str());
-      label.str(""); label << std::fixed << std::setprecision(1) << geom_range_eta_regions[iBorder+1];
+      label.str(""); label << std::fixed << std::setprecision(1) << SimParms::getInstance().etaRegionRanges[iBorder+1];
       myTable->setContent(2,iBorder+1,label.str());
     }
 
@@ -947,7 +953,8 @@ bool AnalyzerMatBudget::visualize(RootWSite& webSite)
 
   } // Trackers
 
-  return true;
+  m_isVisOK = true;
+  return m_isVisOK;
 }
 
 //

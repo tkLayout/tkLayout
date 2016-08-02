@@ -36,7 +36,7 @@ class AnalyzerOccupancy : public AnalyzerUnit {
   virtual ~AnalyzerOccupancy();
 
   //! Init variables
-  bool init(int nTracks) {return true;};
+  bool init(int nTracks) {m_isInitOK=true; return m_isInitOK;};
 
   //! Calculate occupancy & ideal pitch size
   bool analyze();

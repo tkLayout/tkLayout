@@ -41,6 +41,8 @@ SimParms::SimParms() :
  dipoleDPlResAt10TeV(     "dipoleDPlResAt10TeV"     , parsedOnly(), 0.1),
  dipoleXToX0(             "dipoleXToX0"             , parsedOnly(), 0.1),
  irradiationMapFiles(     "irradiationMapFiles"     , parsedAndChecked()),
+ etaRegionRanges(         "etaRegionRanges"         , parsedAndChecked()),
+ etaRegionNames(          "etaRegionNames"          , parsedAndChecked()),
  bFieldMapFile(           "bFieldMapFile"           , parsedOnly(), std::string("")),
  chargedMapFile(          "chargedMapFile"          , parsedOnly(), std::string("")),
  chargedMapLowThFile(     "chargedMapLowThFile"     , parsedOnly(), std::string("")),
@@ -90,6 +92,9 @@ void SimParms::crosscheck() {
     builtok(true);
     cleanup();
   } catch (PathfulException& pe) { pe.pushPath("SimParms"); throw; }
+
+  // Check that sizes of eta vectors: names & ranges are the same
+  if (etaRegionNames.size()!=etaRegionRanges.size()) throw PathfulException("Number of names assigned to individual eta regions don't correspond to number of defined eta regions, check the config file!" , "SimParms");
 }
 
 //

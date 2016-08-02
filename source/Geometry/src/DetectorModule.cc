@@ -56,7 +56,9 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyNode<
  serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
  frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
  hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
- supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+ supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1),
+ m_cntName(""),
+ m_cntId(0)
 {
   // Set the geometry config parameters
   this->myid(id);
@@ -113,7 +115,9 @@ DetectorModule::DetectorModule(int id, Decorated* decorated, const PropertyTree&
  serviceHybridWidth       ("serviceHybridWidth"       , parsedOnly(), 5),
  frontEndHybridWidth      ("frontEndHybridWidth"      , parsedOnly(), 5),
  hybridThickness          ("hybridThickness"          , parsedOnly(), 1),
- supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1)
+ supportPlateThickness    ("supportPlateThickness"    , parsedOnly(), 1),
+ m_cntName(""),
+ m_cntId(0)
 {
   // Set the geometry config parameters
   this->myid(id);
